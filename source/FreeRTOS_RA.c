@@ -56,13 +56,13 @@
 
 /*-----------------------------------------------------------*/
 
-/* A block time of 0 simply means "don't block". */
+/** A block time of 0 simply means "don't block". */
     #define raDONT_BLOCK                       ( ( TickType_t ) 0 )
 
-/* The default value for the IPv6-field 'ucVersionTrafficClass'. */
+/** The default value for the IPv6-field 'ucVersionTrafficClass'. */
     #define raDEFAULT_VERSION_TRAFFIC_CLASS    0x60U
 
-/* The default value for the IPv6-field 'ucHopLimit'. */
+/** The default value for the IPv6-field 'ucHopLimit'. */
     #define raDEFAULT_HOP_LIMIT                255U
 
 /*-----------------------------------------------------------*/
@@ -92,7 +92,7 @@
  * @brief Find a link-local address that is bound to a given interface.
  *
  * @param[in] pxInterface: The interface for which a link-local address is looked up.
- * @param[out] pxIPAddress: The IP address will be copied to this parameter.
+ * @param[out] pxAddress: The IP address will be copied to this parameter.
  *
  * @return pdPASS in case a link-local address was found, otherwise pdFAIL.
  */
@@ -126,7 +126,6 @@
  * @param[in] pxNetworkBuffer: The network buffer which can be used for this.
  * @param[in] pxIPAddress: The target address, normally ff02::2
  *
- * @return An enum which says whether to return the frame or to release it
  */
     void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                     IPv6_Address_t * pxIPAddress )
@@ -246,6 +245,14 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Read a received RA reply and return the prefix option from the packet.
+ *
+ * @param[in] pxNetworkBuffer: The buffer that contains the message.
+ *
+ * @returns Returns the ICMP prefix option pointer, pointing to its location in the
+ *          input RA reply message buffer.
+ */
     static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxIndex = 0U;
@@ -433,6 +440,17 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Handles the RA wait state and calculates the new timer reload value
+ *        based on the wait state. Also checks if any timer has expired. If its found that
+ *        there is no other device using the same IP-address vIPNetworkUpCalls() is called
+ *        to send the network up event.
+ *
+ * @param[in] pxEndPoint: The end point for which RA assignment is required.
+ * @param[out] uxReloadTime: Timer reload value in ticks.
+ *
+ * @return New timer reload value.
+ */
     static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_t * pxEndPoint,
                                                    TickType_t uxReloadTime )
     {
@@ -517,6 +535,14 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Handles the RA states other than the wait states.
+ *
+ * @param[in] pxEndPoint: The end point for which RA assignment is required.
+ * @param[out] uxReloadTime: Timer reload value in ticks.
+ *
+ * @return New timer reload value.
+ */
     static TickType_t xRAProcess_HandleOtherStates( NetworkEndPoint_t * pxEndPoint,
                                                     TickType_t uxReloadTime )
     {

@@ -27,8 +27,8 @@ void harness()
     xNetworkBuffer2.xDataLength = ucBUFFER_SIZE;
 
     /*
-    This proof assumes one end point is present.
-    */
+     * This proof assumes one end point is present.
+     */
     xNetworkBuffer2.pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( xNetworkBuffer2.pxEndPoint != NULL );
     xNetworkBuffer2.pxEndPoint->pxNext = NULL;

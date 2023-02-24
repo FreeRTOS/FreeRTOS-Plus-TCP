@@ -36,10 +36,10 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 void harness()
 {
     /*
-    For this proof, its assumed that the endpoints and interfaces are correctly
-    initialised and the pointers are set correctly.
-    Assumes two endpoints and interface is present.
-    */
+     * For this proof, its assumed that the endpoints and interfaces are correctly
+     * initialised and the pointers are set correctly.
+     * Assumes two endpoints and interface is present.
+     */
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
@@ -62,6 +62,6 @@ void harness()
 
     pxNetworkEndPoints->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
     /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
-    
+
     vARPAgeCache();
 }

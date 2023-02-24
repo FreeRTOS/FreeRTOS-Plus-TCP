@@ -128,6 +128,14 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Perform a dns lookup in the local cache (IPv6)
+ * @param pcHostName The lookup name
+ * @param pxAddress_IPv6 The IPv6 address looked up from the cache if the return value is non zero.
+ * @return ulReturn Non zero if name is found in cache else returns a zero if the
+ *         cache is not enabled or the lookup is not successful
+ * @post the global structure \a xDNSCache might be modified
+ */
     uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                                   IPv6_Address_t * pxAddress_IPv6 )
     {
@@ -154,8 +162,11 @@
 /**
  * @brief perform a dns update in the local cache
  * @param pcName the lookup name
- * @param pulIP the ip value to insert/replace
+ * @param pxIP the ip value to insert/replace (IPv4/v6)
  * @param ulTTL Time To live (in seconds)
+ * @param xLookUp Ignored
+ * @param ppxAddressInfo A pointer to a pointer where the find results
+ *                                will be stored.
  * @return this is a dummy return, we are actually ignoring the return value
  *         from this function
  * @post the global structure \a xDNSCache might be modified
@@ -300,7 +311,7 @@
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
  * @param[in] pxIP ip address
- * @param [out] xResult index number
+ * @param [out] uxResult index number
  * @returns res pdTRUE if index in found else pdFALSE
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
@@ -470,8 +481,8 @@
     #if ( ipconfigUSE_DNS_CACHE == 1 )
 
 /**
- * @brief Copy DNS cache entries at xIndex to a linked struct addrinfo.
- * @param[in] xIndex: The index from where entries must be copied.
+ * @brief Copy DNS cache entries at uxIndex to a linked struct addrinfo.
+ * @param[in] uxIndex: The index from where entries must be copied.
  * @param[out] ppxAddressInfo: Target to store the DNS entries.
  */
         static void prvReadDNSCache( BaseType_t uxIndex,
@@ -530,6 +541,15 @@
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
+
+/**
+ * @brief Lookup the given hostname in the DNS cache
+ * @param[in] pcHostName: THe host name to lookup
+ * @param[in] xFamily: IP type FREERTOS_AF_INET6 / FREERTOS_AF_INET4
+ * @param[out] ppxAddressInfo: Target to store the DNS entries.
+ * @returns This function returns either a valid IPv4 address, or
+ *                          in case of an IPv6 lookup, it will return a non-zero.
+ */
         uint32_t Prepare_CacheLookup( const char * pcHostName,
                                       BaseType_t xFamily,
                                       struct freertos_addrinfo ** ppxAddressInfo )

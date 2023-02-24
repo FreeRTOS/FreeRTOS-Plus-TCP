@@ -62,48 +62,73 @@
 
 #include "FreeRTOS_ND.h"
 
+/** @brief Default v6 DHCP client port. */
 #define DHCPv6_CLIENT_PORT    546U
+/** @brief Default v6 DHCP server port. */
 #define DHCPv6_SERVER_PORT    547U
 
 /* Timer parameters */
 #ifndef dhcpINITIAL_DHCP_TX_PERIOD
+    /** @brief DHCP timer period in ms */
     #define dhcpINITIAL_TIMER_PERIOD      ( pdMS_TO_TICKS( 250U ) )
+    /** @brief DHCP transmit period in ms */
     #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
 #endif
 
 /* IPv6 option numbers. */
-
-#define DHCPv6_message_Type_Solicit                1U
-#define DHCPv6_message_Type_Advertise              2U
-#define DHCPv6_message_Type_Request                3U
-#define DHCPv6_message_Type_Confirm                4U
-#define DHCPv6_message_Type_Renew                  5U
-#define DHCPv6_message_Type_Reply                  7U
-#define DHCPv6_message_Type_Release                8U
-#define DHCPv6_message_Type_Decline                9U
+/** @brief IPv6 DHCP option number - Solicit */
+#define DHCPv6_message_Type_Solicit      1U
+/** @brief IPv6 DHCP option number - Advertise */
+#define DHCPv6_message_Type_Advertise    2U
+/** @brief IPv6 DHCP option number - Request */
+#define DHCPv6_message_Type_Request      3U
+/** @brief IPv6 DHCP option number - Confirm */
+#define DHCPv6_message_Type_Confirm      4U
+/** @brief IPv6 DHCP option number - Renew  */
+#define DHCPv6_message_Type_Renew        5U
+/** @brief IPv6 DHCP option number - Reply */
+#define DHCPv6_message_Type_Reply        7U
+/** @brief IPv6 DHCP option number - Release */
+#define DHCPv6_message_Type_Release      8U
+/** @brief IPv6 DHCP option number - Decline */
+#define DHCPv6_message_Type_Decline      9U
 
 /* Note: IA stands for "Identity_Association". */
+/** @brief IPv6 DHCP option - Client Identifier */
 #define DHCPv6_Option_Client_Identifier            1U
+/** @brief IPv6 DHCP option - Server Identifier */
 #define DHCPv6_Option_Server_Identifier            2U
+/** @brief IPv6 DHCP option - Temporary Address */
 #define DHCPv6_Option_NonTemporaryAddress          3U
+/** @brief IPv6 DHCP option - Identity_Association Address */
 #define DHCPv6_Option_IA_Address                   5U
+/** @brief IPv6 DHCP option - Option */
 #define DHCPv6_Option_Option_List                  6U
+/** @brief IPv6 DHCP option - Preference */
 #define DHCPv6_Option_Preference                   7U
+/** @brief IPv6 DHCP option - Elapsed time */
 #define DHCPv6_Option_Elapsed_Time                 8U
+/** @brief IPv6 DHCP option - Status code */
 #define DHCPv6_Option_Status_Code                  13U
+/** @brief IPv6 DHCP option - Recursive name server */
 #define DHCPv6_Option_DNS_recursive_name_server    23U
+/** @brief IPv6 DHCP option - Search list */
 #define DHCPv6_Option_Domain_Search_List           24U
+/** @brief IPv6 DHCP option - IA for prefix delegation */
 #define DHCPv6_Option_IA_for_Prefix_Delegation     25U
+/** @brief IPv6 DHCP option - IA Prefix */
 #define DHCPv6_Option_IA_Prefix                    26U
 
-/** @brief The following codes are used in combination with 'DHCPv6_Option_Option_List' */
+/** @brief DHCPv6 option request, used in combination with 'DHCPv6_Option_Option_List' */
 #define DHCP6_OPTION_REQUEST_DNS                   0x0017
+/** @brief DHCPv6 option request domain search list, used in combination with 'DHCPv6_Option_Option_List' */
 #define DHCP6_OPTION_REQUEST_DOMAIN_SEARCH_LIST    0x0018
 
 /** @brief The following define is temporary and serves to make the /single source
  * code more similar to the /multi version. */
 
 #define EP_DHCPData                 pxEndPoint->xDHCPData
+/** @brief Macro to access the IPv6 settings from the pxEndPoint */
 #define EP_IPv6_SETTINGS            pxEndPoint->ipv6_settings
 
 /** @brief If a lease time is not received, use the default of two days.  48 hours in ticks.
@@ -182,8 +207,19 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief DHCP IPv6 message object
+ */
 static DHCPMessage_IPv6_t xDHCPMessage;
 
+/**
+ * @brief Get the DHCP state from a given endpoint.
+ *
+ * @param[in] pxEndPoint: The end-point for which vDHCPv6Process() is called.
+ *
+ * @return DHCP state of the given endpoint
+ *
+ */
 eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
 {
     configASSERT( pxEndPoint );
@@ -1107,6 +1143,7 @@ static void prvDHCPv6_subOption( uint16_t usOption,
 /**
  * @brief A DHCP packet has a list of options, each one starting with a type and a length
  *        field. This function parses a single DHCP option.
+ * @param[in] usOption: IPv6 DHCP option to be handled.
  * @param[in] pxSet: It contains the length and offset of the DHCP option.
  * @param[out] pxDHCPMessage: it will be filled with the information from the option.
  * @param[in] pxMessage: The raw packet as it was received.

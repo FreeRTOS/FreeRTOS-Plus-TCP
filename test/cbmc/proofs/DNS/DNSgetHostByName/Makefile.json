@@ -15,7 +15,7 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset strchr.0:{HOSTNAME_UNWIND}", 
+    "--unwindset strchr.0:{HOSTNAME_UNWIND}",
     "--unwindset prvIncreaseDNS4Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
     "--unwindset prvIncreaseDNS6Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
     "--unwindset prvFillSockAddress.0:2,prvFillSockAddress.1:2",

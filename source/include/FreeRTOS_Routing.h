@@ -324,9 +324,9 @@
     void vSetSocketEndpoint( Socket_t xSocket,
                              NetworkEndPoint_t * pxEndPoint );
 
-    const char* pcEndpointName( const NetworkEndPoint_t* pxEndPoint,
-        char* pcBuffer,
-        size_t uxSize );
+    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                                 char * pcBuffer,
+                                 size_t uxSize );
 
     typedef enum
     {

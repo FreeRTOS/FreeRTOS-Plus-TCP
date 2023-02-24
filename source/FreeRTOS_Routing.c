@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_Routing.c
+ * @brief Implements endpoint interfaces functions and utilities.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -57,13 +62,18 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
 static NetworkEndPoint_t * FreeRTOS_AddEndPoint( NetworkInterface_t * pxInterface,
                                                  NetworkEndPoint_t * pxEndPoint );
 
+/** @brief A util struct to list the IPv6 IP types, prefix and type bit mask */
 struct xIPv6_Couple
 {
-    IPv6_Type_t eType;
-    uint16_t usMask;
-    uint16_t usExpected;
+    IPv6_Type_t eType;   /**< IPv6 IP type enum */
+    uint16_t usMask;     /**< IPv6 IP type bit mask */
+    uint16_t usExpected; /**< IPv6 IP type prefix */
 };
 
+/**
+ * @brief Util data structure to hold the bit mask and value/ID of the different
+ * IPv6 address types.
+ */
 static const struct xIPv6_Couple xIPCouples[] =
 {
 /*    IP-type          Mask     Value */
@@ -81,12 +91,11 @@ static const struct xIPv6_Couple xIPCouples[] =
  * @param[in] pxNetworkInterface: The interface to which it belongs.
  * @param[in] pxEndPoint: Space for the new end-point. This memory is dedicated for the
  *                        end-point and should not be freed or get any other purpose.
- * @param[in] pxIPAddress: The IP-address.
- * @param[in] pxNetPrefix: The prefix which shall be used for this end-point.
- * @param[in] uxPrefixLength: The length of the above end-point.
- * @param[in] pxGatewayAddress: The IP-address of a device on the LAN which can serve as
+ * @param[in] ucIPAddress: The IP-address.
+ * @param[in] ucNetMask: The prefix which shall be used for this end-point.
+ * @param[in] ucGatewayAddress: The IP-address of a device on the LAN which can serve as
  *                              as a gateway to the Internet.
- * @param[in] pxDNSServerAddress: The IP-address of a DNS server.
+ * @param[in] ucDNSServerAddress: The IP-address of a DNS server.
  * @param[in] ucMACAddress: The MAC address of the end-point.
  */
 void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
@@ -372,6 +381,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @brief Find the end-point which has a given IPv4 address.
  *
  * @param[in] ulIPAddress: The IP-address of interest, or 0 if any IPv4 end-point may be returned.
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_FindEndPointOnIP_IPv4()'
+ *                     has been called from a particular location. Used only if
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return The end-point found or NULL.
  */
@@ -489,6 +502,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @brief Find an end-point that handles a given IPv4-address.
  *
  * @param[in] ulIPAddress: The IP-address for which an end-point is looked-up.
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()'
+ *                     has been called from a particular location. Used only if
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
@@ -506,6 +523,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @param[in] pxInterface: Only end-points that have this interface are returned, unless
  *                         pxInterface is NULL.
  * @param[in] ulIPAddress: The IP-address for which an end-point is looked-up.
+ *
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()'
+ *                     has been called from a particular location. Used only if
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
@@ -673,10 +695,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /**
  * @brief Check IP-type, IP- and MAC-address found in the network packet.
  */
-    #define rMATCH_MAC_ADDR    0 /* Find an endpoint with a matching MAC-address. */
-    #define rMATCH_IP_TYPE     1 /* Find an endpoint with a matching IP-type, v4 or v6. */
-    #define rMATCH_IP_ADDR     2 /* Find an endpoint with a matching IP-address. */
-    #define rMATCH_COUNT       3 /* The number of methods. */
+    #define rMATCH_MAC_ADDR    0 /**< Find an endpoint with a matching MAC-address. */
+    #define rMATCH_IP_TYPE     1 /**< Find an endpoint with a matching IP-type, v4 or v6. */
+    #define rMATCH_IP_ADDR     2 /**< Find an endpoint with a matching IP-address. */
+    #define rMATCH_COUNT       3 /**< The number of methods. */
 
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
@@ -684,6 +706,17 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                    const IP_Address_t * pxIPAddressTo,
                                    const MACAddress_t * pxMACAddress );
 
+/**
+ * @brief Find an end-point that handles an incoming packet based on its type, source/destination & MAC address.
+ *
+ * @param[in] pxNetworkInterface: The interface via which the packet was received.
+ * @param[in] usFrameType: Frame type of the packet.
+ * @param[in] pxIPAddressFrom: Source IP address of the packet.
+ * @param[in] pxIPAddressTo: Destination IP address of the packet.
+ * @param[in] pxMACAddress: Destination MAC address of the packet.
+ *
+ * @return An end-point that handles the packet.
+ */
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
                                    const IP_Address_t * pxIPAddressFrom,
@@ -1026,6 +1059,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Returns the IP type of the given IPv6 address.
+ *
+ * @param[in] pxAddress: The IPv6 address whose type needs to be returned.
+ * @returns The IP type of the given address.
+ */
     IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
     {
         IPv6_Type_t eResult = eIPv6_Unknown;
@@ -1081,6 +1120,16 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Returns the string representation of the IP address of the end point.
+ *
+ * @param[in] pxEndPoint: End point for which IP address needs to be returned.
+ * @param[in] pcBuffer: A char buffer of required size to which the string will be written.
+ * @param[in] uxSize: Size of the char buffer - pcBuffer.
+ *
+ * @returns The pointer to the char buffer that contains the string representation of the end point IP address.
+ *          The string will be "NULL" if the end point pointer is NULL.
+ */
     const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
                                  char * pcBuffer,
                                  size_t uxSize )

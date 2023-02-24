@@ -62,16 +62,16 @@ void harness()
     NetworkBufferDescriptor_t xNetworkBuffer2;
 
     xNetworkBuffer2.pucEthernetBuffer = xBuffer;
-    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE + sizeof(ARPPacket_t);
+    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE + sizeof( ARPPacket_t );
 
     /*
-    This proof assumes one end point is present.
-    */
+     * This proof assumes one end point is present.
+     */
     xNetworkBuffer2.pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( xNetworkBuffer2.pxEndPoint != NULL );
     xNetworkBuffer2.pxEndPoint->pxNext = NULL;
 
     /* eARPProcessPacket will be called in the source code only after checking if
-    xNetworkBuffer2.pucEthernetBuffer is not NULL, hence, __CPROVER_assume( xBuffer != NULL );   */
+     * xNetworkBuffer2.pucEthernetBuffer is not NULL, hence, __CPROVER_assume( xBuffer != NULL );   */
     eARPProcessPacket( &xNetworkBuffer2 );
 }

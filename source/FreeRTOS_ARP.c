@@ -132,7 +132,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
 /**
  * @brief Process the ARP packets.
  *
- * @param[in] pxARPFrame: The ARP Frame (the ARP packet).
+ * @param[in] pxNetworkBuffer: : The network buffer with the packet to be processed.
  *
  * @return An enum which says whether to return the frame or to release it.
  */
@@ -324,7 +324,6 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
  * @param[in] pxTargetEndPoint: the end-point that handles the peer's address.
  * @param[in] ulSenderProtocolAddress: the IP-address of the sender.
  *
- * @return An enum which says whether to return the frame or to release it.
  */
 static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
                                       NetworkEndPoint_t * pxTargetEndPoint,
@@ -862,6 +861,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
  * @param[in,out] pulIPAddress: Pointer to the IP-address to be queried to the ARP cache.
  * @param[in,out] pxMACAddress: Pointer to a MACAddress_t variable where the MAC address
  *                          will be stored, if found.
+ * @param[out] ppxEndPoint: Pointer to the end-point of the gateway will be stored.
  *
  * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
  *         refresh the ARP cache entry's age, and return eARPCacheHit. If the IP

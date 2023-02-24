@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_IP.c
+ * @file FreeRTOS_IPv4.c
  * @brief Implements the basic functionality for the FreeRTOS+TCP network stack.
  */
 
