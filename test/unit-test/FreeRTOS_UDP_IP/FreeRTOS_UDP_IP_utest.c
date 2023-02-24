@@ -433,7 +433,6 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_DelayedDNSResponse( void )
 
     /* No socket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
-    pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, &xEndPoint );
     ulDNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
@@ -476,7 +475,6 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse( void )
 
     /* No socket found. */
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
-    pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, &xEndPoint );
     ulDNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
@@ -517,7 +515,6 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_LLMNRResponse_MismatchingP
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_ntohs( ipLLMNR_PORT );
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
-    pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, &xEndPoint );
     ulDNSHandlePacket_ExpectAndReturn( &xLocalNetworkBuffer, pdPASS );
@@ -556,7 +553,6 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse( void )
     pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_ntohs( ipNBNS_PORT );
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, &xEndPoint );
@@ -597,7 +593,6 @@ void test_xProcessReceivedUDPPacket_NoListeningSocket_NBNSResponse_MismatchingPo
     pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_ntohs( ipNBNS_PORT );
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
     pxUDPSocketLookup_ExpectAndReturn( usPort, NULL );
 
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, &xEndPoint );
@@ -645,7 +640,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull( void )
     /* No socket handler listed for UDP packets. */
     xLocalSocket.u.xUDP.pxHandleReceive = NULL;
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
@@ -697,7 +691,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull1( void )
     xLocalSocket.u.xUDP.pxHandleReceive = NULL;
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( 1 );
 
@@ -748,7 +741,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_NoEventGroupSocketSetU
     xLocalSocket.pxSocketSet = NULL;
     xLocalSocket.pxUserSemaphore = NULL;
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
@@ -806,7 +798,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     xLocalSocket.pxSocketSet = NULL;
     xLocalSocket.pxUserSemaphore = ( void * ) 1;
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
@@ -867,7 +858,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     xLocalSocket.pxSocketSet = ( void * ) 1;
     xLocalSocket.pxUserSemaphore = ( void * ) 1;
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
@@ -932,7 +922,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     /* Put in valid bits. */
     xLocalSocket.xSelectBits = eSELECT_READ;
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
@@ -1000,7 +989,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnZero_ValidEven
     xFunctionReturn = 0;
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );
     vARPRefreshCacheEntry_Expect( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress, &xEndPoint );
@@ -1066,7 +1054,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_ARPResolutionRequired( void )
     xFunctionReturn = 0;
 
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -1117,7 +1104,6 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnNonZero( void 
     /* Return a non-zero value. */
     xFunctionReturn = 1;
 
-    pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
     pxUDPSocketLookup_ExpectAndReturn( usPort, &xLocalSocket );
 
     xCheckRequiresARPResolution_ExpectAnyArgsAndReturn( pdFALSE );

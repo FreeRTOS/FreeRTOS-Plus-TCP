@@ -449,7 +449,11 @@
 /**
  * @brief Get the IP-address corresponding to the given hostname.
  * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @param[in] pCallback: The callback function which will be called upon DNS response.
+ * @param[in] pCallback: The callback function which will be called upon DNS response. It will be called 
+ *                       with pcHostName, pvSearchID and pxAddressInfo which points to address info.
+ *                       The pxAddressInfo should be freed by the application once the callback 
+ *                       has been called by the FreeRTOS_freeaddrinfo(). 
+ *                       In case of timeouts pxAddressInfo can be NULL.  
  * @param[in] pvSearchID: Search ID for the callback function.
  * @param[in] uxTimeout: Timeout for the callback function.
  * @return The IP-address corresponding to the hostname. 0 is returned in case of
