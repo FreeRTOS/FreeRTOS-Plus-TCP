@@ -507,46 +507,46 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( v
     }
 }
 
-// void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void )
-// {
-//     struct xSOCKET xTestSocket;
-//     NetworkEndPoint_t xEndPoint = {0}, * pxEndPoint = &xEndPoint;
+void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint = {0}, * pxEndPoint = &xEndPoint;
 
-//     memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
-//     /* Test all the valid and invalid entries. */
-//     for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
-//     {
-//         /* This should get assigned to a given value. */
-//         xDHCPv4Socket = NULL;
-//         /* Put any state. */
-//         pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
-//         pxEndPoint->xDHCPData.eExpectedState = i;
-//         /* This should be reset to 0. */
-//         pxEndPoint->xDHCPData.xUseBroadcast = 1;
-//         /* This should be reset as well */
-//         pxEndPoint->xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
-//         /* And this too. */
-//         pxEndPoint->xDHCPData.ulDHCPServerAddress = 0xABABABAB;
+    /* Test all the valid and invalid entries. */
+    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    {
+        /* This should get assigned to a given value. */
+        xDHCPv4Socket = NULL;
+        /* Put any state. */
+        pxEndPoint->xDHCPData.eDHCPState = eSendDHCPRequest;
+        pxEndPoint->xDHCPData.eExpectedState = i;
+        /* This should be reset to 0. */
+        pxEndPoint->xDHCPData.xUseBroadcast = 1;
+        /* This should be reset as well */
+        pxEndPoint->xDHCPData.ulOfferedIPAddress = 0xAAAAAAAA;
+        /* And this too. */
+        pxEndPoint->xDHCPData.ulDHCPServerAddress = 0xABABABAB;
 
 
-//         /* Make random number generation pass. */
-//         xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdTRUE );
-//         /* Return a valid socket. */
-//         FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
+        /* Make random number generation pass. */
+        xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint->xDHCPData.ulTransactionId ), pdTRUE );
+        /* Return a valid socket. */
+        FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
 
-//         xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
-//         xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+        xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+        xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
 
-//         /* Ignore the inputs to setting the socket options. */
-//         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
-//         FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
-//         /* Make sure that binding fails. Return anything except zero. */
-//         vSocketBind_ExpectAnyArgsAndReturn( pdTRUE );
+        /* Ignore the inputs to setting the socket options. */
+        FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
+        FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
+        /* Make sure that binding fails. Return anything except zero. */
+        vSocketBind_ExpectAnyArgsAndReturn( pdTRUE );
 
-//         catch_assert( vDHCPProcess( pdTRUE, pxEndPoint ) );
-//     }
-// }
+        catch_assert( vDHCPProcess( pdTRUE, pxEndPoint ) );
+    }
+}
 
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
 {
