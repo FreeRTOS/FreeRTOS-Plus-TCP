@@ -856,6 +856,8 @@ void test_eARPProcessPacket_Reply_DifferentIP_WaitingBufferNonNull( void )
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+
     eResult = eARPProcessPacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -910,6 +912,8 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress1( void )
     vReleaseNetworkBufferAndDescriptor_Ignore();
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+
     eResult = eARPProcessPacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     TEST_ASSERT_EQUAL( NULL, pxARPWaitingNetworkBuffer );
@@ -963,6 +967,8 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress2( void )
 
     xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     eResult = eARPProcessPacket( &xNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -1061,6 +1067,8 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork( void )
     /* Make sure there is no match. */
     pxIPHeader->ulSourceIPAddress = ~( *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask );
 
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+
     xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
@@ -1095,6 +1103,8 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
     {
         xARPCache[ x ].ulIPAddress = 0;
     }
+
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
 
@@ -1136,6 +1146,8 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
         xARPCache[ x ].ulIPAddress = pxIPHeader->ulSourceIPAddress;
         xARPCache[ x ].ucValid = ( uint8_t ) pdTRUE;
     }
+
+    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
 
     xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
 
