@@ -786,9 +786,12 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks,
                                      uint8_t ucIPType )
 {
+
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn;
     TickType_t uxBlockTime = uxBlockTimeTicks;
+    size_t uxPayloadOffset = 0;
+    BaseType_t xPayloadIPTypeOffset;
 
     /* Cap the block time.  The reason for this is explained where
      * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined (assuming an official
@@ -798,35 +801,35 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    /* Obtain a network buffer with the required amount of storage. */
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTime );
-
-    if( pxNetworkBuffer != NULL )
+    if(ucIPType == ipTYPE_IPv6)
     {
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) /*TODO seems incorrect */
+        uxPayloadOffset = sizeof( UDPPacket_IPv6_t );
+        size_t uxIndex = ipUDP_PAYLOAD_IPv6_TYPE_OFFSET;
+        xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
+    }
+    else if(ucIPType == ipTYPE_IPv4)
+    {
+        uxPayloadOffset = sizeof( UDPPacket_t );
+        size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+        xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
+    }
+    else
+    {
+        /* Shouldn't reach here. */
+    }
+
+    if(uxPayloadOffset != 0) 
+    {
+        /* Obtain a network buffer with the required amount of storage. */
+        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPayloadOffset + uxRequestedSizeBytes, uxBlockTime );
+    
+        if(pxNetworkBuffer != 0)
         {
-            uint8_t * pucIPType;
-            size_t uxIPHeaderLength;
-
-            /* Calculate the distance between the beginning of
-             * UDP payload until the hidden byte that reflects
-             * the IP-type: either ipTYPE_IPv4 or ipTYPE_IPv6.
-             */
-            size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-            BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
-
-            if( ucIPType == ipTYPE_IPv6 )
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
-            }
-            else
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
-            }
 
             /* Skip 3 headers. */
-            pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER ] );
-
+            pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
+            
+            uint8_t * pucIPType;
             /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
              * Store the packet type at 48 bytes before the start of the UDP payload. */
             pucIPType = ( uint8_t * ) pvReturn;
@@ -839,10 +842,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         }
         else
         {
-            /* Set the actual packet size in case a bigger buffer was returned. */
-            pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t ) + uxRequestedSizeBytes;
-            /* Skip 3 headers. */
-            pvReturn = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
+            pvReturn = NULL;
         }
     }
     else
@@ -850,7 +850,9 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         pvReturn = NULL;
     }
 
+
     return ( void * ) pvReturn;
+
 }
 /*-----------------------------------------------------------*/
 
