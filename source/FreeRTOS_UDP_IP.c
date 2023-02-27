@@ -131,7 +131,6 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 {
     /* Returning pdPASS means that the packet was consumed, released. */
     BaseType_t xReturn = pdFAIL;
-    const FreeRTOS_Socket_t * pxSocket;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );

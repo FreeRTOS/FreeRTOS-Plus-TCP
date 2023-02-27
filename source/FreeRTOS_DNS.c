@@ -326,7 +326,6 @@
     {
         struct freertos_addrinfo * pxNext;
         struct freertos_addrinfo * pxIterator = pxInfo;
-        const struct freertos_addrinfo * pxLastInfo = NULL;
 
         if( pxInfo != NULL )
         {

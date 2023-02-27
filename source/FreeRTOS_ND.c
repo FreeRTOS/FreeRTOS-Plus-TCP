@@ -1022,6 +1022,7 @@
                        BaseType_t xCompare;
                        NetworkEndPoint_t * pxEndPointFound = FreeRTOS_FindEndPointOnIP_IPv6( &( pxICMPHeader_IPv6->xIPv6Address ) );
                        char pcName[ 40 ];
+                       ( void ) pcName;
                        FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",
                                           pxICMPHeader_IPv6->xIPv6Address.ucBytes,
                                           pcEndpointName( pxEndPointFound, pcName, sizeof( pcName ) ) ) );

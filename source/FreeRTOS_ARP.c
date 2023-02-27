@@ -518,6 +518,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
                 eARPLookupResult_t eResult;
                 char pcName[ 80 ];
 
+                ( void ) pcName;
                 eResult = eNDGetCacheEntry( pxIPAddress, &xMACAddress, &pxEndPoint );
                 FreeRTOS_printf( ( "xCheckRequiresARPResolution: eResult %s with EP %s\n", ( eResult == eARPCacheMiss ) ? "Miss" : ( eResult == eARPCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
 
