@@ -719,6 +719,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         BaseType_t xGatewayTarget = pdFALSE;
         BaseType_t xTargetGlobal = pdFALSE;
 
+        ( void ) pxIPAddressFrom;
+
         if( xIsIPv6 == pdTRUE )
         {
             /* Generic GW address fe80::1. */
@@ -1139,6 +1141,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         if( pxEndPoint == NULL )
         {
+            /* MISRA Ref 21.6.1 [snprintf and logging] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+            /* coverity[misra_c_2012_rule_21_6_violation] */
             ( void ) snprintf( pcBuffer, uxSize, "NULL" );
         }
         else
