@@ -791,7 +791,6 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
     void * pvReturn;
     TickType_t uxBlockTime = uxBlockTimeTicks;
     size_t uxPayloadOffset = 0;
-    BaseType_t xPayloadIPTypeOffset;
 
     /* Cap the block time.  The reason for this is explained where
      * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined (assuming an official
@@ -801,31 +800,31 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    if(ucIPType == ipTYPE_IPv6)
+    if( ucIPType == ipTYPE_IPv6 )
     {
         uxPayloadOffset = sizeof( UDPPacket_IPv6_t );
-        size_t uxIndex = ipUDP_PAYLOAD_IPv6_TYPE_OFFSET;
-        xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
     }
-    else if(ucIPType == ipTYPE_IPv4)
+    else if( ucIPType == ipTYPE_IPv4 )
     {
         uxPayloadOffset = sizeof( UDPPacket_t );
-        size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-        xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
     }
     else
     {
         /* Shouldn't reach here. */
+        configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
     }
 
-    if(uxPayloadOffset != 0) 
+    if( uxPayloadOffset != 0 ) 
     {
         /* Obtain a network buffer with the required amount of storage. */
         pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPayloadOffset + uxRequestedSizeBytes, uxBlockTime );
-    
-        if(pxNetworkBuffer != 0)
+
+        if( pxNetworkBuffer != 0 )
         {
 
+            size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
+            
             /* Skip 3 headers. */
             pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
             
