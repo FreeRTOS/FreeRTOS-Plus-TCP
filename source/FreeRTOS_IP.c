@@ -824,6 +824,9 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
 
             size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
+
+            /* Set the actual packet size in case a bigger buffer was returned. */
+            pxNetworkBuffer->xDataLength = uxPayloadOffset + uxRequestedSizeBytes;
             
             /* Skip 3 headers. */
             pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
