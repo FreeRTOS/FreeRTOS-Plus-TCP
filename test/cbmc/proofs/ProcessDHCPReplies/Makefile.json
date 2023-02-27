@@ -10,6 +10,7 @@
 # Buffer header: sizeof(DHCPMessage_t) = 241
 # Buffer header: sizeof(DHCPMessage_IPv4_t) = 240
   "BUFFER_HEADER": 240,
+  "ENDPOINT_DNS_ADDRESS_COUNT": 5,
 
 ################################################################
 # Buffer size
@@ -20,15 +21,21 @@
 ################################################################
 # Buffer payload
   "BUFFER_PAYLOAD": "__eval 1 if {BUFFER_SIZE} <= {BUFFER_HEADER} else {BUFFER_SIZE} - {BUFFER_HEADER} + 1",
+  "ENDPOINT_DNS_ADDRESS_COUNT_UNWIND": "__eval {ENDPOINT_DNS_ADDRESS_COUNT} + 1",
 
 ################################################################
 
   "CBMCFLAGS": [
       # "--nondet-static",
       "--unwind 1",
-      "--unwindset memcmp.0:7,prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
+      "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
+      "--unwindset __CPROVER_file_local_FreeRTOS_DHCP_c_vProcessHandleOption.1:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
+      "--unwindset memcmp.0:7,__CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies.0:{BUFFER_PAYLOAD}"
   ],
-
+  "OPT":
+  [
+    "--export-file-local-symbols"
+  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
@@ -43,6 +50,7 @@
   "DEF":
   [
     "CBMC_DHCPMESSAGE_HEADER_SIZE={BUFFER_HEADER}",
-    "CBMC_FREERTOS_RECVFROM_BUFFER_BOUND={BUFFER_SIZE}"
+    "CBMC_FREERTOS_RECVFROM_BUFFER_BOUND={BUFFER_SIZE}",
+    "ipconfigENDPOINT_DNS_ADDRESS_COUNT={ENDPOINT_DNS_ADDRESS_COUNT}"
   ]
 }

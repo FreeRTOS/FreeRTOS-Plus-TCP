@@ -48,8 +48,7 @@ extern List_t xBoundUDPSocketsList;
     extern List_t xBoundTCPSocketsList;
 #endif /* ipconfigUSE_TCP == 1 */
 
-IOCounters_t xInputCounters = { 0U };
-IOCounters_t xOutputCounters = { 0U };
+IOCounters_t xInputCounters, xOutputCounters;
 
 BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
 {
@@ -62,7 +61,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
     memset( pxMetrics, 0, sizeof *pxMetrics );
 
     pxMetrics->xInput = xInputCounters;
-    pxMetrics->xOutput = xOutputCounters;
+    pxMetrics->XOutput = xOutputCounters;
 
     if( !listLIST_IS_INITIALISED( &xBoundUDPSocketsList ) )
     {
@@ -103,7 +102,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
                             size_t uxCount = pxMetrics->xTCPSocketList.uxCount;
 
                             pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usLocalPort = pxSocket->usLocalPort;
-                            pxMetrics->xTCPSocketList.xTCPList[ uxCount ].ulRemoteIP = pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4;
+                            pxMetrics->xTCPSocketList.xTCPList[ uxCount ].ulRemoteIP = pxSocket->u.xTCP.ulRemoteIP;
                             pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usRemotePort = pxSocket->u.xTCP.usRemotePort;
                             pxMetrics->xTCPSocketList.uxCount++;
                         }
@@ -154,8 +153,8 @@ void vShowMetrics( const MetricsType_t * pxMetrics )
                        pxMetrics->xInput.uxPacketCount,
                        pxMetrics->xInput.uxByteCount ) );
     FreeRTOS_printf( ( "    Output : %5lu packets, %5lu bytes\n",
-                       pxMetrics->xOutput.uxPacketCount,
-                       pxMetrics->xOutput.uxByteCount ) );
+                       pxMetrics->XOutput.uxPacketCount,
+                       pxMetrics->XOutput.uxByteCount ) );
 
     #if ( ipconfigUSE_TCP == 1 )
         {

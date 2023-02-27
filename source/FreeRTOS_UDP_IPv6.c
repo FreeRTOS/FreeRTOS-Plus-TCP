@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_UDP_IP.c
+ * @file FreeRTOS_UDP_IPv6.c
  * @brief This file has the source code for the UDP-IP functionality of the FreeRTOS+TCP
  *        network stack.
  */
@@ -75,6 +75,15 @@
  * either 'ipTYPE_IPv4' or 'ipTYPE_IPv6' */
 extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType );
 
+/**
+ * @brief Get the first end point of the type (IPv4/IPv6) from the list
+ *        the list of end points.
+ *
+ * @param[in] xIPType: IT type (ipTYPE_IPv6/ipTYPE_IPv4)
+ *
+ * @returns Pointer to the first end point of the given IP type from the
+ *          list of end points.
+ */
 NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
 {
     NetworkEndPoint_t * pxEndPoint;
@@ -109,7 +118,7 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
  *
  * @param[in] pxNetworkBuffer : The network buffer carrying the UDP or ICMP packet.
  *
- * @param[out] pxLostBuffer : The pointee will be set to true in case the network packet got released
+ * @param[out] pxLostBuffer : The pointer will be set to true in case the network packet got released
  *                            ( the ownership was taken ).
  */
 static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
@@ -196,7 +205,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     NetworkInterface_t * pxInterface = NULL;
     EthernetHeader_t * pxEthernetHeader = NULL;
     BaseType_t xLostBuffer = pdFALSE;
-    NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
     IPv6_Address_t xIPv6Address;
 
     /* Map the UDP packet onto the start of the frame. */
@@ -214,7 +223,8 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     #if ipconfigSUPPORT_OUTGOING_PINGS == 1
         if( pxNetworkBuffer->usPort == ( uint16_t ) ipPACKET_CONTAINS_ICMP_DATA )
         {
-            uxPayloadSize = pxNetworkBuffer->xDataLength - sizeof( ICMPPacket_IPv6_t );
+            size_t uxHeadersSize = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + sizeof( ICMPHeader_t );
+            uxPayloadSize = pxNetworkBuffer->xDataLength - uxHeadersSize;
         }
         else
     #endif
@@ -269,6 +279,13 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                 pxUDPHeader->usSourcePort = pxNetworkBuffer->usBoundPort;
                 pxUDPHeader->usLength = FreeRTOS_htons( pxUDPHeader->usLength );
                 pxUDPHeader->usChecksum = 0U;
+
+                if( pxNetworkBuffer->pxEndPoint != NULL )
+                {
+                    ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                     pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                     ipSIZE_OF_IPv6_ADDRESS );
+                }
             }
 
             /* memcpy() the constant parts of the header information into
@@ -285,13 +302,6 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
              * and
              *  xIPHeader.usHeaderChecksum
              */
-
-            if( pxNetworkBuffer->pxEndPoint != NULL )
-            {
-                ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                 pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                 ipSIZE_OF_IPv6_ADDRESS );
-            }
 
             /* Save options now, as they will be overwritten by memcpy */
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
@@ -413,12 +423,17 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                                            uint16_t usPort,
                                            BaseType_t * pxIsWaitingForARPResolution )
 {
+    /* Returning pdPASS means that the packet was consumed, released. */
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-    const UDPPacket_IPv6_t * pxUDPPacket_IPv6;
+
+    /* When refreshing the ARP/ND cache with received UDP packets we must be
+     * careful;  hundreds of broadcast messages may pass and if we're not
+     * handling them, no use to fill the cache with those IP addresses. */
+    const UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
@@ -429,23 +444,18 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     {
         if( pxSocket != NULL )
         {
-            if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
+            if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
             {
-                /* When refreshing the ARP/ND cache with received UDP packets we must be
-                 * careful;  hundreds of broadcast messages may pass and if we're not
-                 * handling them, no use to fill the ARP cache with those IP addresses. */
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                vNDRefreshCacheEntry( &( pxUDPPacket_IPv6->xEthernetHeader.xSourceAddress ), &( pxUDPPacket_IPv6->xIPHeader.xSourceAddress ),
-                                      pxNetworkBuffer->pxEndPoint );
+                /* Mark this packet as waiting for ARP resolution. */
+                *pxIsWaitingForARPResolution = pdTRUE;
+
+                /* Return a fail to show that the frame will not be processed right now. */
+                xReturn = pdFAIL;
+                break;
             }
-            else
-            {
-                /* During DHCP, IP address is not assigned and therefore ARP verification
-                 * is not possible. */
-            }
+
+            vNDRefreshCacheEntry( &( pxUDPPacket_IPv6->xEthernetHeader.xSourceAddress ), &( pxUDPPacket_IPv6->xIPHeader.xSourceAddress ),
+                                  pxNetworkBuffer->pxEndPoint );
 
             #if ( ipconfigUSE_CALLBACKS == 1 )
                 {

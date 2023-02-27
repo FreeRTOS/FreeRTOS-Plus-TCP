@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Transmission.c
+ * @file FreeRTOS_TCP_Transmission_IPV4.c
  * @brief Module which prepares the packet to be sent through
  * a socket for FreeRTOS+TCP.
  * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
@@ -494,10 +494,21 @@
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =
-                    ( uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
+                    ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
 
+                uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
                 pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
                 pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+
+                if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
+                {
+                    /* A synchronize packet is received. It counts as 1 pseudo byte of data,
+                     * so increase the variable with 1. Before sending a reply, the values of
+                     * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
+                    uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
+                    ulSequenceNumber++;
+                    pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
+                }
 
                 prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );
             }

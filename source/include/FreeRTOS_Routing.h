@@ -324,6 +324,10 @@
     void vSetSocketEndpoint( Socket_t xSocket,
                              NetworkEndPoint_t * pxEndPoint );
 
+    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                                 char * pcBuffer,
+                                 size_t uxSize );
+
     typedef enum
     {
         eIPv6_Global,    /* 001           */
@@ -340,6 +344,10 @@
  * @return A value from enum IPv6_Type_t.
  */
     IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+
+    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                                 char * pcBuffer,
+                                 size_t uxSize );
 
     #ifdef __cplusplus
         } /* extern "C" */

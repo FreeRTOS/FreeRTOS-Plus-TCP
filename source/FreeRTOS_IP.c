@@ -1606,6 +1606,14 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     {
         eReturn = eReleaseBuffer;
     }
+    else if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+             ( ipFIRST_LOOPBACK_IPv4 <= ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) ) &&
+             ( ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) < ipLAST_LOOPBACK_IPv4 ) )
+    {
+        /* The local loopback addresses must never appear outside a host. See RFC 1122
+         * section 3.2.1.3. */
+        eReturn = eReleaseBuffer;
+    }
     else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
              ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
@@ -1764,31 +1772,32 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
              * entry. */
             if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
             {
-                /* Refresh the ARP cache with the IP/MAC-address of the received
-                 *  packet.  For UDP packets, this will be done later in
-                 *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                 *  will be handled.  This will prevent the ARP cache getting
-                 *  overwritten with the IP address of useless broadcast packets. */
-                if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
-                }
-                else
-
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
                     eReturn = eWaitingARPResolution;
                 }
                 else
                 {
-                    /* IP address is not on the same subnet, ARP table can be updated.
-                     * Refresh the ARP cache with the IP/MAC-address of the received
-                     *  packet. For UDP packets, this will be done later in
+                    /* Refresh the ARP cache with the IP/MAC-address of the received
+                     *  packet.  For UDP packets, this will be done later in
                      *  xProcessReceivedUDPPacket(), as soon as it's know that the message
                      *  will be handled.  This will prevent the ARP cache getting
-                     *  overwritten with the IP address of useless broadcast packets.
-                     */
-                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                     *  overwritten with the IP address of useless broadcast packets. */
+                    if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                    {
+                        vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
+                    }
+                    else
+                    {
+                        /* IP address is not on the same subnet, ARP table can be updated.
+                         * Refresh the ARP cache with the IP/MAC-address of the received
+                         *  packet. For UDP packets, this will be done later in
+                         *  xProcessReceivedUDPPacket(), as soon as it's know that the message
+                         *  will be handled.  This will prevent the ARP cache getting
+                         *  overwritten with the IP address of useless broadcast packets.
+                         */
+                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    }
                 }
             }
 

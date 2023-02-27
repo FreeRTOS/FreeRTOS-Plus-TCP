@@ -61,18 +61,41 @@ void * pvPortMalloc( size_t xWantedSize )
  * for releasing the buffer to the end. Apart from that, it is up to the vendor,
  * how to write this code out to the network.
  */
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t bReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
-    if( bReleaseAfterSend != pdFALSE )
+    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
+
+    if( xReleaseAfterSend != pdFALSE )
     {
-        vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
     }
 }
+
 
 void harness()
 {
     BaseType_t xRes = xNetworkBuffersInitialise();
+
+    /*
+     * For this proof, its assumed that the endpoints and interfaces are correctly
+     * initialised and the pointers are set correctly.
+     * Assumes one endpoint and interface is present.
+     */
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    pxNetworkEndPoints->pxNext = NULL;
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    pxNetworkEndPoints->pxNetworkInterface->pxNext = NULL;
+
+    pxNetworkEndPoints->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
+    /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
 
     if( xRes == pdPASS )
     {

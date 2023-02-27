@@ -24,8 +24,15 @@
 * Signature of function under test
 ****************************************************************/
 
-BaseType_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                                                                   const NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+int32_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                                              size_t uxTotalLength,
+                                                                              FreeRTOS_Socket_t * const pxSocket,
+                                                                              BaseType_t xHasSYNFlag );
 
 /****************************************************************
 * Declare the buffer size external to the harness so it can be
@@ -33,15 +40,16 @@ BaseType_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvCheckOptions( FreeRTOS_Sock
 * give the buffer size an unconstrained value in the harness itself.
 ****************************************************************/
 size_t buffer_size;
+size_t uxIPHeaderSizePacket_uxResult;
 
 /****************************************************************
 * Function contract proved correct by CheckOptionsOuter
 ****************************************************************/
 
-int32_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                                              size_t uxTotalLength,
-                                                                              FreeRTOS_Socket_t * const pxSocket,
-                                                                              BaseType_t xHasSYNFlag )
+int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                                                                     size_t uxTotalLength,
+                                                                                     FreeRTOS_Socket_t * const pxSocket,
+                                                                                     BaseType_t xHasSYNFlag )
 {
     /* CBMC model of pointers limits the size of the buffer */
 
@@ -65,6 +73,12 @@ int32_t __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvSingleStepTCPHeaderOptions( co
     return index;
 }
 
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer shouldnt be NULL" );
+    return uxIPHeaderSizePacket_uxResult;
+}
+
 /****************************************************************
 * Proof of CheckOptions
 ****************************************************************/
@@ -73,6 +87,17 @@ void harness()
 {
     /* Give buffer_size an unconstrained value */
     size_t buf_size;
+
+    if( nondet_bool() )
+    {
+        uxIPHeaderSizePacket_uxResult = ipSIZE_OF_IPv6_HEADER;
+    }
+    else
+    {
+        uxIPHeaderSizePacket_uxResult = ipSIZE_OF_IPv4_HEADER;
+    }
+
+    __CPROVER_assume( buf_size > ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket_uxResult + sizeof( TCPHeader_t ) ) );
 
     buffer_size = buf_size;
 
@@ -99,5 +124,5 @@ void harness()
     /* Buffer must be big enough to hold pxTCPPacket and pxTCPHeader */
     __CPROVER_assume( buffer_size > 47 );
 
-    __CPROVER_file_local_FreeRTOS_TCP_IP_c_prvCheckOptions( &pxSocket, &pxNetworkBuffer );
+    prvCheckOptions( &pxSocket, &pxNetworkBuffer );
 }

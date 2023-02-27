@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_State_Handling.c
+ * @file FreeRTOS_TCP_State_Handling_IPV6.c
  * @brief Module which handles the TCP protocol state transition for FreeRTOS+TCP.
  *
  * Endianness: in this module all ports and IP addresses are stored in
@@ -77,34 +77,39 @@
     FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
                                               NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
-        /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
+        /* Map the ethernet buffer onto a TCPPacket_IPv6_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        const TCPPacket_IPv6_t * pxTCPPacket = ( ( const TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
+        BaseType_t xHasSequence = pdFALSE;
+
+        configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
 
         /* Silently discard a SYN packet which was not specifically sent for this node. */
-        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+        if( memcmp( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
         {
             /* Assume that a new Initial Sequence Number will be required. Request
              * it now in order to fail out if necessary. */
-            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
-                                                                          pxSocket->usLocalPort,
-                                                                          pxTCPPacket->xIPHeader.ulSourceIPAddress,
-                                                                          pxTCPPacket->xTCPHeader.usSourcePort );
-        }
-        else
-        {
-            /* Set the sequence number to 0 to avoid further processing. */
-            ulInitialSequenceNumber = 0U;
+            if( xApplicationGetRandomNumber( &ulInitialSequenceNumber ) == pdPASS )
+            {
+                xHasSequence = pdTRUE;
+            }
+
+/*
+ *          ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
+ *                                                                        pxSocket->usLocalPort,
+ *                                                                        pxTCPPacket->xIPHeader.ulSourceIPAddress,
+ *                                                                        pxTCPPacket->xTCPHeader.usSourcePort );
+ */
         }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
          * it. */
-        if( ulInitialSequenceNumber != 0U )
+        if( xHasSequence == pdTRUE )
         {
             if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
             {
@@ -158,7 +163,7 @@
             }
         }
 
-        if( ( ulInitialSequenceNumber != 0U ) && ( pxReturn != NULL ) )
+        if( ( xHasSequence != 0U ) && ( pxReturn != NULL ) )
         {
             /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 

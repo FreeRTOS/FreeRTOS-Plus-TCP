@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_IP.c
+ * @file FreeRTOS_IPv6.c
  * @brief Implements the basic functionality for the FreeRTOS+TCP network stack.
  */
 
@@ -45,9 +45,23 @@
 #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
 
+/**
+ * This variable is initialized by the system to contain the wildcard IPv6 address.
+ */
 const struct xIPv6_Address in6addr_any = { 0 };
+
+/**
+ * This variable is initialized by the system to contain the loopback IPv6 address.
+ */
 const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
+/**
+ * @brief Check whether this IPv6 address is a multicast address or not.
+ *
+ * @param[in] pxIPAddress: The IP address to be checked.
+ *
+ * @return Returns pdTRUE if pxIPAddress is a multicast address, pdFALSE if not .
+ */
 BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
 {
     BaseType_t xReturn;
@@ -67,7 +81,18 @@ BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
 
 /*-----------------------------------------------------------*/
 
-
+/**
+ * @brief Compares 2 IPv6 addresses and checks if the one
+ * on the left can handle the one on right. Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
+ * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
+ * the last 3 bytes of the IPv6 address.
+ *
+ * @param[in] pxLeft: First IP address.
+ * @param[in] pxRight: Second IP address.
+ * @param[in] uxPrefixLength: The IP address prefix length in bits.
+ *
+ * @return Returns 0 if it can handle it, else non zero .
+ */
 BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                  const IPv6_Address_t * pxRight,
                                  size_t uxPrefixLength )
@@ -166,7 +191,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
             const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
 
             /* Is the packet for this IP address? */
-            if( ( FreeRTOS_FindEndPointOnIP_IPv6( pxDestinationIPAddress ) != NULL ) ||
+            if( ( pxNetworkBuffer->pxEndPoint != NULL ) ||
                 /* Is it the multicast address FF00::/8 ? */
                 ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
                 /* Or (during DHCP negotiation) we have no IP-address yet? */
@@ -228,6 +253,14 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check extension header and next header and return their order.
+ *
+ * @param[in] ucProtocol: Extension header ID.
+ * @param[in] ucNextHeader: Next header ID.
+ *
+ * @return Extension header order in the packet.
+ */
 BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
                                uint8_t ucNextHeader )
 {
@@ -287,6 +320,7 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
  * @brief Handle the IPv6 extension headers.
  *
  * @param[in,out] pxNetworkBuffer: The received packet that contains IPv6 extension headers.
+ * @param[in] xDoRemove: Function removes the extension header if xDoRemove is set to pdTRUE.
  *
  * @return eProcessBuffer in case the options are removed successfully, otherwise
  *         eReleaseBuffer.

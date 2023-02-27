@@ -56,13 +56,13 @@
 
 /*-----------------------------------------------------------*/
 
-/* A block time of 0 simply means "don't block". */
+/** A block time of 0 simply means "don't block". */
     #define raDONT_BLOCK                       ( ( TickType_t ) 0 )
 
-/* The default value for the IPv6-field 'ucVersionTrafficClass'. */
+/** The default value for the IPv6-field 'ucVersionTrafficClass'. */
     #define raDEFAULT_VERSION_TRAFFIC_CLASS    0x60U
 
-/* The default value for the IPv6-field 'ucHopLimit'. */
+/** The default value for the IPv6-field 'ucHopLimit'. */
     #define raDEFAULT_HOP_LIMIT                255U
 
 /*-----------------------------------------------------------*/
@@ -92,7 +92,7 @@
  * @brief Find a link-local address that is bound to a given interface.
  *
  * @param[in] pxInterface: The interface for which a link-local address is looked up.
- * @param[out] pxIPAddress: The IP address will be copied to this parameter.
+ * @param[out] pxAddress: The IP address will be copied to this parameter.
  *
  * @return pdPASS in case a link-local address was found, otherwise pdFAIL.
  */
@@ -126,7 +126,6 @@
  * @param[in] pxNetworkBuffer: The network buffer which can be used for this.
  * @param[in] pxIPAddress: The target address, normally ff02::2
  *
- * @return An enum which says whether to return the frame or to release it
  */
     void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                     IPv6_Address_t * pxIPAddress )
@@ -246,6 +245,14 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Read a received RA reply and return the prefix option from the packet.
+ *
+ * @param[in] pxNetworkBuffer: The buffer that contains the message.
+ *
+ * @returns Returns the ICMP prefix option pointer, pointing to its location in the
+ *          input RA reply message buffer.
+ */
     static ICMPPrefixOption_IPv6_t * vReceiveRA_ReadReply( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
         size_t uxIndex = 0U;
@@ -309,7 +316,7 @@
                    break;
 
                 default:
-                    FreeRTOS_printf( ( "RA: Type %02x not implemented\n", ucType ) );
+                    FreeRTOS_printf( ( "RA: Type 0x%02x not implemented\n", ucType ) );
                     break;
             }
 
@@ -345,46 +352,49 @@
         }
         else
         {
-            #if ( ipconfigHAS_PRINTF == 1 )
-                {
-                    const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
-                    FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
-                                       pxAdvertisement->ucTypeOfMessage,
-                                       pxAdvertisement->ucTypeOfService,
-                                       FreeRTOS_ntohs( pxAdvertisement->usChecksum ),
-                                       pxAdvertisement->ucHopLimit,
-                                       pxAdvertisement->ucFlags,
-                                       FreeRTOS_ntohs( pxAdvertisement->usLifetime ) ) );
-                }
-            #endif /* ( ipconfigHAS_PRINTF == 1 ) */
+            const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+            FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
+                               pxAdvertisement->ucTypeOfMessage,
+                               pxAdvertisement->ucTypeOfService,
+                               FreeRTOS_ntohs( pxAdvertisement->usChecksum ),
+                               pxAdvertisement->ucHopLimit,
+                               pxAdvertisement->ucFlags,
+                               FreeRTOS_ntohs( pxAdvertisement->usLifetime ) ) );
 
-            pxPrefixOption = vReceiveRA_ReadReply( pxNetworkBuffer );
-
-            configASSERT( pxNetworkBuffer->pxInterface != NULL );
-
-            if( pxPrefixOption != NULL )
+            if( pxAdvertisement->usLifetime != 0U )
             {
-                NetworkEndPoint_t * pxEndPoint;
+                pxPrefixOption = vReceiveRA_ReadReply( pxNetworkBuffer );
 
-                for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkBuffer->pxInterface );
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkBuffer->pxInterface, pxEndPoint ) )
+                configASSERT( pxNetworkBuffer->pxInterface != NULL );
+
+                if( pxPrefixOption != NULL )
                 {
-                    if( ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
-                    {
-                        pxEndPoint->ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
-                        ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
-                        ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    NetworkEndPoint_t * pxEndPoint;
 
-                        pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
-                        pxEndPoint->xRAData.uxRetryCount = 0U;
-                        pxEndPoint->xRAData.ulPreferredLifeTime = FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime );
-                        /* Force taking a new random IP-address. */
-                        pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
-                        pxEndPoint->xRAData.eRAState = eRAStateIPTest;
-                        vRAProcess( pdFALSE, pxEndPoint );
+                    for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkBuffer->pxInterface );
+                         pxEndPoint != NULL;
+                         pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkBuffer->pxInterface, pxEndPoint ) )
+                    {
+                        if( ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
+                        {
+                            pxEndPoint->ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
+                            ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
+                            ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+                            pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
+                            pxEndPoint->xRAData.uxRetryCount = 0U;
+                            pxEndPoint->xRAData.ulPreferredLifeTime = FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime );
+                            /* Force taking a new random IP-address. */
+                            pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
+                            pxEndPoint->xRAData.eRAState = eRAStateIPTest;
+                            vRAProcess( pdFALSE, pxEndPoint );
+                        }
                     }
                 }
+            }
+            else
+            {
+                /* The life-time field contains zero. */
             }
         }
     }
@@ -430,6 +440,17 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Handles the RA wait state and calculates the new timer reload value
+ *        based on the wait state. Also checks if any timer has expired. If its found that
+ *        there is no other device using the same IP-address vIPNetworkUpCalls() is called
+ *        to send the network up event.
+ *
+ * @param[in] pxEndPoint: The end point for which RA assignment is required.
+ * @param[out] uxReloadTime: Timer reload value in ticks.
+ *
+ * @return New timer reload value.
+ */
     static TickType_t xRAProcess_HandleWaitStates( NetworkEndPoint_t * pxEndPoint,
                                                    TickType_t uxReloadTime )
     {
@@ -514,6 +535,14 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Handles the RA states other than the wait states.
+ *
+ * @param[in] pxEndPoint: The end point for which RA assignment is required.
+ * @param[out] uxReloadTime: Timer reload value in ticks.
+ *
+ * @return New timer reload value.
+ */
     static TickType_t xRAProcess_HandleOtherStates( NetworkEndPoint_t * pxEndPoint,
                                                     TickType_t uxReloadTime )
     {

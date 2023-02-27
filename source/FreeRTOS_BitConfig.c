@@ -206,7 +206,7 @@ uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
  * @param[in] pucData: The binary data to be written.
  * @param[in] uxSize: The number of bytes to be written.
  *
- * @return There is no return value. If the operation has failed,
+ * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_uc( BitConfig_t * pxConfig,
@@ -237,7 +237,7 @@ void vBitConfig_write_uc( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] ucValue: The byte to be written.
  *
- * @return There is no return value. If the operation has failed,
+ * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_8( BitConfig_t * pxConfig,
@@ -255,7 +255,7 @@ void vBitConfig_write_8( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] usValue: The 16-bit value to be written.
  *
- * @return There is no return value. If the operation has failed,
+ * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_16( BitConfig_t * pxConfig,
@@ -276,7 +276,7 @@ void vBitConfig_write_16( BitConfig_t * pxConfig,
  * @param[in] pxConfig: The structure containing a copy of the bits.
  * @param[in] ulValue: The 32-bit value to be written.
  *
- * @return There is no return value. If the operation has failed,
+ * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
  */
 void vBitConfig_write_32( BitConfig_t * pxConfig,
@@ -300,7 +300,6 @@ void vBitConfig_write_32( BitConfig_t * pxConfig,
  *
  * @param[in] pxConfig: The structure containing a copy of the bits.
  *
- * @return @return True if there was enough space in the buffer to store the word, otherwise pdFALSE.
  */
 void vBitConfig_release( BitConfig_t * pxConfig )
 {

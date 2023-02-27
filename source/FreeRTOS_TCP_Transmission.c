@@ -373,7 +373,7 @@
  * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
  * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
  * @param[in] ulLen: The size of the packet minus the size of the Ethernet header.
- * @return
+ *
  */
     void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
                                          const NetworkBufferDescriptor_t * pxNetworkBuffer,

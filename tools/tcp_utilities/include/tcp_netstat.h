@@ -25,10 +25,6 @@
  * http://www.FreeRTOS.org
  */
 
-/*
- *  TCP_NETSTAT.c
- *  Some function to get a list of sockets and active port numbers.
- */
 #ifndef TCP_NETSTAT_H
 
 #define TCP_NETSTAT_H
@@ -101,7 +97,7 @@ typedef struct
     TCPSocketList_t xTCPSocketList;
     UDPSocketList_t xUDPSocketList;
     IOCounters_t xInput;
-    IOCounters_t xOutput;
+    IOCounters_t XOutput;
 } MetricsType_t;
 
 extern BaseType_t vGetMetrics( MetricsType_t * pxMetrics );

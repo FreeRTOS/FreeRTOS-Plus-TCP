@@ -122,7 +122,7 @@ static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuf
 
 void test_vIPNetworkUpCalls( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xEndPoint.bits.bEndPointUp = pdFALSE;
 
@@ -1367,7 +1367,7 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
@@ -2710,7 +2710,7 @@ void test_prvProcessIPPacket_TCP1( void )
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
     uint32_t backup = xProcessedTCPMessage;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
@@ -2828,11 +2828,11 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-void test_FreeRTOS_GetIPAddress( void ) /*TODO */
+void test_FreeRTOS_GetIPAddress( void ) /* TODO */
 {
     uint32_t ulIPAddress;
 
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
@@ -2848,26 +2848,26 @@ void test_FreeRTOS_GetIPAddress( void ) /*TODO */
 void test_FreeRTOS_IsNetworkUp( void )
 {
     BaseType_t xReturn;
-    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkEndPoint xEndPoint = { 0 };
 
     memset( &xEndPoint, 0, sizeof( struct xNetworkEndPoint ) );
 
 
     xEndPoint.bits.bEndPointUp = pdTRUE;
-    /*xNetworkUp = pdTRUE; */
-    /*xReturn = FreeRTOS_IsNetworkUp(); */
+    /* xNetworkUp = pdTRUE; */
+    /* xReturn = FreeRTOS_IsNetworkUp(); */
     xReturn = FreeRTOS_IsEndPointUp( &xEndPoint );
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 
-    /*xNetworkUp = pdFALSE; */
-    /*xReturn = FreeRTOS_IsNetworkUp(); */
+    /* xNetworkUp = pdFALSE; */
+    /* xReturn = FreeRTOS_IsNetworkUp(); */
     xEndPoint.bits.bEndPointUp = pdFALSE;
     xReturn = FreeRTOS_IsEndPointUp( &xEndPoint );
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 
-    /*xReturn = FreeRTOS_IsNetworkUp(); TODO to be checked in routing */
-    /*TEST_ASSERT_EQUAL( pdFALSE, xReturn ); */
+    /* xReturn = FreeRTOS_IsNetworkUp(); TODO to be checked in routing */
+    /* TEST_ASSERT_EQUAL( pdFALSE, xReturn ); */
 }
 
 void test_CastingFunctions( void )

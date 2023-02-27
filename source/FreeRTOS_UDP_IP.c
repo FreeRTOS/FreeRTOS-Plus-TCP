@@ -129,6 +129,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                                       uint16_t usPort,
                                       BaseType_t * pxIsWaitingForARPResolution )
 {
+    /* Returning pdPASS means that the packet was consumed, released. */
     BaseType_t xReturn = pdFAIL;
     const FreeRTOS_Socket_t * pxSocket;
 
@@ -141,9 +142,6 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-    /* Caller must check for minimum packet size. */
-    pxSocket = pxUDPSocketLookup( usPort );
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {

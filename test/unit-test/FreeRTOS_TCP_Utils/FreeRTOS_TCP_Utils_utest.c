@@ -87,7 +87,7 @@ void test_prvTCPFlagMeaning_FlagGroup2( void )
 /* Test for prvSocketSetMSS function. */
 void test_prvSocketSetMSS_Reduced( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     pxSocket = &xSocket;
 
@@ -105,7 +105,7 @@ void test_prvSocketSetMSS_Reduced( void )
 /* Test for prvSocketSetMSS function. */
 void test_prvSocketSetMSS_Normal( void )
 {
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     pxSocket = &xSocket;
 

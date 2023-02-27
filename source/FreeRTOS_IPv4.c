@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_IP.c
+ * @file FreeRTOS_IPv4.c
  * @brief Implements the basic functionality for the FreeRTOS+TCP network stack.
  */
 
@@ -228,30 +228,11 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                         /* ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS is defined as 0,
                          * and so UDP packets carrying a protocol checksum of 0, will
                          * be dropped. */
-                        if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                        {
-                            const IPHeader_IPv6_t * pxIPPacket_IPv6;
-
-                            /* MISRA Ref 11.3.1 [Misaligned access] */
-                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                            /* coverity[misra_c_2012_rule_11_3_violation] */
-                            pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-
-
-                            ucProtocol = pxIPPacket_IPv6->ucNextHeader;
-                            /* MISRA Ref 11.3.1 [Misaligned access] */
-                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                            /* coverity[misra_c_2012_rule_11_3_violation] */
-                            pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
-                        }
-                        else
-                        {
-                            ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-                            /* MISRA Ref 11.3.1 [Misaligned access] */
-                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                            /* coverity[misra_c_2012_rule_11_3_violation] */
-                            pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ( size_t ) ipSIZE_OF_IPv4_HEADER ] ) );
-                        }
+                        ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ( size_t ) ipSIZE_OF_IPv4_HEADER ] ) );
 
                         /* Identify the next protocol. */
                         if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )

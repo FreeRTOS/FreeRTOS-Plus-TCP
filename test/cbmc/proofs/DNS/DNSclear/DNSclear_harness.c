@@ -7,6 +7,8 @@
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_IP_Private.h"
 
+void FreeRTOS_dnsclear( void );
+
 
 void harness()
 {

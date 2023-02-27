@@ -88,7 +88,7 @@
 /**
  * @brief Check whether the socket is active or not.
  *
- * @param[in] ucStatus: The status of the socket.
+ * @param[in] eStatus: The status of the socket.
  *
  * @return pdTRUE if the socket must be checked. Non-active sockets
  *         are waiting for user action, either connect() or close().

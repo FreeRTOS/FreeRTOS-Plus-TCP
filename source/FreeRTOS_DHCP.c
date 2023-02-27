@@ -81,7 +81,7 @@
 
 /*-----------------------------------------------------------*/
 
-/*
+/**
  * @brief The number of end-points that are making use of the UDP-socket.
  */
     static BaseType_t xDHCPSocketUserCount = 0;
@@ -287,7 +287,7 @@
                     /* PAss the address of a pointer pucUDPPayload, because zero-copy is used. */
                     lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, FREERTOS_ZERO_COPY, NULL, NULL );
 
-                    if( lBytes > 0 )
+                    if( ( lBytes > 0 ) && ( pucUDPPayload != NULL ) )
                     {
                         /* Remove it now, destination not found. */
                         FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
@@ -1320,7 +1320,10 @@
                 }
             }
 
-            FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+            if( pucUDPPayload != NULL )
+            {
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+            }
         } /* if( lBytes > 0 ) */
 
         return xReturn;
@@ -1334,6 +1337,7 @@
  * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
  * @param[in] pucOptionsArray: The options to be added to the packet.
  * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  *
  * @return Ethernet buffer of the partially created DHCP packet.
  */
@@ -1350,7 +1354,13 @@
 
         #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
             const char * pucHostName = pcApplicationHostnameHook();
-            size_t uxNameLength = strlen( pucHostName );
+            size_t uxNameLength = 0;
+
+            if( pucHostName != NULL )
+            {
+                uxNameLength = strlen( pucHostName );
+            }
+
             uint8_t * pucPtr;
 
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
@@ -1425,10 +1435,14 @@
                      * compliant with MISRA Rule 21.15.  These should be
                      * optimized away.
                      */
-                    pvCopySource = pucHostName;
-                    pvCopyDest = &pucPtr[ 2U ];
+                    if( pucHostName != NULL )
+                    {
+                        pvCopySource = pucHostName;
+                        pvCopyDest = &pucPtr[ 2U ];
 
-                    ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                        ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                    }
+
                     pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
                     *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
                 }
@@ -1450,7 +1464,7 @@
 /**
  * @brief Create and send a DHCP request message through the DHCP socket.
  *
- * param[in] pxEndPoint: The end-point for which the request will be sent.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  */
     static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
     {
@@ -1481,7 +1495,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( pucUDPPayloadBuffer != NULL )
+        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
 
@@ -1508,7 +1522,10 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                if( pucUDPPayloadBuffer != NULL )
+                {
+                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                }
             }
             else
             {
@@ -1550,7 +1567,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( pucUDPPayloadBuffer != NULL )
+        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             const void * pvCopySource;
             void * pvCopyDest;
@@ -1590,7 +1607,10 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                if( pucUDPPayloadBuffer != NULL )
+                {
+                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
+                }
             }
             else
             {

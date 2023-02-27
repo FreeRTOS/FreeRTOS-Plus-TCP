@@ -182,6 +182,8 @@
     #define sin_addr              sin_address.ulIP_IPv4
     #define sin_addr4             sin_address.ulIP_IPv4
     #define sin_addr6             sin_address.xIP_IPv6
+    #define sin_addrv4            sin_address.ulIP_IPv4
+    #define sin_addrv6            sin_address.xIP_IPv6
     #define freertos_sockaddr6    freertos_sockaddr
 
 /** Introduce a short name to make casting easier. */
@@ -550,6 +552,10 @@
                                        const ConstSocketSet_t xSocketSet );
 
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+
+    #include "FreeRTOS_IP_Private.h"
+    #include "FreeRTOS_IPv4_Sockets.h"
+    #include "FreeRTOS_IPv6_Sockets.h"
 
     #ifdef __cplusplus
         } /* extern "C" */

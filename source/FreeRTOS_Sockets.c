@@ -5505,7 +5505,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             ( void ) snprintf( pcRemoteIp, sizeof( pcRemoteIp ), "%xip", ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
         }
 
-        FreeRTOS_printf( ( "TCP %5u %-*s:%-16xip:%5u %d/%d %-13.13s %6u %6u%s\n",
+        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6lu %6u%s\n",
                            pxSocket->usLocalPort,         /* Local port on this machine */
                            xIPWidth,
                            pcRemoteIp,                    /* IP address of remote machine */
