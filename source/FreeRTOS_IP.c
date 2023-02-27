@@ -818,7 +818,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         /* Obtain a network buffer with the required amount of storage. */
         pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPayloadOffset + uxRequestedSizeBytes, uxBlockTime );
 
-        if( pxNetworkBuffer != 0 )
+        if( pxNetworkBuffer != NULL )
         {
             size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
