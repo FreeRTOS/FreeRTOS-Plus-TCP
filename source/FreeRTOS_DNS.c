@@ -127,7 +127,6 @@
 /**
  * @brief The IPv6 link-scope multicast MAC address
  */
-        const
         const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
     #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
 
@@ -883,7 +882,7 @@
         /* Is this a local lookup? */
         if( ( bHasDot == pdFALSE ) || ( bHasLocal == pdTRUE ) )
         {
-            /* Looking for e.g. "mydevice" or "mydevice.local",
+            /* Looking for e.g. "mydevice.local" or "mydevice",
              * while using either mDNS or LLMNR. */
             #if ( ipconfigUSE_MDNS == 1 )
                 {

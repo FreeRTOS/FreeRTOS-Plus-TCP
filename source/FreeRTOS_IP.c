@@ -787,8 +787,9 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      uint8_t ucIPType )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    void * pvReturn;
+    void * pvReturn = NULL;
     TickType_t uxBlockTime = uxBlockTimeTicks;
+    size_t uxIPHeaderLength, xNeededSize;
 
     /* Cap the block time.  The reason for this is explained where
      * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined (assuming an official
@@ -798,56 +799,45 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    /* Obtain a network buffer with the required amount of storage. */
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTime );
-
-    if( pxNetworkBuffer != NULL )
+    if( ucIPType == ipTYPE_IPv6 )
     {
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) /*TODO seems incorrect */
-        {
-            uint8_t * pucIPType;
-            size_t uxIPHeaderLength;
-
-            /* Calculate the distance between the beginning of
-             * UDP payload until the hidden byte that reflects
-             * the IP-type: either ipTYPE_IPv4 or ipTYPE_IPv6.
-             */
-            size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-            BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
-
-            if( ucIPType == ipTYPE_IPv6 )
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
-            }
-            else
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
-            }
-
-            /* Skip 3 headers. */
-            pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER ] );
-
-            /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
-             * Store the packet type at 48 bytes before the start of the UDP payload. */
-            pucIPType = ( uint8_t * ) pvReturn;
-            pucIPType = &( pucIPType[ -xPayloadIPTypeOffset ] );
-
-            /* For a IPv4 packet, pucIPType points to 6 bytes before the
-             * pucEthernetBuffer, for a IPv6 packet, pucIPType will point to the
-             * first byte of the IP-header: 'ucVersionTrafficClass'. */
-            *pucIPType = ucIPType;
-        }
-        else
-        {
-            /* Set the actual packet size in case a bigger buffer was returned. */
-            pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t ) + uxRequestedSizeBytes;
-            /* Skip 3 headers. */
-            pvReturn = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
-        }
+        uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     }
     else
     {
-        pvReturn = NULL;
+        uxIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
+    }
+
+	xNeededSize = ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER + uxRequestedSizeBytes;
+
+    /* Obtain a network buffer with the required amount of storage. */
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 100 ) xNeededSize, uxBlockTime );
+
+    if( pxNetworkBuffer != NULL )
+    {
+        uint8_t * pucIPType;
+
+        /* Calculate the distance between the beginning of
+         * UDP payload until the hidden byte that reflects
+         * the IP-type: either ipTYPE_IPv4 or ipTYPE_IPv6.
+		 * Note that 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is independent
+		 * from the IP-type.
+         */
+        size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+        BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
+
+        /* Skip 3 headers. */
+        pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER ] );
+
+        /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
+            * Store the packet type at 48 bytes before the start of the UDP payload. */
+        pucIPType = ( uint8_t * ) pvReturn;
+        pucIPType = &( pucIPType[ -xPayloadIPTypeOffset ] );
+
+        /* For a IPv4 packet, pucIPType points to 6 bytes before the
+            * pucEthernetBuffer, for a IPv6 packet, pucIPType will point to the
+            * first byte of the IP-header: 'ucVersionTrafficClass'. */
+        *pucIPType = ucIPType;
     }
 
     return ( void * ) pvReturn;
@@ -1484,9 +1474,22 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
+                        /* When one of the two asserts below are called, please check if
+                         * the network interface is assigning endpoints with the correct
+                         * IP-type to the packets received. */
+
                         /* MISRA Ref 11.3.1 [Misaligned access] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
+                        if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+                        {
+                            configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 != 0U );
+                        }
+                        else
+                        {
+                            configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 == 0U );
+                        }
+
                         eReturned = prvProcessIPPacket( ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer );
                     }
                     else
@@ -1785,6 +1788,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                      *  overwritten with the IP address of useless broadcast packets. */
                     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                     {
+                        configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 != 0U );
                         vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
                     }
                     else
@@ -1796,6 +1800,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                          *  will be handled.  This will prevent the ARP cache getting
                          *  overwritten with the IP address of useless broadcast packets.
                          */
+                        configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 == 0U );
                         vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
                     }
                 }
@@ -2039,6 +2044,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                 pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
             }
 
+            /* 'pxNewBuffer' doesn't have to be released, because we didn't have the ownership. */
             pxNetworkBuffer = pxNewBuffer;
         }
 

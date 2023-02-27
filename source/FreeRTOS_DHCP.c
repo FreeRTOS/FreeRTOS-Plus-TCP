@@ -1493,7 +1493,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
 
@@ -1565,7 +1565,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             const void * pvCopySource;
             void * pvCopyDest;

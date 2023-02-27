@@ -281,6 +281,9 @@
         BaseType_t x;
         BaseType_t xFreeEntry = -1, xEntryFound = -1;
 
+        configASSERT( pxEndPoint != NULL );
+        configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
+
         /* For each entry in the ND cache table. */
         for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
         {
@@ -1017,14 +1020,17 @@
                    {
                        size_t uxICMPSize;
                        BaseType_t xCompare;
-                       NetworkEndPoint_t * pxEndPointFound = FreeRTOS_FindEndPointOnIP_IPv6( &( pxICMPHeader_IPv6->xIPv6Address ) );
-                       char pcName[ 40 ];
-                       FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",
-                                          pxICMPHeader_IPv6->xIPv6Address.ucBytes,
-                                          pcEndpointName( pxEndPointFound, pcName, sizeof( pcName ) ) ) );
+                       NetworkEndPoint_t * pxEndPointFound;
+
+                       /* Maybe the ICMP sollicitation was received a a different endpoint (local versus global). */
+                       pxEndPointFound = FreeRTOS_FindEndPointOnIP_IPv6( &( pxICMPHeader_IPv6->xIPv6Address ) );
 
                        if( pxEndPointFound != NULL )
                        {
+                           char pcName[ 40 ];
+                           FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",
+                                              pxICMPHeader_IPv6->xIPv6Address.ucBytes,
+                                              pcEndpointName( pxEndPointFound, pcName, sizeof( pcName ) ) ) );
                            pxEndPoint = pxEndPointFound;
                        }
 

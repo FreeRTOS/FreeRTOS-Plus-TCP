@@ -118,7 +118,7 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
  *
  * @param[in] pxNetworkBuffer : The network buffer carrying the UDP or ICMP packet.
  *
- * @param[out] pxLostBuffer : The pointer will be set to true in case the network packet got released
+ * @param[out] pxLostBuffer : The pointee will be set to true in case the network packet got released
  *                            ( the ownership was taken ).
  */
 static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,

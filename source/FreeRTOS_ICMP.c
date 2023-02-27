@@ -75,7 +75,7 @@
  * @brief Process an ICMP packet. Only echo requests and echo replies are recognised and handled.
  *
  * @param[in,out] pxNetworkBuffer: The pointer to the network buffer descriptor
- *  that contains the ICMP message.
+ *                                 that contains the ICMP message.
  *
  * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
  *                        when the packet should be returned.
