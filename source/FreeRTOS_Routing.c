@@ -1066,7 +1066,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         IPv6_Type_t eResult = eIPv6_Unknown;
         BaseType_t xIndex;
-        const struct xIPv6_Couple xIPCouples[] =
+        static const struct xIPv6_Couple xIPCouples[] =
         {
             /*    IP-type          Mask     Value */
             { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
