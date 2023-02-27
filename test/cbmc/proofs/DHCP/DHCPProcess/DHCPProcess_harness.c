@@ -85,7 +85,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
     __CPROVER_assume( xSocket != FREERTOS_INVALID_SOCKET );
     __CPROVER_assume( xSocket != NULL );
-    return ( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) );
+    return( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) );
 }
 
 BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
