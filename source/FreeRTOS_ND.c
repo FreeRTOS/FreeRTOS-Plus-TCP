@@ -561,7 +561,7 @@
  * outstanding so re-transmissions can be generated.
  */
 
-    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                        const IPv6_Address_t * pxIPAddress )
     {
         ICMPPacket_IPv6_t * pxICMPPacket;

@@ -1527,10 +1527,7 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                if( pucUDPPayloadBuffer != NULL )
-                {
-                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
-                }
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
             else
             {
@@ -1617,10 +1614,7 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                if( pucUDPPayloadBuffer != NULL )
-                {
-                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
-                }
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
             else
             {

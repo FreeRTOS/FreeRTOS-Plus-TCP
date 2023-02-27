@@ -288,7 +288,7 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
 
                         if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) &&
                             ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
-                                      ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                      ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
                                       ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                         {
                             vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
@@ -491,24 +491,24 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
-BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
 
-    if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+    if( uxIPHeaderSizePacket( ( const NetworkBufferDescriptor_t * ) pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
     {
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-        const IPHeader_IPv6_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+        IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        IPHeader_IPv6_t * pxIPHeader = &( pxIPPacket->xIPHeader );
         IPv6_Address_t * pxIPAddress = &( pxIPHeader->xSourceAddress );
         uint8_t ucNextHeader = pxIPHeader->ucNextHeader;
 
         if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
             ( ucNextHeader == ipPROTOCOL_UDP ) )
         {
-            IPv6_Type_t eType = xIPv6_GetIPType( pxIPAddress );
+            IPv6_Type_t eType = xIPv6_GetIPType( ( const IPv6_Address_t * ) pxIPAddress );
             FreeRTOS_printf( ( "xCheckRequiresARPResolution: %pip type %s\n", pxIPAddress->ucBytes, ( eType == eIPv6_Global ) ? "Global" : ( eType == eIPv6_LinkLocal ) ? "LinkLocal" : "other" ) );
 
             if( eType == eIPv6_LinkLocal )
@@ -546,7 +546,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
         const IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
 

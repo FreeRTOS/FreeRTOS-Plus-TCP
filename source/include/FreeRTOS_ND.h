@@ -112,7 +112,7 @@
  * add an entry into the ND table that indicates that an ND reply is
  * outstanding so re-transmissions can be generated.
  */
-    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                        const IPv6_Address_t * pxIPAddress );
 
     #if ( ipconfigUSE_RA != 0 )

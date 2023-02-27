@@ -770,6 +770,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                             pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
                             xCount[ rMATCH_IP_ADDR ]++;
                         }
+                        else
+                        {
+                            /* do nothing, coverity happy */
+                        }
                     }
                 }
                 else
@@ -896,17 +900,21 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                ARPPacket_t * pxARPFrame = ( ARPPacket_t * ) pucEthernetBuffer;
+                const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
 
                 if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
                 {
-                    memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                    ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
                     xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
                 }
                 else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
                 {
-                    memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                    ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
                     xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                }
+                else
+                {
+                    /* do nothing, coverity happy */
                 }
 
                 FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
@@ -917,7 +925,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
             }
 
-            memcpy( xMACAddress.ucBytes, pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            ( void ) memcpy( xMACAddress.ucBytes, pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
             pxEndPoint = pxEasyFit( pxNetworkInterface,
                                     usFrameType,
                                     &xIPAddressFrom,
@@ -1133,14 +1141,14 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         if( pxEndPoint == NULL )
         {
-            snprintf( pcBuffer, uxSize, "NULL" );
+            ( void ) snprintf( pcBuffer, uxSize, "NULL" );
         }
         else
         {
-            FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
-                                ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                pcBuffer,
-                                uxSize );
+            ( void ) FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
+                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                         pcBuffer,
+                                         uxSize );
         }
 
         return pcBuffer;
