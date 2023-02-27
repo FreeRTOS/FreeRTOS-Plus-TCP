@@ -981,8 +981,6 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
             {
                 ulAddressToLookup = *pulIPAddress;
             }
-
-            /*FreeRTOS_printf( ( "Using gateway %lxip\n", FreeRTOS_ntohl( ulAddressToLookup ) ) ); */
         }
     }
     else

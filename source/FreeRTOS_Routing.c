@@ -893,6 +893,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             }
             else if( usFrameType == ipARP_FRAME_TYPE )
             {
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
                 ARPPacket_t * pxARPFrame = ( ARPPacket_t * ) pucEthernetBuffer;
 
                 if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
@@ -1134,7 +1137,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         }
         else
         {
-            FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0 ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
+            FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
                                 ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                 pcBuffer,
                                 uxSize );

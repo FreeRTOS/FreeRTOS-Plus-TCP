@@ -433,6 +433,10 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     /* When refreshing the ARP/ND cache with received UDP packets we must be
      * careful;  hundreds of broadcast messages may pass and if we're not
      * handling them, no use to fill the cache with those IP addresses. */
+
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     /* Caller must check for minimum packet size. */

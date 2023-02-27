@@ -883,6 +883,9 @@
  */
     static void prvCheckWaitingBuffer( const IPv6_Address_t * pxIPv6Address )
     {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         const IPHeader_IPv6_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 

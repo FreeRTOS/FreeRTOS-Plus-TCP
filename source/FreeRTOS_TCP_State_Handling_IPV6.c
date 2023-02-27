@@ -163,7 +163,7 @@
             }
         }
 
-        if( ( xHasSequence != 0U ) && ( pxReturn != NULL ) )
+        if( ( xHasSequence != 0 ) && ( pxReturn != NULL ) )
         {
             /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 

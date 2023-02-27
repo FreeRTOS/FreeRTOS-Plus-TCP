@@ -1495,6 +1495,11 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
+        /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+         * The conversion here is to use pointer to pass error code.
+         * The pointer will be checked against the error code value
+         * before any further pointer action. */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
         if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
@@ -1567,6 +1572,11 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
+/* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
+ * The conversion here is to use pointer to pass error code.
+ * The pointer will be checked against the error code value
+ * before any further pointer action. */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
         if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             const void * pvCopySource;
