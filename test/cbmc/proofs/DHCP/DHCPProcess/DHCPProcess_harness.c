@@ -76,11 +76,16 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_
     return nondet_BaseType();
 }
 
+/**
+ * For the purpose of this proof we assume that xSocketValid returns true always.
+ * This has to do with assertions in the source code that checks for socket being invalid.
+ * [configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );]
+ */
 BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
-    /* This proof assumes that the socket will be valid to make the proof run
-     * without causing asserts in the DHCP source [configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );] */
-    return pdTRUE;
+    __CPROVER_assume( xSocket != FREERTOS_INVALID_SOCKET );
+    __CPROVER_assume( xSocket != NULL );
+    return ( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) );
 }
 
 BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,

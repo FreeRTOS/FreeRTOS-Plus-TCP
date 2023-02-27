@@ -1493,7 +1493,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
 
@@ -1520,10 +1520,7 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                if( pucUDPPayloadBuffer != NULL )
-                {
-                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
-                }
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
             else
             {
@@ -1565,7 +1562,7 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             const void * pvCopySource;
             void * pvCopyDest;
@@ -1605,10 +1602,7 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
-                if( pucUDPPayloadBuffer != NULL )
-                {
-                    FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
-                }
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
             else
             {
