@@ -349,6 +349,9 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
 void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
+                                     TickType_t uxBlockTimeTicks );
+
+void * FreeRTOS_GetUDPPayloadBuffer_IPv46( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks,
                                      uint8_t ucIPType );
 
