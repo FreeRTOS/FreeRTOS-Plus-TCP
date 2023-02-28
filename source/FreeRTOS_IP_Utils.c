@@ -1396,7 +1396,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             /* MISRA Ref 21.6.1 [snprintf and logging] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %lx", xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
             pcName = NULL;
             break;
     }
