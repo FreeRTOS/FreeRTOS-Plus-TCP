@@ -561,7 +561,7 @@
  * outstanding so re-transmissions can be generated.
  */
 
-    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                        const IPv6_Address_t * pxIPAddress )
     {
         ICMPPacket_IPv6_t * pxICMPPacket;
@@ -883,6 +883,9 @@
  */
     static void prvCheckWaitingBuffer( const IPv6_Address_t * pxIPv6Address )
     {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
         const IPHeader_IPv6_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -1019,6 +1022,7 @@
                        BaseType_t xCompare;
                        NetworkEndPoint_t * pxEndPointFound = FreeRTOS_FindEndPointOnIP_IPv6( &( pxICMPHeader_IPv6->xIPv6Address ) );
                        char pcName[ 40 ];
+                       ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
                        FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",
                                           pxICMPHeader_IPv6->xIPv6Address.ucBytes,
                                           pcEndpointName( pxEndPointFound, pcName, sizeof( pcName ) ) ) );

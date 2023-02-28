@@ -76,7 +76,7 @@
 
 /** returns the index of the hostname entry in the dns cache. */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         IPv46_Address_t * pxIP,
+                                         const IPv46_Address_t * pxIP,
                                          UBaseType_t * uxResult );
 
 /** get entry at \p index from the cache. */
@@ -88,13 +88,13 @@
 /** update entry at \p index in the cache. */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 /** insert entry in the cache. */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
@@ -144,7 +144,7 @@
         uint32_t ulReturn = 0U;
 
         /* Looking up an IPv6 address in the DNS cache. */
-        ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
+        ( void ) memset( &xIPv46_Address, 0, sizeof( xIPv46_Address ) );
         /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
         xIPv46_Address.xIs_IPv6 = pdTRUE;
         xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
@@ -315,7 +315,7 @@
  * @returns res pdTRUE if index in found else pdFALSE
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         IPv46_Address_t * pxIP,
+                                         const IPv46_Address_t * pxIP,
                                          UBaseType_t * uxResult )
     {
         BaseType_t xReturn = pdFALSE;
@@ -391,7 +391,7 @@
             if( ppxAddressInfo != NULL )
             {
                 /* Copy all entries from position 'uxIndex' to a linked struct addrinfo. */
-                prvReadDNSCache( uxIndex, ppxAddressInfo );
+                prvReadDNSCache( ( BaseType_t ) uxIndex, ppxAddressInfo );
             }
         }
         else
@@ -415,7 +415,7 @@
  */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         uint32_t ulIPAddressIndex = 0;
@@ -446,7 +446,7 @@
  */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         /* Add or update the item. */
@@ -490,15 +490,14 @@
         {
             size_t uxIPAddressIndex;
             size_t uxNumIPAddresses = 1U;
-            IPv46_Address_t * pxAddresses;
+            const IPv46_Address_t * pxAddresses;
             struct freertos_addrinfo * pxNewAddress;
-            struct freertos_addrinfo * pxLastAddress;
-            struct freertos_addrinfo ** ppxLastAddress = &( pxLastAddress );
+            struct freertos_addrinfo ** ppxLastAddress = ppxAddressInfo;
 
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                 uxNumIPAddresses = ( size_t ) xDNSCache[ uxIndex ].ucNumIPAddresses;
 
-                if( uxNumIPAddresses > ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
+                if( uxNumIPAddresses > ( size_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
                 {
                     /* Make this a configASSERT()? */
                     uxNumIPAddresses = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
@@ -515,26 +514,21 @@
                 }
                 else
                 {
-                    uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
+                    const uint8_t * ucBytes = &( pxAddresses->ulIPAddress );
 
                     pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
                 }
 
-                if( pxNewAddress != NULL )
+                if( pxNewAddress == NULL )
                 {
-                    if( *( ppxAddressInfo ) == NULL )
-                    {
-                        /* For the first address found. */
-                        *( ppxAddressInfo ) = pxNewAddress;
-                    }
-                    else
-                    {
-                        /* For the next address found. */
-                        *( ppxLastAddress ) = pxNewAddress;
-                    }
-
-                    ppxLastAddress = &( pxNewAddress->ai_next );
+                    /* Malloc must has failed. */
+                    break;
                 }
+
+                /* Set either 'ppxAddressInfo' or 'pxNewAddress->ai_next'. */
+                *( ppxLastAddress ) = pxNewAddress;
+
+                ppxLastAddress = &( pxNewAddress->ai_next );
             }
         }
     #endif /* #if( ipconfigUSE_DNS_CACHE == 1 ) */
@@ -589,7 +583,7 @@
                 {
                     if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
                     {
-                        struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
+                        const struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
 
                         ulIPAddress = sockaddr->sin_addr;
                     }
@@ -610,14 +604,14 @@
 /**
  * @brief For debugging only: prints the contents of the DNS cache table.
  */
-        void vShowDNSCacheTable()
+        void vShowDNSCacheTable( void )
         {
             UBaseType_t xEntry;
             UBaseType_t xSubEntry;
 
             for( xEntry = 0; xEntry < ipconfigDNS_CACHE_ENTRIES; xEntry++ )
             {
-                DNSCacheRow_t * pxRow = &( xDNSCache[ xEntry ] );
+                const DNSCacheRow_t * pxRow = &( xDNSCache[ xEntry ] );
 
                 if( pxRow->pcName[ 0 ] != ( char ) 0 )
                 {
@@ -636,18 +630,18 @@
                              * either IPv4 or IPv6. */
                             if( pxRow->xAddresses[ 0 ].xIs_IPv6 != pdFALSE )
                             {
-                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                    ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
-                                                    pcAddress,
-                                                    sizeof( pcAddress ) );
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                             ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
+                                                             pcAddress,
+                                                             sizeof( pcAddress ) );
                             }
                             else
                         #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                         {
-                            FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
-                                                pcAddress,
-                                                sizeof( pcAddress ) );
+                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                         ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
+                                                         pcAddress,
+                                                         sizeof( pcAddress ) );
                         }
 
                         FreeRTOS_printf( ( "      %2u: %s\n",

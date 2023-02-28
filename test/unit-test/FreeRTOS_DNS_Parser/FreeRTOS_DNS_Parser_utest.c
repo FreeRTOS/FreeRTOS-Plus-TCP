@@ -1670,7 +1670,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
-    FreeRTOS_dns_update_ReturnThruPtr_pulIP( &ip_address );
+    FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( pdTRUE );
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
@@ -1794,7 +1794,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
-    FreeRTOS_dns_update_ReturnThruPtr_pulIP( &ip_address );
+    FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );

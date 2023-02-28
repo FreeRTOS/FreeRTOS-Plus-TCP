@@ -69,20 +69,6 @@ struct xIPv6_Couple
     uint16_t usMask;     /**< IPv6 IP type bit mask */
     uint16_t usExpected; /**< IPv6 IP type prefix */
 };
-
-/**
- * @brief Util data structure to hold the bit mask and value/ID of the different
- * IPv6 address types.
- */
-static const struct xIPv6_Couple xIPCouples[] =
-{
-/*    IP-type          Mask     Value */
-    { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
-    { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
-    { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
-    { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
-};
-
 /*-----------------------------------------------------------*/
 
 /**
@@ -733,6 +719,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         BaseType_t xGatewayTarget = pdFALSE;
         BaseType_t xTargetGlobal = pdFALSE;
 
+        ( void ) pxIPAddressFrom;
+
         if( xIsIPv6 == pdTRUE )
         {
             /* Generic GW address fe80::1. */
@@ -783,6 +771,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                         {
                             pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
                             xCount[ rMATCH_IP_ADDR ]++;
+                        }
+                        else
+                        {
+                            /* do nothing, coverity happy */
                         }
                     }
                 }
@@ -861,8 +853,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
-        /*#pragma warning 'name' for logging only, take this away */
-        const char * name = "";
 
         configASSERT( pucEthernetBuffer != NULL );
 
@@ -907,17 +897,24 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             }
             else if( usFrameType == ipARP_FRAME_TYPE )
             {
-                ARPPacket_t * pxARPFrame = ( ARPPacket_t * ) pucEthernetBuffer;
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
+                const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
 
                 if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
                 {
-                    memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                    ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
                     xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
                 }
                 else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
                 {
-                    memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                    ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
                     xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                }
+                else
+                {
+                    /* do nothing, coverity happy */
                 }
 
                 FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
@@ -928,7 +925,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
             }
 
-            memcpy( xMACAddress.ucBytes, pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            ( void ) memcpy( xMACAddress.ucBytes, pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
             pxEndPoint = pxEasyFit( pxNetworkInterface,
                                     usFrameType,
                                     &xIPAddressFrom,
@@ -1069,8 +1066,16 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         IPv6_Type_t eResult = eIPv6_Unknown;
         BaseType_t xIndex;
+        static const struct xIPv6_Couple xIPCouples[] =
+        {
+            /*    IP-type          Mask     Value */
+            { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
+            { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+            { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+            { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+        };
 
-        for( xIndex = 0; xIndex < ARRAY_SIZE( xIPCouples ); xIndex++ )
+        for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
         {
             uint16_t usAddress =
                 ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
@@ -1136,14 +1141,17 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         if( pxEndPoint == NULL )
         {
-            snprintf( pcBuffer, uxSize, "NULL" );
+            /* MISRA Ref 21.6.1 [snprintf and logging] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+            /* coverity[misra_c_2012_rule_21_6_violation] */
+            ( void ) snprintf( pcBuffer, uxSize, "NULL" );
         }
         else
         {
-            FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0 ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
-                                ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                pcBuffer,
-                                uxSize );
+            ( void ) FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
+                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                         pcBuffer,
+                                         uxSize );
         }
 
         return pcBuffer;

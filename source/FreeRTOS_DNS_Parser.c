@@ -759,7 +759,7 @@
 
                         if( ppxAddressInfo != NULL )
                         {
-                            uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
+                            const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
 
                             pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
                         }
