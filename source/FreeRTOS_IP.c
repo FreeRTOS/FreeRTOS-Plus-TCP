@@ -789,7 +789,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    void * pvReturn;
+    void * pvReturn = NULL;
     TickType_t uxBlockTime = uxBlockTimeTicks;
 
     /* Cap the block time.  The reason for this is explained where
@@ -823,10 +823,6 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
          * pucEthernetBuffer */
         *pucIPType = ipTYPE_IPv4;
     }
-    else
-    {
-        pvReturn = NULL;
-    }
 
     return ( void * ) pvReturn;
 }
@@ -849,7 +845,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
                                               uint8_t ucIPType )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    void * pvReturn;
+    void * pvReturn = NULL;
     TickType_t uxBlockTime = uxBlockTimeTicks;
     size_t uxPayloadOffset = 0;
 
@@ -903,14 +899,6 @@ void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
              * first byte of the IP-header: 'ucVersionTrafficClass'. */
             *pucIPType = ucIPType;
         }
-        else
-        {
-            pvReturn = NULL;
-        }
-    }
-    else
-    {
-        pvReturn = NULL;
     }
 
     return ( void * ) pvReturn;
