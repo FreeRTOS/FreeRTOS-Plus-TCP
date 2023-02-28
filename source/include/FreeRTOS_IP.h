@@ -352,8 +352,8 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks );
 
 void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks,
-                                     uint8_t ucIPType );
+                                              TickType_t uxBlockTimeTicks,
+                                              uint8_t ucIPType );
 
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulNetMask,

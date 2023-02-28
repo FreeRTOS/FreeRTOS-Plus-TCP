@@ -772,10 +772,10 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Obtain a buffer big enough for a UDP payload of given size. 
- *        NOTE: This function is kept for backward compatibility and will 
- *        only allocate IPv4 payload buffers. Newer designs should use 
- *        FreeRTOS_GetUDPPayloadBuffer_ByIPType(), which can 
+ * @brief Obtain a buffer big enough for a UDP payload of given size.
+ *        NOTE: This function is kept for backward compatibility and will
+ *        only allocate IPv4 payload buffers. Newer designs should use
+ *        FreeRTOS_GetUDPPayloadBuffer_ByIPType(), which can
  *        allocate a IPv4 or IPv6 buffer based on ucIPType parameter .
  *
  * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
@@ -815,12 +815,12 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         uint8_t * pucIPType;
 
         /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
-        * Store the packet type at 48 bytes before the start of the UDP payload. */
+         * Store the packet type at 48 bytes before the start of the UDP payload. */
         pucIPType = ( uint8_t * ) pvReturn;
         pucIPType = &( pucIPType[ -xPayloadIPTypeOffset ] );
 
         /* For a IPv4 packet, pucIPType points to 6 bytes before the
-        * pucEthernetBuffer */
+         * pucEthernetBuffer */
         *pucIPType = ipTYPE_IPv4;
     }
     else
@@ -831,6 +831,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
     return ( void * ) pvReturn;
 }
 /*-----------------------------------------------------------*/
+
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size and
  *        given IP type.
@@ -844,8 +845,8 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
  *         else a NULL pointer is returned.
  */
 void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks,
-                                     uint8_t ucIPType )
+                                              TickType_t uxBlockTimeTicks,
+                                              uint8_t ucIPType )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn;
