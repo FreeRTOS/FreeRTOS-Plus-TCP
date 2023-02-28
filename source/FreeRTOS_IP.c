@@ -1031,7 +1031,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulNetMask,
                                         uint32_t * pulGatewayAddress,
                                         uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint )
+                                        const struct xNetworkEndPoint * pxEndPoint )
 {
     if( ENDPOINT_IS_IPv4( pxEndPoint ) )
     {
@@ -2101,6 +2101,10 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                     /* Failed to send the message, so release the network buffer. */
                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                 }
+            }
+            else
+            {
+                /* do nothing, coverity happy */
             }
         }
     }

@@ -662,7 +662,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
             pxSocket->xEventGroup = xEventGroup;
 
-            if( xDomain == ( uint8_t ) FREERTOS_AF_INET6 )
+            if( xDomain == ( BaseType_t ) FREERTOS_AF_INET6 )
             {
                 pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
             }
@@ -4668,7 +4668,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
                 else if( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort )
                 {
-                    if( ulRemoteIP.ulIP_IPv4 == 0 )
+                    if( ulRemoteIP.ulIP_IPv4 == 0U )
                     {
                         pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.ulIP_IPv4 );
                     }
