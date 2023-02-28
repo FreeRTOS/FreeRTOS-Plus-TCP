@@ -152,7 +152,7 @@ def run_build(jobs):
     cmd = ["litani", "run-build"]
     if jobs:
         cmd.extend(["-j", str(jobs)])
-    run_cmd(cmd, check=True)
+    run_cmd(cmd, check=True, timeout=3600)
 
 
 def add_proof_jobs(proof_directory, proof_root):
