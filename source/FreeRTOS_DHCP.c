@@ -1363,7 +1363,7 @@
 
             uint8_t * pucPtr;
 
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+            /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
             const void * pvCopySource;
             void * pvCopyDest;
 
@@ -1381,7 +1381,7 @@
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
@@ -1495,12 +1495,10 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        /* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
-         * The conversion here is to use pointer to pass error code.
-         * The pointer will be checked against the error code value
-         * before any further pointer action. */
+        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
         /* coverity[misra_c_2012_rule_11_4_violation] */
-        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
 
@@ -1569,12 +1567,10 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-/* MISRA Rule 11.4 warns about conversion between a pointer and an integer.
- * The conversion here is to use pointer to pass error code.
- * The pointer will be checked against the error code value
- * before any further pointer action. */
+        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
         /* coverity[misra_c_2012_rule_11_4_violation] */
-        if( ( xDHCPv4Socket != FREERTOS_INVALID_SOCKET ) && ( xDHCPv4Socket != NULL ) && ( pucUDPPayloadBuffer != NULL ) )
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             const void * pvCopySource;
             void * pvCopyDest;

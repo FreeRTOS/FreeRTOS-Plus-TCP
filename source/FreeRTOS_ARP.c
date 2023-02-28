@@ -575,7 +575,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
  * @brief Remove an ARP cache entry that matches with .pxMACAddress.
  *
  * @param[in] pxMACAddress: Pointer to the MAC address whose entry shall
- *                          be removed..
+ *                          be removed.
  * @return When the entry was found and remove: the IP-address, otherwise zero.
  */
     uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress )

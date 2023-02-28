@@ -783,6 +783,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPDiscover fail. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
 
     vDHCPProcess( pdFALSE, pxEndPoint );
 
@@ -843,6 +844,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Make the call to FreeRTOS_send fail. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 0 );
     /* Since the send failed, a call to release the buffer should be there. */
@@ -883,6 +885,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
     /* Get the hostname. */
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
     /* Make the call to FreeRTOS_send fail. */
@@ -928,6 +931,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
@@ -972,6 +976,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
@@ -1008,6 +1013,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWFails( void )
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Return NULL network buffer. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
 
     vDHCPProcess( pdFALSE, pxEndPoint );
 
@@ -1037,6 +1043,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendFails( void )
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Send fails. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 0 );
     /* ReleaseUDPPayloadBuffer will be called. */
@@ -1072,6 +1079,7 @@ void test_vDHCPProcess_eSendDHCPRequestCorrectStateGNWSucceedsSendSucceeds( void
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Send succeeds. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
     /* Return the time value. */
@@ -1246,6 +1254,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassUseBroa
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Send succeeds. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
@@ -1296,6 +1305,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromFailsTimeoutDontGiveUpRNGPassNoBroad
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a NULL network buffer. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
 
     vDHCPProcess( pdFALSE, pxEndPoint );
 
@@ -2234,6 +2244,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPRequest fails. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
 
     vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 
@@ -2322,6 +2333,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
     xTaskGetTickCount_ExpectAndReturn( xTimeValue );
@@ -2688,6 +2700,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a NULL so that prvSendDHCPRequest fails. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
 
     vDHCPProcessEndPoint( pdFALSE, pdFALSE, pxEndPoint );
 
@@ -2779,6 +2792,8 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsuc
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+
     /* Send succeeds. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
@@ -4104,6 +4119,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket( void )
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Send succeeds. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
@@ -4235,6 +4251,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning NULL will mean the prvSendDHCPDiscover fail. */
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    xSocketValid_ExpectAnyArgsAndReturn( pdFALSE );
 
     /* Expect the timer to be set. */
     vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
@@ -4270,6 +4287,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
     pcApplicationHostnameHook_ExpectAndReturn( pcHostName );
     /* Returning a proper network buffer. */
     pxGetNetworkBufferWithDescriptor_Stub( GetNetworkBuffer );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
     /* Make the call to FreeRTOS_send succeed. */
     FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1 );
 
