@@ -788,9 +788,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks )
 {
-
     return FreeRTOS_GetUDPPayloadBuffer_ByIPType( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
-
 }
 /*-----------------------------------------------------------*/
 
