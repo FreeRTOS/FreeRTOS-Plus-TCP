@@ -89,7 +89,7 @@
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Interpret message received on the DHCP socket.
@@ -100,7 +100,7 @@
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
@@ -121,12 +121,12 @@
 /*
  * Create the DHCP socket, if it has not been created already.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    _static void prvCreateDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Close the DHCP socket, only when not in use anymore (i.e. xDHCPSocketUserCount = 0).
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
     static void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
@@ -816,8 +816,10 @@
  *        using it.
  * @param[in] pxEndPoint: The end-point that stops using the socket.
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
     {
+        ( void ) pxEndPoint;
+
         if( ( xDHCPv4Socket != NULL ) && ( xDHCPSocketUserCount > 0 ) )
         {
             xDHCPSocketUserCount--;
@@ -847,7 +849,7 @@
  * @brief Create a DHCP socket with the defined timeouts. The same socket
  *        will be shared among all end-points that need DHCP.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    _static void prvCreateDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xReturn;
@@ -1464,7 +1466,7 @@
  *
  * @param[in] pxEndPoint: The end-point for which the request will be sent.
  */
-    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1539,7 +1541,7 @@
  *
  * @return: pdPASS if the DHCP discover message was sent successfully, pdFAIL otherwise.
  */
-    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;

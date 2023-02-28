@@ -117,7 +117,7 @@
             {
                 pxNetworkBuffer = &xTempBuffer;
 
-                memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );
+                ( void ) memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );
                 #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                     {
                         pxNetworkBuffer->pxNextBuffer = NULL;
@@ -304,14 +304,7 @@
                      * containing the packet header. */
                     vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
-                    if( pxIPHeader != NULL )
-                    {
-                        pxIPHeader->ulSourceIPAddress = pxIPHeader->ulDestinationIPAddress;
-                    }
-                    else
-                    {
-                        /* No IP-header available. */
-                    }
+                    pxIPHeader->ulSourceIPAddress = pxIPHeader->ulDestinationIPAddress;
 
                     ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
                 }
@@ -348,7 +341,6 @@
         MACAddress_t xEthAddress;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulInitialSequenceNumber = 0;
-        NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
         #if ( ipconfigHAS_PRINTF != 0 )
             {
