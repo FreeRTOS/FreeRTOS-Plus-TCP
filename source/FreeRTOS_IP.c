@@ -788,43 +788,9 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer;
-    void * pvReturn = NULL;
-    TickType_t uxBlockTime = uxBlockTimeTicks;
 
-    /* Cap the block time.  The reason for this is explained where
-     * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined (assuming an official
-     * FreeRTOSIPConfig.h header file is being used). */
-    if( uxBlockTime > ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS )
-    {
-        uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
-    }
+    return FreeRTOS_GetUDPPayloadBuffer_ByIPType( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
 
-    /* Obtain a network buffer with the required amount of storage. */
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTime );
-
-    if( pxNetworkBuffer != NULL )
-    {
-        size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-        BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
-        /* Set the actual packet size in case a bigger buffer was returned. */
-        pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t ) + uxRequestedSizeBytes;
-        /* Skip 3 headers. */
-        pvReturn = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
-
-        uint8_t * pucIPType;
-
-        /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
-         * Store the packet type at 48 bytes before the start of the UDP payload. */
-        pucIPType = ( uint8_t * ) pvReturn;
-        pucIPType = &( pucIPType[ -xPayloadIPTypeOffset ] );
-
-        /* For a IPv4 packet, pucIPType points to 6 bytes before the
-         * pucEthernetBuffer */
-        *pucIPType = ipTYPE_IPv4;
-    }
-
-    return ( void * ) pvReturn;
 }
 /*-----------------------------------------------------------*/
 
