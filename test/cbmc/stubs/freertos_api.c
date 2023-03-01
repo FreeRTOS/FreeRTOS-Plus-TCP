@@ -211,9 +211,9 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 * pointer to the buffer (or NULL).
 ****************************************************************/
 
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks,
-                                     uint8_t ucIPType )
+void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
+                                              TickType_t uxBlockTimeTicks,
+                                              uint8_t ucIPType )
 {
     size_t size;
 
