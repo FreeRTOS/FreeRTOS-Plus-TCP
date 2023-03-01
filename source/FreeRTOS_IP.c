@@ -773,6 +773,28 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
+ *        NOTE: This function is kept for backward compatibility and will
+ *        only allocate IPv4 payload buffers. Newer designs should use
+ *        FreeRTOS_GetUDPPayloadBuffer_ByIPType(), which can
+ *        allocate a IPv4 or IPv6 buffer based on ucIPType parameter .
+ *
+ * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
+ * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
+ *            can block. This value is capped internally.
+ *
+ * @return If a buffer was created then the pointer to that buffer is returned,
+ *         else a NULL pointer is returned.
+ */
+void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
+                                     TickType_t uxBlockTimeTicks )
+{
+    return FreeRTOS_GetUDPPayloadBuffer_ByIPType( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Obtain a buffer big enough for a UDP payload of given size and
+ *        given IP type.
  *
  * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
  * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
@@ -782,13 +804,14 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
  */
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks,
-                                     uint8_t ucIPType )
+void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
+                                              TickType_t uxBlockTimeTicks,
+                                              uint8_t ucIPType )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    void * pvReturn;
+    void * pvReturn = NULL;
     TickType_t uxBlockTime = uxBlockTimeTicks;
+    size_t uxPayloadOffset = 0;
 
     /* Cap the block time.  The reason for this is explained where
      * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined (assuming an official
@@ -798,34 +821,37 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    /* Obtain a network buffer with the required amount of storage. */
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTime );
-
-    if( pxNetworkBuffer != NULL )
+    if( ucIPType == ipTYPE_IPv6 )
     {
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) /*TODO seems incorrect */
-        {
-            uint8_t * pucIPType;
-            size_t uxIPHeaderLength;
+        uxPayloadOffset = sizeof( UDPPacket_IPv6_t );
+    }
+    else if( ucIPType == ipTYPE_IPv4 )
+    {
+        uxPayloadOffset = sizeof( UDPPacket_t );
+    }
+    else
+    {
+        /* Shouldn't reach here. */
+        configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
+    }
 
-            /* Calculate the distance between the beginning of
-             * UDP payload until the hidden byte that reflects
-             * the IP-type: either ipTYPE_IPv4 or ipTYPE_IPv6.
-             */
+    if( uxPayloadOffset != 0 )
+    {
+        /* Obtain a network buffer with the required amount of storage. */
+        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPayloadOffset + uxRequestedSizeBytes, uxBlockTime );
+
+        if( pxNetworkBuffer != NULL )
+        {
             size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
 
-            if( ucIPType == ipTYPE_IPv6 )
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
-            }
-            else
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
-            }
+            /* Set the actual packet size in case a bigger buffer was returned. */
+            pxNetworkBuffer->xDataLength = uxPayloadOffset + uxRequestedSizeBytes;
 
             /* Skip 3 headers. */
-            pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER ] );
+            pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
+
+            uint8_t * pucIPType;
 
             /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
              * Store the packet type at 48 bytes before the start of the UDP payload. */
@@ -837,17 +863,6 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
              * first byte of the IP-header: 'ucVersionTrafficClass'. */
             *pucIPType = ucIPType;
         }
-        else
-        {
-            /* Set the actual packet size in case a bigger buffer was returned. */
-            pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t ) + uxRequestedSizeBytes;
-            /* Skip 3 headers. */
-            pvReturn = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
-        }
-    }
-    else
-    {
-        pvReturn = NULL;
     }
 
     return ( void * ) pvReturn;
