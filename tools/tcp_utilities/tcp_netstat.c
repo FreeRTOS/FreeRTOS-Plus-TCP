@@ -61,7 +61,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
     memset( pxMetrics, 0, sizeof *pxMetrics );
 
     pxMetrics->xInput = xInputCounters;
-    pxMetrics->XOutput = xOutputCounters;
+    pxMetrics->xOutput = xOutputCounters;
 
     if( !listLIST_IS_INITIALISED( &xBoundUDPSocketsList ) )
     {
@@ -153,8 +153,8 @@ void vShowMetrics( const MetricsType_t * pxMetrics )
                        pxMetrics->xInput.uxPacketCount,
                        pxMetrics->xInput.uxByteCount ) );
     FreeRTOS_printf( ( "    Output : %5lu packets, %5lu bytes\n",
-                       pxMetrics->XOutput.uxPacketCount,
-                       pxMetrics->XOutput.uxByteCount ) );
+                       pxMetrics->xOutput.uxPacketCount,
+                       pxMetrics->xOutput.uxByteCount ) );
 
     #if ( ipconfigUSE_TCP == 1 )
         {
