@@ -1,5 +1,5 @@
-Changes between main branch V3.0.0 and dev/ipv6_integration brancg RC1 releases:
-        + First FreeRTOS+TCP branch to support both IPv4 and IPv6 simultaneously
+Changes between dev/ipv6_integration branch RC1 and main branch V3.0.0 releases:
+        + Unified code for IPv4 and IPv6
         + Multiple Interface/Endpoint support.
         + Neighbour Discovery & Router Advertisement.
         + New WinSim demo to support both IPv4 and IPv6.
