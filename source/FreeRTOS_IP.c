@@ -835,7 +835,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
         configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
     }
 
-    if( uxPayloadOffset != 0 )
+    if( uxPayloadOffset != 0U )
     {
         /* Obtain a network buffer with the required amount of storage. */
         pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPayloadOffset + uxRequestedSizeBytes, uxBlockTime );
