@@ -55,6 +55,10 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
+
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
 #define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
 #define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
