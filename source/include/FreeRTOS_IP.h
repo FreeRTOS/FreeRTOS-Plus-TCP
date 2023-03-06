@@ -339,7 +339,7 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks );
 
-void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
+void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
                                               TickType_t uxBlockTimeTicks,
                                               uint8_t ucIPType );
 

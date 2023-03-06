@@ -775,7 +775,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  * @brief Obtain a buffer big enough for a UDP payload of given size.
  *        NOTE: This function is kept for backward compatibility and will
  *        only allocate IPv4 payload buffers. Newer designs should use
- *        FreeRTOS_GetUDPPayloadBuffer_ByIPType(), which can
+ *        FreeRTOS_GetUDPPayloadBuffer_Multi(), which can
  *        allocate a IPv4 or IPv6 buffer based on ucIPType parameter .
  *
  * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
@@ -788,7 +788,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                      TickType_t uxBlockTimeTicks )
 {
-    return FreeRTOS_GetUDPPayloadBuffer_ByIPType( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+    return FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
 }
 /*-----------------------------------------------------------*/
 
@@ -804,7 +804,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
  */
-void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
+void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
                                               TickType_t uxBlockTimeTicks,
                                               uint8_t ucIPType )
 {
