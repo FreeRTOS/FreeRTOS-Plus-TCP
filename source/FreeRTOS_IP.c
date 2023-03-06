@@ -1033,7 +1033,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Get the current address configuration. Only non-NULL pointers will
+ * @brief Get the current IPv4 address configuration. Only non-NULL pointers will
  *        be filled in. pxEndPoint must be non-NULL.
  *
  * @param[out] pulIPAddress: The current IP-address assigned.
@@ -1076,9 +1076,34 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Set the current network address configuration. Only non-NULL pointers will
- *        be used. pxEndPoint must pointer to a valid end-point.
+ * @brief Get the current IPv4 address configuration of the first endpoint. 
+ *        Only non-NULL pointers will be filled in.
+ *        NOTE: This function is kept for backward compatibility. Newer
+ *        designs should use FreeRTOS_SetEndPointConfiguration().
  *
+ * @param[out] pulIPAddress: The current IP-address assigned.
+ * @param[out] pulNetMask: The netmask used for current subnet.
+ * @param[out] pulGatewayAddress: The gateway address.
+ * @param[out] pulDNSServerAddress: The DNS server address.
+ */
+void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
+                                        uint32_t * pulNetMask,
+                                        uint32_t * pulGatewayAddress,
+                                        uint32_t * pulDNSServerAddress ) 
+{
+    NetworkEndPoint_t * pxEndPoint;
+
+    /* Get first end point. */
+    pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+    FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask, 
+    pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set the current IPv4 network address configuration. Only non-NULL pointers will
+ *        pointers will be used. pxEndPoint must pointer to a valid end-point.
+ * 
  * @param[in] pulIPAddress: The current IP-address assigned.
  * @param[in] pulNetMask: The netmask used for current subnet.
  * @param[in] pulGatewayAddress: The gateway address.
@@ -1115,6 +1140,31 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
             pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = *pulDNSServerAddress;
         }
     }
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set the current IPv4 network address configuration. Only non-NULL 
+ *        pointers will be used.
+ *        NOTE: This function is kept for backward compatibility. Newer
+ *        designs should use FreeRTOS_SetEndPointConfiguration().
+ * 
+ * @param[in] pulIPAddress: The current IP-address assigned.
+ * @param[in] pulNetMask: The netmask used for current subnet.
+ * @param[in] pulGatewayAddress: The gateway address.
+ * @param[in] pulDNSServerAddress: The DNS server address.
+ */
+void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
+                                        const uint32_t * pulNetMask,
+                                        const uint32_t * pulGatewayAddress,
+                                        const uint32_t * pulDNSServerAddress )
+{
+    NetworkEndPoint_t * pxEndPoint;
+
+    /* Get first end point. */
+    pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+    FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask, 
+    pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
 }
 /*-----------------------------------------------------------*/
 

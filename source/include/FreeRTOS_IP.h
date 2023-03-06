@@ -315,18 +315,6 @@ struct xNetworkInterface;
                                 const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                 const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
-/* The following 2 functions also assume that there is only 1 network interface.
- * The new function are called: FreeRTOS_GetEndPointConfiguration() and
- * FreeRTOS_SetEndPointConfiguration(), see below. */
-    void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
-                                           uint32_t * pulNetMask,
-                                           uint32_t * pulGatewayAddress,
-                                           uint32_t * pulDNSServerAddress );
-
-    void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
-                                           const uint32_t * pulNetMask,
-                                           const uint32_t * pulGatewayAddress,
-                                           const uint32_t * pulDNSServerAddress );
 #endif /* if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
 
 /*
@@ -355,14 +343,14 @@ void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
                                               TickType_t uxBlockTimeTicks,
                                               uint8_t ucIPType );
 
+/* The following 2 functions also assume that there is only 1 network endpoint/interface.
+ * The new function are called: FreeRTOS_GetEndPointConfiguration() and
+ * FreeRTOS_SetEndPointConfiguration() */
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulNetMask,
                                        uint32_t * pulGatewayAddress,
                                        uint32_t * pulDNSServerAddress );
 
-/* The following 2 functions also assume that there is only 1 network interface.
- * The new function are called: FreeRTOS_GetEndPointConfiguration() and
- * FreeRTOS_SetEndPointConfiguration(), see below. */
 void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
                                        const uint32_t * pulNetMask,
                                        const uint32_t * pulGatewayAddress,
