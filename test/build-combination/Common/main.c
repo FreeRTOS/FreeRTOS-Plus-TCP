@@ -39,8 +39,17 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
 
-#define mainHOST_NAME    "Build Combination"
+#include <string.h>
+#include <stdarg.h>
 
+#define mainHOST_NAME           "Build Combination"
+#define mainDEVICE_NICK_NAME    "Build_Combination"
+
+#if defined( _MSC_VER ) && ( _MSC_VER <= 1600 )
+    #define local_stricmp       _stricmp
+#else
+    #define local_stricmp       strcasecmp
+#endif
 /*-----------------------------------------------------------*/
 
 /* Notes if the trace is running or not. */
@@ -157,11 +166,11 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
         /* Determine if a name lookup is for this node.  Two names are given
          * to this node: that returned by pcApplicationHostnameHook() and that set
          * by mainDEVICE_NICK_NAME. */
-        if( _stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
+        if( local_stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
         {
             xReturn = pdPASS;
         }
-        else if( _stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
+        else if( local_stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
         {
             xReturn = pdPASS;
         }
@@ -190,9 +199,8 @@ void vApplicationIdleHook( void )
     /* Exit. Just a stub. */
 }
 /*-----------------------------------------------------------*/
-
 void vAssertCalled( const char * pcFile,
-                    uint32_t ulLine )
+                    unsigned long ulLine )
 {
     const uint32_t ulLongSleep = 1000UL;
     volatile uint32_t ulBlockVariable = 0UL;
@@ -209,6 +217,17 @@ void vAssertCalled( const char * pcFile,
         }
     }
     taskENABLE_INTERRUPTS();
+}
+/*-----------------------------------------------------------*/
+
+void vLoggingPrintf( const char * pcFormat,
+                     ... )
+{
+    va_list arg;
+
+    va_start( arg, pcFormat );
+    vprintf( pcFormat, arg );
+    va_end( arg );
 }
 /*-----------------------------------------------------------*/
 
@@ -235,6 +254,8 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
     return pdTRUE;
 }
 
+/*-----------------------------------------------------------*/
+
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
                                     uint32_t * pulIdleTaskStackSize )
@@ -242,6 +263,19 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
     /* Provide a stub for this function. */
 }
 
+/*-----------------------------------------------------------*/
+
+void vApplicationTickHook( void )
+{
+    /* Provide a stub for this function. */
+}
+
+/*-----------------------------------------------------------*/
+
+void vApplicationDaemonTaskStartupHook( void )
+{
+    /* Provide a stub for this function. */
+}
 
 /*
  * Callback that provides the inputs necessary to generate a randomized TCP
@@ -274,18 +308,6 @@ void vApplicationMallocFailedHook( void )
     /* Provide a stub for this function. */
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
-{
-    /* Provide a stub for this function. */
-    return pdTRUE;
-}
-
-BaseType_t xNetworkInterfaceInitialise( void )
-{
-    /* Provide a stub for this function. */
-    return pdTRUE;
-}
 
 #if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )
     eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
