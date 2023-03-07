@@ -122,7 +122,8 @@ foreach( file ${TCP_INCLUDES} )
                                                    ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
-                     OUTPUT_QUIET )
+                     OUTPUT_QUIET 
+                     ERROR_QUIET )
 
     # Remove the temporary files
     file( REMOVE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
