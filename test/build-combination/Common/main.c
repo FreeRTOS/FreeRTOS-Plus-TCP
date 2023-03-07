@@ -114,8 +114,8 @@ int main( void )
             ucDNSServerAddress,
             ucMACAddress );
     #else
-        FreeRTOS_printf( ( "FreeRTOS_IPStart\n" ) );
-        FreeRTOS_IPStart();
+        FreeRTOS_printf( ( "FreeRTOS_IPInit_Multi\n" ) );
+        FreeRTOS_IPInit_Multi();
     #endif
 
     vTaskStartScheduler();

@@ -219,7 +219,7 @@
         };
     #endif /* (PIC32_MAC_DEBUG_COMMANDS != 0) */
 
-    #if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -230,7 +230,7 @@
             pxPIC32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
         }
 
-    #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+    #endif
 /*-----------------------------------------------------------*/
 
     NetworkInterface_t * pxPIC32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,

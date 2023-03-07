@@ -292,10 +292,10 @@ uint32_t FreeRTOS_round_down( uint32_t a,
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html
  */
 
-/* FreeRTOS_IPStart() replaces the earlier FreeRTOS_IPInit().  It assumes
+/* FreeRTOS_IPInit_Multi() replaces the earlier FreeRTOS_IPInit().  It assumes
  * that network interfaces and IP-addresses have been added using the functions
  * from FreeRTOS_Routing.h. */
-BaseType_t FreeRTOS_IPStart( void );
+BaseType_t FreeRTOS_IPInit_Multi( void );
 
 struct xNetworkInterface;
 

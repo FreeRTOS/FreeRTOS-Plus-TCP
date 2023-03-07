@@ -900,7 +900,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
                 xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
             }
         #endif /* ipconfigUSE_DHCP */
-        return FreeRTOS_IPStart();
+        return FreeRTOS_IPInit_Multi();
     }
 #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
@@ -910,7 +910,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
  *        Before calling this function, at least 1 interface and 1 end-point must
  *        have been set-up.
  */
-BaseType_t FreeRTOS_IPStart( void )
+BaseType_t FreeRTOS_IPInit_Multi( void )
 {
     BaseType_t xReturn = pdFALSE;
     NetworkEndPoint_t * pxFirstEndPoint;
@@ -1004,7 +1004,7 @@ BaseType_t FreeRTOS_IPStart( void )
         }
         else
         {
-            FreeRTOS_debug_printf( ( "FreeRTOS_IPStart: xNetworkBuffersInitialise() failed\n" ) );
+            FreeRTOS_debug_printf( ( "FreeRTOS_IPInit_Multi: xNetworkBuffersInitialise() failed\n" ) );
 
             /* Clean up. */
             vQueueDelete( xNetworkEventQueue );
@@ -1013,7 +1013,7 @@ BaseType_t FreeRTOS_IPStart( void )
     }
     else
     {
-        FreeRTOS_debug_printf( ( "FreeRTOS_IPStart: Network event queue could not be created\n" ) );
+        FreeRTOS_debug_printf( ( "FreeRTOS_IPInit_Multi: Network event queue could not be created\n" ) );
     }
 
     return xReturn;
