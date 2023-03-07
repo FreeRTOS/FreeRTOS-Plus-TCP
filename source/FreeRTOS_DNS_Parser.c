@@ -307,6 +307,7 @@
         uint16_t x;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
+        int lDNSHookReturn;
 
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
         xSet.usPortNumber = usPort;
@@ -487,10 +488,11 @@
                         /* If this is not a reply to our DNS request, it might be an mDNS or an LLMNR
                          * request. Ask the application if it uses the name. */
                         #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-                            if( xApplicationDNSQueryHook( xSet.pcName ) )
+                            lDNSHookReturn = xApplicationDNSQueryHook( xSet.pcName );
                         #else
-                            if( xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName ) )
+                            lDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
                         #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+                        if( lDNSHookReturn )
                         {
                             int16_t usLength;
                             NetworkBufferDescriptor_t * pxNewBuffer = NULL;
@@ -503,9 +505,9 @@
                                 if( xBufferAllocFixedSize == pdFALSE )
                                 {
                                     size_t uxDataLength = uxBufferLength +
-                                                          sizeof( UDPHeader_t ) +
-                                                          sizeof( EthernetHeader_t ) +
-                                                          uxIPHeaderSizePacket( pxNetworkBuffer );
+                                                        sizeof( UDPHeader_t ) +
+                                                        sizeof( EthernetHeader_t ) +
+                                                        uxIPHeaderSizePacket( pxNetworkBuffer );
 
                                     #if ( ipconfigUSE_IPv6 != 0 )
                                         if( xSet.usType == dnsTYPE_AAAA_HOST )
@@ -521,8 +523,8 @@
                                     /* Set the size of the outgoing packet. */
                                     pxNetworkBuffer->xDataLength = uxDataLength;
                                     pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
-                                                                                          uxDataLength +
-                                                                                          uxExtraLength );
+                                                                                        uxDataLength +
+                                                                                        uxExtraLength );
 
                                     if( pxNewBuffer != NULL )
                                     {
