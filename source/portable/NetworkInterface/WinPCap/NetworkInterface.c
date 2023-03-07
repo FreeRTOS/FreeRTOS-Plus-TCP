@@ -346,7 +346,7 @@ static BaseType_t xWinPcap_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 
 /* Do not call the following function directly. It is there for downward compatibility.
@@ -358,7 +358,7 @@ static BaseType_t xWinPcap_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
         pxWinPcap_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+#endif
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxWinPcap_FillInterfaceDescriptor( BaseType_t xEMACIndex,

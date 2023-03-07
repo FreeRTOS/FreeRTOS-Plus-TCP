@@ -470,7 +470,7 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -481,7 +481,7 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
         pxSAM_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+#endif
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
