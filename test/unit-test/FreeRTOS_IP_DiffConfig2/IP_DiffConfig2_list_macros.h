@@ -93,8 +93,7 @@ void vRAProcess( BaseType_t xDoReset,
                  NetworkEndPoint_t * pxEndPoint );
 
 /* This function shall be defined by the application. */
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                     struct xNetworkEndPoint * pxEndPoint );
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
 
 
 /* Do not call the following function directly. It is there for downward compatibility.

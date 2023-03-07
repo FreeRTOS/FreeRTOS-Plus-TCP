@@ -614,13 +614,13 @@ void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             {
-                vApplicationIPNetworkEventHook( eNetworkUp, pxEndPoint );
+                vApplicationIPNetworkEventHook( eNetworkUp );
             }
         #else
             {
-                vApplicationIPNetworkEventHook( eNetworkUp );
+                vApplicationIPNetworkEventHook_Multi( eNetworkUp, pxEndPoint );
             }
         #endif
     #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
@@ -771,11 +771,13 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 }
 /*-----------------------------------------------------------*/
 
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
  *        NOTE: This function is kept for backward compatibility and will
  *        only allocate IPv4 payload buffers. Newer designs should use
- *        FreeRTOS_GetUDPPayloadBuffer_ByIPType(), which can
+ *        FreeRTOS_GetUDPPayloadBuffer_Multi(), which can
  *        allocate a IPv4 or IPv6 buffer based on ucIPType parameter .
  *
  * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
@@ -785,11 +787,12 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
  */
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks )
-{
-    return FreeRTOS_GetUDPPayloadBuffer_ByIPType( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
-}
+    void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
+                                         TickType_t uxBlockTimeTicks )
+    {
+        return FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+    }
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -804,9 +807,9 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
  */
-void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
-                                              TickType_t uxBlockTimeTicks,
-                                              uint8_t ucIPType )
+void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
+                                           TickType_t uxBlockTimeTicks,
+                                           uint8_t ucIPType )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn = NULL;
@@ -875,7 +878,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
  * As that bug has been repaired, there is not an urgent reason to warn.
  * It is better though to use the advised priority scheme. */
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Provide backward-compatibility with the earlier FreeRTOS+TCP which only had
  * single network interface. */
@@ -899,7 +902,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
         #endif /* ipconfigUSE_DHCP */
         return FreeRTOS_IPStart();
     }
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -1033,7 +1036,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Get the current address configuration. Only non-NULL pointers will
+ * @brief Get the current IPv4 address configuration. Only non-NULL pointers will
  *        be filled in. pxEndPoint must be non-NULL.
  *
  * @param[out] pulIPAddress: The current IP-address assigned.
@@ -1075,9 +1078,37 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
 /**
- * @brief Set the current network address configuration. Only non-NULL pointers will
- *        be used. pxEndPoint must pointer to a valid end-point.
+ * @brief Get the current IPv4 address configuration of the first endpoint.
+ *        Only non-NULL pointers will be filled in.
+ *        NOTE: This function is kept for backward compatibility. Newer
+ *        designs should use FreeRTOS_SetEndPointConfiguration().
+ *
+ * @param[out] pulIPAddress: The current IP-address assigned.
+ * @param[out] pulNetMask: The netmask used for current subnet.
+ * @param[out] pulGatewayAddress: The gateway address.
+ * @param[out] pulDNSServerAddress: The DNS server address.
+ */
+    void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
+                                           uint32_t * pulNetMask,
+                                           uint32_t * pulGatewayAddress,
+                                           uint32_t * pulDNSServerAddress )
+    {
+        NetworkEndPoint_t * pxEndPoint;
+
+        /* Get first end point. */
+        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask,
+                                           pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+    }
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set the current IPv4 network address configuration. Only non-NULL pointers will
+ *        pointers will be used. pxEndPoint must pointer to a valid end-point.
  *
  * @param[in] pulIPAddress: The current IP-address assigned.
  * @param[in] pulNetMask: The netmask used for current subnet.
@@ -1116,6 +1147,34 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         }
     }
 }
+/*-----------------------------------------------------------*/
+
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/**
+ * @brief Set the current IPv4 network address configuration. Only non-NULL
+ *        pointers will be used.
+ *        NOTE: This function is kept for backward compatibility. Newer
+ *        designs should use FreeRTOS_SetEndPointConfiguration().
+ *
+ * @param[in] pulIPAddress: The current IP-address assigned.
+ * @param[in] pulNetMask: The netmask used for current subnet.
+ * @param[in] pulGatewayAddress: The gateway address.
+ * @param[in] pulDNSServerAddress: The DNS server address.
+ */
+    void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
+                                           const uint32_t * pulNetMask,
+                                           const uint32_t * pulGatewayAddress,
+                                           const uint32_t * pulDNSServerAddress )
+    {
+        NetworkEndPoint_t * pxEndPoint;
+
+        /* Get first end point. */
+        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
+                                           pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+    }
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )

@@ -718,13 +718,13 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             {
                 if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
                 {
-                    #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
+                    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                         {
                             vApplicationIPNetworkEventHook( eNetworkDown );
                         }
                     #else
                         {
-                            vApplicationIPNetworkEventHook( eNetworkDown, pxEndPoint );
+                            vApplicationIPNetworkEventHook_Multi( eNetworkDown, pxEndPoint );
                         }
                     #endif
                 }
