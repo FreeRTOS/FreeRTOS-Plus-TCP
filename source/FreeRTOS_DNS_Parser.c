@@ -492,6 +492,7 @@
                         #else
                             lDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
                         #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
                         if( lDNSHookReturn )
                         {
                             int16_t usLength;
@@ -505,9 +506,9 @@
                                 if( xBufferAllocFixedSize == pdFALSE )
                                 {
                                     size_t uxDataLength = uxBufferLength +
-                                                        sizeof( UDPHeader_t ) +
-                                                        sizeof( EthernetHeader_t ) +
-                                                        uxIPHeaderSizePacket( pxNetworkBuffer );
+                                                          sizeof( UDPHeader_t ) +
+                                                          sizeof( EthernetHeader_t ) +
+                                                          uxIPHeaderSizePacket( pxNetworkBuffer );
 
                                     #if ( ipconfigUSE_IPv6 != 0 )
                                         if( xSet.usType == dnsTYPE_AAAA_HOST )
@@ -523,8 +524,8 @@
                                     /* Set the size of the outgoing packet. */
                                     pxNetworkBuffer->xDataLength = uxDataLength;
                                     pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
-                                                                                        uxDataLength +
-                                                                                        uxExtraLength );
+                                                                                          uxDataLength +
+                                                                                          uxExtraLength );
 
                                     if( pxNewBuffer != NULL )
                                     {
