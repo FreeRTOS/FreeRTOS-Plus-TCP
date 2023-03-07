@@ -299,7 +299,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void );
 
 struct xNetworkInterface;
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
@@ -315,9 +315,9 @@ struct xNetworkInterface;
                                 const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
                                 const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 
-/* The following 2 functions also assume that there is only 1 network interface.
+/* The following 2 functions also assume that there is only 1 network endpoint/interface.
  * The new function are called: FreeRTOS_GetEndPointConfiguration() and
- * FreeRTOS_SetEndPointConfiguration(), see below. */
+ * FreeRTOS_SetEndPointConfiguration() */
     void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                            uint32_t * pulNetMask,
                                            uint32_t * pulGatewayAddress,
@@ -327,7 +327,11 @@ struct xNetworkInterface;
                                            const uint32_t * pulNetMask,
                                            const uint32_t * pulGatewayAddress,
                                            const uint32_t * pulDNSServerAddress );
-#endif /* if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+
+    void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
+                                         TickType_t uxBlockTimeTicks );
+
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
 /*
  * Returns the addresses stored in an end-point structure.
@@ -348,25 +352,9 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 
 TaskHandle_t FreeRTOS_GetIPTaskHandle( void );
 
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks );
-
-void * FreeRTOS_GetUDPPayloadBuffer_ByIPType( size_t uxRequestedSizeBytes,
-                                              TickType_t uxBlockTimeTicks,
-                                              uint8_t ucIPType );
-
-void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
-                                       uint32_t * pulNetMask,
-                                       uint32_t * pulGatewayAddress,
-                                       uint32_t * pulDNSServerAddress );
-
-/* The following 2 functions also assume that there is only 1 network interface.
- * The new function are called: FreeRTOS_GetEndPointConfiguration() and
- * FreeRTOS_SetEndPointConfiguration(), see below. */
-void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
-                                       const uint32_t * pulNetMask,
-                                       const uint32_t * pulGatewayAddress,
-                                       const uint32_t * pulDNSServerAddress );
+void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
+                                           TickType_t uxBlockTimeTicks,
+                                           uint8_t ucIPType );
 
 /* MISRA defining 'FreeRTOS_SendPingRequest' should be dependent on 'ipconfigSUPPORT_OUTGOING_PINGS'.
  * In order not to break some existing project, define it unconditionally. */
@@ -379,11 +367,11 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    #if ( ipconfigMULTI_INTERFACE != 0 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
-        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                             struct xNetworkEndPoint * pxEndPoint );
-    #else
+    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+    #else
+        void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                                   struct xNetworkEndPoint * pxEndPoint );
     #endif
 #endif
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )

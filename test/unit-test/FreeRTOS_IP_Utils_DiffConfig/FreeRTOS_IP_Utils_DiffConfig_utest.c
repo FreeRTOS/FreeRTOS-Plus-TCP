@@ -187,7 +187,7 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
+    vApplicationIPNetworkEventHook_Multi_Expect( eNetworkDown, &xEndPoint );
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
     FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
