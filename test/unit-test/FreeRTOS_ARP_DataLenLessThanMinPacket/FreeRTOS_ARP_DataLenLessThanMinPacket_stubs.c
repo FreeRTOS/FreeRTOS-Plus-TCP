@@ -83,7 +83,7 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 {
 }
 /* This function shall be defined by the application. */
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
                                      struct xNetworkEndPoint * pxEndPoint )
 {
 }

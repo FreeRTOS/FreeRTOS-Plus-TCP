@@ -126,7 +126,7 @@ void test_vIPNetworkUpCalls( void )
 
     xEndPoint.bits.bEndPointUp = pdFALSE;
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkUp, &xEndPoint );
+    vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
     vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
 

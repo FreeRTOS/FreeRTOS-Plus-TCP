@@ -108,7 +108,7 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 BaseType_t xNetworkInterfaceInitialise( void )
 {
 }
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
+void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
                                      struct xNetworkEndPoint * pxEndPoint )
 {
 }

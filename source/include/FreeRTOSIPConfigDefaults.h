@@ -378,7 +378,9 @@
 #endif
 
 /* 'ipconfigUSE_NETWORK_EVENT_HOOK' indicates if an application hook is available
- * called 'vApplicationIPNetworkEventHook()'.  This function will be called when
+ * called 'vApplicationIPNetworkEventHook()' ( if ipconfigIPv4_BACKWARD_COMPATIBLE enabled,
+ * otherwise vApplicationIPNetworkEventHook_Multi() ).  
+ * This function will be called when
  * the network goes up and when it goes down.  See also FREERTOS_IP.h for further
  * explanation. */
 #ifndef ipconfigUSE_NETWORK_EVENT_HOOK

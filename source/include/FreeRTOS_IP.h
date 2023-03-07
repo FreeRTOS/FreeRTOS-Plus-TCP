@@ -367,11 +367,11 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    #if ( ipconfigMULTI_INTERFACE != 0 ) && ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
-        void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                             struct xNetworkEndPoint * pxEndPoint );
-    #else
+    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
+    #else
+        void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                             struct xNetworkEndPoint * pxEndPoint );        
     #endif
 #endif
 #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )

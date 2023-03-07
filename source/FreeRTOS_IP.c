@@ -614,13 +614,13 @@ void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             {
-                vApplicationIPNetworkEventHook( eNetworkUp, pxEndPoint );
+                vApplicationIPNetworkEventHook( eNetworkUp );
             }
         #else
             {
-                vApplicationIPNetworkEventHook( eNetworkUp );
+                vApplicationIPNetworkEventHook_Multi( eNetworkUp, pxEndPoint );
             }
         #endif
     #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
