@@ -2015,7 +2015,7 @@ void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
     TEST_ASSERT_EQUAL( 44, uxBytesRead );
 }
 
-BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
                                      const char * pcName )
 {
     hook_called = pdTRUE;

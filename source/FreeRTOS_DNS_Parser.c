@@ -486,7 +486,11 @@
 
                         /* If this is not a reply to our DNS request, it might be an mDNS or an LLMNR
                          * request. Ask the application if it uses the name. */
-                        if( xApplicationDNSQueryHook( &xEndPoint, xSet.pcName ) )
+                        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                            if( xApplicationDNSQueryHook( xSet.pcName ) )
+                        #else
+                            if( xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName ) )
+                        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
                         {
                             int16_t usLength;
                             NetworkBufferDescriptor_t * pxNewBuffer = NULL;
@@ -1135,7 +1139,11 @@
                             }
                         #endif
 
-                        if( xApplicationDNSQueryHook( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE )
+                        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                            if( xApplicationDNSQueryHook( xSet.pcName ) != pdFALSE )
+                        #else
+                            if( xApplicationDNSQueryHook_Multi( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE )
+                        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */                       
                         {
                             /* The field xDataLength was set to the total length of the UDP packet,
                              * i.e. the payload size plus sizeof( UDPPacket_t ). */

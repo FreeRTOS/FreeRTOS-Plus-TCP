@@ -78,7 +78,7 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
     return 0;
 }
 
-BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
+BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
                                      const char * pcName )
 {
     return 0;
