@@ -88,7 +88,7 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 
 
 BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                     const char * pcName )
+                                           const char * pcName )
 {
 }
 
@@ -109,7 +109,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 {
 }
 void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
-                                     struct xNetworkEndPoint * pxEndPoint )
+                                           struct xNetworkEndPoint * pxEndPoint )
 {
 }
 void vApplicationDaemonTaskStartupHook( void )

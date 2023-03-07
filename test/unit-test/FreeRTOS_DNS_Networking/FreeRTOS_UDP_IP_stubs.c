@@ -52,7 +52,7 @@ void vPortExitCritical( void )
 }
 
 BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                     const char * pcName )
+                                           const char * pcName )
 {
 }
 

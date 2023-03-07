@@ -322,7 +322,7 @@
             /* Even though the function is defined in main.c, the rule is violated. */
             /* misra_c_2012_rule_8_6_violation */
             extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                                        const char * pcName );
+                                                              const char * pcName );
         #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */

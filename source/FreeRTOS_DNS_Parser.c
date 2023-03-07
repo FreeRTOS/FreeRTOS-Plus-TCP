@@ -1143,7 +1143,7 @@
                             if( xApplicationDNSQueryHook( xSet.pcName ) != pdFALSE )
                         #else
                             if( xApplicationDNSQueryHook_Multi( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE )
-                        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */                       
+                        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
                         {
                             /* The field xDataLength was set to the total length of the UDP packet,
                              * i.e. the payload size plus sizeof( UDPPacket_t ). */

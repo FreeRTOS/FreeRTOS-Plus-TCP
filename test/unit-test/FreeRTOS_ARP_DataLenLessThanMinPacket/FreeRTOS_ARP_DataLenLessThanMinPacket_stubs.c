@@ -62,7 +62,7 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 /* Even though the function is defined in main.c, the rule is violated. */
 /* misra_c_2012_rule_8_6_violation */
 extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                            const char * pcName )
+                                                  const char * pcName )
 {
 }
 
@@ -84,7 +84,7 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 }
 /* This function shall be defined by the application. */
 void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
-                                     struct xNetworkEndPoint * pxEndPoint )
+                                           struct xNetworkEndPoint * pxEndPoint )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )

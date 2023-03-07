@@ -242,10 +242,10 @@
 #endif
 
 /*
- * If defined this macro enables the APIs that are backward compatible 
+ * If defined this macro enables the APIs that are backward compatible
  * with single end point IPv4 version of the FreeRTOS+TCP library.
  */
-#ifndef ipconfigIPv4_BACKWARD_COMPATIBLE 
+#ifndef ipconfigIPv4_BACKWARD_COMPATIBLE
     #define ipconfigIPv4_BACKWARD_COMPATIBLE    0
 #endif
 
@@ -379,7 +379,7 @@
 
 /* 'ipconfigUSE_NETWORK_EVENT_HOOK' indicates if an application hook is available
  * called 'vApplicationIPNetworkEventHook()' ( if ipconfigIPv4_BACKWARD_COMPATIBLE enabled,
- * otherwise vApplicationIPNetworkEventHook_Multi() ).  
+ * otherwise vApplicationIPNetworkEventHook_Multi() ).
  * This function will be called when
  * the network goes up and when it goes down.  See also FREERTOS_IP.h for further
  * explanation. */

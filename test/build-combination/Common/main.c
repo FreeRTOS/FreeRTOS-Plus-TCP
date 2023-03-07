@@ -125,7 +125,7 @@ int main( void )
 /*-----------------------------------------------------------*/
 
 void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
-                                     struct xNetworkEndPoint * pxEndPoint )
+                                           struct xNetworkEndPoint * pxEndPoint )
 {
     static BaseType_t xTasksAlreadyCreated = pdFALSE;
 
