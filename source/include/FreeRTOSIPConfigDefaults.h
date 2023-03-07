@@ -241,6 +241,14 @@
     #define ipconfigUSE_IPv6    ( 1 )
 #endif
 
+/*
+ * If defined this macro enables the APIs that are backward compatible 
+ * with single end point IPv4 version of the FreeRTOS+TCP library.
+ */
+#ifndef ipconfigIPv4_BACKWARD_COMPATIBLE 
+    #define ipconfigIPv4_BACKWARD_COMPATIBLE    0
+#endif
+
 /* Determine the number of clock ticks that the API's FreeRTOS_recv() and
  * FreeRTOS_recvfrom() must wait for incoming data. */
 #ifndef ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME

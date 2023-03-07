@@ -38,7 +38,7 @@
 
 #define ipconfigMULTI_INTERFACE           1
 
-#define ipconfigCOMPATIBLE_WITH_SINGLE    1
+#define ipconfigIPv4_BACKWARD_COMPATIBLE    1
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
