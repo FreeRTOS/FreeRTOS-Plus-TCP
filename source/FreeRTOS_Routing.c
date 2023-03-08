@@ -1056,6 +1056,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
+#else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 ) */
+
 /**
  * @brief Returns the IP type of the given IPv6 address.
  *
@@ -1156,7 +1158,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         return pcBuffer;
     }
-#else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 ) */
+/*-----------------------------------------------------------*/
 
 /* Here below the most important function of FreeRTOS_Routing.c in a short
  * version: it is assumed that only 1 interface and 1 end-point will be created.
