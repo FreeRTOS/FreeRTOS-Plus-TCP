@@ -143,7 +143,6 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
                              ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
                              ipSIZE_OF_IPv6_ADDRESS );
             pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
-            pxSourceAddress->sin_address.ulIP_IPv4 = 0U;
             pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
         }
 
