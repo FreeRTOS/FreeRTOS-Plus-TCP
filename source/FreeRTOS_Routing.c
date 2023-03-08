@@ -1058,108 +1058,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
 #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 ) */
 
-/**
- * @brief Returns the IP type of the given IPv6 address.
- *
- * @param[in] pxAddress: The IPv6 address whose type needs to be returned.
- * @returns The IP type of the given address.
- */
-    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
-    {
-        IPv6_Type_t eResult = eIPv6_Unknown;
-        BaseType_t xIndex;
-        static const struct xIPv6_Couple xIPCouples[] =
-        {
-            /*    IP-type          Mask     Value */
-            { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
-            { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
-            { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
-            { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
-        };
-
-        for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
-        {
-            uint16_t usAddress =
-                ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
-                ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
-
-            if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
-            {
-                eResult = xIPCouples[ xIndex ].eType;
-                break;
-            }
-        }
-
-        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            const char * pcName = "unknown enum";
-
-            switch( eResult )
-            {
-                case eIPv6_Global:
-                    pcName = "Global";
-                    break;
-
-                case eIPv6_LinkLocal:
-                    pcName = "LinkLocal";
-                    break;
-
-                case eIPv6_SiteLocal:
-                    pcName = "SiteLocal";
-                    break;
-
-                case eIPv6_Multicast:
-                    pcName = "Multicast";
-                    break;
-
-                case eIPv6_Unknown:
-                    pcName = "Unknown";
-                    break;
-            }
-
-            FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
-                                     pxAddress->ucBytes[ 0 ],
-                                     pxAddress->ucBytes[ 1 ],
-                                     pcName,
-                                     pxAddress->ucBytes ) );
-        #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
-
-        return eResult;
-    }
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Returns the string representation of the IP address of the end point.
- *
- * @param[in] pxEndPoint: End point for which IP address needs to be returned.
- * @param[in] pcBuffer: A char buffer of required size to which the string will be written.
- * @param[in] uxSize: Size of the char buffer - pcBuffer.
- *
- * @returns The pointer to the char buffer that contains the string representation of the end point IP address.
- *          The string will be "NULL" if the end point pointer is NULL.
- */
-    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
-                                 char * pcBuffer,
-                                 size_t uxSize )
-    {
-        if( pxEndPoint == NULL )
-        {
-            /* MISRA Ref 21.6.1 [snprintf and logging] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
-            /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxSize, "NULL" );
-        }
-        else
-        {
-            ( void ) FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
-                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                         pcBuffer,
-                                         uxSize );
-        }
-
-        return pcBuffer;
-    }
-/*-----------------------------------------------------------*/
-
 /* Here below the most important function of FreeRTOS_Routing.c in a short
  * version: it is assumed that only 1 interface and 1 end-point will be created.
  * The reason for this is downward compatibility with the earlier release of
@@ -1444,3 +1342,105 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /*-----------------------------------------------------------*/
 
 #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 ) */
+
+/**
+ * @brief Returns the IP type of the given IPv6 address.
+ *
+ * @param[in] pxAddress: The IPv6 address whose type needs to be returned.
+ * @returns The IP type of the given address.
+ */
+    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
+    {
+        IPv6_Type_t eResult = eIPv6_Unknown;
+        BaseType_t xIndex;
+        static const struct xIPv6_Couple xIPCouples[] =
+        {
+            /*    IP-type          Mask     Value */
+            { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
+            { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+            { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+            { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+        };
+
+        for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
+        {
+            uint16_t usAddress =
+                ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
+                ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
+
+            if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+            {
+                eResult = xIPCouples[ xIndex ].eType;
+                break;
+            }
+        }
+
+        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+            const char * pcName = "unknown enum";
+
+            switch( eResult )
+            {
+                case eIPv6_Global:
+                    pcName = "Global";
+                    break;
+
+                case eIPv6_LinkLocal:
+                    pcName = "LinkLocal";
+                    break;
+
+                case eIPv6_SiteLocal:
+                    pcName = "SiteLocal";
+                    break;
+
+                case eIPv6_Multicast:
+                    pcName = "Multicast";
+                    break;
+
+                case eIPv6_Unknown:
+                    pcName = "Unknown";
+                    break;
+            }
+
+            FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
+                                     pxAddress->ucBytes[ 0 ],
+                                     pxAddress->ucBytes[ 1 ],
+                                     pcName,
+                                     pxAddress->ucBytes ) );
+        #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+
+        return eResult;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Returns the string representation of the IP address of the end point.
+ *
+ * @param[in] pxEndPoint: End point for which IP address needs to be returned.
+ * @param[in] pcBuffer: A char buffer of required size to which the string will be written.
+ * @param[in] uxSize: Size of the char buffer - pcBuffer.
+ *
+ * @returns The pointer to the char buffer that contains the string representation of the end point IP address.
+ *          The string will be "NULL" if the end point pointer is NULL.
+ */
+    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                                 char * pcBuffer,
+                                 size_t uxSize )
+    {
+        if( pxEndPoint == NULL )
+        {
+            /* MISRA Ref 21.6.1 [snprintf and logging] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+            /* coverity[misra_c_2012_rule_21_6_violation] */
+            ( void ) snprintf( pcBuffer, uxSize, "NULL" );
+        }
+        else
+        {
+            ( void ) FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
+                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                         pcBuffer,
+                                         uxSize );
+        }
+
+        return pcBuffer;
+    }
+/*-----------------------------------------------------------*/
