@@ -1446,6 +1446,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
             else if( ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) &&
                      /* Is it the global broadcast address 255.255.255.255 ? */
                      ( ulDestinationIPAddress != ipBROADCAST_IP_ADDRESS ) &&
+                     /* Is it a loopback address ? */
+                     ( ( ulDestinationIPAddress & ipLOOPBACK_NETMASK ) != ( ipLOOPBACK_ADDRESS & ipLOOPBACK_NETMASK ) ) &&
                      /* Is it a specific broadcast address 192.168.1.255 ? */
                      ( ulDestinationIPAddress != xNetworkAddressing.ulBroadcastAddress ) &&
                      #if ( ipconfigUSE_LLMNR == 1 )
