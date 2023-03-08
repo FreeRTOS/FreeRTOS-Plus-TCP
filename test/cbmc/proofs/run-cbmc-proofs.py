@@ -152,7 +152,7 @@ def run_build(jobs):
     cmd = ["litani", "run-build"]
     if jobs:
         cmd.extend(["-j", str(jobs)])
-    run_cmd(cmd, check=True, timeout=3600)
+    run_cmd(cmd, check=True)
 
 
 def add_proof_jobs(proof_directory, proof_root):
@@ -301,7 +301,13 @@ def main():
     if not args.no_standalone:
         run_build(args.parallel_jobs)
 
+    out_sym = pathlib.Path("/tmp")/"litani"/"runs"/"latest"
+    out_dir = out_sym.resolve()
+
+    local_copy = pathlib.Path("output")/"latest"
+    local_copy.parent.mkdir(exist_ok=True)
+    local_copy.symlink_to(out_dir)
+
 
 if __name__ == "__main__":
     main()
-
