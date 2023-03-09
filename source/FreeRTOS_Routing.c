@@ -119,7 +119,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 )
+#if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
     #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
         RoutingStats_t xRoutingStatistics;
@@ -1056,7 +1056,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
-#else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 ) */
+#else /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
 
 /* Here below the most important function of FreeRTOS_Routing.c in a short
  * version: it is assumed that only 1 interface and 1 end-point will be created.
@@ -1065,7 +1065,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
 /**
  * @brief Add a network interface to the list of interfaces.  Check if this will be
- *        first and only interface ( ipconfigIPv4_BACKWARD_COMPATIBLE = 1 ).
+ *        first and only interface ( ipconfigCOMPATIBLE_WITH_SINGLE = 1 ).
  *
  * @param[in] pxInterface: The address of the new interface.
  *
@@ -1080,7 +1080,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief And an end-point to an interface.  Note that when ipconfigIPv4_BACKWARD_COMPATIBLE
+ * @brief And an end-point to an interface.  Note that when ipconfigCOMPATIBLE_WITH_SINGLE
  *        is defined, only one interface is allowed, which will have one end-point only.
  *
  * @param[in] pxInterface: The interface to which the end-point is assigned.
@@ -1214,7 +1214,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         ( void ) pxInterface;
 
-        /* ipconfigIPv4_BACKWARD_COMPATIBLE is defined and this is the simplified version:
+        /* ipconfigCOMPATIBLE_WITH_SINGLE is defined and this is the simplified version:
          * only one interface and one end-point is defined. */
         return pxNetworkEndPoints;
     }
@@ -1227,7 +1227,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  */
     NetworkInterface_t * FreeRTOS_FirstNetworkInterface( void )
     {
-        /* ipconfigIPv4_BACKWARD_COMPATIBLE is defined: only one interface and
+        /* ipconfigCOMPATIBLE_WITH_SINGLE is defined: only one interface and
          * one end-point is defined. */
         return pxNetworkInterfaces;
     }
@@ -1273,7 +1273,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         ( void ) pxNetworkInterface;
         ( void ) pucEthernetBuffer;
 
-        /* ipconfigIPv4_BACKWARD_COMPATIBLE is defined: only one interface and
+        /* ipconfigCOMPATIBLE_WITH_SINGLE is defined: only one interface and
          * one end-point is defined. */
         return pxNetworkEndPoints;
     }
@@ -1287,7 +1287,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  *                         end-points.
  * @param[in] pxEndPoint: This is the current end-point.
  *
- * @return NULL because ipconfigIPv4_BACKWARD_COMPATIBLE is defined.
+ * @return NULL because ipconfigCOMPATIBLE_WITH_SINGLE is defined.
  */
     NetworkEndPoint_t * FreeRTOS_NextEndPoint( const NetworkInterface_t * pxInterface,
                                                NetworkEndPoint_t * pxEndPoint )
@@ -1302,7 +1302,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /**
  * @brief Get the next interface.
  *
- * @return NULL because ipconfigIPv4_BACKWARD_COMPATIBLE is defined.
+ * @return NULL because ipconfigCOMPATIBLE_WITH_SINGLE is defined.
  */
     NetworkInterface_t * FreeRTOS_NextNetworkInterface( const NetworkInterface_t * pxInterface )
     {
@@ -1341,7 +1341,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     #endif
 /*-----------------------------------------------------------*/
 
-#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 ) */
+#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
 
 /**
  * @brief Returns the IP type of the given IPv6 address.
