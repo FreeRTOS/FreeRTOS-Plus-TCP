@@ -241,6 +241,14 @@
     #define ipconfigUSE_IPv6    ( 1 )
 #endif
 
+/*
+ * If defined this macro enables the APIs that are backward compatible
+ * with single end point IPv4 version of the FreeRTOS+TCP library.
+ */
+#ifndef ipconfigIPv4_BACKWARD_COMPATIBLE
+    #define ipconfigIPv4_BACKWARD_COMPATIBLE    0
+#endif
+
 /* Determine the number of clock ticks that the API's FreeRTOS_recv() and
  * FreeRTOS_recvfrom() must wait for incoming data. */
 #ifndef ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME
@@ -370,7 +378,9 @@
 #endif
 
 /* 'ipconfigUSE_NETWORK_EVENT_HOOK' indicates if an application hook is available
- * called 'vApplicationIPNetworkEventHook()'.  This function will be called when
+ * called 'vApplicationIPNetworkEventHook()' ( if ipconfigIPv4_BACKWARD_COMPATIBLE enabled,
+ * otherwise vApplicationIPNetworkEventHook_Multi() ).
+ * This function will be called when
  * the network goes up and when it goes down.  See also FREERTOS_IP.h for further
  * explanation. */
 #ifndef ipconfigUSE_NETWORK_EVENT_HOOK

@@ -438,10 +438,10 @@
             #if ( ipconfigUSE_TCP_WIN == 1 )
                 {
                     char pcBuffer[ 40 ]; /* Space to print an IP-address. */
-                    FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != 0 ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
-                                        ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
-                                        pcBuffer,
-                                        sizeof( pcBuffer ) );
+                    ( void ) FreeRTOS_inet_ntop( ( pxSocket->bits.bIsIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET,
+                                                 ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                                 pcBuffer,
+                                                 sizeof( pcBuffer ) );
                     FreeRTOS_debug_printf( ( "TCP: %s %u => %s port %u set ESTAB (scaling %u)\n",
                                              ( pxSocket->u.xTCP.eTCPState == ( uint8_t ) eCONNECT_SYN ) ? "active" : "passive",
                                              pxSocket->usLocalPort,

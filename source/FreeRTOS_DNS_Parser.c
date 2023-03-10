@@ -307,6 +307,7 @@
         uint16_t x;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
+        int lDNSHookReturn;
 
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
         xSet.usPortNumber = usPort;
@@ -494,7 +495,13 @@
 
                         /* If this is not a reply to our DNS request, it might be an mDNS or an LLMNR
                          * request. Ask the application if it uses the name. */
-                        if( xApplicationDNSQueryHook( &xEndPoint, xSet.pcName ) )
+                        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                            lDNSHookReturn = xApplicationDNSQueryHook( xSet.pcName );
+                        #else
+                            lDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
+                        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
+                        if( lDNSHookReturn )
                         {
                             int16_t usLength;
                             NetworkBufferDescriptor_t * pxNewBuffer = NULL;
@@ -767,7 +774,7 @@
 
                         if( ppxAddressInfo != NULL )
                         {
-                            uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
+                            const uint8_t * ucBytes = ( uint8_t * ) &( pxSet->ulIPAddress );
 
                             pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
                         }
@@ -1157,7 +1164,11 @@
                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
                 xEndPoint.usDNSType = dnsTYPE_A_HOST;
 
+            #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                if( xApplicationDNSQueryHook( ( const char * ) ucNBNSName ) == pdFALSE )
+            #else
                 if( xApplicationDNSQueryHook( &( xEndPoint ), ( const char * ) ucNBNSName ) == pdFALSE )
+            #endif
                 {
                     /* The application tells that the name in 'ucNBNSName'
                      * does not referring to this host. */

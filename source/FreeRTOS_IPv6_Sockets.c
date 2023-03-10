@@ -55,8 +55,8 @@
  *        iterating through all sockets.
  * @param[in] pxSocket: The socket to be inspected.
  * @param[in] pxAddress_IPv6: The IPv6 address, or NULL if the peer has a IPv4 address.
- * @param[in] ulRemoteIP: The IPv4 address
- * @return The socket in case it is connected to the remote IP-address
+ * @param[in] ulRemoteIP: The IPv4 address.
+ * @return The socket in case it is connected to the remote IP-address.
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
                                                 const IPv6_Address_t * pxAddress_IPv6,

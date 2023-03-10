@@ -34,9 +34,6 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 
-/* FreeRTOS+TCP includes. */
-/*#include "FreeRTOS_IP.h" */
-
 #define dnsPARSE_ERROR              0UL
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
@@ -317,10 +314,16 @@
  * The following function should be provided by the user and return true if it
  * matches the domain name.
  */
-        /* Even though the function is defined in main.c, the rule is violated. */
-        /* misra_c_2012_rule_8_6_violation */
-        extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
-                                                    const char * pcName );
+        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+            /* Even though the function is defined in main.c, the rule is violated. */
+            /* misra_c_2012_rule_8_6_violation */
+            extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
+        #else
+            /* Even though the function is defined in main.c, the rule is violated. */
+            /* misra_c_2012_rule_8_6_violation */
+            extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                              const char * pcName );
+        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */

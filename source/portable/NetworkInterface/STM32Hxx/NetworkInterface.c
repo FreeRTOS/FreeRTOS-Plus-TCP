@@ -366,7 +366,7 @@ static BaseType_t xSTM32H_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -377,7 +377,7 @@ static BaseType_t xSTM32H_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
         pxSTM32Hxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+#endif
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxSTM32H_FillInterfaceDescriptor( BaseType_t xEMACIndex,

@@ -352,6 +352,9 @@
         }
         else
         {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             const ICMPRouterAdvertisement_IPv6_t * pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
             FreeRTOS_printf( ( "RA: Type %02x Srv %02x Checksum %04x Hops %d Flags %02x Life %d\n",
                                pxAdvertisement->ucTypeOfMessage,

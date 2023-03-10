@@ -136,7 +136,8 @@ foreach( file ${TCP_INCLUDES} )
                             ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
-                        OUTPUT_QUIET )
+                        OUTPUT_QUIET
+                        ERROR_QUIET  )
     else()
         execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT -UpdTRUE_SIGNED -UFreeRTOS_htonl -D__COVERITY__ -DTEST -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
                                                     -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
@@ -146,7 +147,8 @@ foreach( file ${TCP_INCLUDES} )
                                                     ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}.h
-                        OUTPUT_QUIET )
+                        OUTPUT_QUIET
+                        ERROR_QUIET  )
     endif()
 
     # Remove the temporary files

@@ -312,7 +312,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
+    vApplicationIPNetworkEventHook_Multi_Expect( eNetworkDown, &xEndPoint );
 
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
