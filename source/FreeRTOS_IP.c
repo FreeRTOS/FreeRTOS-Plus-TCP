@@ -2228,7 +2228,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /*
  * The helper functions here below assume that there is a single
