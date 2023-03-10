@@ -184,14 +184,14 @@ struct ethernetif
 
 typedef enum xEMAC_STATE
 {
-    xEMAC_Init,
     xEMAC_SetupPHY,
     xEMAC_WaitPHY,
+	xEMAC_Init,
     xEMAC_Ready,
     xEMAC_Fatal,
 } EMACState_t;
 
-static EMACState_t eEMACState = xEMAC_Init;
+static EMACState_t eEMACState = xEMAC_SetupPHY;
 
 static mdio_handle_t mdioHandle = { .ops = &EXAMPLE_MDIO_OPS };
 
@@ -254,7 +254,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     switch( eEMACState )
     {
-        case xEMAC_Init:
+        case xEMAC_SetupPHY:
             ethernetifLocal->RxBuffDescrip = &( rxBuffDescrip_0[ 0 ] );
             ethernetifLocal->TxBuffDescrip = &( txBuffDescrip_0[ 0 ] );
             ethernetifLocal->RxDataBuff = &( rxDataBuff_0[ 0 ] );
@@ -281,8 +281,8 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 break;
             }
 
-            eEMACState = xEMAC_SetupPHY;
-        /* Fall through. */
+            eEMACState = xEMAC_WaitPHY;
+            /* Fall through. */
 
         case xEMAC_WaitPHY:
             FreeRTOS_printf( ( "Configuration successful. Waiting for auto-negotiation to complete...\r\n" ) );
@@ -373,9 +373,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 break;
             }
 
-        /* Fall through. */
+            eEMACState = xEMAC_Init;
+            /* Fall through. */
 
-        case xEMAC_SetupPHY:
+        case xEMAC_Init:
 
             /* prepare the buffer configuration. */
             buffCfg[ 0 ].rxBdNumber = ENET_RXBD_NUM;                  /* Receive buffer descriptor number. */
@@ -481,7 +482,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
             FreeRTOS_printf( ( "Driver ready for use." ) );
             eEMACState = xEMAC_Ready;
-        /* Fall through. */
+            /* Fall through. */
 
         case xEMAC_Ready:
             xResult = pdPASS;
