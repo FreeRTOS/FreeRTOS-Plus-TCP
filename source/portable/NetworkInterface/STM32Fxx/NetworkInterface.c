@@ -188,8 +188,8 @@ static BaseType_t prvNetworkInterfaceInput( void );
  * be able to receive the multicast messages.
  */
 static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
-                                    uint32_t ulIndex,
-                                    uint8_t * Addr );
+                                 uint32_t ulIndex,
+                                 uint8_t * Addr );
 
 /* FreeRTOS+TCP/multi :
  * Each network device has 3 access functions:
@@ -755,8 +755,8 @@ static void prvDMARxDescListInit()
 
 
 static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
-                                    uint32_t ulIndex,
-                                    uint8_t * Addr )
+                                 uint32_t ulIndex,
+                                 uint8_t * Addr )
 {
     uint32_t ulTempReg;
 
