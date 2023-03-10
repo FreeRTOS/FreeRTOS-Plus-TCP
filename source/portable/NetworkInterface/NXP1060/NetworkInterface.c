@@ -186,7 +186,7 @@ typedef enum xEMAC_STATE
 {
     xEMAC_SetupPHY,
     xEMAC_WaitPHY,
-	xEMAC_Init,
+    xEMAC_Init,
     xEMAC_Ready,
     xEMAC_Fatal,
 } EMACState_t;
@@ -282,7 +282,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             }
 
             eEMACState = xEMAC_WaitPHY;
-            /* Fall through. */
+        /* Fall through. */
 
         case xEMAC_WaitPHY:
             FreeRTOS_printf( ( "Configuration successful. Waiting for auto-negotiation to complete...\r\n" ) );
@@ -374,7 +374,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             }
 
             eEMACState = xEMAC_Init;
-            /* Fall through. */
+        /* Fall through. */
 
         case xEMAC_Init:
 
@@ -482,7 +482,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
             FreeRTOS_printf( ( "Driver ready for use." ) );
             eEMACState = xEMAC_Ready;
-            /* Fall through. */
+        /* Fall through. */
 
         case xEMAC_Ready:
             xResult = pdPASS;
