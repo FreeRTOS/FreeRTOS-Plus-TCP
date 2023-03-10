@@ -54,108 +54,108 @@
 #endif
 
 /* MDIO operations. */
-#define EXAMPLE_MDIO_OPS       enet_ops
+#define EXAMPLE_MDIO_OPS      enet_ops
 
 /* PHY operations. */
-#define EXAMPLE_PHY_OPS        phyksz8081_ops
+#define EXAMPLE_PHY_OPS       phyksz8081_ops
 
 /* ENET clock frequency. */
-#define EXAMPLE_CLOCK_FREQ     CLOCK_GetFreq( kCLOCK_IpgClk )
+#define EXAMPLE_CLOCK_FREQ    CLOCK_GetFreq( kCLOCK_IpgClk )
 
 /*
  * Padding of ethernet frames has to be disabled for zero-copy functionality
  * since ENET driver requires the starting buffer addresses to be aligned.
  */
 #if ETH_PAD_SIZE != 0
-#error "ETH_PAD_SIZE != 0"
+    #error "ETH_PAD_SIZE != 0"
 #endif /* ETH_PAD_SIZE != 0 */
 
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define ENET_RING_NUM (1)
+#define ENET_RING_NUM    ( 1 )
 
 /* The length or RX buffer. */
 #ifndef ENET_RXBUFF_SIZE
-    #define ENET_RXBUFF_SIZE (ENET_FRAME_MAX_FRAMELEN)
+    #define ENET_RXBUFF_SIZE    ( ENET_FRAME_MAX_FRAMELEN )
 #endif
 
 /* ENET IRQ priority. Used in FreeRTOS. */
 /* Interrupt priorities. */
 #ifdef __CA7_REV
-#ifndef ENET_PRIORITY
-    #define ENET_PRIORITY       (21U)
-#endif
-#ifndef ENET_1588_PRIORITY
-    #define ENET_1588_PRIORITY  (20U)
-#endif
+    #ifndef ENET_PRIORITY
+        #define ENET_PRIORITY         ( 21U )
+    #endif
+    #ifndef ENET_1588_PRIORITY
+        #define ENET_1588_PRIORITY    ( 20U )
+    #endif
 #else
-#ifndef ENET_PRIORITY
-    #define ENET_PRIORITY       (6U)
-#endif
-#ifndef ENET_1588_PRIORITY
-    #define ENET_1588_PRIORITY  (5U)
-#endif
-#endif
+    #ifndef ENET_PRIORITY
+        #define ENET_PRIORITY         ( 6U )
+    #endif
+    #ifndef ENET_1588_PRIORITY
+        #define ENET_1588_PRIORITY    ( 5U )
+    #endif
+#endif /* ifdef __CA7_REV */
 
 /* The number of ENET buffers needed to receive frame of maximum length. */
 #define MAX_BUFFERS_PER_FRAME \
-    ((ENET_FRAME_MAX_FRAMELEN / ENET_RXBUFF_SIZE) + ((ENET_FRAME_MAX_FRAMELEN % ENET_RXBUFF_SIZE == 0) ? 0 : 1))
+    ( ( ENET_FRAME_MAX_FRAMELEN / ENET_RXBUFF_SIZE ) + ( ( ENET_FRAME_MAX_FRAMELEN % ENET_RXBUFF_SIZE == 0 ) ? 0 : 1 ) )
 
 /* The length or TX buffer. */
 #ifndef ENET_TXBUFF_SIZE
-#define ENET_TXBUFF_SIZE (ENET_FRAME_MAX_FRAMELEN)
+    #define ENET_TXBUFF_SIZE    ( ENET_FRAME_MAX_FRAMELEN )
 #endif
 
 /* The number of buffer descriptors in ENET RX ring. */
 #ifndef ENET_RXBD_NUM
-#define ENET_RXBD_NUM (5)
+    #define ENET_RXBD_NUM    ( 5 )
 #endif
 
 /* Ring should be able to receive at least 1 frame with maximum length. */
 #if ENET_RXBD_NUM < MAX_BUFFERS_PER_FRAME
-#error "ENET_RXBD_NUM < MAX_BUFFERS_PER_FRAME"
+    #error "ENET_RXBD_NUM < MAX_BUFFERS_PER_FRAME"
 #endif
 
 /* The number of RX buffers. ENET_RXBD_NUM is always held by ENET driver,
  * so a couple more are needed to pass zero-copy data into lwIP. */
 #ifndef ENET_RXBUFF_NUM
-#define ENET_RXBUFF_NUM (ENET_RXBD_NUM * 2)
+    #define ENET_RXBUFF_NUM    ( ENET_RXBD_NUM * 2 )
 #endif
 
 /* At least ENET_RXBD_NUM number of buffers is always held by ENET driver for RX.
  * Some additional buffers are needed to pass at least one frame zero-copy data to lwIP. */
-#if ENET_RXBUFF_NUM < (ENET_RXBD_NUM + MAX_BUFFERS_PER_FRAME)
-#error "ENET_RXBUFF_NUM < (ENET_RXBD_NUM + MAX_BUFFERS_PER_FRAME)"
+#if ENET_RXBUFF_NUM < ( ENET_RXBD_NUM + MAX_BUFFERS_PER_FRAME )
+    #error "ENET_RXBUFF_NUM < (ENET_RXBD_NUM + MAX_BUFFERS_PER_FRAME)"
 #endif
 
 /* The number of buffer descriptors in ENET TX ring. */
 #ifndef ENET_TXBD_NUM
-#define ENET_TXBD_NUM (3)
+    #define ENET_TXBD_NUM            ( 3 )
 #endif
 
-#define MAX_AUTONEG_FAILURE_COUNT (5)
+#define MAX_AUTONEG_FAILURE_COUNT    ( 5 )
 
-#if defined(FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL) && FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL
-#if defined(FSL_FEATURE_L2CACHE_LINESIZE_BYTE) && \
-    ((!defined(FSL_SDK_DISBLE_L2CACHE_PRESENT)) || (FSL_SDK_DISBLE_L2CACHE_PRESENT == 0))
-#if defined(FSL_FEATURE_L1DCACHE_LINESIZE_BYTE)
-#define FSL_CACHE_LINESIZE_MAX  MAX(FSL_FEATURE_L1DCACHE_LINESIZE_BYTE, FSL_FEATURE_L2CACHE_LINESIZE_BYTE)
-#define FSL_ENET_BUFF_ALIGNMENT MAX(ENET_BUFF_ALIGNMENT, FSL_CACHE_LINESIZE_MAX)
-#else
-#define FSL_ENET_BUFF_ALIGNMENT MAX(ENET_BUFF_ALIGNMENT, FSL_FEATURE_L2CACHE_LINESIZE_BYTE)
-#endif
-#elif defined(FSL_FEATURE_L1DCACHE_LINESIZE_BYTE)
-#define FSL_ENET_BUFF_ALIGNMENT MAX(ENET_BUFF_ALIGNMENT, FSL_FEATURE_L1DCACHE_LINESIZE_BYTE)
-#else
-#define FSL_ENET_BUFF_ALIGNMENT ENET_BUFF_ALIGNMENT
-#endif
-#else
-#define FSL_ENET_BUFF_ALIGNMENT ENET_BUFF_ALIGNMENT
-#endif
+#if defined( FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL ) && FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL
+    #if defined( FSL_FEATURE_L2CACHE_LINESIZE_BYTE ) && \
+    ( ( !defined( FSL_SDK_DISBLE_L2CACHE_PRESENT ) ) || ( FSL_SDK_DISBLE_L2CACHE_PRESENT == 0 ) )
+        #if defined( FSL_FEATURE_L1DCACHE_LINESIZE_BYTE )
+            #define FSL_CACHE_LINESIZE_MAX     MAX( FSL_FEATURE_L1DCACHE_LINESIZE_BYTE, FSL_FEATURE_L2CACHE_LINESIZE_BYTE )
+            #define FSL_ENET_BUFF_ALIGNMENT    MAX( ENET_BUFF_ALIGNMENT, FSL_CACHE_LINESIZE_MAX )
+        #else
+            #define FSL_ENET_BUFF_ALIGNMENT    MAX( ENET_BUFF_ALIGNMENT, FSL_FEATURE_L2CACHE_LINESIZE_BYTE )
+        #endif
+    #elif defined( FSL_FEATURE_L1DCACHE_LINESIZE_BYTE )
+        #define FSL_ENET_BUFF_ALIGNMENT        MAX( ENET_BUFF_ALIGNMENT, FSL_FEATURE_L1DCACHE_LINESIZE_BYTE )
+    #else
+        #define FSL_ENET_BUFF_ALIGNMENT        ENET_BUFF_ALIGNMENT
+    #endif /* if defined( FSL_FEATURE_L2CACHE_LINESIZE_BYTE ) && ( ( !defined( FSL_SDK_DISBLE_L2CACHE_PRESENT ) ) || ( FSL_SDK_DISBLE_L2CACHE_PRESENT == 0 ) ) */
+#else /* if defined( FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL ) && FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL */
+    #define FSL_ENET_BUFF_ALIGNMENT            ENET_BUFF_ALIGNMENT
+#endif /* if defined( FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL ) && FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL */
 
-typedef uint8_t rx_buffer_t[SDK_SIZEALIGN(ENET_RXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT)];
-typedef uint8_t tx_buffer_t[SDK_SIZEALIGN(ENET_TXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT)];
+typedef uint8_t   rx_buffer_t[ SDK_SIZEALIGN( ENET_RXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT ) ];
+typedef uint8_t   tx_buffer_t[ SDK_SIZEALIGN( ENET_TXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT ) ];
 
 /*!
  * @brief Used to wrap received data in a pbuf to be passed into lwIP
@@ -164,7 +164,7 @@ typedef uint8_t tx_buffer_t[SDK_SIZEALIGN(ENET_TXBUFF_SIZE, FSL_ENET_BUFF_ALIGNM
  */
 typedef struct rx_pbuf_wrapper
 {
-    void *buffer;              /*!< Original buffer wrapped. */
+    void * buffer;             /*!< Original buffer wrapped. */
     volatile bool buffer_used; /*!< Wrapped buffer is used by ENET or FreeRTOS+TCP. */
 } rx_pbuf_wrapper_t;
 
@@ -173,13 +173,13 @@ typedef struct rx_pbuf_wrapper
  */
 struct ethernetif
 {
-    ENET_Type *base;
+    ENET_Type * base;
     enet_handle_t handle;
-    enet_rx_bd_struct_t *RxBuffDescrip;
-    enet_tx_bd_struct_t *TxBuffDescrip;
-    rx_buffer_t *RxDataBuff;
-    tx_buffer_t *TxDataBuff;
-    rx_pbuf_wrapper_t RxPbufs[ENET_RXBUFF_NUM];
+    enet_rx_bd_struct_t * RxBuffDescrip;
+    enet_tx_bd_struct_t * TxBuffDescrip;
+    rx_buffer_t * RxDataBuff;
+    tx_buffer_t * TxDataBuff;
+    rx_pbuf_wrapper_t RxPbufs[ ENET_RXBUFF_NUM ];
 };
 
 
@@ -212,25 +212,25 @@ SDK_ALIGN( static tx_buffer_t txDataBuff_0[ ENET_TXBD_NUM ], FSL_ENET_BUFF_ALIGN
 
 static void prvEMACHandlerTask( void * pvParameters );
 
-static void ethernet_callback( ENET_Type *base,
-                               enet_handle_t *handle,
+static void ethernet_callback( ENET_Type * base,
+                               enet_handle_t * handle,
                                enet_event_t event,
-                               enet_frame_info_t *frameInfo,
-                               void *userData );
+                               enet_frame_info_t * frameInfo,
+                               void * userData );
 
 static void prvProcessFrame( int length );
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
-	status_t xStatus;
-	phy_config_t xConfig = { 0 };
-	BaseType_t xResult = pdPASS;
-	phy_speed_t speed;
+    status_t xStatus;
+    phy_config_t xConfig = { 0 };
+    BaseType_t xResult = pdPASS;
+    phy_speed_t speed;
     phy_duplex_t duplex;
     status_t readStatus;
     enet_config_t config;
     uint32_t sysClock;
-    enet_buffer_config_t buffCfg[ENET_RING_NUM];
+    enet_buffer_config_t buffCfg[ ENET_RING_NUM ];
     int i;
     uint8_t ucCounter = 0;
     bool autoNegotiationComplete = false;
@@ -240,335 +240,337 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     #if defined( ENET_ENHANCEDBUFFERDESCRIPTOR_MODE )
         configASSERT( pdFALSE );
-	#endif
+    #endif
 
     ethernetifLocal->RxBuffDescrip = &( rxBuffDescrip_0[ 0 ] );
     ethernetifLocal->TxBuffDescrip = &( txBuffDescrip_0[ 0 ] );
-    ethernetifLocal->RxDataBuff    = &( rxDataBuff_0[ 0 ] );
-    ethernetifLocal->TxDataBuff    = &( txDataBuff_0[ 0 ] );
-    ethernetifLocal->base          = ( void * ) ENET_BASE;
+    ethernetifLocal->RxDataBuff = &( rxDataBuff_0[ 0 ] );
+    ethernetifLocal->TxDataBuff = &( txDataBuff_0[ 0 ] );
+    ethernetifLocal->base = ( void * ) ENET_BASE;
 
-	/* Set the clock frequency. */
-	mdioHandle.resource.csrClock_Hz = EXAMPLE_CLOCK_FREQ;
-	mdioHandle.resource.base = ( void * ) ENET_BASE;
+    /* Set the clock frequency. */
+    mdioHandle.resource.csrClock_Hz = EXAMPLE_CLOCK_FREQ;
+    mdioHandle.resource.base = ( void * ) ENET_BASE;
 
-	/* Set the configuration to auto-negotiate; set the phy to full duplex mode; the phy's address; and the speed. */
-	xConfig.autoNeg = pdTRUE;
-	xConfig.duplex = kPHY_FullDuplex;
-	xConfig.phyAddr = BOARD_ENET0_PHY_ADDRESS;
-	xConfig.speed = kPHY_Speed100M;
+    /* Set the configuration to auto-negotiate; set the phy to full duplex mode; the phy's address; and the speed. */
+    xConfig.autoNeg = pdTRUE;
+    xConfig.duplex = kPHY_FullDuplex;
+    xConfig.phyAddr = BOARD_ENET0_PHY_ADDRESS;
+    xConfig.speed = kPHY_Speed100M;
 
-	configPRINTF( ( "Starting PHY initialization.\r\n" ) );
+    configPRINTF( ( "Starting PHY initialization.\r\n" ) );
 
-	xStatus = PHY_Init( &phyHandle, &xConfig );
+    xStatus = PHY_Init( &phyHandle, &xConfig );
 
-	if( xStatus != kStatus_Success )
-	{
-		xResult = pdFAIL;
-		configPRINTF( ( "Failed to initialize the PHY..." ) );
-	}
-	else
-	{
-		configPRINTF( ( "Configuration successful. Waiting for autonegotiation to complete...\r\n" ) );
+    if( xStatus != kStatus_Success )
+    {
+        xResult = pdFAIL;
+        configPRINTF( ( "Failed to initialize the PHY..." ) );
+    }
+    else
+    {
+        configPRINTF( ( "Configuration successful. Waiting for autonegotiation to complete...\r\n" ) );
 
-		do
-		{
-			readStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &autoNegotiationComplete );
+        do
+        {
+            readStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &autoNegotiationComplete );
 
-			if( autoNegotiationComplete == true )
-			{
-				break;
-			}
+            if( autoNegotiationComplete == true )
+            {
+                break;
+            }
 
-			/* Try for only a limited number of times. */
-			if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
-			{
-				break;
-				xResult = pdFAIL;
-			}
+            /* Try for only a limited number of times. */
+            if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
+            {
+                break;
+                xResult = pdFAIL;
+            }
 
-			vTaskDelay( pdMS_TO_TICKS( 10 ) );
-		}
-		while( readStatus == kStatus_Success );
-	}
+            vTaskDelay( pdMS_TO_TICKS( 10 ) );
+        }
+        while( readStatus == kStatus_Success );
+    }
 
+    if( xResult == pdPASS )
+    {
+        if( autoNegotiationComplete == false )
+        {
+            configPRINTF( ( "Failed to complete auto-negotiation. Using default values." ) );
 
-	if( xResult == pdPASS )
-	{
-		if( autoNegotiationComplete == false )
-		{
-			configPRINTF( ( "Failed to complete auto-negotiation. Using default values." ) );
+            xConfig.autoNeg = pdFALSE;
 
-			xConfig.autoNeg = pdFALSE;
+            xStatus = PHY_Init( &phyHandle, &xConfig );
 
-			xStatus = PHY_Init( &phyHandle, &xConfig );
-			if( xStatus != kStatus_Success )
-			{
-				xResult = pdFAIL;
-				configPRINTF( ( "Failed to re-initialize the PHY..." ) );
-			}
-			else
-			{
-				configPRINTF( ( "PHY re-initialization successful." ) );
-			}
-		}
-		else
-		{
-			configPRINTF( ( "Auto-negotiation complete.\r\n" ) );
-		}
+            if( xStatus != kStatus_Success )
+            {
+                xResult = pdFAIL;
+                configPRINTF( ( "Failed to re-initialize the PHY..." ) );
+            }
+            else
+            {
+                configPRINTF( ( "PHY re-initialization successful." ) );
+            }
+        }
+        else
+        {
+            configPRINTF( ( "Auto-negotiation complete.\r\n" ) );
+        }
 
-		ucCounter = 0;
-		do
-		{
-			readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+        ucCounter = 0;
 
-			if( LinkUp == true )
-			{
-				break;
-			}
+        do
+        {
+            readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
 
-			vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+            if( LinkUp == true )
+            {
+                break;
+            }
 
-			/* Try for only a limited number of times. */
-			if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
-			{
-				break;
-				xResult = pdFAIL;
-			}
-		}
-		while( readStatus == kStatus_Success );
+            vTaskDelay( pdMS_TO_TICKS( 1000 ) );
 
-		if( LinkUp == false )
-		{
-			xResult = pdFAIL;
-			configPRINTF( ( "Failed to get the link up." ) );
-		}
-		else
-		{
-			/* Success in auto-negotiation and the link is up. */
-			configPRINTF( ( "Link up." ) );
-		}
-	}
+            /* Try for only a limited number of times. */
+            if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
+            {
+                break;
+                xResult = pdFAIL;
+            }
+        }
+        while( readStatus == kStatus_Success );
 
-	if( xResult != pdFAIL )
-	{
-		readStatus = PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
-		if( readStatus != kStatus_Success )
-		{
-			xResult = pdFAIL;
-		}
-	}
+        if( LinkUp == false )
+        {
+            xResult = pdFAIL;
+            configPRINTF( ( "Failed to get the link up." ) );
+        }
+        else
+        {
+            /* Success in auto-negotiation and the link is up. */
+            configPRINTF( ( "Link up." ) );
+        }
+    }
 
-	if( xResult != pdFAIL )
-	{
-	    /* We were able to get the link up. Set up all other required things - such as DMA,
-		 * network output etc. */
+    if( xResult != pdFAIL )
+    {
+        readStatus = PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
 
-		/* The handler task is created at the highest possible priority to
-		 * ensure the interrupt handler can return directly to it. */
-		xResult = xTaskCreate( prvEMACHandlerTask,
-							   "EMAC-Handler",
-							   configMINIMAL_STACK_SIZE*3,
-							   NULL,
-							   configMAX_PRIORITIES - 1,
-							   &receiveTaskHandle );
-	}
+        if( readStatus != kStatus_Success )
+        {
+            xResult = pdFAIL;
+        }
+    }
 
-	if( xResult != pdFAIL )
-	{
-		/* prepare the buffer configuration. */
-		buffCfg[0].rxBdNumber      = ENET_RXBD_NUM;       /* Receive buffer descriptor number. */
-		buffCfg[0].txBdNumber      = ENET_TXBD_NUM;       /* Transmit buffer descriptor number. */
-		buffCfg[0].rxBuffSizeAlign = sizeof(rx_buffer_t); /* Aligned receive data buffer size. */
-		buffCfg[0].txBuffSizeAlign = sizeof(tx_buffer_t); /* Aligned transmit data buffer size. */
-		buffCfg[0].rxBdStartAddrAlign =
-				&(rxBuffDescrip_0[0]); /* Aligned receive buffer descriptor start address. */
-		buffCfg[0].txBdStartAddrAlign =
-				&(txBuffDescrip_0[0]); /* Aligned transmit buffer descriptor start address. */
-		buffCfg[0].rxBufferAlign =
-				&(rxDataBuff_0[0][0]); /* Receive data buffer start address. */
-		buffCfg[0].txBufferAlign = &(txDataBuff_0[0][0]); /* Transmit data buffer start address. */
-		buffCfg[0].txFrameInfo = NULL; /* Transmit frame information start address. Set only if using zero-copy transmit. */
-		buffCfg[0].rxMaintainEnable = true; /* Receive buffer cache maintain. */
-		buffCfg[0].txMaintainEnable = true; /* Transmit buffer cache maintain. */
+    if( xResult != pdFAIL )
+    {
+        /* We were able to get the link up. Set up all other required things - such as DMA,
+         * network output etc. */
 
-		sysClock = phyHandle.mdioHandle->resource.csrClock_Hz;
+        /* The handler task is created at the highest possible priority to
+         * ensure the interrupt handler can return directly to it. */
+        xResult = xTaskCreate( prvEMACHandlerTask,
+                               "EMAC-Handler",
+                               configMINIMAL_STACK_SIZE * 3,
+                               NULL,
+                               configMAX_PRIORITIES - 1,
+                               &receiveTaskHandle );
+    }
 
-		ENET_GetDefaultConfig(&config);
+    if( xResult != pdFAIL )
+    {
+        /* prepare the buffer configuration. */
+        buffCfg[ 0 ].rxBdNumber = ENET_RXBD_NUM;                  /* Receive buffer descriptor number. */
+        buffCfg[ 0 ].txBdNumber = ENET_TXBD_NUM;                  /* Transmit buffer descriptor number. */
+        buffCfg[ 0 ].rxBuffSizeAlign = sizeof( rx_buffer_t );     /* Aligned receive data buffer size. */
+        buffCfg[ 0 ].txBuffSizeAlign = sizeof( tx_buffer_t );     /* Aligned transmit data buffer size. */
+        buffCfg[ 0 ].rxBdStartAddrAlign =
+            &( rxBuffDescrip_0[ 0 ] );                            /* Aligned receive buffer descriptor start address. */
+        buffCfg[ 0 ].txBdStartAddrAlign =
+            &( txBuffDescrip_0[ 0 ] );                            /* Aligned transmit buffer descriptor start address. */
+        buffCfg[ 0 ].rxBufferAlign =
+            &( rxDataBuff_0[ 0 ][ 0 ] );                          /* Receive data buffer start address. */
+        buffCfg[ 0 ].txBufferAlign = &( txDataBuff_0[ 0 ][ 0 ] ); /* Transmit data buffer start address. */
+        buffCfg[ 0 ].txFrameInfo = NULL;                          /* Transmit frame information start address. Set only if using zero-copy transmit. */
+        buffCfg[ 0 ].rxMaintainEnable = true;                     /* Receive buffer cache maintain. */
+        buffCfg[ 0 ].txMaintainEnable = true;                     /* Transmit buffer cache maintain. */
 
-		config.ringNum     = ENET_RING_NUM;
-		config.rxBuffAlloc = NULL;
-		config.rxBuffFree  = NULL;
-		config.userData    = ethernetifLocal;
-        config.miiSpeed    = (enet_mii_speed_t)speed;
-	    config.miiDuplex   = (enet_mii_duplex_t)duplex;
+        sysClock = phyHandle.mdioHandle->resource.csrClock_Hz;
 
-		#if USE_RTOS && defined(SDK_OS_FREE_RTOS)
-		    uint32_t instance;
-		    static ENET_Type *const enetBases[]  = ENET_BASE_PTRS;
-		    static const IRQn_Type enetTxIrqId[] = ENET_Transmit_IRQS;
-		    /*! @brief Pointers to enet receive IRQ number for each instance. */
-		    static const IRQn_Type enetRxIrqId[] = ENET_Receive_IRQS;
+        ENET_GetDefaultConfig( &config );
 
-		    /* Only get interrupt for incoming messages. */
-		    config.interrupt = kENET_RxFrameInterrupt;
-		    config.callback = ethernet_callback;
+        config.ringNum = ENET_RING_NUM;
+        config.rxBuffAlloc = NULL;
+        config.rxBuffFree = NULL;
+        config.userData = ethernetifLocal;
+        config.miiSpeed = ( enet_mii_speed_t ) speed;
+        config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
-		    for (instance = 0; instance < ARRAY_SIZE(enetBases); instance++)
-		    {
-		        if (enetBases[instance] == ethernetifLocal->base)
-		        {
-		            NVIC_SetPriority(enetRxIrqId[instance], ENET_PRIORITY);
-		            NVIC_SetPriority(enetTxIrqId[instance], ENET_PRIORITY);
-		            break;
-		        }
-		    }
+        #if USE_RTOS && defined( SDK_OS_FREE_RTOS )
+            uint32_t instance;
+            static ENET_Type * const enetBases[] = ENET_BASE_PTRS;
+            static const IRQn_Type enetTxIrqId[] = ENET_Transmit_IRQS;
+            /*! @brief Pointers to enet receive IRQ number for each instance. */
+            static const IRQn_Type enetRxIrqId[] = ENET_Receive_IRQS;
 
-		    configASSERT( instance != ARRAY_SIZE( enetBases ) );
-		#endif /* USE_RTOS */
+            /* Only get interrupt for incoming messages. */
+            config.interrupt = kENET_RxFrameInterrupt;
+            config.callback = ethernet_callback;
 
-		    for (i = 0; i < ENET_RXBUFF_NUM; i++)
-		    {
-		    	ethernetifLocal->RxPbufs[i].buffer                 = &(ethernetifLocal->RxDataBuff[i][0]);
-		    	ethernetifLocal->RxPbufs[i].buffer_used            = false;
-		    }
+            for( instance = 0; instance < ARRAY_SIZE( enetBases ); instance++ )
+            {
+                if( enetBases[ instance ] == ethernetifLocal->base )
+                {
+                    NVIC_SetPriority( enetRxIrqId[ instance ], ENET_PRIORITY );
+                    NVIC_SetPriority( enetTxIrqId[ instance ], ENET_PRIORITY );
+                    break;
+                }
+            }
+            configASSERT( instance != ARRAY_SIZE( enetBases ) );
+        #endif /* USE_RTOS */
 
-		    /* Initialize the ENET module. */
-		    /* TODO: set MAC Address properly. */
-		    ENET_Init( ethernetifLocal->base, &ethernetifLocal->handle, &config, &buffCfg[0], ipLOCAL_MAC_ADDRESS, sysClock );
+        for( i = 0; i < ENET_RXBUFF_NUM; i++ )
+        {
+            ethernetifLocal->RxPbufs[ i ].buffer = &( ethernetifLocal->RxDataBuff[ i ][ 0 ] );
+            ethernetifLocal->RxPbufs[ i ].buffer_used = false;
+        }
 
-		    ENET_ActiveRead( ethernetifLocal->base );
-	}
+        /* Initialize the ENET module. */
+        /* TODO: set MAC Address properly. */
+        ENET_Init( ethernetifLocal->base, &ethernetifLocal->handle, &config, &buffCfg[ 0 ], ipLOCAL_MAC_ADDRESS, sysClock );
 
-	if( xResult != pdFAIL )
-	{
-		/* Enable the interrupt and set its priority to the minimum
-		 * interrupt priority.  */
-		NVIC_SetPriority( ENET_IRQn, ENET_PRIORITY );
-		NVIC_EnableIRQ( ENET_IRQn );
-	}
+        ENET_ActiveRead( ethernetifLocal->base );
+    }
 
-	return xResult;
+    if( xResult != pdFAIL )
+    {
+        /* Enable the interrupt and set its priority to the minimum
+         * interrupt priority.  */
+        NVIC_SetPriority( ENET_IRQn, ENET_PRIORITY );
+        NVIC_EnableIRQ( ENET_IRQn );
+    }
+
+    return xResult;
 }
 
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t xReleaseAfterSend )
 {
-	status_t result;
-	BaseType_t xReturn = pdFAIL;
-	bool LinkUp = false;
-	status_t readStatus;
+    status_t result;
+    BaseType_t xReturn = pdFAIL;
+    bool LinkUp = false;
+    status_t readStatus;
 
-	readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+    readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
 
-	if( ( readStatus == kStatus_Success ) &&
-		( LinkUp == true ) )
-	{
-		result = ENET_SendFrame( ethernetifLocal->base,
-		    	                 &ethernetifLocal->handle,
-			    				 pxNetworkBuffer->pucEthernetBuffer,
-				    			 pxNetworkBuffer->xDataLength,
-					    		 0,
-						    	 false,
-							     NULL );
+    if( ( readStatus == kStatus_Success ) &&
+        ( LinkUp == true ) )
+    {
+        result = ENET_SendFrame( ethernetifLocal->base,
+                                 &ethernetifLocal->handle,
+                                 pxNetworkBuffer->pucEthernetBuffer,
+                                 pxNetworkBuffer->xDataLength,
+                                 0,
+                                 false,
+                                 NULL );
 
-		switch( result )
-		{
-		    case kStatus_ENET_TxFrameBusy:
-		    	configPRINTF( ( "Failed to send the frame - driver busy!\r\n" ) );
-		    	break;
+        switch( result )
+        {
+            case kStatus_ENET_TxFrameBusy:
+                configPRINTF( ( "Failed to send the frame - driver busy!\r\n" ) );
+                break;
 
-		    case kStatus_Success:
+            case kStatus_Success:
                 iptraceNETWORK_INTERFACE_TRANSMIT();
                 xReturn = pdPASS;
                 break;
-		}
+        }
+    }
 
-	}
+    if( xReleaseAfterSend == pdTRUE )
+    {
+        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+    }
 
-	if( xReleaseAfterSend == pdTRUE )
-	{
-		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-	}
-
-	return xReturn;
+    return xReturn;
 }
 
 static void prvEMACHandlerTask( void * parameter )
 {
-	bool LinkUp = false;
-	status_t readStatus;
+    bool LinkUp = false;
+    status_t readStatus;
 
-	while( pdTRUE )
-	{
-		if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */
-		{
-			const IPStackEvent_t xNetworkEventDown = { .eEventType = eNetworkDownEvent, .pvData = NULL };
+    while( pdTRUE )
+    {
+        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */
+        {
+            const IPStackEvent_t xNetworkEventDown = { .eEventType = eNetworkDownEvent, .pvData = NULL };
 
-			readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
-			if( ( readStatus == kStatus_Success ) &&
-				( LinkUp == pdFALSE ) )
-			{
-				xSendEventStructToIPTask( &xNetworkEventDown, 0U );
-			}
-		}
-		else
-		{
-			BaseType_t receiving = pdTRUE;
+            readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
 
-			while( receiving == pdTRUE )
-			{
-				uint32_t length;
-				const status_t status = ENET_GetRxFrameSize( &( ethernetifLocal->handle ), &length, 0 );
+            if( ( readStatus == kStatus_Success ) &&
+                ( LinkUp == pdFALSE ) )
+            {
+                xSendEventStructToIPTask( &xNetworkEventDown, 0U );
+            }
+        }
+        else
+        {
+            BaseType_t receiving = pdTRUE;
 
-				switch( status )
-				{
-					case kStatus_Success: /* there is a frame.  process it */
+            while( receiving == pdTRUE )
+            {
+                uint32_t length;
+                const status_t status = ENET_GetRxFrameSize( &( ethernetifLocal->handle ), &length, 0 );
 
-						if( length )
-						{
-							if( length > 1100 )
-							{
-								static int a = 0;
-								a++;
-							}
-							prvProcessFrame( length );
-						}
+                switch( status )
+                {
+                    case kStatus_Success: /* there is a frame.  process it */
 
-						break;
+                        if( length )
+                        {
+                            if( length > 1100 )
+                            {
+                                static int a = 0;
+                                a++;
+                            }
 
-					case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
-						receiving = pdFALSE;
-						break;
+                            prvProcessFrame( length );
+                        }
 
-					case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
-						PRINTF( "RX Receive Error\n" );
-						ENET_ReadFrame( ethernetifLocal->base, &( ethernetifLocal->handle ), NULL, 0, 0, NULL );
-						/* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
-						break;
+                        break;
 
-					default:
-						PRINTF( "RX Receive default\n" );
-						break;
-				}
-			}
-		}
-	}
+                    case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+                        receiving = pdFALSE;
+                        break;
+
+                    case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+                        PRINTF( "RX Receive Error\n" );
+                        ENET_ReadFrame( ethernetifLocal->base, &( ethernetifLocal->handle ), NULL, 0, 0, NULL );
+                        /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+                        break;
+
+                    default:
+                        PRINTF( "RX Receive default\n" );
+                        break;
+                }
+            }
+        }
+    }
 }
 
 /*
  * @brief Callback for ENET interrupts. We have only enabled the Ethernet receive interrupts
  * in the case of this driver.
  */
-static void ethernet_callback( ENET_Type *base,
-                               enet_handle_t *handle,
+static void ethernet_callback( ENET_Type * base,
+                               enet_handle_t * handle,
                                enet_event_t event,
-                               enet_frame_info_t *frameInfo,
-                               void *userData )
+                               enet_frame_info_t * frameInfo,
+                               void * userData )
 {
     BaseType_t needsToYield = pdFALSE;
 
-    switch (event)
+    switch( event )
     {
         case kENET_RxEvent:
             vTaskNotifyGiveFromISR( receiveTaskHandle, &needsToYield );
@@ -576,45 +578,45 @@ static void ethernet_callback( ENET_Type *base,
             break;
 
         default:
-        	configPRINTF( ( "Unknown interrupt callback %u!", event ) );
+            configPRINTF( ( "Unknown interrupt callback %u!", event ) );
             break;
     }
 }
 
 static void prvProcessFrame( int length )
 {
-	NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+    NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
-	if( pxBufferDescriptor != NULL )
-	{
-		ENET_ReadFrame( ethernetifLocal->base, &( ethernetifLocal->handle ), pxBufferDescriptor->pucEthernetBuffer, length, 0, NULL );
-		pxBufferDescriptor->xDataLength = length;
+    if( pxBufferDescriptor != NULL )
+    {
+        ENET_ReadFrame( ethernetifLocal->base, &( ethernetifLocal->handle ), pxBufferDescriptor->pucEthernetBuffer, length, 0, NULL );
+        pxBufferDescriptor->xDataLength = length;
 
-		if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-		{
-			IPStackEvent_t xRxEvent;
-			xRxEvent.eEventType = eNetworkRxEvent;
-			xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+        if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+        {
+            IPStackEvent_t xRxEvent;
+            xRxEvent.eEventType = eNetworkRxEvent;
+            xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
-			if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-			{
-				vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-				iptraceETHERNET_RX_EVENT_LOST();
-				configPRINTF( ( "RX Event Lost\n" ) );
-			}
-		}
-		else
-		{
-			configPRINTF( ( "RX Event not to be considered\n" ) );
-			vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-			/* Not sure if a trace is required.  The stack did not want this message */
-		}
-	}
-	else
-	{
-		configPRINTF( ( "RX No Buffer Available\n" ) );
-		ENET_ReadFrame( ENET, &( ethernetifLocal->handle ), NULL, length, 0, NULL );
-		/* No buffer available to receive this message */
-		iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-	}
+            if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+            {
+                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                iptraceETHERNET_RX_EVENT_LOST();
+                configPRINTF( ( "RX Event Lost\n" ) );
+            }
+        }
+        else
+        {
+            configPRINTF( ( "RX Event not to be considered\n" ) );
+            vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+            /* Not sure if a trace is required.  The stack did not want this message */
+        }
+    }
+    else
+    {
+        configPRINTF( ( "RX No Buffer Available\n" ) );
+        ENET_ReadFrame( ENET, &( ethernetifLocal->handle ), NULL, length, 0, NULL );
+        /* No buffer available to receive this message */
+        iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+    }
 }
