@@ -662,7 +662,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
             pxSocket->xEventGroup = xEventGroup;
 
-            if( xDomain == ( uint8_t ) FREERTOS_AF_INET6 )
+            if( xDomain == ( BaseType_t ) FREERTOS_AF_INET6 )
             {
                 pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
             }
@@ -1358,7 +1358,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
             {
                 if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xUDP.pxHandleSent ) )
                 {
-                    pxSocket->u.xUDP.pxHandleSent( pxSocket, uxTotalDataLength );
+                    pxSocket->u.xUDP.pxHandleSent( ( FreeRTOS_Socket_t * ) pxSocket, uxTotalDataLength );
                 }
             }
         #endif /* ipconfigUSE_CALLBACKS */
@@ -4668,7 +4668,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
                 else if( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort )
                 {
-                    if( ulRemoteIP.ulIP_IPv4 == 0 )
+                    if( ulRemoteIP.ulIP_IPv4 == 0U )
                     {
                         pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.ulIP_IPv4 );
                     }
@@ -5505,7 +5505,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             ( void ) snprintf( pcRemoteIp, sizeof( pcRemoteIp ), "%xip", ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
         }
 
-        FreeRTOS_printf( ( "TCP %5u %-*s:%-16xip:%5u %d/%d %-13.13s %6u %6u%s\n",
+        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6lu %6u%s\n",
                            pxSocket->usLocalPort,         /* Local port on this machine */
                            xIPWidth,
                            pcRemoteIp,                    /* IP address of remote machine */

@@ -116,7 +116,6 @@ void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                 NetworkInterface_t * pxInterface );
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent,
-                                     struct xNetworkEndPoint * pxEndPoint );
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
 
 #endif /* ifndef LIST_MACRO_H */

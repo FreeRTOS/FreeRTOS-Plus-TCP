@@ -48,8 +48,7 @@ extern List_t xBoundUDPSocketsList;
     extern List_t xBoundTCPSocketsList;
 #endif /* ipconfigUSE_TCP == 1 */
 
-IOCounters_t xInputCounters = { 0U };
-IOCounters_t xOutputCounters = { 0U };
+IOCounters_t xInputCounters, xOutputCounters;
 
 BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
 {

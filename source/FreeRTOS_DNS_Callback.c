@@ -49,7 +49,7 @@
  *        call the handler.
  *
  * @param[in,out] pxSet: a set of variables that are shared among the helper functions.
- * @param[in] xIPAddress: IP-address ( IPv4/IPv6 ) obtained from the DNS server.
+ * @param[in] pxAddress: Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.
  *
  * @return Returns pdTRUE if uxIdentifier was recognized.
  */

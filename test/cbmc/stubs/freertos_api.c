@@ -43,7 +43,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     }
     else
     {
-        void * ptr = malloc( sizeof( Socket_t ) );
+        void * ptr = malloc( sizeof( struct xSOCKET ) );
         __CPROVER_assume( ptr != NULL );
         return ptr;
     }
@@ -211,8 +211,9 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 * pointer to the buffer (or NULL).
 ****************************************************************/
 
-void * FreeRTOS_GetUDPPayloadBuffer( size_t xRequestedSizeBytes,
-                                     TickType_t xBlockTimeTicks )
+void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
+                                           TickType_t uxBlockTimeTicks,
+                                           uint8_t ucIPType )
 {
     size_t size;
 
@@ -225,7 +226,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t xRequestedSizeBytes,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_GetUDPPayloadBuffer
+* Abstract FreeRTOS_ReleaseUDPPayloadBuffer
 * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/FreeRTOS_ReleaseUDPPayloadBuffer.html
 ****************************************************************/
 

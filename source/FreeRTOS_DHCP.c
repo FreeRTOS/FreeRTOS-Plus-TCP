@@ -81,7 +81,7 @@
 
 /*-----------------------------------------------------------*/
 
-/*
+/**
  * @brief The number of end-points that are making use of the UDP-socket.
  */
     static BaseType_t xDHCPSocketUserCount = 0;
@@ -89,7 +89,7 @@
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Interpret message received on the DHCP socket.
@@ -100,7 +100,7 @@
 /*
  * Generate a DHCP request packet, and send it on the DHCP socket.
  */
-    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint );
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Prepare to start a DHCP transaction.  This initialises some state variables
@@ -121,12 +121,12 @@
 /*
  * Create the DHCP socket, if it has not been created already.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    _static void prvCreateDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
 /*
  * Close the DHCP socket, only when not in use anymore (i.e. xDHCPSocketUserCount = 0).
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
+    static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
     static void vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
@@ -287,7 +287,7 @@
                     /* PAss the address of a pointer pucUDPPayload, because zero-copy is used. */
                     lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, FREERTOS_ZERO_COPY, NULL, NULL );
 
-                    if( lBytes > 0 )
+                    if( ( lBytes > 0 ) && ( pucUDPPayload != NULL ) )
                     {
                         /* Remove it now, destination not found. */
                         FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
@@ -816,8 +816,10 @@
  *        using it.
  * @param[in] pxEndPoint: The end-point that stops using the socket.
  */
-    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
     {
+        ( void ) pxEndPoint;
+
         if( ( xDHCPv4Socket != NULL ) && ( xDHCPSocketUserCount > 0 ) )
         {
             xDHCPSocketUserCount--;
@@ -847,7 +849,7 @@
  * @brief Create a DHCP socket with the defined timeouts. The same socket
  *        will be shared among all end-points that need DHCP.
  */
-    _static void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    _static void prvCreateDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
     {
         struct freertos_sockaddr xAddress;
         BaseType_t xReturn;
@@ -1318,7 +1320,10 @@
                 }
             }
 
-            FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+            if( pucUDPPayload != NULL )
+            {
+                FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+            }
         } /* if( lBytes > 0 ) */
 
         return xReturn;
@@ -1332,6 +1337,7 @@
  * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
  * @param[in] pucOptionsArray: The options to be added to the packet.
  * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  *
  * @return Ethernet buffer of the partially created DHCP packet.
  */
@@ -1348,10 +1354,16 @@
 
         #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
             const char * pucHostName = pcApplicationHostnameHook();
-            size_t uxNameLength = strlen( pucHostName );
+            size_t uxNameLength = 0;
+
+            if( pucHostName != NULL )
+            {
+                uxNameLength = strlen( pucHostName );
+            }
+
             uint8_t * pucPtr;
 
-/* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+            /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
             const void * pvCopySource;
             void * pvCopyDest;
 
@@ -1369,7 +1381,7 @@
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
@@ -1423,10 +1435,14 @@
                      * compliant with MISRA Rule 21.15.  These should be
                      * optimized away.
                      */
-                    pvCopySource = pucHostName;
-                    pvCopyDest = &pucPtr[ 2U ];
+                    if( pucHostName != NULL )
+                    {
+                        pvCopySource = pucHostName;
+                        pvCopyDest = &pucPtr[ 2U ];
 
-                    ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                        ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
+                    }
+
                     pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
                     *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
                 }
@@ -1448,9 +1464,9 @@
 /**
  * @brief Create and send a DHCP request message through the DHCP socket.
  *
- * param[in] pxEndPoint: The end-point for which the request will be sent.
+ * @param[in] pxEndPoint: The end-point for which the request will be sent.
  */
-    static BaseType_t prvSendDHCPRequest( const NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1479,7 +1495,10 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( pucUDPPayloadBuffer != NULL )
+        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
 
@@ -1525,7 +1544,7 @@
  *
  * @return: pdPASS if the DHCP discover message was sent successfully, pdFAIL otherwise.
  */
-    static BaseType_t prvSendDHCPDiscover( const NetworkEndPoint_t * pxEndPoint )
+    static BaseType_t prvSendDHCPDiscover( NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xResult = pdFAIL;
         uint8_t * pucUDPPayloadBuffer;
@@ -1548,7 +1567,10 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        if( pucUDPPayloadBuffer != NULL )
+        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
+        if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             const void * pvCopySource;
             void * pvCopyDest;

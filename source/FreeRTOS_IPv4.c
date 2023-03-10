@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_IP.c
+ * @file FreeRTOS_IPv4.c
  * @brief Implements the basic functionality for the FreeRTOS+TCP network stack.
  */
 
@@ -175,7 +175,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
              * define, so that the checksum won't be checked again here */
             if( eReturn == eProcessBuffer )
             {
-                NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
+                const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
 
                 /* Do not check the checksum of loop-back messages. */
                 if( pxEndPoint == NULL )
@@ -188,7 +188,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
                      * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
                      * and this RFC: https://tools.ietf.org/html/rfc1624#page-4
                      */
-                    if( usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
+                    if( usGenerateChecksum( 0U, ( const uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength ) != ipCORRECT_CRC )
                     {
                         /* Check sum in IP-header not correct. */
                         eReturn = eReleaseBuffer;

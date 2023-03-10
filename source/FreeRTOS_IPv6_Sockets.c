@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_Sockets_IPv6.c
+ * @file FreeRTOS_IPv6_Sockets.c
  * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
  *        Sockets are used by the application processes to interact with the IP-task which in turn
  *        interacts with the hardware.
@@ -55,8 +55,8 @@
  *        iterating through all sockets.
  * @param[in] pxSocket: The socket to be inspected.
  * @param[in] pxAddress_IPv6: The IPv6 address, or NULL if the peer has a IPv4 address.
- * @param[in] ulRemoteIP: The IPv4 address
- * @return The socket in case it is connected to the remote IP-address
+ * @param[in] ulRemoteIP: The IPv4 address.
+ * @return The socket in case it is connected to the remote IP-address.
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
                                                 const IPv6_Address_t * pxAddress_IPv6,
@@ -123,7 +123,7 @@ void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
  * @brief Called by FreeRTOS_recvfrom(), this function will update socket
  *        address with IPv6 address from the packet received.
  * @param[in] pxNetworkBuffer : The packet received.
- * @param[in] pxDestinationAddress: The IPv4 socket address.
+ * @param[in] pxSourceAddress: The IPv4 socket address.
  * @return The Payload Offset.
  */
 size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -143,7 +143,6 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
                              ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
                              ipSIZE_OF_IPv6_ADDRESS );
             pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
-            pxSourceAddress->sin_address.ulIP_IPv4 = 0U;
             pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
         }
 
@@ -188,9 +187,9 @@ char cHexToChar( uint16_t usValue )
  * @brief Convert a short numeric value to a hex string of at most 4 characters.
  *        The resulting string is **not** null-terminated. The resulting string
  *        will not have leading zero's, except when 'usValue' equals zero.
- * @param pcBuffer[in] : The buffer to which the string is written.
- * @param uxBufferSize[in] : The size of the buffer pointed to by 'pcBuffer'.
- * @param usValue[in] : The 16-bit value to be converted.
+ * @param[in] pcBuffer : The buffer to which the string is written.
+ * @param[in] uxBufferSize : The size of the buffer pointed to by 'pcBuffer'.
+ * @param[in] usValue : The 16-bit value to be converted.
  * @return The number of bytes written to 'pcBuffer'.
  */
 socklen_t uxHexPrintShort( char * pcBuffer,
@@ -390,8 +389,8 @@ static BaseType_t prv_ntop6_write_short( char * pcDestination,
 /**
  * @brief This function converts a binary IPv6 address to a human readable notation.
  *
- * @param[in] pcSource: The binary address, 16 bytes long..
- * @param[out] pvDestination: The human-readable ( hexadecimal ) notation of the
+ * @param[in] pvSource: The binary address, 16 bytes long..
+ * @param[out] pcDestination: The human-readable ( hexadecimal ) notation of the
  *                            address.
  * @param[in] uxSize: The size of pvDestination. A value of 40 is recommended.
  *

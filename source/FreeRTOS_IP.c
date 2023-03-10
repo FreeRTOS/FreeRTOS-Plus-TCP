@@ -614,13 +614,13 @@ void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
+        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             {
-                vApplicationIPNetworkEventHook( eNetworkUp, pxEndPoint );
+                vApplicationIPNetworkEventHook( eNetworkUp );
             }
         #else
             {
-                vApplicationIPNetworkEventHook( eNetworkUp );
+                vApplicationIPNetworkEventHook_Multi( eNetworkUp, pxEndPoint );
             }
         #endif
     #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
@@ -771,8 +771,33 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 }
 /*-----------------------------------------------------------*/
 
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
+ *        NOTE: This function is kept for backward compatibility and will
+ *        only allocate IPv4 payload buffers. Newer designs should use
+ *        FreeRTOS_GetUDPPayloadBuffer_Multi(), which can
+ *        allocate a IPv4 or IPv6 buffer based on ucIPType parameter .
+ *
+ * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
+ * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
+ *            can block. This value is capped internally.
+ *
+ * @return If a buffer was created then the pointer to that buffer is returned,
+ *         else a NULL pointer is returned.
+ */
+    void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
+                                         TickType_t uxBlockTimeTicks )
+    {
+        return FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+    }
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Obtain a buffer big enough for a UDP payload of given size and
+ *        given IP type.
  *
  * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
  * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
@@ -782,13 +807,14 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
  */
-void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                     TickType_t uxBlockTimeTicks,
-                                     uint8_t ucIPType )
+void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
+                                           TickType_t uxBlockTimeTicks,
+                                           uint8_t ucIPType )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    void * pvReturn;
+    void * pvReturn = NULL;
     TickType_t uxBlockTime = uxBlockTimeTicks;
+    size_t uxPayloadOffset = 0;
 
     /* Cap the block time.  The reason for this is explained where
      * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined (assuming an official
@@ -798,34 +824,37 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    /* Obtain a network buffer with the required amount of storage. */
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTime );
-
-    if( pxNetworkBuffer != NULL )
+    if( ucIPType == ipTYPE_IPv6 )
     {
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) /*TODO seems incorrect */
-        {
-            uint8_t * pucIPType;
-            size_t uxIPHeaderLength;
+        uxPayloadOffset = sizeof( UDPPacket_IPv6_t );
+    }
+    else if( ucIPType == ipTYPE_IPv4 )
+    {
+        uxPayloadOffset = sizeof( UDPPacket_t );
+    }
+    else
+    {
+        /* Shouldn't reach here. */
+        configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
+    }
 
-            /* Calculate the distance between the beginning of
-             * UDP payload until the hidden byte that reflects
-             * the IP-type: either ipTYPE_IPv4 or ipTYPE_IPv6.
-             */
+    if( uxPayloadOffset != 0U )
+    {
+        /* Obtain a network buffer with the required amount of storage. */
+        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPayloadOffset + uxRequestedSizeBytes, uxBlockTime );
+
+        if( pxNetworkBuffer != NULL )
+        {
             size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
 
-            if( ucIPType == ipTYPE_IPv6 )
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
-            }
-            else
-            {
-                uxIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
-            }
+            /* Set the actual packet size in case a bigger buffer was returned. */
+            pxNetworkBuffer->xDataLength = uxPayloadOffset + uxRequestedSizeBytes;
 
             /* Skip 3 headers. */
-            pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER ] );
+            pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
+
+            uint8_t * pucIPType;
 
             /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
              * Store the packet type at 48 bytes before the start of the UDP payload. */
@@ -837,17 +866,6 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
              * first byte of the IP-header: 'ucVersionTrafficClass'. */
             *pucIPType = ucIPType;
         }
-        else
-        {
-            /* Set the actual packet size in case a bigger buffer was returned. */
-            pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t ) + uxRequestedSizeBytes;
-            /* Skip 3 headers. */
-            pvReturn = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] );
-        }
-    }
-    else
-    {
-        pvReturn = NULL;
     }
 
     return ( void * ) pvReturn;
@@ -860,7 +878,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
  * As that bug has been repaired, there is not an urgent reason to warn.
  * It is better though to use the advised priority scheme. */
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Provide backward-compatibility with the earlier FreeRTOS+TCP which only had
  * single network interface. */
@@ -882,9 +900,9 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                 xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
             }
         #endif /* ipconfigUSE_DHCP */
-        return FreeRTOS_IPStart();
+        return FreeRTOS_IPInit_Multi();
     }
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -892,7 +910,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
  *        Before calling this function, at least 1 interface and 1 end-point must
  *        have been set-up.
  */
-BaseType_t FreeRTOS_IPStart( void )
+BaseType_t FreeRTOS_IPInit_Multi( void )
 {
     BaseType_t xReturn = pdFALSE;
     NetworkEndPoint_t * pxFirstEndPoint;
@@ -986,7 +1004,7 @@ BaseType_t FreeRTOS_IPStart( void )
         }
         else
         {
-            FreeRTOS_debug_printf( ( "FreeRTOS_IPStart: xNetworkBuffersInitialise() failed\n" ) );
+            FreeRTOS_debug_printf( ( "FreeRTOS_IPInit_Multi: xNetworkBuffersInitialise() failed\n" ) );
 
             /* Clean up. */
             vQueueDelete( xNetworkEventQueue );
@@ -995,7 +1013,7 @@ BaseType_t FreeRTOS_IPStart( void )
     }
     else
     {
-        FreeRTOS_debug_printf( ( "FreeRTOS_IPStart: Network event queue could not be created\n" ) );
+        FreeRTOS_debug_printf( ( "FreeRTOS_IPInit_Multi: Network event queue could not be created\n" ) );
     }
 
     return xReturn;
@@ -1018,7 +1036,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Get the current address configuration. Only non-NULL pointers will
+ * @brief Get the current IPv4 address configuration. Only non-NULL pointers will
  *        be filled in. pxEndPoint must be non-NULL.
  *
  * @param[out] pulIPAddress: The current IP-address assigned.
@@ -1031,7 +1049,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulNetMask,
                                         uint32_t * pulGatewayAddress,
                                         uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint )
+                                        const struct xNetworkEndPoint * pxEndPoint )
 {
     if( ENDPOINT_IS_IPv4( pxEndPoint ) )
     {
@@ -1060,9 +1078,37 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
 /**
- * @brief Set the current network address configuration. Only non-NULL pointers will
- *        be used. pxEndPoint must pointer to a valid end-point.
+ * @brief Get the current IPv4 address configuration of the first endpoint.
+ *        Only non-NULL pointers will be filled in.
+ *        NOTE: This function is kept for backward compatibility. Newer
+ *        designs should use FreeRTOS_SetEndPointConfiguration().
+ *
+ * @param[out] pulIPAddress: The current IP-address assigned.
+ * @param[out] pulNetMask: The netmask used for current subnet.
+ * @param[out] pulGatewayAddress: The gateway address.
+ * @param[out] pulDNSServerAddress: The DNS server address.
+ */
+    void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
+                                           uint32_t * pulNetMask,
+                                           uint32_t * pulGatewayAddress,
+                                           uint32_t * pulDNSServerAddress )
+    {
+        NetworkEndPoint_t * pxEndPoint;
+
+        /* Get first end point. */
+        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask,
+                                           pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+    }
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set the current IPv4 network address configuration. Only non-NULL pointers will
+ *        pointers will be used. pxEndPoint must pointer to a valid end-point.
  *
  * @param[in] pulIPAddress: The current IP-address assigned.
  * @param[in] pulNetMask: The netmask used for current subnet.
@@ -1101,6 +1147,34 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         }
     }
 }
+/*-----------------------------------------------------------*/
+
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/**
+ * @brief Set the current IPv4 network address configuration. Only non-NULL
+ *        pointers will be used.
+ *        NOTE: This function is kept for backward compatibility. Newer
+ *        designs should use FreeRTOS_SetEndPointConfiguration().
+ *
+ * @param[in] pulIPAddress: The current IP-address assigned.
+ * @param[in] pulNetMask: The netmask used for current subnet.
+ * @param[in] pulGatewayAddress: The gateway address.
+ * @param[in] pulDNSServerAddress: The DNS server address.
+ */
+    void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
+                                           const uint32_t * pulNetMask,
+                                           const uint32_t * pulGatewayAddress,
+                                           const uint32_t * pulDNSServerAddress )
+    {
+        NetworkEndPoint_t * pxEndPoint;
+
+        /* Get first end point. */
+        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
+                                           pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+    }
+#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
@@ -1772,31 +1846,32 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
              * entry. */
             if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
             {
-                /* Refresh the ARP cache with the IP/MAC-address of the received
-                 *  packet.  For UDP packets, this will be done later in
-                 *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                 *  will be handled.  This will prevent the ARP cache getting
-                 *  overwritten with the IP address of useless broadcast packets. */
-                if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
-                }
-                else
-
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
                     eReturn = eWaitingARPResolution;
                 }
                 else
                 {
-                    /* IP address is not on the same subnet, ARP table can be updated.
-                     * Refresh the ARP cache with the IP/MAC-address of the received
-                     *  packet. For UDP packets, this will be done later in
+                    /* Refresh the ARP cache with the IP/MAC-address of the received
+                     *  packet.  For UDP packets, this will be done later in
                      *  xProcessReceivedUDPPacket(), as soon as it's know that the message
                      *  will be handled.  This will prevent the ARP cache getting
-                     *  overwritten with the IP address of useless broadcast packets.
-                     */
-                    vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                     *  overwritten with the IP address of useless broadcast packets. */
+                    if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                    {
+                        vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
+                    }
+                    else
+                    {
+                        /* IP address is not on the same subnet, ARP table can be updated.
+                         * Refresh the ARP cache with the IP/MAC-address of the received
+                         *  packet. For UDP packets, this will be done later in
+                         *  xProcessReceivedUDPPacket(), as soon as it's know that the message
+                         *  will be handled.  This will prevent the ARP cache getting
+                         *  overwritten with the IP address of useless broadcast packets.
+                         */
+                        vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
+                    }
                 }
             }
 
@@ -1812,7 +1887,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                          * went wrong because it will not be able to validate what it
                          * receives. */
                         #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                            eReturn = ProcessICMPPacket( pxNetworkBuffer );
+                            {
+                                eReturn = ProcessICMPPacket( pxNetworkBuffer );
+                            }
                         #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                         break;
 
@@ -2098,6 +2175,10 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                     /* Failed to send the message, so release the network buffer. */
                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                 }
+            }
+            else
+            {
+                /* do nothing, coverity happy */
             }
         }
     }

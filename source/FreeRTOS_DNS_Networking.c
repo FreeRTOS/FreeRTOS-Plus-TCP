@@ -136,7 +136,7 @@
  * @param xAddress address to read from
  * @param pxReceiveBuffer buffer to fill with received data
  */
-    BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
+    BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
                               struct freertos_sockaddr * xAddress,
                               struct xDNSBuffer * pxReceiveBuffer )
     {
@@ -154,7 +154,7 @@
         if( xReturn <= 0 )
         {
             /* 'pdFREERTOS_ERRNO_EWOULDBLOCK' is returned in case of a timeout. */
-            FreeRTOS_printf( ( "DNS_ReadReply returns %d\n", xReturn ) );
+            FreeRTOS_printf( ( "DNS_ReadReply returns %d\n", ( int ) xReturn ) );
         }
 
         return xReturn;

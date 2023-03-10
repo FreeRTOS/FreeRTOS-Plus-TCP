@@ -76,7 +76,7 @@
 
 /** returns the index of the hostname entry in the dns cache. */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         IPv46_Address_t * pxIP,
+                                         const IPv46_Address_t * pxIP,
                                          UBaseType_t * uxResult );
 
 /** get entry at \p index from the cache. */
@@ -88,13 +88,13 @@
 /** update entry at \p index in the cache. */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
 /** insert entry in the cache. */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds );
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
@@ -128,6 +128,14 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Perform a dns lookup in the local cache (IPv6)
+ * @param pcHostName The lookup name
+ * @param pxAddress_IPv6 The IPv6 address looked up from the cache if the return value is non zero.
+ * @return ulReturn Non zero if name is found in cache else returns a zero if the
+ *         cache is not enabled or the lookup is not successful
+ * @post the global structure \a xDNSCache might be modified
+ */
     uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
                                   IPv6_Address_t * pxAddress_IPv6 )
     {
@@ -136,7 +144,7 @@
         uint32_t ulReturn = 0U;
 
         /* Looking up an IPv6 address in the DNS cache. */
-        ( void ) memset( &xIPv46_Address, 0, sizeof xIPv46_Address );
+        ( void ) memset( &xIPv46_Address, 0, sizeof( xIPv46_Address ) );
         /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
         xIPv46_Address.xIs_IPv6 = pdTRUE;
         xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
@@ -154,8 +162,11 @@
 /**
  * @brief perform a dns update in the local cache
  * @param pcName the lookup name
- * @param pulIP the ip value to insert/replace
+ * @param pxIP the ip value to insert/replace (IPv4/v6)
  * @param ulTTL Time To live (in seconds)
+ * @param xLookUp Ignored
+ * @param ppxAddressInfo A pointer to a pointer where the find results
+ *                                will be stored.
  * @return this is a dummy return, we are actually ignoring the return value
  *         from this function
  * @post the global structure \a xDNSCache might be modified
@@ -300,11 +311,11 @@
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
  * @param[in] pxIP ip address
- * @param [out] xResult index number
+ * @param [out] uxResult index number
  * @returns res pdTRUE if index in found else pdFALSE
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
-                                         IPv46_Address_t * pxIP,
+                                         const IPv46_Address_t * pxIP,
                                          UBaseType_t * uxResult )
     {
         BaseType_t xReturn = pdFALSE;
@@ -380,7 +391,7 @@
             if( ppxAddressInfo != NULL )
             {
                 /* Copy all entries from position 'uxIndex' to a linked struct addrinfo. */
-                prvReadDNSCache( uxIndex, ppxAddressInfo );
+                prvReadDNSCache( ( BaseType_t ) uxIndex, ppxAddressInfo );
             }
         }
         else
@@ -404,7 +415,7 @@
  */
     static void prvUpdateCacheEntry( UBaseType_t uxIndex,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         uint32_t ulIPAddressIndex = 0;
@@ -435,7 +446,7 @@
  */
     static void prvInsertCacheEntry( const char * pcName,
                                      uint32_t ulTTL,
-                                     IPv46_Address_t * pxIP,
+                                     const IPv46_Address_t * pxIP,
                                      uint32_t ulCurrentTimeSeconds )
     {
         /* Add or update the item. */
@@ -470,8 +481,8 @@
     #if ( ipconfigUSE_DNS_CACHE == 1 )
 
 /**
- * @brief Copy DNS cache entries at xIndex to a linked struct addrinfo.
- * @param[in] xIndex: The index from where entries must be copied.
+ * @brief Copy DNS cache entries at uxIndex to a linked struct addrinfo.
+ * @param[in] uxIndex: The index from where entries must be copied.
  * @param[out] ppxAddressInfo: Target to store the DNS entries.
  */
         static void prvReadDNSCache( BaseType_t uxIndex,
@@ -479,15 +490,14 @@
         {
             size_t uxIPAddressIndex;
             size_t uxNumIPAddresses = 1U;
-            IPv46_Address_t * pxAddresses;
+            const IPv46_Address_t * pxAddresses;
             struct freertos_addrinfo * pxNewAddress;
-            struct freertos_addrinfo * pxLastAddress;
-            struct freertos_addrinfo ** ppxLastAddress = &( pxLastAddress );
+            struct freertos_addrinfo ** ppxLastAddress = ppxAddressInfo;
 
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                 uxNumIPAddresses = ( size_t ) xDNSCache[ uxIndex ].ucNumIPAddresses;
 
-                if( uxNumIPAddresses > ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
+                if( uxNumIPAddresses > ( size_t ) ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY )
                 {
                     /* Make this a configASSERT()? */
                     uxNumIPAddresses = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
@@ -504,32 +514,36 @@
                 }
                 else
                 {
-                    uint8_t * ucBytes = ( uint8_t * ) &( pxAddresses->ulIPAddress );
+                    const uint8_t * ucBytes = ( const uint8_t * ) &( pxAddresses->ulIPAddress );
 
                     pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
                 }
 
-                if( pxNewAddress != NULL )
+                if( pxNewAddress == NULL )
                 {
-                    if( *( ppxAddressInfo ) == NULL )
-                    {
-                        /* For the first address found. */
-                        *( ppxAddressInfo ) = pxNewAddress;
-                    }
-                    else
-                    {
-                        /* For the next address found. */
-                        *( ppxLastAddress ) = pxNewAddress;
-                    }
-
-                    ppxLastAddress = &( pxNewAddress->ai_next );
+                    /* Malloc must has failed. */
+                    break;
                 }
+
+                /* Set either 'ppxAddressInfo' or 'pxNewAddress->ai_next'. */
+                *( ppxLastAddress ) = pxNewAddress;
+
+                ppxLastAddress = &( pxNewAddress->ai_next );
             }
         }
     #endif /* #if( ipconfigUSE_DNS_CACHE == 1 ) */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_DNS_CACHE == 1 )
+
+/**
+ * @brief Lookup the given hostname in the DNS cache
+ * @param[in] pcHostName: THe host name to lookup
+ * @param[in] xFamily: IP type FREERTOS_AF_INET6 / FREERTOS_AF_INET4
+ * @param[out] ppxAddressInfo: Target to store the DNS entries.
+ * @returns This function returns either a valid IPv4 address, or
+ *                          in case of an IPv6 lookup, it will return a non-zero.
+ */
         uint32_t Prepare_CacheLookup( const char * pcHostName,
                                       BaseType_t xFamily,
                                       struct freertos_addrinfo ** ppxAddressInfo )
@@ -569,7 +583,7 @@
                 {
                     if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
                     {
-                        struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
+                        const struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
 
                         ulIPAddress = sockaddr->sin_addr;
                     }
@@ -590,14 +604,14 @@
 /**
  * @brief For debugging only: prints the contents of the DNS cache table.
  */
-        void vShowDNSCacheTable()
+        void vShowDNSCacheTable( void )
         {
             UBaseType_t xEntry;
             UBaseType_t xSubEntry;
 
             for( xEntry = 0; xEntry < ipconfigDNS_CACHE_ENTRIES; xEntry++ )
             {
-                DNSCacheRow_t * pxRow = &( xDNSCache[ xEntry ] );
+                const DNSCacheRow_t * pxRow = &( xDNSCache[ xEntry ] );
 
                 if( pxRow->pcName[ 0 ] != ( char ) 0 )
                 {
@@ -616,18 +630,18 @@
                              * either IPv4 or IPv6. */
                             if( pxRow->xAddresses[ 0 ].xIs_IPv6 != pdFALSE )
                             {
-                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                    ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
-                                                    pcAddress,
-                                                    sizeof( pcAddress ) );
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                             ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
+                                                             pcAddress,
+                                                             sizeof( pcAddress ) );
                             }
                             else
                         #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                         {
-                            FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
-                                                pcAddress,
-                                                sizeof( pcAddress ) );
+                            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                         ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
+                                                         pcAddress,
+                                                         sizeof( pcAddress ) );
                         }
 
                         FreeRTOS_printf( ( "      %2u: %s\n",

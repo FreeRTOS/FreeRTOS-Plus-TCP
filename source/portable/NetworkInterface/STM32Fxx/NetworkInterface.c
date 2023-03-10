@@ -349,11 +349,19 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     return xSTM32F_NetworkInterfaceOutput( pxInterface, pxBuffer, bReleaseAfterSend );
 }
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
-{
-    return pxSTM32Fxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
-}
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        return pxSTM32Fxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif
 
 BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {

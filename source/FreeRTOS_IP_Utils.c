@@ -718,13 +718,13 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             {
                 if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
                 {
-                    #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 1 )
+                    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                         {
                             vApplicationIPNetworkEventHook( eNetworkDown );
                         }
                     #else
                         {
-                            vApplicationIPNetworkEventHook( eNetworkDown, pxEndPoint );
+                            vApplicationIPNetworkEventHook_Multi( eNetworkDown, pxEndPoint );
                         }
                     #endif
                 }
@@ -1396,7 +1396,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             /* MISRA Ref 21.6.1 [snprintf and logging] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno %u", ( uint32_t ) xErrnum );
             pcName = NULL;
             break;
     }

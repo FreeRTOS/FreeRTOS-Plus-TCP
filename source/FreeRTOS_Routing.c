@@ -23,6 +23,11 @@
  * http://www.FreeRTOS.org
  */
 
+/**
+ * @file FreeRTOS_Routing.c
+ * @brief Implements endpoint interfaces functions and utilities.
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -57,22 +62,13 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
 static NetworkEndPoint_t * FreeRTOS_AddEndPoint( NetworkInterface_t * pxInterface,
                                                  NetworkEndPoint_t * pxEndPoint );
 
+/** @brief A util struct to list the IPv6 IP types, prefix and type bit mask */
 struct xIPv6_Couple
 {
-    IPv6_Type_t eType;
-    uint16_t usMask;
-    uint16_t usExpected;
+    IPv6_Type_t eType;   /**< IPv6 IP type enum */
+    uint16_t usMask;     /**< IPv6 IP type bit mask */
+    uint16_t usExpected; /**< IPv6 IP type prefix */
 };
-
-static const struct xIPv6_Couple xIPCouples[] =
-{
-/*    IP-type          Mask     Value */
-    { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
-    { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
-    { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
-    { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
-};
-
 /*-----------------------------------------------------------*/
 
 /**
@@ -81,12 +77,11 @@ static const struct xIPv6_Couple xIPCouples[] =
  * @param[in] pxNetworkInterface: The interface to which it belongs.
  * @param[in] pxEndPoint: Space for the new end-point. This memory is dedicated for the
  *                        end-point and should not be freed or get any other purpose.
- * @param[in] pxIPAddress: The IP-address.
- * @param[in] pxNetPrefix: The prefix which shall be used for this end-point.
- * @param[in] uxPrefixLength: The length of the above end-point.
- * @param[in] pxGatewayAddress: The IP-address of a device on the LAN which can serve as
+ * @param[in] ucIPAddress: The IP-address.
+ * @param[in] ucNetMask: The prefix which shall be used for this end-point.
+ * @param[in] ucGatewayAddress: The IP-address of a device on the LAN which can serve as
  *                              as a gateway to the Internet.
- * @param[in] pxDNSServerAddress: The IP-address of a DNS server.
+ * @param[in] ucDNSServerAddress: The IP-address of a DNS server.
  * @param[in] ucMACAddress: The MAC address of the end-point.
  */
 void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
@@ -372,6 +367,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @brief Find the end-point which has a given IPv4 address.
  *
  * @param[in] ulIPAddress: The IP-address of interest, or 0 if any IPv4 end-point may be returned.
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_FindEndPointOnIP_IPv4()'
+ *                     has been called from a particular location. Used only if
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return The end-point found or NULL.
  */
@@ -489,6 +488,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @brief Find an end-point that handles a given IPv4-address.
  *
  * @param[in] ulIPAddress: The IP-address for which an end-point is looked-up.
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()'
+ *                     has been called from a particular location. Used only if
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
@@ -506,6 +509,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  * @param[in] pxInterface: Only end-points that have this interface are returned, unless
  *                         pxInterface is NULL.
  * @param[in] ulIPAddress: The IP-address for which an end-point is looked-up.
+ *
+ * @param[in] ulWhere: For maintaining routing statistics ulWhere acts as an index to the data structure
+ *                     that keep track of the number of times 'FreeRTOS_InterfaceEndPointOnNetMask()'
+ *                     has been called from a particular location. Used only if
+ *                     ipconfigHAS_ROUTING_STATISTICS is enabled.
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
@@ -673,10 +681,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /**
  * @brief Check IP-type, IP- and MAC-address found in the network packet.
  */
-    #define rMATCH_MAC_ADDR    0 /* Find an endpoint with a matching MAC-address. */
-    #define rMATCH_IP_TYPE     1 /* Find an endpoint with a matching IP-type, v4 or v6. */
-    #define rMATCH_IP_ADDR     2 /* Find an endpoint with a matching IP-address. */
-    #define rMATCH_COUNT       3 /* The number of methods. */
+    #define rMATCH_MAC_ADDR    0 /**< Find an endpoint with a matching MAC-address. */
+    #define rMATCH_IP_TYPE     1 /**< Find an endpoint with a matching IP-type, v4 or v6. */
+    #define rMATCH_IP_ADDR     2 /**< Find an endpoint with a matching IP-address. */
+    #define rMATCH_COUNT       3 /**< The number of methods. */
 
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
@@ -684,6 +692,17 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                    const IP_Address_t * pxIPAddressTo,
                                    const MACAddress_t * pxMACAddress );
 
+/**
+ * @brief Find an end-point that handles an incoming packet based on its type, source/destination & MAC address.
+ *
+ * @param[in] pxNetworkInterface: The interface via which the packet was received.
+ * @param[in] usFrameType: Frame type of the packet.
+ * @param[in] pxIPAddressFrom: Source IP address of the packet.
+ * @param[in] pxIPAddressTo: Destination IP address of the packet.
+ * @param[in] pxMACAddress: Destination MAC address of the packet.
+ *
+ * @return An end-point that handles the packet.
+ */
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
                                    const IP_Address_t * pxIPAddressFrom,
@@ -698,10 +717,13 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         BaseType_t xIndex;
         BaseType_t xIsIPv6 = ( usFrameType == ipIPv6_FRAME_TYPE ) ? pdTRUE : pdFALSE;
         BaseType_t xGatewayTarget = pdFALSE;
-        IPv6_Type_t xTargetType = eIPv6_LinkLocal;
+        BaseType_t xTargetGlobal = pdFALSE;
+
+        ( void ) pxIPAddressFrom;
 
         if( xIsIPv6 == pdTRUE )
         {
+            /* Generic GW address fe80::1. */
             static const uint8_t ucBytes[ 16 ] =
             {
                 0xfe, 0x80, 0x00, 0x00,
@@ -718,7 +740,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                    pxIPAddressTo->xIP_IPv6.ucBytes ) );
             }
 
-            xTargetType = xIPv6_GetIPType( &( pxIPAddressTo->xIP_IPv6 ) );
+            xTargetGlobal = ( xIPv6_GetIPType( &( pxIPAddressTo->xIP_IPv6 ) ) == eIPv6_Global ) ? pdTRUE : pdFALSE;
         }
 
         for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
@@ -727,7 +749,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         {
             BaseType_t xSameMACAddress = ( memcmp( pxEndPoint->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ? pdTRUE : pdFALSE;
 
-            if( xIsIPv6 == ( uint32_t ) pxEndPoint->bits.bIPv6 )
+            if( xIsIPv6 == ( BaseType_t ) pxEndPoint->bits.bIPv6 )
             {
                 pxFound[ rMATCH_IP_TYPE ] = pxEndPoint;
                 xCount[ rMATCH_IP_TYPE ]++;
@@ -736,18 +758,24 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 {
                     IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
-                    if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) ||
-                        ( ( xGatewayTarget == pdTRUE ) && ( xEndpointType == eIPv6_LinkLocal ) ) )
+                    if( xEndpointType != eIPv6_Unknown )
                     {
-                        pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
-                        xCount[ rMATCH_IP_ADDR ]++;
-                    }
+                        BaseType_t xEndpointGlobal = ( xEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
 
-                    if( ( xTargetType == eIPv6_Multicast ) &&
-                        ( xEndpointType == eIPv6_LinkLocal ) )
-                    {
-                        pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
-                        xCount[ rMATCH_IP_ADDR ]++;
+                        if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) )
+                        {
+                            pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
+                            xCount[ rMATCH_IP_ADDR ]++;
+                        }
+                        else if( xTargetGlobal == xEndpointGlobal )
+                        {
+                            pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
+                            xCount[ rMATCH_IP_ADDR ]++;
+                        }
+                        else
+                        {
+                            /* do nothing, coverity happy */
+                        }
                     }
                 }
                 else
@@ -761,11 +789,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
                 if( xSameMACAddress == pdTRUE )
                 {
-                    if( ( pxFound[ rMATCH_MAC_ADDR ] == NULL ) || ( xIsIPv6 != ( uint32_t ) pxFound[ rMATCH_MAC_ADDR ]->bits.bIPv6 ) )
-                    {
-                        xCount[ rMATCH_MAC_ADDR ]++;
-                    }
-
+                    xCount[ rMATCH_MAC_ADDR ]++;
                     pxFound[ rMATCH_MAC_ADDR ] = pxEndPoint;
                 }
             }
@@ -797,9 +821,9 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
                 FreeRTOS_printf( ( "EasyFit[%s]: %d %d %d ( %s ->%s ) %s\n",
                                    ( usFrameType == ipIPv6_FRAME_TYPE ) ? "IPv6" : ( usFrameType == ipIPv4_FRAME_TYPE ) ? "IPv4" : ( usFrameType == ipARP_FRAME_TYPE ) ? "ARP" : "UNK",
-                                   xCount[ 0 ],
-                                   xCount[ 1 ],
-                                   xCount[ 2 ],
+                                   ( unsigned ) xCount[ 0 ],
+                                   ( unsigned ) xCount[ 1 ],
+                                   ( unsigned ) xCount[ 2 ],
                                    pcBufferFrom,
                                    pcBufferTo,
                                    ( pxReturn == NULL ) ? "BAD" : "Good" ) );
@@ -829,8 +853,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
-        /*#pragma warning 'name' for logging only, take this away */
-        const char * name = "";
 
         configASSERT( pucEthernetBuffer != NULL );
 
@@ -875,20 +897,27 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             }
             else if( usFrameType == ipARP_FRAME_TYPE )
             {
-                ARPPacket_t * pxARPFrame = ( ARPPacket_t * ) pucEthernetBuffer;
+                /* MISRA Ref 11.3.1 [Misaligned access] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                /* coverity[misra_c_2012_rule_11_3_violation] */
+                const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
 
                 if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
                 {
-                    memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                    ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
                     xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
                 }
                 else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
                 {
-                    memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                    ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
                     xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
                 }
+                else
+                {
+                    /* do nothing, coverity happy */
+                }
 
-                FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
             }
             else /* ipIPv4_FRAME_TYPE */
             {
@@ -896,157 +925,13 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
             }
 
-            memcpy( xMACAddress.ucBytes, pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            ( void ) memcpy( xMACAddress.ucBytes, pxPacket->xUDPPacket.xEthernetHeader.xDestinationAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
             pxEndPoint = pxEasyFit( pxNetworkInterface,
                                     usFrameType,
                                     &xIPAddressFrom,
                                     &xIPAddressTo,
                                     &xMACAddress );
-
-            if( pxEndPoint )
-            {
-                return pxEndPoint;
-            }
         }
-
-        /* _HT_ It is my intention to remove the rest of the code,
-         * because when pxEasyFit() returns NULL, the packet can not be handled. */
-
-        /* Probably an ARP packet or a broadcast. */
-        switch( pxPacket->xUDPPacket.xEthernetHeader.usFrameType )
-        {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case ipIPv6_FRAME_TYPE:
-                   {
-                       IPv6_Type_t eMyType;
-                       IPv6_Type_t eIPType = xIPv6_GetIPType( &( pxIPPacket_IPv6->xIPHeader.xSourceAddress ) );
-                       pxEndPoint = pxNetworkEndPoints;
-
-                       for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
-                            pxEndPoint != NULL;
-                            pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkInterface, pxEndPoint ) )
-                       {
-                           if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                           {
-                               eMyType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
-
-                               if( eMyType == eIPType )
-                               {
-                                   break;
-                               }
-                           }
-                       }
-
-                       #if ( ipconfigUSE_LLMNR != 0 )
-                           {
-                               if( pxEndPoint == NULL )
-                               {
-                                   if( xCompareIPv6_Address( &( ipLLMNR_IP_ADDR_IPv6 ), &( pxIPPacket_IPv6->xIPHeader.xDestinationAddress ), ( size_t ) 8U * ipSIZE_OF_IPv6_ADDRESS ) == 0 )
-                                   {
-                                       pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxNetworkInterface );
-                                   }
-                               }
-                           }
-                       #endif
-                   }
-                   break;
-            #endif /* ipconfigUSE_IPv6 */
-            case ipARP_FRAME_TYPE:
-                pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress, 3U );
-                name = "ARP";
-                break;
-
-            case ipIPv4_FRAME_TYPE:
-               {
-                   /* An IPv4 UDP or TCP packet. */
-                   uint32_t ulIPSourceAddress = pxPacket->xUDPPacket.xIPHeader.ulSourceIPAddress;
-                   uint32_t ulIPTargetAddress = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
-                   uint32_t ulMatchAddress;
-                   BaseType_t xIPBroadcast;
-                   BaseType_t xDone = pdFALSE;
-
-                   if( ( FreeRTOS_ntohl( ulIPTargetAddress ) & 0xffuL ) == 0xffuL )
-                   {
-                       xIPBroadcast = pdTRUE;
-                   }
-                   else
-                   {
-                       xIPBroadcast = pdFALSE;
-                   }
-
-                   if( pxPacket->xUDPPacket.xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-                   {
-                       name = "UDP";
-                   }
-                   else
-                   {
-                       name = "TCP";
-                   }
-
-                   if( ulIPTargetAddress == ~0U )
-                   {
-                       ulMatchAddress = ulIPSourceAddress;
-                   }
-                   else
-                   {
-                       ulMatchAddress = ulIPTargetAddress;
-                   }
-
-                   for( pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
-                        pxEndPoint != NULL;
-                        pxEndPoint = FreeRTOS_NextEndPoint( pxNetworkInterface, pxEndPoint ) )
-                   {
-                       ( void ) name;
-                       #if ( ipconfigUSE_IPv6 != 0 )
-                           if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                           {
-                               continue;
-                           }
-                       #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-                       if( pxEndPoint->ipv4_settings.ulIPAddress == ulIPTargetAddress )
-                       {
-                           /* The perfect match. */
-                           xDone = pdTRUE;
-                       }
-                       else
-                       if( ( xIPBroadcast != pdFALSE ) &&
-                           ( ( ( pxEndPoint->ipv4_settings.ulIPAddress ^ ulMatchAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) == 0U ) )
-                       {
-                           xDone = pdTRUE;
-                       }
-                       else
-                       if( xIsIPv4Multicast( ulIPTargetAddress ) != pdFALSE )
-                       {
-                           /* Target is a multicast address. */
-                           xDone = pdTRUE;
-                       }
-                       else
-                       {
-                           /* This end-point doesn't match with the packet. */
-                       }
-
-                       if( xDone != pdFALSE )
-                       {
-                           break;
-                       }
-                   }
-
-                   if( ( xIPBroadcast != 0 ) && ( pxEndPoint == NULL ) )
-                   {
-                       pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterface );
-                   }
-               }
-               break;
-
-            default:
-                /* Frame type not supported. */
-                FreeRTOS_printf( ( "Frametpye %04x not supported.\n", FreeRTOS_ntohs( pxPacket->xUDPPacket.xEthernetHeader.usFrameType ) ) );
-                break;
-        } /* switch usFrameType */
-
-        ( void ) name;
-
         return pxEndPoint;
     }
 /*-----------------------------------------------------------*/
@@ -1075,7 +960,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
                 {
                     /* Check if the IP-address is non-zero. */
-                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 ) /* access to ipv6_settings is checked. */
+                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         break;
                     }
@@ -1083,7 +968,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 else
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
                 {
-                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
+                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U )
                     {
                         break;
                     }
@@ -1171,79 +1056,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     }
 /*-----------------------------------------------------------*/
 
-    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
-    {
-        IPv6_Type_t eResult = eIPv6_Unknown;
-        BaseType_t xIndex;
-
-        for( xIndex = 0; xIndex < ARRAY_SIZE( xIPCouples ); xIndex++ )
-        {
-            uint16_t usAddress =
-                ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
-                ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
-
-            if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
-            {
-                eResult = xIPCouples[ xIndex ].eType;
-                break;
-            }
-        }
-
-        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            const char * pcName = "unknown enum";
-
-            switch( eResult )
-            {
-                case eIPv6_Global:
-                    pcName = "Global";
-                    break;
-
-                case eIPv6_LinkLocal:
-                    pcName = "LinkLocal";
-                    break;
-
-                case eIPv6_SiteLocal:
-                    pcName = "SiteLocal";
-                    break;
-
-                case eIPv6_Multicast:
-                    pcName = "Multicast";
-                    break;
-
-                case eIPv6_Unknown:
-                    pcName = "Unknown";
-                    break;
-            }
-
-            FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
-                                     pxAddress->ucBytes[ 0 ],
-                                     pxAddress->ucBytes[ 1 ],
-                                     pcName,
-                                     pxAddress->ucBytes ) );
-        #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
-
-        return eResult;
-    }
-/*-----------------------------------------------------------*/
-
-    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
-                                 char * pcBuffer,
-                                 size_t uxSize )
-    {
-        if( pxEndPoint == NULL )
-        {
-            snprintf( pcBuffer, uxSize, "NULL" );
-        }
-        else
-        {
-            FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0 ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
-                                ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                pcBuffer,
-                                uxSize );
-        }
-
-        return pcBuffer;
-    }
 #else /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
 
 /* Here below the most important function of FreeRTOS_Routing.c in a short
@@ -1530,3 +1342,105 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /*-----------------------------------------------------------*/
 
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
+
+/**
+ * @brief Returns the IP type of the given IPv6 address.
+ *
+ * @param[in] pxAddress: The IPv6 address whose type needs to be returned.
+ * @returns The IP type of the given address.
+ */
+IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
+{
+    IPv6_Type_t eResult = eIPv6_Unknown;
+    BaseType_t xIndex;
+    static const struct xIPv6_Couple xIPCouples[] =
+    {
+        /*    IP-type          Mask     Value */
+        { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
+        { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+        { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+        { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+    };
+
+    for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
+    {
+        uint16_t usAddress =
+            ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
+            ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
+
+        if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+        {
+            eResult = xIPCouples[ xIndex ].eType;
+            break;
+        }
+    }
+
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+        const char * pcName = "unknown enum";
+
+        switch( eResult )
+        {
+            case eIPv6_Global:
+                pcName = "Global";
+                break;
+
+            case eIPv6_LinkLocal:
+                pcName = "LinkLocal";
+                break;
+
+            case eIPv6_SiteLocal:
+                pcName = "SiteLocal";
+                break;
+
+            case eIPv6_Multicast:
+                pcName = "Multicast";
+                break;
+
+            case eIPv6_Unknown:
+                pcName = "Unknown";
+                break;
+        }
+
+        FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
+                                 pxAddress->ucBytes[ 0 ],
+                                 pxAddress->ucBytes[ 1 ],
+                                 pcName,
+                                 pxAddress->ucBytes ) );
+    #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+
+    return eResult;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Returns the string representation of the IP address of the end point.
+ *
+ * @param[in] pxEndPoint: End point for which IP address needs to be returned.
+ * @param[in] pcBuffer: A char buffer of required size to which the string will be written.
+ * @param[in] uxSize: Size of the char buffer - pcBuffer.
+ *
+ * @returns The pointer to the char buffer that contains the string representation of the end point IP address.
+ *          The string will be "NULL" if the end point pointer is NULL.
+ */
+const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                             char * pcBuffer,
+                             size_t uxSize )
+{
+    if( pxEndPoint == NULL )
+    {
+        /* MISRA Ref 21.6.1 [snprintf and logging] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+        /* coverity[misra_c_2012_rule_21_6_violation] */
+        ( void ) snprintf( pcBuffer, uxSize, "NULL" );
+    }
+    else
+    {
+        ( void ) FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
+                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                     pcBuffer,
+                                     uxSize );
+    }
+
+    return pcBuffer;
+}
+/*-----------------------------------------------------------*/

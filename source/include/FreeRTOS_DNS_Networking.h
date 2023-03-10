@@ -39,19 +39,6 @@
  */
     Socket_t DNS_CreateSocket( TickType_t uxReadTimeOut_ticks );
 
-    BaseType_t DNS_BindSocket( Socket_t xSocket,
-                               uint16_t usPort );
-
-    BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
-                                const struct freertos_sockaddr * xAddress,
-                                const struct xDNSBuffer * pxDNSBuf );
-
-    BaseType_t DNS_ReadReply( const ConstSocket_t xDNSSocket,
-                              struct freertos_sockaddr * xAddress,
-                              struct xDNSBuffer * pxReceiveBuffer );
-
-    void DNS_CloseSocket( Socket_t xDNSSocket );
-
 /**
  * @brief Bind the socket to a port number.
  * @param[in] xSocket: the socket that must be bound.
@@ -60,5 +47,16 @@
  */
     BaseType_t DNS_BindSocket( Socket_t xSocket,
                                uint16_t usPort );
+
+    BaseType_t DNS_SendRequest( Socket_t xDNSSocket,
+                                const struct freertos_sockaddr * xAddress,
+                                const struct xDNSBuffer * pxDNSBuf );
+
+    BaseType_t DNS_ReadReply( ConstSocket_t xDNSSocket,
+                              struct freertos_sockaddr * xAddress,
+                              struct xDNSBuffer * pxReceiveBuffer );
+
+    void DNS_CloseSocket( Socket_t xDNSSocket );
+
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
 #endif /* ifndef FREERTOS_DNS_NETWORKING_H */

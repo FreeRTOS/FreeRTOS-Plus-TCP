@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_UDP_IP.c
+ * @file FreeRTOS_UDP_IPv4.c
  * @brief This file has the source code for the UDP-IP functionality of the FreeRTOS+TCP
  *        network stack.
  */
@@ -278,6 +278,9 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
             NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             EthernetHeader_t * pxEthernetHeader = ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
             ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
@@ -297,7 +300,11 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 }
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-            ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
+
+            if( ( pxInterface != NULL ) && ( pxInterface->pfOutput != NULL ) )
+            {
+                ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
+            }
         }
         else
         {

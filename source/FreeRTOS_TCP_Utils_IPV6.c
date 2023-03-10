@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Utils.c
+ * @file FreeRTOS_TCP_Utils_IPV6.c
  * @brief Module contains utility functions used by FreeRTOS+TCP module.
  *
  * Endianness: in this module all ports and IP addresses are stored in
@@ -74,11 +74,7 @@
                 }
             #endif
 
-            if( ulMSS > uxDifference )
-            {
-                ulMSS -= uxDifference;
-            }
-
+            ulMSS -= uxDifference;
             IPv6_Type_t eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
 
             if( eType == eIPv6_Global )

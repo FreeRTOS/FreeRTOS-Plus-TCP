@@ -86,7 +86,7 @@
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
     /* coverity[misra_c_2012_rule_8_9_violation] */
-    static FreeRTOS_Socket_t * xSocketToListen = NULL;
+    _static FreeRTOS_Socket_t * xSocketToListen = NULL;
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
@@ -450,7 +450,7 @@
                         pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
                     }
 
-                    xTaskResumeAll();
+                    ( void ) xTaskResumeAll();
 
                     FreeRTOS_printf( ( "vTCPStateChange: Closing socket\n" ) );
 
@@ -462,7 +462,7 @@
                 }
                 else
                 {
-                    xTaskResumeAll();
+                    ( void ) xTaskResumeAll();
                 }
             }
         }
@@ -497,9 +497,27 @@
             {
                 if( ( xTCPWindowLoggingLevel >= 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) ) )
                 {
-                    FreeRTOS_debug_printf( ( "Socket %u -> %xip:%u State %s->%s\n",
+                    char pcBuffer[ 40 ];
+
+                    if( pxSocket->bits.bIsIPv6 != 0 )
+                    {
+                        FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                            pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                            pcBuffer,
+                                            sizeof( pcBuffer ) );
+                    }
+                    else
+                    {
+                        uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                        FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                            ( const uint8_t * ) &ulIPAddress,
+                                            pcBuffer,
+                                            sizeof( pcBuffer ) );
+                    }
+
+                    FreeRTOS_debug_printf( ( "Socket %u -> [%s]:%u State %s->%s\n",
                                              pxSocket->usLocalPort,
-                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
+                                             pcBuffer,
                                              pxSocket->u.xTCP.usRemotePort,
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) eTCPState ) ) );

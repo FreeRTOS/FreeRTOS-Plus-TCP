@@ -87,140 +87,6 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Look-up the target IP-address, works for both IPv4 and IPv6.
- *
- * @param[in,out] pxNetworkBuffer: The network buffer carrying the UDP or ICMP packet.
- *                                 It is also an "out" parameter: in case the target can only
- *                                 be reached through a gateway, the gateway's address will be
- *                                 filled in.
- *
- * @return When the IP-address is found: eARPCacheHit, when not found: eARPCacheMiss,
- *         and when waiting for a ARP reply: eCantSendPacket.
- */
-static eARPLookupResult_t prvLookupIPInCache( NetworkBufferDescriptor_t * const pxNetworkBuffer )
-{
-    eARPLookupResult_t eReturned;
-    uint32_t ulIPAddress;
-    /* Map the UDP packet onto the start of the frame. */
-    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
-
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-    {
-        eReturned = eNDGetCacheEntry( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
-    }
-    else
-    {
-        pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-        ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
-
-        eReturned = eARPGetCacheEntry( &( ulIPAddress ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), &( pxEndPoint ) );
-    }
-
-    if( pxNetworkBuffer->pxEndPoint == NULL )
-    {
-        pxNetworkBuffer->pxEndPoint = pxEndPoint;
-    }
-
-    return eReturned;
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Find an IPv4 end-point that matches with the address found in a network buffer.
- * @param[in] pxNetworkBuffer: the network buffer containing a received packet.
- */
-static void prvFindIPv4Endpoint( NetworkBufferDescriptor_t * const pxNetworkBuffer )
-{
-    if( pxNetworkBuffer->pxEndPoint == NULL )
-    {
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 10 );
-
-        if( pxNetworkBuffer->pxEndPoint == NULL )
-        {
-            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0U, 26 );
-
-            if( pxNetworkBuffer->pxEndPoint == NULL )
-            {
-                FreeRTOS_printf( ( "vProcessGeneratedUDPPacket: No pxEndPoint found? Using %lxip\n",
-                                   ( pxNetworkBuffer->pxEndPoint != NULL ) ? FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress ) : 0U ) );
-            }
-        }
-    }
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief This function is called in case the IP-address was not found,
- *        i.e. in the cache 'eARPCacheMiss' was returned.
- *        Either an ARP request or a Neighbour solicitation will be emitted.
- *
- * @param[in] pxNetworkBuffer : The network buffer carrying the UDP or ICMP packet.
- *
- * @param[out] pxLostBuffer : The pointee will be set to true in case the network packet got released
- *                            ( the ownership was taken ).
- */
-static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                          BaseType_t * pxLostBuffer )
-{
-    eARPLookupResult_t eReturned = eARPCacheMiss;
-    uint32_t ulIPAddress;
-
-
-    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-    {
-        FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                           pxNetworkBuffer->_xIPv6Address.ucBytes,
-                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-
-        if( pxNetworkBuffer->pxEndPoint != NULL )
-        {
-            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-
-            /* pxNetworkBuffer has been sent and released.
-             * Make sure it won't be used again.. */
-            *pxLostBuffer = pdTRUE;
-        }
-    }
-    else
-    {
-        ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
-
-        FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ),
-                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-
-        /* Add an entry to the ARP table with a null hardware address.
-         * This allows the ARP timer to know that an ARP reply is
-         * outstanding, and perform retransmissions if necessary. */
-        vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
-
-        /* Generate an ARP for the required IP address. */
-        iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
-
-        /* 'ulIPAddress' might have become the address of the Gateway.
-         * Find the route again. */
-
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11 );
-
-        if( pxNetworkBuffer->pxEndPoint == NULL )
-        {
-            eReturned = eCantSendPacket;
-        }
-        else
-        {
-            pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
-            vARPGenerateRequestPacket( pxNetworkBuffer );
-        }
-    }
-
-    return eReturned;
-}
-/*-----------------------------------------------------------*/
-
-/**
  * @brief Process the generated UDP packet and do other checks before sending the
  *        packet such as ARP cache check and address resolution.
  *
@@ -263,8 +129,8 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
                                       uint16_t usPort,
                                       BaseType_t * pxIsWaitingForARPResolution )
 {
+    /* Returning pdPASS means that the packet was consumed, released. */
     BaseType_t xReturn = pdFAIL;
-    FreeRTOS_Socket_t * pxSocket;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -276,9 +142,6 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    /* Caller must check for minimum packet size. */
-    pxSocket = pxUDPSocketLookup( usPort );
-
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {
         xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
@@ -288,6 +151,10 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     {
         xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
                                                   usPort, pxIsWaitingForARPResolution );
+    }
+    else
+    {
+        /* do nothing, coverity happy */
     }
 
     return xReturn;

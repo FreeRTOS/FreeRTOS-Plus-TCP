@@ -290,7 +290,7 @@ void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xCallEventHook = pdFALSE;
     xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
@@ -312,7 +312,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    vApplicationIPNetworkEventHook_Expect( eNetworkDown, &xEndPoint );
+    vApplicationIPNetworkEventHook_Multi_Expect( eNetworkDown, &xEndPoint );
 
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
@@ -324,11 +324,12 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 void test_prvProcessNetworkDownEvent_Fail( void )
 {
     NetworkInterface_t xInterface;
-    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     xCallEventHook = pdFALSE;
     xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
     xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 

@@ -24,9 +24,9 @@
 * Signature of function under test
 ****************************************************************/
 
-void prvReadSackOption( const uint8_t * const pucPtr,
-                        size_t uxIndex,
-                        FreeRTOS_Socket_t * const pxSocket );
+void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( const uint8_t * const pucPtr,
+                                                                      size_t uxIndex,
+                                                                      FreeRTOS_Socket_t * const pxSocket );
 
 /****************************************************************
 * Proof of prvReadSackOption function contract
@@ -98,7 +98,7 @@ void harness()
     __CPROVER_assume( pucPtr != NULL );
     __CPROVER_assume( pxSocket != NULL );
 
-    prvReadSackOption( pucPtr, uxIndex, pxSocket );
+    __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( pucPtr, uxIndex, pxSocket );
 
     /* No postconditions required */
 }

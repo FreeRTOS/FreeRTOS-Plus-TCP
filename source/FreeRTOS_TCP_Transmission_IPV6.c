@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Transmission.c
+ * @file FreeRTOS_TCP_Transmission_IPV6.c
  * @brief Module which prepares the packet to be sent through
  * a socket for FreeRTOS+TCP.
  * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
@@ -118,7 +118,7 @@
             {
                 pxNetworkBuffer = &xTempBuffer;
 
-                memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );
+                ( void ) memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );
                 #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                     {
                         pxNetworkBuffer->pxNextBuffer = NULL;
@@ -229,7 +229,7 @@
                     }
                 #endif
 
-                memcpy( xDestinationIPAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( xDestinationIPAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 eARPLookupResult_t eResult;
 
                 eResult = eNDGetCacheEntry( &xDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
@@ -291,10 +291,7 @@
                      * containing the packet header. */
                     vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
-                    if( pxIPHeader != NULL )
-                    {
-                        ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    }
+                    ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
                 {
@@ -505,16 +502,26 @@
         #else
             {
                 /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
-                uint32_t ulSendLength = ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
+
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                TCPPacket_IPv6_t * pxTCPPacket_IPv6 = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                TCPPacket_IPv6_t * pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                const uint32_t ulSendLength =
+                    ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
 
-                if( pxTCPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+                uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
+                pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
+                pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+
+                if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
                 {
-                    pxTCPPacket_IPv6->xTCPHeader.ucTCPFlags = ucTCPFlags;
-                    pxTCPPacket_IPv6->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+                    /* A synchronize packet is received. It counts as 1 pseudo byte of data,
+                     * so increase the variable with 1. Before sending a reply, the values of
+                     * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
+                    uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
+                    ulSequenceNumber++;
+                    pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
                 }
 
                 prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );

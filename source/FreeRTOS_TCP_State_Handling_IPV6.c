@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_State_Handling.c
+ * @file FreeRTOS_TCP_State_Handling_IPV6.c
  * @brief Module which handles the TCP protocol state transition for FreeRTOS+TCP.
  *
  * Endianness: in this module all ports and IP addresses are stored in
@@ -163,7 +163,7 @@
             }
         }
 
-        if( ( xHasSequence != 0U ) && ( pxReturn != NULL ) )
+        if( ( xHasSequence != 0 ) && ( pxReturn != NULL ) )
         {
             /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 

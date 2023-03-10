@@ -132,7 +132,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
 /**
  * @brief Process the ARP packets.
  *
- * @param[in] pxARPFrame: The ARP Frame (the ARP packet).
+ * @param[in] pxNetworkBuffer: : The network buffer with the packet to be processed.
  *
  * @return An enum which says whether to return the frame or to release it.
  */
@@ -143,17 +143,13 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
     /* coverity[misra_c_2012_rule_11_3_violation] */
     ARPPacket_t * pxARPFrame = ( ( ARPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     eFrameProcessingResult_t eReturn = eReleaseBuffer;
-    ARPHeader_t * pxARPHeader;
+    const ARPHeader_t * pxARPHeader;
     uint32_t ulTargetProtocolAddress, ulSenderProtocolAddress;
 
     /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
     NetworkEndPoint_t * pxTargetEndPoint = pxNetworkBuffer->pxEndPoint;
-
-    #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-        NetworkEndPoint_t * pxSourceEndPoint;
-    #endif
 
     /* Next defensive request must not be sent for arpIP_CLASH_RESET_TIMEOUT_MS
      * period. */
@@ -190,6 +186,16 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
         /* The field ulTargetProtocolAddress is well-aligned, a 32-bits copy. */
         ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
+        if( uxARPClashCounter != 0U )
+        {
+            /* Has the timeout been reached? */
+            if( xTaskCheckForTimeOut( &xARPClashTimeOut, &uxARPClashTimeoutPeriod ) == pdTRUE )
+            {
+                /* We have waited long enough, reset the counter. */
+                uxARPClashCounter = 0;
+            }
+        }
+
         /* Check whether the lowest bit of the highest byte is 1 to check for
          * multicast address or even a broadcast address (FF:FF:FF:FF:FF:FF). */
         if( ( pxARPHeader->xSenderHardwareAddress.ucBytes[ 0 ] & 0x01U ) == 0x01U )
@@ -206,14 +212,44 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
              * section 3.2.1.3. */
             iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
         }
-        else
+        /* Check whether there is a clash with another device for this IP address. */
+        else if( ( pxTargetEndPoint != NULL ) && ( ulSenderProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) )
         {
+            if( uxARPClashCounter < arpIP_CLASH_MAX_RETRIES )
+            {
+                /* Increment the counter. */
+                uxARPClashCounter++;
+
+                /* Send out a defensive ARP request. */
+                FreeRTOS_OutputARPRequest( pxTargetEndPoint->ipv4_settings.ulIPAddress );
+
+                /* Since an ARP Request for this IP was just sent, do not send a gratuitous
+                 * ARP for arpGRATUITOUS_ARP_PERIOD. */
+                xLastGratuitousARPTime = xTaskGetTickCount();
+
+                /* Note the time at which this request was sent. */
+                vTaskSetTimeOutState( &xARPClashTimeOut );
+
+                /* Reset the time-out period to the given value. */
+                uxARPClashTimeoutPeriod = pdMS_TO_TICKS( arpIP_CLASH_RESET_TIMEOUT_MS );
+            }
+
+            /* Process received ARP frame to see if there is a clash. */
             #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
                 {
-                    pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 ); /* Clash detection. */
-                }
-            #endif
+                    NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 );
 
+                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
+                    {
+                        xARPHadIPClash = pdTRUE;
+                        /* Remember the MAC-address of the other device which has the same IP-address. */
+                        ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
+                    }
+                }
+            #endif /* ipconfigARP_USE_CLASH_DETECTION */
+        }
+        else
+        {
             traceARP_PACKET_RECEIVED();
 
             /* Some extra logging while still testing. */
@@ -252,7 +288,7 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
 
                         if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) &&
                             ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
-                                      ( void * ) ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                      ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
                                       ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                         {
                             vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
@@ -270,18 +306,6 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                         break;
                 }
             }
-
-            /* Process received ARP frame to see if there is a clash. */
-            #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-                {
-                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
-                    {
-                        xARPHadIPClash = pdTRUE;
-                        /* Remember the MAC-address of the other device which has the same IP-address. */
-                        ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
-                    }
-                }
-            #endif /* ipconfigARP_USE_CLASH_DETECTION */
         }
     }
     else
@@ -300,7 +324,6 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
  * @param[in] pxTargetEndPoint: the end-point that handles the peer's address.
  * @param[in] ulSenderProtocolAddress: the IP-address of the sender.
  *
- * @return An enum which says whether to return the frame or to release it.
  */
 static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
                                       NetworkEndPoint_t * pxTargetEndPoint,
@@ -391,7 +414,8 @@ static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
         vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
     }
 
-    if( pxARPWaitingNetworkBuffer != NULL )
+    if( ( pxARPWaitingNetworkBuffer != NULL ) &&
+        ( uxIPHeaderSizePacket( pxARPWaitingNetworkBuffer ) == ipSIZE_OF_IPv4_HEADER ) )
     {
         /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -467,28 +491,78 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
-BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
 
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
-    const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
-    IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
-
-    if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
+    if( uxIPHeaderSizePacket( ( const NetworkBufferDescriptor_t * ) pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
     {
-        /* If the IP is on the same subnet and we do not have an ARP entry already,
-         * then we should send out ARP for finding the MAC address. */
-        if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
-        {
-            FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        IPHeader_IPv6_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+        IPv6_Address_t * pxIPAddress = &( pxIPHeader->xSourceAddress );
+        uint8_t ucNextHeader = pxIPHeader->ucNextHeader;
 
-            /* This packet needs resolution since this is on the same subnet
-             * but not in the ARP cache. */
-            xNeedsARPResolution = pdTRUE;
+        if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
+            ( ucNextHeader == ipPROTOCOL_UDP ) )
+        {
+            IPv6_Type_t eType = xIPv6_GetIPType( ( const IPv6_Address_t * ) pxIPAddress );
+            FreeRTOS_printf( ( "xCheckRequiresARPResolution: %pip type %s\n", pxIPAddress->ucBytes, ( eType == eIPv6_Global ) ? "Global" : ( eType == eIPv6_LinkLocal ) ? "LinkLocal" : "other" ) );
+
+            if( eType == eIPv6_LinkLocal )
+            {
+                MACAddress_t xMACAddress;
+                NetworkEndPoint_t * pxEndPoint;
+                eARPLookupResult_t eResult;
+                char pcName[ 80 ];
+
+                ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
+                eResult = eNDGetCacheEntry( pxIPAddress, &xMACAddress, &pxEndPoint );
+                FreeRTOS_printf( ( "xCheckRequiresARPResolution: eResult %s with EP %s\n", ( eResult == eARPCacheMiss ) ? "Miss" : ( eResult == eARPCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
+
+                if( eResult == eARPCacheMiss )
+                {
+                    NetworkBufferDescriptor_t * pxTempBuffer;
+                    size_t uxNeededSize;
+
+                    uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t );
+                    pxTempBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 199 ) uxNeededSize, 0U );
+
+                    if( pxTempBuffer != NULL )
+                    {
+                        pxTempBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
+                        pxTempBuffer->pxInterface = pxNetworkBuffer->pxInterface;
+                        vNDSendNeighbourSolicitation( pxNetworkBuffer, pxIPAddress );
+                    }
+
+                    xNeedsARPResolution = pdTRUE;
+                }
+            }
+        }
+    }
+    else
+    {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+        const IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
+
+        if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
+        {
+            /* If the IP is on the same subnet and we do not have an ARP entry already,
+             * then we should send out ARP for finding the MAC address. */
+            if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
+            {
+                FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
+
+                /* This packet needs resolution since this is on the same subnet
+                 * but not in the ARP cache. */
+                xNeedsARPResolution = pdTRUE;
+            }
         }
     }
 
@@ -501,7 +575,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  * @brief Remove an ARP cache entry that matches with .pxMACAddress.
  *
  * @param[in] pxMACAddress: Pointer to the MAC address whose entry shall
- *                          be removed..
+ *                          be removed.
  * @return When the entry was found and remove: the IP-address, otherwise zero.
  */
     uint32_t ulARPRemoveCacheEntryByMac( const MACAddress_t * pxMACAddress )
@@ -791,6 +865,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
  * @param[in,out] pulIPAddress: Pointer to the IP-address to be queried to the ARP cache.
  * @param[in,out] pxMACAddress: Pointer to a MACAddress_t variable where the MAC address
  *                          will be stored, if found.
+ * @param[out] ppxEndPoint: Pointer to the end-point of the gateway will be stored.
  *
  * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
  *         refresh the ARP cache entry's age, and return eARPCacheHit. If the IP
@@ -907,8 +982,6 @@ static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
             {
                 ulAddressToLookup = *pulIPAddress;
             }
-
-            /*FreeRTOS_printf( ( "Using gateway %lxip\n", FreeRTOS_ntohl( ulAddressToLookup ) ) ); */
         }
     }
     else
@@ -1106,7 +1179,7 @@ void vARPSendGratuitous( void )
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    const NetworkEndPoint_t * pxEndPoint;
+    NetworkEndPoint_t * pxEndPoint;
 
     /* Send an ARP request to every end-point which has the type IPv4,
      * and which already has an IP-address assigned. */

@@ -34,9 +34,6 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 
-/* FreeRTOS+TCP includes. */
-/*#include "FreeRTOS_IP.h" */
-
 #define dnsPARSE_ERROR              0UL
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
@@ -131,6 +128,7 @@
     #else
         #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
     #endif
+    #define ipMDNS_TIME_TO_LIVE      255U
     #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
     #define ipLLMNR_PORT             5355        /* Standard LLMNR port. */
     #define ipDNS_PORT               53          /* Standard DNS port. */
@@ -219,7 +217,7 @@
         struct freertos_addrinfo * pxLastAddress;         /**< This variable is used while creating a linked-list of IP-addresses. */
         struct freertos_addrinfo ** ppxLastAddress;       /**< This variable is also used while creating a linked-list of IP-addresses. */
     } ParseSet_t;
-    #if ( ipconfigUSE_LLMNR == 1 )
+    #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 )
 
         #include "pack_struct_start.h"
         struct xLLMNRAnswer
@@ -234,7 +232,7 @@
         }
         #include "pack_struct_end.h"
         typedef struct xLLMNRAnswer LLMNRAnswer_t;
-    #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
+    #endif /* if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) */
 
     #if ( ipconfigUSE_NBNS == 1 )
 
@@ -310,16 +308,22 @@
         BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
     } IPv46_Address_t;
 
-    #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
+    #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 
 /*
  * The following function should be provided by the user and return true if it
  * matches the domain name.
  */
-        /* Even though the function is defined in main.c, the rule is violated. */
-        /* misra_c_2012_rule_8_6_violation */
-        extern BaseType_t xApplicationDNSQueryHook( struct xNetworkEndPoint * pxEndPoint,
-                                                    const char * pcName );
+        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+            /* Even though the function is defined in main.c, the rule is violated. */
+            /* misra_c_2012_rule_8_6_violation */
+            extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
+        #else
+            /* Even though the function is defined in main.c, the rule is violated. */
+            /* misra_c_2012_rule_8_6_violation */
+            extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                              const char * pcName );
+        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
