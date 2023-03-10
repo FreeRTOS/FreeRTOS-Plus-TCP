@@ -952,6 +952,7 @@ pxnetprefix
 pxnetworkbuffer
 pxnetworkendpoints
 pxnetworkinterface
+pxnewbuffer
 pxnewlistitem
 pxnewsocket
 pxnext

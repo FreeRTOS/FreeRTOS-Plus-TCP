@@ -1022,7 +1022,7 @@
                        BaseType_t xCompare;
                        NetworkEndPoint_t * pxEndPointFound;
 
-                       /* Maybe the ICMP sollicitation was received a a different endpoint (local versus global). */
+                       /* Maybe the ICMP solicitation was received a a different endpoint (local versus global). */
                        pxEndPointFound = FreeRTOS_FindEndPointOnIP_IPv6( &( pxICMPHeader_IPv6->xIPv6Address ) );
 
                        if( pxEndPointFound != NULL )
