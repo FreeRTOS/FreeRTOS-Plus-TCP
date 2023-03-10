@@ -307,7 +307,7 @@
         uint16_t x;
         BaseType_t xReturn = pdTRUE;
         uint32_t ulIPAddress = 0U;
-        int lDNSHookReturn;
+        BaseType_t lDNSHookReturn;
 
         ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
         xSet.usPortNumber = usPort;
@@ -324,6 +324,7 @@
         /* Ensure that the buffer is of at least minimal DNS message length. */
         if( uxBufferLength < sizeof( DNSMessage_t ) )
         {
+            ( void ) lDNSHookReturn;
             xReturn = pdFALSE;
         }
         else
