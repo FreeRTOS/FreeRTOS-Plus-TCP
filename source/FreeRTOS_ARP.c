@@ -168,6 +168,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     /* Introduce a do while loop to allow use of breaks. */
     do
     {
+        uint32_t ulHostEndianProtocolAddr;
+
         /* Only Ethernet hardware type is supported.
          * Only IPv4 address can be present in the ARP packet.
          * The hardware length (the MAC address) must be 6 bytes. And,
@@ -193,7 +195,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             break;
         }
 
-        uint32_t ulHostEndianProtocolAddr = FreeRTOS_ntohl( ulSenderProtocolAddress );
+        ulHostEndianProtocolAddr = FreeRTOS_ntohl( ulSenderProtocolAddress );
 
         if( ( ipFIRST_LOOPBACK_IPv4 <= ulHostEndianProtocolAddr ) &&
             ( ulHostEndianProtocolAddr < ipLAST_LOOPBACK_IPv4 ) )
@@ -411,7 +413,8 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
     const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    if( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) )
+    if( ( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) ) &&
+        ( ( pxIPHeader->ulDestinationIPAddress & ipLOOPBACK_NETMASK ) != ( ipLOOPBACK_ADDRESS & ipLOOPBACK_NETMASK ) ) )
     {
         /* If the IP is on the same subnet and we do not have an ARP entry already,
          * then we should send out ARP for finding the MAC address. */
@@ -724,7 +727,8 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
          * can be done. */
         eReturn = eCantSendPacket;
     }
-    else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
+    else if( ( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress ) ||
+             ( ( *pulIPAddress & ipLOOPBACK_NETMASK ) == ( ipLOOPBACK_ADDRESS & ipLOOPBACK_NETMASK ) ) )
     {
         /* The address of this device. May be useful for the loopback device. */
         eReturn = eARPCacheHit;
