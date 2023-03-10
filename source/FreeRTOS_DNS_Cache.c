@@ -514,7 +514,7 @@
                 }
                 else
                 {
-                    const uint8_t * ucBytes = &( pxAddresses->ulIPAddress );
+                    const uint8_t * ucBytes = ( const uint8_t * ) &( pxAddresses->ulIPAddress );
 
                     pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
                 }
