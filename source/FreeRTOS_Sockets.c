@@ -1358,7 +1358,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
             {
                 if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xUDP.pxHandleSent ) )
                 {
-                    pxSocket->u.xUDP.pxHandleSent( pxSocket, uxTotalDataLength );
+                    pxSocket->u.xUDP.pxHandleSent( ( FreeRTOS_Socket_t * ) pxSocket, uxTotalDataLength );
                 }
             }
         #endif /* ipconfigUSE_CALLBACKS */
