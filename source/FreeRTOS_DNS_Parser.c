@@ -355,8 +355,8 @@
 
                 if( xSet.usQuestions == 0U )
                 {
-                	/* The IP-stack will only accept DNS replies that have a copy
-                	 * of the questions. */
+                    /* The IP-stack will only accept DNS replies that have a copy
+                     * of the questions. */
                     xReturn = pdFALSE;
                     break;
                 }

@@ -1110,12 +1110,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             }
 
 /*
-            FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
-                                     pxAddress->ucBytes[ 0 ],
-                                     pxAddress->ucBytes[ 1 ],
-                                     pcName,
-                                     pxAddress->ucBytes ) );
-*/
+ *          FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
+ *                                   pxAddress->ucBytes[ 0 ],
+ *                                   pxAddress->ucBytes[ 1 ],
+ *                                   pcName,
+ *                                   pxAddress->ucBytes ) );
+ */
         #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
         return eResult;

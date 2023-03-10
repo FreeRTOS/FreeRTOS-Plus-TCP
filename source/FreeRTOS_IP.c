@@ -808,7 +808,7 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         uxIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
     }
 
-	xNeededSize = ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER + uxRequestedSizeBytes;
+    xNeededSize = ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER + uxRequestedSizeBytes;
 
     /* Obtain a network buffer with the required amount of storage. */
     pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 100 ) xNeededSize, uxBlockTime );
@@ -820,8 +820,8 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         /* Calculate the distance between the beginning of
          * UDP payload until the hidden byte that reflects
          * the IP-type: either ipTYPE_IPv4 or ipTYPE_IPv6.
-		 * Note that 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is independent
-		 * from the IP-type.
+         * Note that 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is independent
+         * from the IP-type.
          */
         size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
         BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
@@ -830,13 +830,13 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
         pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderLength + ipSIZE_OF_UDP_HEADER ] );
 
         /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
-            * Store the packet type at 48 bytes before the start of the UDP payload. */
+         * Store the packet type at 48 bytes before the start of the UDP payload. */
         pucIPType = ( uint8_t * ) pvReturn;
         pucIPType = &( pucIPType[ -xPayloadIPTypeOffset ] );
 
         /* For a IPv4 packet, pucIPType points to 6 bytes before the
-            * pucEthernetBuffer, for a IPv6 packet, pucIPType will point to the
-            * first byte of the IP-header: 'ucVersionTrafficClass'. */
+         * pucEthernetBuffer, for a IPv6 packet, pucIPType will point to the
+         * first byte of the IP-header: 'ucVersionTrafficClass'. */
         *pucIPType = ucIPType;
     }
 
