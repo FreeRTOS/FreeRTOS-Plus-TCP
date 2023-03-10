@@ -189,12 +189,12 @@
     #define ipconfigMULTI_INTERFACE    ( 1 )
 #endif
 
-#if ( ipconfigUSE_TCP != 0 )
-
 /* Disable IPv6 by default. */
-    #ifndef ipconfigUSE_DHCPv6
-        #define ipconfigUSE_DHCPv6    ( 0 )
-    #endif
+#ifndef ipconfigUSE_DHCPv6
+    #define ipconfigUSE_DHCPv6    ( 0 )
+#endif
+
+#if ( ipconfigUSE_TCP != 0 )
 
 /* 'ipconfigUSE_TCP_WIN' enables support for TCP sliding windows.  When
  * defined as zero, each TCP packet must be acknowledged individually.
