@@ -123,9 +123,12 @@ int main( void )
     return 0;
 }
 /*-----------------------------------------------------------*/
-
-void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
-                                           struct xNetworkEndPoint * pxEndPoint )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+#else
+    void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                               struct xNetworkEndPoint * pxEndPoint )
+#endif
 {
     static BaseType_t xTasksAlreadyCreated = pdFALSE;
 
@@ -314,3 +317,11 @@ void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
 {
     /* Provide a stub for this function. */
 }
+
+#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 )
+    /* DHCPv6 needs a time-stamp, seconds after 1970. */
+    uint32_t ulApplicationTimeHook( void )
+    {
+        return time( NULL );
+    }
+#endif
