@@ -1259,8 +1259,7 @@ static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
  *                  (24-bytes) for compatibility.
  *
  * @return The number of bytes received. Or else, an error code is returned. When it
- *         returns a negative value, the cause can be looked-up in
- *         'FreeRTOS_errno_TCP.h'.
+ *         returns a negative value, the cause can be looked-up in 'projdefs.h'.
  */
 int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                            void * pvBuffer,
@@ -1570,7 +1569,7 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
  *                  Berkeley sockets standard. Else, it is not used.
  *
  * @return When positive: the total number of bytes sent, when negative an error
- *         has occurred: it can be looked-up in 'FreeRTOS_errno_TCP.h'.
+ *         has occurred: it can be looked-up in 'projdefs.h'.
  */
 int32_t FreeRTOS_sendto( Socket_t xSocket,
                          const void * pvBuffer,
