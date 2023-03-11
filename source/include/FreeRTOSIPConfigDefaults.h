@@ -161,7 +161,12 @@
  * configMAX_PRIORITIES is a standard FreeRTOS configuration parameter defined in
  * FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration needs to be given as to
  * the priority assigned to the task executing the IP stack relative to the
- * priority assigned to tasks that use the IP stack. */
+ * priority assigned to tasks that use the IP stack.  It is recommended to use this
+ * order of priorities:
+ * Highest : network interface, handling transmission and reception.
+ * Medium  : the IP-task handling API calls from the application.
+ * Lower   : the tasks that make use of the IP-stack.
+ * For other tasks any priority can be chosen. */
 #ifndef ipconfigIP_TASK_PRIORITY
     #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
 #endif
@@ -573,26 +578,6 @@
  */
 #ifndef ipconfigUDP_MAX_RX_PACKETS
     #define ipconfigUDP_MAX_RX_PACKETS    0U
-#endif
-
-/* Define the priority of the IP-task.  It is recommended to use this
- * order of priorities:
- * Highest : network interface, handling transmission and reception.
- * Medium  : the IP-task handling API calls from the application.
- * Lower   : the tasks that make use of the IP-stack.
- * For other tasks any priority can be chosen.
- */
-#ifndef ipconfigIP_TASK_PRIORITY
-    #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
-#endif
-
-/* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
- * task.  This setting is less important when the FreeRTOS Win32 simulator is used
- * as the Win32 simulator only stores a fixed amount of information on the task
- * stack.  FreeRTOS includes optional stack overflow detection, see:
- * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
-#ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
 #endif
 
 /* When non-zero, the module FreeRTOS_DHCP.c will be included and called.
