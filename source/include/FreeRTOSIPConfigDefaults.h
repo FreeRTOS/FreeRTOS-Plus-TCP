@@ -43,8 +43,18 @@
     #error FreeRTOSIPConfig.h has not been included yet
 #endif
 
-#include "FreeRTOS_errno_TCP.h"
 #include "FreeRTOSIPDeprecatedDefinitions.h"
+
+/*
+ * pdFREERTOS_ERRNO_EAFNOSUPPORT
+ *
+ * Address family not supported by protocol.
+ *
+ * Note: To be removed when added to projdefs.h in FreeRTOS-Kernel
+ */
+#ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
+    #define pdFREERTOS_ERRNO_EAFNOSUPPORT    97
+#endif
 
 /*===========================================================================*/
 
