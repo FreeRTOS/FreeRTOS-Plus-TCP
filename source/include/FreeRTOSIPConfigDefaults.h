@@ -142,78 +142,78 @@
 
 #if ( ipconfigUSE_IPv6 != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigND_CACHE_ENTRIES
-     */
+/*
+ * ipconfigND_CACHE_ENTRIES
+ */
     #ifndef ipconfigND_CACHE_ENTRIES
         #define ipconfigND_CACHE_ENTRIES    24U
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigUSE_RA
-     */
+/*
+ * ipconfigUSE_RA
+ */
     #ifndef ipconfigUSE_RA
         #define ipconfigUSE_RA    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
     #if ( ipconfigUSE_RA != 0 )
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigRA_SEARCH_COUNT
-         *
-         * RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
-         * An Router Solicitation will be sent. It will wait for
-         * ipconfigRA_SEARCH_TIME_OUT_MSEC ms. When there is no response, it
-         * will be repeated ipconfigRA_SEARCH_COUNT times. Then it will be
-         * checked if the chosen IP-address already exists, repeating this
-         * ipconfigRA_IP_TEST_COUNT times, each time with a timeout of
-         * ipconfigRA_IP_TEST_TIME_OUT_MSEC ms. Finally the end-point will go
-         * in the UP state.
-         */
+/*
+ * ipconfigRA_SEARCH_COUNT
+ *
+ * RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
+ * An Router Solicitation will be sent. It will wait for
+ * ipconfigRA_SEARCH_TIME_OUT_MSEC ms. When there is no response, it
+ * will be repeated ipconfigRA_SEARCH_COUNT times. Then it will be
+ * checked if the chosen IP-address already exists, repeating this
+ * ipconfigRA_IP_TEST_COUNT times, each time with a timeout of
+ * ipconfigRA_IP_TEST_TIME_OUT_MSEC ms. Finally the end-point will go
+ * in the UP state.
+ */
         #ifndef ipconfigRA_SEARCH_COUNT
             #define ipconfigRA_SEARCH_COUNT    3U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigRA_SEARCH_TIME_OUT_MSEC
-         */
+/*
+ * ipconfigRA_SEARCH_TIME_OUT_MSEC
+ */
         #ifndef ipconfigRA_SEARCH_TIME_OUT_MSEC
             #define ipconfigRA_SEARCH_TIME_OUT_MSEC    10000U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigRA_IP_TEST_COUNT
-         */
+/*
+ * ipconfigRA_IP_TEST_COUNT
+ */
         #ifndef ipconfigRA_IP_TEST_COUNT
             #define ipconfigRA_IP_TEST_COUNT    3U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigRA_IP_TEST_TIME_OUT_MSEC
-         */
+/*
+ * ipconfigRA_IP_TEST_TIME_OUT_MSEC
+ */
         #ifndef ipconfigRA_IP_TEST_TIME_OUT_MSEC
             #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    1500U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
     #endif /* if ( ipconfigUSE_RA != 0 ) */
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -498,25 +498,25 @@
 
 #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES
-     *
-     * If ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is set to 1 then Ethernet
-     * frames that are not in Ethernet II format will be dropped. This option
-     * is included for potential future IP stack developments.
-     *
-     * When enabled, the function 'eConsiderFrameForProcessing()' will also
-     * check if the Ethernet frame type is acceptable.
-     */
+/*
+ * ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES
+ *
+ * If ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES is set to 1 then Ethernet
+ * frames that are not in Ethernet II format will be dropped. This option
+ * is included for potential future IP stack developments.
+ *
+ * When enabled, the function 'eConsiderFrameForProcessing()' will also
+ * check if the Ethernet frame type is acceptable.
+ */
     #ifndef ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES
         #define ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 ) */
 
@@ -788,319 +788,319 @@
 
 #if ( ipconfigUSE_TCP != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigIGNORE_UNKNOWN_PACKETS
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigIGNORE_UNKNOWN_PACKETS
-     *
-     * Normally TCP packets that have a bad or unknown destination will result
-     * in a RESET being sent back to the remote host. If
-     * ipconfigIGNORE_UNKNOWN_PACKETS is set to 1 then such resets will be
-     * suppressed (not sent).
-     */
+/*
+ * ipconfigIGNORE_UNKNOWN_PACKETS
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigIGNORE_UNKNOWN_PACKETS
+ *
+ * Normally TCP packets that have a bad or unknown destination will result
+ * in a RESET being sent back to the remote host. If
+ * ipconfigIGNORE_UNKNOWN_PACKETS is set to 1 then such resets will be
+ * suppressed (not sent).
+ */
     #ifndef ipconfigIGNORE_UNKNOWN_PACKETS
         #define ipconfigIGNORE_UNKNOWN_PACKETS    0
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigTCP_HANG_PROTECTION
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_HANG_PROTECTION
-     *
-     * If ipconfigTCP_HANG_PROTECTION is set to 1 then FreeRTOS-Plus-TCP will
-     * mark a socket as closed if there is no status change on the socket
-     * within the period of time specified by ipconfigTCP_HANG_PROTECTION_TIME.
-     */
+/*
+ * ipconfigTCP_HANG_PROTECTION
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_HANG_PROTECTION
+ *
+ * If ipconfigTCP_HANG_PROTECTION is set to 1 then FreeRTOS-Plus-TCP will
+ * mark a socket as closed if there is no status change on the socket
+ * within the period of time specified by ipconfigTCP_HANG_PROTECTION_TIME.
+ */
     #ifndef ipconfigTCP_HANG_PROTECTION
         #define ipconfigTCP_HANG_PROTECTION    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
     #if ( ipconfigTCP_HANG_PROTECTION != 0 )
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigTCP_HANG_PROTECTION_TIME
-         *
-         * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_HANG_PROTECTION_TIME
-         *
-         * If ipconfigTCP_HANG_PROTECTION is set to 1 then
-         * ipconfigTCP_HANG_PROTECTION_TIME sets the interval in seconds
-         * between the status of a socket last changing and the anti-hang
-         * mechanism marking the socket as closed.
-         */
+/*
+ * ipconfigTCP_HANG_PROTECTION_TIME
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_HANG_PROTECTION_TIME
+ *
+ * If ipconfigTCP_HANG_PROTECTION is set to 1 then
+ * ipconfigTCP_HANG_PROTECTION_TIME sets the interval in seconds
+ * between the status of a socket last changing and the anti-hang
+ * mechanism marking the socket as closed.
+ */
         #ifndef ipconfigTCP_HANG_PROTECTION_TIME
             #define ipconfigTCP_HANG_PROTECTION_TIME    30U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
     #endif /* if ( ipconfigTCP_HANG_PROTECTION != 0 ) */
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigTCP_KEEP_ALIVE
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_KEEP_ALIVE
-     *
-     * Sockets that are connected but do not transmit any data for an extended
-     * period can be disconnected by routers or firewalls that time out. This
-     * can be avoided at the application level by ensuring the application
-     * periodically sends a packet. Alternatively FreeRTOS-Plus-TCP can be
-     * configured to automatically send keep alive messages when it detects
-     * that a connection is dormant. Note that, while having FreeRTOS-Plus-TCP
-     * automatically send keep alive messages is the more convenient method, it
-     * is also the least reliable method because some routers will discard keep
-     * alive messages.
-     *
-     * Set ipconfigTCP_KEEP_ALIVE to 1 to have FreeRTOS-Plus-TCP periodically
-     * send keep alive messages on connected but dormant sockets. Set
-     * ipconfigTCP_KEEP_ALIVE to 0 to prevent the automatic transmission of
-     * keep alive messages.
-     *
-     * If FreeRTOS-Plus-TCP does not receive a reply to a keep alive message
-     * then the connection will be broken and the socket will be marked as
-     * closed. Subsequent FreeRTOS_recv() calls on the socket will return
-     * -pdFREERTOS_ERRNO_ENOTCONN.
-     */
+/*
+ * ipconfigTCP_KEEP_ALIVE
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_KEEP_ALIVE
+ *
+ * Sockets that are connected but do not transmit any data for an extended
+ * period can be disconnected by routers or firewalls that time out. This
+ * can be avoided at the application level by ensuring the application
+ * periodically sends a packet. Alternatively FreeRTOS-Plus-TCP can be
+ * configured to automatically send keep alive messages when it detects
+ * that a connection is dormant. Note that, while having FreeRTOS-Plus-TCP
+ * automatically send keep alive messages is the more convenient method, it
+ * is also the least reliable method because some routers will discard keep
+ * alive messages.
+ *
+ * Set ipconfigTCP_KEEP_ALIVE to 1 to have FreeRTOS-Plus-TCP periodically
+ * send keep alive messages on connected but dormant sockets. Set
+ * ipconfigTCP_KEEP_ALIVE to 0 to prevent the automatic transmission of
+ * keep alive messages.
+ *
+ * If FreeRTOS-Plus-TCP does not receive a reply to a keep alive message
+ * then the connection will be broken and the socket will be marked as
+ * closed. Subsequent FreeRTOS_recv() calls on the socket will return
+ * -pdFREERTOS_ERRNO_ENOTCONN.
+ */
     #ifndef ipconfigTCP_KEEP_ALIVE
         #define ipconfigTCP_KEEP_ALIVE    0
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
     #if ( ipconfigTCP_KEEP_ALIVE != 0 )
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigTCP_KEEP_ALIVE_INTERVAL
-         *
-         * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_KEEP_ALIVE_INTERVAL
-         *
-         * If ipconfigTCP_KEEP_ALIVE is set to 1 then
-         * ipconfigTCP_KEEP_ALIVE_INTERVAL sets the interval in seconds between
-         * successive keep alive messages. Keep alive messages are not sent at
-         * all unless ipconfigTCP_KEEP_ALIVE_INTERVAL seconds have passed since
-         * the last packet was sent or received.
-         */
+/*
+ * ipconfigTCP_KEEP_ALIVE_INTERVAL
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_KEEP_ALIVE_INTERVAL
+ *
+ * If ipconfigTCP_KEEP_ALIVE is set to 1 then
+ * ipconfigTCP_KEEP_ALIVE_INTERVAL sets the interval in seconds between
+ * successive keep alive messages. Keep alive messages are not sent at
+ * all unless ipconfigTCP_KEEP_ALIVE_INTERVAL seconds have passed since
+ * the last packet was sent or received.
+ */
         #ifndef ipconfigTCP_KEEP_ALIVE_INTERVAL
             #define ipconfigTCP_KEEP_ALIVE_INTERVAL    20U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
     #endif /* if ( ipconfigTCP_KEEP_ALIVE != 0 ) */
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigTCP_MSS
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_MSS
-     *
-     * Sets the MSS value (in bytes) for all TCP packets.
-     *
-     * Note that FreeRTOS-Plus-TCP contains checks that the defined
-     * ipconfigNETWORK_MTU and ipconfigTCP_MSS values are consistent with each
-     * other.
-     */
+/*
+ * ipconfigTCP_MSS
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_MSS
+ *
+ * Sets the MSS value (in bytes) for all TCP packets.
+ *
+ * Note that FreeRTOS-Plus-TCP contains checks that the defined
+ * ipconfigNETWORK_MTU and ipconfigTCP_MSS values are consistent with each
+ * other.
+ */
     #ifndef ipconfigTCP_MSS
         #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigTCP_RX_BUFFER_LENGTH
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_RX_BUFFER_LENGTH
-     *
-     * Each TCP socket has a buffer for reception and a separate buffer for
-     * transmission.
-     *
-     * The default buffer size is (4 * ipconfigTCP_MSS).
-     *
-     * FreeRTOS_setsockopt() can be used with the FREERTOS_SO_RCVBUF and
-     * FREERTOS_SO_SNDBUF parameters to set the receive and send buffer sizes
-     * respectively - but this must be done between the time that the socket is
-     * created and the buffers used by the socket are created. The receive
-     * buffer is not created until data is actually received, and the transmit
-     * buffer is not created until data is actually sent to the socket for
-     * transmission. Once the buffers have been created their sizes cannot be
-     * changed.
-     *
-     * If a listening socket creates a new socket in response to an incoming
-     * connect request then the new socket will inherit the buffers sizes of
-     * the listening socket.
-     */
+/*
+ * ipconfigTCP_RX_BUFFER_LENGTH
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_RX_BUFFER_LENGTH
+ *
+ * Each TCP socket has a buffer for reception and a separate buffer for
+ * transmission.
+ *
+ * The default buffer size is (4 * ipconfigTCP_MSS).
+ *
+ * FreeRTOS_setsockopt() can be used with the FREERTOS_SO_RCVBUF and
+ * FREERTOS_SO_SNDBUF parameters to set the receive and send buffer sizes
+ * respectively - but this must be done between the time that the socket is
+ * created and the buffers used by the socket are created. The receive
+ * buffer is not created until data is actually received, and the transmit
+ * buffer is not created until data is actually sent to the socket for
+ * transmission. Once the buffers have been created their sizes cannot be
+ * changed.
+ *
+ * If a listening socket creates a new socket in response to an incoming
+ * connect request then the new socket will inherit the buffers sizes of
+ * the listening socket.
+ */
     #ifndef ipconfigTCP_RX_BUFFER_LENGTH
         /* When MTU equals 1500, the buffer length defaults to 5840 bytes */
         #define ipconfigTCP_RX_BUFFER_LENGTH    ( 4U * ipconfigTCP_MSS )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigTCP_TX_BUFFER_LENGTH
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_RX_BUFFER_LENGTH
-     *
-     * Each TCP socket has a buffer for reception and a separate buffer for
-     * transmission.
-     *
-     * The default buffer size is (4 * ipconfigTCP_MSS).
-     *
-     * FreeRTOS_setsockopt() can be used with the FREERTOS_SO_RCVBUF and
-     * FREERTOS_SO_SNDBUF parameters to set the receive and send buffer sizes
-     * respectively - but this must be done between the time that the socket is
-     * created and the buffers used by the socket are created. The receive
-     * buffer is not created until data is actually received, and the transmit
-     * buffer is not created until data is actually sent to the socket for
-     * transmission. Once the buffers have been created their sizes cannot be
-     * changed.
-     *
-     * If a listening socket creates a new socket in response to an incoming
-     * connect request then the new socket will inherit the buffers sizes of
-     * the listening socket.
-     */
+/*
+ * ipconfigTCP_TX_BUFFER_LENGTH
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_RX_BUFFER_LENGTH
+ *
+ * Each TCP socket has a buffer for reception and a separate buffer for
+ * transmission.
+ *
+ * The default buffer size is (4 * ipconfigTCP_MSS).
+ *
+ * FreeRTOS_setsockopt() can be used with the FREERTOS_SO_RCVBUF and
+ * FREERTOS_SO_SNDBUF parameters to set the receive and send buffer sizes
+ * respectively - but this must be done between the time that the socket is
+ * created and the buffers used by the socket are created. The receive
+ * buffer is not created until data is actually received, and the transmit
+ * buffer is not created until data is actually sent to the socket for
+ * transmission. Once the buffers have been created their sizes cannot be
+ * changed.
+ *
+ * If a listening socket creates a new socket in response to an incoming
+ * connect request then the new socket will inherit the buffers sizes of
+ * the listening socket.
+ */
     #ifndef ipconfigTCP_TX_BUFFER_LENGTH
         #define ipconfigTCP_TX_BUFFER_LENGTH    ( 4U * ipconfigTCP_MSS )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigTCP_TIME_TO_LIVE
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_TIME_TO_LIVE
-     *
-     * Defines the Time To Live TTL) values used in outgoing TCP packets.
-     */
+/*
+ * ipconfigTCP_TIME_TO_LIVE
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_TIME_TO_LIVE
+ *
+ * Defines the Time To Live TTL) values used in outgoing TCP packets.
+ */
     #ifndef ipconfigTCP_TIME_TO_LIVE
         #define ipconfigTCP_TIME_TO_LIVE    128U
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigUSE_TCP_WIN
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_TCP_WIN
-     *
-     * Sliding Windows allows messages to arrive out-of-order.
-     *
-     * Set ipconfigUSE_TCP_WIN to 1 to include sliding window behavior in TCP
-     * sockets. Set ipconfigUSE_TCP_WIN to 0 to exclude sliding window
-     * behavior in TCP sockets.
-     *
-     * Sliding windows can increase throughput while minimizing network traffic
-     * at the expense of consuming more RAM.
-     *
-     * The size of the sliding window can be changed from its default using the
-     * FREERTOS_SO_WIN_PROPERTIES parameter to FreeRTOS_setsockopt(). The
-     * sliding window size is specified in units of MSS (so if the MSS is set
-     * to 200 bytes then a sliding window size of 2 is equal to 400 bytes) and
-     * must always be smaller than or equal to the size of the internal buffers
-     * in both directions.
-     *
-     * If a listening socket creates a new socket in response to an incoming
-     * connect request then the new socket will inherit the sliding window
-     * sizes of the listening socket.
-     */
+/*
+ * ipconfigUSE_TCP_WIN
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_TCP_WIN
+ *
+ * Sliding Windows allows messages to arrive out-of-order.
+ *
+ * Set ipconfigUSE_TCP_WIN to 1 to include sliding window behavior in TCP
+ * sockets. Set ipconfigUSE_TCP_WIN to 0 to exclude sliding window
+ * behavior in TCP sockets.
+ *
+ * Sliding windows can increase throughput while minimizing network traffic
+ * at the expense of consuming more RAM.
+ *
+ * The size of the sliding window can be changed from its default using the
+ * FREERTOS_SO_WIN_PROPERTIES parameter to FreeRTOS_setsockopt(). The
+ * sliding window size is specified in units of MSS (so if the MSS is set
+ * to 200 bytes then a sliding window size of 2 is equal to 400 bytes) and
+ * must always be smaller than or equal to the size of the internal buffers
+ * in both directions.
+ *
+ * If a listening socket creates a new socket in response to an incoming
+ * connect request then the new socket will inherit the sliding window
+ * sizes of the listening socket.
+ */
     #ifndef ipconfigUSE_TCP_WIN
         #define ipconfigUSE_TCP_WIN    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN != 0 )
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigTCP_SRTT_MINIMUM_VALUE_MS
-         *
-         * when measuring the Smoothed Round Trip Time (SRTT),
-         * the result will be rounded up to a minimum value.
-         * The default has always been 50, but a value of 1000
-         * is recommended ( see RFC6298 ) because hosts often delay the
-         * sending of ACK packets with 200 ms.
-         */
+/*
+ * ipconfigTCP_SRTT_MINIMUM_VALUE_MS
+ *
+ * when measuring the Smoothed Round Trip Time (SRTT),
+ * the result will be rounded up to a minimum value.
+ * The default has always been 50, but a value of 1000
+ * is recommended ( see RFC6298 ) because hosts often delay the
+ * sending of ACK packets with 200 ms.
+ */
         #ifndef ipconfigTCP_SRTT_MINIMUM_VALUE_MS
             #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigTCP_WIN_SEG_COUNT
-         *
-         * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_WIN_SEG_COUNT
-         *
-         * If ipconfigUSE_TCP_WIN is set to 1 then each socket will use a
-         * sliding window. Sliding windows allow messages to arrive out-of
-         * order, and FreeRTOS-Plus-TCP uses window descriptors to track
-         * information about the packets in a window.
-         *
-         * A pool of descriptors is allocated when the first TCP connection is
-         * made. The descriptors are shared between all the sockets.
-         * ipconfigTCP_WIN_SEG_COUNT sets the number of descriptors in the
-         * pool, and each descriptor is approximately 64 bytes.
-         *
-         * As an example: If a system will have at most 16 simultaneous TCP
-         * connections, and each connection will have an Rx and Tx window of at
-         * most 8 segments, then the worst case maximum number of descriptors
-         * that will be required is 256 ( 16 * 2 * 8 ). However, the practical
-         * worst case is normally much lower than this as most packets will
-         * arrive in order.
-         */
+/*
+ * ipconfigTCP_WIN_SEG_COUNT
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_WIN_SEG_COUNT
+ *
+ * If ipconfigUSE_TCP_WIN is set to 1 then each socket will use a
+ * sliding window. Sliding windows allow messages to arrive out-of
+ * order, and FreeRTOS-Plus-TCP uses window descriptors to track
+ * information about the packets in a window.
+ *
+ * A pool of descriptors is allocated when the first TCP connection is
+ * made. The descriptors are shared between all the sockets.
+ * ipconfigTCP_WIN_SEG_COUNT sets the number of descriptors in the
+ * pool, and each descriptor is approximately 64 bytes.
+ *
+ * As an example: If a system will have at most 16 simultaneous TCP
+ * connections, and each connection will have an Rx and Tx window of at
+ * most 8 segments, then the worst case maximum number of descriptors
+ * that will be required is 256 ( 16 * 2 * 8 ). However, the practical
+ * worst case is normally much lower than this as most packets will
+ * arrive in order.
+ */
         #ifndef ipconfigTCP_WIN_SEG_COUNT
             #define ipconfigTCP_WIN_SEG_COUNT    256U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
     #endif /* if ( ipconfigUSE_TCP_WIN != 0 ) */
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * pvPortMallocLarge
-     *
-     * Malloc functions.  Within most applications of FreeRTOS, the couple
-     * pvPortMalloc()/vPortFree() will be used.
-     * If there are different types of RAM, the user may decide to use a different
-     * memory allocator for different purposes:
-     * MallocLarge is used to allocate large TCP buffers (for Rx/Tx)
-     */
+/*
+ * pvPortMallocLarge
+ *
+ * Malloc functions.  Within most applications of FreeRTOS, the couple
+ * pvPortMalloc()/vPortFree() will be used.
+ * If there are different types of RAM, the user may decide to use a different
+ * memory allocator for different purposes:
+ * MallocLarge is used to allocate large TCP buffers (for Rx/Tx)
+ */
     #ifndef pvPortMallocLarge
         #define pvPortMallocLarge( x )    pvPortMalloc( x )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * vPortFreeLarge
-     *
-     * Malloc functions.  Within most applications of FreeRTOS, the couple
-     * pvPortMalloc()/vPortFree() will be used.
-     * If there are different types of RAM, the user may decide to use a different
-     * memory allocator for different purposes:
-     * MallocLarge is used to allocate large TCP buffers (for Rx/Tx)
-     */
+/*
+ * vPortFreeLarge
+ *
+ * Malloc functions.  Within most applications of FreeRTOS, the couple
+ * pvPortMalloc()/vPortFree() will be used.
+ * If there are different types of RAM, the user may decide to use a different
+ * memory allocator for different purposes:
+ * MallocLarge is used to allocate large TCP buffers (for Rx/Tx)
+ */
     #ifndef vPortFreeLarge
         #define vPortFreeLarge( ptr )    vPortFree( ptr )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* ( ipconfigUSE_TCP != 0 ) */
 
@@ -1249,27 +1249,27 @@
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigSELECT_USES_NOTIFY
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigSELECT_USES_NOTIFY
-     *
-     * This option is only used in case the socket-select functions are
-     * activated (when ipconfigSUPPORT_SELECT_FUNCTION is non-zero). When
-     * calling select() for a given socket from the same task, this macro is
-     * not required. Only when there are multiple tasks using select on the
-     * same sockets, this option may prevent a dead-lock. The problem is that
-     * the event bit eSELECT_CALL_IP is waited for and cleared by multiple
-     * tasks. The macro ipconfigSELECT_USES_NOTIFY defaults to zero, meaning
-     * not active.
-     */
+/*
+ * ipconfigSELECT_USES_NOTIFY
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigSELECT_USES_NOTIFY
+ *
+ * This option is only used in case the socket-select functions are
+ * activated (when ipconfigSUPPORT_SELECT_FUNCTION is non-zero). When
+ * calling select() for a given socket from the same task, this macro is
+ * not required. Only when there are multiple tasks using select on the
+ * same sockets, this option may prevent a dead-lock. The problem is that
+ * the event bit eSELECT_CALL_IP is waited for and cleared by multiple
+ * tasks. The macro ipconfigSELECT_USES_NOTIFY defaults to zero, meaning
+ * not active.
+ */
     #ifndef ipconfigSELECT_USES_NOTIFY
         #define ipconfigSELECT_USES_NOTIFY    0
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION != 0 ) */
 
@@ -1452,27 +1452,27 @@
 
 #if ( ipconfigUSE_CALLBACKS != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigIS_VALID_PROG_ADDRESS
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigIS_VALID_PROG_ADDRESS
-     *
-     * In cases where installable application hooks are used, this macro is
-     * called to check if a given address refers to valid (instruction) memory.
-     * This is a small example taken from FreeRTOS_TCP_IP.c:
-     *
-     * if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleSent ) )
-     * {
-     *     pxSocket->u.xTCP.pxHandleSent( pxSocket, ulCount );
-     * }
-     */
+/*
+ * ipconfigIS_VALID_PROG_ADDRESS
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigIS_VALID_PROG_ADDRESS
+ *
+ * In cases where installable application hooks are used, this macro is
+ * called to check if a given address refers to valid (instruction) memory.
+ * This is a small example taken from FreeRTOS_TCP_IP.c:
+ *
+ * if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleSent ) )
+ * {
+ *     pxSocket->u.xTCP.pxHandleSent( pxSocket, ulCount );
+ * }
+ */
     #ifndef ipconfigIS_VALID_PROG_ADDRESS
         #define ipconfigIS_VALID_PROG_ADDRESS( pxAddress )    ( ( pxAddress ) != NULL )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigUSE_CALLBACKS != 0 ) */
 
@@ -1559,30 +1559,30 @@
 
 #if ( ipconfigUSE_DHCP != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigDHCP_REGISTER_HOSTNAME
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDHCP_REGISTER_HOSTNAME
-     *
-     * Often DHCP servers can show the names of devices that have leased IP
-     * addresses. When ipconfigDHCP_REGISTER_HOSTNAME is set to 1, the device
-     * running FreeRTOS-Plus-TCP can identify itself to a DHCP server with a
-     * human readable name by returning the name from an application provided
-     * hook (or 'callback') function called pcApplicationHostnameHook().
-     *
-     * When ipconfigDHCP_REGISTER_HOSTNAME is set to 1 the application must
-     * provide a hook (callback) function with the following name and
-     * prototype:
-     *
-     * const char *pcApplicationHostnameHook( void );
-     */
+/*
+ * ipconfigDHCP_REGISTER_HOSTNAME
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDHCP_REGISTER_HOSTNAME
+ *
+ * Often DHCP servers can show the names of devices that have leased IP
+ * addresses. When ipconfigDHCP_REGISTER_HOSTNAME is set to 1, the device
+ * running FreeRTOS-Plus-TCP can identify itself to a DHCP server with a
+ * human readable name by returning the name from an application provided
+ * hook (or 'callback') function called pcApplicationHostnameHook().
+ *
+ * When ipconfigDHCP_REGISTER_HOSTNAME is set to 1 the application must
+ * provide a hook (callback) function with the following name and
+ * prototype:
+ *
+ * const char *pcApplicationHostnameHook( void );
+ */
     #ifndef ipconfigDHCP_REGISTER_HOSTNAME
         #define ipconfigDHCP_REGISTER_HOSTNAME    0
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigUSE_DHCP != 0 ) */
 
@@ -1590,188 +1590,188 @@
 
 #if ( ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigUSE_DHCP_HOOK
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
-     *
-     * A normal DHCP transaction involves the following sequence:
-     *
-     *     1. The client sends a DHCP discovery packet to request an IP address
-     *     from the DHCP server.
-     *
-     *     2. The DHCP server responds with an offer packet that contains the
-     *     offered IP address.
-     *
-     *     3. The client sends a DHCP request packet in order to claim the
-     *     offered IP address
-     *
-     *     4. The DHCP server sends an acknowledgement packet to grant the
-     *     client use of the offered IP address, and to send additional
-     *     configuration information to the client. Additional configuration
-     *     information typically includes the IP address of the gateway, the IP
-     *     address of the DNS server, and the IP address lease length.
-     *
-     * If ipconfigUSE_DHCP_HOOK is set to 1 then FreeRTOS-Plus-TCP will call an
-     * application provided hook (or 'callback') function called
-     * xApplicationDHCPUserHook() both before the initial discovery packet is
-     * sent, and after a DHCP offer has been received - the hook function can
-     * be used to terminate the DHCP process at either one of these two phases
-     * in the DHCP sequence. For example, the application writer can
-     * effectively disable DHCP, even when ipconfigUSE_DHCP is set to 1, by
-     * terminating the DHCP process before the initial discovery packet is
-     * sent. As another example, the application writer can check a static IP
-     * address is compatible with the network to which the device is connected
-     * by receiving an IP address offer from a DHCP server, but then
-     * terminating the DHCP process without sending a request packet to claim
-     * the offered IP address.
-     *
-     * If ipconfigUSE_DHCP_HOOK is set to 1, then the application writer must
-     * provide a hook (callback) function with the following name and
-     * prototype:
-     *
-     * eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-     *                                             uint32_t ulIPAddress );
-     *
-     * Where eDHCPCallbackQuestion_t and eDHCPCallbackAnswer_t are defined as
-     * follows
-     *
-     * typedef enum eDHCP_QUESTIONS
-     * {
-     *     /* About to send discover packet.
-     *     eDHCPPhasePreDiscover,
-     *     /* About to send a request packet.
-     *     eDHCPPhasePreRequest,
-     * } eDHCPCallbackQuestion_t;
-     *
-     * typedef enum eDHCP_ANSWERS
-     * {
-     *     /* Continue the DHCP process as normal.
-     *     eDHCPContinue,
-     *     /* Stop the DHCP process, and use the static defaults.
-     *     eDHCPUseDefaults,
-     *     /* Stop the DHCP process, and continue with current settings.
-     *     eDHCPStopNoChanges,
-     * } eDHCPCallbackAnswer_t;
-     *
-     * For example purposes only, below is a reference xApplicationDHCPHook
-     * implementation that allows the DHCP sequence to proceed up to the point
-     * where an IP address is offered, at which point the offered IP address is
-     * compared to the statically configured IP address. If the offered and
-     * statically configured IP addresses are on the same subnet, then the
-     * statically configured IP address is used. If the offered and statically
-     * configured IP addresses are not on the same subnet, then the IP address
-     * offered by the DHCP server is used.
-     *
-     * eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-     *                                      uint32_t ulIPAddress )
-     * {
-     *     eDHCPCallbackAnswer_t eReturn;
-     *     uint32_t ulStaticIPAddress, ulStaticNetMask;
-     *
-     *     /* This hook is called in a couple of places during the DHCP process, as
-     *     identified by the eDHCPPhase parameter. *
-     *     switch( eDHCPPhase )
-     *     {
-     *         case eDHCPPhasePreDiscover  :
-     *             /* A DHCP discovery is about to be sent out.  eDHCPContinue is
-     *             returned to allow the discovery to go out.
-     *
-     *             If eDHCPUseDefaults had been returned instead then the DHCP process
-     *             would be stopped and the statically configured IP address would be
-     *             used.
-     *
-     *             If eDHCPStopNoChanges had been returned instead then the DHCP
-     *             process would be stopped and whatever the current network
-     *             configuration was would continue to be used. *
-     *             eReturn = eDHCPContinue;
-     *         break;
-     *
-     *         case eDHCPPhasePreRequest  :
-     *             /* An offer has been received from the DHCP server, and the
-     *             offered IP address is passed in the ulIPAddress parameter.
-     *             Convert the offered and statically allocated IP addresses to
-     *             32-bit values. *
-     *             ulStaticIPAddress = FreeRTOS_inet_addr_quick( configIP_ADDR0,
-     *                                                           configIP_ADDR1,
-     *                                                           configIP_ADDR2,
-     *                                                           configIP_ADDR3 );
-     *
-     *             ulStaticNetMask = FreeRTOS_inet_addr_quick( configNET_MASK0,
-     *                                                         configNET_MASK1,
-     *                                                         configNET_MASK2,
-     *                                                         configNET_MASK3 );
-     *
-     *             /* Mask the IP addresses to leave just the sub-domain
-     *             octets. *
-     *             ulStaticIPAddress &= ulStaticNetMask;
-     *             ulIPAddress &= ulStaticNetMask;
-     *
-     *             /* Are the sub-domains the same? *
-     *             if( ulStaticIPAddress == ulIPAddress )
-     *             {
-     *                 /* The sub-domains match, so the default IP address can be
-     *                 used.  The DHCP process is stopped at this point. *
-     *                 eReturn = eDHCPUseDefaults;
-     *             }
-     *             else
-     *             {
-     *                 /* The sub-domains don't match, so continue with the
-     *                 DHCP process so the offered IP address is used. *
-     *                 eReturn = eDHCPContinue;
-     *             }
-     *
-     *             break;
-     *
-     *         default :
-     *             /* Cannot be reached, but set eReturn to prevent compiler
-     *             warnings where compilers are disposed to generating one. *
-     *             eReturn = eDHCPContinue;
-     *             break;
-     *     }
-     *
-     *     return eReturn;
-     * }
-     *
-     * When the eDHCPPhase parameter is set to eDHCPPhasePreDiscover, the
-     * ulIPAddress parameter is set to the IP address already in use. When the
-     * eDHCPPhase parameter is set to eDHCPPhasePreRequest, the ulIPAddress
-     * parameter is set to the IP address offered by the DHCP server.
-     */
+/*
+ * ipconfigUSE_DHCP_HOOK
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
+ *
+ * A normal DHCP transaction involves the following sequence:
+ *
+ *     1. The client sends a DHCP discovery packet to request an IP address
+ *     from the DHCP server.
+ *
+ *     2. The DHCP server responds with an offer packet that contains the
+ *     offered IP address.
+ *
+ *     3. The client sends a DHCP request packet in order to claim the
+ *     offered IP address
+ *
+ *     4. The DHCP server sends an acknowledgement packet to grant the
+ *     client use of the offered IP address, and to send additional
+ *     configuration information to the client. Additional configuration
+ *     information typically includes the IP address of the gateway, the IP
+ *     address of the DNS server, and the IP address lease length.
+ *
+ * If ipconfigUSE_DHCP_HOOK is set to 1 then FreeRTOS-Plus-TCP will call an
+ * application provided hook (or 'callback') function called
+ * xApplicationDHCPUserHook() both before the initial discovery packet is
+ * sent, and after a DHCP offer has been received - the hook function can
+ * be used to terminate the DHCP process at either one of these two phases
+ * in the DHCP sequence. For example, the application writer can
+ * effectively disable DHCP, even when ipconfigUSE_DHCP is set to 1, by
+ * terminating the DHCP process before the initial discovery packet is
+ * sent. As another example, the application writer can check a static IP
+ * address is compatible with the network to which the device is connected
+ * by receiving an IP address offer from a DHCP server, but then
+ * terminating the DHCP process without sending a request packet to claim
+ * the offered IP address.
+ *
+ * If ipconfigUSE_DHCP_HOOK is set to 1, then the application writer must
+ * provide a hook (callback) function with the following name and
+ * prototype:
+ *
+ * eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+ *                                             uint32_t ulIPAddress );
+ *
+ * Where eDHCPCallbackQuestion_t and eDHCPCallbackAnswer_t are defined as
+ * follows
+ *
+ * typedef enum eDHCP_QUESTIONS
+ * {
+ *     /* About to send discover packet.
+ *     eDHCPPhasePreDiscover,
+ *     /* About to send a request packet.
+ *     eDHCPPhasePreRequest,
+ * } eDHCPCallbackQuestion_t;
+ *
+ * typedef enum eDHCP_ANSWERS
+ * {
+ *     /* Continue the DHCP process as normal.
+ *     eDHCPContinue,
+ *     /* Stop the DHCP process, and use the static defaults.
+ *     eDHCPUseDefaults,
+ *     /* Stop the DHCP process, and continue with current settings.
+ *     eDHCPStopNoChanges,
+ * } eDHCPCallbackAnswer_t;
+ *
+ * For example purposes only, below is a reference xApplicationDHCPHook
+ * implementation that allows the DHCP sequence to proceed up to the point
+ * where an IP address is offered, at which point the offered IP address is
+ * compared to the statically configured IP address. If the offered and
+ * statically configured IP addresses are on the same subnet, then the
+ * statically configured IP address is used. If the offered and statically
+ * configured IP addresses are not on the same subnet, then the IP address
+ * offered by the DHCP server is used.
+ *
+ * eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+ *                                      uint32_t ulIPAddress )
+ * {
+ *     eDHCPCallbackAnswer_t eReturn;
+ *     uint32_t ulStaticIPAddress, ulStaticNetMask;
+ *
+ *     /* This hook is called in a couple of places during the DHCP process, as
+ *     identified by the eDHCPPhase parameter. *
+ *     switch( eDHCPPhase )
+ *     {
+ *         case eDHCPPhasePreDiscover  :
+ *             /* A DHCP discovery is about to be sent out.  eDHCPContinue is
+ *             returned to allow the discovery to go out.
+ *
+ *             If eDHCPUseDefaults had been returned instead then the DHCP process
+ *             would be stopped and the statically configured IP address would be
+ *             used.
+ *
+ *             If eDHCPStopNoChanges had been returned instead then the DHCP
+ *             process would be stopped and whatever the current network
+ *             configuration was would continue to be used. *
+ *             eReturn = eDHCPContinue;
+ *         break;
+ *
+ *         case eDHCPPhasePreRequest  :
+ *             /* An offer has been received from the DHCP server, and the
+ *             offered IP address is passed in the ulIPAddress parameter.
+ *             Convert the offered and statically allocated IP addresses to
+ *             32-bit values. *
+ *             ulStaticIPAddress = FreeRTOS_inet_addr_quick( configIP_ADDR0,
+ *                                                           configIP_ADDR1,
+ *                                                           configIP_ADDR2,
+ *                                                           configIP_ADDR3 );
+ *
+ *             ulStaticNetMask = FreeRTOS_inet_addr_quick( configNET_MASK0,
+ *                                                         configNET_MASK1,
+ *                                                         configNET_MASK2,
+ *                                                         configNET_MASK3 );
+ *
+ *             /* Mask the IP addresses to leave just the sub-domain
+ *             octets. *
+ *             ulStaticIPAddress &= ulStaticNetMask;
+ *             ulIPAddress &= ulStaticNetMask;
+ *
+ *             /* Are the sub-domains the same? *
+ *             if( ulStaticIPAddress == ulIPAddress )
+ *             {
+ *                 /* The sub-domains match, so the default IP address can be
+ *                 used.  The DHCP process is stopped at this point. *
+ *                 eReturn = eDHCPUseDefaults;
+ *             }
+ *             else
+ *             {
+ *                 /* The sub-domains don't match, so continue with the
+ *                 DHCP process so the offered IP address is used. *
+ *                 eReturn = eDHCPContinue;
+ *             }
+ *
+ *             break;
+ *
+ *         default :
+ *             /* Cannot be reached, but set eReturn to prevent compiler
+ *             warnings where compilers are disposed to generating one. *
+ *             eReturn = eDHCPContinue;
+ *             break;
+ *     }
+ *
+ *     return eReturn;
+ * }
+ *
+ * When the eDHCPPhase parameter is set to eDHCPPhasePreDiscover, the
+ * ulIPAddress parameter is set to the IP address already in use. When the
+ * eDHCPPhase parameter is set to eDHCPPhasePreRequest, the ulIPAddress
+ * parameter is set to the IP address offered by the DHCP server.
+ */
     #ifndef ipconfigUSE_DHCP_HOOK
         #define ipconfigUSE_DHCP_HOOK    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigDHCP_FALL_BACK_AUTO_IP
-     *
-     * Only applicable when DHCP is in use. If no DHCP server responds, use
-     * "Auto-IP"; the device will allocate a random LinkLayer IP address, and
-     * test if it is still available.
-     */
+/*
+ * ipconfigDHCP_FALL_BACK_AUTO_IP
+ *
+ * Only applicable when DHCP is in use. If no DHCP server responds, use
+ * "Auto-IP"; the device will allocate a random LinkLayer IP address, and
+ * test if it is still available.
+ */
     #ifndef ipconfigDHCP_FALL_BACK_AUTO_IP
         #define ipconfigDHCP_FALL_BACK_AUTO_IP    0
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigMAXIMUM_DISCOVER_TX_PERIOD
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigMAXIMUM_DISCOVER_TX_PERIOD
-     *
-     * When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
-     * increasing time intervals until either a reply is received from a DHCP
-     * server and accepted, or the interval between transmissions reaches
-     * ipconfigMAXIMUM_DISCOVER_TX_PERIOD. The TCP/IP stack will revert to
-     * using the static IP address passed as a parameter to FreeRTOS_IPInit()
-     * if the re-transmission time interval reaches
-     * ipconfigMAXIMUM_DISCOVER_TX_PERIOD without a DHCP reply being received.
-     */
+/*
+ * ipconfigMAXIMUM_DISCOVER_TX_PERIOD
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigMAXIMUM_DISCOVER_TX_PERIOD
+ *
+ * When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
+ * increasing time intervals until either a reply is received from a DHCP
+ * server and accepted, or the interval between transmissions reaches
+ * ipconfigMAXIMUM_DISCOVER_TX_PERIOD. The TCP/IP stack will revert to
+ * using the static IP address passed as a parameter to FreeRTOS_IPInit()
+ * if the re-transmission time interval reaches
+ * ipconfigMAXIMUM_DISCOVER_TX_PERIOD without a DHCP reply being received.
+ */
     #ifndef ipconfigMAXIMUM_DISCOVER_TX_PERIOD
         #ifdef _WINDOWS_
             #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    ( pdMS_TO_TICKS( 999U ) )
@@ -1780,7 +1780,7 @@
         #endif
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) ) */
 
@@ -1820,160 +1820,160 @@
 
 #if ( ipconfigUSE_DNS != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY
-     *
-     * When looking up a URL, multiple answers (IP-addresses) may be received.
-     * This macro determines how many answers will be stored per URL.
-     */
+/*
+ * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY
+ *
+ * When looking up a URL, multiple answers (IP-addresses) may be received.
+ * This macro determines how many answers will be stored per URL.
+ */
     #ifndef ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY
         #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY    1U
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DNS_CACHE
-     *
-     * ipconfigUSE_DNS_CACHE
-     *
-     * If ipconfigUSE_DNS_CACHE is set to 1, then the DNS cache will be
-     * enabled. If ipconfigUSE_DNS_CACHE is set to 0, then the DNS cache will
-     * be disabled.
-     */
+/*
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DNS_CACHE
+ *
+ * ipconfigUSE_DNS_CACHE
+ *
+ * If ipconfigUSE_DNS_CACHE is set to 1, then the DNS cache will be
+ * enabled. If ipconfigUSE_DNS_CACHE is set to 0, then the DNS cache will
+ * be disabled.
+ */
     #ifndef ipconfigUSE_DNS_CACHE
         #define ipconfigUSE_DNS_CACHE    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
     #if ( ipconfigUSE_DNS_CACHE != 0 )
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * ipconfigDNS_CACHE_ENTRIES
-         *
-         * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_CACHE_ENTRIES
-         *
-         * If ipconfigUSE_DNS_CACHE is set to 1 then ipconfigDNS_CACHE_ENTRIES
-         * defines the number of entries in the DNS cache.
-         */
+/*
+ * ipconfigDNS_CACHE_ENTRIES
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_CACHE_ENTRIES
+ *
+ * If ipconfigUSE_DNS_CACHE is set to 1 then ipconfigDNS_CACHE_ENTRIES
+ * defines the number of entries in the DNS cache.
+ */
         #ifndef ipconfigDNS_CACHE_ENTRIES
             #define ipconfigDNS_CACHE_ENTRIES    1U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
-        /*
-         * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_CACHE_NAME_LENGTH
-         *
-         * ipconfigDNS_CACHE_NAME_LENGTH
-         *
-         * The maximum number of characters a DNS host name can take, including
-         * the NULL terminator.
-         */
+/*
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_CACHE_NAME_LENGTH
+ *
+ * ipconfigDNS_CACHE_NAME_LENGTH
+ *
+ * The maximum number of characters a DNS host name can take, including
+ * the NULL terminator.
+ */
         #ifndef ipconfigDNS_CACHE_NAME_LENGTH
             #define ipconfigDNS_CACHE_NAME_LENGTH    254U
         #endif
 
-        /*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
     #endif /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_REQUEST_ATTEMPTS
-     *
-     * ipconfigDNS_REQUEST_ATTEMPTS
-     *
-     *  When looking up a host, the library has to send a DNS request and wait
-     *  for a result. This process will be repeated at most
-     *  ipconfigDNS_REQUEST_ATTEMPTS times. The macro
-     *  ipconfigDNS_SEND_BLOCK_TIME_TICKS determines how long the function
-     *  FreeRTOS_sendto() may block.
-     *
-     *  When sending, by default, the function will block for at most 500
-     *  milliseconds. When waiting for a reply, FreeRTOS_recvfrom() will wait
-     *  for at most 5000 milliseconds.
-     */
+/*
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_REQUEST_ATTEMPTS
+ *
+ * ipconfigDNS_REQUEST_ATTEMPTS
+ *
+ *  When looking up a host, the library has to send a DNS request and wait
+ *  for a result. This process will be repeated at most
+ *  ipconfigDNS_REQUEST_ATTEMPTS times. The macro
+ *  ipconfigDNS_SEND_BLOCK_TIME_TICKS determines how long the function
+ *  FreeRTOS_sendto() may block.
+ *
+ *  When sending, by default, the function will block for at most 500
+ *  milliseconds. When waiting for a reply, FreeRTOS_recvfrom() will wait
+ *  for at most 5000 milliseconds.
+ */
     #ifndef ipconfigDNS_REQUEST_ATTEMPTS
         #define ipconfigDNS_REQUEST_ATTEMPTS    5U
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS
-     *
-     * When waiting for a reply, FreeRTOS_recvfrom() will wait for at most 5000
-     * milliseconds.
-     */
+/*
+ * ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS
+ *
+ * When waiting for a reply, FreeRTOS_recvfrom() will wait for at most 5000
+ * milliseconds.
+ */
     #ifndef ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS
         #define ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 5000U )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigDNS_SEND_BLOCK_TIME_TICKS
-     *
-     * The macro ipconfigDNS_SEND_BLOCK_TIME_TICKS determines how long the
-     * function FreeRTOS_sendto() may block. When sending, by default, the
-     * function will block for at most 500 milliseconds.
-     */
+/*
+ * ipconfigDNS_SEND_BLOCK_TIME_TICKS
+ *
+ * The macro ipconfigDNS_SEND_BLOCK_TIME_TICKS determines how long the
+ * function FreeRTOS_sendto() may block. When sending, by default, the
+ * function will block for at most 500 milliseconds.
+ */
     #ifndef ipconfigDNS_SEND_BLOCK_TIME_TICKS
         #define ipconfigDNS_SEND_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 500U )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigDNS_USE_CALLBACKS
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_USE_CALLBACKS
-     *
-     * When defined, the function FreeRTOS_gethostbyname_a() becomes available.
-     * This function will start a DNS-lookup and set an application 'hook'.
-     * This user function (or 'hook') will be called when either the URL has
-     * been found, or when a time-out has been reached. Note that the function
-     * FreeRTOS_gethostbyname_a() will not make use of the macros
-     * ipconfigDNS_SEND_BLOCK_TIME_TICKS and
-     * ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS.
-     */
+/*
+ * ipconfigDNS_USE_CALLBACKS
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigDNS_USE_CALLBACKS
+ *
+ * When defined, the function FreeRTOS_gethostbyname_a() becomes available.
+ * This function will start a DNS-lookup and set an application 'hook'.
+ * This user function (or 'hook') will be called when either the URL has
+ * been found, or when a time-out has been reached. Note that the function
+ * FreeRTOS_gethostbyname_a() will not make use of the macros
+ * ipconfigDNS_SEND_BLOCK_TIME_TICKS and
+ * ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS.
+ */
     #ifndef ipconfigDNS_USE_CALLBACKS
         #define ipconfigDNS_USE_CALLBACKS    0
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigINCLUDE_FULL_INET_ADDR
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigINCLUDE_FULL_INET_ADDR
-     *
-     * Implementing FreeRTOS_inet_addr() necessitates the use of string
-     * handling routines, which are relatively large. To save code space, the
-     * full FreeRTOS_inet_addr() implementation is made optional, and a smaller
-     * and faster alternative called FreeRTOS_inet_addr_quick() is provided.
-     * FreeRTOS_inet_addr() takes an IP in decimal dot format (for example,
-     * "192.168.0.1") as its parameter. FreeRTOS_inet_addr_quick() takes an IP
-     * address as four separate numerical octets (for example, 192, 168, 0, 1)
-     * as its parameters. If ipconfigINCLUDE_FULL_INET_ADDR is set to 1, then
-     * both FreeRTOS_inet_addr() and FreeRTOS_indet_addr_quick() are available.
-     * If ipconfigINCLUDE_FULL_INET_ADDR is not set to 1, then only
-     * FreeRTOS_indet_addr_quick() is available.
-     */
+/*
+ * ipconfigINCLUDE_FULL_INET_ADDR
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigINCLUDE_FULL_INET_ADDR
+ *
+ * Implementing FreeRTOS_inet_addr() necessitates the use of string
+ * handling routines, which are relatively large. To save code space, the
+ * full FreeRTOS_inet_addr() implementation is made optional, and a smaller
+ * and faster alternative called FreeRTOS_inet_addr_quick() is provided.
+ * FreeRTOS_inet_addr() takes an IP in decimal dot format (for example,
+ * "192.168.0.1") as its parameter. FreeRTOS_inet_addr_quick() takes an IP
+ * address as four separate numerical octets (for example, 192, 168, 0, 1)
+ * as its parameters. If ipconfigINCLUDE_FULL_INET_ADDR is set to 1, then
+ * both FreeRTOS_inet_addr() and FreeRTOS_indet_addr_quick() are available.
+ * If ipconfigINCLUDE_FULL_INET_ADDR is not set to 1, then only
+ * FreeRTOS_indet_addr_quick() is available.
+ */
     #ifndef ipconfigINCLUDE_FULL_INET_ADDR
         #define ipconfigINCLUDE_FULL_INET_ADDR    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
 
@@ -2093,17 +2093,17 @@
 
 #if ( defined( ipconfigDHCP_FALL_BACK_AUTO_IP ) && ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 ) )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigARP_USE_CLASH_DETECTION
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigARP_USE_CLASH_DETECTION
-     *
-     * When a link-layer address is assigned, the driver will test if it is
-     * already taken by a different device by sending ARP requests. Therefore,
-     * ipconfigARP_USE_CLASH_DETECTION must be defined as non-zero.
-     */
+/*
+ * ipconfigARP_USE_CLASH_DETECTION
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigARP_USE_CLASH_DETECTION
+ *
+ * When a link-layer address is assigned, the driver will test if it is
+ * already taken by a different device by sending ARP requests. Therefore,
+ * ipconfigARP_USE_CLASH_DETECTION must be defined as non-zero.
+ */
     #ifndef ipconfigARP_USE_CLASH_DETECTION
         #define ipconfigARP_USE_CLASH_DETECTION    1
     #endif
@@ -2112,17 +2112,17 @@
         #error ipconfigARP_USE_CLASH_DETECTION should be defined as 1 when ipconfigDHCP_FALL_BACK_AUTO_IP is used.
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #else /* if ( defined( ipconfigDHCP_FALL_BACK_AUTO_IP ) && ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 ) ) */
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
     #ifndef ipconfigARP_USE_CLASH_DETECTION
         #define ipconfigARP_USE_CLASH_DETECTION    0
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( defined( ipconfigDHCP_FALL_BACK_AUTO_IP ) && ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 ) ) */
 
@@ -2237,22 +2237,22 @@
 
 #if ( ipconfigREPLY_TO_INCOMING_PINGS != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigICMP_TIME_TO_LIVE
-     *
-     * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigICMP_TIME_TO_LIVE
-     *
-     * When replying to an ICMP packet, the TTL field will be set to the value
-     * of this macro. The default value is 64 (as recommended by RFC 1700).
-     * The minimum value is 1, the maximum value is 255.
-     */
+/*
+ * ipconfigICMP_TIME_TO_LIVE
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigICMP_TIME_TO_LIVE
+ *
+ * When replying to an ICMP packet, the TTL field will be set to the value
+ * of this macro. The default value is 64 (as recommended by RFC 1700).
+ * The minimum value is 1, the maximum value is 255.
+ */
     #ifndef ipconfigICMP_TIME_TO_LIVE
         #define ipconfigICMP_TIME_TO_LIVE    64U
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigREPLY_TO_INCOMING_PINGS != 0 ) */
 
@@ -2295,29 +2295,29 @@
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigHAS_ROUTING_STATISTICS
-     */
+/*
+ * ipconfigHAS_ROUTING_STATISTICS
+ */
     #ifndef ipconfigHAS_ROUTING_STATISTICS
         #define ipconfigHAS_ROUTING_STATISTICS    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #else /* if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigMULTI_INTERFACE
-     */
+/*
+ * ipconfigMULTI_INTERFACE
+ */
     #ifndef ipconfigMULTI_INTERFACE
         #define ipconfigMULTI_INTERFACE    1
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
 
@@ -2545,16 +2545,16 @@
 
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * ipconfigTCP_MEM_STATS_MAX_ALLOCATION
-     */
+/*
+ * ipconfigTCP_MEM_STATS_MAX_ALLOCATION
+ */
     #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
         #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128U
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
 #endif /* if ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
 
