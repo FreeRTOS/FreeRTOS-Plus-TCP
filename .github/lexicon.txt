@@ -233,6 +233,7 @@ ectrl
 edfe
 edhcpcontinue
 edhcpevent
+edhcpphase
 edhcpphaseprediscover
 edhcpphaseprerequest
 edhcpstate
@@ -371,6 +372,7 @@ freertosconfig
 freertosip
 freertosipconfig
 freertosipconfigdefaults
+freertosipdeprecateddefinitions
 fromisr
 fsrxdesc
 fuf
@@ -438,6 +440,7 @@ initialises
 initialising
 inlined
 inlining
+installable
 int
 interframegap
 intn
@@ -574,6 +577,7 @@ mdio
 mdix
 mdns
 mediainterface
+mem
 memcmp
 memcopy
 memcpy
@@ -612,6 +616,7 @@ nack
 nanosec
 nbns
 nc
+ndp
 neg
 neighbour
 netbios
@@ -689,6 +694,7 @@ pce
 pcendpointname
 pcf
 pcformat
+pcformatstring
 pcfrom
 pchost
 pchostname
@@ -747,6 +753,7 @@ pmecr
 pmt
 pointee
 portinline
+portmacro
 posix
 pparam
 ppkt
@@ -950,6 +957,7 @@ pvparam
 pvparameters
 pvpointer
 pvportmalloc
+pvportmalloclarge
 pvportmallocsocket
 pvptr
 pvsearchid
@@ -965,9 +973,11 @@ pxaddresstolookup
 pxallnetworkinterfaces
 pxanswer
 pxarpframe
+pxarpheader
 pxarpwaitingnetworkbuffer
 pxbindaddress
 pxbuffer
+pxbufferaddress
 pxbufferdescriptor
 pxclientsocket
 pxconfig
@@ -1029,6 +1039,7 @@ pxnewsocket
 pxnext
 pxnextbuffer
 pxnextnetworkbufferdescriptor
+pxobject
 pxontcpconnected
 pxontcpreceive
 pxontcpsent
@@ -1488,6 +1499,8 @@ ulsourceaddress
 ulsourceipaddress
 ulspace
 ulsrtt
+ulstaticipaddress
+ulstaticnetmask
 ulstatus
 ulsubnetmask
 ulsum
@@ -1733,7 +1746,11 @@ vlantagcomparison
 vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
+<<<<<<< HEAD
 vlistinsertend
+=======
+vloggingprintf
+>>>>>>> 2aba59f (Fixes for definitions updates)
 vmyconnecthandler
 vndagecache
 vndrefreshcacheentry
@@ -1745,7 +1762,12 @@ vperformaction
 vportentercritical
 vportexitcritical
 vportfree
+<<<<<<< HEAD
 vprecheckconfigs
+=======
+vportfreelarge
+vportfreesocket
+>>>>>>> 2aba59f (Fixes for definitions updates)
 vprintresourcestats
 vprocessgeneratedudppacket
 vraprocess
@@ -1954,6 +1976,7 @@ xmacaddress
 xmacbroadcast
 xmacentry
 xmaxtime
+xmemtype
 xmessage
 xmicreldevice
 xmitcount
@@ -1976,6 +1999,7 @@ xnetworkup
 xnextorder
 xntppacket
 xntptaskhandle
+xnumberofbytesdiscarded
 xontcpconnect
 xontcpreceive
 xontcpsent

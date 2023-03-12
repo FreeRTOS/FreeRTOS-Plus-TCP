@@ -33,7 +33,6 @@
 /* Application level configuration options. */
     #include "FreeRTOS_DHCP.h"
     #include "FreeRTOSIPConfig.h"
-    #include "IPTraceMacroDefaults.h"
 
 /* IPv6 option numbers. */
 /** @brief IPv6 DHCP option number - Solicit */

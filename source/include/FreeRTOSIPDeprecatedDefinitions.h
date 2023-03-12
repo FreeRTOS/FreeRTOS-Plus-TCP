@@ -50,7 +50,7 @@
 #endif
 
 #ifdef HAS_RX_CRC_OFFLOADING
-    #error Now called: ipconfigHAS_RX_CRC_OFFLOADING, Not used 
+    #error Now called: ipconfigHAS_RX_CRC_OFFLOADING, Not used
 #endif
 
 #ifdef ipconfigBUFFER_ALLOC_FIXED_SIZE

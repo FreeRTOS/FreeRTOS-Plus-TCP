@@ -37,7 +37,6 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */

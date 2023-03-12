@@ -27,7 +27,7 @@
 
 /**
  * @file IPTraceMacroDefaults.h
- * @brief This file provides default (empty) implementations for any IP trace 
+ * @brief This file provides default (empty) implementations for any IP trace
  *        macros that are not defined by the user.  See
  *        http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Trace.html
  */
@@ -40,16 +40,18 @@
 #endif
 
 /*===========================================================================*/
-/*                      Network Trace Macros                                 */
+/*---------------------------------------------------------------------------*/
+/*===========================================================================*/
+/*                           NETWORK TRACE MACROS                            */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER
- * 
- * Called when a task attempts to obtain a network buffer, but a buffer was 
- * not available even after any defined block period. 
+ *
+ * Called when a task attempts to obtain a network buffer, but a buffer was
+ * not available even after any defined block period.
  */
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER()
@@ -59,9 +61,9 @@
 
 /*
  * iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR
- * 
- * Called when an interrupt service routine attempts to obtain a network 
- * buffer, but a buffer was not available. 
+ *
+ * Called when an interrupt service routine attempts to obtain a network
+ * buffer, but a buffer was not available.
  */
 #ifndef iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR
     #define iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR()
@@ -71,9 +73,9 @@
 
 /*
  * iptraceNETWORK_BUFFER_OBTAINED
- * 
- * Called when the network buffer at address pxBufferAddress is obtained from 
- * the TCP/IP stack by an RTOS task. 
+ *
+ * Called when the network buffer at address pxBufferAddress is obtained from
+ * the TCP/IP stack by an RTOS task.
  */
 #ifndef iptraceNETWORK_BUFFER_OBTAINED
     #define iptraceNETWORK_BUFFER_OBTAINED( pxBufferAddress )
@@ -83,9 +85,9 @@
 
 /*
  * iptraceNETWORK_BUFFER_OBTAINED_FROM_ISR
- * 
- * Called when the network buffer at address pxBufferAddress is obtained from 
- * the TCP/IP stack by an interrupt service routine. 
+ *
+ * Called when the network buffer at address pxBufferAddress is obtained from
+ * the TCP/IP stack by an interrupt service routine.
  */
 #ifndef iptraceNETWORK_BUFFER_OBTAINED_FROM_ISR
     #define iptraceNETWORK_BUFFER_OBTAINED_FROM_ISR( pxBufferAddress )
@@ -95,9 +97,9 @@
 
 /*
  * iptraceNETWORK_BUFFER_RELEASED
- * 
- * Called when the network buffer at address pxBufferAddress is released back 
- * to the TCP/IP stack. 
+ *
+ * Called when the network buffer at address pxBufferAddress is released back
+ * to the TCP/IP stack.
  */
 #ifndef iptraceNETWORK_BUFFER_RELEASED
     #define iptraceNETWORK_BUFFER_RELEASED( pxBufferAddress )
@@ -107,9 +109,9 @@
 
 /*
  * iptraceNETWORK_DOWN
- * 
- * Called when the network driver indicates that the network connection has 
- * been lost (not implemented by all network drivers). 
+ *
+ * Called when the network driver indicates that the network connection has
+ * been lost (not implemented by all network drivers).
  */
 #ifndef iptraceNETWORK_DOWN
     #define iptraceNETWORK_DOWN()
@@ -119,20 +121,20 @@
 
 /*
  * iptraceNETWORK_EVENT_RECEIVED
- * 
- * Called when the TCP/IP stack processes an event previously posted to the 
+ *
+ * Called when the TCP/IP stack processes an event previously posted to the
  * network event queue. eEvent will be one of the following values:
- * 
- * eNetworkDownEvent - The network interface has been lost and/or needs 
+ *
+ * eNetworkDownEvent - The network interface has been lost and/or needs
  *                     [re]connecting.
- * eNetworkRxEvent - The network interface has queued a received Ethernet 
+ * eNetworkRxEvent - The network interface has queued a received Ethernet
  *                   frame.
  * eARPTimerEvent - The ARP timer expired.
  * eStackTxEvent - The software stack has queued a packet to transmit.
  * eDHCPEvent - Process the DHCP state machine.
- * 
- * Note the events are defined by the private eIPEvent_t type which is not 
- * generally accessible. 
+ *
+ * Note the events are defined by the private eIPEvent_t type which is not
+ * generally accessible.
  */
 #ifndef iptraceNETWORK_EVENT_RECEIVED
     #define iptraceNETWORK_EVENT_RECEIVED( eEvent )
@@ -142,9 +144,9 @@
 
 /*
  * iptraceNETWORK_INTERFACE_INPUT
- * 
- * Called when a packet of length uxDataLength and with the contents at 
- * address pucEthernetBuffer has been received. 
+ *
+ * Called when a packet of length uxDataLength and with the contents at
+ * address pucEthernetBuffer has been received.
  */
 #ifndef iptraceNETWORK_INTERFACE_INPUT
     #define iptraceNETWORK_INTERFACE_INPUT( uxDataLength, pucEthernetBuffer )
@@ -154,9 +156,9 @@
 
 /*
  * iptraceNETWORK_INTERFACE_OUTPUT
- * 
- * Called when a packet of length uxDataLength and with the contents at 
- * address pucEthernetBuffer has been sent. 
+ *
+ * Called when a packet of length uxDataLength and with the contents at
+ * address pucEthernetBuffer has been sent.
  */
 #ifndef iptraceNETWORK_INTERFACE_OUTPUT
     #define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer )
@@ -166,10 +168,10 @@
 
 /*
  * iptraceNETWORK_INTERFACE_RECEIVE
- * 
- * Called when a packet is received from the network by the network driver. 
- * Note this macro is called by the network driver rather than the TCP/IP stack 
- * and may not be called at all by drivers provided by third parties. 
+ *
+ * Called when a packet is received from the network by the network driver.
+ * Note this macro is called by the network driver rather than the TCP/IP stack
+ * and may not be called at all by drivers provided by third parties.
  */
 #ifndef iptraceNETWORK_INTERFACE_RECEIVE
     #define iptraceNETWORK_INTERFACE_RECEIVE()
@@ -179,10 +181,10 @@
 
 /*
  * iptraceNETWORK_INTERFACE_TRANSMIT
- * 
- * Called when a packet is sent to the network by the network driver. Note this 
- * macro is called by the network driver rather than the TCP/IP stack and may 
- * not be called at all by drivers provided by third parties. 
+ *
+ * Called when a packet is sent to the network by the network driver. Note this
+ * macro is called by the network driver rather than the TCP/IP stack and may
+ * not be called at all by drivers provided by third parties.
  */
 #ifndef iptraceNETWORK_INTERFACE_TRANSMIT
     #define iptraceNETWORK_INTERFACE_TRANSMIT()
@@ -192,10 +194,10 @@
 
 /*
  * iptraceSTACK_TX_EVENT_LOST
- *  
- * Called when a packet generated by the TCP/IP stack is dropped because there 
- * is insufficient space in the network event queue (see the 
- * ipconfigEVENT_QUEUE_LENGTH setting in FreeRTOSIPConfig.h). 
+ *
+ * Called when a packet generated by the TCP/IP stack is dropped because there
+ * is insufficient space in the network event queue (see the
+ * ipconfigEVENT_QUEUE_LENGTH setting in FreeRTOSIPConfig.h).
  */
 #ifndef iptraceSTACK_TX_EVENT_LOST
     #define iptraceSTACK_TX_EVENT_LOST( xEvent )
@@ -204,28 +206,28 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      Network Trace Macros                                 */
+/*                           NETWORK TRACE MACROS                            */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      Driver Trace Macros                                  */
+/*                            DRIVER TRACE MACROS                            */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * iptraceETHERNET_RX_EVENT_LOST
- * 
- * Called when a packet received by the network driver is dropped for one of 
- * the following reasons: There is insufficient space in the network event 
- * queue (see the ipconfigEVENT_QUEUE_LENGTH setting in FreeRTOSIPConfig.h), 
- * the received packet has an invalid data length, or there are no network 
- * buffers available (see the ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS setting 
- * in FreeRTOSIPConfig.h). Note this macro is called by the network driver 
- * rather than the TCP/IP stack and may not be called at all by drivers 
- * provided by third parties. 
+ *
+ * Called when a packet received by the network driver is dropped for one of
+ * the following reasons: There is insufficient space in the network event
+ * queue (see the ipconfigEVENT_QUEUE_LENGTH setting in FreeRTOSIPConfig.h),
+ * the received packet has an invalid data length, or there are no network
+ * buffers available (see the ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS setting
+ * in FreeRTOSIPConfig.h). Note this macro is called by the network driver
+ * rather than the TCP/IP stack and may not be called at all by drivers
+ * provided by third parties.
  */
 #ifndef iptraceETHERNET_RX_EVENT_LOST
     #define iptraceETHERNET_RX_EVENT_LOST()
@@ -235,12 +237,12 @@
 
 /*
  * iptraceWAITING_FOR_TX_DMA_DESCRIPTOR
- * 
- * Called when a transmission at the network driver level cannot complete 
- * immediately because the driver is having to wait for a DMA descriptor to 
- * become free. Try increasing the configNUM_TX_ETHERNET_DMA_DESCRIPTORS 
- * setting in FreeRTOSConfig.h (if it exists for the network driver being 
- * used). 
+ *
+ * Called when a transmission at the network driver level cannot complete
+ * immediately because the driver is having to wait for a DMA descriptor to
+ * become free. Try increasing the configNUM_TX_ETHERNET_DMA_DESCRIPTORS
+ * setting in FreeRTOSConfig.h (if it exists for the network driver being
+ * used).
  */
 #ifndef iptraceWAITING_FOR_TX_DMA_DESCRIPTOR
     #define iptraceWAITING_FOR_TX_DMA_DESCRIPTOR()
@@ -249,22 +251,22 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      Driver Trace Macros                                  */
+/*                            DRIVER TRACE MACROS                            */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      UDP Trace Macros                                     */
+/*                             UDP TRACE MACROS                              */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * iptraceSENDING_UDP_PACKET
- * 
- * Called when a UDP packet is sent to the IP address ulIPAddress. ulIPAddress 
- * is expressed as a 32-bit number in network byte order. 
+ *
+ * Called when a UDP packet is sent to the IP address ulIPAddress. ulIPAddress
+ * is expressed as a 32-bit number in network byte order.
  */
 #ifndef iptraceSENDING_UDP_PACKET
     #define iptraceSENDING_UDP_PACKET( ulIPAddress )
@@ -273,22 +275,22 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      UDP Trace Macros                                     */
+/*                             UDP TRACE MACROS                              */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      Socket Trace Macros                                  */
+/*                           SOCKET TRACE MACROS                             */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * iptraceBIND_FAILED
- * 
- * A call to FreeRTOS_bind() failed. usPort is the port number the socket 
- * xSocket was to be bound to. 
+ *
+ * A call to FreeRTOS_bind() failed. usPort is the port number the socket
+ * xSocket was to be bound to.
  */
 #ifndef iptraceBIND_FAILED
     #define iptraceBIND_FAILED( xSocket, usPort )
@@ -298,9 +300,9 @@
 
 /*
  * iptraceFAILED_TO_CREATE_EVENT_GROUP
- * 
- * Called when an event group could not be created, possibly due to 
- * insufficient heap space, during new socket creation. 
+ *
+ * Called when an event group could not be created, possibly due to
+ * insufficient heap space, during new socket creation.
  */
 #ifndef iptraceFAILED_TO_CREATE_EVENT_GROUP
     #define iptraceFAILED_TO_CREATE_EVENT_GROUP()
@@ -310,9 +312,9 @@
 
 /*
  * iptraceFAILED_TO_CREATE_SOCKET
- * 
- * A call to FreeRTOS_socket() failed because there was insufficient FreeRTOS 
- * heap memory available for the socket structure to be created. 
+ *
+ * A call to FreeRTOS_socket() failed because there was insufficient FreeRTOS
+ * heap memory available for the socket structure to be created.
  */
 #ifndef iptraceFAILED_TO_CREATE_SOCKET
     #define iptraceFAILED_TO_CREATE_SOCKET()
@@ -339,9 +341,9 @@
 
 /*
  * iptraceNO_BUFFER_FOR_SENDTO
- * 
- * Called when a call to FreeRTOS_sendto() tries to allocate a buffer, but a 
- * buffer was not available even after any defined block period. 
+ *
+ * Called when a call to FreeRTOS_sendto() tries to allocate a buffer, but a
+ * buffer was not available even after any defined block period.
  */
 #ifndef iptraceNO_BUFFER_FOR_SENDTO
     #define iptraceNO_BUFFER_FOR_SENDTO()
@@ -351,11 +353,11 @@
 
 /*
  * iptraceRECVFROM_DISCARDING_BYTES
- * 
- * FreeRTOS_recvfrom() is discarding xNumberOfBytesDiscarded bytes because the 
- * number of bytes received is greater than the number of bytes that will fit 
- * in the user supplied buffer (the buffer passed in as a FreeRTOS_recvfrom() 
- * function parameter). 
+ *
+ * FreeRTOS_recvfrom() is discarding xNumberOfBytesDiscarded bytes because the
+ * number of bytes received is greater than the number of bytes that will fit
+ * in the user supplied buffer (the buffer passed in as a FreeRTOS_recvfrom()
+ * function parameter).
  */
 #ifndef iptraceRECVFROM_DISCARDING_BYTES
     #define iptraceRECVFROM_DISCARDING_BYTES( xNumberOfBytesDiscarded )
@@ -365,9 +367,9 @@
 
 /*
  * iptraceRECVFROM_INTERRUPTED
- * 
- * Called when a blocking call to FreeRTOS_recvfrom() is interrupted through a 
- * call to FreeRTOS_SignalSocket(). 
+ *
+ * Called when a blocking call to FreeRTOS_recvfrom() is interrupted through a
+ * call to FreeRTOS_SignalSocket().
  */
 #ifndef iptraceRECVFROM_INTERRUPTED
     #define iptraceRECVFROM_INTERRUPTED()
@@ -377,9 +379,9 @@
 
 /*
  * iptraceRECVFROM_TIMEOUT
- * 
- * Called when FreeRTOS_recvfrom() gets no data on the given socket even after 
- * any defined block period. 
+ *
+ * Called when FreeRTOS_recvfrom() gets no data on the given socket even after
+ * any defined block period.
  */
 #ifndef iptraceRECVFROM_TIMEOUT
     #define iptraceRECVFROM_TIMEOUT()
@@ -389,9 +391,9 @@
 
 /*
  * iptraceSENDTO_DATA_TOO_LONG
- * 
- * Called when the data requested to be sent using a call to FreeRTOS_sendto() 
- * is too long and could not be sent. 
+ *
+ * Called when the data requested to be sent using a call to FreeRTOS_sendto()
+ * is too long and could not be sent.
  */
 #ifndef iptraceSENDTO_DATA_TOO_LONG
     #define iptraceSENDTO_DATA_TOO_LONG()
@@ -401,9 +403,9 @@
 
 /*
  * iptraceSENDTO_SOCKET_NOT_BOUND
- * 
- * Called when the socket used in the call to FreeRTOS_sendto() is not already 
- * bound to a port. 
+ *
+ * Called when the socket used in the call to FreeRTOS_sendto() is not already
+ * bound to a port.
  */
 #ifndef iptraceSENDTO_SOCKET_NOT_BOUND
     #define iptraceSENDTO_SOCKET_NOT_BOUND()
@@ -412,22 +414,22 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      Socket Trace Macros                                  */
+/*                           SOCKET TRACE MACROS                             */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      Arp Trace Macros                                     */
+/*                             ARP TRACE MACROS                              */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * traceARP_PACKET_RECEIVED
- * 
- * Called when an ARP packet is received, even if the local network node is not 
- * involved in the ARP transaction. 
+ *
+ * Called when an ARP packet is received, even if the local network node is not
+ * involved in the ARP transaction.
  */
 #ifndef traceARP_PACKET_RECEIVED
     #define traceARP_PACKET_RECEIVED()
@@ -437,11 +439,11 @@
 
 /*
  * iptraceARP_TABLE_ENTRY_CREATED
- * 
- * Called when a new entry in the ARP table is created to map the IP address 
- * ulIPAddress to the MAC address ucMACAddress. ulIPAddress is expressed as a 
- * 32-bit number in network byte order. ucMACAddress is a pointer to an 
- * MACAddress_t structure. 
+ *
+ * Called when a new entry in the ARP table is created to map the IP address
+ * ulIPAddress to the MAC address ucMACAddress. ulIPAddress is expressed as a
+ * 32-bit number in network byte order. ucMACAddress is a pointer to an
+ * MACAddress_t structure.
  */
 #ifndef iptraceARP_TABLE_ENTRY_CREATED
     #define iptraceARP_TABLE_ENTRY_CREATED( ulIPAddress, ucMACAddress )
@@ -451,9 +453,9 @@
 
 /*
  * iptraceARP_TABLE_ENTRY_EXPIRED
- * 
- * Called when the entry for the IP address ulIPAddress in the ARP cache is 
- * removed. ulIPAddress is expressed as a 32-bit number in network byte order. 
+ *
+ * Called when the entry for the IP address ulIPAddress in the ARP cache is
+ * removed. ulIPAddress is expressed as a 32-bit number in network byte order.
  */
 #ifndef iptraceARP_TABLE_ENTRY_EXPIRED
     #define iptraceARP_TABLE_ENTRY_EXPIRED( ulIPAddress )
@@ -463,10 +465,10 @@
 
 /*
  * iptraceARP_TABLE_ENTRY_WILL_EXPIRE
- * 
- * Called when an ARP request is about to be sent because the entry for the IP 
- * address ulIPAddress in the ARP cache has become stale. ulIPAddress is 
- * expressed as a 32-bit number in network byte order. 
+ *
+ * Called when an ARP request is about to be sent because the entry for the IP
+ * address ulIPAddress in the ARP cache has become stale. ulIPAddress is
+ * expressed as a 32-bit number in network byte order.
  */
 #ifndef iptraceARP_TABLE_ENTRY_WILL_EXPIRE
     #define iptraceARP_TABLE_ENTRY_WILL_EXPIRE( ulIPAddress )
@@ -476,8 +478,8 @@
 
 /*
  * iptraceCREATING_ARP_REQUEST
- * 
- * Called when the IP generates an ARP request packet. 
+ *
+ * Called when the IP generates an ARP request packet.
  */
 #ifndef iptraceCREATING_ARP_REQUEST
     #define iptraceCREATING_ARP_REQUEST( ulIPAddress )
@@ -485,11 +487,11 @@
 
 /*---------------------------------------------------------------------------*/
 
-/* 
+/*
  * iptraceDELAYED_ARP_BUFFER_FULL
- * 
- * A packet has come in from an unknown IPv4 address. An ARP request has been 
- * sent, but the queue is still filled with a different packet. 
+ *
+ * A packet has come in from an unknown IPv4 address. An ARP request has been
+ * sent, but the queue is still filled with a different packet.
  */
 #ifndef iptraceDELAYED_ARP_BUFFER_FULL
     #define iptraceDELAYED_ARP_BUFFER_FULL()
@@ -497,10 +499,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-/* 
+/*
  * iptrace_DELAYED_ARP_REQUEST_REPLIED
- * 
- * An ARP request has been sent, and a matching reply is received. Now the 
+ *
+ * An ARP request has been sent, and a matching reply is received. Now the
  * original packet will be processed by the IP-task.
  */
 #ifndef iptrace_DELAYED_ARP_REQUEST_REPLIED
@@ -509,10 +511,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-/* 
+/*
  * iptraceDELAYED_ARP_REQUEST_STARTED
- * 
- * A packet came in from an unknown IPv4 address. An ARP request has been sent 
+ *
+ * A packet came in from an unknown IPv4 address. An ARP request has been sent
  * and the network buffer is stored for processing later.
  */
 #ifndef iptraceDELAYED_ARP_REQUEST_STARTED
@@ -521,11 +523,11 @@
 
 /*---------------------------------------------------------------------------*/
 
-/* 
+/*
  * iptraceDELAYED_ARP_TIMER_EXPIRED
- * 
- * A packet was stored for delayed processing, but there is no ARP reply. The 
- * network buffer will be released without being processed. 
+ *
+ * A packet was stored for delayed processing, but there is no ARP reply. The
+ * network buffer will be released without being processed.
  */
 #ifndef iptraceDELAYED_ARP_TIMER_EXPIRED
     #define iptraceDELAYED_ARP_TIMER_EXPIRED()
@@ -535,9 +537,9 @@
 
 /*
  * iptraceDROPPED_INVALID_ARP_PACKET
- * 
- * Called when an ARP packet is dropped due to invalid protocol and hardware 
- * fields in the header at address pxARPHeader. 
+ *
+ * Called when an ARP packet is dropped due to invalid protocol and hardware
+ * fields in the header at address pxARPHeader.
  */
 #ifndef iptraceDROPPED_INVALID_ARP_PACKET
     #define iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader )
@@ -547,11 +549,11 @@
 
 /*
  * iptracePACKET_DROPPED_TO_GENERATE_ARP
- * 
- * Called when a packet destined for the IP address ulIPAddress is dropped 
- * because the ARP cache does not contain an entry for the IP address. The 
- * packet is automatically replaced by an ARP packet. ulIPAddress is expressed 
- * as a 32-bit number in network byte order. 
+ *
+ * Called when a packet destined for the IP address ulIPAddress is dropped
+ * because the ARP cache does not contain an entry for the IP address. The
+ * packet is automatically replaced by an ARP packet. ulIPAddress is expressed
+ * as a 32-bit number in network byte order.
  */
 #ifndef iptracePACKET_DROPPED_TO_GENERATE_ARP
     #define iptracePACKET_DROPPED_TO_GENERATE_ARP( ulIPAddress )
@@ -561,11 +563,11 @@
 
 /*
  * iptracePROCESSING_RECEIVED_ARP_REPLY
- * 
- * Called when the ARP cache is about to be updated in response to the 
- * reception of an ARP reply. ulIPAddress holds the ARP message's target IP 
- * address (as a 32-bit number in network byte order), which may not be the 
- * local network node (depending on the FreeRTOSIPConfig.h settings). 
+ *
+ * Called when the ARP cache is about to be updated in response to the
+ * reception of an ARP reply. ulIPAddress holds the ARP message's target IP
+ * address (as a 32-bit number in network byte order), which may not be the
+ * local network node (depending on the FreeRTOSIPConfig.h settings).
  */
 #ifndef iptracePROCESSING_RECEIVED_ARP_REPLY
     #define iptracePROCESSING_RECEIVED_ARP_REPLY( ulIPAddress )
@@ -575,10 +577,10 @@
 
 /*
  * iptraceSENDING_ARP_REPLY
- * 
- * An ARP reply is being sent in response to an ARP request from the IP address 
- * ulIPAddress. ulIPAddress is expressed as a 32-bit number in network byte 
- * order. 
+ *
+ * An ARP reply is being sent in response to an ARP request from the IP address
+ * ulIPAddress. ulIPAddress is expressed as a 32-bit number in network byte
+ * order.
  */
 #ifndef iptraceSENDING_ARP_REPLY
     #define iptraceSENDING_ARP_REPLY( ulIPAddress )
@@ -587,13 +589,13 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      Arp Trace Macros                                     */
+/*                             ARP TRACE MACROS                              */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      DHCP Trace Macros                                    */
+/*                             DHCP TRACE MACROS                             */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
@@ -604,10 +606,10 @@
 
     /*
      * iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
-     * 
-     * Called when the default IP address is used becuase an IP address could not 
-     * be obtained from a DHCP. ulIPAddress is expressed as a 32-bit number in 
-     * network byte order. 
+     *
+     * Called when the default IP address is used because an IP address could not
+     * be obtained from a DHCP. ulIPAddress is expressed as a 32-bit number in
+     * network byte order.
      */
     #ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
         #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ulIPAddress )
@@ -626,9 +628,9 @@
 
     /*
      * iptraceDHCP_SUCCEDEED
-     * 
-     * Called when DHCP negotiation is complete and the IP address in 
-     * ulOfferedIPAddress is offered to the device. 
+     *
+     * Called when DHCP negotiation is complete and the IP address in
+     * ulOfferedIPAddress is offered to the device.
      */
     #ifndef iptraceDHCP_SUCCEDEED
         #define iptraceDHCP_SUCCEDEED( ulOfferedIPAddress )
@@ -638,8 +640,8 @@
 
     /*
      * iptraceSENDING_DHCP_DISCOVER
-     * 
-     * Called when a DHCP discover packet is sent. 
+     *
+     * Called when a DHCP discover packet is sent.
      */
     #ifndef iptraceSENDING_DHCP_DISCOVER
         #define iptraceSENDING_DHCP_DISCOVER()
@@ -649,8 +651,8 @@
 
     /*
      * iptraceSENDING_DHCP_REQUEST
-     * 
-     * Called when a DHCP request packet is sent. 
+     *
+     * Called when a DHCP request packet is sent.
      */
     #ifndef iptraceSENDING_DHCP_REQUEST
         #define iptraceSENDING_DHCP_REQUEST()
@@ -663,21 +665,21 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      DHCP Trace Macros                                    */
+/*                             DHCP TRACE MACROS                             */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      DNS Trace Macros                                     */
+/*                             DNS TRACE MACROS                              */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /*
  * iptraceSENDING_DNS_REQUEST
- * 
- * Called when a DNS request is sent. 
+ *
+ * Called when a DNS request is sent.
  */
 #ifndef iptraceSENDING_DNS_REQUEST
     #define iptraceSENDING_DNS_REQUEST()
@@ -686,11 +688,13 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      DNS Trace Macros                                     */
+/*                             DNS TRACE MACROS                              */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      ICMP Trace Macros                                    */
+/*---------------------------------------------------------------------------*/
+/*===========================================================================*/
+/*                             ICMP TRACE MACROS                             */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
@@ -701,8 +705,8 @@
 
     /*
      * iptraceICMP_PACKET_RECEIVED
-     * 
-     * Called when an ICMP packet is received. 
+     *
+     * Called when an ICMP packet is received.
      */
     #ifndef iptraceICMP_PACKET_RECEIVED
         #define iptraceICMP_PACKET_RECEIVED()
@@ -720,11 +724,11 @@
 
     /*
      * iptraceSENDING_PING_REPLY
-     * 
-     * Called when an ICMP echo reply (ping reply) is sent to the IP address 
-     * ulIPAddress in response to an ICMP echo request (ping request) originating 
-     * from the same address. ulIPAddress is expressed as a 32-bit number in 
-     * network byte order. 
+     *
+     * Called when an ICMP echo reply (ping reply) is sent to the IP address
+     * ulIPAddress in response to an ICMP echo request (ping request) originating
+     * from the same address. ulIPAddress is expressed as a 32-bit number in
+     * network byte order.
      */
     #ifndef iptraceSENDING_PING_REPLY
         #define iptraceSENDING_PING_REPLY( ulIPAddress )
@@ -737,15 +741,13 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      ICMP Trace Macros                                    */
+/*                             ICMP TRACE MACROS                             */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
-/*===========================================================================*/
-/*                      NDP Trace Macros                                     */
+/*                             NDP TRACE MACROS                              */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
@@ -769,13 +771,13 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      NDP Trace Macros                                     */
+/*                             NDP TRACE MACROS                              */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      Router Advertisement Trace Macros                    */
+/*                      ROUTER ADVERTISEMENT TRACE MACROS                    */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
@@ -799,27 +801,27 @@
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      Router Advertisement Trace Macros                    */
+/*                      ROUTER ADVERTISEMENT TRACE MACROS                    */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      Mem Stats Macros                                     */
+/*                             MEM STATS MACROS                              */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /* See tools/tcp_mem_stat.c */
-#if ( defined( ipconfigUSE_TCP_MEM_STATS ) && ( ipconfigUSE_TCP_MEM_STATS != 0 ) )
+#if ( ipconfigUSE_TCP_MEM_STATS == 0 )
 
     /*-----------------------------------------------------------------------*/
 
     /*
      * iptraceMEM_STATS_CLOSE
-     * 
-     * Should be called by the application when the collection of memory 
-     * statistics should be stopped. 
+     *
+     * Should be called by the application when the collection of memory
+     * statistics should be stopped.
      */
     #ifndef iptraceMEM_STATS_CLOSE
         #define iptraceMEM_STATS_CLOSE()
@@ -829,9 +831,9 @@
 
     /*
      * iptraceMEM_STATS_CREATE
-     * 
-     * Called when an object at address pxObject of type xMemType and size 
-     * uxSize has been allocated from the heap. 
+     *
+     * Called when an object at address pxObject of type xMemType and size
+     * uxSize has been allocated from the heap.
      */
     #ifndef iptraceMEM_STATS_CREATE
         #define iptraceMEM_STATS_CREATE( xMemType, pxObject, uxSize )
@@ -841,9 +843,9 @@
 
     /*
      * iptraceMEM_STATS_DELETE
-     * 
-     * Called when an object at address pxObject has been deallocated and the 
-     * memory has been returned to the heap. 
+     *
+     * Called when an object at address pxObject has been deallocated and the
+     * memory has been returned to the heap.
      */
     #ifndef iptraceMEM_STATS_DELETE
         #define iptraceMEM_STATS_DELETE( pxObject )
@@ -851,25 +853,25 @@
 
     /*-----------------------------------------------------------------------*/
 
-#endif /* ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
+#endif /* if ( ipconfigUSE_TCP_MEM_STATS == 0 ) */
 
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      Mem Stats Macros                                     */
+/*                             MEM STATS MACROS                              */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
-/*                      TCP Dump Trace Macros                                */
+/*                           TCP DUMP TRACE MACROS                           */
 /*===========================================================================*/
 
 /*---------------------------------------------------------------------------*/
 
 /* See tools/tcp_dump_packets.c */
-#if ( defined( ipconfigUSE_DUMP_PACKETS ) && ( ipconfigUSE_DUMP_PACKETS != 0 ) )
-    
+#if ( ipconfigUSE_DUMP_PACKETS == 0 )
+
     /*-----------------------------------------------------------------------*/
 
     /*
@@ -890,14 +892,14 @@
 
     /*-----------------------------------------------------------------------*/
 
-#endif /* ( ipconfigUSE_DUMP_PACKETS != 0 ) */
+#endif /* if ( ipconfigUSE_DUMP_PACKETS == 0 ) */
 
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                      TCP Dump Trace Macros                                */
+/*                           TCP DUMP TRACE MACROS                           */
 /*===========================================================================*/
-
+/*---------------------------------------------------------------------------*/
 /*===========================================================================*/
 
 #endif /* IP_TRACE_MACRO_DEFAULTS_H */

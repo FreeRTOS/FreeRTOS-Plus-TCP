@@ -38,7 +38,6 @@
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
-#include "IPTraceMacroDefaults.h"
 
 #if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 
