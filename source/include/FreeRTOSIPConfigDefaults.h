@@ -2521,6 +2521,20 @@
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * ipconfigUSE_DUMP_PACKETS
+ */
+#ifndef ipconfigUSE_DUMP_PACKETS
+    #define ipconfigUSE_DUMP_PACKETS    0
+#endif
+
+/*
+ * ipconfigUSE_TCP_MEM_STATS
+ */
+#ifndef ipconfigUSE_TCP_MEM_STATS
+    #define ipconfigUSE_TCP_MEM_STATS    0
+#endif
+
 /*===========================================================================*/
 /*                      Debug/Trace/Logging Config                           */
 /*===========================================================================*/
