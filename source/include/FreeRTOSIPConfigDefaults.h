@@ -44,6 +44,7 @@
 #endif
 
 #include "FreeRTOS_errno_TCP.h"
+#include "FreeRTOSIPDeprecatedDefinitions.h"
 
 /*===========================================================================*/
 
