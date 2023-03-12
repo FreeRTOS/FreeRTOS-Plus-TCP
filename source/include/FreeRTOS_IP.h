@@ -247,6 +247,11 @@ typedef struct xIP_TIMER
 #define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
 #define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
 
+/* Translate a pdFREERTOS_ERRNO code to a human readable string. */
+const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
+                                  char * pcBuffer,
+                                  size_t uxLength );
+
 /* Some simple helper functions. */
 int32_t FreeRTOS_max_int32( int32_t a,
                             int32_t b );
