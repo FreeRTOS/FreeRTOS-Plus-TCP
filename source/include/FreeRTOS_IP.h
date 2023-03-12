@@ -41,7 +41,6 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_IP_Common.h"
-#include "IPTraceMacroDefaults.h"
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */

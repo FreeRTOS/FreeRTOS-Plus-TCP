@@ -76,9 +76,9 @@
  * call to FreeRTOS_gethostbyname() will return immediately, without even creating
  * a socket. */
 #ifndef ipconfigUSE_DNS_CACHE
-    #define ipconfigUSE_DNS_CACHE           ( 1 )
+    #define ipconfigUSE_DNS_CACHE                ( 1 )
 #endif
-#define ipconfigDNS_REQUEST_ATTEMPTS        ( 2 )
+#define ipconfigDNS_REQUEST_ATTEMPTS             ( 2 )
 
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API). ipconfigUDP_TASK_PRIORITY
@@ -89,22 +89,14 @@
  * FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration needs to be given as to
  * the priority assigned to the task executing the IP stack relative to the
  * priority assigned to tasks that use the IP stack. */
-#define ipconfigIP_TASK_PRIORITY            ( configMAX_PRIORITIES - 2 )
+#define ipconfigIP_TASK_PRIORITY                 ( configMAX_PRIORITIES - 2 )
 
 /* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
  * task.  This setting is less important when the FreeRTOS Win32 simulator is used
  * as the Win32 simulator only stores a fixed amount of information on the task
  * stack.  FreeRTOS includes optional stack overflow detection, see:
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
-#define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
-
-/* ipconfigRAND32() is called by the IP stack to generate random numbers for
- * things such as a DHCP transaction number or initial sequence number.  Random
- * number generation is performed via this macro to allow applications to use their
- * own random number generation method.  For example, it might be possible to
- * generate a random number by sampling noise on an analogue input. */
-extern uint32_t ulRand();
-#define ipconfigRAND32()    ulRand()
+#define ipconfigIP_TASK_STACK_SIZE_WORDS         ( configMINIMAL_STACK_SIZE * 5 )
 
 /* If ipconfigUSE_NETWORK_EVENT_HOOK is set to 1 then FreeRTOS+TCP will call the
  * network event hook at the appropriate times.  If ipconfigUSE_NETWORK_EVENT_HOOK

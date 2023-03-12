@@ -61,16 +61,15 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
-/* ICMP protocol definitions. */
-#define ipICMP_ECHO_REQUEST    ( ( uint8_t ) 8 )              /**< ICMP echo request. */
-#define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )              /**< ICMP echo reply. */
+#if ( ipconfigREPLY_TO_INCOMING_PINGS != 0 ) || ( ipconfigSUPPORT_OUTGOING_PINGS != 0 )
 
-#if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
+    /* ICMP protocol definitions. */
+    #define ipICMP_ECHO_REQUEST    ( ( uint8_t ) 8 )    /**< ICMP echo request. */
+    #define ipICMP_ECHO_REPLY      ( ( uint8_t ) 0 )    /**< ICMP echo reply. */
 
-/*
- * Process incoming ICMP packets.
- */
+    /* Process incoming ICMP packets. */
     eFrameProcessingResult_t ProcessICMPPacket( const NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
 #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
 
 /* *INDENT-OFF* */

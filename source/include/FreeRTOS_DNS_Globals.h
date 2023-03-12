@@ -32,7 +32,6 @@
 
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 #define dnsPARSE_ERROR              0UL
 

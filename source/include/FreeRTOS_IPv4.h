@@ -41,7 +41,6 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 #define ipSIZE_OF_IPv4_HEADER               20U
 #define ipSIZE_OF_IPv4_ADDRESS              4U
