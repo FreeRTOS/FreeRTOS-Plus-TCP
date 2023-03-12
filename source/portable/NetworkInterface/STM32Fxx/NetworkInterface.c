@@ -1310,12 +1310,12 @@ static void prvEMACHandlerTask( void * pvParameters )
             prvEthernetUpdateConfig( pdFALSE );
 
             #if( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
-			{
-	            if(xGetPhyLinkStatus() == pdFALSE)
-	            {
-	            	FreeRTOS_NetworkDown();
-	            }
-			}
+            {
+                if(xGetPhyLinkStatus() == pdFALSE)
+                {
+                    FreeRTOS_NetworkDown();
+                }
+            }
             #endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
         }
     }
