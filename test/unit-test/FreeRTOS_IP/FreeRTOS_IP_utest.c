@@ -2249,6 +2249,41 @@ void test_prvAllowIPPacket_IncorrectProtocolChecksum( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+void test_prvAllowIPPacket_LoopbackDest( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = ipLOOPBACK_ADDRESS;
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, &ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
+
+    usGenerateProtocolChecksum_ExpectAndReturn( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
+
+    eResult = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
 void test_prvAllowIPPacket_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
