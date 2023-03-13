@@ -123,12 +123,14 @@ int main( void )
     return 0;
 }
 /*-----------------------------------------------------------*/
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+/* *INDENT-OFF* */
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
     void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 #else
     void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
                                                struct xNetworkEndPoint * pxEndPoint )
 #endif
+/* *INDENT-ON* */
 {
     static BaseType_t xTasksAlreadyCreated = pdFALSE;
 
