@@ -47,8 +47,8 @@ Change 5:
    - New API: vApplicationIPNetworkEventHook_Multi
       - New argument “struct xNetworkInterface * pxNetworkInterface” added.
       - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
- 
- **NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
+
+**NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
 
 Running Demos:
 -------------
