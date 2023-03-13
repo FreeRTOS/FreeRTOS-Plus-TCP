@@ -1,20 +1,6 @@
-What’s New:
-----------
 
-   1. Unified code for IPv4 and IPv6
-   2. Multiple Interface/Endpoint support
-      (Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/freertostcp-multiple-interfaces.html)
-   3. Neighbor Discovery & Router Advertisement
-   4. New WinSim demo to support both IPv4 and IPv6
+Unified code for IPv4 and IPv6 functionalities.
 
-FreeRTOS-Plus-TCP 4.0.0-rc1 complies with the following code quality criteria:
-
-   1. 100% Unit test cases Passed for IPv4
-   2. IPv4 Protocol Testing with Maxwell Pro
-   3. All functions comply with the MISRA 2012 coding standard.
-   4. All functions passing Coverity static checking.
-   5. CBMC IPv4 memory safety proofs
-   6. GNU Complexity score same as of main branch ( less than 8 *with exceptions)
 
 Moving to 4.0.0-rc1 from 3.0.0:
 -----------------------------
