@@ -40,14 +40,14 @@ Change 4:
       - where prefix = Network Interface Name
       - E.g pxWinPcap_FillInterfaceDescriptor
       - New function with the same functionality
- 
+
 Change 5:
 
    - Existing API: vApplicationIPNetworkEventHook
    - New API: vApplicationIPNetworkEventHook_Multi
       - New argument “struct xNetworkInterface * pxNetworkInterface” added.
       - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
-  
+ 
  **NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
 
 Running Demos:
