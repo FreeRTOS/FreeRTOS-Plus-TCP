@@ -86,7 +86,22 @@ Change 6:
     4. Change:
         1. New argument “struct xNetworkInterface * pxNetworkInterface” added.
         2. We are adding ipconfigIPv4_BACKWARD_COMPATIBLE flag to differentiate between old API and new API.
+ 
+NOTE : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
 
+Change 7:
+
+    New Flag for backward compatibility - ipconfigIPv4_BACKWARD_COMPATIBLE defined in  the header file “FreeRTOSIPConfigDefaults.h”
+
+    1. ipconfigIPv4_BACKWARD_COMPATIBLE = 0
+
+        This flag is by default set to zero, which means it supports multiple end point implementation of both IPv4 and IPv6.
+
+    2. ipconfigIPv4_BACKWARD_COMPATIBLE = 1
+
+        End users can move to the older single interface and endpoint model by setting this flag to 1
+        
+        
     Code Snippet:
     #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 )
     {
@@ -97,19 +112,3 @@ Change 6:
        vApplicationIPNetworkEventHook( eNetworkUp );
     }
     #endif
-
-NOTE : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
-
-
-Change 7:
-
-New Flag for backward compatibility - ipconfigIPv4_BACKWARD_COMPATIBLE defined in  the header file “FreeRTOSIPConfigDefaults.h”
-
-
-1. ipconfigIPv4_BACKWARD_COMPATIBLE = 0
-
-This flag is by default set to zero, which means it supports multiple end point implementation of both IPv4 and IPv6.
-
-1. ipconfigIPv4_BACKWARD_COMPATIBLE = 1
-
-End users can move to the older single interface and endpoint model by setting this flag to 1
