@@ -1,10 +1,16 @@
-Moving to 4.0.0-rc1 from 3.0.0:
+Moving to 4.0.0-rc1 from 3.x.x:
 -----------------------------
 In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically seperated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
 
 Some of the APIs have changed which is illustrated in the section below. However, there is a backward compatibility mode provided as well.
 
-New API's in 4.0.0-rc1:
+Backward Compatibility Mode:
+---------------------------
+   Set "ipconfigIPv4_BACKWARD_COMPATIBLE" value to 1 in “FreeRTOSIPConfigDefaults.h” to run the code in backward compatible mode.
+   The "Existing API"s defined in all the API changes below work only when the backward compatibility mode is enabled.
+  
+
+API changes in 4.0.0-rc1:
 ----------------------
 Change 1:
 
@@ -50,14 +56,6 @@ Change 5:
    - Change:
       - New argument “struct xNetworkInterface * pxNetworkInterface” added.
       - We are adding ipconfigIPv4_BACKWARD_COMPATIBLE flag to differentiate between old API and new API.
-
-Change 6:
-
-   New Flag for backward compatibility - ipconfigIPv4_BACKWARD_COMPATIBLE defined in  the header file “FreeRTOSIPConfigDefaults.h”
-   - ipconfigIPv4_BACKWARD_COMPATIBLE = 0
-      - This flag is by default set to zero, which means it supports multiple end point implementation of both IPv4 and IPv6.
-   - ipconfigIPv4_BACKWARD_COMPATIBLE = 1
-      - End users can move to the older single interface and endpoint model by setting this flag to 1
   
   **NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
   
@@ -69,4 +67,3 @@ In all the demos, there is a backward compatibility mode which can be enabled by
 This flag is by default set to zero.
 
 New IPv6 WinSim Demo: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo
-
