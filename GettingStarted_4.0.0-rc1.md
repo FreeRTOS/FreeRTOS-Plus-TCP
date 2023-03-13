@@ -1,6 +1,6 @@
 Moving to 4.0.0-rc1 from 3.x.x:
 -----------------------------
-In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically seperated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
+In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
 
 Some of the APIs have changed which is illustrated in the section below. However, there is a backward compatibility mode provided as well.
 
