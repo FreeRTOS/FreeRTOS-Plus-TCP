@@ -7,7 +7,7 @@ Some of the APIs have changed which is illustrated in the section below. However
 Backward Compatibility Mode:
 ---------------------------
    Set "ipconfigIPv4_BACKWARD_COMPATIBLE" value to 1 in “FreeRTOSIPConfigDefaults.h” to run the code in backward compatible mode.
-   The "Existing API"s defined in all the API changes below work only when the backward compatibility mode is enabled.
+   The "Existing API's" defined in all the API changes below work only when the backward compatibility mode is enabled.
   
 
 API changes in 4.0.0-rc1:
@@ -15,10 +15,9 @@ API changes in 4.0.0-rc1:
 Change 1:
 
    - Existing API: FreeRTOS_IPInit
+      - Backward compatibility with the IPv4 FreeRTOS+TCP main branch which only supports single network interface. This can be used for single  interface IPv4 systems.
    - New API: FreeRTOS_IPInit_Multi
-   - Change:
-      - FreeRTOS_IPInit - Backward compatibility with the IPv4 FreeRTOS+TCP main branch which only supports single network interface. This can be used for single  interface IPv4 systems.
-      - FreeRTOS_IPInit_Multi - It supports multiple interfaces. Before calling this function, at least 1 interface and 1 end-point must have been set-up. FreeRTOS_IPInit_Multi() replaces the earlier FreeRTOS_IPInit().
+      - Supports multiple interfaces. Before calling this function, at least 1 interface and 1 end-point must have been set-up. FreeRTOS_IPInit_Multi() replaces the earlier FreeRTOS_IPInit().
 
 Change 2:
 
