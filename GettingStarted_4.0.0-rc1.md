@@ -1,7 +1,3 @@
-
-Unified code for IPv4 and IPv6 functionalities.
-
-
 Moving to 4.0.0-rc1 from 3.0.0:
 -----------------------------
 In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically seperated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
