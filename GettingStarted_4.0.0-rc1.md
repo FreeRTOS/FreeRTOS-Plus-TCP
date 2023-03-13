@@ -58,24 +58,15 @@ Change 6:
       - This flag is by default set to zero, which means it supports multiple end point implementation of both IPv4 and IPv6.
    - ipconfigIPv4_BACKWARD_COMPATIBLE = 1
       - End users can move to the older single interface and endpoint model by setting this flag to 1
-
-    Code Snippet:
-       #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 0 )
-       {
-          vApplicationIPNetworkEventHook_Multi( eNetworkUp, pxEndPoint );
-       }
-       #else
-       {
-          vApplicationIPNetworkEventHook( eNetworkUp );
-       }
-       #endif
   
   **NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
   
 Running Demos:
 -------------
-The demos can be found at: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6
+The demos can be found at: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo
 
 In all the demos, there is a backward compatibility mode which can be enabled by setting the flag “ipconfigIPv4_BACKWARD_COMPATIBLE” to 1 in the header file “FreeRTOSIPConfigDefaults.h”.
 This flag is by default set to zero.
+
+New IPv6 WinSim Demo: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo
 
