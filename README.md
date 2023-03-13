@@ -1,6 +1,7 @@
 ## NOTE - Work In Progress
 
 This branch contains unified IPv4 and IPv6 functionalities.
+Refer to the Getting started Guide (found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/dev/IPv6_integration/GettingStarted_4.0.0-rc1.md)) for more details.
 
 ## FreeRTOS-Plus-TCP Library
 FreeRTOS-Plus-TCP is a lightweight TCP/IP stack for FreeRTOS. It provides a familiar Berkeley sockets interface, making it as simple to use and learn as possible. FreeRTOS-Plus-TCP's features and RAM footprint are fully scalable, making FreeRTOS-Plus-TCP equally applicable to smaller lower throughput microcontrollers as well as larger higher throughput microprocessors.
