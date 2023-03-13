@@ -1,6 +1,6 @@
 Changes between dev/ipv6_integration branch RC1 and main branch V3.0.0 releases:
         + Unified code for IPv4 and IPv6
-        + Multiple Interface/Endpoint support 
+        + Multiple Interface/Endpoint support
 	((Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/freertostcp-multiple-interfaces.html).
         + New WinSim demo to support both IPv4 and IPv6.
 **Note**- This release does not support ESP32/ M487/ mw300_rd ports yet. This will be released soon.
