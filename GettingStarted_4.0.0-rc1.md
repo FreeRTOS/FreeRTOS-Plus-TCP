@@ -38,7 +38,7 @@ Change 3:
 Change 4:
 
    - Existing API: pxFillInterfaceDescriptor
-      - It is there for downward compatibility. The function FreeRTOS_IPInit() will call it to initialise the interface and end-point objects
+      - It is there for backward compatibility. The function FreeRTOS_IPInit() will call it to initialise the interface and end-point objects
    - New API: prefix_pxFillInterfaceDescriptor
       - where prefix = Network Interface Name
       - E.g pxWinPcap_FillInterfaceDescriptor
@@ -61,4 +61,4 @@ The demos can be found at: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/Fre
 In all the demos, there is a backward compatibility mode which can be enabled by setting the flag “ipconfigIPv4_BACKWARD_COMPATIBLE” to 1 in the header file “FreeRTOSIPConfigDefaults.h”.
 This flag is by default set to zero.
 
-New IPv6 WinSim Demo: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo
+New IPv6 WinSim Demo: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo
