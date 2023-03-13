@@ -28,11 +28,9 @@ Change 2:
 
 Change 3:
 
-   - Existing API:  void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
-                                                TickType_t uxBlockTimeTicks)
+   - Existing API:  FreeRTOS_GetUDPPayloadBuffer
       - Backward compatibility with the IPv4 FreeRTOS+TCP V3.x.x. This can still be used for IPv4 use cases.
-   - New API: void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
-                                                     TickType_t uxBlockTimeTicks, uint8_t ucIPType )
+   - New API:FreeRTOS_GetUDPPayloadBuffer_Multi
       - A new argument (uint8_t ucIPType) to specify IP type to support both IPv4 and IPv6
 
 Change 4:
@@ -46,9 +44,8 @@ Change 4:
  
 Change 5:
 
-   - Existing API: void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
-   - New API: New argument “NetworkEndPoint_t * pxEndPoint” added
-      - void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent, struct xNetworkEndPoint * pxEndPoint )
+   - Existing API: vApplicationIPNetworkEventHook
+   - New API: vApplicationIPNetworkEventHook_Multi
       - New argument “struct xNetworkInterface * pxNetworkInterface” added.
       - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
   
