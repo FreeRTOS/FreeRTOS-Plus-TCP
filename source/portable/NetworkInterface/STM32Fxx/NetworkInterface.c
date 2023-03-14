@@ -182,16 +182,14 @@ static void prvEthernetUpdateConfig( BaseType_t xForce );
  */
 static BaseType_t prvNetworkInterfaceInput( void );
 
-#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) || ( ipconfigUSE_IPv6 != 0 )
 
 /*
  * For LLMNR, an extra MAC-address must be configured to
  * be able to receive the multicast messages.
  */
-    static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
-                                     uint32_t ulIndex,
-                                     uint8_t * Addr );
-#endif
+static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
+                                 uint32_t ulIndex,
+                                 uint8_t * Addr );
 
 /* FreeRTOS+TCP/multi :
  * Each network device has 3 access functions:
@@ -452,9 +450,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     BaseType_t xResult;
     NetworkEndPoint_t * pxEndPoint;
 
-    #if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
-        BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
-    #endif
+    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
     if( xMacInitStatus == eMACInit )
     {
@@ -757,28 +753,28 @@ static void prvDMARxDescListInit()
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
-    static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
-                                     uint32_t ulIndex,
-                                     uint8_t * Addr )
-    {
-        uint32_t ulTempReg;
 
-        ( void ) heth;
+static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
+                                 uint32_t ulIndex,
+                                 uint8_t * Addr )
+{
+    uint32_t ulTempReg;
 
-        /* Calculate the selected MAC address high register. */
-        ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+    ( void ) heth;
 
-        /* Load the selected MAC address high register. */
-        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+    /* Calculate the selected MAC address high register. */
+    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
 
-        /* Calculate the selected MAC address low register. */
-        ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+    /* Load the selected MAC address high register. */
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
 
-        /* Load the selected MAC address low register */
-        ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
-    }
-#endif /* if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 ) */
+    /* Calculate the selected MAC address low register. */
+    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+
+    /* Load the selected MAC address low register */
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+}
+
 /*-----------------------------------------------------------*/
 
 static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,

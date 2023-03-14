@@ -133,10 +133,10 @@
 
 /** @brief If a lease time is not received, use the default of two days.  48 hours in ticks.
  * Do not use the macro pdMS_TO_TICKS() here as integer overflow can occur. */
-#define dhcpDEFAULT_LEASE_TIME      ( ( 48U * 60U * 60U ) * configTICK_RATE_HZ )
+#define dhcpv6DEFAULT_LEASE_TIME    ( ( 48U * 60U * 60U ) * configTICK_RATE_HZ )
 
 /** @brief Don't allow the lease time to be too short. */
-#define dhcpMINIMUM_LEASE_TIME      ( pdMS_TO_TICKS( 60000U ) )                /* 60 seconds in ticks. */
+#define dhcpv6MINIMUM_LEASE_TIME    ( pdMS_TO_TICKS( 60000U ) )                  /* 60 seconds in ticks. */
 
 /** @brief The function time() counts since 1-1-1970.  The DHCPv6 time-stamp however
  * uses a time stamp that had zero on 1-1-2000. */
@@ -405,11 +405,11 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 
     if( EP_DHCPData.ulLeaseTime == 0U )
     {
-        EP_DHCPData.ulLeaseTime = dhcpDEFAULT_LEASE_TIME;
+        EP_DHCPData.ulLeaseTime = dhcpv6DEFAULT_LEASE_TIME;
     }
-    else if( EP_DHCPData.ulLeaseTime < dhcpMINIMUM_LEASE_TIME )
+    else if( EP_DHCPData.ulLeaseTime < dhcpv6MINIMUM_LEASE_TIME )
     {
-        EP_DHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME;
+        EP_DHCPData.ulLeaseTime = dhcpv6MINIMUM_LEASE_TIME;
     }
     else
     {
@@ -1033,7 +1033,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
             xAddress.sin_family = FREERTOS_AF_INET6;
             xAddress.sin_port = FreeRTOS_htons( DHCPv6_SERVER_PORT );
 
-            struct freertos_sockaddr * pxAddress = ( ( sockaddr4_t * ) &( xAddress ) );
+            struct freertos_sockaddr * pxAddress = &( xAddress );
 
             ( void ) FreeRTOS_sendto( EP_DHCPData.xDHCPSocket, ( const void * ) xMessage.ucContents, xMessage.uxIndex, 0, pxAddress, sizeof xAddress );
         }
