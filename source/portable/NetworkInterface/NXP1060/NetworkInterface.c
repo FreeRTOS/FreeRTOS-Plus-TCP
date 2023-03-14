@@ -224,11 +224,15 @@ static void ethernet_callback( ENET_Type * base,
 
 static void prvProcessFrame( int length );
 
-static status_t xSetupPHY( phy_config_t * pxConfig, EMACState_t * peEMACState );
+static status_t xSetupPHY( phy_config_t * pxConfig,
+                           EMACState_t * peEMACState );
 
-static status_t xWaitPHY( phy_config_t * pxConfig, EMACState_t * peEMACState );
+static status_t xWaitPHY( phy_config_t * pxConfig,
+                          EMACState_t * peEMACState );
 
-static status_t xEMACInit( EMACState_t * peEMACState, phy_speed_t speed, phy_duplex_t duplex );
+static status_t xEMACInit( EMACState_t * peEMACState,
+                           phy_speed_t speed,
+                           phy_duplex_t duplex );
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
@@ -250,13 +254,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
     switch( eEMACState )
     {
         case xEMAC_SetupPHY:
-        	xStatus = xSetupPHY( &xConfig, &eEMACState );
+            xStatus = xSetupPHY( &xConfig, &eEMACState );
 
-        	if( xStatus != kStatus_Success )
-        	{
-        		eEMACState = xEMAC_Fatal;
-        		break;
-        	}
+            if( xStatus != kStatus_Success )
+            {
+                eEMACState = xEMAC_Fatal;
+                break;
+            }
 
         /* Fall through. */
         case xEMAC_WaitPHY:
@@ -270,10 +274,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
             }
 
             if( xStatus != kStatus_Success )
-			{
-            	eEMACState = xEMAC_Fatal;
-				break;
-			}
+            {
+                eEMACState = xEMAC_Fatal;
+                break;
+            }
 
         /* Fall through. */
         case xEMAC_Init:
@@ -282,48 +286,48 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
             if( xFirstCall == pdTRUE )
             {
-				if( xStatus == kStatus_Success )
-				{
-					/* The link is now up. */
-					bGlobalLinkStatus = true;
+                if( xStatus == kStatus_Success )
+                {
+                    /* The link is now up. */
+                    bGlobalLinkStatus = true;
 
-					/* The handler task is created at the highest possible priority to
-					 * ensure the interrupt handler can return directly to it. */
-					xTaskCreated = xTaskCreate( prvEMACHandlerTask,
-										   "EMAC-Handler",
-										   configMINIMAL_STACK_SIZE * 3,
-										   NULL,
-										   configMAX_PRIORITIES - 1,
-										   &receiveTaskHandle );
+                    /* The handler task is created at the highest possible priority to
+                     * ensure the interrupt handler can return directly to it. */
+                    xTaskCreated = xTaskCreate( prvEMACHandlerTask,
+                                                "EMAC-Handler",
+                                                configMINIMAL_STACK_SIZE * 3,
+                                                NULL,
+                                                configMAX_PRIORITIES - 1,
+                                                &receiveTaskHandle );
 
-					if( ( receiveTaskHandle == NULL ) || ( xTaskCreated != pdPASS ) )
-					{
-						FreeRTOS_printf( ( "Failed to create the handler task." ) );
-						eEMACState = xEMAC_Fatal;
-						break;
-					}
+                    if( ( receiveTaskHandle == NULL ) || ( xTaskCreated != pdPASS ) )
+                    {
+                        FreeRTOS_printf( ( "Failed to create the handler task." ) );
+                        eEMACState = xEMAC_Fatal;
+                        break;
+                    }
 
-					/* Enable the interrupt and set its priority to the minimum
-					 * interrupt priority.  */
-					NVIC_SetPriority( ENET_IRQn, ENET_PRIORITY );
-					NVIC_EnableIRQ( ENET_IRQn );
+                    /* Enable the interrupt and set its priority to the minimum
+                     * interrupt priority.  */
+                    NVIC_SetPriority( ENET_IRQn, ENET_PRIORITY );
+                    NVIC_EnableIRQ( ENET_IRQn );
 
-					FreeRTOS_printf( ( "Driver ready for use." ) );
+                    FreeRTOS_printf( ( "Driver ready for use." ) );
 
-					eEMACState = xEMAC_Ready;
+                    eEMACState = xEMAC_Ready;
 
-					/* After this, the task should not be created. */
-					xFirstCall = pdFALSE;
-				}
-				else
-				{
-					eEMACState = xEMAC_Fatal;
-					break;
-				}
+                    /* After this, the task should not be created. */
+                    xFirstCall = pdFALSE;
+                }
+                else
+                {
+                    eEMACState = xEMAC_Fatal;
+                    break;
+                }
             }
             else
             {
-            	eEMACState = xEMAC_Ready;
+                eEMACState = xEMAC_Ready;
             }
 
         /* Fall through. */
@@ -347,9 +351,9 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 
     if( bGlobalLinkStatus == true )
     {
-    	/* ENET_SendFrame copies the data before sending it. Therefore, the network buffer can
-    	 * be released without worrying about the buffer memory being used by the ENET_SendFrame
-    	 * function. */
+        /* ENET_SendFrame copies the data before sending it. Therefore, the network buffer can
+         * be released without worrying about the buffer memory being used by the ENET_SendFrame
+         * function. */
         result = ENET_SendFrame( ethernetifLocal->base,
                                  &ethernetifLocal->handle,
                                  pxNetworkBuffer->pucEthernetBuffer,
@@ -395,21 +399,21 @@ static void prvEMACHandlerTask( void * parameter )
             if( readStatus == kStatus_Success )
             {
                 if( LinkUp == pdFALSE )
-				{
-					/* The link is down. */
-					bGlobalLinkStatus = false;
-					/* We need to setup the PHY again. */
-					eEMACState = xEMAC_SetupPHY;
+                {
+                    /* The link is down. */
+                    bGlobalLinkStatus = false;
+                    /* We need to setup the PHY again. */
+                    eEMACState = xEMAC_SetupPHY;
 
-					FreeRTOS_printf( ( "Link down!" ) );
+                    FreeRTOS_printf( ( "Link down!" ) );
 
-					xSendEventStructToIPTask( &xNetworkEventDown, 0U );
-				}
-				else
-				{
-					/* The link is still up. */
-					bGlobalLinkStatus = true;
-				}
+                    xSendEventStructToIPTask( &xNetworkEventDown, 0U );
+                }
+                else
+                {
+                    /* The link is still up. */
+                    bGlobalLinkStatus = true;
+                }
             }
         }
         else
@@ -540,44 +544,45 @@ static void prvProcessFrame( int length )
  *
  * @return kStatus_Success if the PHY was initialized; error code otherwise.
  */
-static status_t xSetupPHY( phy_config_t * pxConfig, EMACState_t * peEMACState )
+static status_t xSetupPHY( phy_config_t * pxConfig,
+                           EMACState_t * peEMACState )
 {
-	status_t xStatus;
+    status_t xStatus;
 
-	/* Make sure that current state is correct. */
-	configASSERT( *peEMACState == xEMAC_SetupPHY );
+    /* Make sure that current state is correct. */
+    configASSERT( *peEMACState == xEMAC_SetupPHY );
 
-	ethernetifLocal->RxBuffDescrip = &( rxBuffDescrip_0[ 0 ] );
-	ethernetifLocal->TxBuffDescrip = &( txBuffDescrip_0[ 0 ] );
-	ethernetifLocal->RxDataBuff = &( rxDataBuff_0[ 0 ] );
-	ethernetifLocal->TxDataBuff = &( txDataBuff_0[ 0 ] );
-	ethernetifLocal->base = ( void * ) ENET_BASE;
+    ethernetifLocal->RxBuffDescrip = &( rxBuffDescrip_0[ 0 ] );
+    ethernetifLocal->TxBuffDescrip = &( txBuffDescrip_0[ 0 ] );
+    ethernetifLocal->RxDataBuff = &( rxDataBuff_0[ 0 ] );
+    ethernetifLocal->TxDataBuff = &( txDataBuff_0[ 0 ] );
+    ethernetifLocal->base = ( void * ) ENET_BASE;
 
-	/* Set the clock frequency. */
-	mdioHandle.resource.csrClock_Hz = EXAMPLE_CLOCK_FREQ;
-	mdioHandle.resource.base = ( void * ) ENET_BASE;
+    /* Set the clock frequency. */
+    mdioHandle.resource.csrClock_Hz = EXAMPLE_CLOCK_FREQ;
+    mdioHandle.resource.base = ( void * ) ENET_BASE;
 
-	/* Set the configuration to auto-negotiate; set the phy to full duplex mode; the phy's address; and the speed. */
-	pxConfig->autoNeg = pdTRUE;
-	pxConfig->duplex = kPHY_FullDuplex;
-	pxConfig->phyAddr = BOARD_ENET0_PHY_ADDRESS;
-	pxConfig->speed = kPHY_Speed100M;
+    /* Set the configuration to auto-negotiate; set the phy to full duplex mode; the phy's address; and the speed. */
+    pxConfig->autoNeg = pdTRUE;
+    pxConfig->duplex = kPHY_FullDuplex;
+    pxConfig->phyAddr = BOARD_ENET0_PHY_ADDRESS;
+    pxConfig->speed = kPHY_Speed100M;
 
-	FreeRTOS_printf( ( "Starting PHY initialization.\r\n" ) );
+    FreeRTOS_printf( ( "Starting PHY initialization.\r\n" ) );
 
-	xStatus = PHY_Init( &phyHandle, pxConfig );
+    xStatus = PHY_Init( &phyHandle, pxConfig );
 
-	if( xStatus != kStatus_Success )
-	{
-		FreeRTOS_printf( ( "Failed to initialize the PHY..." ) );
-		*peEMACState = xEMAC_Fatal;
-	}
-	else
-	{
-		*peEMACState = xEMAC_WaitPHY;
-	}
+    if( xStatus != kStatus_Success )
+    {
+        FreeRTOS_printf( ( "Failed to initialize the PHY..." ) );
+        *peEMACState = xEMAC_Fatal;
+    }
+    else
+    {
+        *peEMACState = xEMAC_WaitPHY;
+    }
 
-	return xStatus;
+    return xStatus;
 }
 
 /*
@@ -592,99 +597,100 @@ static status_t xSetupPHY( phy_config_t * pxConfig, EMACState_t * peEMACState )
  *
  * @return kStatus_Success if the PHY was initialized; error code otherwise.
  */
-static status_t xWaitPHY( phy_config_t * pxConfig, EMACState_t * peEMACState )
+static status_t xWaitPHY( phy_config_t * pxConfig,
+                          EMACState_t * peEMACState )
 {
-	status_t xStatus;
-	bool LinkUp;
-	bool autoNegotiationComplete;
-	uint8_t ucCounter = 0;
+    status_t xStatus;
+    bool LinkUp;
+    bool autoNegotiationComplete;
+    uint8_t ucCounter = 0;
 
-	/* Make sure that current state is correct. */
-	configASSERT( *peEMACState == xEMAC_WaitPHY );
+    /* Make sure that current state is correct. */
+    configASSERT( *peEMACState == xEMAC_WaitPHY );
 
-	do
-	{
-		xStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &autoNegotiationComplete );
+    do
+    {
+        xStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &autoNegotiationComplete );
 
-		if( autoNegotiationComplete == true )
-		{
-			break;
-		}
+        if( autoNegotiationComplete == true )
+        {
+            break;
+        }
 
-		/* Try for only a limited number of times. */
-		if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
-		{
-			break;
-		}
+        /* Try for only a limited number of times. */
+        if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
+        {
+            break;
+        }
 
-		vTaskDelay( pdMS_TO_TICKS( 10 ) );
-	}
-	while( xStatus == kStatus_Success );
+        vTaskDelay( pdMS_TO_TICKS( 10 ) );
+    }
+    while( xStatus == kStatus_Success );
 
-	if( autoNegotiationComplete == false )
-	{
-		FreeRTOS_printf( ( "Failed to complete auto-negotiation. Using default values." ) );
+    if( autoNegotiationComplete == false )
+    {
+        FreeRTOS_printf( ( "Failed to complete auto-negotiation. Using default values." ) );
 
-		pxConfig->autoNeg = pdFALSE;
-		pxConfig->duplex = kPHY_FullDuplex;
-		pxConfig->phyAddr = BOARD_ENET0_PHY_ADDRESS;
-		pxConfig->speed = kPHY_Speed100M;
+        pxConfig->autoNeg = pdFALSE;
+        pxConfig->duplex = kPHY_FullDuplex;
+        pxConfig->phyAddr = BOARD_ENET0_PHY_ADDRESS;
+        pxConfig->speed = kPHY_Speed100M;
 
-		xStatus = PHY_Init( &phyHandle, pxConfig );
+        xStatus = PHY_Init( &phyHandle, pxConfig );
 
-		if( xStatus != kStatus_Success )
-		{
-			FreeRTOS_printf( ( "Failed to re-initialize the PHY with default configs!" ) );
-			*peEMACState = xEMAC_Fatal;
-		}
-		else
-		{
-			FreeRTOS_printf( ( "PHY re-initialization successful." ) );
-		}
-	}
-	else
-	{
-		FreeRTOS_printf( ( "Auto-negotiation complete.\r\n" ) );
-	}
+        if( xStatus != kStatus_Success )
+        {
+            FreeRTOS_printf( ( "Failed to re-initialize the PHY with default configs!" ) );
+            *peEMACState = xEMAC_Fatal;
+        }
+        else
+        {
+            FreeRTOS_printf( ( "PHY re-initialization successful." ) );
+        }
+    }
+    else
+    {
+        FreeRTOS_printf( ( "Auto-negotiation complete.\r\n" ) );
+    }
 
-	if( xStatus == kStatus_Success )
-	{
-		/* Reset the counter for next use. */
-		ucCounter = 0;
+    if( xStatus == kStatus_Success )
+    {
+        /* Reset the counter for next use. */
+        ucCounter = 0;
 
-		do
-		{
-			xStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+        do
+        {
+            xStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
 
-			if( LinkUp == true )
-			{
-				break;
-			}
+            if( LinkUp == true )
+            {
+                break;
+            }
 
-			vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+            vTaskDelay( pdMS_TO_TICKS( 1000 ) );
 
-			/* Try for only a limited number of times. */
-			if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
-			{
-				break;
-			}
-		}
-		while( xStatus == kStatus_Success );
+            /* Try for only a limited number of times. */
+            if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
+            {
+                break;
+            }
+        }
+        while( xStatus == kStatus_Success );
 
-		if( LinkUp == false )
-		{
-			FreeRTOS_printf( ( "Failed to get the link up." ) );
-			xStatus = kStatus_Fail;
-		}
-		else
-		{
-			/* Success in auto-negotiation and the link is up. */
-			FreeRTOS_printf( ( "Link up." ) );
-			*peEMACState = xEMAC_Init;
-		}
-	}
+        if( LinkUp == false )
+        {
+            FreeRTOS_printf( ( "Failed to get the link up." ) );
+            xStatus = kStatus_Fail;
+        }
+        else
+        {
+            /* Success in auto-negotiation and the link is up. */
+            FreeRTOS_printf( ( "Link up." ) );
+            *peEMACState = xEMAC_Init;
+        }
+    }
 
-	return xStatus;
+    return xStatus;
 }
 
 /*
@@ -701,99 +707,101 @@ static status_t xWaitPHY( phy_config_t * pxConfig, EMACState_t * peEMACState )
  *
  * @return kStatus_Success if the ENET module was initialized; error code otherwise.
  */
-static status_t xEMACInit( EMACState_t * peEMACState, phy_speed_t speed, phy_duplex_t duplex )
+static status_t xEMACInit( EMACState_t * peEMACState,
+                           phy_speed_t speed,
+                           phy_duplex_t duplex )
 {
-	enet_config_t config;
-	uint32_t sysClock;
-	enet_buffer_config_t buffCfg[ ENET_RING_NUM ];
-	status_t xStatus;
-	uint32_t instance;
-	static ENET_Type * const enetBases[] = ENET_BASE_PTRS;
-	static const IRQn_Type enetTxIrqId[] = ENET_Transmit_IRQS;
-	/*! @brief Pointers to enet receive IRQ number for each instance. */
-	static const IRQn_Type enetRxIrqId[] = ENET_Receive_IRQS;
-	int i;
+    enet_config_t config;
+    uint32_t sysClock;
+    enet_buffer_config_t buffCfg[ ENET_RING_NUM ];
+    status_t xStatus;
+    uint32_t instance;
+    static ENET_Type * const enetBases[] = ENET_BASE_PTRS;
+    static const IRQn_Type enetTxIrqId[] = ENET_Transmit_IRQS;
+    /*! @brief Pointers to enet receive IRQ number for each instance. */
+    static const IRQn_Type enetRxIrqId[] = ENET_Receive_IRQS;
+    int i;
 
-	/* Make sure that current state is correct. */
-	configASSERT( *peEMACState == xEMAC_Init );
-	/* Make sure that the channel is full duplex. */
-	configASSERT( duplex == kPHY_FullDuplex );
+    /* Make sure that current state is correct. */
+    configASSERT( *peEMACState == xEMAC_Init );
+    /* Make sure that the channel is full duplex. */
+    configASSERT( duplex == kPHY_FullDuplex );
 
-	/* prepare the buffer configuration. */
-	buffCfg[ 0 ].rxBdNumber = ENET_RXBD_NUM;                  /* Receive buffer descriptor number. */
-	buffCfg[ 0 ].txBdNumber = ENET_TXBD_NUM;                  /* Transmit buffer descriptor number. */
-	buffCfg[ 0 ].rxBuffSizeAlign = sizeof( rx_buffer_t );     /* Aligned receive data buffer size. */
-	buffCfg[ 0 ].txBuffSizeAlign = sizeof( tx_buffer_t );     /* Aligned transmit data buffer size. */
-	buffCfg[ 0 ].rxBdStartAddrAlign =
-		&( rxBuffDescrip_0[ 0 ] );                            /* Aligned receive buffer descriptor start address. */
-	buffCfg[ 0 ].txBdStartAddrAlign =
-		&( txBuffDescrip_0[ 0 ] );                            /* Aligned transmit buffer descriptor start address. */
-	buffCfg[ 0 ].rxBufferAlign =
-		&( rxDataBuff_0[ 0 ][ 0 ] );                          /* Receive data buffer start address. */
-	buffCfg[ 0 ].txBufferAlign = &( txDataBuff_0[ 0 ][ 0 ] ); /* Transmit data buffer start address. */
-	buffCfg[ 0 ].txFrameInfo = NULL;                          /* Transmit frame information start address. Set only if using zero-copy transmit. */
-	buffCfg[ 0 ].rxMaintainEnable = true;                     /* Receive buffer cache maintain. */
-	buffCfg[ 0 ].txMaintainEnable = true;                     /* Transmit buffer cache maintain. */
+    /* prepare the buffer configuration. */
+    buffCfg[ 0 ].rxBdNumber = ENET_RXBD_NUM;                  /* Receive buffer descriptor number. */
+    buffCfg[ 0 ].txBdNumber = ENET_TXBD_NUM;                  /* Transmit buffer descriptor number. */
+    buffCfg[ 0 ].rxBuffSizeAlign = sizeof( rx_buffer_t );     /* Aligned receive data buffer size. */
+    buffCfg[ 0 ].txBuffSizeAlign = sizeof( tx_buffer_t );     /* Aligned transmit data buffer size. */
+    buffCfg[ 0 ].rxBdStartAddrAlign =
+        &( rxBuffDescrip_0[ 0 ] );                            /* Aligned receive buffer descriptor start address. */
+    buffCfg[ 0 ].txBdStartAddrAlign =
+        &( txBuffDescrip_0[ 0 ] );                            /* Aligned transmit buffer descriptor start address. */
+    buffCfg[ 0 ].rxBufferAlign =
+        &( rxDataBuff_0[ 0 ][ 0 ] );                          /* Receive data buffer start address. */
+    buffCfg[ 0 ].txBufferAlign = &( txDataBuff_0[ 0 ][ 0 ] ); /* Transmit data buffer start address. */
+    buffCfg[ 0 ].txFrameInfo = NULL;                          /* Transmit frame information start address. Set only if using zero-copy transmit. */
+    buffCfg[ 0 ].rxMaintainEnable = true;                     /* Receive buffer cache maintain. */
+    buffCfg[ 0 ].txMaintainEnable = true;                     /* Transmit buffer cache maintain. */
 
-	sysClock = phyHandle.mdioHandle->resource.csrClock_Hz;
+    sysClock = phyHandle.mdioHandle->resource.csrClock_Hz;
 
-	ENET_GetDefaultConfig( &config );
+    ENET_GetDefaultConfig( &config );
 
-	config.ringNum = ENET_RING_NUM;
-	config.rxBuffAlloc = NULL;
-	config.rxBuffFree = NULL;
-	config.userData = ethernetifLocal;
-	config.miiSpeed = ( enet_mii_speed_t ) speed;
-	config.miiDuplex = ( enet_mii_duplex_t ) duplex;
+    config.ringNum = ENET_RING_NUM;
+    config.rxBuffAlloc = NULL;
+    config.rxBuffFree = NULL;
+    config.userData = ethernetifLocal;
+    config.miiSpeed = ( enet_mii_speed_t ) speed;
+    config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
-	/* Only get interrupt for incoming messages. */
-	config.interrupt = kENET_RxFrameInterrupt;
-	config.callback = ethernet_callback;
+    /* Only get interrupt for incoming messages. */
+    config.interrupt = kENET_RxFrameInterrupt;
+    config.callback = ethernet_callback;
 
-	for( instance = 0; instance < ARRAY_SIZE( enetBases ); instance++ )
-	{
-		if( enetBases[ instance ] == ethernetifLocal->base )
-		{
-			NVIC_SetPriority( enetRxIrqId[ instance ], ENET_PRIORITY );
-			NVIC_SetPriority( enetTxIrqId[ instance ], ENET_PRIORITY );
-			break;
-		}
-	}
+    for( instance = 0; instance < ARRAY_SIZE( enetBases ); instance++ )
+    {
+        if( enetBases[ instance ] == ethernetifLocal->base )
+        {
+            NVIC_SetPriority( enetRxIrqId[ instance ], ENET_PRIORITY );
+            NVIC_SetPriority( enetTxIrqId[ instance ], ENET_PRIORITY );
+            break;
+        }
+    }
 
-	configASSERT( instance != ARRAY_SIZE( enetBases ) );
+    configASSERT( instance != ARRAY_SIZE( enetBases ) );
 
-	if( instance == ARRAY_SIZE( enetBases ) )
-	{
-		*peEMACState = xEMAC_Fatal;
-		xStatus = kStatus_Fail;
-	}
-	else
-	{
-		for( i = 0; i < ENET_RXBUFF_NUM; i++ )
-		{
-			ethernetifLocal->RxPbufs[ i ].buffer = &( ethernetifLocal->RxDataBuff[ i ][ 0 ] );
-			ethernetifLocal->RxPbufs[ i ].buffer_used = false;
-		}
+    if( instance == ARRAY_SIZE( enetBases ) )
+    {
+        *peEMACState = xEMAC_Fatal;
+        xStatus = kStatus_Fail;
+    }
+    else
+    {
+        for( i = 0; i < ENET_RXBUFF_NUM; i++ )
+        {
+            ethernetifLocal->RxPbufs[ i ].buffer = &( ethernetifLocal->RxDataBuff[ i ][ 0 ] );
+            ethernetifLocal->RxPbufs[ i ].buffer_used = false;
+        }
 
-		/* Initialize the ENET module. */
-		xStatus = ENET_Init( ethernetifLocal->base,
-							 &ethernetifLocal->handle,
-							 &config,
-							 &buffCfg[ 0 ],
-							 ipLOCAL_MAC_ADDRESS,
-							 sysClock );
+        /* Initialize the ENET module. */
+        xStatus = ENET_Init( ethernetifLocal->base,
+                             &ethernetifLocal->handle,
+                             &config,
+                             &buffCfg[ 0 ],
+                             ipLOCAL_MAC_ADDRESS,
+                             sysClock );
 
-		if( xStatus == kStatus_Success )
-		{
-			FreeRTOS_printf( ( "ENET initialized." ) );
-			ENET_ActiveRead( ethernetifLocal->base );
-		}
-		else
-		{
-			FreeRTOS_printf( ( "Failed to initialize ENET." ) );
-			*peEMACState = xEMAC_Fatal;
-		}
-	}
+        if( xStatus == kStatus_Success )
+        {
+            FreeRTOS_printf( ( "ENET initialized." ) );
+            ENET_ActiveRead( ethernetifLocal->base );
+        }
+        else
+        {
+            FreeRTOS_printf( ( "Failed to initialize ENET." ) );
+            *peEMACState = xEMAC_Fatal;
+        }
+    }
 
-	return xStatus;
+    return xStatus;
 }
