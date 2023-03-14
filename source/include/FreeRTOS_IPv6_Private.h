@@ -211,12 +211,12 @@ typedef struct xICMPRouterSolicitation_IPv6 ICMPRouterSolicitation_IPv6_t;
 #include "pack_struct_start.h"
 struct xICMPDestUnreachHeader_IPv6
 {
-    uint8_t ucTypeOfMessage;                /**< The message type.         0 +  1  =  1 */
-    uint8_t ucTypeOfService;                /**< Type of service.          1 +  1  =  2 */
-    uint16_t usChecksum;                    /**< Checksum.                 2 +  2  =  4 */
-    uint32_t ulReserved;                    /**< Reserved.                 4 +  4  =  8 */
-    IPHeader_IPv6_t xIPPacket_IPv6;         /**< IPv6 header.              8 + 40  = 48 */
-    uint8_t ucPayload[8];                   /**< Part of payload.         48 +  8  = 56 */
+    uint8_t ucTypeOfMessage;        /**< The message type.         0 +  1  =  1 */
+    uint8_t ucTypeOfService;        /**< Type of service.          1 +  1  =  2 */
+    uint16_t usChecksum;            /**< Checksum.                 2 +  2  =  4 */
+    uint32_t ulReserved;            /**< Reserved.                 4 +  4  =  8 */
+    IPHeader_IPv6_t xIPPacket_IPv6; /**< IPv6 header.              8 + 40  = 48 */
+    uint8_t ucPayload[ 8 ];         /**< Part of payload.         48 +  8  = 56 */
 }
 #include "pack_struct_end.h"
 typedef struct xICMPDestUnreachHeader_IPv6 ICMPDestUnreachHeader_IPv6_t;

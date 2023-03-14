@@ -1271,6 +1271,7 @@
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigREPLY_ICMP_PORT_UNREACHABLE != 0 )
+
 /**
  * @brief Send an ICMPv6 destination unreachable message.
  * @param[in] ucErrorCode: code field in message, fill in ipICMP_DEST_UNREACH_* from FreeRTOS_IPv6.h.
@@ -1282,7 +1283,8 @@
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
         /* coverity[misra_c_2012_rule_8_9_violation] */
         /* coverity[single_use] */
-        BaseType_t FreeRTOS_SendDestUnreachableIPv6( uint8_t ucErrorCode, NetworkBufferDescriptor_t * pxSourceNetworkBuffer )
+        BaseType_t FreeRTOS_SendDestUnreachableIPv6( uint8_t ucErrorCode,
+                                                     NetworkBufferDescriptor_t * pxSourceNetworkBuffer )
         {
             NetworkBufferDescriptor_t * pxNetworkBuffer;
             NetworkInterface_t * pxInterface;
@@ -1294,7 +1296,7 @@
             uxPacketSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPDestUnreachHeader_IPv6_t );
 
             /* This is called from the context of the IP event task, so a block time
-            * must not be used. */
+             * must not be used. */
             pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPacketSize, ndDONT_BLOCK );
 
             if( pxNetworkBuffer != NULL )
@@ -1306,7 +1308,7 @@
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
                 pxSourceIPHeader = ( ( const IPPacket_IPv6_t * ) ( pxSourceNetworkBuffer->pucEthernetBuffer ) );
-                
+
                 ( void ) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
                 pxNetworkBuffer->pxEndPoint = pxSourceNetworkBuffer->pxEndPoint;
 

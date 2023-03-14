@@ -159,6 +159,7 @@
     #endif
 
     #if ( ipconfigREPLY_ICMP_PORT_UNREACHABLE != 0 )
+
 /**
  * @brief Send an ICMPv6 destination unreachable message.
  * @param[in] ucErrorCode: code field in message, fill in ipICMP_DEST_UNREACH_* from FreeRTOS_IPv6.h.
@@ -166,7 +167,8 @@
  *
  * @return pdTRUE when a packets was successfully created.
  */
-        BaseType_t FreeRTOS_SendDestUnreachableIPv6( uint8_t ucErrorCode, NetworkBufferDescriptor_t * pxSourceNetworkBuffer );
+        BaseType_t FreeRTOS_SendDestUnreachableIPv6( uint8_t ucErrorCode,
+                                                     NetworkBufferDescriptor_t * pxSourceNetworkBuffer );
     #endif /* ( ipconfigREPLY_ICMP_PORT_UNREACHABLE != 0 ) */
 
 /**
