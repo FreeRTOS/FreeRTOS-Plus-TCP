@@ -1270,4 +1270,93 @@
     }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Send an ICMPv6 destination unreachable message.
+ * @param[in] ucErrorCode: code field in message, fill in ipICMP_DEST_UNREACH_* from FreeRTOS_IPv6.h.
+ * @param[in] pxSourceNetworkBuffer: The network buffer carrying the packet which needs destination unreachable response.
+ *
+ * @return pdTRUE when a packets was successfully created.
+ */
+    /* MISRA Ref 8.9.1 [File scoped variables] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+    /* coverity[misra_c_2012_rule_8_9_violation] */
+    /* coverity[single_use] */
+    BaseType_t FreeRTOS_SendDestUnreachableIPv6( uint8_t ucErrorCode, NetworkBufferDescriptor_t * pxSourceNetworkBuffer )
+    {
+        NetworkBufferDescriptor_t * pxNetworkBuffer;
+        NetworkInterface_t * pxInterface;
+        ICMPPacket_IPv6_t * pxICMPPacket;
+        ICMPDestUnreachHeader_IPv6_t * pxICMPDestUnreachHeader_IPv6;
+        size_t uxPacketSize;
+        BaseType_t xResult = pdFAIL;
+
+        uxPacketSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPDestUnreachHeader_IPv6_t );
+
+        /* This is called from the context of the IP event task, so a block time
+         * must not be used. */
+        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPacketSize, ndDONT_BLOCK );
+
+        if( pxNetworkBuffer != NULL )
+        {
+            /* The pointer points to source node's buffer. */
+            const IPPacket_IPv6_t * pxSourceIPHeader = NULL;
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxSourceIPHeader = ( ( const IPPacket_IPv6_t * ) ( pxSourceNetworkBuffer->pucEthernetBuffer ) );
+            
+            ( void ) memset( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+            pxNetworkBuffer->pxEndPoint = pxSourceNetworkBuffer->pxEndPoint;
+
+            pxInterface = pxSourceNetworkBuffer->pxInterface;
+
+            configASSERT( pxInterface != NULL );
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+            pxICMPDestUnreachHeader_IPv6 = ( ( ICMPDestUnreachHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+
+            /* Set MAC address. These two fields will be swapped at vReturnEthernetFrame. */
+            ( void ) memcpy( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxSourceNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            ( void ) memcpy( pxICMPPacket->xEthernetHeader.xSourceAddress.ucBytes, pxSourceIPHeader->xEthernetHeader.xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE; /* 12 + 2 = 14 */
+
+            pxICMPPacket->xIPHeader.ucVersionTrafficClass = 0x60;
+            pxICMPPacket->xIPHeader.ucTrafficClassFlow = 0;
+            pxICMPPacket->xIPHeader.usFlowLabel = 0;
+
+            pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPDestUnreachHeader_IPv6_t ) );
+            pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+            pxICMPPacket->xIPHeader.ucHopLimit = 255;
+            ( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, pxSourceNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxSourceIPHeader->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+            pxICMPDestUnreachHeader_IPv6->ucTypeOfMessage = ipICMP_DEST_UNREACHABLE_IPv6;
+            pxICMPDestUnreachHeader_IPv6->ucTypeOfService = ucErrorCode;
+            pxICMPDestUnreachHeader_IPv6->ulReserved = 0;
+
+            /* Copy source IP header & 8 bytes payload to pxICMPDestUnreachHeader_IPv6. */
+            ( void ) memcpy( &pxICMPDestUnreachHeader_IPv6->xIPPacket_IPv6, &( pxSourceNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ), ipSIZE_OF_IPv6_HEADER + 8 );
+            pxICMPPacket->xIPHeader.ucHopLimit = 255;
+
+            /* Important: tell NIC driver how many bytes must be sent */
+            pxNetworkBuffer->xDataLength = ( size_t ) ( uxPacketSize );
+
+            pxICMPDestUnreachHeader_IPv6->usChecksum = 0;
+            /* calculate the ICMP checksum for outgoing package */
+            ( void ) usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE );
+
+            /* This function will fill in the eth addresses and send the packet */
+            vReturnEthernetFrame( pxNetworkBuffer, pdTRUE );
+
+            xResult = pdPASS;
+        }
+
+        return xResult;
+    }
+/*-----------------------------------------------------------*/
+
 #endif /* ipconfigUSE_IPv6 */

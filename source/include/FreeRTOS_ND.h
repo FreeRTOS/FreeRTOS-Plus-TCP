@@ -159,6 +159,15 @@
     #endif
 
 /**
+ * @brief Send an ICMPv6 destination unreachable message.
+ * @param[in] ucErrorCode: code field in message, fill in ipICMP_DEST_UNREACH_* from FreeRTOS_IPv6.h.
+ * @param[in] pxSourceNetworkBuffer: The network buffer carrying the packet which needs destination unreachable response.
+ *
+ * @return pdTRUE when a packets was successfully created.
+ */
+BaseType_t FreeRTOS_SendDestUnreachableIPv6( uint8_t ucErrorCode, NetworkBufferDescriptor_t * pxSourceNetworkBuffer );
+
+/**
  * @brief Create an IPv16 address, based on a prefix.
  *
  * @param[out] pxIPAddress: The location where the new IPv6 address

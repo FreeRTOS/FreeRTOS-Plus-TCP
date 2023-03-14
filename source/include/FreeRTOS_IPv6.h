@@ -40,35 +40,44 @@
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
-#define ipSIZE_OF_IPv6_HEADER                    40U
-#define ipSIZE_OF_ICMPv6_HEADER                  24U
+#define ipSIZE_OF_IPv6_HEADER                           40U
+#define ipSIZE_OF_ICMPv6_HEADER                         24U
 
-#define ipSIZE_OF_IPv6_ADDRESS                   16U
+#define ipSIZE_OF_IPv6_ADDRESS                          16U
 
-#define ipPROTOCOL_ICMP_IPv6                     ( 58U )
-#define ipTYPE_IPv6                              ( 0x60U )
+#define ipPROTOCOL_ICMP_IPv6                            ( 58U )
+#define ipTYPE_IPv6                                     ( 0x60U )
 
 /* Some IPv6 ICMP requests. */
-#define ipICMP_DEST_UNREACHABLE_IPv6             ( ( uint8_t ) 1U )
-#define ipICMP_PACKET_TOO_BIG_IPv6               ( ( uint8_t ) 2U )
-#define ipICMP_TIME_EXEEDED_IPv6                 ( ( uint8_t ) 3U )
-#define ipICMP_PARAMETER_PROBLEM_IPv6            ( ( uint8_t ) 4U )
-#define ipICMP_PING_REQUEST_IPv6                 ( ( uint8_t ) 128U )
-#define ipICMP_PING_REPLY_IPv6                   ( ( uint8_t ) 129U )
-#define ipICMP_ROUTER_SOLICITATION_IPv6          ( ( uint8_t ) 133U )
-#define ipICMP_ROUTER_ADVERTISEMENT_IPv6         ( ( uint8_t ) 134U )
-#define ipICMP_NEIGHBOR_SOLICITATION_IPv6        ( ( uint8_t ) 135U )
-#define ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6       ( ( uint8_t ) 136U )
+#define ipICMP_DEST_UNREACHABLE_IPv6                    ( ( uint8_t ) 1U )
+#define ipICMP_PACKET_TOO_BIG_IPv6                      ( ( uint8_t ) 2U )
+#define ipICMP_TIME_EXEEDED_IPv6                        ( ( uint8_t ) 3U )
+#define ipICMP_PARAMETER_PROBLEM_IPv6                   ( ( uint8_t ) 4U )
+#define ipICMP_PING_REQUEST_IPv6                        ( ( uint8_t ) 128U )
+#define ipICMP_PING_REPLY_IPv6                          ( ( uint8_t ) 129U )
+#define ipICMP_ROUTER_SOLICITATION_IPv6                 ( ( uint8_t ) 133U )
+#define ipICMP_ROUTER_ADVERTISEMENT_IPv6                ( ( uint8_t ) 134U )
+#define ipICMP_NEIGHBOR_SOLICITATION_IPv6               ( ( uint8_t ) 135U )
+#define ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6              ( ( uint8_t ) 136U )
 
+/* IPv6 ICMP destination unreachable code field. */
+#define ipICMP_DEST_UNREACH_NO_ROUTE                    ( ( uint8_t ) 0U )
+#define ipICMP_DEST_UNREACH_COMMUNICATION_PROHIBITED    ( ( uint8_t ) 1U )
+#define ipICMP_DEST_UNREACH_BEYOND_SRC_ADDRESS          ( ( uint8_t ) 2U )
+#define ipICMP_DEST_UNREACH_ADDRESS_UNREACHABLE         ( ( uint8_t ) 3U )
+#define ipICMP_DEST_UNREACH_PORT_UNREACHABLE            ( ( uint8_t ) 4U )
+#define ipICMP_DEST_UNREACH_SRC_ADDRESS_FAILED          ( ( uint8_t ) 5U )
+#define ipICMP_DEST_UNREACH_REJECT_ROUTE                ( ( uint8_t ) 6U )
+#define ipICMP_DEST_UNREACH_SRC_ROUTE_HDR_ERROR         ( ( uint8_t ) 7U )
 
-#define ipIPv6_EXT_HEADER_HOP_BY_HOP             0U
-#define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS    60U
-#define ipIPv6_EXT_HEADER_ROUTING_HEADER         43U
-#define ipIPv6_EXT_HEADER_FRAGMENT_HEADER        44U
-#define ipIPv6_EXT_HEADER_AUTHEN_HEADER          51U
-#define ipIPv6_EXT_HEADER_SECURE_PAYLOAD         50U
+#define ipIPv6_EXT_HEADER_HOP_BY_HOP                    0U
+#define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS           60U
+#define ipIPv6_EXT_HEADER_ROUTING_HEADER                43U
+#define ipIPv6_EXT_HEADER_FRAGMENT_HEADER               44U
+#define ipIPv6_EXT_HEADER_AUTHEN_HEADER                 51U
+#define ipIPv6_EXT_HEADER_SECURE_PAYLOAD                50U
 /* Destination options may follow here in case there are no routing options. */
-#define ipIPv6_EXT_HEADER_MOBILITY_HEADER        135U
+#define ipIPv6_EXT_HEADER_MOBILITY_HEADER               135U
 
 #ifndef _MSC_VER
     extern const struct xIPv6_Address in6addr_any;

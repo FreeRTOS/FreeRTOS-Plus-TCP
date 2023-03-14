@@ -136,6 +136,10 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
             xICMPLength = sizeof( ICMPRouterSolicitation_IPv6_t );
             break;
 
+        case ipICMP_DEST_UNREACHABLE_IPv6:
+            xICMPLength = sizeof( ICMPDestUnreachHeader_IPv6_t );
+            break;
+
         default:
             xICMPLength = ipSIZE_OF_ICMPv6_HEADER;
             break;

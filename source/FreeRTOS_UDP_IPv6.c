@@ -613,6 +613,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             #endif /* ipconfigUSE_NBNS */
             {
                 xReturn = pdFAIL;
+
+                FreeRTOS_SendDestUnreachableIPv6( ipICMP_DEST_UNREACH_PORT_UNREACHABLE, pxNetworkBuffer );
             }
         }
     } while( ipFALSE_BOOL );
