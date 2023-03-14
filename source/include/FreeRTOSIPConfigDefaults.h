@@ -1129,6 +1129,10 @@
     #define ipconfigUSE_RA    1
 #endif
 
+#ifndef ipconfigREPLY_ICMP_PORT_UNREACHABLE
+    #define ipconfigREPLY_ICMP_PORT_UNREACHABLE    ( 1 )
+#endif
+
 /* RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
  * An Router Solicitation will be sent. It will wait for ipconfigRA_SEARCH_TIME_OUT_MSEC ms.
  * When there is no response, it will be repeated ipconfigRA_SEARCH_COUNT times.

@@ -614,7 +614,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             {
                 xReturn = pdFAIL;
 
-                FreeRTOS_SendDestUnreachableIPv6( ipICMP_DEST_UNREACH_PORT_UNREACHABLE, pxNetworkBuffer );
+                #if ( ipconfigREPLY_ICMP_PORT_UNREACHABLE != 0 )
+                    FreeRTOS_SendDestUnreachableIPv6( ipICMP_DEST_UNREACH_PORT_UNREACHABLE, pxNetworkBuffer );
+                #endif /* ( ipconfigREPLY_ICMP_PORT_UNREACHABLE != 0 ) */
             }
         }
     } while( ipFALSE_BOOL );
