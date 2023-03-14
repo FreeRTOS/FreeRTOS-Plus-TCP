@@ -52,7 +52,6 @@
     #define configUSE_16_BIT_TICKS                 0
 #endif
 #define configIDLE_SHOULD_YIELD                    1
-#define configUSE_CO_ROUTINES                      0
 #ifndef configUSE_MUTEXES
     #define configUSE_MUTEXES                      1
 #endif
@@ -82,10 +81,6 @@
 
 /* Event group related definitions. */
 #define configUSE_EVENT_GROUPS             1
-
-/* Co-routine definitions. */
-#define configUSE_CO_ROUTINES              0
-#define configMAX_CO_ROUTINE_PRIORITIES    ( 2 )
 
 /* Memory allocation strategy. */
 #ifndef configSUPPORT_DYNAMIC_ALLOCATION
