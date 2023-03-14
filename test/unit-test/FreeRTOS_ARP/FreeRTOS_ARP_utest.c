@@ -945,6 +945,29 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+void test_xCheckRequiresARPResolution_OnLocalNetwork_Loopback( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = ipLOOPBACK_ADDRESS;
+
+    /* Make sure there is a match on source IP and loopback address */
+    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask;
+
+    xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+}
+
 
 void test_ulARPRemoveCacheEntryByMac_NoMatch( void )
 {
@@ -1319,6 +1342,23 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
     TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 3" );
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &xBroadcastMACAddress, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
+    /* =================================================== */
+}
+
+void test_eARPGetCacheEntry_IPMatchesLoopbackAddr( void )
+{
+    uint32_t ulIPAddress;
+    MACAddress_t xMACAddress;
+    eARPLookupResult_t eResult;
+    uint32_t ulSavedGatewayAddress;
+
+    /* =================================================== */
+    ulIPAddress = ipLOOPBACK_ADDRESS;
+    /* Not worried about what these functions do. */
+    xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
+    eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress );
+    TEST_ASSERT_EQUAL_MESSAGE( eARPCacheHit, eResult, "Test 3" );
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE( &ipLOCAL_MAC_ADDRESS, &xMACAddress, sizeof( xMACAddress ), "Test 3" );
     /* =================================================== */
 }
 
