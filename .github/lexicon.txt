@@ -989,6 +989,7 @@ pxsockettodelete
 pxsourceaddress
 pxsourceaddresslength
 pxsourceendpoint
+pxsourcenetworkbuffer
 pxtargetendpoint
 pxtcp
 pxtcpheader
@@ -1230,6 +1231,7 @@ ucdnsserver
 ucdnsserveraddress
 ucdupackcount
 ucduplex
+ucerrorcode
 ucflags
 ucgatewayaddress
 uchardwareaddresslength
@@ -1266,6 +1268,7 @@ ucoptionbytes
 ucoptioncode
 ucoptionlength
 ucoptiontype
+ucpayload
 ucpeerwinscalefactor
 ucpreference
 ucprefix
