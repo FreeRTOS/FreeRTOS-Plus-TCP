@@ -113,8 +113,20 @@ foreach( file ${TCP_INCLUDES} )
         execute_process( COMMAND mv ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.h ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
     endif()
 
+
+
     # Use this tool to process all conditional declarations.
-    execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT -UpdTRUE_SIGNED -UFreeRTOS_htonl -D__COVERITY__ -DTEST -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
+    execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT
+                                                   -UpdTRUE_SIGNED
+                                                   -UpdFALSE_SIGNED
+                                                   -UpdTRUE_UNSIGNED
+                                                   -UpdFALSE_UNSIGNED
+                                                   -UipTRUE_BOOL
+                                                   -UipFALSE_BOOL
+                                                   -UFreeRTOS_htonl
+                                                   -D__COVERITY__
+                                                   -DTEST
+                                                   -I ${MODULE_ROOT_DIR}/tools/CMock/vendor/unity/src
                                                    -I ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                                                    -I ${UNIT_TEST_DIR}/ConfigFiles
                                                    -I ${MODULE_ROOT_DIR}/source/include
