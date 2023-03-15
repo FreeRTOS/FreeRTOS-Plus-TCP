@@ -14,6 +14,18 @@ with ( Assuming rule 11.4 violation; with justification in point 2 ):
 ```
 grep 'MISRA Ref 11.4.2' . -rI
 ```
+#### Directive 4.12
+
+_Ref 4.12.1_
+
+- MISRA C:2012 Directive 4.12: Dynamic memory allocation shall not be used.
+        MISRA warns against the use of dynamic memory allocation as it might
+        lead to undefined behavior if not used properly. However, the
+        FreeRTOS-Plus-TCP library only uses the memory allocation primitives
+        defined by the FreeRTOS-Kernel, which are deterministic. Additionally,
+        proper care is taken in the code to not use free'd pointers and to check
+        the validity of malloc'd memory before it is dereferenced or used.
+
 #### Rule 2.2
 
 _Ref 2.2.1_
