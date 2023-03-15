@@ -131,7 +131,7 @@
 
 /* The number of buffer descriptors in ENET TX ring. */
 #ifndef ENET_TXBD_NUM
-    #define ENET_TXBD_NUM            ( 3 )
+    #define ENET_TXBD_NUM    ( 3 )
 #endif
 
 /* Set the timeout values such that the total timeout adds up to 4000ms. */
@@ -255,7 +255,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
         configASSERT( pdFALSE == pdTRUE );
     #endif
 
-
     switch( eEMACState )
     {
         case xEMAC_SetupPHY:
@@ -266,9 +265,9 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 break;
             }
             else
-			{
-				eEMACState = xEMAC_WaitPHY;
-			}
+            {
+                eEMACState = xEMAC_WaitPHY;
+            }
 
         /* Fall through. */
         case xEMAC_WaitPHY:
@@ -287,7 +286,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             }
             else
             {
-            	eEMACState = xEMAC_Init;
+                eEMACState = xEMAC_Init;
             }
 
         /* Fall through. */
@@ -339,13 +338,14 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* Fall through. */
         case xEMAC_Ready:
-        	FreeRTOS_printf( ( "Driver ready for use." ) );
+            FreeRTOS_printf( ( "Driver ready for use." ) );
 
-        	/* Kick the task once the driver is ready. */
-        	if( receiveTaskHandle != NULL )
-        	{
-        	    xTaskNotify( receiveTaskHandle, DRIVER_READY, eSetValueWithOverwrite );
-        	}
+            /* Kick the task once the driver is ready. */
+            if( receiveTaskHandle != NULL )
+            {
+                xTaskNotify( receiveTaskHandle, DRIVER_READY, eSetValueWithOverwrite );
+            }
+
             xResult = pdPASS;
 
             break;
@@ -406,41 +406,41 @@ static void prvEMACHandlerTask( void * parameter )
     {
         if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE )
         {
-        	/* No RX packets for a bit so check for a link. */
+            /* No RX packets for a bit so check for a link. */
             const IPStackEvent_t xNetworkEventDown = { .eEventType = eNetworkDownEvent, .pvData = NULL };
 
             do
             {
-				readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+                readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
 
-				if( readStatus == kStatus_Success )
-				{
-					if( LinkUp == pdFALSE )
-					{
-						/* The link is down. */
-						bGlobalLinkStatus = false;
-						/* We need to setup the PHY again. */
-						eEMACState = xEMAC_SetupPHY;
+                if( readStatus == kStatus_Success )
+                {
+                    if( LinkUp == pdFALSE )
+                    {
+                        /* The link is down. */
+                        bGlobalLinkStatus = false;
+                        /* We need to setup the PHY again. */
+                        eEMACState = xEMAC_SetupPHY;
 
-						FreeRTOS_printf( ( "Link down!" ) );
+                        FreeRTOS_printf( ( "Link down!" ) );
 
-						xSendEventStructToIPTask( &xNetworkEventDown, 0U );
+                        xSendEventStructToIPTask( &xNetworkEventDown, 0U );
 
-						/* Wait for the driver to finish initialization. */
-						uint32_t ulNotificationValue;
-					    do{
-					    	ulNotificationValue = ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
-					    }while( !( ulNotificationValue & DRIVER_READY ) );
+                        /* Wait for the driver to finish initialization. */
+                        uint32_t ulNotificationValue;
 
-
-					}
-					else
-					{
-						/* The link is still up. */
-						bGlobalLinkStatus = true;
-					}
-				}
-            }while( bGlobalLinkStatus == false );
+                        do
+                        {
+                            ulNotificationValue = ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+                        } while( !( ulNotificationValue & DRIVER_READY ) );
+                    }
+                    else
+                    {
+                        /* The link is still up. */
+                        bGlobalLinkStatus = true;
+                    }
+                }
+            } while( bGlobalLinkStatus == false );
         }
         else
         {
@@ -763,7 +763,7 @@ static status_t xEMACInit( phy_speed_t speed,
 
     if( instance == ARRAY_SIZE( enetBases ) )
     {
-        //*peEMACState = xEMAC_Fatal;
+        /**peEMACState = xEMAC_Fatal; */
         xStatus = kStatus_Fail;
     }
     else
