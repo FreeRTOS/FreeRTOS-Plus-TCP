@@ -21,8 +21,8 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * http://aws.amazon.com/freertos
- * http://www.FreeRTOS.org
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
  */
 
 /**
@@ -134,7 +134,9 @@
     #define ENET_TXBD_NUM            ( 3 )
 #endif
 
-#define MAX_AUTONEG_FAILURE_COUNT    ( 5 )
+/* Set the timeout values such that the total timeout adds up to 4000ms. */
+#define MAX_AUTONEG_FAILURE_COUNT    ( 40 )
+#define SINGLE_ITERATION_TIMEOUT     ( 100 )
 
 #if defined( FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL ) && FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL
     #if defined( FSL_FEATURE_L2CACHE_LINESIZE_BYTE ) && \
@@ -154,10 +156,15 @@
     #define FSL_ENET_BUFF_ALIGNMENT            ENET_BUFF_ALIGNMENT
 #endif /* if defined( FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL ) && FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL */
 
+/* A bigger value is chosen so that the previous notification values are
+ * not interfering with the driver ready notifications. */
+#define DRIVER_READY    ( 0x40 )
+#define DRIVER_FATAL    ( DRIVER_READY << 1 )
+
 typedef uint8_t   rx_buffer_t[ SDK_SIZEALIGN( ENET_RXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT ) ];
 typedef uint8_t   tx_buffer_t[ SDK_SIZEALIGN( ENET_TXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT ) ];
 
-/*!
+/**
  * @brief Used to wrap received data in a pbuf to be passed into lwIP
  *        without copying.
  * Once last reference is released, buffer can be used by ENET RX DMA again.
@@ -188,7 +195,6 @@ typedef enum xEMAC_STATE
     xEMAC_WaitPHY,
     xEMAC_Init,
     xEMAC_Ready,
-    xEMAC_Fatal,
 } EMACState_t;
 
 static EMACState_t eEMACState = xEMAC_SetupPHY;
@@ -197,8 +203,9 @@ static mdio_handle_t mdioHandle = { .ops = &EXAMPLE_MDIO_OPS };
 
 static phy_handle_t phyHandle = { .phyAddr = 0x00, .mdioHandle = &mdioHandle, .ops = &EXAMPLE_PHY_OPS };
 
-/*
- * A deferred interrupt handler task that processes
+/**
+ * The task-handle for deferred interrupt handler task that processes
+ * incoming packets.
  */
 static TaskHandle_t receiveTaskHandle = NULL;
 
@@ -224,14 +231,11 @@ static void ethernet_callback( ENET_Type * base,
 
 static void prvProcessFrame( int length );
 
-static status_t xSetupPHY( phy_config_t * pxConfig,
-                           EMACState_t * peEMACState );
+static status_t xSetupPHY( phy_config_t * pxConfig );
 
-static status_t xWaitPHY( phy_config_t * pxConfig,
-                          EMACState_t * peEMACState );
+static status_t xWaitPHY( phy_config_t * pxConfig );
 
-static status_t xEMACInit( EMACState_t * peEMACState,
-                           phy_speed_t speed,
+static status_t xEMACInit( phy_speed_t speed,
                            phy_duplex_t duplex );
 
 BaseType_t xNetworkInterfaceInitialise( void )
@@ -251,22 +255,26 @@ BaseType_t xNetworkInterfaceInitialise( void )
         configASSERT( pdFALSE == pdTRUE );
     #endif
 
+
     switch( eEMACState )
     {
         case xEMAC_SetupPHY:
-            xStatus = xSetupPHY( &xConfig, &eEMACState );
+            xStatus = xSetupPHY( &xConfig );
 
             if( xStatus != kStatus_Success )
             {
-                eEMACState = xEMAC_Fatal;
                 break;
             }
+            else
+			{
+				eEMACState = xEMAC_WaitPHY;
+			}
 
         /* Fall through. */
         case xEMAC_WaitPHY:
             FreeRTOS_printf( ( "Configuration successful. Waiting for auto-negotiation to complete.\r\n" ) );
 
-            xStatus = xWaitPHY( &xConfig, &eEMACState );
+            xStatus = xWaitPHY( &xConfig );
 
             if( xStatus == kStatus_Success )
             {
@@ -275,16 +283,19 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
             if( xStatus != kStatus_Success )
             {
-                eEMACState = xEMAC_Fatal;
                 break;
+            }
+            else
+            {
+            	eEMACState = xEMAC_Init;
             }
 
         /* Fall through. */
         case xEMAC_Init:
 
-            xStatus = xEMACInit( &eEMACState, speed, duplex );
+            xStatus = xEMACInit( speed, duplex );
 
-            if( xFirstCall == pdTRUE )
+            if( ( xFirstCall == pdTRUE ) || ( receiveTaskHandle == NULL ) )
             {
                 if( xStatus == kStatus_Success )
                 {
@@ -303,7 +314,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
                     if( ( receiveTaskHandle == NULL ) || ( xTaskCreated != pdPASS ) )
                     {
                         FreeRTOS_printf( ( "Failed to create the handler task." ) );
-                        eEMACState = xEMAC_Fatal;
                         break;
                     }
 
@@ -312,8 +322,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
                     NVIC_SetPriority( ENET_IRQn, ENET_PRIORITY );
                     NVIC_EnableIRQ( ENET_IRQn );
 
-                    FreeRTOS_printf( ( "Driver ready for use." ) );
-
                     eEMACState = xEMAC_Ready;
 
                     /* After this, the task should not be created. */
@@ -321,7 +329,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 }
                 else
                 {
-                    eEMACState = xEMAC_Fatal;
                     break;
                 }
             }
@@ -332,11 +339,15 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* Fall through. */
         case xEMAC_Ready:
+        	FreeRTOS_printf( ( "Driver ready for use." ) );
+
+        	/* Kick the task once the driver is ready. */
+        	if( receiveTaskHandle != NULL )
+        	{
+        	    xTaskNotify( receiveTaskHandle, DRIVER_READY, eSetValueWithOverwrite );
+        	}
             xResult = pdPASS;
 
-            break;
-
-        case xEMAC_Fatal:
             break;
     }
 
@@ -388,33 +399,48 @@ static void prvEMACHandlerTask( void * parameter )
     bool LinkUp = false;
     status_t readStatus;
 
+    /* Wait for the driver to finish starting. */
+    ( void ) ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+
     while( pdTRUE )
     {
-        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */
+        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE )
         {
+        	/* No RX packets for a bit so check for a link. */
             const IPStackEvent_t xNetworkEventDown = { .eEventType = eNetworkDownEvent, .pvData = NULL };
 
-            readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
-
-            if( readStatus == kStatus_Success )
+            do
             {
-                if( LinkUp == pdFALSE )
-                {
-                    /* The link is down. */
-                    bGlobalLinkStatus = false;
-                    /* We need to setup the PHY again. */
-                    eEMACState = xEMAC_SetupPHY;
+				readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
 
-                    FreeRTOS_printf( ( "Link down!" ) );
+				if( readStatus == kStatus_Success )
+				{
+					if( LinkUp == pdFALSE )
+					{
+						/* The link is down. */
+						bGlobalLinkStatus = false;
+						/* We need to setup the PHY again. */
+						eEMACState = xEMAC_SetupPHY;
 
-                    xSendEventStructToIPTask( &xNetworkEventDown, 0U );
-                }
-                else
-                {
-                    /* The link is still up. */
-                    bGlobalLinkStatus = true;
-                }
-            }
+						FreeRTOS_printf( ( "Link down!" ) );
+
+						xSendEventStructToIPTask( &xNetworkEventDown, 0U );
+
+						/* Wait for the driver to finish initialization. */
+						uint32_t ulNotificationValue;
+					    do{
+					    	ulNotificationValue = ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+					    }while( !( ulNotificationValue & DRIVER_READY ) );
+
+
+					}
+					else
+					{
+						/* The link is still up. */
+						bGlobalLinkStatus = true;
+					}
+				}
+            }while( bGlobalLinkStatus == false );
         }
         else
         {
@@ -458,7 +484,7 @@ static void prvEMACHandlerTask( void * parameter )
     }
 }
 
-/*
+/**
  * @brief Callback for ENET interrupts. We have only enabled the Ethernet receive interrupts
  * in the case of this driver.
  */
@@ -488,7 +514,7 @@ static void ethernet_callback( ENET_Type * base,
     }
 }
 
-/*
+/**
  * @brief This function verifies that the incoming frame needs processing.
  *        If the frame is deemed to be appropriate, then the frame is sent to the
  *        TCP stack for further processing.
@@ -534,7 +560,7 @@ static void prvProcessFrame( int length )
 }
 
 
-/*
+/**
  * @brief This function is used to setup the PHY in auto-negotiation mode.
  *
  * @param[out] pxConfig: the configuration parameters will be written into this pointer.
@@ -544,13 +570,9 @@ static void prvProcessFrame( int length )
  *
  * @return kStatus_Success if the PHY was initialized; error code otherwise.
  */
-static status_t xSetupPHY( phy_config_t * pxConfig,
-                           EMACState_t * peEMACState )
+static status_t xSetupPHY( phy_config_t * pxConfig )
 {
     status_t xStatus;
-
-    /* Make sure that current state is correct. */
-    configASSERT( *peEMACState == xEMAC_SetupPHY );
 
     ethernetifLocal->RxBuffDescrip = &( rxBuffDescrip_0[ 0 ] );
     ethernetifLocal->TxBuffDescrip = &( txBuffDescrip_0[ 0 ] );
@@ -575,17 +597,12 @@ static status_t xSetupPHY( phy_config_t * pxConfig,
     if( xStatus != kStatus_Success )
     {
         FreeRTOS_printf( ( "Failed to initialize the PHY..." ) );
-        *peEMACState = xEMAC_Fatal;
-    }
-    else
-    {
-        *peEMACState = xEMAC_WaitPHY;
     }
 
     return xStatus;
 }
 
-/*
+/**
  * @brief This function is used wait on the auto-negotiation completion. In case auto-negotiation
  *        fails, the function tries to use the default values (100M speed; full duplex communication
  *        link) to get the link up.
@@ -597,16 +614,12 @@ static status_t xSetupPHY( phy_config_t * pxConfig,
  *
  * @return kStatus_Success if the PHY was initialized; error code otherwise.
  */
-static status_t xWaitPHY( phy_config_t * pxConfig,
-                          EMACState_t * peEMACState )
+static status_t xWaitPHY( phy_config_t * pxConfig )
 {
     status_t xStatus;
     bool LinkUp;
     bool autoNegotiationComplete;
     uint8_t ucCounter = 0;
-
-    /* Make sure that current state is correct. */
-    configASSERT( *peEMACState == xEMAC_WaitPHY );
 
     do
     {
@@ -623,41 +636,26 @@ static status_t xWaitPHY( phy_config_t * pxConfig,
             break;
         }
 
-        vTaskDelay( pdMS_TO_TICKS( 10 ) );
+        vTaskDelay( pdMS_TO_TICKS( SINGLE_ITERATION_TIMEOUT ) );
     }
     while( xStatus == kStatus_Success );
 
     if( autoNegotiationComplete == false )
     {
-        FreeRTOS_printf( ( "Failed to complete auto-negotiation. Using default values." ) );
-
-        pxConfig->autoNeg = pdFALSE;
-        pxConfig->duplex = kPHY_FullDuplex;
-        pxConfig->phyAddr = BOARD_ENET0_PHY_ADDRESS;
-        pxConfig->speed = kPHY_Speed100M;
-
-        xStatus = PHY_Init( &phyHandle, pxConfig );
-
-        if( xStatus != kStatus_Success )
-        {
-            FreeRTOS_printf( ( "Failed to re-initialize the PHY with default configs!" ) );
-            *peEMACState = xEMAC_Fatal;
-        }
-        else
-        {
-            FreeRTOS_printf( ( "PHY re-initialization successful." ) );
-        }
+        FreeRTOS_printf( ( "Failed to complete auto-negotiation." ) );
+        xStatus = kStatus_Fail;
     }
     else
     {
         FreeRTOS_printf( ( "Auto-negotiation complete.\r\n" ) );
     }
 
-    if( xStatus == kStatus_Success )
+    if( ( xStatus == kStatus_Success ) && ( autoNegotiationComplete == true ) )
     {
         /* Reset the counter for next use. */
         ucCounter = 0;
 
+        /* Wait for the link to go up. */
         do
         {
             xStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
@@ -667,13 +665,13 @@ static status_t xWaitPHY( phy_config_t * pxConfig,
                 break;
             }
 
-            vTaskDelay( pdMS_TO_TICKS( 1000 ) );
-
             /* Try for only a limited number of times. */
             if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
             {
                 break;
             }
+
+            vTaskDelay( pdMS_TO_TICKS( SINGLE_ITERATION_TIMEOUT ) );
         }
         while( xStatus == kStatus_Success );
 
@@ -686,20 +684,16 @@ static status_t xWaitPHY( phy_config_t * pxConfig,
         {
             /* Success in auto-negotiation and the link is up. */
             FreeRTOS_printf( ( "Link up." ) );
-            *peEMACState = xEMAC_Init;
         }
     }
 
     return xStatus;
 }
 
-/*
+/**
  * @brief This function is used to initialize the ENET module. It initializes the network buffers
  *        and buffer descriptors.
  *
- * @param[in|out] peEMACState: the current state in the call to xNetworkInterfaceInitialise.
- *                   The state will be updated to the next state depending on the status of
- *                   the PHY initialization.
  * @param[in] speed: The speed of communication (either set by auto-negotiation or the default
  *                   value).
  * @param[in] duplex: The nature of the channel. This must be set to kPHY_FullDuplex by
@@ -707,8 +701,7 @@ static status_t xWaitPHY( phy_config_t * pxConfig,
  *
  * @return kStatus_Success if the ENET module was initialized; error code otherwise.
  */
-static status_t xEMACInit( EMACState_t * peEMACState,
-                           phy_speed_t speed,
+static status_t xEMACInit( phy_speed_t speed,
                            phy_duplex_t duplex )
 {
     enet_config_t config;
@@ -722,8 +715,6 @@ static status_t xEMACInit( EMACState_t * peEMACState,
     static const IRQn_Type enetRxIrqId[] = ENET_Receive_IRQS;
     int i;
 
-    /* Make sure that current state is correct. */
-    configASSERT( *peEMACState == xEMAC_Init );
     /* Make sure that the channel is full duplex. */
     configASSERT( duplex == kPHY_FullDuplex );
 
@@ -772,7 +763,7 @@ static status_t xEMACInit( EMACState_t * peEMACState,
 
     if( instance == ARRAY_SIZE( enetBases ) )
     {
-        *peEMACState = xEMAC_Fatal;
+        //*peEMACState = xEMAC_Fatal;
         xStatus = kStatus_Fail;
     }
     else
@@ -799,7 +790,6 @@ static status_t xEMACInit( EMACState_t * peEMACState,
         else
         {
             FreeRTOS_printf( ( "Failed to initialize ENET." ) );
-            *peEMACState = xEMAC_Fatal;
         }
     }
 
