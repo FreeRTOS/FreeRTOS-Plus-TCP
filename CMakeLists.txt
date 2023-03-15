@@ -162,11 +162,6 @@ else()
 endif()
 
 ########################################################################
-# Requirements
-set(CMAKE_C_STANDARD 90) # Note FreeRTOS-Kernel uses C99 constructs.
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
-########################################################################
 # Overall Compile Options
 # Note the compile option strategy is to error on everything and then
 # Per library opt-out of things that are warnings/errors.
