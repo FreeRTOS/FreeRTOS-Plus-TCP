@@ -585,80 +585,80 @@
         configASSERT( pxEndPoint != NULL );
         configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
 
-            uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
+        uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
 
-            if( pxDescriptor->xDataLength < uxNeededSize )
-            {
-                pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
-            }
-
-            if( pxDescriptor != NULL )
-            {
-                const uint32_t ulPayloadLength = 32U;
-
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
-                pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
-
-                pxDescriptor->xDataLength = uxNeededSize;
-
-                /* Set the multi-cast MAC-address. */
-                xMultiCastMacAddress.ucBytes[ 0 ] = 0x33U;
-                xMultiCastMacAddress.ucBytes[ 1 ] = 0x33U;
-                xMultiCastMacAddress.ucBytes[ 2 ] = 0xffU;
-                xMultiCastMacAddress.ucBytes[ 3 ] = pxIPAddress->ucBytes[ 13 ];
-                xMultiCastMacAddress.ucBytes[ 4 ] = pxIPAddress->ucBytes[ 14 ];
-                xMultiCastMacAddress.ucBytes[ 5 ] = pxIPAddress->ucBytes[ 15 ];
-
-                /* Set Ethernet header. Source and Destination will be swapped. */
-                ( void ) memcpy( pxICMPPacket->xEthernetHeader.xSourceAddress.ucBytes, xMultiCastMacAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-                ( void ) memcpy( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-                pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-
-                /* Set IP-header. */
-                pxICMPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
-                pxICMPPacket->xIPHeader.ucTrafficClassFlow = 0U;
-                pxICMPPacket->xIPHeader.usFlowLabel = 0U;
-                pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ulPayloadLength );
-                pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
-                pxICMPPacket->xIPHeader.ucHopLimit = 255U;
-
-                /* Source address "fe80::1" */
-                ( void ) memset( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, 0, sizeof( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
-                pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 0 ] = 0xfeU;
-                pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 1 ] = 0x80U;
-                pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 15 ] = 0x01U;
-
-                /*ff02::1:ff5a:afe7 */
-                ( void ) memset( xTargetIPAddress.ucBytes, 0, sizeof( xTargetIPAddress.ucBytes ) );
-                xTargetIPAddress.ucBytes[ 0 ] = 0xff;
-                xTargetIPAddress.ucBytes[ 1 ] = 0x02;
-                xTargetIPAddress.ucBytes[ 11 ] = 0x01;
-                xTargetIPAddress.ucBytes[ 12 ] = 0xff;
-                xTargetIPAddress.ucBytes[ 13 ] = pxIPAddress->ucBytes[ 13 ];
-                xTargetIPAddress.ucBytes[ 14 ] = pxIPAddress->ucBytes[ 14 ];
-                xTargetIPAddress.ucBytes[ 15 ] = pxIPAddress->ucBytes[ 15 ];
-                ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, xTargetIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-
-                /* Set ICMP header. */
-                ( void ) memset( pxICMPHeader_IPv6, 0, sizeof( *pxICMPHeader_IPv6 ) );
-                pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
-                ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                pxICMPHeader_IPv6->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
-                pxICMPHeader_IPv6->ucOptionLength = 1U; /* times 8 bytes. */
-                ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-
-                /* Checksums. */
-                pxICMPHeader_IPv6->usChecksum = 0U;
-                /* calculate the ICMP checksum for the outgoing package. */
-                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
-
-                /* This function will fill in the eth addresses and send the packet */
-                vReturnEthernetFrame( pxDescriptor, pdTRUE );
-            }
+        if( pxDescriptor->xDataLength < uxNeededSize )
+        {
+            pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
         }
+
+        if( pxDescriptor != NULL )
+        {
+            const uint32_t ulPayloadLength = 32U;
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
+            pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+
+            pxDescriptor->xDataLength = uxNeededSize;
+
+            /* Set the multi-cast MAC-address. */
+            xMultiCastMacAddress.ucBytes[ 0 ] = 0x33U;
+            xMultiCastMacAddress.ucBytes[ 1 ] = 0x33U;
+            xMultiCastMacAddress.ucBytes[ 2 ] = 0xffU;
+            xMultiCastMacAddress.ucBytes[ 3 ] = pxIPAddress->ucBytes[ 13 ];
+            xMultiCastMacAddress.ucBytes[ 4 ] = pxIPAddress->ucBytes[ 14 ];
+            xMultiCastMacAddress.ucBytes[ 5 ] = pxIPAddress->ucBytes[ 15 ];
+
+            /* Set Ethernet header. Source and Destination will be swapped. */
+            ( void ) memcpy( pxICMPPacket->xEthernetHeader.xSourceAddress.ucBytes, xMultiCastMacAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            ( void ) memcpy( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+
+            /* Set IP-header. */
+            pxICMPPacket->xIPHeader.ucVersionTrafficClass = 0x60U;
+            pxICMPPacket->xIPHeader.ucTrafficClassFlow = 0U;
+            pxICMPPacket->xIPHeader.usFlowLabel = 0U;
+            pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( ulPayloadLength );
+            pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+            pxICMPPacket->xIPHeader.ucHopLimit = 255U;
+
+            /* Source address "fe80::1" */
+            ( void ) memset( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, 0, sizeof( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
+            pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 0 ] = 0xfeU;
+            pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 1 ] = 0x80U;
+            pxICMPPacket->xIPHeader.xSourceAddress.ucBytes[ 15 ] = 0x01U;
+
+            /*ff02::1:ff5a:afe7 */
+            ( void ) memset( xTargetIPAddress.ucBytes, 0, sizeof( xTargetIPAddress.ucBytes ) );
+            xTargetIPAddress.ucBytes[ 0 ] = 0xff;
+            xTargetIPAddress.ucBytes[ 1 ] = 0x02;
+            xTargetIPAddress.ucBytes[ 11 ] = 0x01;
+            xTargetIPAddress.ucBytes[ 12 ] = 0xff;
+            xTargetIPAddress.ucBytes[ 13 ] = pxIPAddress->ucBytes[ 13 ];
+            xTargetIPAddress.ucBytes[ 14 ] = pxIPAddress->ucBytes[ 14 ];
+            xTargetIPAddress.ucBytes[ 15 ] = pxIPAddress->ucBytes[ 15 ];
+            ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, xTargetIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+            /* Set ICMP header. */
+            ( void ) memset( pxICMPHeader_IPv6, 0, sizeof( *pxICMPHeader_IPv6 ) );
+            pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
+            ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            pxICMPHeader_IPv6->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
+            pxICMPHeader_IPv6->ucOptionLength = 1U; /* times 8 bytes. */
+            ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+
+            /* Checksums. */
+            pxICMPHeader_IPv6->usChecksum = 0U;
+            /* calculate the ICMP checksum for the outgoing package. */
+            ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+
+            /* This function will fill in the eth addresses and send the packet */
+            vReturnEthernetFrame( pxDescriptor, pdTRUE );
+        }
+    }
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
@@ -1037,7 +1037,7 @@
 
                        if( pxEndPointFound != NULL )
                        {
-                       	   #if( ipconfigHAS_PRINTF != 0 )
+                           #if ( ipconfigHAS_PRINTF != 0 )
                                char pcName[ 40 ];
                                pcName[ 0 ] = 0;
                                FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",

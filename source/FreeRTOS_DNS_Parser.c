@@ -1067,7 +1067,7 @@
 
                 if( ( usFlags & dnsNBNS_FLAGS_OPCODE_MASK ) != dnsNBNS_FLAGS_OPCODE_QUERY )
                 {
-                	/* No need to answer, this is not a query. */
+                    /* No need to answer, this is not a query. */
                     break;
                 }
 
@@ -1138,7 +1138,7 @@
                 if( ( usType != dnsNBNS_TYPE_NET_BIOS ) ||
                     ( ( usFlags & dnsNBNS_FLAGS_RESPONSE ) != 0U ) )
                 {
-                	/* The request is not for NBNS, or the response flag is set. */
+                    /* The request is not for NBNS, or the response flag is set. */
                     break;
                 }
 

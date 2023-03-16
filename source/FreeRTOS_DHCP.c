@@ -1519,7 +1519,7 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack.
-				 * 'pucUDPPayloadBuffer' is proven to be not NULL. */
+                 * 'pucUDPPayloadBuffer' is proven to be not NULL. */
                 FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
             else

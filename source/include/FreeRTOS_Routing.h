@@ -340,6 +340,7 @@
  * @return A value from enum IPv6_Type_t.
  */
     IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+
 /**
  * @brief Print some information about an endpoint in the buffer provided.
  *        Will be used mostly for debugging.

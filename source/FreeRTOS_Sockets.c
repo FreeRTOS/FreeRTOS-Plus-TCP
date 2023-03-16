@@ -1369,7 +1369,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
             {
                 if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xUDP.pxHandleSent ) )
                 {
-                	/* The cast to 'FreeRTOS_Socket_t *' is removing the const. */
+                    /* The cast to 'FreeRTOS_Socket_t *' is removing the const. */
                     pxSocket->u.xUDP.pxHandleSent( ( FreeRTOS_Socket_t * ) pxSocket, uxTotalDataLength );
                 }
             }
