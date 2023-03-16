@@ -5481,7 +5481,7 @@ BaseType_t xSocketSetSocketID( const Socket_t xSocket,
     FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
     BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
 
-    if( xSocketValid( pxSocket ) )
+    if( xSocketValid( pxSocket ) == pdTRUE )
     {
         xReturn = 0;
         pxSocket->pvSocketID = pvSocketID;
@@ -5503,7 +5503,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
     const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
     void * pvReturn = NULL;
 
-    if( xSocketValid( pxSocket ) )
+    if( xSocketValid( pxSocket ) == pdTRUE )
     {
         pvReturn = pxSocket->pvSocketID;
     }
