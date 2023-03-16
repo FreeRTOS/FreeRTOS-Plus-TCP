@@ -77,8 +77,8 @@
 /**
  * @brief Test if a>=b. This function is required since the sequence numbers can roll over.
  *
- * @param[in] a: The first sequence number.
- * @param[in] b: The second sequence number.
+ * @param[in] a The first sequence number.
+ * @param[in] b The second sequence number.
  *
  * @return pdTRUE if a>=b, else pdFALSE.
  */
@@ -102,7 +102,7 @@
 /**
  * @brief Set the timer's "born" time.
  *
- * @param[in] pxTimer: The TCP timer.
+ * @param[in] pxTimer The TCP timer.
  */
         static portINLINE void vTCPTimerSet( TCPTimer_t * pxTimer )
         {
@@ -115,7 +115,7 @@
 /**
  * @brief Get the timer age in milliseconds.
  *
- * @param[in] pxTimer: The timer whose age is to be fetched.
+ * @param[in] pxTimer The timer whose age is to be fetched.
  *
  * @return The time in milliseconds since the timer was born.
  */
@@ -132,10 +132,10 @@
  * @brief Data was received at 'ulSequenceNumber'. See if it was expected
  *        and if there is enough space to store the new data.
  *
- * @param[in] pxWindow: The window to be checked.
- * @param[in] ulSequenceNumber: Sequence number of the data received.
- * @param[in] ulLength: Length of the data received.
- * @param[in] ulSpace: Space in the buffer.
+ * @param[in] pxWindow The window to be checked.
+ * @param[in] ulSequenceNumber Sequence number of the data received.
+ * @param[in] ulLength Length of the data received.
+ * @param[in] ulSpace Space in the buffer.
  *
  * @return A 0 is returned if there is enough space and the sequence number is correct,
  *         if not then a -1 is returned.
@@ -175,10 +175,10 @@
 /**
  * @brief Add data to the Tx Window.
  *
- * @param[in] pxWindow: The window to which the data is to be added.
- * @param[in] ulLength: The length of the data to be added.
- * @param[in] lPosition: Position in the stream.
- * @param[in] lMax: Size of the Tx stream.
+ * @param[in] pxWindow The window to which the data is to be added.
+ * @param[in] ulLength The length of the data to be added.
+ * @param[in] lPosition Position in the stream.
+ * @param[in] lMax Size of the Tx stream.
  *
  * @return The data actually added.
  */
@@ -244,9 +244,9 @@
 /**
  * @brief Fetches data to be sent.
  *
- * @param[in] pxWindow: The window for the connection.
- * @param[in] ulWindowSize: The size of the window.
- * @param[out] plPosition: plPosition will point to a location with the circular data buffer: txStream.
+ * @param[in] pxWindow The window for the connection.
+ * @param[in] ulWindowSize The size of the window.
+ * @param[out] plPosition plPosition will point to a location with the circular data buffer: txStream.
  *
  * @return return the amount of data which may be sent along with the position in the txStream.
  */
@@ -295,7 +295,7 @@
 /**
  * @brief Has the transmission completed.
  *
- * @param[in] pxWindow: The window whose transmission window is to be checked.
+ * @param[in] pxWindow The window whose transmission window is to be checked.
  *
  * @return If there is no outstanding data then pdTRUE is returned,
  *         else pdFALSE.
@@ -326,8 +326,8 @@
 /**
  * @brief Check if the window has space for one message.
  *
- * @param[in] pxWindow: The window to be checked.
- * @param[in] ulWindowSize: Size of the window.
+ * @param[in] pxWindow The window to be checked.
+ * @param[in] ulWindowSize Size of the window.
  *
  * @return pdTRUE if the window has space, pdFALSE otherwise.
  */
@@ -355,9 +355,9 @@
 /**
  * @brief Check data to be sent and calculate the time period the process may sleep.
  *
- * @param[in] pxWindow: The window to be checked.
- * @param[in] ulWindowSize: Size of the window.
- * @param[out] pulDelay: The time period (in ticks) that the process may sleep.
+ * @param[in] pxWindow The window to be checked.
+ * @param[in] ulWindowSize Size of the window.
+ * @param[out] pulDelay The time period (in ticks) that the process may sleep.
  *
  * @return pdTRUE if the process should sleep or pdFALSE.
  */
@@ -412,8 +412,8 @@
 /**
  * @brief Receive a normal ACK.
  *
- * @param[in] pxWindow: The window for this particular connection.
- * @param[in] ulSequenceNumber: The sequence number of the packet.
+ * @param[in] pxWindow The window for this particular connection.
+ * @param[in] ulSequenceNumber The sequence number of the packet.
  *
  * @return Number of bytes to send.
  */
@@ -466,7 +466,7 @@
  * @brief This function will be called as soon as a FIN is received to check
  *        whether all transmit queues are empty or not.
  *
- * @param[in] pxWindow: The window to be checked.
+ * @param[in] pxWindow The window to be checked.
  *
  * @return It will return true if there are no 'open' reception segments.
  */
@@ -485,7 +485,7 @@
 /**
  * @brief Destroy a window.
  *
- * @param[in] pxWindow: Pointer to the window to be destroyed.
+ * @param[in] pxWindow Pointer to the window to be destroyed.
  *
  * @return Always returns a NULL.
  */

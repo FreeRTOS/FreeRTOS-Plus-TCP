@@ -74,7 +74,7 @@
 /**
  * @brief Process an ICMP packet. Only echo requests and echo replies are recognised and handled.
  *
- * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+ * @param[in,out] pxNetworkBuffer The IP packet that contains the ICMP message.
  *
  * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
  *                        when the packet should be returned.
@@ -132,7 +132,7 @@
 /**
  * @brief Process an ICMP echo request.
  *
- * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+ * @param[in,out] pxICMPPacket The IP packet that contains the ICMP message.
  */
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
                                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer )
@@ -197,7 +197,7 @@
 /**
  * @brief Process an ICMP echo reply.
  *
- * @param[in] pxICMPPacket: The IP packet that contains the ICMP message.
+ * @param[in] pxICMPPacket The IP packet that contains the ICMP message.
  */
     static void prvProcessICMPEchoReply( ICMPPacket_t * const pxICMPPacket )
     {

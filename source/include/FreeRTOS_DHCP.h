@@ -214,6 +214,9 @@ typedef struct xDHCP_DATA DHCPData_t;
 /* Returns the current state of a DHCP process. */
 eDHCPState_t eGetDHCPState( void );
 
+/* Returns the curent state of the DHCP process as a uintptr_t type */
+uintptr_t eGetDHCPStateAsUintptr( void );
+
 /*
  * NOT A PUBLIC API FUNCTION.
  * It will be called when the DHCP timer expires, or when

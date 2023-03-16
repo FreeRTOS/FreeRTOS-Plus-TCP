@@ -252,9 +252,9 @@ void vCheckNetworkTimers( void )
  * @brief Start an IP timer. The IP-task has its own implementation of a timer
  *        called 'IPTimer_t', which is based on the FreeRTOS 'TimeOut_t'.
  *
- * @param[in] pxTimer: Pointer to the IP timer. When zero, the timer is marked
+ * @param[in] pxTimer Pointer to the IP timer. When zero, the timer is marked
  *                     as expired.
- * @param[in] xTime: Time to be loaded into the IP timer.
+ * @param[in] xTime Time to be loaded into the IP timer.
  */
 static void prvIPTimerStart( IPTimer_t * pxTimer,
                              TickType_t xTime )
@@ -284,8 +284,8 @@ void vIPTimerStartARPResolution( TickType_t xTime )
 /**
  * @brief Sets the reload time of an IP timer and restarts it.
  *
- * @param[in] pxTimer: Pointer to the IP timer.
- * @param[in] xTime: Time to be reloaded into the IP timer.
+ * @param[in] pxTimer Pointer to the IP timer.
+ * @param[in] xTime Time to be reloaded into the IP timer.
  */
 static void prvIPTimerReload( IPTimer_t * pxTimer,
                               TickType_t xTime )
@@ -314,7 +314,7 @@ void vARPTimerReload( TickType_t xTime )
 /**
  * @brief Reload the DHCP timer.
  *
- * @param[in] ulLeaseTime: The reload value.
+ * @param[in] xLeaseTime The reload value.
  */
     void vDHCPTimerReload( TickType_t xLeaseTime )
     {
@@ -328,7 +328,7 @@ void vARPTimerReload( TickType_t xTime )
 /**
  * @brief Reload the DNS timer.
  *
- * @param[in] ulCheckTime: The reload value.
+ * @param[in] ulCheckTime The reload value.
  */
     void vDNSTimerReload( uint32_t ulCheckTime )
     {
@@ -340,7 +340,7 @@ void vARPTimerReload( TickType_t xTime )
 /**
  * @brief Check the IP timer to see whether an IP event should be processed or not.
  *
- * @param[in] pxTimer: Pointer to the IP timer.
+ * @param[in] pxTimer Pointer to the IP timer.
  *
  * @return If the timer is expired then pdTRUE is returned. Else pdFALSE.
  */
@@ -385,7 +385,7 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /**
  * @brief Enable/disable the TCP timer.
  *
- * @param[in] xExpiredState: pdTRUE - set as expired; pdFALSE - set as non-expired.
+ * @param[in] xExpiredState pdTRUE - set as expired; pdFALSE - set as non-expired.
  */
     void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState )
     {
@@ -406,7 +406,7 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /**
  * @brief Enable/disable the ARP timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] xEnableState pdTRUE - enable timer; pdFALSE - disable timer.
  */
 void vIPSetARPTimerEnableState( BaseType_t xEnableState )
 {
@@ -424,7 +424,7 @@ void vIPSetARPTimerEnableState( BaseType_t xEnableState )
 /**
  * @brief Enable or disable the ARP resolution timer.
  *
- * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ * @param[in] xEnableState pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
 void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 {
@@ -444,7 +444,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 /**
  * @brief Enable/disable the DHCP timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] xEnableState pdTRUE - enable timer; pdFALSE - disable timer.
  */
     void vIPSetDHCPTimerEnableState( BaseType_t xEnableState )
     {
@@ -465,7 +465,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 /**
  * @brief Enable/disable the DNS timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] xEnableState pdTRUE - enable timer; pdFALSE - disable timer.
  */
     void vIPSetDNSTimerEnableState( BaseType_t xEnableState )
     {
