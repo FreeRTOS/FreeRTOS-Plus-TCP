@@ -117,14 +117,13 @@
     #error "ENET_RXBD_NUM < MAX_BUFFERS_PER_FRAME"
 #endif
 
-/* The number of RX buffers. ENET_RXBD_NUM is always held by ENET driver,
- * so a couple more are needed to pass zero-copy data into lwIP. */
+/* The number of RX buffers. ENET_RXBD_NUM is always held by ENET driver. */
 #ifndef ENET_RXBUFF_NUM
     #define ENET_RXBUFF_NUM    ( ENET_RXBD_NUM * 2 )
 #endif
 
-/* At least ENET_RXBD_NUM number of buffers is always held by ENET driver for RX.
- * Some additional buffers are needed to pass at least one frame zero-copy data to lwIP. */
+/* At least ENET_RXBD_NUM number of buffers is always held by ENET driver
+ * for RX. */
 #if ENET_RXBUFF_NUM < ( ENET_RXBD_NUM + MAX_BUFFERS_PER_FRAME )
     #error "ENET_RXBUFF_NUM < (ENET_RXBD_NUM + MAX_BUFFERS_PER_FRAME)"
 #endif
@@ -161,13 +160,15 @@
 #define DRIVER_READY    ( 0x40 )
 #define DRIVER_FATAL    ( DRIVER_READY << 1 )
 
+#if defined( ENET_ENHANCEDBUFFERDESCRIPTOR_MODE )
+    #error "ENET_ENHANCEDBUFFERDESCRIPTOR_MODE is not supported by this driver"
+#endif
+
 typedef uint8_t   rx_buffer_t[ SDK_SIZEALIGN( ENET_RXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT ) ];
 typedef uint8_t   tx_buffer_t[ SDK_SIZEALIGN( ENET_TXBUFF_SIZE, FSL_ENET_BUFF_ALIGNMENT ) ];
 
 /**
- * @brief Used to wrap received data in a pbuf to be passed into lwIP
- *        without copying.
- * Once last reference is released, buffer can be used by ENET RX DMA again.
+ * @brief Used to wrap received data a buffer to be passed into the stack.
  */
 typedef struct rx_pbuf_wrapper
 {
@@ -249,12 +250,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
     static BaseType_t xFirstCall = pdTRUE;
 
     configASSERT( FSL_FEATURE_ENET_QUEUE == 1 );
-
-    #if defined( ENET_ENHANCEDBUFFERDESCRIPTOR_MODE )
-        /* This driver is not to be used with enhanced buffer descriptor mode. */
-        configASSERT( pdFALSE == pdTRUE );
-    #endif
-
 
     switch( eEMACState )
     {
@@ -724,7 +719,7 @@ static status_t xEMACInit( phy_speed_t speed,
 	ethernetifLocal->base = ( void * ) ENET_BASE;
 
     /* prepare the buffer configuration. */
-    buffCfg[ 0 ].rxBdNumber = ENET_RXBD_NUM;                  /* Receive buffer descriptor number. */
+    buffCfg[ 0 ].rxBdNumber = ENET_RXBD_NUM;                  /* Number of RX buffer descriptors. */
     buffCfg[ 0 ].txBdNumber = ENET_TXBD_NUM;                  /* Transmit buffer descriptor number. */
     buffCfg[ 0 ].rxBuffSizeAlign = sizeof( rx_buffer_t );     /* Aligned receive data buffer size. */
     buffCfg[ 0 ].txBuffSizeAlign = sizeof( tx_buffer_t );     /* Aligned transmit data buffer size. */
