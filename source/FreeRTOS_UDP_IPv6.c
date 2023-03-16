@@ -426,6 +426,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     /* Returning pdPASS means that the packet was consumed, released. */
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
+    struct freertos_sockaddr xRemoteIP;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -439,8 +440,12 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
+    /* Todo: check remote IP address. */
+    xRemoteIP.sin_family = ( uint8_t ) FREERTOS_AF_INET6;
+    ( void ) memcpy( xRemoteIP.sin_address.xIP_IPv6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, sizeof( IPv6_Address_t ) );
+
     /* Caller must check for minimum packet size. */
-    pxSocket = pxUDPSocketLookup( usPort );
+    pxSocket = pxUDPSocketLookup( &xRemoteIP, usPort );
 
     *pxIsWaitingForARPResolution = pdFALSE;
 

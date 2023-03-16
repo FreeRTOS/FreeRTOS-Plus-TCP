@@ -2891,15 +2891,18 @@ static const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
 /**
  * @brief Find the UDP socket corresponding to the port number.
  *
+ * @param[in] pxRemoteAddress: The remote address with sin_family set.
  * @param[in] uxLocalPort: The port whose corresponding bound UDP socket
  *                         is to be found.
  *
  * @return The socket owning the port if found or else NULL.
  */
-FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
+FreeRTOS_Socket_t * pxUDPSocketLookup( const struct freertos_sockaddr * pxRemoteAddress,
+                                       UBaseType_t uxLocalPort )
 {
     const ListItem_t * pxListItem;
     FreeRTOS_Socket_t * pxSocket = NULL;
+    NetworkEndPoint_t * pxRemoteEndpoint = NULL;
 
     /* Looking up a socket is quite simple, find a match with the local port.
      *
@@ -2909,9 +2912,23 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 
     if( pxListItem != NULL )
     {
-        /* The owner of the list item is the socket itself. */
-        pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxListItem ) );
-        configASSERT( pxSocket != NULL );
+        /* Check if we can match remote IP address in any endpoint. */
+        if( pxRemoteAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+        {
+            pxRemoteEndpoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxRemoteAddress->sin_address.xIP_IPv6 ) );
+        }
+        else
+        {
+            pxRemoteEndpoint = FreeRTOS_FindEndPointOnIP_IPv4( pxRemoteAddress->sin_address.ulIP_IPv4, 8 );
+        }
+
+        if( pxRemoteEndpoint != NULL )
+        {
+            /* We have endpoint with matched remote IP address, keep setting socket handler. */
+            /* The owner of the list item is the socket itself. */
+            pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxListItem ) );
+            configASSERT( pxSocket != NULL );
+        }
     }
 
     return pxSocket;

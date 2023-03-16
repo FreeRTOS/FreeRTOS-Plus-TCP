@@ -745,7 +745,8 @@ struct xSOCKET
 /*
  * Look up a local socket by finding a match with the local port.
  */
-FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
+FreeRTOS_Socket_t * pxUDPSocketLookup( const struct freertos_sockaddr * pxRemoteAddress,
+                                       UBaseType_t uxLocalPort );
 
 /*
  * Calculate the upper-layer checksum

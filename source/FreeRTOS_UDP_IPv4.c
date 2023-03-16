@@ -337,6 +337,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
+    struct freertos_sockaddr xRemoteIP;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -344,12 +345,16 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     /* Map the ethernet buffer to the UDPPacket_t struct for easy access to the fields. */
 
     /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
+    /* Todo: check remote IP address. */
+    xRemoteIP.sin_family = ( uint8_t ) FREERTOS_AF_INET4;
+    xRemoteIP.sin_address.ulIP_IPv4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
+
     /* Caller must check for minimum packet size. */
-    pxSocket = pxUDPSocketLookup( usPort );
+    pxSocket = pxUDPSocketLookup( &xRemoteIP, usPort );
 
     *pxIsWaitingForARPResolution = pdFALSE;
 
