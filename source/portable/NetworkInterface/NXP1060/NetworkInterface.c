@@ -130,7 +130,7 @@
 
 /* The number of buffer descriptors in ENET TX ring. */
 #ifndef ENET_TXBD_NUM
-    #define ENET_TXBD_NUM    ( 3 )
+    #define ENET_TXBD_NUM            ( 3 )
 #endif
 
 /* Set the timeout values such that the total timeout adds up to 4000ms. */
@@ -222,6 +222,21 @@ AT_NONCACHEABLE_SECTION_ALIGN( static enet_tx_bd_struct_t txBuffDescrip_0[ ENET_
 SDK_ALIGN( static rx_buffer_t rxDataBuff_0[ ENET_RXBUFF_NUM ], FSL_ENET_BUFF_ALIGNMENT );
 SDK_ALIGN( static tx_buffer_t txDataBuff_0[ ENET_TXBD_NUM ], FSL_ENET_BUFF_ALIGNMENT );
 
+/*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
+/*------------ PHY configuration parameters. ----------------*/
+static phy_config_t xConfig = { .autoNeg = pdTRUE,                  /* Allow auto-negotiation. */
+                                .duplex = kPHY_FullDuplex,          /* Use full duplex mode. In case
+                                                                     * auto-negotiation is turned on,
+                                                                     * this is not used. */
+                                .phyAddr = BOARD_ENET0_PHY_ADDRESS, /* The PHY address. */
+                                .speed = kPHY_Speed100M,            /* Use 100 Mbps configuration (maximum possible
+                                                                     * for this PHY). In case auto-negotiation is
+                                                                     * turned on, this is not used. */
+                                .enableEEE = pdFALSE };             /* Disable the energy efficient PHY. */
+/*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
+
 static void prvEMACHandlerTask( void * pvParameters );
 
 static void ethernet_callback( ENET_Type * base,
@@ -234,7 +249,7 @@ static void prvProcessFrame( int length );
 
 static status_t xSetupPHY( phy_config_t * pxConfig );
 
-static status_t xWaitPHY( void );
+static status_t xWaitPHY( phy_config_t xConfig );
 
 static status_t xEMACInit( phy_speed_t speed,
                            phy_duplex_t duplex );
@@ -242,7 +257,6 @@ static status_t xEMACInit( phy_speed_t speed,
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     status_t xStatus;
-    phy_config_t xConfig = { 0 };
     BaseType_t xResult = pdFAIL;
     phy_speed_t speed;
     phy_duplex_t duplex;
@@ -261,15 +275,16 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 break;
             }
             else
-            {
-                eEMACState = xEMAC_WaitPHY;
-            }
+			{
+				eEMACState = xEMAC_WaitPHY;
+			}
 
         /* Fall through. */
         case xEMAC_WaitPHY:
-            FreeRTOS_printf( ( "Configuration successful. Waiting for auto-negotiation to complete.\r\n" ) );
+            FreeRTOS_printf( ( "Configuration successful. Waiting for link to go up"
+            		           " and auto-negotiation to complete." ) );
 
-            xStatus = xWaitPHY();
+            xStatus = xWaitPHY( xConfig );
 
             if( xStatus == kStatus_Success )
             {
@@ -282,12 +297,11 @@ BaseType_t xNetworkInterfaceInitialise( void )
             }
             else
             {
-                eEMACState = xEMAC_Init;
+            	eEMACState = xEMAC_Init;
             }
 
         /* Fall through. */
         case xEMAC_Init:
-
             xStatus = xEMACInit( speed, duplex );
 
             if( ( xFirstCall == pdTRUE ) || ( receiveTaskHandle == NULL ) )
@@ -334,14 +348,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* Fall through. */
         case xEMAC_Ready:
-            FreeRTOS_printf( ( "Driver ready for use." ) );
+        	FreeRTOS_printf( ( "Driver ready for use." ) );
 
-            /* Kick the task once the driver is ready. */
-            if( receiveTaskHandle != NULL )
-            {
-                xTaskNotify( receiveTaskHandle, DRIVER_READY, eSetValueWithOverwrite );
-            }
-
+        	/* Kick the task once the driver is ready. */
+        	if( receiveTaskHandle != NULL )
+        	{
+        	    xTaskNotify( receiveTaskHandle, DRIVER_READY, eSetValueWithOverwrite );
+        	}
             xResult = pdPASS;
 
             break;
@@ -372,7 +385,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
         switch( result )
         {
             case kStatus_ENET_TxFrameBusy:
-                FreeRTOS_printf( ( "Failed to send the frame - driver busy!\r\n" ) );
+                FreeRTOS_printf( ( "Failed to send the frame - driver busy!" ) );
                 break;
 
             case kStatus_Success:
@@ -402,41 +415,41 @@ static void prvEMACHandlerTask( void * parameter )
     {
         if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE )
         {
-            /* No RX packets for a bit so check for a link. */
+        	/* No RX packets for a bit so check for a link. */
             const IPStackEvent_t xNetworkEventDown = { .eEventType = eNetworkDownEvent, .pvData = NULL };
 
             do
             {
-                readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+				readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
 
-                if( readStatus == kStatus_Success )
-                {
-                    if( LinkUp == pdFALSE )
-                    {
-                        /* The link is down. */
-                        bGlobalLinkStatus = false;
-                        /* We need to setup the PHY again. */
-                        eEMACState = xEMAC_SetupPHY;
+				if( readStatus == kStatus_Success )
+				{
+					if( LinkUp == pdFALSE )
+					{
+						/* The link is down. */
+						bGlobalLinkStatus = false;
+						/* We need to setup the PHY again. */
+						eEMACState = xEMAC_WaitPHY;
 
-                        FreeRTOS_printf( ( "Link down!" ) );
+						FreeRTOS_printf( ( "Link down!" ) );
 
-                        xSendEventStructToIPTask( &xNetworkEventDown, 0U );
+						xSendEventStructToIPTask( &xNetworkEventDown, 0U );
 
-                        /* Wait for the driver to finish initialization. */
-                        uint32_t ulNotificationValue;
+						/* Wait for the driver to finish initialization. */
+						uint32_t ulNotificationValue;
+					    do{
+					    	ulNotificationValue = ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+					    }while( !( ulNotificationValue & DRIVER_READY ) );
 
-                        do
-                        {
-                            ulNotificationValue = ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
-                        } while( !( ulNotificationValue & DRIVER_READY ) );
-                    }
-                    else
-                    {
-                        /* The link is still up. */
-                        bGlobalLinkStatus = true;
-                    }
-                }
-            } while( bGlobalLinkStatus == false );
+
+					}
+					else
+					{
+						/* The link is still up. */
+						bGlobalLinkStatus = true;
+					}
+				}
+            }while( bGlobalLinkStatus == false );
         }
         else
         {
@@ -472,7 +485,7 @@ static void prvEMACHandlerTask( void * parameter )
                         break;
 
                     default:
-                        PRINTF( "RX Receive default\n" );
+                        PRINTF( "RX Receive default" );
                         break;
                 }
             }
@@ -544,16 +557,16 @@ static void prvProcessFrame( int length )
             #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) )
                 const EthernetHeader_t * pxEthernetHeader;
                 char ucSource[ 18 ];
-                char ucDestination[ 18 ];
+				char ucDestination[ 18 ];
 
-                pxEthernetHeader = ( ( const EthernetHeader_t * ) pxBufferDescriptor->pucEthernetBuffer );
+				pxEthernetHeader = ( ( const EthernetHeader_t * ) pxBufferDescriptor->pucEthernetBuffer );
 
 
-                FreeRTOS_EUI48_ntop( pxEthernetHeader->xSourceAddress.ucBytes, ucSource, 'A', ':' );
-                FreeRTOS_EUI48_ntop( pxEthernetHeader->xDestinationAddress.ucBytes, ucDestination, 'A', ':' );
+				FreeRTOS_EUI48_ntop( pxEthernetHeader->xSourceAddress.ucBytes, ucSource, 'A', ':' );
+				FreeRTOS_EUI48_ntop( pxEthernetHeader->xDestinationAddress.ucBytes, ucDestination, 'A', ':' );
 
-                FreeRTOS_debug_printf( ( "Invalid target MAC: dropping frame from: %s to: %s\n", ucSource, ucDestination ) );
-            #endif /* if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) ) */
+				FreeRTOS_debug_printf( ( "Invalid target MAC: dropping frame from: %s to: %s", ucSource, ucDestination ) );
+			#endif
             vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
             /* Not sure if a trace is required.  The stack did not want this message */
         }
@@ -561,7 +574,7 @@ static void prvProcessFrame( int length )
     else
     {
         #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) )
-            FreeRTOS_debug_printf( ( "No Buffer Available: dropping incoming frame!!\n" ) );
+            FreeRTOS_debug_printf( ( "No Buffer Available: dropping incoming frame!!" ) );
         #endif
         ENET_ReadFrame( ENET, &( ethernetifLocal->handle ), NULL, length, 0, NULL );
 
@@ -574,7 +587,7 @@ static void prvProcessFrame( int length )
 /**
  * @brief This function is used to setup the PHY in auto-negotiation mode.
  *
- * @param[out] pxConfig: the configuration parameters will be written into this pointer.
+ * @param[out] pxConfig: the configuration parameters.
  *
  * @return kStatus_Success if the PHY was initialized; error code otherwise.
  */
@@ -583,22 +596,16 @@ static status_t xSetupPHY( phy_config_t * pxConfig )
     status_t xStatus;
 
     /* Set the clock frequency. MDIO handle is pointed to by the PHY handle. */
-    mdioHandle.resource.csrClock_Hz = EXAMPLE_CLOCK_FREQ;
-    mdioHandle.resource.base = ( void * ) ENET_BASE;
+	mdioHandle.resource.csrClock_Hz = EXAMPLE_CLOCK_FREQ;
+	mdioHandle.resource.base = ( void * ) ENET_BASE;
 
-    /* Set the configuration to auto-negotiate; set the phy to full duplex mode; the phy's address; and the speed. */
-    pxConfig->autoNeg = pdTRUE;
-    pxConfig->duplex = kPHY_FullDuplex;
-    pxConfig->phyAddr = BOARD_ENET0_PHY_ADDRESS;
-    pxConfig->speed = kPHY_Speed100M;
-
-    FreeRTOS_printf( ( "Starting PHY initialization.\r\n" ) );
+    FreeRTOS_printf( ( "Starting PHY initialization." ) );
 
     xStatus = PHY_Init( &phyHandle, pxConfig );
 
     if( xStatus != kStatus_Success )
     {
-        FreeRTOS_printf( ( "Failed to initialize the PHY..." ) );
+        FreeRTOS_printf( ( "Failed to initialize the PHY." ) );
     }
 
     return xStatus;
@@ -607,9 +614,11 @@ static status_t xSetupPHY( phy_config_t * pxConfig )
 /**
  * @brief This function is used wait on the auto-negotiation completion.
  *
+ * @param[in] xConfig: the configuration parameters.
+ *
  * @return kStatus_Success if the PHY was initialized; error code otherwise.
  */
-static status_t xWaitPHY( void )
+static status_t xWaitPHY( phy_config_t xConfig )
 {
     status_t xStatus;
     bool LinkUp;
@@ -617,68 +626,71 @@ static status_t xWaitPHY( void )
     uint8_t ucCounter = 0;
 
     do
+	{
+		xStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+
+		if( LinkUp == true )
+		{
+			break;
+		}
+
+		/* Try for only a limited number of times. */
+		if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
+		{
+			break;
+		}
+
+		vTaskDelay( pdMS_TO_TICKS( SINGLE_ITERATION_TIMEOUT ) );
+	}
+	while( xStatus == kStatus_Success );
+
+    if( LinkUp == false )
     {
-        xStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &autoNegotiationComplete );
-
-        if( autoNegotiationComplete == true )
-        {
-            break;
-        }
-
-        /* Try for only a limited number of times. */
-        if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
-        {
-            break;
-        }
-
-        vTaskDelay( pdMS_TO_TICKS( SINGLE_ITERATION_TIMEOUT ) );
-    }
-    while( xStatus == kStatus_Success );
-
-    if( autoNegotiationComplete == false )
-    {
-        FreeRTOS_printf( ( "Failed to complete auto-negotiation." ) );
+        FreeRTOS_printf( ( "Failed to get the link up." ) );
         xStatus = kStatus_Fail;
     }
     else
     {
-        FreeRTOS_printf( ( "Auto-negotiation complete.\r\n" ) );
+        FreeRTOS_printf( ( "Link up." ) );
     }
 
-    if( ( xStatus == kStatus_Success ) && ( autoNegotiationComplete == true ) )
+    if( ( xStatus == kStatus_Success ) &&
+    	( LinkUp == true ) &&
+		( xConfig.autoNeg == true ) )
     {
         /* Reset the counter for next use. */
         ucCounter = 0;
 
-        /* Wait for the link to go up. */
+        FreeRTOS_printf( ( "Waiting for auto-negotiation to complete." ) );
+
         do
+		{
+			xStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &autoNegotiationComplete );
+
+			if( autoNegotiationComplete == true )
+			{
+				break;
+			}
+
+			/* Try for only a limited number of times. */
+			if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
+			{
+				break;
+			}
+
+			vTaskDelay( pdMS_TO_TICKS( SINGLE_ITERATION_TIMEOUT ) );
+		}
+		while( xStatus == kStatus_Success );
+
+        if( autoNegotiationComplete == false )
         {
-            xStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
-
-            if( LinkUp == true )
-            {
-                break;
-            }
-
-            /* Try for only a limited number of times. */
-            if( ucCounter++ > MAX_AUTONEG_FAILURE_COUNT )
-            {
-                break;
-            }
-
-            vTaskDelay( pdMS_TO_TICKS( SINGLE_ITERATION_TIMEOUT ) );
-        }
-        while( xStatus == kStatus_Success );
-
-        if( LinkUp == false )
-        {
-            FreeRTOS_printf( ( "Failed to get the link up." ) );
+            FreeRTOS_printf( ( "Failed to complete auto-negotiation." ) );
             xStatus = kStatus_Fail;
         }
         else
         {
             /* Success in auto-negotiation and the link is up. */
-            FreeRTOS_printf( ( "Link up." ) );
+            FreeRTOS_printf( ( "Auto-negotiation complete." ) );
         }
     }
 
@@ -714,10 +726,10 @@ static status_t xEMACInit( phy_speed_t speed,
     configASSERT( duplex == kPHY_FullDuplex );
 
     ethernetifLocal->RxBuffDescrip = &( rxBuffDescrip_0[ 0 ] );
-    ethernetifLocal->TxBuffDescrip = &( txBuffDescrip_0[ 0 ] );
-    ethernetifLocal->RxDataBuff = &( rxDataBuff_0[ 0 ] );
-    ethernetifLocal->TxDataBuff = &( txDataBuff_0[ 0 ] );
-    ethernetifLocal->base = ( void * ) ENET_BASE;
+	ethernetifLocal->TxBuffDescrip = &( txBuffDescrip_0[ 0 ] );
+	ethernetifLocal->RxDataBuff = &( rxDataBuff_0[ 0 ] );
+	ethernetifLocal->TxDataBuff = &( txDataBuff_0[ 0 ] );
+	ethernetifLocal->base = ( void * ) ENET_BASE;
 
     /* prepare the buffer configuration. */
     buffCfg[ 0 ].rxBdNumber = ENET_RXBD_NUM;                  /* Number of RX buffer descriptors. */
