@@ -433,7 +433,7 @@
  * @param[in] pxSocket: The socket for which the window is being created.
  *
  * @note The SYN event is very important: the sequence numbers, which have a kind of
- *       random starting value, are being synchronized. The sliding window manager
+ *       random starting value, are being synchronised. The sliding window manager
  *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
  *       Size (MSS).
  */

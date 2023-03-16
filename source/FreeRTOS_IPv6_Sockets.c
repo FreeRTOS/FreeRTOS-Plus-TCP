@@ -109,8 +109,6 @@ void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
     /* coverity[misra_c_2012_rule_11_3_violation] */
     UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = 0U;
-
     configASSERT( pxDestinationAddress != NULL );
     ( void ) memcpy( pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, pxDestinationAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxDestinationAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -133,23 +131,17 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( const UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    size_t uxPayloadOffset = 0;
 
-    if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    if( pxSourceAddress != NULL )
     {
-        if( pxSourceAddress != NULL )
-        {
-            ( void ) memcpy( ( void * ) pxSourceAddress->sin_address.xIP_IPv6.ucBytes,
-                             ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
-                             ipSIZE_OF_IPv6_ADDRESS );
-            pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
-            pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
-        }
-
-        uxPayloadOffset = ipUDP_PAYLOAD_OFFSET_IPv6;
+        ( void ) memcpy( ( void * ) pxSourceAddress->sin_address.xIP_IPv6.ucBytes,
+                         ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
+                         ipSIZE_OF_IPv6_ADDRESS );
+        pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
+        pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
     }
 
-    return uxPayloadOffset;
+    return ipUDP_PAYLOAD_OFFSET_IPv6;
 }
 
 

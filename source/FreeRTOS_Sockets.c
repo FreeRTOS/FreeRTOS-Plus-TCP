@@ -635,7 +635,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
         /* coverity[misra_c_2012_directive_4_12_violation] */
-        pxSocket = ( ( FreeRTOS_Socket_t * ) pvPortMallocSocket( uxSocketSize ) );
+        pxSocket = ( FreeRTOS_Socket_t * ) pvPortMallocSocket( uxSocketSize );
 
         if( pxSocket == NULL )
         {
@@ -732,7 +732,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
         /* coverity[misra_c_2012_directive_4_12_violation] */
-        pxSocketSet = ( ( SocketSelect_t * ) pvPortMalloc( sizeof( *pxSocketSet ) ) );
+        pxSocketSet = ( SocketSelect_t * ) pvPortMalloc( sizeof( *pxSocketSet ) );
 
         if( pxSocketSet != NULL )
         {
@@ -1369,6 +1369,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
             {
                 if( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xUDP.pxHandleSent ) )
                 {
+                	/* The cast to 'FreeRTOS_Socket_t *' is removing the const. */
                     pxSocket->u.xUDP.pxHandleSent( ( FreeRTOS_Socket_t * ) pxSocket, uxTotalDataLength );
                 }
             }
@@ -4818,7 +4819,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
         /* coverity[misra_c_2012_directive_4_12_violation] */
-        pxBuffer = ( ( StreamBuffer_t * ) pvPortMallocLarge( uxSize ) );
+        pxBuffer = ( StreamBuffer_t * ) pvPortMallocLarge( uxSize );
 
         if( pxBuffer == NULL )
         {
@@ -5481,7 +5482,7 @@ BaseType_t xSocketSetSocketID( const Socket_t xSocket,
     FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
     BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
 
-    if( xSocketValid( pxSocket ) )
+    if( xSocketValid( pxSocket ) == pdTRUE )
     {
         xReturn = 0;
         pxSocket->pvSocketID = pvSocketID;
@@ -5503,7 +5504,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
     const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
     void * pvReturn = NULL;
 
-    if( xSocketValid( pxSocket ) )
+    if( xSocketValid( pxSocket ) == pdTRUE )
     {
         pvReturn = pxSocket->pvSocketID;
     }

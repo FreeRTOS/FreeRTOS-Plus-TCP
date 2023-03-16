@@ -299,7 +299,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void );
 
 struct xNetworkInterface;
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
@@ -331,7 +331,7 @@ struct xNetworkInterface;
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks );
 
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
 /*
  * Returns the addresses stored in an end-point structure.
@@ -367,7 +367,7 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
     #else
         void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,

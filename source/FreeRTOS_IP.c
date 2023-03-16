@@ -614,7 +614,7 @@ void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             {
                 vApplicationIPNetworkEventHook( eNetworkUp );
             }
@@ -771,7 +771,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
@@ -792,7 +792,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
     {
         return FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -878,7 +878,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
  * As that bug has been repaired, there is not an urgent reason to warn.
  * It is better though to use the advised priority scheme. */
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Provide backward-compatibility with the earlier FreeRTOS+TCP which only had
  * single network interface. */
@@ -902,7 +902,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         #endif /* ipconfigUSE_DHCP */
         return FreeRTOS_IPInit_Multi();
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -1078,7 +1078,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /**
  * @brief Get the current IPv4 address configuration of the first endpoint.
@@ -1103,7 +1103,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
         FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask,
                                            pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -1149,7 +1149,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /**
  * @brief Set the current IPv4 network address configuration. Only non-NULL
@@ -1174,7 +1174,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
                                            pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
@@ -1558,10 +1558,26 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
                     {
+                        /* When one of the two asserts below are called, please check if
+                         * the network interface is assigning endpoints with the correct
+                         * IP-type to the packets received. */
+
                         /* MISRA Ref 11.3.1 [Misaligned access] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
-                        eReturned = prvProcessIPPacket( ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer );
+                        if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+                        {
+                            configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 != 0U );
+                        }
+                        else
+                        {
+                            configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 == 0U );
+                        }
+
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        eReturned = prvProcessIPPacket( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer );
                     }
                     else
                     {
@@ -1651,7 +1667,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     const UDPHeader_t * pxUDPHeader = &( pxUDPPacket->xUDPHeader );
 
     size_t uxMinSize = ipSIZE_OF_ETH_HEADER + ( size_t ) uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_UDP_HEADER;
@@ -1665,7 +1681,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
+        pxProtocolHeaders = ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
         pxUDPHeader = &( pxProtocolHeaders->xUDPHeader );
     }
 
@@ -1764,7 +1780,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+        pxIPHeader_IPv6 = ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
 
 
         uxHeaderLength = ipSIZE_OF_IPv6_HEADER;
@@ -1772,7 +1788,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        eReturn = prvAllowIPPacketIPv6( ( ( const IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
+        eReturn = prvAllowIPPacketIPv6( ( const IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ), pxNetworkBuffer, uxHeaderLength );
 
         /* The IP-header type is copied to a location 6 bytes before the messages
          * starts.  It might be needed later on when a UDP-payload buffer is being
@@ -1859,6 +1875,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                      *  overwritten with the IP address of useless broadcast packets. */
                     if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
                     {
+                        configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 != 0U );
                         vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
                     }
                     else
@@ -1870,6 +1887,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                          *  will be handled.  This will prevent the ARP cache getting
                          *  overwritten with the IP address of useless broadcast packets.
                          */
+                        configASSERT( pxNetworkBuffer->pxEndPoint->bits.bIPv6 == 0U );
                         vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
                     }
                 }
@@ -2113,6 +2131,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                 pxNewBuffer->xDataLength = pxNetworkBuffer->xDataLength;
             }
 
+            /* 'pxNewBuffer' doesn't have to be released, because we didn't have the ownership. */
             pxNetworkBuffer = pxNewBuffer;
         }
 

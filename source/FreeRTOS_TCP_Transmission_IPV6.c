@@ -291,7 +291,10 @@
                      * containing the packet header. */
                     vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
-                    ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    if( pxIPHeader != NULL )
+                    {
+                        ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    }
                 }
                 else
                 {
@@ -516,7 +519,7 @@
 
                 if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
                 {
-                    /* A synchronize packet is received. It counts as 1 pseudo byte of data,
+                    /* A synchronise packet is received. It counts as 1 pseudo byte of data,
                      * so increase the variable with 1. Before sending a reply, the values of
                      * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
                     uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );

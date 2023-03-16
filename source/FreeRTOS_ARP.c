@@ -287,8 +287,8 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                     case ipARP_REQUEST:
 
                         if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) &&
-                            ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
-                                      ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                            ( memcmp( pxTargetEndPoint->xMACAddress.ucBytes,
+                                      pxARPHeader->xSenderHardwareAddress.ucBytes,
                                       ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                         {
                             vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
@@ -495,7 +495,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
 
-    if( uxIPHeaderSizePacket( ( const NetworkBufferDescriptor_t * ) pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+    if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
     {
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -508,8 +508,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
         if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
             ( ucNextHeader == ipPROTOCOL_UDP ) )
         {
-            IPv6_Type_t eType = xIPv6_GetIPType( ( const IPv6_Address_t * ) pxIPAddress );
-            FreeRTOS_printf( ( "xCheckRequiresARPResolution: %pip type %s\n", pxIPAddress->ucBytes, ( eType == eIPv6_Global ) ? "Global" : ( eType == eIPv6_LinkLocal ) ? "LinkLocal" : "other" ) );
+            IPv6_Type_t eType = xIPv6_GetIPType( pxIPAddress );
 
             if( eType == eIPv6_LinkLocal )
             {
@@ -518,9 +517,8 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
                 eARPLookupResult_t eResult;
                 char pcName[ 80 ];
 
-                ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
+                pcName[ 0 ] = ( char ) 0;
                 eResult = eNDGetCacheEntry( pxIPAddress, &xMACAddress, &pxEndPoint );
-                FreeRTOS_printf( ( "xCheckRequiresARPResolution: eResult %s with EP %s\n", ( eResult == eARPCacheMiss ) ? "Miss" : ( eResult == eARPCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
 
                 if( eResult == eARPCacheMiss )
                 {

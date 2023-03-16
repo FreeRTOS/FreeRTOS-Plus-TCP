@@ -127,7 +127,6 @@
 /**
  * @brief The IPv6 link-scope multicast MAC address
  */
-        const
         const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
     #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
 
@@ -843,7 +842,7 @@
         /* For local resolution, mDNS uses names ending with the string ".local" */
         BaseType_t bHasDot = pdFALSE;
         BaseType_t bHasLocal = pdFALSE;
-        const char * pcDot = ( const char * ) strchr( pcHostName, ( int32_t ) '.' );
+        const char * pcDot = ( const char * ) strchr( pcHostName, ( int ) '.' );
 
         if( pcDot != NULL )
         {
@@ -938,7 +937,7 @@
                     }
                 }
             #endif /* if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) */
-        }
+        } /* if( ( bHasDot == pdFALSE ) || ( bHasLocal == pdTRUE ) ) */
         else
         {
             /* Look for an end-point that has defined a DNS server address. */
@@ -1008,7 +1007,7 @@
         BaseType_t xExpected;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const DNSMessage_t * pxDNSMessageHeader =
             ( ( const DNSMessage_t * )
@@ -1179,18 +1178,14 @@
         uint32_t ulIPAddress = 0;
         struct freertos_sockaddr xAddress;
         struct freertos_sockaddr xRecvAddress;
-        DNSBuffer_t xReceiveBuffer = { 0 };
+        DNSBuffer_t xReceiveBuffer;
         BaseType_t uxReturn = pdFAIL;
         BaseType_t xBytes;
         NetworkEndPoint_t * pxEndPoint;
 
+        ( void ) memset( ( void * ) &xReceiveBuffer, 0, sizeof( xReceiveBuffer ) );
         /* Make sure all fields of the 'sockaddr' are cleared. */
         ( void ) memset( ( void * ) &xAddress, 0, sizeof( xAddress ) );
-
-        if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
-        {
-            xDNS_IP_Preference = xPreferenceIPv6;
-        }
 
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 

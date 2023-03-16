@@ -342,25 +342,37 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 {
     BaseType_t xListItemAlreadyInFreeList;
 
+    taskENTER_CRITICAL();
+    {
+        xListItemAlreadyInFreeList = listIS_CONTAINED_WITHIN( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
+    }
+    taskEXIT_CRITICAL();
+
     /* Ensure the buffer is returned to the list of free buffers before the
     * counting semaphore is 'given' to say a buffer is available.  Release the
     * storage allocated to the buffer payload.  THIS FILE SHOULD NOT BE USED
     * IF THE PROJECT INCLUDES A MEMORY ALLOCATOR THAT WILL FRAGMENT THE HEAP
     * MEMORY.  For example, heap_2 must not be used, heap_4 can be used. */
-    vReleaseNetworkBuffer( pxNetworkBuffer->pucEthernetBuffer );
+    if( xListItemAlreadyInFreeList == pdFALSE )
+    {
+        vReleaseNetworkBuffer( pxNetworkBuffer->pucEthernetBuffer );
+    }
+    else
+    {
+        FreeRTOS_printf( ( "vReleaseNetworkBufferAndDescriptor: already released\n" ) );
+    }
+
     pxNetworkBuffer->pucEthernetBuffer = NULL;
     pxNetworkBuffer->xDataLength = 0U;
 
-    taskENTER_CRITICAL();
+    if( xListItemAlreadyInFreeList == pdFALSE )
     {
-        xListItemAlreadyInFreeList = listIS_CONTAINED_WITHIN( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
-
-        if( xListItemAlreadyInFreeList == pdFALSE )
+        taskENTER_CRITICAL();
         {
             vListInsertEnd( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
         }
+        taskEXIT_CRITICAL();
     }
-    taskEXIT_CRITICAL();
 
     /*
      * Update the network state machine, unless the program fails to release its 'xNetworkBufferSemaphore'.
@@ -418,7 +430,8 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     }
     else
     {
-        pxNetworkBufferCopy->xDataLength = uxSizeBytes;
+        /* Assign the new length, minus the hidden part. */
+        pxNetworkBufferCopy->xDataLength = uxSizeBytes - ipBUFFER_PADDING;
 
         if( uxSizeBytes > xOriginalLength )
         {

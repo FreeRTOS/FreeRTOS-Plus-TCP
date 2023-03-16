@@ -860,9 +860,6 @@
             xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
             configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );
 
-            /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-            /* coverity[misra_c_2012_rule_11_4_violation] */
             if( xSocketValid( xDHCPv4Socket ) == pdTRUE )
             {
                 /* Ensure the Rx and Tx timeouts are zero as the DHCP executes in the
@@ -1495,9 +1492,6 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-        /* coverity[misra_c_2012_rule_11_4_violation] */
         if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
@@ -1524,7 +1518,8 @@
             if( FreeRTOS_sendto( xDHCPv4Socket, pucUDPPayloadBuffer, sizeof( DHCPMessage_IPv4_t ) + uxOptionsLength, FREERTOS_ZERO_COPY, &xAddress, ( socklen_t ) sizeof( xAddress ) ) == 0 )
             {
                 /* The packet was not successfully queued for sending and must be
-                 * returned to the stack. */
+                 * returned to the stack.
+				 * 'pucUDPPayloadBuffer' is proven to be not NULL. */
                 FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
             else
@@ -1567,9 +1562,6 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-        /* coverity[misra_c_2012_rule_11_4_violation] */
         if( ( xSocketValid( xDHCPv4Socket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             const void * pvCopySource;
@@ -1610,6 +1602,7 @@
             {
                 /* The packet was not successfully queued for sending and must be
                  * returned to the stack. */
+                /* pucUDPPayloadBuffer is proven to be not NULL. */
                 FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayloadBuffer );
             }
             else

@@ -42,6 +42,13 @@
  * address if present, or 0x0 otherwise. */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 
+    /* FreeRTOS_dnslookup6() returns pdTRUE when a host has been found. */
+    uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+                                  IPv6_Address_t * pxAddress_IPv6 );
+
+/**
+ * @brief Clear the entire DNS cache table.
+ */
     void FreeRTOS_dnsclear( void );
 
 /**

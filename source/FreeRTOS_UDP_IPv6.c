@@ -130,7 +130,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
@@ -205,7 +205,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     NetworkInterface_t * pxInterface = NULL;
     EthernetHeader_t * pxEthernetHeader = NULL;
     BaseType_t xLostBuffer = pdFALSE;
-    NetworkEndPoint_t * pxEndPoint = NULL;
+    NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     IPv6_Address_t xIPv6Address;
 
     /* Map the UDP packet onto the start of the frame. */
@@ -574,7 +574,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
+            pxProtocolHeaders = ( ( const ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
 
             /* There is no socket listening to the target port, but still it might
              * be for this node. */

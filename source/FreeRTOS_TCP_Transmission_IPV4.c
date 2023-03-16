@@ -304,7 +304,14 @@
                      * containing the packet header. */
                     vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
-                    pxIPHeader->ulSourceIPAddress = pxIPHeader->ulDestinationIPAddress;
+                    if( pxIPHeader != NULL )
+                    {
+                        pxIPHeader->ulSourceIPAddress = pxIPHeader->ulDestinationIPAddress;
+                    }
+                    else
+                    {
+                        /* No IP-header available. */
+                    }
 
                     ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
                 }

@@ -139,10 +139,7 @@
                     FreeRTOS_Socket_t * pxNewSocket = ( FreeRTOS_Socket_t * )
                                                       FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP );
 
-                    /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-                    /* coverity[misra_c_2012_rule_11_4_violation] */
-                    if( ( pxNewSocket == NULL ) || ( pxNewSocket == FREERTOS_INVALID_SOCKET ) )
+                    if( xSocketValid( pxNewSocket ) == pdFALSE )
                     {
                         FreeRTOS_debug_printf( ( "TCP: Listen: new socket failed\n" ) );
                         ( void ) prvTCPSendReset( pxNetworkBuffer );

@@ -74,7 +74,11 @@
                 }
             #endif
 
-            ulMSS -= uxDifference;
+            if( ulMSS > uxDifference )
+            {
+                ulMSS -= uxDifference;
+            }
+
             IPv6_Type_t eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
 
             if( eType == eIPv6_Global )

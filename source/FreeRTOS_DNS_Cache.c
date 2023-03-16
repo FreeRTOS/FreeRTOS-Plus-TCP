@@ -492,7 +492,11 @@
             size_t uxNumIPAddresses = 1U;
             const IPv46_Address_t * pxAddresses;
             struct freertos_addrinfo * pxNewAddress;
-            struct freertos_addrinfo ** ppxLastAddress = ppxAddressInfo;
+            struct freertos_addrinfo * pxLastAddress;
+            struct freertos_addrinfo ** ppxLastAddress = &( pxLastAddress );
+
+            configASSERT( ppxAddressInfo != NULL );
+            *ppxAddressInfo = NULL;
 
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
                 uxNumIPAddresses = ( size_t ) xDNSCache[ uxIndex ].ucNumIPAddresses;
@@ -525,8 +529,16 @@
                     break;
                 }
 
-                /* Set either 'ppxAddressInfo' or 'pxNewAddress->ai_next'. */
-                *( ppxLastAddress ) = pxNewAddress;
+                if( *( ppxAddressInfo ) == NULL )
+                {
+                    /* The first address found will be passed to the application. */
+                    *( ppxAddressInfo ) = pxNewAddress;
+                }
+                else
+                {
+                    /* Here the 'ai_next' field of the last address will be set. */
+                    *( ppxLastAddress ) = pxNewAddress;
+                }
 
                 ppxLastAddress = &( pxNewAddress->ai_next );
             }
