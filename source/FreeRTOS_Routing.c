@@ -960,7 +960,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
                 {
                     /* Check if the IP-address is non-zero. */
-                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                    if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         break;
                     }

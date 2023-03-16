@@ -907,7 +907,7 @@ static void handle_help( char * pcBuffer )
             #if ( ipconfigUSE_IPv6 != 0 )
                 if( pxEndPoint->bits.bIPv6 )
                 {
-                    if( memcmp( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                    if( memcmp( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         FreeRTOS_printf( ( "IPv6: %pip on '%s'\n", pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxEndPoint->pxNetworkInterface->pcName ) );
                     }

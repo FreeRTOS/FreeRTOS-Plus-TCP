@@ -48,12 +48,12 @@
 /**
  * This variable is initialized by the system to contain the wildcard IPv6 address.
  */
-const struct xIPv6_Address in6addr_any = { 0 };
+const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
 
 /**
  * This variable is initialized by the system to contain the loopback IPv6 address.
  */
-const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
+const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
 /**
  * @brief Check whether this IPv6 address is a multicast address or not.
