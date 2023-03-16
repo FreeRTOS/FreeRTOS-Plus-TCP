@@ -14,6 +14,8 @@ Another way is to start with the pre-configured demo application project (found 
 
 Additionally, for FreeRTOS-Plus-TCP source code organization refer to the [Documentation](http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial.html), and [API Reference](https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html).
 
+**FreeRTOS-Plus-TCP V3.1.0 [source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V3.1.0)(.c .h) is part of the [FreeRTOS 202210.00 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202210.00-LTS) release.**
+
 ### Getting help
 If you have any questions or need assistance troubleshooting your FreeRTOS project, we have an active community that can help on the [FreeRTOS Community Support Forum](https://forums.freertos.org). Please also refer to [FAQ](http://www.freertos.org/FAQHelp.html) for frequently asked questions.
 
