@@ -67,17 +67,22 @@
     #endif
 #endif /* if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) */
 
-#ifndef PHY_LS_HIGH_CHECK_TIME_MS
+#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
+    #error please use the new defines with 'ipconfig' prefix
+#endif
 
-/* Check if the LinkSStatus in the PHY is still high after 2 seconds of not
+#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+
+/* Check if the LinkStatus in the PHY is still high after 2 seconds of not
  * receiving packets. */
-    #define PHY_LS_HIGH_CHECK_TIME_MS    2000
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    2000U
 #endif
 
-#ifndef PHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkSStatus in the PHY is still low every second. */
-    #define PHY_LS_LOW_CHECK_TIME_MS    1000
+#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
+    /* Check if the LinkStatus in the PHY is still low every second. */
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
 #endif
+
 
 /***********************************************************************************************************************
  * Private global variables and functions
@@ -225,7 +230,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
 
     vTaskSetTimeOutState( &xPhyTime );
-    xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+    xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
 
     FreeRTOS_printf( ( "Deferred Interrupt Handler Task started\n" ) );
     xTaskToNotify = ether_receive_check_task_handle;
@@ -334,7 +339,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
             /* A packet was received. No need to check for the PHY status now,
              * but set a timer to check it later on. */
             vTaskSetTimeOutState( &xPhyTime );
-            xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+            xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
 
             /* Indicate that the Link Status is high, so that
              * xNetworkInterfaceOutput() can send packets. */
@@ -358,11 +363,11 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
             if( xPHYLinkStatus != 0 )
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }
             else
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
             }
         }
     }
@@ -417,15 +422,12 @@ static int InitializeNetwork( void )
     ether_return_t eth_ret;
     BaseType_t return_code = pdFALSE;
     ether_param_t param;
-    uint8_t myethaddr[ 6 ] =
-    {
-        configMAC_ADDR0,
-        configMAC_ADDR1,
-        configMAC_ADDR2,
-        configMAC_ADDR3,
-        configMAC_ADDR4,
-        configMAC_ADDR5
-    }; /*XXX Fix me */
+
+    /* Read the mac address after it has been initilized by the FreeRTOS IP Stack, rather than from defines
+     * as the mac address is usually read from the EEPROM, and it might be different to the mac address in
+     * the defines, especially in production environments
+     */
+    const uint8_t * myethaddr = FreeRTOS_GetMACAddress();
 
     R_ETHER_PinSet_CHANNEL_0();
     R_ETHER_Initial();

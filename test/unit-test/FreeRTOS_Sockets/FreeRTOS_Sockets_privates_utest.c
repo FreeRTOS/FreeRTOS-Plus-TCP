@@ -1764,7 +1764,7 @@ void test_pxUDPSocketLookup_NotFound( void )
 
     vpxListFindListItemWithValue_NotFound();
 
-    pxReturn = pxUDPSocketLookup( uxLocalPort );
+    pxReturn = pxUDPSocketLookup( NULL, uxLocalPort );
 
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
@@ -1777,12 +1777,16 @@ void test_pxUDPSocketLookup_FoundNULLSocket( void )
     FreeRTOS_Socket_t * pxReturn;
     UBaseType_t uxLocalPort = 0xBCDEF;
     ListItem_t xListItem;
+    struct freertos_sockaddr xRemoteAddress = { 0 };
+    NetworkEndPoint_t xEndpoint = { 0 };
 
     vpxListFindListItemWithValue_Found( &xBoundUDPSocketsList, uxLocalPort, &xListItem );
 
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndpoint );
+
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xListItem, NULL );
 
-    catch_assert( pxUDPSocketLookup( uxLocalPort ) );
+    catch_assert( pxUDPSocketLookup( &xRemoteAddress, uxLocalPort ) );
 }
 
 /*
@@ -1794,12 +1798,16 @@ void test_pxUDPSocketLookup_Found( void )
     UBaseType_t uxLocalPort = 0xBCDEF;
     ListItem_t xListItem;
     FreeRTOS_Socket_t xLocalSocket;
+    struct freertos_sockaddr xRemoteAddress = { 0 };
+    NetworkEndPoint_t xEndpoint = { 0 };
 
     vpxListFindListItemWithValue_Found( &xBoundUDPSocketsList, uxLocalPort, &xListItem );
 
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndpoint );
+
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xListItem, &xLocalSocket );
 
-    pxReturn = pxUDPSocketLookup( uxLocalPort );
+    pxReturn = pxUDPSocketLookup( &xRemoteAddress, uxLocalPort );
 
     TEST_ASSERT_EQUAL( &xLocalSocket, pxReturn );
 }

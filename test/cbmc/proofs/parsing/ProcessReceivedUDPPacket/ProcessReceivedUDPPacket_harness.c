@@ -41,7 +41,8 @@ void * safeMalloc( size_t xWantedSize )
 }
 
 /* Abstraction of pxUDPSocketLookup */
-FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
+FreeRTOS_Socket_t * pxUDPSocketLookup( const struct freertos_sockaddr * pxRemoteAddress,
+                                       UBaseType_t uxLocalPort )
 {
     return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
 }

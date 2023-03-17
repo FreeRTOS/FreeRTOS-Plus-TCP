@@ -99,7 +99,7 @@ jobs:
           fi
 
   doxygen:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Run doxygen build
@@ -178,3 +178,18 @@ jobs:
         run: |
           git-secrets --register-aws
           git-secrets --scan
+  proof_ci:
+    runs-on: cbmc_ubuntu-latest_16-core
+    steps:
+      - name: Set up CBMC runner
+        uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@main
+        with:
+          cbmc_version: "5.61.0"
+      - run: |
+          git submodule update --init --checkout --recursive
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends gcc-multilib
+      - name: Run CBMC
+        uses: FreeRTOS/CI-CD-Github-Actions/run_cbmc@main
+        with:
+          proofs_dir: test/cbmc/proofs
