@@ -72,6 +72,9 @@ eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
 NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
                                                     uint32_t ulWhere )
 {
+    NetworkEndPoint_t xEndpoint = { 0 };
+
+    return &xEndpoint;
 }
 
 /**
