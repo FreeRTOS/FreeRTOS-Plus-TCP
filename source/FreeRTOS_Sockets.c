@@ -1987,10 +1987,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
                         /* coverity[misra_c_2012_rule_11_1_violation] */
-                        #pragma GCC diagnostic push
-                        #pragma GCC diagnostic ignored "-Wpedantic"
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
-                        #pragma GCC diagnostic pop
                         xReturn = 0;
                         break;
                 #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
