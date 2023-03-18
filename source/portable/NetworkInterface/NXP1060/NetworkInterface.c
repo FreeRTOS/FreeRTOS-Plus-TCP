@@ -62,6 +62,7 @@
 /* ENET clock frequency. */
 #define EXAMPLE_CLOCK_FREQ    CLOCK_GetFreq( kCLOCK_IpgClk )
 
+
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -229,6 +230,7 @@ static phy_config_t xConfig =
                                            * turned on, this is not used. */
     .enableEEE = pdFALSE                  /* Disable the energy efficient PHY. */
 };
+
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
 
