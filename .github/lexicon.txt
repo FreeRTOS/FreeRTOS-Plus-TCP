@@ -67,6 +67,7 @@ bfinrecv
 bfinsent
 bhasdot
 bhasinit
+bHaslocal
 binterfaceup
 bisdefault
 bisforrx
@@ -955,6 +956,7 @@ pxnetworkbuffer
 pxnetworkendpoints
 pxnetworkinterface
 pxnewaddress
+pxnewbuffer
 pxnewlistitem
 pxnewsocket
 pxnext
@@ -1159,6 +1161,7 @@ swr
 syn
 synchronicity
 synchronisation
+synchronise
 synchronised
 syscfg
 sysclock
