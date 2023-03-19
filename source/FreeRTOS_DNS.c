@@ -46,6 +46,7 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 #include "NetworkInterface.h"

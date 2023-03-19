@@ -850,7 +850,7 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 
         memset( &xAddress, 0, sizeof( xAddress ) );
         xAddress.sin_family = FREERTOS_AF_INET6;
-        xAddress.sin_len = ( uint8_t )sizeof( sizeof( xAddress ) );
+        xAddress.sin_len = ( uint8_t ) sizeof( sizeof( xAddress ) );
         /* Bind to the standard DHCP client port. */
         xAddress.sin_port = FreeRTOS_htons( ipDHCPv6_CLIENT_PORT );
         xReturn = vSocketBind( xDHCPv6Socket, &xAddress, sizeof( xAddress ), pdFALSE );

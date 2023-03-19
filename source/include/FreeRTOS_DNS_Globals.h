@@ -130,12 +130,12 @@
     #endif
     #define ipMDNS_TIME_TO_LIVE      255U
     #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
-    #define ipLLMNR_PORT             5355        /* Standard LLMNR port. */
-    #define ipDNS_PORT               53          /* Standard DNS port. */
-    #define ipDHCP_CLIENT_PORT       67
-    #define ipDHCP_SERVER_PORT       68
-    #define ipNBNS_PORT              137 /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT             138 /* Datagram Service, not included. */
+    #define ipLLMNR_PORT             5355U       /* Standard LLMNR port. */
+    #define ipDNS_PORT               53U         /* Standard DNS port. */
+    #define ipDHCP_CLIENT_PORT       67U
+    #define ipDHCP_SERVER_PORT       68U
+    #define ipNBNS_PORT              137U /* NetBIOS Name Service. */
+    #define ipNBDGM_PORT             138U /* Datagram Service, not included. */
     /** @brief Default v6 DHCP client port. */
     #define ipDHCPv6_CLIENT_PORT     546U
     /** @brief Default v6 DHCP server port. */

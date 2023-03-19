@@ -1071,6 +1071,7 @@
                            xCompare = memcmp( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
                                               pxEndPoint->xMACAddress.ucBytes,
                                               ipMAC_ADDRESS_LENGTH_BYTES );
+
                            if( ( xCompare == 0 ) && ( FreeRTOS_inet_pton6( "fe80::1", xAddress.xIP_IPv6.ucBytes ) != 0 ) )
                            {
                                xCompare = memcmp( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );

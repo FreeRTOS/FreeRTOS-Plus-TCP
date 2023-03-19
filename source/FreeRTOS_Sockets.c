@@ -46,8 +46,6 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IPv4_Sockets.h"
-#include "FreeRTOS_IPv6_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
 #include "NetworkBufferManagement.h"

@@ -104,9 +104,9 @@
 /** @brief Called by pxTCPSocketLookup(), this function will check if a socket
  *         is connected to a remote IP-address. It will be called from a loop
  *         iterating through all sockets. */
-    FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                const IPv6_Address_t * pxAddress_IPv6,
-                                                uint32_t ulRemoteIP );
+    Socket_t pxTCPSocketLookup_IPv6( Socket_t pxSocket,
+                                     const IPv6_Address_t * pxAddress_IPv6,
+                                     uint32_t ulRemoteIP );
 
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet

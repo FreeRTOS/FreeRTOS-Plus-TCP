@@ -58,7 +58,7 @@
  * @param[in] ulRemoteIP: The IPv4 address.
  * @return The socket in case it is connected to the remote IP-address.
  */
-    FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
+    Socket_t pxTCPSocketLookup_IPv6( Socket_t pxSocket,
                                                 const IPv6_Address_t * pxAddress_IPv6,
                                                 uint32_t ulRemoteIP )
     {
