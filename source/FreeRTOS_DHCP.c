@@ -161,8 +161,12 @@
     BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket )
     {
         BaseType_t xReturn;
+        /* 'usLocalPort' is host-endian. */
+        uint16_t usPortNr = xSocket->usLocalPort;
 
-        if( xDHCPv4Socket == xSocket )
+        /* DHCP clients have the UDP port number 68 */
+        if( ( usPortNr == ipDHCP_CLIENT_PORT ) ||
+            ( usPortNr == ipDHCPv6_CLIENT_PORT ) )
         {
             xReturn = pdTRUE;
         }

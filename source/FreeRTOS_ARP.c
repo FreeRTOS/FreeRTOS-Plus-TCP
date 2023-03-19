@@ -532,7 +532,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
                     {
                         pxTempBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
                         pxTempBuffer->pxInterface = pxNetworkBuffer->pxInterface;
-                        vNDSendNeighbourSolicitation( pxNetworkBuffer, pxIPAddress );
+                        vNDSendNeighbourSolicitation( pxTempBuffer, pxIPAddress );
                     }
 
                     xNeedsARPResolution = pdTRUE;

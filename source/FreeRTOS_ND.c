@@ -125,7 +125,12 @@
         {
             if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
             {
-                break;
+                IPv6_Type_t eType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+                if( eType == eIPv6_LinkLocal )
+                {
+                    break;
+                }
             }
         }
 
@@ -393,7 +398,6 @@
                         if( pxNetworkBuffer != NULL )
                         {
                             pxNetworkBuffer->pxEndPoint = xNDCache[ x ].pxEndPoint;
-                            /* _HT_ From here I am suspecting a network buffer leak */
                             vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xNDCache[ x ].xIPAddress ) );
                         }
                     }
@@ -1060,6 +1064,18 @@
                        }
 
                        xCompare = memcmp( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+                       if( xCompare != 0 )
+                       {
+                           IP_Address_t xAddress;
+                           xCompare = memcmp( pxICMPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+                                              pxEndPoint->xMACAddress.ucBytes,
+                                              ipMAC_ADDRESS_LENGTH_BYTES );
+                           if( ( xCompare == 0 ) && ( FreeRTOS_inet_pton6( "fe80::1", xAddress.xIP_IPv6.ucBytes ) != 0 ) )
+                           {
+                               xCompare = memcmp( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                           }
+                       }
 
                        if( xCompare == 0 )
                        {
