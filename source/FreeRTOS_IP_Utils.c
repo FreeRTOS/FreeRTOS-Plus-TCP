@@ -129,11 +129,13 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             size_t uxBufferLength,
                                             struct xPacketSummary * pxSet );
 
-static void prvSetChecksumInPacket( struct xPacketSummary * pxSet, uint16_t usChecksum );
+static void prvSetChecksumInPacket( struct xPacketSummary * pxSet,
+                                    uint16_t usChecksum );
 
 static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
 
-static void prvSetChecksumInPacket( struct xPacketSummary * pxSet, uint16_t usChecksum )
+static void prvSetChecksumInPacket( struct xPacketSummary * pxSet,
+                                    uint16_t usChecksum )
 {
     if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
     {
@@ -160,7 +162,6 @@ static void prvSetChecksumInPacket( struct xPacketSummary * pxSet, uint16_t usCh
 
 static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
 {
-
     uint16_t usChecksum;
 
     if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )

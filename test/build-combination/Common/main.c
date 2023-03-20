@@ -349,7 +349,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     }
 #endif
 
-#if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0)
+#if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
 
 /*
  * The stack will call this user hook for all Ethernet frames that it
@@ -363,7 +363,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
  */
     eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
-        (void) (pxNetworkBuffer);
+        ( void ) ( pxNetworkBuffer );
         return eProcessBuffer;
     }
 

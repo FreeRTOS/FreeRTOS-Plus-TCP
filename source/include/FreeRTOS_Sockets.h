@@ -180,11 +180,11 @@
         IP_Address_t sin_address; /**< The IPv4/IPv6 address. */
     };
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
-    #define sin_addr              sin_address.ulIP_IPv4
+        #define sin_addr    sin_address.ulIP_IPv4
 
-#endif
+    #endif
 
 /** Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr   xFreertosSocAddr;
