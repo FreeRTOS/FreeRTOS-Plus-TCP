@@ -323,10 +323,12 @@ static void prvSetOptionTimeout( FreeRTOS_Socket_t * pxSocket,
  */
     static BaseType_t prvSetOptionReuseListenSocket( FreeRTOS_Socket_t * pxSocket,
                                                      const void * pvOptionValue );
+
+    static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
+                                        size_t uxSocketSize );
 #endif /* ipconfigUSE_TCP == 1 */
 
-static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
-                                    size_t uxSocketSize );
+
 
 static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
                                        void * pvBuffer,
