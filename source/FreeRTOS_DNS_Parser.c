@@ -628,7 +628,6 @@
             /* The IP-address found will be returned. */
         }
 
-
         ( void ) usType;
         ( void ) usClass;
 
