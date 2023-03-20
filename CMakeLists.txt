@@ -197,6 +197,7 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wpedantic>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wunused-variable>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
 
     # TODO: Add in other Compilers here.

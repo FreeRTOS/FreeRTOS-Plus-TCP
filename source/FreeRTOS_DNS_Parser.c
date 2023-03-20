@@ -313,10 +313,9 @@
         xSet.usPortNumber = usPort;
         xSet.ppxLastAddress = &( xSet.pxLastAddress );
 
-        #if ( ipconfigUSE_LLMNR == 1 )
-            uint16_t usType = 0U;
-            uint16_t usClass = 0U;
-        #endif
+        uint16_t usType = 0U;
+        uint16_t usClass = 0U;
+
         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
             xSet.xDoStore = xExpected;
         #endif
@@ -628,6 +627,10 @@
         {
             /* The IP-address found will be returned. */
         }
+
+
+        ( void ) usType;
+        ( void ) usClass;
 
         return ulIPAddress;
     }
