@@ -342,6 +342,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
     uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
     uint8_t ucNextHeader = 0U;
     BaseType_t xNextOrder = 0;
+    BaseType_t xExtHeaderCount = 0;
 
     while( ( uxIndex + 8U ) < uxMaxLength )
     {
@@ -379,9 +380,18 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
                                  ucNextHeader,
                                  ( int ) xNextOrder ) );
 
-        if( xNextOrder <= xCurrentOrder )
+        xExtHeaderCount += 1;
+
+        /*
+        * IPv6 nodes must accept and attempt to process extension headers in
+        * any order and occurring any number of times in the same packet,
+        * except for the Hop-by-Hop Options header which is restricted to
+        * appear immediately after an IPv6 header only. Outlined
+        * by RFC 2460 section 4.1  Extension Header Order.
+        */
+        if ( xExtHeaderCount > 1 && xCurrentOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
         {
-            FreeRTOS_printf( ( "Wrong order\n" ) );
+            FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
             uxIndex = uxMaxLength;
             break;
         }
