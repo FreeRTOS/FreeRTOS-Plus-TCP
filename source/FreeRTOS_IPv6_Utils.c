@@ -149,7 +149,6 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
 
     if( xReturn == 0 )
     {
-        pxSet->pusChecksum = ( uint16_t * ) ( &( pxSet->pxProtocolHeaders->xICMPHeader.usChecksum ) );
         pxSet->uxProtocolHeaderLength = xICMPLength;
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
             {
