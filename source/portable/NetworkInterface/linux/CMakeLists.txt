@@ -27,11 +27,6 @@ target_compile_options( freertos_plus_tcp_network_if
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-unused-parameter>
 )
 
-target_compile_definitions( freertos_plus_tcp_network_if
-  PRIVATE
-    "sin_addr=sin_addr"
-)
-
 target_link_libraries( freertos_plus_tcp_network_if
   PUBLIC
     freertos_plus_tcp_port

@@ -31,12 +31,6 @@
 #include "task.h"
 #include "semphr.h"
 
-/* ========================= FreeRTOS+TCP includes ========================== */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
-#include "NetworkBufferManagement.h"
-#include "FreeRTOS_Stream_Buffer.h"
-
 /* ======================== Standard Library includes ======================== */
 #include <stdio.h>
 #include <unistd.h>
@@ -48,6 +42,12 @@
 #include <ctype.h>
 #include <signal.h>
 #include <pcap.h>
+
+/* ========================= FreeRTOS+TCP includes ========================== */
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "NetworkBufferManagement.h"
+#include "FreeRTOS_Stream_Buffer.h"
 
 /* ========================== Local includes =================================*/
 #include <utils/wait_for_event.h>

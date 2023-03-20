@@ -1028,7 +1028,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
             }
 
             ( void ) memset( &( xAddress ), 0, sizeof xAddress );
-            ( void ) FreeRTOS_inet_pton6( "ff02::1:2", xAddress.sin_addr6.ucBytes );
+            ( void ) FreeRTOS_inet_pton6( "ff02::1:2", xAddress.sin_address.xIP_IPv6.ucBytes );
             xAddress.sin_len = ( uint8_t ) sizeof xAddress; /* length of this structure. */
             xAddress.sin_family = FREERTOS_AF_INET6;
             xAddress.sin_port = FreeRTOS_htons( DHCPv6_SERVER_PORT );

@@ -335,14 +335,14 @@ static void prvProcessIPEventsAndTimers( void )
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
                 xAddress.sin_family = FREERTOS_AF_INET6;
-                ( void ) memcpy( xAddress.sin_addr6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( xAddress.sin_addr6.ucBytes ) );
+                ( void ) memcpy( xAddress.sin_address.xIP_IPv6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( xAddress.sin_address.xIP_IPv6.ucBytes ) );
                 /* 'ulLocalAddress' will be set again by vSocketBind(). */
                 ( void ) memset( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, 0, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
             }
             else
             {
                 xAddress.sin_family = FREERTOS_AF_INET;
-                xAddress.sin_addr = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
+                xAddress.sin_address.ulIP_IPv4 = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
                 /* 'ulLocalAddress' will be set again by vSocketBind(). */
                 pxSocket->xLocalAddress.ulIP_IPv4 = 0;
             }

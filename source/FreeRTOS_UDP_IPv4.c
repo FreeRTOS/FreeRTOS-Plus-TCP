@@ -394,9 +394,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
-                        xSourceAddress.sin_addr4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+                        xSourceAddress.sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
                         destinationAddress.sin_port = usPort;
-                        destinationAddress.sin_addr4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
+                        destinationAddress.sin_address.ulIP_IPv4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
 
                         /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
                         if( xHandler( ( Socket_t ) pxSocket,
