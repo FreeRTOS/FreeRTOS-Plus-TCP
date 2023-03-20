@@ -136,10 +136,10 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
 
 /**
  * @brief Set checksum in the packet
- *  
+ *
  * @param pxSet: Pointer to the packet summary that describes the packet,
  *                  to which the checksum will be set.
- *      
+ *
  * @param usChecksum: Checksum value to be set.
  */
 static void prvSetChecksumInPacket( struct xPacketSummary * pxSet,
@@ -170,10 +170,10 @@ static void prvSetChecksumInPacket( struct xPacketSummary * pxSet,
 
 /**
  * @brief Get checksum from the packet summary
- *  
+ *
  * @param pxSet: Pointer to the packet summary that describes the packet,
  *                  from which the checksum will be retrieved.
- *      
+ *
  * @return Checksum value that is retrieved from pxSet.
  */
 static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
