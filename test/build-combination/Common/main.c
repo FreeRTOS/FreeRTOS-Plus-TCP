@@ -41,6 +41,7 @@
 
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 
 #define mainHOST_NAME           "Build Combination"
 #define mainDEVICE_NICK_NAME    "Build_Combination"
@@ -348,6 +349,25 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     }
 #endif
 
+#if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0)
+
+/*
+ * The stack will call this user hook for all Ethernet frames that it
+ * does not support, i.e. other than IPv4, IPv6 and ARP ( for the moment )
+ * If this hook returns eReleaseBuffer or eProcessBuffer, the stack will
+ * release and reuse the network buffer.  If this hook returns
+ * eReturnEthernetFrame, that means user code has reused the network buffer
+ * to generate a response and the stack will send that response out.
+ * If this hook returns eFrameConsumed, the user code has ownership of the
+ * network buffer and has to release it when it's done.
+ */
+    eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    {
+        (void) (pxNetworkBuffer);
+        return eNetworkDownEvent;
+    }
+
+#endif
 void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                 uint16_t usIdentifier )
 {

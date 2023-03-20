@@ -177,7 +177,7 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
 static void prvCloseDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
 
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    static const char * prvStateName( eDHCPState_t eState );
+    const char * prvStateName( eDHCPState_t eState );
 #endif
 
 static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * pxEndPoint );
@@ -1386,7 +1386,7 @@ static BaseType_t prvDHCPv6Analyse( const uint8_t * pucAnswer,
  * @return A descriptive string.
  */
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    static const char * prvStateName( eDHCPState_t eState )
+    const char * prvStateName( eDHCPState_t eState )
     {
         const char * pcName;
 

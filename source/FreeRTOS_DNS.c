@@ -127,7 +127,6 @@
 /**
  * @brief The IPv6 link-scope multicast MAC address
  */
-        const
         const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
     #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
 

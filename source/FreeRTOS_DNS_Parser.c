@@ -1144,7 +1144,7 @@
                         #endif
 
                         #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-                            if( xApplicationDNSQueryHook( xSet.pcName ) != pdFALSE )
+                            if( xApplicationDNSQueryHook( ( const char * ) ucNBNSName ) != pdFALSE )
                         #else
                             if( xApplicationDNSQueryHook_Multi( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE )
                         #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */

@@ -34,6 +34,29 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
+#define ipconfigUSE_DHCPv6                              1
+#define ipconfigIPv4_BACKWARD_COMPATIBLE                1
+#define ipconfigUSE_ARP_REVERSED_LOOKUP                 1
+#define ipconfigUSE_ARP_REMOVE_ENTRY                    1
+#define ipconfigARP_STORES_REMOTE_ADDRESSES             1
+#define ipconfigUSE_LINKED_RX_MESSAGES                  1
+#define ipconfigFORCE_IP_DONT_FRAGMENT                  1
+#define ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS          1
+#define ipconfigDHCP_FALL_BACK_AUTO_IP                  1
+#define ipconfigARP_USE_CLASH_DETECTION                 1
+#define ipconfigUSE_LLMNR                               1
+#define ipconfigUSE_NBNS                                1
+#define ipconfigUSE_MDNS                                1
+#define ipconfigSUPPORT_OUTGOING_PINGS                  1
+#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS         1
+#define ipconfigZERO_COPY_TX_DRIVER                     1
+#define ipconfigZERO_COPY_RX_DRIVER                     1
+#define ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM          1
+#define ipconfigSOCKET_HAS_USER_SEMAPHORE               1
+#define ipconfigSELECT_USES_NOTIFY                      1
+#define ipconfigSUPPORT_SIGNALS                         1
+#define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES          1
+
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
