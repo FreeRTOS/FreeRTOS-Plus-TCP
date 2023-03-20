@@ -364,7 +364,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         (void) (pxNetworkBuffer);
-        return eNetworkDownEvent;
+        return eProcessBuffer;
     }
 
 #endif
