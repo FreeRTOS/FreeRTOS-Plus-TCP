@@ -171,7 +171,8 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
     }
     else
     if( ( pxRight->ucBytes[ 0 ] == 0xffU ) &&
-        ( pxRight->ucBytes[ 1 ] == 0x02U ) )
+        ( pxRight->ucBytes[ 1 ] == 0x02U ) &&
+        ( pxRight->ucBytes[ 15 ] == 0x01U ) )
     {
         /* FF02::1 is all node address to reach out all nodes in the same link. */
         xResult = 0;
