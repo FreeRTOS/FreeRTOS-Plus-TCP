@@ -59,6 +59,11 @@ const struct xIPv6_Address in6addr_any = { 0 };
  */
 const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
+/**
+ * This variable is initialized by the system to contain the unspecified IPv6 address.
+ */
+const IPv6_Address_t xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+
 /*
  * Check if the packet is a legal loopback packet.
  */
@@ -120,7 +125,6 @@ static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header,
 BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
 {
     BaseType_t xReturn = pdFALSE;
-    const IPv6_Address_t xZeroAddress = { 0 };
 
     if( pxIPAddress->ucBytes[ 0 ] == 0xffU )
     {
@@ -137,7 +141,7 @@ BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
          * - ..
          * - 0xFF0F:: */
         else if( ( IPv6MC_GET_FLAGS_VALUE( pxIPAddress ) == 0U ) &&
-                 ( memcmp( IPv6MC_GET_GROUP_ID( pxIPAddress ).ucBytes, xZeroAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+                 ( memcmp( IPv6MC_GET_GROUP_ID( pxIPAddress ).ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             xReturn = pdFALSE;
         }
@@ -261,19 +265,31 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
+            const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
+            BaseType_t xHasUnspecifiedAddress = pdFALSE;
+
+            /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
+             * either in source or destination address. */
+            if( ( memcmp( pxDestinationIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
+                ( memcmp( pxSourceIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+            {
+                xHasUnspecifiedAddress = pdTRUE;
+            }
 
             /* Is the packet for this IP address? */
-            if( ( pxNetworkBuffer->pxEndPoint != NULL ) &&
+            if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+                ( pxNetworkBuffer->pxEndPoint != NULL ) &&
                 ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
             {
                 eReturn = eProcessBuffer;
             }
             /* Is it the legal multicast address? */
-            else if( ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
-                     /* Is it loopback address sent from this node? */
-                     ( xIsIPv6Loopback( pxIPv6Header, pxNetworkBuffer ) != pdFALSE ) ||
-                     /* Or (during DHCP negotiation) we have no IP-address yet? */
-                     ( FreeRTOS_IsNetworkUp() == 0 ) )
+            else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+                     ( ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
+                       /* Is it loopback address sent from this node? */
+                       ( xIsIPv6Loopback( pxIPv6Header, pxNetworkBuffer ) != pdFALSE ) ||
+                       /* Or (during DHCP negotiation) we have no IP-address yet? */
+                       ( FreeRTOS_IsNetworkUp() == 0 ) ) )
             {
                 eReturn = eProcessBuffer;
             }
