@@ -56,6 +56,50 @@ const struct xIPv6_Address in6addr_any = { 0 };
 const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
 /**
+ * structure to parse IPv6 multicast address.
+ */
+typedef struct xIPv6MulticastAddress
+{
+    uint8_t ucFF;
+    uint8_t uxFlags : 4;
+    uint8_t uxScope : 4;
+    uint8_t ucGroupID;
+} IPv6MulticastAddress_t;
+
+/*
+ * Check if the packet is a legal loopback packet.
+ */
+static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header,
+                                   const NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/**
+ * @brief Check if the packet is a legal loopback packet.
+ *
+ * @param[in] pxIPv6Header: The IP packet in pxNetworkBuffer.
+ * @param[in] pxNetworkBuffer: The whole network buffer to be checked.
+ *
+ * @return Returns pdTRUE if it's a legal loopback packet, pdFALSE if not .
+ */
+static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header,
+                                   const NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    BaseType_t xReturn = pdFALSE;
+    NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPv6Header->xSourceAddress ) );
+
+    /* Allow loopback packets from this node itself only. */
+    if( ( pxEndPoint != NULL ) &&
+        ( memcmp( pxIPv6Header->xDestinationAddress.ucBytes, &in6addr_loopback, sizeof( IPv6_Address_t ) ) == 0 ) )
+    {
+        xReturn = pdTRUE;
+    }
+
+    return xReturn;
+}
+
+
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Check whether this IPv6 address is a multicast address or not.
  *
  * @param[in] pxIPAddress: The IP address to be checked.
@@ -64,15 +108,32 @@ const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
  */
 BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
 {
-    BaseType_t xReturn;
+    BaseType_t xReturn = pdFALSE;
 
     if( pxIPAddress->ucBytes[ 0 ] == 0xffU )
     {
-        xReturn = pdTRUE;
-    }
-    else
-    {
-        xReturn = pdFALSE;
+        IPv6MulticastAddress_t * pxIPv6MultiAddress = pxIPAddress->ucBytes;
+
+        /* From RFC4291 - sec 2.7, packets from multicast address whose scope field is 0
+         * should be silently dropped. */
+        if( pxIPv6MultiAddress->uxScope == 0U )
+        {
+            xReturn = pdFALSE;
+        }
+
+        /* From RFC4291 - sec 2.7.1, packets from predefined multicast address should never be used.
+         * - 0xFF00::
+         * - 0xFF01::
+         * - ..
+         * - 0xFF0F:: */
+        else if( pxIPv6MultiAddress->uxFlags == 0U )
+        {
+            xReturn = pdFALSE;
+        }
+        else
+        {
+            xReturn = pdTRUE;
+        }
     }
 
     return xReturn;
@@ -191,18 +252,24 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
             const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
 
             /* Is the packet for this IP address? */
-            if( ( pxNetworkBuffer->pxEndPoint != NULL ) ||
-                /* Is it the multicast address FF00::/8 ? */
-                ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
-                /* Or (during DHCP negotiation) we have no IP-address yet? */
-                ( FreeRTOS_IsNetworkUp() == 0 ) )
+            if( ( pxNetworkBuffer->pxEndPoint != NULL ) &&
+                ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
             {
-                /* Packet is not for this node, or the network is still not up,
-                 * release it */
+                eReturn = eProcessBuffer;
+            }
+            /* Is it the legal multicast address? */
+            else if( ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
+                     /* Is it loopback address sent from this node? */
+                     ( xIsIPv6Loopback( pxIPv6Header, pxNetworkBuffer ) != pdFALSE ) ||
+                     /* Or (during DHCP negotiation) we have no IP-address yet? */
+                     ( FreeRTOS_IsNetworkUp() == 0 ) )
+            {
                 eReturn = eProcessBuffer;
             }
             else
             {
+                /* Packet is not for this node, or the network is still not up,
+                 * release it */
                 eReturn = eReleaseBuffer;
                 FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop %pip (from %pip)\n", pxDestinationIPAddress->ucBytes, pxIPv6Header->xSourceAddress.ucBytes ) );
             }
