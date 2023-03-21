@@ -1309,13 +1309,13 @@ static void prvEMACHandlerTask( void * pvParameters )
             /* Something has changed to a Link Status, need re-check. */
             prvEthernetUpdateConfig( pdFALSE );
 
-            #if( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
-            {
-                if(xGetPhyLinkStatus() == pdFALSE)
+            #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
                 {
-                    FreeRTOS_NetworkDown();
+                    if( xGetPhyLinkStatus() == pdFALSE )
+                    {
+                        FreeRTOS_NetworkDown();
+                    }
                 }
-            }
             #endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
         }
     }
