@@ -45,6 +45,10 @@
 #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
 
+#define IPv6MC_GET_SCOPE_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0x0F )
+#define IPv6MC_GET_FLAGS_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0xF0 )
+#define IPv6MC_GET_GROUP_ID( pxIPv6Address )       ( xGetIPv6MulticastGroupID( pxIPv6Address ) )
+
 /**
  * This variable is initialized by the system to contain the wildcard IPv6 address.
  */
@@ -55,22 +59,28 @@ const struct xIPv6_Address in6addr_any = { 0 };
  */
 const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
-/**
- * structure to parse IPv6 multicast address.
- */
-typedef struct xIPv6MulticastAddress
-{
-    uint8_t ucFF;
-    uint8_t uxFlags : 4;
-    uint8_t uxScope : 4;
-    uint8_t ucGroupID;
-} IPv6MulticastAddress_t;
-
 /*
  * Check if the packet is a legal loopback packet.
  */
 static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header,
                                    const NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/**
+ * @brief Get the group ID and stored into IPv6_Address_t.
+ *
+ * @param[in] pxIPv6Address: The multicast address to filter group ID.
+ *
+ * @return IPv6_Address_t with group ID only.
+ */
+static IPv6_Address_t xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address )
+{
+    IPv6_Address_t xReturnGroupID = { 0 };
+
+    configASSERT( pxIPv6Address != NULL );
+
+    memcpy( &( xReturnGroupID.ucBytes[ 2 ] ), &( pxIPv6Address->ucBytes[ 2 ] ), 14 );
+    return xReturnGroupID;
+}
 
 /**
  * @brief Check if the packet is a legal loopback packet.
@@ -109,14 +119,13 @@ static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header,
 BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
 {
     BaseType_t xReturn = pdFALSE;
+    const IPv6_Address_t xZeroAddress = { 0 };
 
     if( pxIPAddress->ucBytes[ 0 ] == 0xffU )
     {
-        IPv6MulticastAddress_t * pxIPv6MultiAddress = pxIPAddress->ucBytes;
-
         /* From RFC4291 - sec 2.7, packets from multicast address whose scope field is 0
          * should be silently dropped. */
-        if( pxIPv6MultiAddress->uxScope == 0U )
+        if( IPv6MC_GET_SCOPE_VALUE( pxIPAddress ) == 0U )
         {
             xReturn = pdFALSE;
         }
@@ -126,7 +135,8 @@ BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
          * - 0xFF01::
          * - ..
          * - 0xFF0F:: */
-        else if( pxIPv6MultiAddress->uxFlags == 0U )
+        else if( ( IPv6MC_GET_FLAGS_VALUE( pxIPAddress ) == 0U ) &&
+                 ( memcmp( IPv6MC_GET_GROUP_ID( pxIPAddress ).ucBytes, xZeroAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             xReturn = pdFALSE;
         }
