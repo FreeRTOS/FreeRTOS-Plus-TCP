@@ -98,7 +98,8 @@ static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header,
 
     /* Allow loopback packets from this node itself only. */
     if( ( pxEndPoint != NULL ) &&
-        ( memcmp( pxIPv6Header->xDestinationAddress.ucBytes, &in6addr_loopback, sizeof( IPv6_Address_t ) ) == 0 ) )
+        ( memcmp( pxIPv6Header->xDestinationAddress.ucBytes, &in6addr_loopback, sizeof( IPv6_Address_t ) ) == 0 ) &&
+        ( memcmp( pxIPv6Header->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
     {
         xReturn = pdTRUE;
     }
@@ -169,6 +170,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                  size_t uxPrefixLength )
 {
     BaseType_t xResult;
+    const IPv6_Address_t xAllNodesAddress = { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
     /* 0    2    4    6    8    10   12   14 */
     /* ff02:0000:0000:0000:0000:0001:ff66:4a81 */
@@ -180,9 +182,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
         xResult = memcmp( &( pxLeft->ucBytes[ 13 ] ), &( pxRight->ucBytes[ 13 ] ), 3 );
     }
     else
-    if( ( pxRight->ucBytes[ 0 ] == 0xffU ) &&
-        ( pxRight->ucBytes[ 1 ] == 0x02U ) &&
-        ( pxRight->ucBytes[ 15 ] == 0x01U ) )
+    if( memcmp( pxRight->ucBytes, xAllNodesAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 )
     {
         /* FF02::1 is all node address to reach out all nodes in the same link. */
         xResult = 0;
