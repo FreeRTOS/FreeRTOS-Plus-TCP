@@ -45,8 +45,13 @@
 #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
 
+/** @brief Get the scope field in IPv6 multicast address. */
 #define IPv6MC_GET_SCOPE_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0x0FU )
+
+/** @brief Get the flags field in IPv6 multicast address. */
 #define IPv6MC_GET_FLAGS_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0xF0U )
+
+/** @brief Get the group ID field in IPv6 multicast address. */
 #define IPv6MC_GET_GROUP_ID( pxIPv6Address )       ( xGetIPv6MulticastGroupID( pxIPv6Address ) )
 
 /**
@@ -97,7 +102,6 @@ static IPv6_Address_t xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Add
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
-/* coverity[single_use] */
 static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
 {
     BaseType_t xReturn = pdFALSE;
