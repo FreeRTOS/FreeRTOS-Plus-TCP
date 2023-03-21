@@ -1254,10 +1254,10 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         static uint16_t usSequenceNumber = 0;
         uint8_t * pucChar;
         size_t uxTotalLength;
+        BaseType_t xEnoughSpace;
         IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
         uxTotalLength = uxNumberOfBytesToSend + sizeof( ICMPPacket_t );
-        BaseType_t xEnoughSpace;
 
         if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
         {
