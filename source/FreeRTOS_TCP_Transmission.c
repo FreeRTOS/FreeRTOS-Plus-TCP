@@ -415,9 +415,9 @@
                 {
                     pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_FIN );
                     FreeRTOS_debug_printf( ( "Suppress FIN for %u + %u < %u\n",
-                                            ( unsigned int ) ( pxTCPWindow->ulOurSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ),
-                                            ( unsigned int ) ulDataLen,
-                                            ( unsigned int ) ( pxTCPWindow->tx.ulFINSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ) ) );
+                                             ( unsigned int ) ( pxTCPWindow->ulOurSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ),
+                                             ( unsigned int ) ulDataLen,
+                                             ( unsigned int ) ( pxTCPWindow->tx.ulFINSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ) ) );
                 }
             }
         }
