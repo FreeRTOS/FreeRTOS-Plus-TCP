@@ -316,7 +316,7 @@
         } RoutingStats_t;
 
         extern RoutingStats_t xRoutingStatistics;
-    #endif /* ( ipconfigHAS_ROUTING_STATISTICS != 0 ) */
+    #endif /* if ( ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) && ( ipconfigHAS_ROUTING_STATISTICS != 0 ) ) */
 
     NetworkEndPoint_t * pxGetSocketEndpoint( ConstSocket_t xSocket );
     void vSetSocketEndpoint( Socket_t xSocket,
