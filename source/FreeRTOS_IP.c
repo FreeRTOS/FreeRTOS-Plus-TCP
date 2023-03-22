@@ -2131,7 +2131,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
             /* _HT_ I wonder if this ad-hoc search of an end-point it necessary. */
-            FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %lxip?\n", FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
+            FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %x ip?\n", ( unsigned int ) FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */

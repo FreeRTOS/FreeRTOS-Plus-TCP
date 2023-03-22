@@ -421,7 +421,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
         }
     }
 
-    FreeRTOS_printf( ( "Extension headers : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
+    FreeRTOS_printf( ( "Extension headers : %s Truncated %lu bytes. Removed %lu, Payload %u xDataLength now %lu\n",
                        ( eResult == eProcessBuffer ) ? "good" : "bad",
                        xMoveLen,
                        uxRemovedBytes,

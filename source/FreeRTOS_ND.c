@@ -92,7 +92,7 @@
                                                 NetworkEndPoint_t ** ppxEndPoint );
 
     #if ( ipconfigHAS_PRINTF == 1 )
-        const char * pcMessageType( BaseType_t xType );
+        static const char * pcMessageType( BaseType_t xType );
     #endif
 
 /** @brief Find the first end-point of type IPv6. */
@@ -820,7 +820,7 @@
  *
  * @return A null-terminated string that represents the type the kind of message.
  */
-        const char * pcMessageType( BaseType_t xType )
+        static const char * pcMessageType( BaseType_t xType )
         {
             const char * pcReturn;
 

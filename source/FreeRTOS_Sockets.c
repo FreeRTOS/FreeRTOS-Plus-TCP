@@ -3537,8 +3537,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 else
                 {
                     pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
-                    FreeRTOS_printf( ( "FreeRTOS_connect: %u to %lxip:%u\n",
-                                       pxSocket->usLocalPort, FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                    FreeRTOS_printf( ( "FreeRTOS_connect: %u to %xip:%u\n",
+                                       pxSocket->usLocalPort, ( unsigned int ) FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
                     pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
                 }
 
@@ -5568,7 +5568,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
             ( void ) snprintf( pcRemoteIp, sizeof( pcRemoteIp ), "%xip", ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
         }
 
-        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6lu %6u%s\n",
+        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6u %6u%s\n",
                            pxSocket->usLocalPort,         /* Local port on this machine */
                            xIPWidth,
                            pcRemoteIp,                    /* IP address of remote machine */
