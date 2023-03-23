@@ -294,7 +294,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv4: %xip\n",
                                pxEndPoint->xMACAddress.ucBytes[ 4 ],
                                pxEndPoint->xMACAddress.ucBytes[ 5 ],
-                               ( unsigned int ) FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
+                               ( unsigned ) FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
         }
 
         return pxEndPoint;

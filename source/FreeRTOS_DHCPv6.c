@@ -325,7 +325,7 @@ void vDHCPv6Process( BaseType_t xReset,
             }
             else
             {
-                FreeRTOS_printf( ( "vDHCPv6Process: malloc failed %lu byt4es\n", sizeof( *pxEndPoint->pxDHCPMessage ) ) );
+                FreeRTOS_printf( ( "vDHCPv6Process: malloc failed %u bytes\n", ( unsigned ) sizeof( *pxEndPoint->pxDHCPMessage ) ) );
             }
         }
     }
@@ -386,7 +386,7 @@ void vDHCPv6Process( BaseType_t xReset,
 static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
                                                 DHCPMessage_IPv6_t * pxDHCPMessage )
 {
-    FreeRTOS_printf( ( "vDHCPProcess: acked %x ip\n", ( unsigned int ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
+    FreeRTOS_printf( ( "vDHCPProcess: acked %xip\n", ( unsigned int ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
 
     /* DHCP completed.  The IP address can now be used, and the
      * timer set to the lease timeout time. */

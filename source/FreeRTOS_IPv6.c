@@ -421,12 +421,12 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
         }
     }
 
-    FreeRTOS_printf( ( "Extension headers : %s Truncated %lu bytes. Removed %lu, Payload %u xDataLength now %lu\n",
+    FreeRTOS_printf( ( "Extension headers : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
                        ( eResult == eProcessBuffer ) ? "good" : "bad",
-                       xMoveLen,
-                       uxRemovedBytes,
+                       ( unsigned ) xMoveLen,
+                       ( unsigned ) uxRemovedBytes,
                        FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength ),
-                       pxNetworkBuffer->xDataLength ) );
+                       ( unsigned ) pxNetworkBuffer->xDataLength ) );
     return eResult;
 }
 

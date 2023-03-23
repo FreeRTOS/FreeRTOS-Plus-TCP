@@ -270,7 +270,7 @@
 
             if( uxLast < ( uxIndex + uxLength ) )
             {
-                FreeRTOS_printf( ( "RA: Not enough bytes ( %lu > %lu )\n", uxIndex + uxLength, uxLast ) );
+                FreeRTOS_printf( ( "RA: Not enough bytes ( %u > %u )\n", ( unsigned ) ( uxIndex + uxLength ), ( unsigned ) uxLast ) );
                 break;
             }
 
@@ -299,7 +299,7 @@
                                        pxPrefixOption->ucPrefixLength,
                                        FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
                                        FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
-                                       ( void * ) pxPrefixOption->ucPrefix ) );
+                                       pxPrefixOption->ucPrefix ) );
                     break;
 
                 case ndICMP_REDIRECTED_HEADER: /* 4 */
