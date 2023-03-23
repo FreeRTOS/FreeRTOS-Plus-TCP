@@ -109,9 +109,7 @@ static const char * pcTimeServers[] =
 static SemaphoreHandle_t xNTPWakeupSem = NULL;
 static uint32_t ulIPAddressFound;
 
-#if ( ipconfigUSE_IPv6 != 0 )
-    static struct freertos_sockaddr6 xIPAddressFound;
-#endif
+static struct freertos_sockaddr xIPAddressFound;
 static BaseType_t xHasIPAddress = pdFALSE;
 
 static Socket_t xNTP_UDPSocket = NULL;
@@ -282,7 +280,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
             else if( pxAddress->ai_family == FREERTOS_AF_INET6 )
             {
                 /*  struct freertos_sockaddr * ai_addr */
-                struct freertos_sockaddr6 * sockaddr6 = ( struct freertos_sockaddr6 * ) pxAddress->ai_addr;
+                struct freertos_sockaddr * sockaddr6 = ( struct freertos_sockaddr * ) pxAddress->ai_addr;
 
                 xIPAddressFound.sin_len = sizeof( xIPAddressFound ); /* Ignored, still present for backward compatibility. */
                 xIPAddressFound.sin_family = FREERTOS_AF_INET6;      /* Set to FREERTOS_AF_INET6. */

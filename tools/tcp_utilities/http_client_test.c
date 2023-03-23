@@ -208,11 +208,7 @@
     {
         Socket_t xSocket = NULL;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-            struct freertos_sockaddr6 xEchoServerAddress;
-        #else
-            struct freertos_sockaddr xEchoServerAddress;
-        #endif
+        struct freertos_sockaddr xEchoServerAddress;
 
         size_t uxInstance;
         int32_t xReturned, xReceivedBytes;
@@ -265,10 +261,8 @@
             TickType_t xSendTimeOut = pdMS_TO_TICKS( 2000U );
             #if ( ipconfigUSE_IPv6 != 0 )
                 IPv6_Address_t xIPAddress_IPv6;
-                struct freertos_sockaddr6 xLocalAddress;
-            #else
-                struct freertos_sockaddr xLocalAddress;
             #endif
+            struct freertos_sockaddr xLocalAddress;
             #if ( ipconfigMULTI_INTERFACE != 0 )
                 struct freertos_addrinfo * pxResult = NULL;
                 struct freertos_addrinfo xHints;
@@ -338,9 +332,9 @@
                     #if ( ipconfigUSE_IPv6 != 0 )
                         else if( pxResult->ai_family == FREERTOS_AF_INET6 )
                         {
-                            struct freertos_sockaddr6 * pxAddr6;
+                            struct freertos_sockaddr * pxAddr6;
 
-                            pxAddr6 = ( struct freertos_sockaddr6 * ) pxResult->ai_addr;
+                            pxAddr6 = ( struct freertos_sockaddr * ) pxResult->ai_addr;
                             memcpy( xIPAddress_IPv6.ucBytes, pxAddr6->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                             xHasIPv6Address = pdTRUE;
                         }
@@ -355,7 +349,7 @@
             #if ( ipconfigUSE_IPv6 != 0 )
                 if( xHasIPv6Address != 0 )
                 {
-                    xEchoServerAddress.sin_len = sizeof( struct freertos_sockaddr6 );
+                    xEchoServerAddress.sin_len = sizeof( struct freertos_sockaddr );
                     xEchoServerAddress.sin_family = FREERTOS_AF_INET6;
                     xEchoServerAddress.sin_port = FreeRTOS_htons( usUsePortNumber );
                     memcpy( xEchoServerAddress.sin_address.xIP_IPv6.ucBytes, xIPAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
