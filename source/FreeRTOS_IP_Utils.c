@@ -132,7 +132,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
-        uintptr_t uxOption = eGetDHCPStateAsUintptr();
+        uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
 
         xEventMessage.eEventType = eDHCPEvent;
 

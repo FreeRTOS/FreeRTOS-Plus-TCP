@@ -77,7 +77,7 @@ void test_xSendDHCPEvent( void )
 {
     BaseType_t xReturn, xResult = 0x123;
 
-    eGetDHCPStateAsUintptr_ExpectAndReturn( ( uintptr_t ) 12 );
+    eGetDHCPState_ExpectAndReturn( 12 );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( xResult );
 

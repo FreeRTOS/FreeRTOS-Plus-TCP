@@ -179,18 +179,6 @@
     }
 
 /**
- * @brief Returns the current state of a DHCP process.
- *
- * @return The current state ( eDHCPState_t ) of the DHCP process.
- */
-    uintptr_t eGetDHCPStateAsUintptr( void )
-    {
-        int val = ( int ) EP_DHCPData.eDHCPState;
-
-        return ( uintptr_t ) val;
-    }
-
-/**
  * @brief Process the DHCP state machine based on current state.
  *
  * @param[in] xReset Is the DHCP state machine starting over? pdTRUE/pdFALSE.
