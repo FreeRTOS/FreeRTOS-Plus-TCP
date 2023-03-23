@@ -331,8 +331,8 @@
 
                     if( pxResult->ai_family == FREERTOS_AF_INET4 )
                     {
-/*				ulIPAddress = ( ( struct freertos_sockaddr * ) pxResult->ai_addr )->sin_addr; */
-                        ulIPAddress = pxResult->ai_addr->sin_addr;
+/*				ulIPAddress = ( ( struct freertos_sockaddr * ) pxResult->ai_addr )->sin_address.ulIP_IPv4; */
+                        ulIPAddress = pxResult->ai_addr->sin_address.ulIP_IPv4;
                     }
 
                     #if ( ipconfigUSE_IPv6 != 0 )
@@ -368,7 +368,7 @@
                 pxAddress->sin_len = sizeof( struct freertos_sockaddr );
                 pxAddress->sin_family = FREERTOS_AF_INET;
                 pxAddress->sin_port = FreeRTOS_htons( usUsePortNumber );
-                pxAddress->sin_addr = ulIPAddress;
+                pxAddress->sin_address.ulIP_IPv4 = ulIPAddress;
             }
             else
             {
@@ -400,11 +400,11 @@
                     else
                 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                 {
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_addr, 9999 );
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_address.ulIP_IPv4, 9999 );
 
                     if( pxEndPoint != NULL )
                     {
-                        xBindAddress.sin_addr = pxEndPoint->ipv4_settings.ulIPAddress;
+                        xBindAddress.sin_address.ulIP_IPv4 = pxEndPoint->ipv4_settings.ulIPAddress;
                     }
                 }
             #endif /* if ( ipconfigMULTI_INTERFACE != 0 ) */
@@ -450,9 +450,9 @@
             #endif
             {
                 FreeRTOS_printf( ( "httpTest: FreeRTOS_connect from %lxip port %u to %lxip port %u: rc %d\n",
-                                   FreeRTOS_ntohl( pxLocalAddress->sin_addr ),
+                                   FreeRTOS_ntohl( pxLocalAddress->sin_address.ulIP_IPv4 ),
                                    FreeRTOS_ntohs( pxLocalAddress->sin_port ),
-                                   FreeRTOS_ntohl( pxAddress->sin_addr ),
+                                   FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ),
                                    FreeRTOS_ntohs( pxAddress->sin_port ),
                                    rc ) );
             }
