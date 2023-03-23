@@ -61,16 +61,6 @@ target_include_directories( freertos_plus_tcp SYSTEM
     include
 )
 
-#TODO(phelter): Investigate and fix in freertos_plus_tcp if not already fixed.
-target_compile_options( freertos_plus_tcp
-  PRIVATE
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-covered-switch-default>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-parameter>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-disabled-macro-expansion>
-)
-
 target_link_libraries( freertos_plus_tcp
   PUBLIC
     freertos_config
