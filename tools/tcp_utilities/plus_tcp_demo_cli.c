@@ -1346,7 +1346,7 @@ void xHandleTesting()
                             struct freertos_sockaddr * pxAddr6;
                             pxAddr6 = ( struct freertos_sockaddr * ) pxResult->ai_addr;
 
-                            FreeRTOS_printf( ( "dns query%d: '%s' = %pip rc = %d\n", ( int ) xIPVersion, pcHost, pxAddr6->sin_addr6.ucBytes, ( int ) rc ) );
+                            FreeRTOS_printf( ( "dns query%d: '%s' = %pip rc = %d\n", ( int ) xIPVersion, pcHost, pxAddr6->sin_address.xIP_IPv6.ucBytes, ( int ) rc ) );
                         }
                         else
                     #endif /* ipconfigUSE_IPv6 */

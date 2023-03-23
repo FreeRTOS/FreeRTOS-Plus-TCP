@@ -341,7 +341,7 @@
                             struct freertos_sockaddr6 * pxAddr6;
 
                             pxAddr6 = ( struct freertos_sockaddr6 * ) pxResult->ai_addr;
-                            memcpy( xIPAddress_IPv6.ucBytes, pxAddr6->sin_addr6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                            memcpy( xIPAddress_IPv6.ucBytes, pxAddr6->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                             xHasIPv6Address = pdTRUE;
                         }
                     #endif
@@ -358,7 +358,7 @@
                     xEchoServerAddress.sin_len = sizeof( struct freertos_sockaddr6 );
                     xEchoServerAddress.sin_family = FREERTOS_AF_INET6;
                     xEchoServerAddress.sin_port = FreeRTOS_htons( usUsePortNumber );
-                    memcpy( xEchoServerAddress.sin_addr6.ucBytes, xIPAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    memcpy( xEchoServerAddress.sin_address.xIP_IPv6.ucBytes, xIPAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
             #endif
@@ -385,7 +385,7 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( xEchoServerAddress.sin_family == FREERTOS_AF_INET6 )
                     {
-                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_addr6 ) );
+                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6 ) );
 
                         if( pxEndPoint == NULL )
                         {
@@ -394,7 +394,7 @@
 
                         if( pxEndPoint != NULL )
                         {
-                            /*memcpy( xEchoServerAddress.sin_addr6.ucBytes, pxEndPoint->ipv6.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); */
+                            /*memcpy( xEchoServerAddress.sin_address.xIP_IPv6.ucBytes, pxEndPoint->ipv6.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); */
                         }
                     }
                     else
@@ -442,7 +442,7 @@
                 if( pxAddress->sin_family == FREERTOS_AF_INET6 )
                 {
                     FreeRTOS_printf( ( "httpTest: FreeRTOS_connect to %pip port %u: rc %d\n",
-                                       xEchoServerAddress.sin_addr6.ucBytes,
+                                       xEchoServerAddress.sin_address.xIP_IPv6.ucBytes,
                                        FreeRTOS_ntohs( pxAddress->sin_port ),
                                        rc ) );
                 }

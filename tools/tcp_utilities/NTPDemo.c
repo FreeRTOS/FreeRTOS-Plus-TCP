@@ -274,7 +274,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
 
                 if( ulIPAddressFound != 0U )
                 {
-                    memset( xIPAddressFound.sin_addr6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+                    memset( xIPAddressFound.sin_address.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
                     xHasIPAddress = pdTRUE;
                     xStatus = EStatusAsking;
                 }
@@ -288,9 +288,9 @@ void vStartNTPTask( uint16_t usTaskStackSize,
                 xIPAddressFound.sin_family = FREERTOS_AF_INET6;      /* Set to FREERTOS_AF_INET6. */
                 xIPAddressFound.sin_port = FreeRTOS_htons( NTP_PORT );
                 xIPAddressFound.sin_flowinfo = 0;                    /* IPv6 flow information. */
-                memcpy( xIPAddressFound.sin_addr6.ucBytes, sockaddr6->sin_addr6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                memcpy( xIPAddressFound.sin_address.xIP_IPv6.ucBytes, sockaddr6->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
-                FreeRTOS_printf( ( "vDNS_callback: using address %pip\n", xIPAddressFound.sin_addr6.ucBytes ) );
+                FreeRTOS_printf( ( "vDNS_callback: using address %pip\n", xIPAddressFound.sin_address.xIP_IPv6.ucBytes ) );
                 ulIPAddressFound = 0U;
                 xHasIPAddress = pdTRUE;
                 xStatus = EStatusAsking;
@@ -613,10 +613,10 @@ static void prvNTPTask( void * pvParameters )
                 prvNTPPacketInit();
                 uxSendTime = xTaskGetTickCount();
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    if( memcmp( xIPAddressFound.sin_addr6.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                    if( memcmp( xIPAddressFound.sin_address.xIP_IPv6.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         FreeRTOS_printf( ( "Sending UDP message to %pip port %u\n",
-                                           xIPAddressFound.sin_addr6.ucBytes,
+                                           xIPAddressFound.sin_address.xIP_IPv6.ucBytes,
                                            FreeRTOS_ntohs( xIPAddressFound.sin_port ) ) );
 
                         FreeRTOS_sendto( xNTP_UDPSocket,
