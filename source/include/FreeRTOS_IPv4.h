@@ -96,12 +96,6 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
 /* Check if the IP-header is carrying options. */
 eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-    /* Check IPv4 packet length. */
-    BaseType_t xCheckIPv4SizeFields( const void * const pucEthernetBuffer,
-                                     size_t uxBufferLength );
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
-
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

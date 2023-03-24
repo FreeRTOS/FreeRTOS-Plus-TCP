@@ -1932,38 +1932,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-
-/**
- * @brief Although the driver will take care of checksum calculations, the IP-task
- *        will still check if the length fields are OK.
- *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
- *
- * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
- *         should be dropped.
- */
-    BaseType_t xCheckSizeFields( const void * const pucEthernetBuffer,
-                                 size_t uxBufferLength )
-    {
-        BaseType_t xReturn;
-        const EthernetHeader_t * const pxEthernetHeader = ( const EthernetHeader_t * const ) pucEthernetBuffer;
-
-        if( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE )
-        {
-            xReturn = xCheckIPv4SizeFields( pucEthernetBuffer, uxBufferLength );
-        }
-        else
-        {
-            xReturn = xCheckIPv6SizeFields( pucEthernetBuffer, uxBufferLength );
-        }
-
-        return xReturn;
-    }
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
-/*-----------------------------------------------------------*/
-
 /* This function is used in other files, has external linkage e.g. in
  * FreeRTOS_DNS.c. Not to be made static. */
 

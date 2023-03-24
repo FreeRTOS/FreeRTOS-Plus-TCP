@@ -55,6 +55,86 @@ const struct xIPv6_Address in6addr_any = { 0 };
  */
 const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
+#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+    /* Check IPv6 packet length. */
+    static BaseType_t xCheckIPv6SizeFields( const void * const pucEthernetBuffer,
+                                            size_t uxBufferLength );
+#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
+
+#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+
+/**
+ * @brief Check IPv6 packet length.
+ *
+ * @param[in] pucEthernetBuffer: The Ethernet packet received.
+ * @param[in] uxBufferLength: The total number of bytes received.
+ *
+ * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
+ *         should be dropped.
+ */
+    static BaseType_t xCheckIPv6SizeFields( const void * const pucEthernetBuffer,
+                                            size_t uxBufferLength )
+    {
+        BaseType_t xResult = pdFAIL;
+        uint16_t ucVersionTrafficClass;
+        uint16_t usPayloadLength;
+
+        /* Map the buffer onto a IPv6-Packet struct to easily access the
+         * fields of the IPv6 packet. */
+        const IPPacket_IPv6_t * const pxIPv6Packet = ( ( const IPPacket_IPv6_t * const ) pucEthernetBuffer );
+
+        DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
+
+        do
+        {
+            /* Check for minimum packet size: Ethernet header and an IPv6-header, 54 bytes */
+            if( uxBufferLength < sizeof( IPHeader_IPv6_t ) )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
+                break;
+            }
+
+            ucVersionTrafficClass = pxIPv6Packet->xIPHeader.ucVersionTrafficClass;
+
+            /* Test if the IP-version is 6. */
+            if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
+                break;
+            }
+
+            /* Check if the IPv6-header is transferred. */
+            if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
+                break;
+            }
+
+            /* Check if the complete IPv6-header plus protocol data have been transferred: */
+            usPayloadLength = FreeRTOS_ntohs( pxIPv6Packet->xIPHeader.usPayloadLength );
+
+            if( uxBufferLength != ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
+                break;
+            }
+
+            xResult = pdPASS;
+        } while( ipFALSE_BOOL );
+
+        if( xResult != pdPASS )
+        {
+            /* NOP if ipconfigHAS_PRINTF != 1 */
+            FreeRTOS_printf( ( "xCheckIPv6SizeFields: location %ld\n", xLocation ) );
+        }
+
+        return xResult;
+    }
+
+
+#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Check whether this IPv6 address is a multicast address or not.
  *
@@ -244,7 +324,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
         {
             if( eReturn == eProcessBuffer )
             {
-                if( xCheckSizeFields( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength ) != pdPASS )
+                if( xCheckIPv6SizeFields( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ) != pdPASS )
                 {
                     /* Some of the length checks were not successful. */
                     eReturn = eReleaseBuffer;
@@ -440,80 +520,6 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 }
 
 
-/*-----------------------------------------------------------*/
-
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-
-/**
- * @brief Check IPv6 packet length.
- *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
- *
- * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
- *         should be dropped.
- */
-    BaseType_t xCheckIPv6SizeFields( const void * const pucEthernetBuffer,
-                                     size_t uxBufferLength )
-    {
-        BaseType_t xResult = pdFAIL;
-        uint16_t ucVersionTrafficClass;
-        uint16_t usPayloadLength;
-
-        /* Map the buffer onto a IPv6-Packet struct to easily access the
-         * fields of the IPv6 packet. */
-        const IPPacket_IPv6_t * const pxIPv6Packet = ( ( const IPPacket_IPv6_t * const ) pucEthernetBuffer );
-
-        DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
-
-        do
-        {
-            /* Check for minimum packet size: Ethernet header and an IPv6-header, 54 bytes */
-            if( uxBufferLength < sizeof( IPHeader_IPv6_t ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
-                break;
-            }
-
-            ucVersionTrafficClass = pxIPv6Packet->xIPHeader.ucVersionTrafficClass;
-
-            /* Test if the IP-version is 6. */
-            if( ( ( ucVersionTrafficClass & ( uint8_t ) 0xF0U ) >> 4 ) != 6U )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
-                break;
-            }
-
-            /* Check if the IPv6-header is transferred. */
-            if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
-                break;
-            }
-
-            /* Check if the complete IPv6-header plus protocol data have been transferred: */
-            usPayloadLength = FreeRTOS_ntohs( pxIPv6Packet->xIPHeader.usPayloadLength );
-
-            if( uxBufferLength != ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
-                break;
-            }
-
-            xResult = pdPASS;
-        } while( ipFALSE_BOOL );
-
-        if( xResult != pdPASS )
-        {
-            /* NOP if ipconfigHAS_PRINTF != 1 */
-            FreeRTOS_printf( ( "xCheckSizeFields: location %ld\n", xLocation ) );
-        }
-
-        return xResult;
-    }
-
-
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 /*-----------------------------------------------------------*/
 
 /* *INDENT-OFF* */
