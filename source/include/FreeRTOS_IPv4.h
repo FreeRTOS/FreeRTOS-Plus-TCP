@@ -98,7 +98,7 @@ eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * c
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv4 packet length. */
-    BaseType_t xCheckIPv4SizeFields( const uint8_t * const pucEthernetBuffer,
+    BaseType_t xCheckIPv4SizeFields( const void * const pucEthernetBuffer,
                                      size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 

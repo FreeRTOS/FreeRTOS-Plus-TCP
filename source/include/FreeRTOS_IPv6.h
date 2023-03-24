@@ -128,7 +128,7 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv6 packet length. */
-    BaseType_t xCheckIPv6SizeFields( const uint8_t * const pucEthernetBuffer,
+    BaseType_t xCheckIPv6SizeFields( const void * const pucEthernetBuffer,
                                      size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 

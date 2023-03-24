@@ -344,17 +344,20 @@ eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * c
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
  */
-    BaseType_t xCheckIPv4SizeFields( const uint8_t * const pucEthernetBuffer,
+    BaseType_t xCheckIPv4SizeFields( const void * const pucEthernetBuffer,
                                      size_t uxBufferLength )
     {
         size_t uxLength;
-        const IPPacket_t * pxIPPacket;
         UBaseType_t uxIPHeaderLength;
         uint8_t ucProtocol;
         uint16_t usLength;
         uint16_t ucVersionHeaderLength;
         size_t uxMinimumLength;
         BaseType_t xResult = pdFAIL;
+
+        /* Map the buffer onto a IP-Packet struct to easily access the
+         * fields of the IP packet. */
+        const IPPacket_t * const pxIPPacket = ( ( const IPPacket_t * const ) pucEthernetBuffer );
 
         DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
@@ -366,14 +369,6 @@ eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * c
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
                 break;
             }
-
-            /* Map the buffer onto a IP-Packet struct to easily access the
-             * fields of the IP packet. */
-
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
             ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;
 

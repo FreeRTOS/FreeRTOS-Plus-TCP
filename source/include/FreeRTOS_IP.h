@@ -431,7 +431,7 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
 
 /* Even when the driver takes care of checksum calculations,
  * the IP-task will still check if the length fields are OK. */
-    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
+    BaseType_t xCheckSizeFields( const void * const pucEthernetBuffer,
                                  size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 

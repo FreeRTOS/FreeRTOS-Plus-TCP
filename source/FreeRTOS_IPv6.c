@@ -453,16 +453,16 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
  */
-    BaseType_t xCheckIPv6SizeFields( const uint8_t * const pucEthernetBuffer,
+    BaseType_t xCheckIPv6SizeFields( const void * const pucEthernetBuffer,
                                      size_t uxBufferLength )
     {
         BaseType_t xResult = pdFAIL;
-        const IPPacket_IPv6_t * pxIPv6Packet;
         uint16_t ucVersionTrafficClass;
         uint16_t usPayloadLength;
-        uint8_t ucNextHeader;
-        uint16_t usExtensionHeaderLength = 0;
-        size_t uxMinimumLength;
+
+        /* Map the buffer onto a IPv6-Packet struct to easily access the
+         * fields of the IPv6 packet. */
+        const IPPacket_IPv6_t * const pxIPv6Packet = ( ( const IPPacket_IPv6_t * const ) pucEthernetBuffer );
 
         DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
@@ -474,10 +474,6 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
                 break;
             }
-
-            /* Map the buffer onto a IPv6-Packet struct to easily access the
-             * fields of the IPv6 packet. */
-            pxIPv6Packet = ( ( const IPPacket_IPv6_t * const ) pucEthernetBuffer );
 
             ucVersionTrafficClass = pxIPv6Packet->xIPHeader.ucVersionTrafficClass;
 

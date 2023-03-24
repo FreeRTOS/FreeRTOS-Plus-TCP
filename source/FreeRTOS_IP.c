@@ -1942,19 +1942,22 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
  */
-    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
+    BaseType_t xCheckSizeFields( const void * const pucEthernetBuffer,
                                  size_t uxBufferLength )
     {
+        BaseType_t xReturn;
         const EthernetHeader_t * const pxEthernetHeader = ( const EthernetHeader_t * const ) pucEthernetBuffer;
 
         if( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE )
         {
-            xCheckIPv4SizeFields( pucEthernetBuffer, uxBufferLength );
+            xReturn = xCheckIPv4SizeFields( pucEthernetBuffer, uxBufferLength );
         }
         else
         {
-            xCheckIPv6SizeFields( pucEthernetBuffer, uxBufferLength );
+            xReturn = xCheckIPv6SizeFields( pucEthernetBuffer, uxBufferLength );
         }
+
+        return xReturn;
     }
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 /*-----------------------------------------------------------*/
