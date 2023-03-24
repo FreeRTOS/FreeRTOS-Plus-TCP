@@ -576,6 +576,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
 
+            ( void ) pxProtocolHeaders;
+
             /* There is no socket listening to the target port, but still it might
              * be for this node. */
 

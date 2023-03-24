@@ -587,8 +587,10 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_RA */
-    /* Mention pxEndPoint in case it has not been used. */
+
+    /* Mention pxEndPoint and xIsIPv6 in case they have not been used. */
     ( void ) pxEndPoint;
+    ( void ) xIsIPv6;
 }
 /*-----------------------------------------------------------*/
 
