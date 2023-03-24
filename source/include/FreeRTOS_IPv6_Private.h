@@ -141,7 +141,7 @@ struct xNetworkInterface;
 #include "pack_struct_start.h"
 struct xIP_HEADER_IPv6
 {
-    uint8_t ucVersionTrafficClass;      /**< T  he version field.                      0 +  1 =  1 */
+    uint8_t ucVersionTrafficClass;      /**< The version field.                      0 +  1 =  1 */
     uint8_t ucTrafficClassFlow;         /**< Traffic class and flow.                 1 +  1 =  2 */
     uint16_t usFlowLabel;               /**< Flow label.                             2 +  2 =  4 */
     uint16_t usPayloadLength;           /**< Number of bytes after the IPv6 header.  4 +  2 =  6 */
