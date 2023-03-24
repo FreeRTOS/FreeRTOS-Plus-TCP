@@ -582,7 +582,7 @@
                                     ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                                     uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                     /* An extra 12 bytes will be sent compared to an A-record. */
-                                    usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
+                                    usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
                                 }
                                 else
                                 {
@@ -1045,6 +1045,11 @@
             NetworkEndPoint_t xEndPoint;
             BaseType_t xMustReply = pdFALSE;
 
+            /* Not used for now */
+            ( void ) uxBufferLength;
+            ( void ) uxBytesNeeded;
+            ( void ) xMustReply;
+            
             /* Read the request flags in host endianness. */
             usFlags = usChar2u16( &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, usFlags ) ] ) );
 

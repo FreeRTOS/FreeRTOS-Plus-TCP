@@ -645,11 +645,11 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
         {
             /* This is an incoming packet and it doesn't need debug logging. */
         }
-    #else /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
-        /* Mention parameters that are not used by the function. */
-        ( void ) uxBufferLength;
-        ( void ) pucEthernetBuffer;
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+
+    /* Mention parameters that are not used by the function. */
+    ( void ) uxBufferLength;
+    ( void ) pucEthernetBuffer;
 }
 /*-----------------------------------------------------------*/
 
