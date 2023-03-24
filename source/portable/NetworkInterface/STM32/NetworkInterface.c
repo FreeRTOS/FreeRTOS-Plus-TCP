@@ -49,8 +49,9 @@
 #include "phyHandling.h"
 
 /* ST includes. */
-#include "main.h"
-#if defined(STM32F7)
+#if defined(STM32F4)
+    #include "stm32f4xx_hal_eth.h"
+#elif defined(STM32F7)
     #include "stm32f7xx_hal_eth.h"
 #elif defined(STM32H7)
     #include "stm32h7xx_hal_eth.h"
@@ -167,6 +168,23 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 
 /*-----------------------------------------------------------*/
 
+BaseType_t xGetPhyLinkStatus( void )
+{
+    BaseType_t xReturn;
+
+    if( xPhyObject.ulLinkStatusMask != 0U )
+    {
+        xReturn = pdPASS;
+    }
+    else
+    {
+        xReturn = pdFAIL;
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     BaseType_t xResult = pdFAIL;
@@ -218,7 +236,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             memset( &DMATxDscrTab, 0, sizeof( DMATxDscrTab ) );
             memset( &DMARxDscrTab, 0, sizeof( DMARxDscrTab ) );
 
-            #ifdef STM32F7
+            #if defined(STM32F7) || defined(STM32F4)
                 /* This function doesn't get called in Fxx driver */
                 HAL_ETH_SetMDIOClockRange( &xEthHandle );
             #endif
@@ -262,7 +280,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         configASSERT( xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) ) == 0 );
     }
 
-    if ( xPhyObject.ulLinkStatusMask != 0U )
+    if ( xGetPhyLinkStatus() != pdFAIL )
     {
         ETH_MACConfigTypeDef MACConf;
         configASSERT( HAL_ETH_GetMACConfig( &xEthHandle , &MACConf ) == HAL_OK );
@@ -286,7 +304,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 
     if( pxDescriptor != NULL )
     {
-        if( xPhyObject.ulLinkStatusMask != 0 )
+        if( xGetPhyLinkStatus() != pdFAIL )
         {
             ETH_BufferTypeDef xTxBuffer = {
                 .buffer = ( uint8_t * ) pxDescriptor->pucEthernetBuffer,
@@ -513,7 +531,7 @@ static BaseType_t prvPhyWriteReg( BaseType_t xAddress, BaseType_t xRegister, uin
 
 static void prvEthernetUpdateConfig( void )
 {
-    if( ( xPhyObject.ulLinkStatusMask != 0 ) )
+    if( xGetPhyLinkStatus() != pdFAIL )
     {
         /* TODO: if( xETH.Init.AutoNegotiation != ETH_AUTONEGOTIATION_DISABLE ) */
     	configASSERT( xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) ) == 0 );
@@ -540,7 +558,7 @@ static void prvEthernetUpdateConfig( void )
         }
 
 		configASSERT( HAL_ETH_SetMACConfig( &xEthHandle, &MACConf ) == HAL_OK );
-        if( ( xPhyObject.ulLinkStatusMask != 0 ) )
+        if( xGetPhyLinkStatus() != pdFAIL )
         {
             HAL_ETH_Start_IT( &xEthHandle );
         }
@@ -549,6 +567,7 @@ static void prvEthernetUpdateConfig( void )
     {
         if( HAL_ETH_Stop_IT( &xEthHandle ) == HAL_OK )
         {
+            /* iptraceNETWORK_INTERFACE_STATUS_CHANGE(); */
             configASSERT( HAL_ETH_ReleaseTxPacket( &xEthHandle ) == HAL_OK );
             memset( &DMATxDscrTab, 0, sizeof( DMATxDscrTab ) );
         }
@@ -596,8 +615,6 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
 		uxMostTXDescsUsed = uxTxUsed;
 	}
 
-    /* configASSERT( HAL_ETH_ReleaseTxPacket( heth ) == HAL_OK ); */
-
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_TX_EVENT, eSetBits, &xHigherPriorityTaskWoken );
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
@@ -624,14 +641,16 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
             {
                 /* F7 - ETH_DMASR_ETS | ETH_DMASR_RWTS | ETH_DMASR_RBUS | ETH_DMASR_AIS */
                 /* H7 - ETH_DMACSR_CDE | ETH_DMACSR_ETI | ETH_DMACSR_RWT | ETH_DMACSR_RBU | ETH_DMACSR_AIS */
+                /* TODO: Check if allocated in HAL_ETH_RxAllocateCallback before error interrupt, then release here */
                 /*if( ( HAL_ETH_GetDMAError(heth) & ETH_DMACSR_RBU ) == ETH_DMACSR_RBU )
                 {
-                    xSemaphoreGiveFromISR( xTxMutex );
-                }
 
-                if( ( HAL_ETH_GetDMAError(heth) & ETH_DMACSR_TBU ) == ETH_DMACSR_TBU )
+                }*/
+                /* TODO: same as above but for Tx */
+                /*if( ( HAL_ETH_GetDMAError(heth) & ETH_DMACSR_TBU ) == ETH_DMACSR_TBU )
                 {
                     xSemaphoreGiveFromISR( xTxMutex );
+                    xSemaphoreGiveFromISR( xTxDescSem );
                 }*/
             }
         }
@@ -652,7 +671,7 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
 
 void HAL_ETH_RxAllocateCallback( uint8_t **buff )
 {
-	NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( ETH_RX_BUF_SIZE, pdMS_TO_TICKS( 0 ) );
+	NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( ETH_RX_BUF_SIZE, pdMS_TO_TICKS( 20U ) );
 	if( pxBufferDescriptor != NULL )
 	{
 		*buff = pxBufferDescriptor->pucEthernetBuffer;
@@ -700,9 +719,7 @@ void HAL_ETH_TxFreeCallback( uint32_t *buff )
 	{
 		vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 	}
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xSemaphoreGiveFromISR( xTxDescSem, &xHigherPriorityTaskWoken );
-	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+	xSemaphoreGive( xTxDescSem );
 }
 
 /*-----------------------------------------------------------*/
