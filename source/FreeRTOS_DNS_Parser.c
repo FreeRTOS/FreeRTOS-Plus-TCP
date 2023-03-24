@@ -1049,7 +1049,7 @@
             ( void ) uxBufferLength;
             ( void ) uxBytesNeeded;
             ( void ) xMustReply;
-            
+
             /* Read the request flags in host endianness. */
             usFlags = usChar2u16( &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, usFlags ) ] ) );
 
