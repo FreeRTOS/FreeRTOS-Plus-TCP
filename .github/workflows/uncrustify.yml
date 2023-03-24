@@ -31,7 +31,6 @@ jobs:
       - name: Checkout upstream repo
         uses: actions/checkout@v2
         with:
-           token: ${{ secrets.PAT }}
            repository: ${{ steps.upstreamrepo.outputs.RemoteRepo }}
            ref: ${{ steps.upstreambranch.outputs.branchname }}
       - name: Install Uncrustify

@@ -395,9 +395,7 @@
         /* Obtain the DNS server address. */
         FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
         #if ( ipconfigUSE_LLMNR == 1 )
-            BaseType_t bHasDot = llmnr_has_dot( pcHostName );
-
-            if( bHasDot == pdFALSE )
+            if( llmnr_has_dot( pcHostName ) == pdFALSE )
             {
                 /* Use LLMNR addressing. */
                 pxAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */

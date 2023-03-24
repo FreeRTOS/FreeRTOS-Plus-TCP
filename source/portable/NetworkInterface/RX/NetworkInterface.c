@@ -422,15 +422,12 @@ static int InitializeNetwork( void )
     ether_return_t eth_ret;
     BaseType_t return_code = pdFALSE;
     ether_param_t param;
-    uint8_t myethaddr[ 6 ] =
-    {
-        configMAC_ADDR0,
-        configMAC_ADDR1,
-        configMAC_ADDR2,
-        configMAC_ADDR3,
-        configMAC_ADDR4,
-        configMAC_ADDR5
-    }; /*XXX Fix me */
+
+    /* Read the mac address after it has been initilized by the FreeRTOS IP Stack, rather than from defines
+     * as the mac address is usually read from the EEPROM, and it might be different to the mac address in
+     * the defines, especially in production environments
+     */
+    const uint8_t * myethaddr = FreeRTOS_GetMACAddress();
 
     R_ETHER_PinSet_CHANNEL_0();
     R_ETHER_Initial();

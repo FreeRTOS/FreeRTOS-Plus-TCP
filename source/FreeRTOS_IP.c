@@ -55,6 +55,10 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
+
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
 #define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
 #define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
@@ -998,10 +1002,10 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
         static uint16_t usSequenceNumber = 0;
         uint8_t * pucChar;
         size_t uxTotalLength;
+        BaseType_t xEnoughSpace;
         IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
         uxTotalLength = uxNumberOfBytesToSend + sizeof( ICMPPacket_t );
-        BaseType_t xEnoughSpace;
 
         if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
         {
@@ -1442,6 +1446,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
             else if( ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) &&
                      /* Is it the global broadcast address 255.255.255.255 ? */
                      ( ulDestinationIPAddress != ipBROADCAST_IP_ADDRESS ) &&
+                     /* Is it a loopback address ? */
+                     ( ( ulDestinationIPAddress & ipLOOPBACK_NETMASK ) != ( ipLOOPBACK_ADDRESS & ipLOOPBACK_NETMASK ) ) &&
                      /* Is it a specific broadcast address 192.168.1.255 ? */
                      ( ulDestinationIPAddress != xNetworkAddressing.ulBroadcastAddress ) &&
                      #if ( ipconfigUSE_LLMNR == 1 )

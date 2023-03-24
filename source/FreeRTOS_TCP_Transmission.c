@@ -1463,9 +1463,19 @@
                 TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                 const uint32_t ulSendLength =
                     ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ); /* Plus 0 options. */
-
+                uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
                 pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
                 pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+
+                if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
+                {
+                    /* A synchronize packet is received. It counts as 1 pseudo byte of data,
+                     * so increase the variable with 1. Before sending a reply, the values of
+                     * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
+                    uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
+                    ulSequenceNumber++;
+                    pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
+                }
 
                 prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );
             }

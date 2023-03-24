@@ -387,6 +387,10 @@ extern const BaseType_t xBufferAllocFixedSize;
  * rather than duplicated in its own variable. */
 #define ipLOCAL_MAC_ADDRESS            ( xDefaultPartUDPPacketHeader.ucBytes )
 
+/* The loopback address block is defined as part of rfc5735 */
+#define ipLOOPBACK_ADDRESS             ( FreeRTOS_inet_addr_quick( 127, 0, 0, 0 ) )
+#define ipLOOPBACK_NETMASK             ( FreeRTOS_inet_addr_quick( 255, 0, 0, 0 ) )
+
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
 #define ipPACKET_CONTAINS_ICMP_DATA    ( 0 )
@@ -509,6 +513,20 @@ BaseType_t xIPIsNetworkTaskReady( void );
     TickType_t xTCPTimerCheck( BaseType_t xWillSleep );
 
 /**
+ * About the TCP flags 'bPassQueued' and 'bPassAccept':
+ *
+ * When a new TCP connection request is received on a listening socket, the bPassQueued and
+ * bPassAccept members of the newly created socket are updated as follows:
+ *
+ * 1. bPassQueued is set to indicate that the 3-way TCP handshake is in progress.
+ * 2. When the 3-way TCP handshake is complete, bPassQueued is cleared. At the same time,
+ *    bPassAccept is set to indicate that the socket is ready to be picked up by the task
+ *    that called FreeRTOS_accept().
+ * 3. When the socket is picked up by the task that called FreeRTOS_accept, the bPassAccept
+ *    is cleared.
+ */
+
+/**
  * Every TCP socket has a buffer space just big enough to store
  * the last TCP header received.
  * As a reference of this field may be passed to DMA, force the
@@ -544,10 +562,8 @@ BaseType_t xIPIsNetworkTaskReady( void );
             /* Most compilers do like bit-flags */
             uint32_t
                 bMssChange : 1,        /**< This socket has seen a change in MSS */
-                bPassAccept : 1,       /**< when true, this socket may be returned in a call to accept() */
-                bPassQueued : 1,       /**< when true, this socket is an orphan until it gets connected
-                                        * Why an orphan? Because it may not be returned in a accept() call until it
-                                        * gets the state eESTABLISHED */
+                bPassAccept : 1,       /**< See comment here above. */
+                bPassQueued : 1,       /**< See comment here above. */
                 bReuseSocket : 1,      /**< When a listening socket gets a connection, do not create a new instance but keep on using it */
                 bCloseAfterSend : 1,   /**< As soon as the last byte has been transmitted, finalise the connection
                                         * Useful in e.g. FTP connections, where the last data bytes are sent along with the FIN flag */

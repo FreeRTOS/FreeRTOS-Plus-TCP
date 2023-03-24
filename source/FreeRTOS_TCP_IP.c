@@ -445,26 +445,41 @@
             }
         }
 
+        /* Fill in the new state. */
+        pxSocket->u.xTCP.eTCPState = eTCPState;
+
         if( ( eTCPState == eCLOSED ) ||
             ( eTCPState == eCLOSE_WAIT ) )
         {
             /* Socket goes to status eCLOSED because of a RST.
              * When nobody owns the socket yet, delete it. */
-            if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+            vTaskSuspendAll();
             {
-                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
-
-                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                 {
-                    configASSERT( xIsCallingFromIPTask() != pdFALSE );
-                    vSocketCloseNextTime( pxSocket );
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+                    }
+
+                    xTaskResumeAll();
+
+                    FreeRTOS_printf( ( "vTCPStateChange: Closing socket\n" ) );
+
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                        vSocketCloseNextTime( pxSocket );
+                    }
+                }
+                else
+                {
+                    xTaskResumeAll();
                 }
             }
         }
-
-        /* Fill in the new state. */
-        pxSocket->u.xTCP.eTCPState = eTCPState;
 
         if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
         {
@@ -619,27 +634,35 @@
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
+        /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
+
+        ProtocolHeaders_t * pxProtocolHeaders;
+        FreeRTOS_Socket_t * pxSocket;
+        uint16_t ucTCPFlags;
+        uint32_t ulLocalIP;
+        uint16_t usLocalPort;
+        uint16_t usRemotePort;
+        uint32_t ulRemoteIP;
+        uint32_t ulSequenceNumber;
+        uint32_t ulAckNumber;
+        BaseType_t xResult = pdPASS;
+
+        const IPHeader_t * pxIPHeader;
+
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-
-        /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-        FreeRTOS_Socket_t * pxSocket;
-        uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
-        uint32_t ulLocalIP;
-        uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
-        uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-        uint32_t ulRemoteIP;
-        uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
-        uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
-        BaseType_t xResult = pdPASS;
+        pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
-        const IPHeader_t * pxIPHeader;
+        ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
+        usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
+        usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
+        ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
+        ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
 
         /* Check for a minimum packet size. */
         if( pxNetworkBuffer->xDataLength < ( ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ) )
