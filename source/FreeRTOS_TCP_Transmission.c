@@ -75,7 +75,7 @@
 /**
  * @brief Check if the outgoing connection is already prepared, if not
  *         call prvTCPPrepareConnect() to continue the preparation.
- * @param[in] pxSocket: The socket that wants to connect.
+ * @param[in] pxSocket The socket that wants to connect.
  * @return Returns pdTRUE if the connection is prepared, i.e. the MAC-
  *         address of the peer is already known. */
     static BaseType_t prvTCPMakeSurePrepared( FreeRTOS_Socket_t * pxSocket )
@@ -98,7 +98,7 @@
 /**
  * @brief prvTCPSendPacket() will be called when the socket time-out has been reached.
  *
- * @param[in] pxSocket: The socket owning the connection.
+ * @param[in] pxSocket The socket owning the connection.
  *
  * @return Number of bytes to be sent.
  *
@@ -190,8 +190,8 @@
  *        long as there is data to be sent and as long as the transmit
  *        window isn't full.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in,out] ppxNetworkBuffer: Pointer to pointer to the network buffer.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in,out] ppxNetworkBuffer Pointer to pointer to the network buffer.
  *
  * @return Total number of bytes sent.
  */
@@ -237,10 +237,10 @@
  *         called 'xTCP.xPacket'. A temporary xNetworkBuffer will be used to pass
  *         the data to the NIC.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in] pxDescriptor: The network buffer descriptor carrying the packet.
- * @param[in] ulLen: Length of the packet being sent.
- * @param[in] xReleaseAfterSend: pdTRUE if the ownership of the descriptor is
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in] pxDescriptor The network buffer descriptor carrying the packet.
+ * @param[in] ulLen Length of the packet being sent.
+ * @param[in] xReleaseAfterSend pdTRUE if the ownership of the descriptor is
  *                               transferred to the network interface.
  */
     void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
@@ -430,7 +430,7 @@
 /**
  * @brief Create the TCP window for the given socket.
  *
- * @param[in] pxSocket: The socket for which the window is being created.
+ * @param[in] pxSocket The socket for which the window is being created.
  *
  * @note The SYN event is very important: the sequence numbers, which have a kind of
  *       random starting value, are being synchronized. The sliding window manager
@@ -465,7 +465,7 @@
  * @brief Let ARP look-up the MAC-address of the peer and initialise the first SYN
  *        packet.
  *
- * @param[in] pxSocket: The socket owning the TCP connection. The first packet shall
+ * @param[in] pxSocket The socket owning the TCP connection. The first packet shall
  *               be created in this socket.
  *
  * @return pdTRUE: if the packet was successfully created and the first SYN can be sent.
@@ -498,7 +498,7 @@
 /**
  * @brief Get the window scaling factor for the TCP connection.
  *
- * @param[in] pxSocket: The socket owning the TCP connection.
+ * @param[in] pxSocket The socket owning the TCP connection.
  *
  * @return The scaling factor.
  */
@@ -535,9 +535,9 @@
  *        communicate what MSS (Maximum Segment Size) they intend to use, whether Selective
  *        ACK's ( SACK ) are supported, and the size of the reception window ( WSOPT ).
  *
- * @param[in] pxSocket: The socket being used for communication. It is used to set
+ * @param[in] pxSocket The socket being used for communication. It is used to set
  *                      the MSS.
- * @param[in,out] pxTCPHeader: The TCP packet header being used in the SYN transmission.
+ * @param[in,out] pxTCPHeader The TCP packet header being used in the SYN transmission.
  *                             The MSS and corresponding options shall be set in this
  *                             header itself.
  *
@@ -590,10 +590,10 @@
  * @brief Check if the size of a network buffer is big enough to hold the outgoing message.
  *        Allocate a new bigger network buffer when necessary.
  *
- * @param[in] pxSocket: Socket whose buffer is being resized.
- * @param[in] pxNetworkBuffer: The network buffer whose size is being increased.
- * @param[in] lDataLen: Length of the data to be put in the buffer.
- * @param[in] uxOptionsLength: Length of options.
+ * @param[in] pxSocket Socket whose buffer is being resized.
+ * @param[in] pxNetworkBuffer The network buffer whose size is being increased.
+ * @param[in] lDataLen Length of the data to be put in the buffer.
+ * @param[in] uxOptionsLength Length of options.
  *
  * @return If the resizing is successful: The new buffer with the size being asked for
  *                with old data copied in it.
@@ -765,9 +765,9 @@
 /**
  * @brief Prepare an outgoing message, in case anything has to be sent.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in,out] ppxNetworkBuffer: Pointer to the pointer to the network buffer.
- * @param[in] uxOptionsLength: The length of the TCP options.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in,out] ppxNetworkBuffer Pointer to the pointer to the network buffer.
+ * @param[in] uxOptionsLength The length of the TCP options.
  *
  * @return Length of the data to be sent if everything is correct. Else, -1
  *         is returned in case of any error.
@@ -987,7 +987,7 @@
  * @brief The API FreeRTOS_send() adds data to the TX stream. Add
  *        this data to the windowing system to it can be transmitted.
  *
- * @param[in] pxSocket: The socket owning the connection.
+ * @param[in] pxSocket The socket owning the connection.
  */
     void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket )
     {
@@ -1027,8 +1027,8 @@
 /**
  * @brief Set the TCP options (if any) for the outgoing packet.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in] pxNetworkBuffer: The network buffer holding the packet.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in] pxNetworkBuffer The network buffer holding the packet.
  *
  * @return Length of the TCP options after they are set.
  */
@@ -1113,10 +1113,10 @@
  *        ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will be
  *        checked if it would better be postponed for efficiency.
  *
- * @param[in] pxSocket: The socket owning the TCP connection.
- * @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
- * @param[in] ulReceiveLength: The length of the received buffer.
- * @param[in] xByteCount: Length of the data to be sent.
+ * @param[in] pxSocket The socket owning the TCP connection.
+ * @param[in] ppxNetworkBuffer Pointer to pointer to the network buffer.
+ * @param[in] ulReceiveLength The length of the received buffer.
+ * @param[in] xByteCount Length of the data to be sent.
  *
  * @return The number of bytes actually sent.
  */
@@ -1267,8 +1267,8 @@
  * @brief Common code for sending a TCP protocol control packet (i.e. no options, no
  *        payload, just flags).
  *
- * @param[in] pxNetworkBuffer: The network buffer received from the peer.
- * @param[in] ucTCPFlags: The flags to determine what kind of packet this is.
+ * @param[in] pxNetworkBuffer The network buffer received from the peer.
+ * @param[in] ucTCPFlags The flags to determine what kind of packet this is.
  *
  * @return pdFAIL always indicating that the packet was not consumed.
  */
@@ -1304,7 +1304,7 @@
  *        case #3. In summary, an RST was received with a sequence number that is
  *        unexpected but still within the window.
  *
- * @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
+ * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */
@@ -1317,7 +1317,7 @@
 /**
  * @brief Send a RST (Reset) to peer in case the packet cannot be handled.
  *
- * @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
+ * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */

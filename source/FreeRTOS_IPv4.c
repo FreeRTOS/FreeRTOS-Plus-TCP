@@ -101,7 +101,7 @@
                 break;
             }
 
-            ucVersionHeaderLength = ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2;
+            ucVersionHeaderLength = ( uint16_t ) ( ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2U );
             uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
 
             /* Check if the complete IP-header is transferred. */

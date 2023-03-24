@@ -163,7 +163,7 @@
 
 /**
  * @brief perform a DNS network close
- * @param xDNSSocket
+ * @param xDNSSocket the DNS socket to close
  */
     void DNS_CloseSocket( Socket_t xDNSSocket )
     {
