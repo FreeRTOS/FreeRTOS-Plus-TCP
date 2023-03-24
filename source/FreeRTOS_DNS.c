@@ -735,8 +735,8 @@
         #if defined( _lint ) || defined( __COVERITY__ )
             ( void ) pxTail;
         #else
-            vSetField16( pxTail, DNSTail_t, usType, dnsTYPE_A_HOST )
-            vSetField16( pxTail, DNSTail_t, usClass, dnsCLASS_IN )
+            vSetField16( pxTail, DNSTail_t, usType, dnsTYPE_A_HOST );
+            vSetField16( pxTail, DNSTail_t, usClass, dnsCLASS_IN );
         #endif
 
         /* Return the total size of the generated message, which is the space from

@@ -310,7 +310,7 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
-    UDPPacket_t * pxUDPPacket;
+    const UDPPacket_t * pxUDPPacket;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
