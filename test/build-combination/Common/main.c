@@ -210,37 +210,7 @@ void vApplicationIdleHook( void )
 
     /* Exit. Just a stub. */
 }
-/*-----------------------------------------------------------*/
-void vAssertCalled( const char * pcFile,
-                    unsigned long ulLine )
-{
-    const uint32_t ulLongSleep = 1000UL;
-    volatile uint32_t ulBlockVariable = 0UL;
-    volatile char * pcFileName = ( volatile char * ) pcFile;
-    volatile uint32_t ulLineNumber = ulLine;
 
-    ( void ) pcFileName;
-    ( void ) ulLineNumber;
-
-    taskDISABLE_INTERRUPTS();
-    {
-        while( 1 )
-        {
-        }
-    }
-    taskENABLE_INTERRUPTS();
-}
-/*-----------------------------------------------------------*/
-
-void vLoggingPrintf( const char * pcFormat,
-                     ... )
-{
-    va_list arg;
-
-    va_start( arg, pcFormat );
-    vprintf( pcFormat, arg );
-    va_end( arg );
-}
 /*-----------------------------------------------------------*/
 
 void getUserCmd( char * pucUserCmd )

@@ -325,7 +325,7 @@ void vDHCPv6Process( BaseType_t xReset,
             }
             else
             {
-                FreeRTOS_printf( ( "vDHCPv6Process: malloc failed %u bytes\n", ( unsigned ) sizeof( *pxEndPoint->pxDHCPMessage ) ) );
+                FreeRTOS_printf( ( "vDHCPv6Process: malloc failed %u bytes\n", ( unsigned int ) sizeof( *pxEndPoint->pxDHCPMessage ) ) );
             }
         }
     }
