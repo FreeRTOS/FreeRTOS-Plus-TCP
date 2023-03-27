@@ -275,6 +275,7 @@ esocketsetdeleteevent
 esocketsignalevent
 espressif
 estacktxevent
+estatus
 esuccess
 etcpacceptevent
 etcpnetstat
@@ -1339,6 +1340,7 @@ uxremainingtime
 uxremaningtime
 uxremoteport
 uxrequestedsizebytes
+uxresult
 uxright
 uxrxstreamsize
 uxrxwinsize
@@ -1520,6 +1522,7 @@ xlastalivetime
 xlastgratuitousarptime
 xlastround
 xlastsource
+xleasetime
 xlength
 xlinkstatustimer
 xlistend

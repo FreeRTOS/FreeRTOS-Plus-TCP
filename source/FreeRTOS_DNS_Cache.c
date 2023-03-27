@@ -145,11 +145,11 @@
 /**
  * @brief process a DNS Cache request (get, update, or insert)
  *
- * @param[in] pcName: the name of the host
- * @param[in,out] pulIP: when doing a lookup, will be set, when doing an update,
+ * @param[in] pcName the name of the host
+ * @param[in,out] pulIP when doing a lookup, will be set, when doing an update,
  *                       will be read.
- * @param[in] ulTTL: Time To Live (in seconds)
- * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
+ * @param[in] ulTTL Time To Live (in seconds)
+ * @param[in] xLookUp pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
  *                     be updated.
  * @return whether the operation was successful
  * @post the global structure \a xDNSCache might be modified
@@ -166,7 +166,7 @@
 
         configASSERT( ( pcName != NULL ) );
 
-        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U;
+        ulCurrentTimeSeconds = ( uint32_t ) ( ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U );
         xResult = prvFindEntryIndex( pcName, &uxIndex );
 
         if( xResult == pdTRUE )
@@ -219,7 +219,7 @@
 /**
  * @brief returns the index of the hostname entry in the dns cache.
  * @param[in] pcName find it in the cache
- * @param [out] xResult index number
+ * @param [out] uxResult index number
  * @returns res pdTRUE if index in found else pdFALSE
  */
     static BaseType_t prvFindEntryIndex( const char * pcName,
@@ -249,7 +249,7 @@
 
 /**
  * @brief get entry at \p index from the cache
- * @param[in]  uxIndex : index in the cache
+ * @param[in]  uxIndex index in the cache
  * @param[out] pulIP fill it with the result
  * @param[in]  ulCurrentTimeSeconds current time
  * @returns    \c pdTRUE if the value is valid \c pdFALSE otherwise
@@ -299,7 +299,7 @@
 
 /**
  * @brief update entry at \p index in the cache
- * @param[in] uxIndex : index in the cache
+ * @param[in] uxIndex index in the cache
  * @param[in] ulTTL time to live (in seconds)
  * @param[in] pulIP ip to update the cache with
  * @param[in] ulCurrentTimeSeconds current time
