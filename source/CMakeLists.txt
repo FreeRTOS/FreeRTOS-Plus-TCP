@@ -1,5 +1,7 @@
 add_library( freertos_plus_tcp STATIC )
 
+set_property(TARGET freertos_plus_tcp PROPERTY C_STANDARD 90)
+
 target_sources( freertos_plus_tcp
   PRIVATE
       include/FreeRTOS_ARP.h
@@ -57,27 +59,6 @@ target_sources( freertos_plus_tcp
 target_include_directories( freertos_plus_tcp SYSTEM
   PUBLIC
     include
-)
-
-#TODO(phelter): Investigate and fix in freertos_plus_tcp if not already fixed.
-target_compile_options( freertos_plus_tcp
-  PRIVATE
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-bad-function-cast>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-conditional-uninitialized>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-covered-switch-default>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-documentation>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-int-conversion>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-reserved-identifier>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-unused-but-set-variable>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-parameter>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-unused-variable>
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-pedantic>
 )
 
 target_link_libraries( freertos_plus_tcp

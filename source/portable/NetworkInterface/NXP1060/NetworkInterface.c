@@ -62,13 +62,6 @@
 /* ENET clock frequency. */
 #define EXAMPLE_CLOCK_FREQ    CLOCK_GetFreq( kCLOCK_IpgClk )
 
-/*
- * Padding of ethernet frames has to be disabled for zero-copy functionality
- * since ENET driver requires the starting buffer addresses to be aligned.
- */
-#if ETH_PAD_SIZE != 0
-    #error "ETH_PAD_SIZE != 0"
-#endif /* ETH_PAD_SIZE != 0 */
 
 /*******************************************************************************
  * Definitions
@@ -235,8 +228,9 @@ static phy_config_t xConfig =
     .speed     = kPHY_Speed100M,          /* Use 100 Mbps configuration (maximum possible
                                            * for this PHY). In case auto-negotiation is
                                            * turned on, this is not used. */
-    .enableEEE = pdFALSE
-};                                        /* Disable the energy efficient PHY. */
+    .enableEEE = pdFALSE                  /* Disable the energy efficient PHY. */
+};
+
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
 
@@ -409,7 +403,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 
 static void prvEMACHandlerTask( void * parameter )
 {
-    bool LinkUp = false;
+    bool bLinkUp = false;
     status_t readStatus;
 
     /* Wait for the driver to finish starting. */
@@ -424,11 +418,11 @@ static void prvEMACHandlerTask( void * parameter )
 
             do
             {
-                readStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+                readStatus = PHY_GetLinkStatus( &phyHandle, &bLinkUp );
 
                 if( readStatus == kStatus_Success )
                 {
-                    if( LinkUp == pdFALSE )
+                    if( bLinkUp == pdFALSE )
                     {
                         /* The link is down. */
                         bGlobalLinkStatus = false;
@@ -625,15 +619,15 @@ static status_t xSetupPHY( phy_config_t * pxConfig )
 static status_t xWaitPHY( phy_config_t xConfig )
 {
     status_t xStatus;
-    bool LinkUp;
-    bool autoNegotiationComplete;
+    bool bLinkUp;
+    bool bAutoNegotiationComplete;
     uint8_t ucCounter = 0;
 
     do
     {
-        xStatus = PHY_GetLinkStatus( &phyHandle, &LinkUp );
+        xStatus = PHY_GetLinkStatus( &phyHandle, &bLinkUp );
 
-        if( LinkUp == true )
+        if( bLinkUp == true )
         {
             break;
         }
@@ -648,7 +642,7 @@ static status_t xWaitPHY( phy_config_t xConfig )
     }
     while( xStatus == kStatus_Success );
 
-    if( LinkUp == false )
+    if( bLinkUp == false )
     {
         FreeRTOS_printf( ( "Failed to get the link up." ) );
         xStatus = kStatus_Fail;
@@ -659,7 +653,7 @@ static status_t xWaitPHY( phy_config_t xConfig )
     }
 
     if( ( xStatus == kStatus_Success ) &&
-        ( LinkUp == true ) &&
+        ( bLinkUp == true ) &&
         ( xConfig.autoNeg == true ) )
     {
         /* Reset the counter for next use. */
@@ -669,9 +663,9 @@ static status_t xWaitPHY( phy_config_t xConfig )
 
         do
         {
-            xStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &autoNegotiationComplete );
+            xStatus = PHY_GetAutoNegotiationStatus( &phyHandle, &bAutoNegotiationComplete );
 
-            if( autoNegotiationComplete == true )
+            if( bAutoNegotiationComplete == true )
             {
                 break;
             }
@@ -686,7 +680,7 @@ static status_t xWaitPHY( phy_config_t xConfig )
         }
         while( xStatus == kStatus_Success );
 
-        if( autoNegotiationComplete == false )
+        if( bAutoNegotiationComplete == false )
         {
             FreeRTOS_printf( ( "Failed to complete auto-negotiation." ) );
             xStatus = kStatus_Fail;
