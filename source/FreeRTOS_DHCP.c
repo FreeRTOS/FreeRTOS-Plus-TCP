@@ -497,10 +497,6 @@
             EP_IPv4_SETTINGS.ulBroadcastAddress = EP_DHCPData.ulOfferedIPAddress | ~( EP_IPv4_SETTINGS.ulNetMask );
             EP_DHCPData.eDHCPState = eLeasedAddress;
 
-            /* _HT_ This macro must be removed later.
-             * It is enough to set 'EP_IPv4_SETTINGS.ulIPAddress'. */
-            *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
-
             iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
 
             /* DHCP failed, the default configured IP-address will be used

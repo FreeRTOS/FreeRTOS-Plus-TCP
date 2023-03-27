@@ -113,7 +113,6 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
                                                     &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
     FreeRTOS_Socket_t * pxSocket;
     uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
-    uint32_t ulLocalIP;
     uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
     uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
     IP_Address_t xRemoteIP;
@@ -130,7 +129,6 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
     {
         /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
 
-        ulLocalIP = *ipLOCAL_IP_ADDRESS_POINTER;
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -139,7 +137,7 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
 
         /* Find the destination socket, and if not found: return a socket listing to
          * the destination PORT. */
-        pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, xRemoteIP, usRemotePort );
+        pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( 0U, usLocalPort, xRemoteIP, usRemotePort );
 
         if( ( pxSocket == NULL ) || ( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == pdFALSE ) )
         {
