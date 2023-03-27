@@ -179,12 +179,12 @@
         uint32_t sin_flowinfo;    /**< IPv6 flow information, not used in this library. */
         IP_Address_t sin_address; /**< The IPv4/IPv6 address. */
     };
-    #define sin_addr              sin_address.ulIP_IPv4
-    #define sin_addr4             sin_address.ulIP_IPv4
-    #define sin_addr6             sin_address.xIP_IPv6
-    #define sin_addrv4            sin_address.ulIP_IPv4
-    #define sin_addrv6            sin_address.xIP_IPv6
-    #define freertos_sockaddr6    freertos_sockaddr
+
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+        #define sin_addr    sin_address.ulIP_IPv4
+
+    #endif
 
 /** Introduce a short name to make casting easier. */
     typedef struct freertos_sockaddr   xFreertosSocAddr;

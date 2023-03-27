@@ -291,10 +291,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             else
         #endif
         {
-            FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv4: %lxip\n",
+            FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv4: %xip\n",
                                pxEndPoint->xMACAddress.ucBytes[ 4 ],
                                pxEndPoint->xMACAddress.ucBytes[ 5 ],
-                               FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
+                               ( unsigned ) FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
         }
 
         return pxEndPoint;
@@ -960,7 +960,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
                 {
                     /* Check if the IP-address is non-zero. */
-                    if( memcmp( in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                    if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         break;
                     }

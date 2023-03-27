@@ -145,7 +145,7 @@
         BaseType_t ai_socktype;             /**< n.a. */
         BaseType_t ai_protocol;             /**< n.a. */
         socklen_t ai_addrlen;               /**< The length of the address, either ipSIZE_OF_IPv4_ADDRESS or ipSIZE_OF_IPv6_ADDRESS. */
-        struct freertos_sockaddr * ai_addr; /**< The IP-address. Can be mapped onto 'freertos_sockaddr6' in case of IPv6. */
+        struct freertos_sockaddr * ai_addr; /**< The IP-address. Can be mapped onto 'sin_address.xIP_IPv6' in case of IPv6. */
         char * ai_canonname;                /**< The name of the host. */
         struct freertos_addrinfo * ai_next; /**< A pointer to the next find result, or NULL. */
         struct

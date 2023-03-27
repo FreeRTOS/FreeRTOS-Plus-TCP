@@ -39,8 +39,18 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
 
-#define mainHOST_NAME    "Build Combination"
+#include <string.h>
+#include <stdarg.h>
+#include <time.h>
 
+#define mainHOST_NAME           "Build Combination"
+#define mainDEVICE_NICK_NAME    "Build_Combination"
+
+#if defined( _MSC_VER ) && ( _MSC_VER <= 1600 )
+    #define local_stricmp       _stricmp
+#else
+    #define local_stricmp       strcasecmp
+#endif
 /*-----------------------------------------------------------*/
 
 /* Notes if the trace is running or not. */
@@ -168,11 +178,11 @@ int main( void )
         /* Determine if a name lookup is for this node.  Two names are given
          * to this node: that returned by pcApplicationHostnameHook() and that set
          * by mainDEVICE_NICK_NAME. */
-        if( _stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
+        if( local_stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
         {
             xReturn = pdPASS;
         }
-        else if( _stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
+        else if( local_stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
         {
             xReturn = pdPASS;
         }
@@ -200,27 +210,7 @@ void vApplicationIdleHook( void )
 
     /* Exit. Just a stub. */
 }
-/*-----------------------------------------------------------*/
 
-void vAssertCalled( const char * pcFile,
-                    uint32_t ulLine )
-{
-    const uint32_t ulLongSleep = 1000UL;
-    volatile uint32_t ulBlockVariable = 0UL;
-    volatile char * pcFileName = ( volatile char * ) pcFile;
-    volatile uint32_t ulLineNumber = ulLine;
-
-    ( void ) pcFileName;
-    ( void ) ulLineNumber;
-
-    taskDISABLE_INTERRUPTS();
-    {
-        while( 1 )
-        {
-        }
-    }
-    taskENABLE_INTERRUPTS();
-}
 /*-----------------------------------------------------------*/
 
 void getUserCmd( char * pucUserCmd )
@@ -246,6 +236,8 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
     return pdTRUE;
 }
 
+/*-----------------------------------------------------------*/
+
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
                                     uint32_t * pulIdleTaskStackSize )
@@ -253,6 +245,19 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
     /* Provide a stub for this function. */
 }
 
+/*-----------------------------------------------------------*/
+
+void vApplicationTickHook( void )
+{
+    /* Provide a stub for this function. */
+}
+
+/*-----------------------------------------------------------*/
+
+void vApplicationDaemonTaskStartupHook( void )
+{
+    /* Provide a stub for this function. */
+}
 
 /*
  * Callback that provides the inputs necessary to generate a randomized TCP
@@ -314,6 +319,25 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     }
 #endif
 
+#if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
+
+/*
+ * The stack will call this user hook for all Ethernet frames that it
+ * does not support, i.e. other than IPv4, IPv6 and ARP ( for the moment )
+ * If this hook returns eReleaseBuffer or eProcessBuffer, the stack will
+ * release and reuse the network buffer.  If this hook returns
+ * eReturnEthernetFrame, that means user code has reused the network buffer
+ * to generate a response and the stack will send that response out.
+ * If this hook returns eFrameConsumed, the user code has ownership of the
+ * network buffer and has to release it when it's done.
+ */
+    eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    {
+        ( void ) ( pxNetworkBuffer );
+        return eProcessBuffer;
+    }
+
+#endif
 void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                 uint16_t usIdentifier )
 {
