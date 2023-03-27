@@ -78,10 +78,11 @@
  *
  * Address family not supported by protocol.
  *
- * Note: To be removed when added to projdefs.h in FreeRTOS-Kernel
+ * Note: Now included in FreeRTOS-Kernel/projdefs.h, so this serves as a
+ * temporary kernel version check. To be removed in a future version.
  */
 #ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
-    #define pdFREERTOS_ERRNO_EAFNOSUPPORT    97
+    #error Missing pdFREERTOS_ERRNO_EAFNOSUPPORT definition, please update FreeRTOS-Kernel
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -531,17 +532,6 @@
  * contain. For normal Ethernet V2 frames the maximum MTU is 1500 (although a
  * lower number may be required for Internet routing). Setting a lower value
  * can save RAM, depending on the buffer management scheme used.
- *
- * If ipconfigNETWORK_MTU is not defined then the following defaults will be
- * applied:
- *
- * #ifndef ipconfigNETWORK_MTU
- *     #ifdef( ipconfigUSE_TCP_WIN == 1 )
- *         #define ipconfigNETWORK_MTU      ( 1526 )
- *     #else
- *         #define ipconfigNETWORK_MTU      ( 1514 )
- *     #endif
- * #endif
  */
 #ifndef ipconfigNETWORK_MTU
     #define ipconfigNETWORK_MTU    1500U
