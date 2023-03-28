@@ -56,6 +56,11 @@
     void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
     {
         uint32_t ulMSS = ipconfigTCP_MSS;
+
+        #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
+            char cIPv6Address[ 40 ];
+        #endif
+
         const NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
         if( pxEndPoint != NULL )
@@ -85,7 +90,12 @@
             }
         }
 
-        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %pip port %u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxSocket->u.xTCP.usRemotePort ) );
+        #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
+            {
+                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, cIPv6Address, sizeof( cIPv6Address ) );
+                FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %s ip port %u\n", ( unsigned ) ulMSS, cIPv6Address, pxSocket->u.xTCP.usRemotePort ) );
+            }
+        #endif
 
         pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
     }

@@ -585,7 +585,7 @@
                     {
                         const struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
 
-                        ulIPAddress = sockaddr->sin_addr;
+                        ulIPAddress = sockaddr->sin_address.ulIP_IPv4;
                     }
                 }
                 else

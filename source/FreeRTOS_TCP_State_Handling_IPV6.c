@@ -84,7 +84,7 @@
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const TCPPacket_IPv6_t * pxTCPPacket = ( ( const TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
-        uint32_t ulInitialSequenceNumber;
+        uint32_t ulInitialSequenceNumber = 0;
         BaseType_t xHasSequence = pdFALSE;
 
         configASSERT( pxNetworkBuffer->pxEndPoint != NULL );

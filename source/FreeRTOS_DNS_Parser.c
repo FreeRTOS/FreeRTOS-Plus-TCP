@@ -316,7 +316,8 @@
         #if ( ipconfigUSE_LLMNR == 1 )
             uint16_t usType = 0U;
             uint16_t usClass = 0U;
-        #endif
+        #endif /* ipconfigUSE_LLMNR */
+
         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
             xSet.xDoStore = xExpected;
         #endif
@@ -462,8 +463,8 @@
                              * but in case this has not be done, set it here. */
 
                             pxNetworkBuffer->pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
-                            FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest: No pxEndPoint yet? Using %lxip\n",
-                                               FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint ? pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
+                            FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest: No pxEndPoint yet? Using %x ip\n",
+                                               ( unsigned int ) FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint ? pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
 
                             if( pxNetworkBuffer->pxEndPoint == NULL )
                             {
@@ -569,9 +570,13 @@
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
 
                                 #ifndef _lint
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usType, xSet.usType );  /* Type A or AAAA: host */
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
-                                    vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
+                                    #if ( ipconfigUSE_LLMNR == 1 )
+                                        {
+                                            vSetField16( pxAnswer, LLMNRAnswer_t, usType, xSet.usType );  /* Type A or AAAA: host */
+                                            vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
+                                            vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
+                                        }
+                                    #endif /* ipconfigUSE_LLMNR */
                                 #endif /* lint */
 
                                 usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( xSet.pucByte - pucNewBuffer ) );
@@ -583,7 +588,7 @@
                                     ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                                     uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                     /* An extra 12 bytes will be sent compared to an A-record. */
-                                    usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
+                                    usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
                                 }
                                 else
                                 {
@@ -1039,9 +1044,10 @@
             uint8_t ucNBNSName[ 17 ];
             uint8_t * pucUDPPayloadBuffer = pucPayload;
             NetworkBufferDescriptor_t * pxNetworkBuffer;
-            size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
             NetworkEndPoint_t xEndPoint;
-            BaseType_t xMustReply = pdFALSE;
+
+            /* Not used for now */
+            ( void ) uxBufferLength;
 
             /* Read the request flags in host endianness. */
             usFlags = usChar2u16( &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, usFlags ) ] ) );
@@ -1144,7 +1150,7 @@
                         #endif
 
                         #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-                            if( xApplicationDNSQueryHook( xSet.pcName ) != pdFALSE )
+                            if( xApplicationDNSQueryHook( ( const char * ) ucNBNSName ) != pdFALSE )
                         #else
                             if( xApplicationDNSQueryHook_Multi( &( xEndPoint ), ( const char * ) ucNBNSName ) != pdFALSE )
                         #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */

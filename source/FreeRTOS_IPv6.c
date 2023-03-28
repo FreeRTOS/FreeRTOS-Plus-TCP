@@ -48,12 +48,12 @@
 /**
  * This variable is initialized by the system to contain the wildcard IPv6 address.
  */
-const struct xIPv6_Address in6addr_any = { 0 };
+const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
 
 /**
  * This variable is initialized by the system to contain the loopback IPv6 address.
  */
-const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
+const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv6 packet length. */
@@ -512,10 +512,10 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
     FreeRTOS_printf( ( "Extension headers : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
                        ( eResult == eProcessBuffer ) ? "good" : "bad",
-                       xMoveLen,
-                       uxRemovedBytes,
+                       ( unsigned ) xMoveLen,
+                       ( unsigned ) uxRemovedBytes,
                        FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength ),
-                       pxNetworkBuffer->xDataLength ) );
+                       ( unsigned ) pxNetworkBuffer->xDataLength ) );
     return eResult;
 }
 
