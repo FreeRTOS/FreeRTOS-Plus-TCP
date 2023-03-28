@@ -414,10 +414,10 @@
                 if( ( pxTCPWindow->ulOurSequenceNumber + ulDataLen ) != pxTCPWindow->tx.ulFINSequenceNumber )
                 {
                     pxProtocolHeaders->xTCPHeader.ucTCPFlags &= ( ( uint8_t ) ~tcpTCP_FLAG_FIN );
-                    FreeRTOS_debug_printf( ( "Suppress FIN for %lu + %lu < %lu\n",
-                                             pxTCPWindow->ulOurSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber,
-                                             ulDataLen,
-                                             pxTCPWindow->tx.ulFINSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ) );
+                    FreeRTOS_debug_printf( ( "Suppress FIN for %u + %u < %u\n",
+                                             ( unsigned int ) ( pxTCPWindow->ulOurSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ),
+                                             ( unsigned int ) ulDataLen,
+                                             ( unsigned int ) ( pxTCPWindow->tx.ulFINSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ) ) );
                 }
             }
         }
@@ -746,9 +746,9 @@
 
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
-                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %lxip => %lxip\n",
-                                       FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
-                                       FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
+                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %xip => %xip\n",
+                                       ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
+                                       ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
                 }
             }
 

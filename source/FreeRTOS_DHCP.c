@@ -486,7 +486,7 @@
         }
         else if( prvProcessDHCPReplies( dhcpMESSAGE_TYPE_ACK, pxEndPoint ) == pdPASS )
         {
-            FreeRTOS_debug_printf( ( "vDHCPProcess: acked %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
+            FreeRTOS_debug_printf( ( "vDHCPProcess: acked %xip\n", ( unsigned int ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
 
             /* DHCP completed.  The IP address can now be used, and the
              * timer set to the lease timeout time. */
