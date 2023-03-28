@@ -446,6 +446,17 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
     do
     {
+        /* UDPv6 doesn't allow zero-checksum, refer to RFC2460 - section 8.1.
+         * Some platforms (such as Zynq) pass the packet to upper layer for flexibility to allow zero-checksum. */
+        if( pxUDPPacket_IPv6->xUDPHeader.usChecksum == 0U )
+        {
+            FreeRTOS_debug_printf( ( "xProcessReceivedUDPPacket_IPv6: Drop packets with checksum %d\n",
+                                     pxUDPPacket_IPv6->xUDPHeader.usChecksum ) );
+
+            xReturn = pdFAIL;
+            break;
+        }
+
         if( pxSocket != NULL )
         {
             if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
