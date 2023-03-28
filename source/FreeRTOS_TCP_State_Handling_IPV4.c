@@ -85,7 +85,7 @@
         const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
-        NetworkEndPoint_t * pxEndpoint = pxNetworkBuffer->pxEndPoint;
+        const NetworkEndPoint_t * pxEndpoint = pxNetworkBuffer->pxEndPoint;
 
         /* Silently discard a SYN packet which was not specifically sent for this node. */
         if( ( pxEndpoint != NULL ) && ( pxTCPPacket->xIPHeader.ulDestinationIPAddress == pxEndpoint->ipv4_settings.ulIPAddress ) )
