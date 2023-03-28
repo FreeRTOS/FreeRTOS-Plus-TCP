@@ -282,9 +282,10 @@ uint32_t FreeRTOS_round_down( uint32_t a,
     #define pdFALSE_SIGNED      pdFALSE
     #define pdTRUE_UNSIGNED     ( 1U )
     #define pdFALSE_UNSIGNED    ( 0U )
-    #define ipTRUE_BOOL         ( 1 == 1 )
-    #define ipFALSE_BOOL        ( 1 == 2 )
 #endif
+
+#define ipTRUE_BOOL             ( 1 == 1 )
+#define ipFALSE_BOOL            ( 1 == 2 )
 
 /*
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
