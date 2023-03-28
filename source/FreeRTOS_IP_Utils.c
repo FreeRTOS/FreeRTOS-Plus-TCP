@@ -795,6 +795,8 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                     ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                 }
 
+                *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
+
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */
                 vIPNetworkUpCalls( pxEndPoint );
