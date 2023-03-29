@@ -137,6 +137,10 @@
                           BaseType_t xIsIPv6 )
     {
         size_t lLength = strlen( pcHostName );
+
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) pvPortMalloc( sizeof( *pxCallback ) + lLength ) );
 
         /* Translate from ms to number of clock ticks. */

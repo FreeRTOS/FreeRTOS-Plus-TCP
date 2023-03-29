@@ -53,6 +53,10 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
+
 /* The ItemValue of the sockets xBoundSocketListItem member holds the socket's
  * port number. */
 /** @brief Set the port number for the socket in the xBoundSocketListItem. */
@@ -319,10 +323,12 @@ static void prvSetOptionTimeout( FreeRTOS_Socket_t * pxSocket,
  */
     static BaseType_t prvSetOptionReuseListenSocket( FreeRTOS_Socket_t * pxSocket,
                                                      const void * pvOptionValue );
+
+    static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
+                                        size_t uxSocketSize );
 #endif /* ipconfigUSE_TCP == 1 */
 
-static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
-                                    size_t uxSocketSize );
+
 
 static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
                                        void * pvBuffer,
@@ -631,6 +637,10 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
         * size depends on the type of socket: UDP sockets need less space. A
         * define 'pvPortMallocSocket' will used to allocate the necessary space.
         * By default it points to the FreeRTOS function 'pvPortMalloc()'. */
+
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxSocket = ( ( FreeRTOS_Socket_t * ) pvPortMallocSocket( uxSocketSize ) );
 
         if( pxSocket == NULL )
@@ -650,7 +660,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             vPortFreeSocket( pxSocket );
 
             /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
             iptraceFAILED_TO_CREATE_EVENT_GROUP();
@@ -725,6 +735,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     {
         SocketSelect_t * pxSocketSet;
 
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxSocketSet = ( ( SocketSelect_t * ) pvPortMalloc( sizeof( *pxSocketSet ) ) );
 
         if( pxSocketSet != NULL )
@@ -894,7 +907,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
 /**
  * @brief The select() statement: wait for an event to occur on any of the sockets
- *        included in a socket set.
+ *        included in a socket set and return its event bits when the event occurs.
  *
  * @param[in] xSocketSet: The socket set including the sockets on which we are
  *                        waiting for an event to occur.
@@ -902,7 +915,11 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
  *                   If the value is 'portMAX_DELAY' then the function will wait
  *                   indefinitely for an event to occur.
  *
- * @return The socket which might have triggered the event bit.
+ * @return The event bits (event flags) value for the socket set in which an
+ *          event occurred. If any socket is signalled during the call, using
+ *          FreeRTOS_SignalSocket() or FreeRTOS_SignalSocketFromISR(), then eSELECT_INTR
+ *          is returned.
+ *
  */
     BaseType_t FreeRTOS_select( SocketSet_t xSocketSet,
                                 TickType_t xBlockTimeTicks )
@@ -1590,12 +1607,12 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
         {
             if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
             {
-                ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+                ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
                 pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
             }
             else
             {
-                pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_addr );
+                pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
                 pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
             }
 
@@ -1674,11 +1691,11 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
         {
             pxSocket->xLocalAddress.ulIP_IPv4 = 0U;
-            ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+            ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
         }
-        else if( pxAddress->sin_addr != FREERTOS_INADDR_ANY )
+        else if( pxAddress->sin_address.ulIP_IPv4 != FREERTOS_INADDR_ANY )
         {
-            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_addr, 7 );
+            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_address.ulIP_IPv4, 7 );
         }
         else
         {
@@ -3303,7 +3320,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
     {
         pxAddress->sin_family = FREERTOS_AF_INET6;
         /* IP address of local machine. */
-        ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addr6.ucBytes ) );
+        ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_address.xIP_IPv6.ucBytes ) );
         /* Local port on this machine. */
         pxAddress->sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
     }
@@ -3312,7 +3329,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
         pxAddress->sin_family = FREERTOS_AF_INET;
         pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
         /* IP address of local machine. */
-        pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
+        pxAddress->sin_address.ulIP_IPv4 = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
 
         /* Local port on this machine. */
         pxAddress->sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
@@ -3514,15 +3531,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
                     FreeRTOS_printf( ( "FreeRTOS_connect: %u to %pip port %u\n",
-                                       pxSocket->usLocalPort, pxAddress->sin_addr6.ucBytes, FreeRTOS_ntohs( pxAddress->sin_port ) ) );
-                    ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                       pxSocket->usLocalPort, pxAddress->sin_address.xIP_IPv6.ucBytes, FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                    ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
                 {
                     pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
-                    FreeRTOS_printf( ( "FreeRTOS_connect: %u to %lxip:%u\n",
-                                       pxSocket->usLocalPort, FreeRTOS_ntohl( pxAddress->sin_addr ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
-                    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_addr );
+                    FreeRTOS_printf( ( "FreeRTOS_connect: %u to %xip:%u\n",
+                                       pxSocket->usLocalPort, ( unsigned int ) FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
                 }
 
                 /* Port on remote machine. */
@@ -3706,7 +3723,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     pxAddress->sin_family = FREERTOS_AF_INET6;
                     /* Copy IP-address and port number. */
-                    ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
                 }
             }
@@ -3716,7 +3733,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     pxAddress->sin_family = FREERTOS_AF_INET4;
                     /* Copy IP-address and port number. */
-                    pxAddress->sin_addr = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                    pxAddress->sin_address.ulIP_IPv4 = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
                     pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
                 }
             }
@@ -4804,6 +4821,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         uxSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
 
+        /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-412. */
+        /* coverity[misra_c_2012_directive_4_12_violation] */
         pxBuffer = ( ( StreamBuffer_t * ) pvPortMallocLarge( uxSize ) );
 
         if( pxBuffer == NULL )
@@ -5066,7 +5086,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxAddress->sin_family = FREERTOS_AF_INET6;
 
                 /* IP address of remote machine. */
-                ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addr6.ucBytes ) );
+                ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_address.xIP_IPv6.ucBytes ) );
 
                 /* Port of remote machine. */
                 pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
@@ -5077,7 +5097,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxAddress->sin_family = FREERTOS_AF_INET;
 
                 /* IP address of remote machine. */
-                pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                pxAddress->sin_address.ulIP_IPv4 = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
 
                 /* Port on remote machine. */
                 pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
@@ -5455,6 +5475,49 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Set the value of the SocketID of a socket.
+ * @param[in] xSocket: The socket whose ID should be set.
+ * @param[in] pvSocketID: The new value for the SocketID.
+ * @return Zero if the socket was valid, otherwise -EINVAL.
+ */
+BaseType_t xSocketSetSocketID( const Socket_t xSocket,
+                               void * pvSocketID )
+{
+    FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+    BaseType_t xReturn = -pdFREERTOS_ERRNO_EINVAL;
+
+    if( xSocketValid( pxSocket ) == pdTRUE )
+    {
+        xReturn = 0;
+        pxSocket->pvSocketID = pvSocketID;
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Retrieve the SocketID that is associated with a socket.
+ * @param[in] xSocket: The socket whose ID should be returned.
+ * @return The current value of pvSocketID, or NULL in case
+ *         the socket pointer is not valid or when the ID was not
+ *         yet set.
+ */
+void * pvSocketGetSocketID( const ConstSocket_t xSocket )
+{
+    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+    void * pvReturn = NULL;
+
+    if( xSocketValid( pxSocket ) == pdTRUE )
+    {
+        pvReturn = pxSocket->pvSocketID;
+    }
+
+    return pvReturn;
+}
+/*-----------------------------------------------------------*/
+
 #if ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) )
 
 /**
@@ -5505,7 +5568,7 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
             ( void ) snprintf( pcRemoteIp, sizeof( pcRemoteIp ), "%xip", ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
         }
 
-        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6lu %6u%s\n",
+        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6u %6u%s\n",
                            pxSocket->usLocalPort,         /* Local port on this machine */
                            xIPWidth,
                            pcRemoteIp,                    /* IP address of remote machine */
@@ -5793,6 +5856,10 @@ BaseType_t xSocketValid( const ConstSocket_t xSocket )
  *        and return the value -pdFREERTOS_ERRNO_EINTR ( -4 ).
  *
  * @param[in] xSocket: The socket that will be signalled.
+ *
+ * @return If xSocket is an invalid socket (NULL) or if the socket set is invalid (NULL)
+ *         and/or if event group is invalid/not created, then, -pdFREERTOS_ERRNO_EINVAL
+ *         is returned. On successful sending of a signal, 0 is returned.
  */
     BaseType_t FreeRTOS_SignalSocket( Socket_t xSocket )
     {

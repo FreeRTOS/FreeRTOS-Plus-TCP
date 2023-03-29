@@ -233,6 +233,7 @@ static void prvCreateThreadSafeBuffers( void )
         xRecvBuffer->LENGTH = xRECV_BUFFER_SIZE + 1;
     }
 }
+
 /*-----------------------------------------------------------*/
 
 static size_t prvStreamBufferAdd( StreamBuffer_t * pxBuffer,

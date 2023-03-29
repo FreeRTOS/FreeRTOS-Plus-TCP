@@ -5,6 +5,11 @@ Changes between dev/ipv6_integration branch RC1 and main branch V3.0.0 releases:
         + New WinSim demo to support both IPv4 and IPv6.
 **Note**- This release does not support ESP32/ M487/ mw300_rd ports yet. This will be released soon.
 
+Changes between V3.0.0 and V3.1.0 releases:
+        + Fixed a bug in the Connect function where multiple SYN and RST packet combinations can
+          lead to orphaned sockets.
+        + Added network interface support for NetifSlirp.
+
 Changes between V3.0.0 and V2.4.0 releases:
         + Split the source files according to the function the code performs.
           This makes the code modular making test coverage easier.

@@ -127,7 +127,6 @@
 /**
  * @brief The IPv6 link-scope multicast MAC address
  */
-        const
         const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
     #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
 
@@ -308,7 +307,7 @@
                 /* ulChar2u32 reads from big-endian to host-endian. */
                 uint32_t ulIPAddress = ulChar2u32( pucAddress );
                 /* Translate to network-endian. */
-                pxAddrInfo->ai_addr->sin_addr = FreeRTOS_htonl( ulIPAddress );
+                pxAddrInfo->ai_addr->sin_address.ulIP_IPv4 = FreeRTOS_htonl( ulIPAddress );
                 pxAddrInfo->ai_family = FREERTOS_AF_INET4;
                 pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
             }
@@ -608,7 +607,7 @@
                     }
                     else
                     {
-                        FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %lu > %lu )\n",
+                        FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %u > %u )\n",
                                            ( unsigned ) uxLength,
                                            ( unsigned ) ipconfigDNS_CACHE_NAME_LENGTH ) );
                     }
@@ -870,7 +869,7 @@
                     {
                         /* Looking up a name like "mydevice.local".
                          * Use mDNS addresses. */
-                        pxAddress->sin_addr = ipMDNS_IP_ADDRESS; /* Is in network byte order. */
+                        pxAddress->sin_address.ulIP_IPv4 = ipMDNS_IP_ADDRESS; /* Is in network byte order. */
                         pxAddress->sin_port = ipMDNS_PORT;
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
@@ -892,7 +891,7 @@
                     if( bHasDot == pdFALSE )
                     {
                         /* Use LLMNR addressing. */
-                        pxAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
+                        pxAddress->sin_address.ulIP_IPv4 = ipLLMNR_IP_ADDR; /* Is in network byte order. */
                         pxAddress->sin_port = ipLLMNR_PORT;
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
@@ -958,7 +957,7 @@
                         {
                             pxAddress->sin_family = FREERTOS_AF_INET6;
                             pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
-                            ( void ) memcpy( pxAddress->sin_addr6.ucBytes,
+                            ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
                                              pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes,
                                              ipSIZE_OF_IPv6_ADDRESS );
                             break;
@@ -975,7 +974,7 @@
                     {
                         pxAddress->sin_family = FREERTOS_AF_INET;
                         pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
-                        pxAddress->sin_addr = ulIPAddress;
+                        pxAddress->sin_address.ulIP_IPv4 = ulIPAddress;
                         break;
                     }
                 }
@@ -1134,7 +1133,7 @@
                                                            uxHostType );
 
             /* ipLLMNR_IP_ADDR is in network byte order. */
-            if( ( pxAddress->sin_addr == ipLLMNR_IP_ADDR ) || ( pxAddress->sin_addr == ipMDNS_IP_ADDRESS ) )
+            if( ( pxAddress->sin_address.ulIP_IPv4 == ipLLMNR_IP_ADDR ) || ( pxAddress->sin_address.ulIP_IPv4 == ipMDNS_IP_ADDRESS ) )
             {
                 /* Use LLMNR addressing. */
                 /* MISRA Ref 11.3.1 [Misaligned access] */

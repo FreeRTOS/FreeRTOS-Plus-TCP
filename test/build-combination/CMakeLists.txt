@@ -1,89 +1,61 @@
-cmake_minimum_required ( VERSION 3.13.0 )
-project ( "FreeRTOS-Plus-TCP Build Combination"
-          VERSION 1.0.0
-          LANGUAGES C )
+add_library( freertos_plus_tcp_config_common INTERFACE )
+target_include_directories(freertos_plus_tcp_config_common INTERFACE Common )
 
-# Allow the project to be organized into folders.
-set_property( GLOBAL PROPERTY USE_FOLDERS ON )
+# -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_all_disable INTERFACE)
+target_include_directories(freertos_plus_tcp_config_all_disable INTERFACE AllDisable)
+target_link_libraries(freertos_plus_tcp_config_all_disable INTERFACE freertos_plus_tcp_config_common)
 
-# Use C90.
-set( CMAKE_C_STANDARD 90 )
-set( CMAKE_C_STANDARD_REQUIRED ON )
+# -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_all_enable INTERFACE)
+target_include_directories(freertos_plus_tcp_config_all_enable INTERFACE AllEnable)
+target_link_libraries(freertos_plus_tcp_config_all_enable INTERFACE freertos_plus_tcp_config_common)
 
-# Do not allow in-source build.
-if( ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR} )
-    message( FATAL_ERROR "In-source build is not allowed. Please build in a separate directory, such as ${PROJECT_SOURCE_DIR}/build." )
-endif()
+# -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_default INTERFACE)
+target_include_directories(freertos_plus_tcp_config_default INTERFACE DefaultConf)
+target_link_libraries(freertos_plus_tcp_config_default INTERFACE freertos_plus_tcp_config_common)
 
-# Set global path variables.
-get_filename_component(__MODULE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
-set(MODULE_ROOT_DIR ${__MODULE_ROOT_DIR} CACHE INTERNAL "FreeRTOS-Plus-TCP repository root.")
-
-# Configure options to always show in CMake GUI.
-option( BUILD_CLONE_SUBMODULES
-        "Set this to ON to automatically clone any required Git submodules. When OFF, submodules must be manually cloned."
-        ON )
-
-
-option(TEST_CONFIGURATION "Configuration All Enable/Disable or default" ENABLE_ALL)
-
-message( STATUS "Argument: ${TEST_CONFIGURATION}")
-
-# Set output directories.
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
-set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
-set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
-
-
-set( FREERTOS_KERNEL_DIR ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
-set( TEST_DIR ${MODULE_ROOT_DIR}/test/build-combination )
-
-include_directories( ${MODULE_ROOT_DIR}/source/include )
-include_directories( ${MODULE_ROOT_DIR}/source/portable/Compiler/MSVC )
-include_directories( ${FREERTOS_KERNEL_DIR}/include )
-# Add the correct portable directory to include search paths.
-if (WIN32)
-    include_directories( ${FREERTOS_KERNEL_DIR}/portable/MSVC-MingW )
+# -------------------------------------------------------------------
+# Configuration for FreeRTOS-Kernel
+if(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM" )
+    # Check Config target is available. And then do nothing.
+    if(NOT TARGET freertos_config )
+        message(FATAL_ERROR "FREERTOS_PLUS_TCP_TEST_CONFIGURATION = CUSTOM, but no freertos_config target defined.")
+    endif()
+elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "DISABLE_ALL" )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_all_disable)
+elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL" )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable)
 else()
-    include_directories( ${FREERTOS_KERNEL_DIR}/portable/ThirdParty/GCC/Posix )
-endif()
-include_directories( ${TEST_DIR}/Common )
-
-if( ${TEST_CONFIGURATION} STREQUAL "ENABLE_ALL" )
-    include_directories( ${TEST_DIR}/AllEnable )
-elseif( ${TEST_CONFIGURATION} STREQUAL "DISABLE_ALL" )
-    include_directories( ${TEST_DIR}/AllDisable )
-else()
-    include_directories( ${TEST_DIR}/DefaultConf )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_default)
 endif()
 
-# Pick the correct kernel port files for the platform.
-if (WIN32)
-    file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c"
-                             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/MSVC-MingW/*.c")
-else()
-    file(GLOB KERNEL_SOURCES "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/*.c"
-                             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/*.c"
-                             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix/utils/*.c")
-endif()
+add_executable(freertos_plus_tcp_build_test EXCLUDE_FROM_ALL)
 
-file(GLOB TCP_SOURCES "${MODULE_ROOT_DIR}/source/*.c" )
+target_sources(freertos_plus_tcp_build_test
+  PRIVATE
+    Common/main.c
+)
 
-message(STATUS "${KERNEL_SOURCES}")
-message(STATUS "${TCP_SOURCES}")
+target_compile_options(freertos_plus_tcp_build_test
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-format-nonliteral>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-prototypes>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-reserved-identifier>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-parameter>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-variable>
+)
 
-add_executable(project ${KERNEL_SOURCES}
-               ${TCP_SOURCES}
-               ${FREERTOS_KERNEL_DIR}/portable/MemMang/heap_4.c
-               ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation_2.c
-               ${TEST_DIR}/Common/main.c )
-
-if (WIN32)
-    # Add preprocessor definitions to suppress warnings.
-    target_compile_definitions( project PRIVATE
-                                        _CRT_SECURE_NO_WARNINGS )
-else()
-    # Link pthread which is needed for POSIX port.
-    find_package( Threads REQUIRED )
-    target_link_libraries( project Threads::Threads )
-endif()
+target_link_libraries(freertos_plus_tcp_build_test
+  PRIVATE
+    freertos_plus_tcp
+    freertos_kernel
+)

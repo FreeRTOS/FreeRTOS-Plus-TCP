@@ -270,7 +270,7 @@
 
             if( uxLast < ( uxIndex + uxLength ) )
             {
-                FreeRTOS_printf( ( "RA: Not enough bytes ( %u > %u )\n", ( unsigned ) uxIndex + uxLength, ( unsigned ) uxLast ) );
+                FreeRTOS_printf( ( "RA: Not enough bytes ( %u > %u )\n", ( unsigned ) ( uxIndex + uxLength ), ( unsigned ) uxLast ) );
                 break;
             }
 
@@ -295,7 +295,7 @@
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     pxPrefixOption = ( ( ICMPPrefixOption_IPv6_t * ) &( pucBytes[ uxIndex ] ) );
 
-                    FreeRTOS_printf( ( "RA: Prefix len %d Life %lu, %lu (%pip)\n",
+                    FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
                                        pxPrefixOption->ucPrefixLength,
                                        FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
                                        FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
@@ -311,7 +311,7 @@
 
                        /* ulChar2u32 returns host-endian numbers. */
                        ulMTU = ulChar2u32( &( pucBytes[ uxIndex + 4U ] ) );
-                       FreeRTOS_printf( ( "RA: MTU = %lu\n", ulMTU ) );
+                       FreeRTOS_printf( ( "RA: MTU = %u\n", ( unsigned int ) ulMTU ) );
                    }
                    break;
 

@@ -2095,6 +2095,41 @@ void test_prvTCPSendSpecialPacketHelper( void )
     TEST_ASSERT_EQUAL( 0x50, pxTCPPacket->xTCPHeader.ucTCPOffset );
 }
 
+/* test prvTCPSendSpecialPacketHelper function */
+void test_prvTCPSendSpecialPacketHelper_flagSYN( void )
+{
+    BaseType_t Return = pdTRUE;
+    const uint32_t ulSequenceNumber = 0xABC12300;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+    pxSocket->pxEndPoint = &xEndPoint;
+
+    pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
+    pxTCPPacket->xTCPHeader.ucTCPOffset = 0;
+    pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
+    TEST_ASSERT_EQUAL( pdFALSE, Return );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
+    TEST_ASSERT_EQUAL( tcpTCP_FLAG_ACK, pxTCPPacket->xTCPHeader.ucTCPFlags );
+    TEST_ASSERT_EQUAL( 0x50, pxTCPPacket->xTCPHeader.ucTCPOffset );
+    TEST_ASSERT_EQUAL( ulSequenceNumber + 1, FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulAckNr ) );
+}
+
 /* test prvTCPSendChallengeAck function */
 void test_prvTCPSendChallengeAck( void )
 {

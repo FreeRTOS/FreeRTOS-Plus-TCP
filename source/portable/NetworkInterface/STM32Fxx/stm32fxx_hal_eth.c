@@ -331,6 +331,16 @@
             /* Set ETH HAL State to Ready */
             heth->State = HAL_ETH_STATE_READY;
 
+            /*
+             * Disable the interrupts that are related to the MMC counters.
+             * These interrupts are enabled by default. The interrupt can
+             * only be acknowledged by reading the corresponding counter.
+             */
+
+            heth->Instance->MACIMR = ETH_MACIMR_TSTIM | ETH_MACIMR_PMTIM;
+            heth->Instance->MMCRIMR = ETH_MMCRIMR_RGUFM | ETH_MMCRIMR_RFAEM | ETH_MMCRIMR_RFCEM;
+            heth->Instance->MMCTIMR = ETH_MMCTIMR_TGFM | ETH_MMCTIMR_TGFMSCM | ETH_MMCTIMR_TGFSCM;
+
             /* Return function status */
             return HAL_OK;
         }

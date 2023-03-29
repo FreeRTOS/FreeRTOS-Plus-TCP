@@ -2903,6 +2903,89 @@ void test_FreeRTOS_maywrite_HappyPath( void )
 }
 
 /*
+ * @brief Test setting socket ID when the socket is NULL.
+ */
+void test_xSocketSetSocketID_NULLSocket( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = xSocketSetSocketID( NULL, NULL );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is invalid.
+ */
+void test_xSocketSetSocketID_InvalidSocket( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = xSocketSetSocketID( FREERTOS_INVALID_SOCKET, NULL );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is Valid.
+ */
+void test_xSocketSetSocketID_ValidSocket( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t AnchorVariable;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xReturn = xSocketSetSocketID( &xSocket, &AnchorVariable );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( &AnchorVariable, xSocket.pvSocketID );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is NULL.
+ */
+void test_pvSocketGetSocketID_NULLSocket( void )
+{
+    void * pvReturn;
+
+    pvReturn = pvSocketGetSocketID( NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pvReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is invalid.
+ */
+void test_pvSocketGetSocketID_InvalidSocket( void )
+{
+    void * pvReturn;
+
+    pvReturn = pvSocketGetSocketID( FREERTOS_INVALID_SOCKET );
+
+    TEST_ASSERT_EQUAL( NULL, pvReturn );
+}
+
+/*
+ * @brief Test setting socket ID when the socket is Valid.
+ */
+void test_pvSocketGetSocketID_ValidSocket( void )
+{
+    BaseType_t pvReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t AnchorVariable;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.pvSocketID = &AnchorVariable;
+
+    pvReturn = pvSocketGetSocketID( &xSocket );
+
+    TEST_ASSERT_EQUAL( &AnchorVariable, pvReturn );
+}
+
+/*
  * @brief This function just prints out some data. It is expected to make calls to the
  *        below functions when IP stack is not initialised.
  */
