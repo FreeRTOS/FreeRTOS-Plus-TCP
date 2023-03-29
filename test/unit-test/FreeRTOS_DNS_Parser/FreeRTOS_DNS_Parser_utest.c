@@ -561,15 +561,15 @@ void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
     size_t uxBufferLength;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
 
-    pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
+    xNetworkBuffer.pucEthernetBuffer = ether_buffer;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 

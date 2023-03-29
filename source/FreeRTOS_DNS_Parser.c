@@ -1042,6 +1042,8 @@
             size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
             NetworkEndPoint_t xEndPoint;
             BaseType_t xMustReply = pdFALSE;
+            IPPacket_t * pxIPPacket = NULL;
+            uint32_t ulLocalIPAddress = 0U;
 
             /* Read the request flags in host endianness. */
             usFlags = usChar2u16( &( pucUDPPayloadBuffer[ offsetof( NBNSRequest_t, usFlags ) ] ) );
@@ -1169,6 +1171,9 @@
                     /* Should not occur: pucUDPPayloadBuffer is part of a xNetworkBufferDescriptor */
                     if( pxNetworkBuffer != NULL )
                     {
+                        pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+                        ulLocalIPAddress = pxIPPacket->xIPHeader.ulDestinationIPAddress;
+
                         pxMessage = ( ( DNSMessage_t * ) pucUDPPayloadBuffer );
 
                         /* As the fields in the structures are not word-aligned, we have to
@@ -1191,7 +1196,7 @@
                             vSetField32( pxAnswer, NBNSAnswer_t, ulTTL, dnsNBNS_TTL_VALUE );
                             vSetField16( pxAnswer, NBNSAnswer_t, usDataLength, 6 );           /* 6 bytes including the length field */
                             vSetField16( pxAnswer, NBNSAnswer_t, usNbFlags, dnsNBNS_NAME_FLAGS );
-                            vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress ) );
+                            vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, ulLocalIPAddress );
                         #else
                             ( void ) pxAnswer;
                         #endif

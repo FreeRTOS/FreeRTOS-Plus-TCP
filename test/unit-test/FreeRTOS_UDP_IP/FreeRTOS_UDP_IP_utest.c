@@ -622,13 +622,13 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull( void )
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
+
     vConfigureInterfaceAndEndpoints( &xLocalNetworkBuffer, &xEndPoint, &xInterface );
 
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -671,14 +671,13 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_BufferFull1( void )
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0U;
+
     vConfigureInterfaceAndEndpoints( &xLocalNetworkBuffer, &xEndPoint, &xInterface );
 
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
-
-    /* DHCP process is going on. IP address is zero. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -719,14 +718,13 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_NoEventGroupSocketSetU
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
-    vConfigureInterfaceAndEndpoints( &xLocalNetworkBuffer, &xEndPoint, &xInterface );
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
 
+    vConfigureInterfaceAndEndpoints( &xLocalNetworkBuffer, &xEndPoint, &xInterface );
 
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -778,12 +776,11 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
 
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -839,11 +836,11 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
+
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -900,11 +897,11 @@ void test_xProcessReceivedUDPPacket_SocketFound_NoHandler_ValidEventGroupUSemaph
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
+
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -965,12 +962,12 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnZero_ValidEven
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
+
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
     ulFunctionCalled = 0;
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -1029,13 +1026,14 @@ void test_xProcessReceivedUDPPacket_SocketFound_ARPResolutionRequired( void )
     FreeRTOS_Socket_t xLocalSocket;
     UDPPacket_t * pxUDPPacket;
     SocketSelect_t xLocalSocketSet;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
 
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
     ulFunctionCalled = 0;
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
@@ -1079,12 +1077,12 @@ void test_xProcessReceivedUDPPacket_SocketFound_HandlerFoundReturnNonZero( void 
     SocketSelect_t xLocalSocketSet;
     struct xNetworkEndPoint xEndPoint = { 0 };
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC01234BD;
+
     /* Cleanup. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
     memset( &xLocalSocket, 0, sizeof( xLocalSocket ) );
     ulFunctionCalled = 0;
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xC01234BD;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = ipconfigTCP_MSS;
