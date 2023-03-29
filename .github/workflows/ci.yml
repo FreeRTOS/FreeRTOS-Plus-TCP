@@ -71,11 +71,12 @@ jobs:
   formatting:
     # Use only 18.04 since we want the uncrustify version to
     # be 0.66.1_f to ensure proper formatting.
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
+    container: ubuntu:18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Uncrustify
-        run: sudo apt-get install uncrustify
+        run: apt-get update && apt-get install uncrustify
       - name: Run Uncrustify
         run: |
           uncrustify --version
