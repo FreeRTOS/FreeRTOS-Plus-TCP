@@ -70,7 +70,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
 static const struct xIPv6_Address xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 /*
- * Check if the packet is a legal loopback packet.
+ * Check if the packet is a loopback packet.
  */
 static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
 
@@ -93,7 +93,7 @@ static IPv6_Address_t xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Add
 }
 
 /**
- * @brief Check if the packet is a legal loopback packet.
+ * @brief Check if the packet is a loopback packet.
  *
  * @param[in] pxIPv6Header: The IP packet in pxNetworkBuffer.
  *
@@ -122,13 +122,13 @@ static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Check whether this IPv6 address is a multicast address or not.
+ * @brief Check whether this IPv6 address is an allowed multicast address or not.
  *
  * @param[in] pxIPAddress: The IP address to be checked.
  *
- * @return Returns pdTRUE if pxIPAddress is a multicast address, pdFALSE if not .
+ * @return Returns pdTRUE if pxIPAddress is an allowed multicast address, pdFALSE if not.
  */
-BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
+BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
 {
     BaseType_t xReturn = pdFALSE;
     IPv6_Address_t xGroupIDAddress;
@@ -294,7 +294,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
             }
             /* Is it the legal multicast address? */
             else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
-                     ( ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
+                     ( ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) != pdFALSE ) ||
                        /* Is it loopback address sent from this node? */
                        ( xIsIPv6Loopback( pxIPv6Header ) != pdFALSE ) ||
                        /* Or (during DHCP negotiation) we have no IP-address yet? */
