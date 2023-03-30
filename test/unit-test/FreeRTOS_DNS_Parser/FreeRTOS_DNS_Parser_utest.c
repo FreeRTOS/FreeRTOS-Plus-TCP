@@ -468,13 +468,13 @@ void test_DNS_SkipNameField_small_buffer( void )
  */
 void test_prepareReplyDNSMessage_success( void )
 {
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
     uint8_t ether_buffer[ 300 ] = { 0 };
     size_t uxDataLength;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
-    pxNetworkBuffer.xDataLength = 300;
+    xNetworkBuffer.pucEthernetBuffer = ether_buffer;
+    xNetworkBuffer.xDataLength = 300;
 
 
     BaseType_t lNetLength = 50;
@@ -483,10 +483,10 @@ void test_prepareReplyDNSMessage_success( void )
     UDPHeader_t * pxUDPHeader;
 
     pxUDPPacket = ( ( UDPPacket_t * )
-                    &pxNetworkBuffer.pucEthernetBuffer );
+                    &xNetworkBuffer.pucEthernetBuffer );
     pxIPHeader = &pxUDPPacket->xIPHeader;
     pxUDPHeader = &pxUDPPacket->xUDPHeader;
-    IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer.pucEthernetBuffer );
+    IPPacket_t * xIPPacket = ( ( IPPacket_t * ) xNetworkBuffer.pucEthernetBuffer );
 
     pxIPHeader->ulSourceIPAddress = 1234;
 
@@ -495,13 +495,13 @@ void test_prepareReplyDNSMessage_success( void )
     usGenerateChecksum_ExpectAnyArgsAndReturn( 555 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 444 );
 
-    prepareReplyDNSMessage( &pxNetworkBuffer,
+    prepareReplyDNSMessage( &xNetworkBuffer,
                             lNetLength );
 
     uxDataLength = ( ( size_t ) lNetLength ) + ipSIZE_OF_IPv4_HEADER +
                    ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
 
-    TEST_ASSERT_EQUAL( pxNetworkBuffer.xDataLength, uxDataLength );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxDataLength );
 }
 
 /* / * =========================== test DNS_TreatNBNS  ========================== * / */
@@ -560,6 +560,7 @@ void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
     uint8_t ether_buffer[ 300 ] = { 0 };
     size_t uxBufferLength;
     uint32_t ulIPAddress;
+    struct xNetworkEndPoint xEndPoint = { 0 };
 
     NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
 
@@ -570,7 +571,7 @@ void test_DNS_TreatNBNS_success_nbns_query_trailing_space( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     DNS_TreatNBNS( pucPayload,
@@ -589,17 +590,18 @@ void test_DNS_TreatNBNS_success_nbns_query( void )
     uint8_t ether_buffer[ 300 ] = { 0 };
     size_t uxBufferLength;
     uint32_t ulIPAddress;
+    struct xNetworkEndPoint xEndPoint = { 0 };
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
 
-    pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
+    xNetworkBuffer.pucEthernetBuffer = ether_buffer;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     DNS_TreatNBNS( pucPayload,
@@ -642,28 +644,28 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    NetworkBufferDescriptor_t pxNetworkBuffer_dup = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer_dup = { 0 };
     struct xNetworkEndPoint xEndPoint = { 0 };
 
-    pxNetworkBuffer.pxEndPoint = &xEndPoint;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     uint8_t buffer[ 300 ] = { 0 };
 
-    pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
-    pxNetworkBuffer_dup.xDataLength = 300;
+    xNetworkBuffer_dup.pucEthernetBuffer = buffer;
+    xNetworkBuffer_dup.xDataLength = 300;
 
     hook_return = pdTRUE;
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );      /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer_dup );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer_dup );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 4 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 4 );
-    vReturnEthernetFrame_Expect( &pxNetworkBuffer_dup, pdFALSE ); /* goal */
+    vReturnEthernetFrame_Expect( &xNetworkBuffer_dup, pdFALSE ); /* goal */
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
     DNS_TreatNBNS( pucPayload,
@@ -684,31 +686,31 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
     uint32_t ulIPAddress;
 
     xBufferAllocFixedSize = pdFALSE;
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    NetworkBufferDescriptor_t pxNetworkBuffer_dup;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer_dup;
     struct xNetworkEndPoint xEndPoint = { 0 };
 
-    pxNetworkBuffer.pxEndPoint = &xEndPoint;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     uint8_t buffer[ 300 ] = { 0 };
 
-    pxNetworkBuffer.pucEthernetBuffer = buffer;
-    pxNetworkBuffer.xDataLength = 300;
+    xNetworkBuffer.pucEthernetBuffer = buffer;
+    xNetworkBuffer.xDataLength = 300;
 
-    pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
-    pxNetworkBuffer_dup.xDataLength = 300;
+    xNetworkBuffer_dup.pucEthernetBuffer = buffer;
+    xNetworkBuffer_dup.xDataLength = 300;
 
     hook_return = pdTRUE;
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );      /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer_dup );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer_dup );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 4 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 4 );
-    vReturnEthernetFrame_Expect( &pxNetworkBuffer_dup, pdFALSE ); /* goal */
+    vReturnEthernetFrame_Expect( &xNetworkBuffer_dup, pdFALSE ); /* goal */
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
 
     DNS_TreatNBNS( pucPayload,
@@ -727,16 +729,15 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer3( void )
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
-    NetworkBufferDescriptor_t xNetworkBuffer;
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    NetworkBufferDescriptor_t pxNetworkBuffer_dup;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer_dup;
     struct xNetworkEndPoint xEndPoint = { 0 };
 
     xNetworkBuffer.pxEndPoint = &xEndPoint;
     uint8_t buffer[ 300 ];
 
-    pxNetworkBuffer_dup.pucEthernetBuffer = buffer;
-    pxNetworkBuffer_dup.xDataLength = 300;
+    xNetworkBuffer_dup.pucEthernetBuffer = buffer;
+    xNetworkBuffer_dup.xDataLength = 300;
 
     hook_return = pdTRUE;
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
@@ -1092,9 +1093,9 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
-    pxNetworkBuffer.xDataLength = uxBufferLength;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    xNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    xNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = udp_buffer;
@@ -1139,7 +1140,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_xBufferAllocFixesize( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
 
     hook_return = pdTRUE;
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
@@ -1174,9 +1175,9 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
-    pxNetworkBuffer.xDataLength = uxBufferLength;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    xNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    xNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = udp_buffer;
@@ -1222,7 +1223,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdTRUE;
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNewBuffer );
@@ -1264,9 +1265,9 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
-    pxNetworkBuffer.xDataLength = uxBufferLength;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    xNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    xNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = udp_buffer;
@@ -1335,9 +1336,9 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
-    pxNetworkBuffer.xDataLength = uxBufferLength;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    xNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    xNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = udp_buffer;
@@ -1408,10 +1409,10 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
     memset( pucUDPPayloadBuffer, 0x0, 250 );
     size_t uxBufferLength = 250;
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
-    pxNetworkBuffer.xDataLength = uxBufferLength;
-    pxNetworkBuffer.pxEndPoint = &xEndPoint;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    xNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    xNetworkBuffer.xDataLength = uxBufferLength;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = udp_buffer;
@@ -1450,7 +1451,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
 
     hook_return = pdFALSE;
 
@@ -1476,10 +1477,10 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
 
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
-    pxNetworkBuffer.xDataLength = uxBufferLength;
+    xNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    xNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = udp_buffer;
@@ -1548,10 +1549,10 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
 
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
-    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
-    pxNetworkBuffer.xDataLength = uxBufferLength;
-    pxNetworkBuffer.pxEndPoint = &xEndPoint;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    xNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    xNetworkBuffer.xDataLength = uxBufferLength;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     NetworkBufferDescriptor_t pxNewBuffer;
     pxNewBuffer.pucEthernetBuffer = udp_buffer;
@@ -1592,7 +1593,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdTRUE;
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
