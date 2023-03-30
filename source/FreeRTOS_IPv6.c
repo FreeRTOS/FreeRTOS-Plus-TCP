@@ -69,10 +69,13 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
  */
 static const struct xIPv6_Address xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
+#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+
 /*
  * Check if the packet is a loopback packet.
  */
-static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
+    static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
 
 /**
  * @brief Get the group ID and stored into IPv6_Address_t.
@@ -92,6 +95,11 @@ static IPv6_Address_t xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Add
     return xReturnGroupID;
 }
 
+
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+
 /**
  * @brief Check if the packet is a loopback packet.
  *
@@ -102,21 +110,22 @@ static IPv6_Address_t xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Add
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
-static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
-{
-    BaseType_t xReturn = pdFALSE;
-    const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPv6Header->xSourceAddress ) );
-
-    /* Allow loopback packets from this node itself only. */
-    if( ( pxEndPoint != NULL ) &&
-        ( memcmp( pxIPv6Header->xDestinationAddress.ucBytes, in6addr_loopback.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) &&
-        ( memcmp( pxIPv6Header->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+    static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
     {
-        xReturn = pdTRUE;
-    }
+        BaseType_t xReturn = pdFALSE;
+        const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPv6Header->xSourceAddress ) );
 
-    return xReturn;
-}
+        /* Allow loopback packets from this node itself only. */
+        if( ( pxEndPoint != NULL ) &&
+            ( memcmp( pxIPv6Header->xDestinationAddress.ucBytes, FreeRTOS_in6addr_loopback.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) &&
+            ( memcmp( pxIPv6Header->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        {
+            xReturn = pdTRUE;
+        }
+
+        return xReturn;
+    }
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
 
 
 /*-----------------------------------------------------------*/
