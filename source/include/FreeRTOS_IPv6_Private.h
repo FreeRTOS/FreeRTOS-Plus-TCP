@@ -154,6 +154,15 @@ struct xIP_HEADER_IPv6
 typedef struct xIP_HEADER_IPv6 IPHeader_IPv6_t;
 
 #include "pack_struct_start.h"
+struct xIP_EXT_HEADER_IPv6
+{
+    uint8_t ucNextHeader;      /**< Next header: TCP, UDP, or ICMP.                                            0 +  1 =  1 */
+    uint8_t ucHeaderExtLength; /**< Length of this header in 8-octet units, not including the first 8 octets.  1 +  1 =  2 */
+}
+#include "pack_struct_end.h"
+typedef struct xIP_EXT_HEADER_IPv6 IPExtHeader_IPv6_t;
+
+#include "pack_struct_start.h"
 struct xICMPEcho_IPv6
 {
     uint8_t ucTypeOfMessage;   /**< The message type.     0 +  1 = 1 */

@@ -62,11 +62,11 @@
 
 
 #define ipIPv6_EXT_HEADER_HOP_BY_HOP             0U
-#define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS    60U
 #define ipIPv6_EXT_HEADER_ROUTING_HEADER         43U
 #define ipIPv6_EXT_HEADER_FRAGMENT_HEADER        44U
-#define ipIPv6_EXT_HEADER_AUTHEN_HEADER          51U
 #define ipIPv6_EXT_HEADER_SECURE_PAYLOAD         50U
+#define ipIPv6_EXT_HEADER_AUTHEN_HEADER          51U
+#define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS    60U
 /* Destination options may follow here in case there are no routing options. */
 #define ipIPv6_EXT_HEADER_MOBILITY_HEADER        135U
 

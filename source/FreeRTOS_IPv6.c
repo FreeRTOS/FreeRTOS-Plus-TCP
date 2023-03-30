@@ -62,6 +62,11 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+    /* Check if ucNextHeader is an extension header. */
+    static BaseType_t xIsExtHeader( uint8_t ucNextHeader );
+#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
+
+#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
 
 /**
  * @brief Check IPv6 packet length.
@@ -78,6 +83,10 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
         BaseType_t xResult = pdFAIL;
         uint16_t ucVersionTrafficClass;
         uint16_t usPayloadLength;
+        uint8_t ucNextHeader;
+        size_t uxMinimumLength;
+        size_t uxExtHeaderLength = 0;
+        const IPExtHeader_IPv6_t * pxExtHeader = NULL;
 
         /* Map the buffer onto a IPv6-Packet struct to easily access the
          * fields of the IPv6 packet. */
@@ -119,6 +128,56 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
                 break;
             }
 
+            /* Identify the next protocol. */
+            ucNextHeader = pxIPv6Packet->xIPHeader.ucNextHeader;
+
+            while( xIsExtHeader( ucNextHeader ) )
+            {
+                pxExtHeader = &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength ] );
+                /* The definition of length in extension header - Length of this header in 8-octet units, not including the first 8 octets. */
+                uxExtHeaderLength += ( 8 * pxExtHeader->ucHeaderExtLength ) + 8;
+
+                ucNextHeader = pxExtHeader->ucNextHeader;
+
+                if( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength >= uxBufferLength )
+                {
+                    break;
+                }
+            }
+
+            if( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength >= uxBufferLength )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 7 );
+                break;
+            }
+
+            /* Switch on the Layer 3/4 protocol. */
+            if( ucNextHeader == ( uint8_t ) ipPROTOCOL_UDP )
+            {
+                /* Expect at least a complete UDP header. */
+                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength + ipSIZE_OF_UDP_HEADER;
+            }
+            else if( ucNextHeader == ( uint8_t ) ipPROTOCOL_TCP )
+            {
+                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength + ipSIZE_OF_TCP_HEADER;
+            }
+            else if( ucNextHeader == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
+            {
+                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength + ipSIZE_OF_ICMPv6_HEADER;
+            }
+            else
+            {
+                /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 5 );
+                break;
+            }
+
+            if( uxBufferLength < uxMinimumLength )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
+                break;
+            }
+
             xResult = pdPASS;
         } while( ipFALSE_BOOL );
 
@@ -129,6 +188,39 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
         }
 
         return xResult;
+    }
+
+
+#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
+/*-----------------------------------------------------------*/
+
+
+#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+
+/**
+ * @brief Check if ucNextHeader is an extension header.
+ *
+ * @param[in] ucNextHeader: Next header, such as ipIPv6_EXT_HEADER_HOP_BY_HOP.
+ *
+ * @return pdTRUE if it's extension header, otherwise pdFALSE.
+ */
+    static BaseType_t xIsExtHeader( uint8_t ucNextHeader )
+    {
+        BaseType_t xReturn = pdFALSE;
+
+        switch( ucNextHeader )
+        {
+            case ipIPv6_EXT_HEADER_HOP_BY_HOP:
+            case ipIPv6_EXT_HEADER_ROUTING_HEADER:
+            case ipIPv6_EXT_HEADER_FRAGMENT_HEADER:
+            case ipIPv6_EXT_HEADER_SECURE_PAYLOAD:
+            case ipIPv6_EXT_HEADER_AUTHEN_HEADER:
+            case ipIPv6_EXT_HEADER_DESTINATION_OPTIONS:
+            case ipIPv6_EXT_HEADER_MOBILITY_HEADER:
+                xReturn = pdTRUE;
+        }
+
+        return xReturn;
     }
 
 
