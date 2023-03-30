@@ -881,6 +881,7 @@ pvargument
 pvbuffer
 pvdata
 pvdestination
+pvethernetbuffer
 pvoptionvalue
 pvparam
 pvparameters
