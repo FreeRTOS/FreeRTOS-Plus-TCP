@@ -1155,15 +1155,8 @@
                  * is a real problem, like data corruption. */
                 configASSERT( pxNetworkBuffer != NULL );
 
-                if( pxNetworkBuffer->pxEndPoint == NULL )
-                {
-                    pxNetworkBuffer->pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
-                }
-
-                if( pxNetworkBuffer->pxEndPoint != NULL )
-                {
-                    ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
-                }
+                condifASSERT( pxNetworkBuffer->pxEndPoint != NULL )
+                ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
 
                 /* NBNS only handles IPv4 or "A" records. */
                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
@@ -1229,7 +1222,7 @@
                 vSetField32( pxAnswer, NBNSAnswer_t, ulTTL, dnsNBNS_TTL_VALUE );
                 vSetField16( pxAnswer, NBNSAnswer_t, usDataLength, 6 );           /* 6 bytes including the length field */
                 vSetField16( pxAnswer, NBNSAnswer_t, usNbFlags, dnsNBNS_NAME_FLAGS );
-                vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) );
+                vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, xEndPoint.ipv4_settings.ulIPAddress );
 
                 usLength = ( uint16_t ) ( sizeof( NBNSAnswer_t ) + ( size_t ) offsetof( NBNSRequest_t, usType ) );
 
