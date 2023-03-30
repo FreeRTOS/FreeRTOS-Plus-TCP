@@ -57,7 +57,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv6 packet length. */
-    static BaseType_t xCheckIPv6SizeFields( const void * const pucEthernetBuffer,
+    static BaseType_t xCheckIPv6SizeFields( const void * const pvEthernetBuffer,
                                             size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
@@ -71,13 +71,13 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
 /**
  * @brief Check IPv6 packet length.
  *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
+ * @param[in] pvEthernetBuffer: The Ethernet packet received.
  * @param[in] uxBufferLength: The total number of bytes received.
  *
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
  */
-    static BaseType_t xCheckIPv6SizeFields( const void * const pucEthernetBuffer,
+    static BaseType_t xCheckIPv6SizeFields( const void * const pvEthernetBuffer,
                                             size_t uxBufferLength )
     {
         BaseType_t xResult = pdFAIL;
@@ -87,10 +87,11 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
         size_t uxMinimumLength;
         size_t uxExtHeaderLength = 0;
         const IPExtHeader_IPv6_t * pxExtHeader = NULL;
+        const uint8_t * const pucEthernetBuffer = ( const uint8_t * const ) pvEthernetBuffer;
 
         /* Map the buffer onto a IPv6-Packet struct to easily access the
          * fields of the IPv6 packet. */
-        const IPPacket_IPv6_t * const pxIPv6Packet = ( ( const IPPacket_IPv6_t * const ) pucEthernetBuffer );
+        const IPPacket_IPv6_t * const pxIPv6Packet = ( const IPPacket_IPv6_t * const ) pucEthernetBuffer;
 
         DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
@@ -133,7 +134,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
 
             while( xIsExtHeader( ucNextHeader ) )
             {
-                pxExtHeader = &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength ] );
+                pxExtHeader = ( const IPExtHeader_IPv6_t * ) ( &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength ] ) );
                 /* The definition of length in extension header - Length of this header in 8-octet units, not including the first 8 octets. */
                 uxExtHeaderLength += ( 8 * pxExtHeader->ucHeaderExtLength ) + 8;
 

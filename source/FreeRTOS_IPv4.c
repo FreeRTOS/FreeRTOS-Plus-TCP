@@ -48,7 +48,7 @@
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv4 packet length. */
-    static BaseType_t xCheckIPv4SizeFields( const void * const pucEthernetBuffer,
+    static BaseType_t xCheckIPv4SizeFields( const void * const pvEthernetBuffer,
                                             size_t uxBufferLength );
 #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
@@ -58,13 +58,13 @@
 /**
  * @brief Check IPv4 packet length.
  *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
+ * @param[in] pvEthernetBuffer: The Ethernet packet received.
  * @param[in] uxBufferLength: The total number of bytes received.
  *
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
  */
-    static BaseType_t xCheckIPv4SizeFields( const void * const pucEthernetBuffer,
+    static BaseType_t xCheckIPv4SizeFields( const void * const pvEthernetBuffer,
                                             size_t uxBufferLength )
     {
         size_t uxLength;
@@ -77,7 +77,7 @@
 
         /* Map the buffer onto a IP-Packet struct to easily access the
          * fields of the IP packet. */
-        const IPPacket_t * const pxIPPacket = ( ( const IPPacket_t * const ) pucEthernetBuffer );
+        const IPPacket_t * const pxIPPacket = ( ( const IPPacket_t * const ) pvEthernetBuffer );
 
         DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
