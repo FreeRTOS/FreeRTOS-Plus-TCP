@@ -81,6 +81,7 @@ Recommended settings for STM32Fxx Network Interface:
 #define ipconfigZERO_COPY_RX_DRIVER                   1
 #define ipconfigZERO_COPY_TX_DRIVER                   1
 #define ipconfigUSE_LINKED_RX_MESSAGES                1
+#define ipconfigSUPPORT_NETWORK_DOWN_EVENT            1
 ```
 
 **Defined in stm32f4xx_hal_conf.h**
