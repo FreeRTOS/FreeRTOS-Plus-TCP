@@ -1068,4 +1068,10 @@
     #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
 #endif
 
+/* Set to 1 if you want to receive eNetworkDown notification via vApplicationIPNetworkEventHook() callback.
+ * Not all drivers support this feature. */
+#ifndef ipconfigSUPPORT_NETWORK_DOWN_EVENT
+    #define ipconfigSUPPORT_NETWORK_DOWN_EVENT    0
+#endif
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
