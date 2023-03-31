@@ -383,13 +383,13 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
         xExtHeaderCount += 1;
 
         /*
-        * IPv6 nodes must accept and attempt to process extension headers in
-        * any order and occurring any number of times in the same packet,
-        * except for the Hop-by-Hop Options header which is restricted to
-        * appear immediately after an IPv6 header only. Outlined
-        * by RFC 2460 section 4.1  Extension Header Order.
-        */
-        if ( xExtHeaderCount > 1 && xCurrentOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
+         * IPv6 nodes must accept and attempt to process extension headers in
+         * any order and occurring any number of times in the same packet,
+         * except for the Hop-by-Hop Options header which is restricted to
+         * appear immediately after an IPv6 header only. Outlined
+         * by RFC 2460 section 4.1  Extension Header Order.
+         */
+        if( ( xExtHeaderCount > 1 ) && ( xCurrentOrder == 1 ) ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
         {
             FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
             uxIndex = uxMaxLength;
