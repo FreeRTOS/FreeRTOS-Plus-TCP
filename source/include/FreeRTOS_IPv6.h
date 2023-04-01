@@ -70,20 +70,8 @@
 /* Destination options may follow here in case there are no routing options. */
 #define ipIPv6_EXT_HEADER_MOBILITY_HEADER        135U
 
-#ifndef _MSC_VER
-    extern const struct xIPv6_Address in6addr_any;
-    extern const struct xIPv6_Address in6addr_loopback;
-#else
-
-/* Microsoft visual C already has these objects defined.
- * Name them slightly different. */
-    extern const struct xIPv6_Address FreeRTOS_in6addr_any;
-    extern const struct xIPv6_Address FreeRTOS_in6addr_loopback;
-    #define in6addr_any         FreeRTOS_in6addr_any
-    #define in6addr_loopback    FreeRTOS_in6addr_loopback
-
-#endif
-
+extern const struct xIPv6_Address FreeRTOS_in6addr_any;
+extern const struct xIPv6_Address FreeRTOS_in6addr_loopback;
 
 /* IPv6 multicast MAC address starts with 33-33-. */
 #define ipMULTICAST_MAC_ADDRESS_IPv6_0    0x33U

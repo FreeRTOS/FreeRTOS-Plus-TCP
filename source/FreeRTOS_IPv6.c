@@ -48,12 +48,12 @@
 /**
  * This variable is initialized by the system to contain the wildcard IPv6 address.
  */
-const struct xIPv6_Address in6addr_any = { 0 };
+const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
 
 /**
  * This variable is initialized by the system to contain the loopback IPv6 address.
  */
-const struct xIPv6_Address in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
+const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
 /**
  * @brief Check whether this IPv6 address is a multicast address or not.
@@ -342,6 +342,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
     uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
     uint8_t ucNextHeader = 0U;
     BaseType_t xNextOrder = 0;
+    BaseType_t xExtHeaderCount = 0;
 
     while( ( uxIndex + 8U ) < uxMaxLength )
     {
@@ -379,9 +380,18 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
                                  ucNextHeader,
                                  ( int ) xNextOrder ) );
 
-        if( xNextOrder <= xCurrentOrder )
+        xExtHeaderCount += 1;
+
+        /*
+         * IPv6 nodes must accept and attempt to process extension headers in
+         * any order and occurring any number of times in the same packet,
+         * except for the Hop-by-Hop Options header which is restricted to
+         * appear immediately after an IPv6 header only. Outlined
+         * by RFC 2460 section 4.1  Extension Header Order.
+         */
+        if( ( xExtHeaderCount > 1 ) && ( xCurrentOrder == 1 ) ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
         {
-            FreeRTOS_printf( ( "Wrong order\n" ) );
+            FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
             uxIndex = uxMaxLength;
             break;
         }
@@ -423,10 +433,10 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
     FreeRTOS_printf( ( "Extension headers : %s Truncated %u bytes. Removed %u, Payload %u xDataLength now %u\n",
                        ( eResult == eProcessBuffer ) ? "good" : "bad",
-                       xMoveLen,
-                       uxRemovedBytes,
+                       ( unsigned ) xMoveLen,
+                       ( unsigned ) uxRemovedBytes,
                        FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength ),
-                       pxNetworkBuffer->xDataLength ) );
+                       ( unsigned ) pxNetworkBuffer->xDataLength ) );
     return eResult;
 }
 

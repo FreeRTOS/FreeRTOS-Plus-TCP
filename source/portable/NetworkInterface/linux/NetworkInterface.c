@@ -31,12 +31,6 @@
 #include "task.h"
 #include "semphr.h"
 
-/* ========================= FreeRTOS+TCP includes ========================== */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
-#include "NetworkBufferManagement.h"
-#include "FreeRTOS_Stream_Buffer.h"
-
 /* ======================== Standard Library includes ======================== */
 #include <stdio.h>
 #include <unistd.h>
@@ -48,6 +42,12 @@
 #include <ctype.h>
 #include <signal.h>
 #include <pcap.h>
+
+/* ========================= FreeRTOS+TCP includes ========================== */
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "NetworkBufferManagement.h"
+#include "FreeRTOS_Stream_Buffer.h"
 
 /* ========================== Local includes =================================*/
 #include <utils/wait_for_event.h>
@@ -117,7 +117,6 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
 static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                            BaseType_t bReleaseAfterSend );
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                 NetworkInterface_t * pxInterface );
@@ -132,9 +131,9 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
 static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     BaseType_t ret = pdFAIL;
+    pcap_if_t * pxAllNetworkInterfaces;
 
     ( void ) pxInterface;
-    pcap_if_t * pxAllNetworkInterfaces;
 
     /* Query the computer the simulation is being executed on to find the
      * network interfaces it has installed. */
@@ -165,6 +164,56 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     }
 
     return ret;
+}
+
+static size_t prvStreamBufferAdd( StreamBuffer_t * pxBuffer,
+                                  const uint8_t * pucData,
+                                  size_t uxByteCount )
+{
+    size_t uxSpace, uxNextHead, uxFirst;
+    size_t uxCount = uxByteCount;
+
+    uxSpace = uxStreamBufferGetSpace( pxBuffer );
+
+    /* The number of bytes that can be written is the minimum of the number of
+     * bytes requested and the number available. */
+    uxCount = FreeRTOS_min_size_t( uxSpace, uxCount );
+
+    if( uxCount != 0U )
+    {
+        uxNextHead = pxBuffer->uxHead;
+
+        if( pucData != NULL )
+        {
+            /* Calculate the number of bytes that can be added in the first
+            * write - which may be less than the total number of bytes that need
+            * to be added if the buffer will wrap back to the beginning. */
+            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextHead, uxCount );
+
+            /* Write as many bytes as can be written in the first write. */
+            ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
+
+            /* If the number of bytes written was less than the number that
+             * could be written in the first write... */
+            if( uxCount > uxFirst )
+            {
+                /* ...then write the remaining bytes to the start of the
+                 * buffer. */
+                ( void ) memcpy( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
+            }
+        }
+
+        uxNextHead += uxCount;
+
+        if( uxNextHead >= pxBuffer->LENGTH )
+        {
+            uxNextHead -= pxBuffer->LENGTH;
+        }
+
+        pxBuffer->uxHead = uxNextHead;
+    }
+
+    return uxCount;
 }
 
 /*!
@@ -274,7 +323,7 @@ static int prvCreateThreadSafeBuffers( void )
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
+BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     BaseType_t xResult = pdFALSE;
 
@@ -735,13 +784,13 @@ static void * prvLinuxPcapRecvThread( void * pvParam )
 {
     int ret;
 
-    ( void ) pvParam;
-
     /* Disable signals to this thread since this is a Linux pthread to be able to
      * printf and other blocking operations without being interrupted and put in
      * suspension mode by the linux port signals
      */
     sigset_t set;
+
+    ( void ) pvParam;
 
     sigfillset( &set );
     pthread_sigmask( SIG_SETMASK, &set, NULL );
@@ -774,11 +823,11 @@ static void * prvLinuxPcapSendThread( void * pvParam )
     uint8_t ucBuffer[ ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ];
     const time_t xMaxMSToWait = 1000;
 
-    ( void ) pvParam;
-
     /* disable signals to avoid treating this thread as a FreeRTOS task and putting
      * it to sleep by the scheduler */
     sigset_t set;
+
+    ( void ) pvParam;
 
     sigfillset( &set );
     pthread_sigmask( SIG_SETMASK, &set, NULL );

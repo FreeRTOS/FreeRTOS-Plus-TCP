@@ -172,7 +172,7 @@ static int detect_phy( XEmacPs * xemacpsp )
             ( ( id_lower & PHY_DETECT_MASK ) == PHY_DETECT_MASK ) )
         {
             /* Found a valid PHY address */
-            FreeRTOS_printf( ( "XEmacPs detect_phy: PHY detected at address %d.\n", phy_addr ) );
+            FreeRTOS_printf( ( "XEmacPs detect_phy: PHY detected at address %d.\n", ( unsigned ) phy_addr ) );
             phy_detected[ xemacpsp->Config.DeviceId ] = phy_addr;
             return phy_addr;
         }
