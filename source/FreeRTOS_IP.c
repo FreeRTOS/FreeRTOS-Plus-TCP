@@ -55,6 +55,10 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
 
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
+
 /* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
 #define ipFIRST_MULTI_CAST_IPv4             0xE0000000U /**< Lower bound of the IPv4 multicast address. */
 #define ipLAST_MULTI_CAST_IPv4              0xF0000000U /**< Higher bound of the IPv4 multicast address. */
@@ -227,7 +231,7 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  *        'xNetworkEventQueue'. prvIPTask() is the only task which has access to
  *        the data of the IP-stack, and so it has no need of using mutexes.
  *
- * @param[in] pvParameters: Not used.
+ * @param[in] pvParameters Not used.
  */
 
 /* MISRA Ref 8.13.1 [Not decorating a pointer to const parameter with const] */
@@ -557,7 +561,7 @@ BaseType_t xIsNetworkDownEventPending( void )
 /**
  * @brief Handle the incoming Ethernet packets.
  *
- * @param[in] pxBuffer: Linked/un-linked network buffer descriptor(s)
+ * @param[in] pxBuffer Linked/un-linked network buffer descriptor(s)
  *                      to be processed.
  */
 static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
@@ -655,8 +659,8 @@ BaseType_t FreeRTOS_NetworkDownFromISR( void )
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
  *
- * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
- * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
+ * @param[in] uxRequestedSizeBytes The size of the UDP payload.
+ * @param[in] uxBlockTimeTicks Maximum amount of time for which this call
  *            can block. This value is capped internally.
  *
  * @return If a buffer was created then the pointer to that buffer is returned,
@@ -705,11 +709,11 @@ void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
 /**
  * @brief Initialise the FreeRTOS-Plus-TCP network stack and initialise the IP-task.
  *
- * @param[in] ucIPAddress: Local IP address.
- * @param[in] ucNetMask: Local netmask.
- * @param[in] ucGatewayAddress: Local gateway address.
- * @param[in] ucDNSServerAddress: Local DNS server address.
- * @param[in] ucMACAddress: MAC address of the node.
+ * @param[in] ucIPAddress Local IP address.
+ * @param[in] ucNetMask Local netmask.
+ * @param[in] ucGatewayAddress Local gateway address.
+ * @param[in] ucDNSServerAddress Local DNS server address.
+ * @param[in] ucMACAddress MAC address of the node.
  *
  * @return pdPASS if the task was successfully created and added to a ready
  * list, otherwise an error code defined in the file projdefs.h
@@ -843,10 +847,10 @@ BaseType_t FreeRTOS_IPInit( const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES
  * @brief Get the current address configuration. Only non-NULL pointers will
  *        be filled in.
  *
- * @param[out] pulIPAddress: The current IP-address assigned.
- * @param[out] pulNetMask: The netmask used for current subnet.
- * @param[out] pulGatewayAddress: The gateway address.
- * @param[out] pulDNSServerAddress: The DNS server address.
+ * @param[out] pulIPAddress The current IP-address assigned.
+ * @param[out] pulNetMask The netmask used for current subnet.
+ * @param[out] pulGatewayAddress The gateway address.
+ * @param[out] pulDNSServerAddress The DNS server address.
  */
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulNetMask,
@@ -881,10 +885,10 @@ void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
  * @brief Set the current network address configuration. Only non-NULL pointers will
  *        be used.
  *
- * @param[in] pulIPAddress: The current IP-address assigned.
- * @param[in] pulNetMask: The netmask used for current subnet.
- * @param[in] pulGatewayAddress: The gateway address.
- * @param[in] pulDNSServerAddress: The DNS server address.
+ * @param[in] pulIPAddress The current IP-address assigned.
+ * @param[in] pulNetMask The netmask used for current subnet.
+ * @param[in] pulGatewayAddress The gateway address.
+ * @param[in] pulDNSServerAddress The DNS server address.
  */
 void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
                                        const uint32_t * pulNetMask,
@@ -918,7 +922,7 @@ void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
 /**
  * @brief Release the UDP payload buffer.
  *
- * @param[in] pvBuffer: Pointer to the UDP buffer that is to be released.
+ * @param[in] pvBuffer Pointer to the UDP buffer that is to be released.
  */
 void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 {
@@ -932,9 +936,9 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
  * @brief Release the memory that was previously obtained by calling FreeRTOS_recv()
  *        with the flag 'FREERTOS_ZERO_COPY'.
  *
- * @param[in] xSocket: The socket that was read from.
- * @param[in] pvBuffer: The buffer returned in the call to FreeRTOS_recv().
- * @param[in] xByteCount: The number of bytes that have been used.
+ * @param[in] xSocket The socket that was read from.
+ * @param[in] pvBuffer The buffer returned in the call to FreeRTOS_recv().
+ * @param[in] xByteCount The number of bytes that have been used.
  *
  * @return pdPASS if the buffer was released successfully, otherwise pdFAIL is returned.
  */
@@ -980,9 +984,9 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
  * @brief Send a ping request to the given IP address. After receiving a reply,
  *        IP-task will call a user-supplied function 'vApplicationPingReplyHook()'.
  *
- * @param[in] ulIPAddress: The IP address to which the ping is to be sent.
- * @param[in] uxNumberOfBytesToSend: Number of bytes in the ping request.
- * @param[in] uxBlockTimeTicks: Maximum number of ticks to wait.
+ * @param[in] ulIPAddress The IP address to which the ping is to be sent.
+ * @param[in] uxNumberOfBytesToSend Number of bytes in the ping request.
+ * @param[in] uxBlockTimeTicks Maximum number of ticks to wait.
  *
  * @return If successfully sent to IP task for processing then the sequence
  *         number of the ping packet or else, pdFAIL.
@@ -998,10 +1002,10 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
         static uint16_t usSequenceNumber = 0;
         uint8_t * pucChar;
         size_t uxTotalLength;
+        BaseType_t xEnoughSpace;
         IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
         uxTotalLength = uxNumberOfBytesToSend + sizeof( ICMPPacket_t );
-        BaseType_t xEnoughSpace;
 
         if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
         {
@@ -1074,7 +1078,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 /**
  * @brief Send an event to the IP task. It calls 'xSendEventStructToIPTask' internally.
  *
- * @param[in] eEvent: The event to be sent.
+ * @param[in] eEvent The event to be sent.
  *
  * @return pdPASS if the event was sent (or the desired effect was achieved). Else, pdFAIL.
  */
@@ -1093,8 +1097,8 @@ BaseType_t xSendEventToIPTask( eIPEvent_t eEvent )
 /**
  * @brief Send an event (in form of struct) to the IP task to be processed.
  *
- * @param[in] pxEvent: The event to be sent.
- * @param[in] uxTimeout: Timeout for waiting in case the queue is full. 0 for non-blocking calls.
+ * @param[in] pxEvent The event to be sent.
+ * @param[in] uxTimeout Timeout for waiting in case the queue is full. 0 for non-blocking calls.
  *
  * @return pdPASS if the event was sent (or the desired effect was achieved). Else, pdFAIL.
  */
@@ -1166,7 +1170,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 /**
  * @brief Decide whether this packet should be processed or not based on the IP address in the packet.
  *
- * @param[in] pucEthernetBuffer: The ethernet packet under consideration.
+ * @param[in] pucEthernetBuffer The ethernet packet under consideration.
  *
  * @return Enum saying whether to release or to process the packet.
  */
@@ -1232,7 +1236,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 /**
  * @brief Process the Ethernet packet.
  *
- * @param[in,out] pxNetworkBuffer: the network buffer containing the ethernet packet. If the
+ * @param[in,out] pxNetworkBuffer the network buffer containing the ethernet packet. If the
  *                                 buffer is large enough, it may be reused to send a reply.
  */
 static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
@@ -1366,7 +1370,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 /**
  * @brief Is the IP address an IPv4 multicast address.
  *
- * @param[in] ulIPAddress: The IP address being checked.
+ * @param[in] ulIPAddress The IP address being checked.
  *
  * @return pdTRUE if the IP address is a multicast address or else, pdFALSE.
  */
@@ -1391,9 +1395,9 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 /**
  * @brief Check whether this IP packet is to be allowed or to be dropped.
  *
- * @param[in] pxIPPacket: The IP packet under consideration.
- * @param[in] pxNetworkBuffer: The whole network buffer.
- * @param[in] uxHeaderLength: The length of the header.
+ * @param[in] pxIPPacket The IP packet under consideration.
+ * @param[in] pxNetworkBuffer The whole network buffer.
+ * @param[in] uxHeaderLength The length of the header.
  *
  * @return Whether the packet should be processed or dropped.
  */
@@ -1442,6 +1446,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
             else if( ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) &&
                      /* Is it the global broadcast address 255.255.255.255 ? */
                      ( ulDestinationIPAddress != ipBROADCAST_IP_ADDRESS ) &&
+                     /* Is it a loopback address ? */
+                     ( ( ulDestinationIPAddress & ipLOOPBACK_NETMASK ) != ( ipLOOPBACK_ADDRESS & ipLOOPBACK_NETMASK ) ) &&
                      /* Is it a specific broadcast address 192.168.1.255 ? */
                      ( ulDestinationIPAddress != xNetworkAddressing.ulBroadcastAddress ) &&
                      #if ( ipconfigUSE_LLMNR == 1 )
@@ -1589,8 +1595,8 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
 /**
  * @brief Process an IP-packet.
  *
- * @param[in] pxIPPacket: The IP packet to be processed.
- * @param[in] pxNetworkBuffer: The networkbuffer descriptor having the IP packet.
+ * @param[in] pxIPPacket The IP packet to be processed.
+ * @param[in] pxNetworkBuffer The networkbuffer descriptor having the IP packet.
  *
  * @return An enum to show whether the packet should be released/kept/processed etc.
  */
@@ -1817,8 +1823,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
  * @brief Although the driver will take care of checksum calculations, the IP-task
  *        will still check if the length fields are OK.
  *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
+ * @param[in] pucEthernetBuffer The Ethernet packet received.
+ * @param[in] uxBufferLength The total number of bytes received.
  *
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
@@ -1865,7 +1871,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 break;
             }
 
-            ucVersionHeaderLength = ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2;
+            ucVersionHeaderLength = ( uint16_t ) ( ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2U );
             uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
 
             /* Check if the complete IP-header is transferred. */
@@ -1949,8 +1955,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 /**
  * @brief Send the Ethernet frame after checking for some conditions.
  *
- * @param[in,out] pxNetworkBuffer: The network buffer which is to be sent.
- * @param[in] xReleaseAfterSend: Whether this network buffer is to be released or not.
+ * @param[in,out] pxNetworkBuffer The network buffer which is to be sent.
+ * @param[in] xReleaseAfterSend Whether this network buffer is to be released or not.
  */
 void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
@@ -2042,7 +2048,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /**
  * @brief Sets the IP address of the NIC.
  *
- * @param[in] ulIPAddress: IP address of the NIC to be set.
+ * @param[in] ulIPAddress IP address of the NIC to be set.
  */
 void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
 {
@@ -2087,7 +2093,7 @@ uint32_t FreeRTOS_GetNetmask( void )
 /**
  * @brief Update the MAC address.
  *
- * @param[in] ucMACAddress: the MAC address to be set.
+ * @param[in] ucMACAddress the MAC address to be set.
  */
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
 {
@@ -2110,7 +2116,7 @@ const uint8_t * FreeRTOS_GetMACAddress( void )
 /**
  * @brief Set the netmask for the subnet.
  *
- * @param[in] ulNetmask: The 32 bit netmask of the subnet.
+ * @param[in] ulNetmask The 32 bit netmask of the subnet.
  */
 void FreeRTOS_SetNetmask( uint32_t ulNetmask )
 {
@@ -2121,7 +2127,7 @@ void FreeRTOS_SetNetmask( uint32_t ulNetmask )
 /**
  * @brief Set the gateway address.
  *
- * @param[in] ulGatewayAddress: The gateway address.
+ * @param[in] ulGatewayAddress The gateway address.
  */
 void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
 {

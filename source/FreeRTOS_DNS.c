@@ -154,7 +154,7 @@
 
 /**
  * @brief Get the IP-address corresponding to the given hostname.
- * @param[in] pcHostName: The hostname whose IP address is being queried.
+ * @param[in] pcHostName The hostname whose IP address is being queried.
  * @return The IP-address corresponding to the hostname. 0 is returned in
  *         case of failure.
  */
@@ -166,10 +166,10 @@
 
 /**
  * @brief Get the IP-address corresponding to the given hostname.
- * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @param[in] pCallback: The callback function which will be called upon DNS response.
- * @param[in] pvSearchID: Search ID for the callback function.
- * @param[in] uxTimeout: Timeout for the callback function.
+ * @param[in] pcHostName The hostname whose IP address is being queried.
+ * @param[in] pCallback The callback function which will be called upon DNS response.
+ * @param[in] pvSearchID Search ID for the callback function.
+ * @param[in] uxTimeout Timeout for the callback function.
  * @return The IP-address corresponding to the hostname. 0 is returned in case of
  *         failure.
  */
@@ -187,10 +187,10 @@
 /**
  * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
  *
- * @param[in] pcHostName: The hostname whose IP address is being queried.
- * @param[in] pCallback: The callback function which will be called upon DNS response.
- * @param[in] pvSearchID: Search ID for the callback function.
- * @param[in] uxTimeout: Timeout for the callback function.
+ * @param[in] pcHostName The hostname whose IP address is being queried.
+ * @param[in] pCallback The callback function which will be called upon DNS response.
+ * @param[in] pvSearchID Search ID for the callback function.
+ * @param[in] uxTimeout Timeout for the callback function.
  * @return The IP-address corresponding to the hostname.
  */
         static uint32_t prvPrepareLookup( const char * pcHostName,
@@ -201,7 +201,7 @@
 
 /**
  * @brief Check if hostname is already known. If not, call prvGetHostByName() to send a DNS request.
- * @param[in] pcHostName: The hostname whose IP address is being queried.
+ * @param[in] pcHostName The hostname whose IP address is being queried.
  * @return The IP-address corresponding to the hostname.
  */
         static uint32_t prvPrepareLookup( const char * pcHostName )
@@ -395,9 +395,7 @@
         /* Obtain the DNS server address. */
         FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, &ulIPAddress );
         #if ( ipconfigUSE_LLMNR == 1 )
-            BaseType_t bHasDot = llmnr_has_dot( pcHostName );
-
-            if( bHasDot == pdFALSE )
+            if( llmnr_has_dot( pcHostName ) == pdFALSE )
             {
                 /* Use LLMNR addressing. */
                 pxAddress->sin_addr = ipLLMNR_IP_ADDR; /* Is in network byte order. */
@@ -461,7 +459,7 @@
 
 /*!
  * @brief prepare the buffer before sending
- * @param [in] pcHostName
+ * @param [in] pcHostName hostname to be looked up
  * @param [in] uxIdentifier  matches sent and received packets
  * @param [in] xDNSSocket a valid socket
  * @param [in] pxAddress address structure
@@ -579,7 +577,7 @@
                                                   TickType_t uxIdentifier,
                                                   Socket_t xDNSSocket )
     {
-        uint32_t ulIPAddress;
+        uint32_t ulIPAddress = 0;
         BaseType_t xAttempt;
 
         for( xAttempt = 0; xAttempt < ipconfigDNS_REQUEST_ATTEMPTS; xAttempt++ )
@@ -757,7 +755,7 @@
 /**
  * @brief Perform some preliminary checks and then parse the DNS packet.
  *
- * @param[in] pxNetworkBuffer: The network buffer to be parsed.
+ * @param[in] pxNetworkBuffer The network buffer to be parsed.
  *
  * @return pdFAIL Always to indicate that the packet was not consumed and must
  *         be released by the caller.
@@ -795,7 +793,7 @@
 /**
  * @brief Handle an NBNS packet.
  *
- * @param[in] pxNetworkBuffer: The network buffer holding the NBNS packet.
+ * @param[in] pxNetworkBuffer The network buffer holding the NBNS packet.
  *
  * @return pdFAIL to show that the packet was not consumed.
  */

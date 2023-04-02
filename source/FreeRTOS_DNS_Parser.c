@@ -52,10 +52,10 @@
 /**
  * @brief Read the Name field out of a DNS response packet.
  *
- * @param[in] pucByte: Pointer to the DNS response.
- * @param[in] uxRemainingBytes: Length of the DNS response.
- * @param[out] pcName: The pointer in which the name in the DNS response will be returned.
- * @param[in] uxDestLen: Size of the pcName array.
+ * @param[in] pucByte Pointer to the DNS response.
+ * @param[in] uxRemainingBytes Length of the DNS response.
+ * @param[out] pcName The pointer in which the name in the DNS response will be returned.
+ * @param[in] uxDestLen Size of the pcName array.
  *
  * @return If a fully formed name was found, then return the number of bytes processed in pucByte.
  */
@@ -167,8 +167,8 @@
 /**
  * @brief Simple routine that jumps over the NAME field of a resource record.
  *
- * @param[in] pucByte: The pointer to the resource record.
- * @param[in] uxLength: Length of the resource record.
+ * @param[in] pucByte The pointer to the resource record.
+ * @param[in] uxLength Length of the resource record.
  *
  * @return It returns the number of bytes read, or zero when an error has occurred.
  */
@@ -239,10 +239,10 @@
 /**
  * @brief Process a response packet from a DNS server, or an LLMNR reply.
  *
- * @param[in] pucUDPPayloadBuffer: The DNS response received as a UDP
+ * @param[in] pucUDPPayloadBuffer The DNS response received as a UDP
  *                                 payload.
- * @param[in] uxBufferLength: Length of the UDP payload buffer.
- * @param[in] xExpected: indicates whether the identifier in the reply
+ * @param[in] uxBufferLength Length of the UDP payload buffer.
+ * @param[in] xExpected indicates whether the identifier in the reply
  *                       was expected, and thus if the DNS cache may be
  *                       updated with the reply.
  *
@@ -730,8 +730,8 @@
 /**
  * @brief Send a DNS message to be used in NBNS or LLMNR
  *
- * @param[in] pxNetworkBuffer: The network buffer descriptor with the DNS message.
- * @param[in] lNetLength: The length of the DNS message.
+ * @param[in] pxNetworkBuffer The network buffer descriptor with the DNS message.
+ * @param[in] lNetLength The length of the DNS message.
  */
         void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                      BaseType_t lNetLength )
@@ -794,9 +794,9 @@
 /**
  * @brief Respond to an NBNS query or an NBNS reply.
  *
- * @param[in] pucPayload: the UDP payload of the NBNS message.
- * @param[in] uxBufferLength: Length of the Buffer.
- * @param[in] ulIPAddress: IP address of the sender.
+ * @param[in] pucPayload the UDP payload of the NBNS message.
+ * @param[in] uxBufferLength Length of the Buffer.
+ * @param[in] ulIPAddress IP address of the sender.
  */
         void DNS_TreatNBNS( uint8_t * pucPayload,
                             size_t uxBufferLength,

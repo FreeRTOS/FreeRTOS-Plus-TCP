@@ -94,7 +94,7 @@
 /**
  * @brief Check whether the socket is active or not.
  *
- * @param[in] ucStatus: The status of the socket.
+ * @param[in] eStatus The status of the socket.
  *
  * @return pdTRUE if the socket must be checked. Non-active sockets
  *         are waiting for user action, either connect() or close().
@@ -138,7 +138,7 @@
  *        This function checks if the socket is 'hanging', i.e. staying
  *        too long in the same state.
  *
- * @param[in] The socket to be checked.
+ * @param[in] pxSocket the socket to be checked.
  *
  * @return pdFALSE if no checks are needed, pdTRUE if checks were done, or negative
  *         in case the socket has reached a critical time-out. The socket will go to
@@ -230,8 +230,8 @@
  *        called, it has been checked that both reception and transmission
  *        are complete.
  *
- * @param[in] pxSocket: Socket owning the the connection.
- * @param[in] pxNetworkBuffer: The network buffer carrying the TCP packet.
+ * @param[in] pxSocket Socket owning the the connection.
+ * @param[in] pxNetworkBuffer The network buffer carrying the TCP packet.
  *
  * @return Length of the packet to be sent.
  */
@@ -340,11 +340,11 @@
  *        from the states: eSYN_RECEIVED and eCONNECT_SYN. If the flags
  *        received are correct, the socket will move to eESTABLISHED.
  *
- * @param[in] pxSocket: The socket handling the connection.
- * @param[in] pxNetworkBuffer: The pointer to the network buffer carrying
+ * @param[in] pxSocket The socket handling the connection.
+ * @param[in] pxNetworkBuffer The pointer to the network buffer carrying
  *                             the packet.
- * @param[in] ulReceiveLength: Length in bytes of the data received.
- * @param[in] uxOptionsLength: Length of the TCP options in bytes.
+ * @param[in] ulReceiveLength Length in bytes of the data received.
+ * @param[in] uxOptionsLength Length of the TCP options in bytes.
  *
  * @return Length of the data to be sent.
  */
@@ -489,10 +489,10 @@
  *        the code will check if it may be accepted, i.e. if all expected data has been
  *        completely received.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in,out] ppxNetworkBuffer: Pointer to pointer to the network buffer.
- * @param[in] ulReceiveLength: The length of the received packet.
- * @param[in] uxOptionsLength: Length of TCP options.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in,out] ppxNetworkBuffer Pointer to pointer to the network buffer.
+ * @param[in] ulReceiveLength The length of the received packet.
+ * @param[in] uxOptionsLength Length of TCP options.
  *
  * @return The send length of the packet to be sent.
  */
@@ -682,8 +682,8 @@
  * @brief Check incoming packets for valid data and handle the state of the
  *        TCP connection and respond according to the situation.
  *
- * @param[in] pxSocket: The socket whose connection state is being handled.
- * @param[in] ppxNetworkBuffer: The network buffer descriptor holding the
+ * @param[in] pxSocket The socket whose connection state is being handled.
+ * @param[in] ppxNetworkBuffer The network buffer descriptor holding the
  *            packet received from the peer.
  *
  * @return If the data is correct and some packet was sent to the peer, then
@@ -901,8 +901,8 @@
 /**
  * @brief Handle 'listen' event on the given socket.
  *
- * @param[in] pxSocket: The socket on which the listen occurred.
- * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
+ * @param[in] pxSocket The socket on which the listen occurred.
+ * @param[in] pxNetworkBuffer The network buffer carrying the packet.
  *
  * @return If a new socket/duplicate socket is created, then the pointer to
  *         that socket is returned or else, a NULL pointer is returned.
@@ -1030,8 +1030,8 @@
  *        the new socket to the same port as the listening socket.
  *        Also, let the new socket inherit all properties from the listening socket.
  *
- * @param[in] pxNewSocket: Pointer to the new socket.
- * @param[in] pxSocket: Pointer to the socket being duplicated.
+ * @param[in] pxNewSocket Pointer to the new socket.
+ * @param[in] pxSocket Pointer to the socket being duplicated.
  *
  * @return If all steps all successful, then pdTRUE is returned. Else, pdFALSE.
  */
