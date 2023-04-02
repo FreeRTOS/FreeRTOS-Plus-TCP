@@ -494,8 +494,6 @@
         }
     #endif /* if ( ipconfigDNS_USE_CALLBACKS == 0 ) */
 
-    #if ( ipconfigINCLUDE_FULL_INET_ADDR == 1 )
-
 /**
  * @brief See if pcHostName contains a valid IPv4 or IPv6 IP-address.
  * @param[in] pcHostName The name to be looked up
@@ -504,13 +502,13 @@
  *                            be stored.
  * @return Either 0 or an IP=address.
  */
-        static uint32_t prvPrepare_ReadIPAddress( const char * pcHostName,
-                                                  BaseType_t xFamily,
-                                                  struct freertos_addrinfo ** ppxAddressInfo )
-        {
-            uint32_t ulIPAddress = 0U;
+    static uint32_t prvPrepare_ReadIPAddress( const char * pcHostName,
+                                              BaseType_t xFamily,
+                                              struct freertos_addrinfo ** ppxAddressInfo )
+    {
+        uint32_t ulIPAddress = 0U;
 
-            ( void ) xFamily;
+        ( void ) xFamily;
 
             /* Check if the hostname given is actually an IP-address. */
             switch( xFamily )
@@ -558,9 +556,8 @@
                     break;
             }
 
-            return ulIPAddress;
-        }
-    #endif /* ( ipconfigINCLUDE_FULL_INET_ADDR == 1 ) */
+        return ulIPAddress;
+    }
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
@@ -635,11 +632,7 @@
         {
             /* If the supplied hostname is an IP address, put it in ppxAddressInfo
              * and return. */
-            #if ( ipconfigINCLUDE_FULL_INET_ADDR == 1 )
-                {
-                    ulIPAddress = prvPrepare_ReadIPAddress( pcHostName, xFamily, ppxAddressInfo );
-                }
-            #endif /* ipconfigINCLUDE_FULL_INET_ADDR == 1 */
+            ulIPAddress = prvPrepare_ReadIPAddress( pcHostName, xFamily, ppxAddressInfo );
 
             /* If a DNS cache is used then check the cache before issuing another DNS
              * request. */

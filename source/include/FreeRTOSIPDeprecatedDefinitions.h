@@ -69,6 +69,10 @@
     #error ipconfigHAS_INLINE_FUNCTIONS is not used
 #endif
 
+#ifdef ipconfigINCLUDE_FULL_INET_ADDR
+    #error ipconfigINCLUDE_FULL_INET_ADDR is not used
+#endif
+
 #ifdef ipconfigMAX_SEND_BLOCK_TIME_TICKS
     #error Now called: ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS
 #endif
