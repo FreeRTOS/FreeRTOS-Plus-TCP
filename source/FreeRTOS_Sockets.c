@@ -879,11 +879,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     EventBits_t FreeRTOS_FD_ISSET( const ConstSocket_t xSocket,
                                    const ConstSocketSet_t xSocketSet )
     {
-
-
-
-        
-         EventBits_t xReturn;
+        EventBits_t xReturn;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
 
         configASSERT( pxSocket != NULL );
