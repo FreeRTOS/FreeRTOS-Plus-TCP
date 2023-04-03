@@ -15,7 +15,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: Install Git
+      - name: Install Utils
         run: |
           apt-get update && apt-get --assume-yes install software-properties-common curl jq sed
           add-apt-repository ppa:git-core/ppa
