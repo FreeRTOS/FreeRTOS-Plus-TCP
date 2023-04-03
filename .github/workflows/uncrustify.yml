@@ -35,7 +35,7 @@ jobs:
            repository: ${{ steps.upstreamrepo.outputs.RemoteRepo }}
            ref: ${{ steps.upstreambranch.outputs.branchname }}
       - name: Install Uncrustify and Git
-        run: apt-get update && apt-get install uncrustify git-all
+        run: apt-get update && apt-get --assume-yes install uncrustify git
       - name: Run Uncrustify
         run: |
           uncrustify --version
