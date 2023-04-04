@@ -98,6 +98,12 @@
                                       char * pcDestination,
                                       socklen_t uxSize );
 
+/**
+ * @brief Convert an IPv6 address in hexadecimal notation to a binary format of 16 bytes.
+ */
+    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
+                                    void * pvDestination );
+
 /** @brief Called by pxTCPSocketLookup(), this function will check if a socket
  *         is connected to a remote IP-address. It will be called from a loop
  *         iterating through all sockets. */
