@@ -8,40 +8,47 @@ jobs:
   Uncrustify:
     name: Run_Uncrustify
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/bot run uncrustify' }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
+    container: ubuntu:18.04
     steps:
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
+      - name: Install Utils
+        run: |
+          apt-get update && apt-get --assume-yes install software-properties-common curl jq sed
+          add-apt-repository ppa:git-core/ppa
+          apt-get update && apt-get --assume-yes install git
+          git --version
       - name: get pullrequest url
         run: |
           echo ${{ github.event.issue.pull_request.url }}
       - name: get upstream repo
         id: upstreamrepo
         run: |
-          echo "::set-output name=RemoteRepo::$(curl -H "Accept: application/vnd.github.sailor-v-preview+json" --url ${{ github.event.issue.pull_request.url }} | jq '.head.repo.full_name' | sed 's/\"//g')"
+          echo "RemoteRepo=$(curl -H "Accept: application/vnd.github.sailor-v-preview+json" --url ${{ github.event.issue.pull_request.url }} | jq '.head.repo.full_name' | sed 's/\"//g')" >> $GITHUB_OUTPUT
       - name: get upstream branch
         id: upstreambranch
         run: |
-          echo "::set-output name=branchname::$(curl -H "Accept: application/vnd.github.sailor-v-preview+json" --url ${{ github.event.issue.pull_request.url }} | jq '.head.ref' | sed 's/\"//g')"
+          echo "branchname=$(curl -H "Accept: application/vnd.github.sailor-v-preview+json" --url ${{ github.event.issue.pull_request.url }} | jq '.head.ref' | sed 's/\"//g')" >> $GITHUB_OUTPUT
       - name: echo upstream repo:branch
         run: |
           echo ${{ steps.upstreamrepo.outputs.RemoteRepo }}:${{ steps.upstreambranch.outputs.branchname }}
       - name: Checkout upstream repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
            repository: ${{ steps.upstreamrepo.outputs.RemoteRepo }}
            ref: ${{ steps.upstreambranch.outputs.branchname }}
       - name: Install Uncrustify
-        run: sudo apt-get install uncrustify
+        run: apt-get update && apt-get --assume-yes install uncrustify
       - name: Run Uncrustify
         run: |
           uncrustify --version
           find .  -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
-          find .  -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
       - name: Push changes to upstream repository
         run: |
+          git config --global --add safe.directory '*'
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
           git add -A
