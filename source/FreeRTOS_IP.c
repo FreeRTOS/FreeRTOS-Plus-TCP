@@ -1712,11 +1712,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
             pxNetworkBuffer->xDataLength = uxPayloadSize_2 + uxMinSize;
         }
 
-
-
-
-
-         pxNetworkBuffer->usPort = pxUDPHeader->usSourcePort;
+        pxNetworkBuffer->usPort = pxUDPHeader->usSourcePort;
         pxNetworkBuffer->xIPAddress.ulIP_IPv4 = pxUDPPacket->xIPHeader.ulSourceIPAddress;
 
         /* ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM:
