@@ -274,16 +274,6 @@ BaseType_t xNetworkBuffersInitialise( void )
                 }
             #endif /* configQUEUE_REGISTRY_SIZE */
 
-            /* If the trace recorder code is included name the semaphore for viewing
-             * in FreeRTOS+Trace.  */
-            #if ( ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 )
-                {
-                    extern QueueHandle_t xNetworkEventQueue;
-                    vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
-                    vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
-                }
-            #endif /*  ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 */
-
             vListInitialise( &xFreeBuffersList );
 
             /* Initialise all the network buffers.  No storage is allocated to

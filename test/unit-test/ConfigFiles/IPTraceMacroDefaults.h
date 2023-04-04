@@ -160,10 +160,6 @@
     #define iptraceWAITING_FOR_TX_DMA_DESCRIPTOR()
 #endif
 
-#ifndef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
-    #define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS    0
-#endif
-
 #ifndef iptraceFAILED_TO_NOTIFY_SELECT_GROUP
     #define iptraceFAILED_TO_NOTIFY_SELECT_GROUP( xSocket )
 #endif
