@@ -38,23 +38,23 @@
 #endif
 
 #ifdef dnsMAX_REQUEST_ATTEMPTS
-    #error Now called: ipconfigDNS_REQUEST_ATTEMPTS
+    #error dnsMAX_REQUEST_ATTEMPTS is now called ipconfigDNS_REQUEST_ATTEMPTS
 #endif
 
 #ifdef FreeRTOS_lprintf
-    #error Now called: FreeRTOS_debug_printf
+    #error FreeRTOS_lprintf is now called FreeRTOS_debug_printf/FreeRTOS_printf
 #endif
 
 #ifdef HAS_TX_CRC_OFFLOADING
-    #error Now called: ipconfigHAS_TX_CRC_OFFLOADING
+    #error HAS_TX_CRC_OFFLOADING is deprecated
 #endif
 
 #ifdef HAS_RX_CRC_OFFLOADING
-    #error Now called: ipconfigHAS_RX_CRC_OFFLOADING, Not used
+    #error HAS_RX_CRC_OFFLOADING is deprecated
 #endif
 
 #ifdef ipconfigBUFFER_ALLOC_FIXED_SIZE
-    #error ipconfigBUFFER_ALLOC_FIXED_SIZE was dropped and replaced by a const value, declared in BufferAllocation[12].c
+    #error ipconfigBUFFER_ALLOC_FIXED_SIZE is deprecated
 #endif
 
 #ifdef ipconfigDHCP_USES_USER_HOOK
@@ -62,27 +62,31 @@
 #endif
 
 #ifdef ipconfigDRIVER_INCLUDED_RX_IP_FILTERING
-    #error Now called: ipconfigETHERNET_DRIVER_FILTERS_PACKETS
+    #error ipconfigDRIVER_INCLUDED_RX_IP_FILTERING is now called ipconfigETHERNET_DRIVER_FILTERS_PACKETS
 #endif
 
 #ifdef ipconfigHAS_INLINE_FUNCTIONS
-    #error ipconfigHAS_INLINE_FUNCTIONS is not used
+    #error ipconfigHAS_INLINE_FUNCTIONS is deprecated
+#endif
+
+#ifdef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
+    #error ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS is deprecated
 #endif
 
 #ifdef ipconfigINCLUDE_FULL_INET_ADDR
-    #error ipconfigINCLUDE_FULL_INET_ADDR is not used
+    #error ipconfigINCLUDE_FULL_INET_ADDR is deprecated
 #endif
 
 #ifdef ipconfigMAX_SEND_BLOCK_TIME_TICKS
-    #error Now called: ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS
+    #error ipconfigMAX_SEND_BLOCK_TIME_TICKS is now called ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS
 #endif
 
 #ifdef ipconfigNIC_SEND_PASSES_DMA
-    #error Now called: ipconfigZERO_COPY_TX_DRIVER
+    #error ipconfigNIC_SEND_PASSES_DMA is now called ipconfigZERO_COPY_TX_DRIVER
 #endif
 
 #ifdef ipconfigNUM_NETWORK_BUFFERS
-    #error Now called: ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
+    #error ipconfigNUM_NETWORK_BUFFERS is now now called ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
 #endif
 
 #ifdef ipconfigRAND32
@@ -90,47 +94,47 @@
 #endif
 
 #ifdef ipconfigTCP_HANG_PROT
-    #error Now called: ipconfigTCP_HANG_PROTECTION
+    #error ipconfigTCP_HANG_PROT is now called ipconfigTCP_HANG_PROTECTION
 #endif
 
 #ifdef ipconfigTCP_HANG_PROT_TIME
-    #error Now called: ipconfigTCP_HANG_PROTECTION_TIME
+    #error ipconfigTCP_HANG_PROT_TIME is now called ipconfigTCP_HANG_PROTECTION_TIME
 #endif
 
 #ifdef ipconfigTCP_RX_BUF_LEN
-    #error ipconfigTCP_RX_BUF_LEN is Now called ipconfigTCP_RX_BUFFER_LENGTH
+    #error ipconfigTCP_RX_BUF_LEN is now called ipconfigTCP_RX_BUFFER_LENGTH
 #endif
 
 #ifdef ipconfigTCP_TX_BUF_LEN
-    #error ipconfigTCP_TX_BUF_LEN is Now called ipconfigTCP_TX_BUFFER_LENGTH
+    #error ipconfigTCP_TX_BUF_LEN is now called ipconfigTCP_TX_BUFFER_LENGTH
 #endif
 
 #ifdef ipconfigUDP_TASK_PRIORITY
-    #error Now called: ipconfigIP_TASK_PRIORITY
+    #error ipconfigUDP_TASK_PRIORITY is now called ipconfigIP_TASK_PRIORITY
 #endif
 
 #ifdef ipconfigUDP_TASK_STACK_SIZE_WORDS
-    #error Now called: ipconfigIP_TASK_STACK_SIZE_WORDS
+    #error ipconfigUDP_TASK_STACK_SIZE_WORDS is now called ipconfigIP_TASK_STACK_SIZE_WORDS
 #endif
 
 #ifdef ipconfigUSE_RECEIVE_CONNECT_CALLBACKS
-    #error Now called: ipconfigUSE_CALLBACKS
+    #error ipconfigUSE_RECEIVE_CONNECT_CALLBACKS is now called ipconfigUSE_CALLBACKS
 #endif
 
 #ifdef ipconfigUSE_TCP_TIMESTAMPS
-    #error ipconfigUSE_TCP_TIMESTAMPS is not used
+    #error ipconfigUSE_TCP_TIMESTAMPS is deprecated
 #endif
 
 #ifdef ipFILLER_SIZE
-    #error Now called: ipconfigPACKET_FILLER_SIZE
+    #error ipFILLER_SIZE is now called ipconfigPACKET_FILLER_SIZE
 #endif
 
 #ifdef tcpconfigIP_TIME_TO_LIVE
-    #error Now called: ipconfigTCP_TIME_TO_LIVE
+    #error tcpconfigIP_TIME_TO_LIVE is now called ipconfigTCP_TIME_TO_LIVE
 #endif
 
 #ifdef updconfigIP_TIME_TO_LIVE
-    #error Now called: ipconfigUDP_TIME_TO_LIVE
+    #error updconfigIP_TIME_TO_LIVE is now called ipconfigUDP_TIME_TO_LIVE
 #endif
 
 #endif /* FREERTOS_IP_DEPRECATED_DEFINITIONS_H */

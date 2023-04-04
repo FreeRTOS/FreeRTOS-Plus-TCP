@@ -699,7 +699,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigREPLY_TO_INCOMING_PINGS != 0 ) || ( ipconfigSUPPORT_OUTGOING_PINGS != 0 )
+#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS ) )
 
     /*-----------------------------------------------------------------------*/
 
@@ -714,11 +714,11 @@
 
     /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigREPLY_TO_INCOMING_PINGS != 0 ) || ( ipconfigSUPPORT_OUTGOING_PINGS != 0 ) */
+#endif /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigREPLY_TO_INCOMING_PINGS != 0 )
+#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) )
 
     /*-----------------------------------------------------------------------*/
 
@@ -736,7 +736,7 @@
 
     /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigREPLY_TO_INCOMING_PINGS != 0 ) */
+#endif /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -813,7 +813,7 @@
 /*---------------------------------------------------------------------------*/
 
 /* See tools/tcp_mem_stat.c */
-#if ( ipconfigUSE_TCP_MEM_STATS == 0 )
+#if ( ipconfigIS_DISABLED( ipconfigUSE_TCP_MEM_STATS ) )
 
     /*-----------------------------------------------------------------------*/
 
@@ -853,7 +853,7 @@
 
     /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigUSE_TCP_MEM_STATS == 0 ) */
+#endif /* if ( ipconfigIS_DISABLED( ipconfigUSE_TCP_MEM_STATS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -870,7 +870,7 @@
 /*---------------------------------------------------------------------------*/
 
 /* See tools/tcp_dump_packets.c */
-#if ( ipconfigUSE_DUMP_PACKETS == 0 )
+#if ( ipconfigIS_DISABLED( ipconfigUSE_DUMP_PACKETS ) )
 
     /*-----------------------------------------------------------------------*/
 
@@ -892,7 +892,7 @@
 
     /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigUSE_DUMP_PACKETS == 0 ) */
+#endif /* if ( ipconfigIS_DISABLED( ipconfigUSE_DUMP_PACKETS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
