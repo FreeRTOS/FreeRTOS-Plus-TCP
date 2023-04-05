@@ -1038,6 +1038,10 @@
             NetworkBufferDescriptor_t * pxNetworkBuffer;
             size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
             BaseType_t xDNSHookReturn;
+            uint16_t usLength;
+            DNSMessage_t * pxMessage;
+            NBNSAnswer_t * pxAnswer;
+            NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
             /* Introduce a do {} while (0) loop to allow the use of breaks. */
             do
@@ -1046,6 +1050,19 @@
 
                 /* Check for minimum buffer size: 92 bytes. */
                 if( uxBufferLength < uxBytesNeeded )
+                {
+                    break;
+                }
+
+                /* Is a valid payload/network buffer provided? */
+                if( pucUDPPayloadBuffer == NULL )
+                {
+                    break;
+                }
+
+                pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
+
+                if( pxNetworkBuffer == NULL )
                 {
                     break;
                 }
@@ -1131,19 +1148,14 @@
                     break;
                 }
 
-                uint16_t usLength;
-                DNSMessage_t * pxMessage;
-                NBNSAnswer_t * pxAnswer;
-                NetworkBufferDescriptor_t * pxNewBuffer = NULL;
-
-                /* Someone is looking for a device with ucNBNSName,
-                 * prepare a positive reply. */
-                pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
-
                 /* When pxUDPPayloadBuffer_to_NetworkBuffer fails, there
                  * is a real problem, like data corruption. */
-                configASSERT( pxNetworkBuffer != NULL );
-                configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
+                if( pxNetworkBuffer->pxEndPoint == NULL )
+                {
+                    /* Should have been asserted earlier in the call tree. */
+                    break;
+                }
+
                 ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
 
                 /* NBNS only handles IPv4 or "A" records. */
