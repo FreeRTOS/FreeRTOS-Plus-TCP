@@ -464,8 +464,6 @@
                         uxUDPOffset = ( size_t ) ( pucUDPPayloadBuffer - pxNetworkBuffer->pucEthernetBuffer );
                         configASSERT( ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv4 ) || ( uxUDPOffset == ipUDP_PAYLOAD_OFFSET_IPv6 ) );
 
-                        configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
-
                         if( pxNetworkBuffer->pxEndPoint == NULL )
                         {
                             break;
