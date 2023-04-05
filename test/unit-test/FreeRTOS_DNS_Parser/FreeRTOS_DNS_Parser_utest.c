@@ -118,8 +118,8 @@ void tearDown( void )
         TEST_ASSERT_EQUAL( pdTRUE, hook_called ); \
     } while( 0 )
 
-#define ASSERT_DNS_QUERY_HOOK_NOT_CALLED()            \
-    do {                                          \
+#define ASSERT_DNS_QUERY_HOOK_NOT_CALLED()         \
+    do {                                           \
         TEST_ASSERT_EQUAL( pdFALSE, hook_called ); \
     } while( 0 )
 
@@ -528,11 +528,12 @@ void test_DNS_TreatNBNS_success( void )
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( NULL );
+
 /*
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
-*/
+ *  usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
+ *  usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
+ *  usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
+ */
     DNS_TreatNBNS( pucPayload,
                    300,
                    1234 );
@@ -548,6 +549,7 @@ void test_DNS_TreatNBNS_success_nbns_mask( void )
     size_t uxBufferLength;
     uint32_t ulIPAddress;
     NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+
     pxNetworkBuffer.pucEthernetBuffer = pucPayload;
 
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
@@ -606,8 +608,8 @@ void test_DNS_TreatNBNS_success_nbns_query( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-//  FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
-//  pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+/*  FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL ); */
+/*  pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL ); */
 
     DNS_TreatNBNS( pucPayload,
                    300,
@@ -628,11 +630,12 @@ void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
 
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( NULL );
+
 /*
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-*/
+ *  usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
+ *  usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );
+ *  usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
+ */
 
     DNS_TreatNBNS( pucPayload,
                    uxBufferLength,
@@ -646,7 +649,7 @@ void test_DNS_TreatNBNS_success_nbns_query_network_buffer_null( void )
  */
 void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 {
-//	XXX
+/*	XXX */
     uint8_t pucPayload[ 300 ] = { 0 };
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
@@ -664,8 +667,8 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );      /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-	pxResizeNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-	FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
+    pxResizeNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 4 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 4 );
     vReturnEthernetFrame_Expect( &pxNetworkBuffer, pdFALSE ); /* goal */
@@ -700,8 +703,8 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );      /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
-	pxResizeNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-	FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
+    pxResizeNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 4 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 4 );
     vReturnEthernetFrame_Expect( &pxNetworkBuffer, pdFALSE ); /* goal */
@@ -1215,12 +1218,12 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNewBuffer );
-//  FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
-//  usGenerateChecksum_ExpectAnyArgsAndReturn( 1234 );
-//  usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 123 );
+/*  FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint ); */
+/*  usGenerateChecksum_ExpectAnyArgsAndReturn( 1234 ); */
+/*  usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 123 ); */
 
-//  vReturnEthernetFrame_Expect( &pxNewBuffer, pdFALSE );
-//  vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+/*  vReturnEthernetFrame_Expect( &pxNewBuffer, pdFALSE ); */
+/*  vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs(); */
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
                              uxBufferLength,
@@ -1232,12 +1235,12 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     ASSERT_DNS_QUERY_HOOK_NOT_CALLED();
 
 /*
-    uint8_t value = ( ( uint8_t * ) pxAnswer )[ offsetof( LLMNRAnswer_t, ulIPAddress ) ];
-    TEST_ASSERT_EQUAL( 11, value );
-    TEST_ASSERT_EQUAL( 12, value + 1 );
-    TEST_ASSERT_EQUAL( 13, value + 2 );
-    TEST_ASSERT_EQUAL( 14, value + 3 );
-*/
+ *  uint8_t value = ( ( uint8_t * ) pxAnswer )[ offsetof( LLMNRAnswer_t, ulIPAddress ) ];
+ *  TEST_ASSERT_EQUAL( 11, value );
+ *  TEST_ASSERT_EQUAL( 12, value + 1 );
+ *  TEST_ASSERT_EQUAL( 13, value + 2 );
+ *  TEST_ASSERT_EQUAL( 14, value + 3 );
+ */
 }
 
 /**
