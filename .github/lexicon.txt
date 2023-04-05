@@ -1759,6 +1759,7 @@ xemacpsif
 xemactaskhandle
 xenablestate
 xend
+xendpoint
 xentries
 xentryfound
 xerrnum
