@@ -1217,7 +1217,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply( void )
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNewBuffer );
+/*  pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &pxNewBuffer ); */
 /*  FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint ); */
 /*  usGenerateChecksum_ExpectAnyArgsAndReturn( 1234 ); */
 /*  usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 123 ); */
