@@ -96,8 +96,8 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
 extern void FreeRTOS_ClearND( void );
 
-/* Return pdTRUE if the IPv6 address is a multicast address. */
-BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress );
+/* Check whether this IPv6 address is an allowed multicast address or not. */
+BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress );
 
 /* Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
  * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
