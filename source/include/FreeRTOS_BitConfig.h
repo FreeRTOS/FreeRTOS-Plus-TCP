@@ -58,9 +58,6 @@
     BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
                                    uint8_t * pucData,
                                    size_t uxSize );
-    BaseType_t pucBitConfig_peek_last_index_uc( BitConfig_t * pxConfig,
-                                                uint8_t * pucData,
-                                                size_t uxSize );
 
     void vBitConfig_write_8( BitConfig_t * pxConfig,
                              uint8_t ucValue );
