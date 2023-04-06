@@ -1123,6 +1123,9 @@ void test_FreeRTOS_send_DisconnectionOccursDuringWait( void )
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
     xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+
+    /* Let `socketSOCKET_IS_BOUND()` return false, so that prvTCPSendCheck()
+     * returns en error, so that the loop is stopped. */
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( NULL );
 
     xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
