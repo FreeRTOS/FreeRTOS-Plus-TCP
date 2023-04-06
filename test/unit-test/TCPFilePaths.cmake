@@ -23,6 +23,7 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Sockets.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IPv4_Sockets.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IPv6_Sockets.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_RA.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Stream_Buffer.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_IP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_IP_IPV4.c"
