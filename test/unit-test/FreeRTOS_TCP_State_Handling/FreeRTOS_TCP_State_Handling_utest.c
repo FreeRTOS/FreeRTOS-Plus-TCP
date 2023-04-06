@@ -1540,14 +1540,17 @@ void test_prvTCPHandleState_State_Unknown( void )
 void test_prvHandleListen_Not_For_Me( void )
 {
     FreeRTOS_Socket_t * pxReturn = NULL;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0700a8c0;
 
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    xDefaultPartUDPPacketHeader.ulWords[ 20 / sizeof( uint32_t ) ] = 0x0700a8c0;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -1562,14 +1565,16 @@ void test_prvHandleListen_Reuse_Socket( void )
     FreeRTOS_Socket_t * pxReturn = NULL;
     NetworkEndPoint_t xEndPoint = { 0 };
 
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    xDefaultPartUDPPacketHeader.ulWords[ 20 / sizeof( uint32_t ) ] = 0x0800a8c0;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
 
@@ -1589,14 +1594,18 @@ void test_prvHandleListen_Reuse_Socket( void )
 void test_prvHandleListen_New_Socket_Exceed_Limit( void )
 {
     FreeRTOS_Socket_t * pxReturn = NULL;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    xDefaultPartUDPPacketHeader.ulWords[ 20 / sizeof( uint32_t ) ] = 0x0800a8c0;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
     pxSocket->u.xTCP.usChildCount = 10;
@@ -1616,14 +1625,18 @@ void test_prvHandleListen_New_Socket_Good( void )
 {
     FreeRTOS_Socket_t * pxReturn = NULL;
     FreeRTOS_Socket_t MockReturnSocket;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    xDefaultPartUDPPacketHeader.ulWords[ 20 / sizeof( uint32_t ) ] = 0x0800a8c0;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
     pxSocket->u.xTCP.usChildCount = 1;
@@ -1648,14 +1661,18 @@ void test_prvHandleListen_New_Socket_NULL_Socket( void )
 {
     FreeRTOS_Socket_t * pxReturn = NULL;
     FreeRTOS_Socket_t MockReturnSocket;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    xDefaultPartUDPPacketHeader.ulWords[ 20 / sizeof( uint32_t ) ] = 0x0800a8c0;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
     pxSocket->u.xTCP.usChildCount = 1;
@@ -1676,14 +1693,18 @@ void test_prvHandleListen_New_Socket_Invalid_Socket( void )
 {
     FreeRTOS_Socket_t * pxReturn = NULL;
     FreeRTOS_Socket_t MockReturnSocket;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    xDefaultPartUDPPacketHeader.ulWords[ 20 / sizeof( uint32_t ) ] = 0x0800a8c0;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
     pxSocket->u.xTCP.usChildCount = 1;
@@ -1704,14 +1725,18 @@ void test_prvHandleListen_New_Socket_Socket_Copy_Failure( void )
 {
     FreeRTOS_Socket_t * pxReturn = NULL;
     FreeRTOS_Socket_t MockReturnSocket;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    xDefaultPartUDPPacketHeader.ulWords[ 20 / sizeof( uint32_t ) ] = 0x0800a8c0;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
     pxSocket->u.xTCP.usChildCount = 1;
