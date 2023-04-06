@@ -881,6 +881,7 @@ pvargument
 pvbuffer
 pvdata
 pvdestination
+pvethernetbuffer
 pvoptionvalue
 pvparam
 pvparameters
@@ -1237,6 +1238,7 @@ ucflags
 ucgatewayaddress
 uchardwareaddresslength
 uchasuid
+ucheaderextlength
 uchoplimit
 uchops
 ucidentifier
