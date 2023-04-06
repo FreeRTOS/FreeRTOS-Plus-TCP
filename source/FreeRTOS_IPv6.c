@@ -45,6 +45,15 @@
 #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
 
+/** @brief Get the scope field in IPv6 multicast address. */
+#define IPv6MC_GET_SCOPE_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0x0FU )
+
+/** @brief Get the flags field in IPv6 multicast address. */
+#define IPv6MC_GET_FLAGS_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0xF0U )
+
+/** @brief Get the group ID field in IPv6 multicast address. */
+#define IPv6MC_GET_GROUP_ID( pxIPv6Address )       ( xGetIPv6MulticastGroupID( pxIPv6Address ) )
+
 /**
  * This variable is initialized by the system to contain the wildcard IPv6 address.
  */
@@ -56,23 +65,108 @@ const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
 const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
 /**
- * @brief Check whether this IPv6 address is a multicast address or not.
+ * This variable is initialized by the system to contain the unspecified IPv6 address.
+ */
+static const struct xIPv6_Address xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+
+#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+
+/*
+ * Check if the packet is a loopback packet.
+ */
+    static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
+
+/**
+ * @brief Get the group ID and stored into IPv6_Address_t.
+ *
+ * @param[in] pxIPv6Address: The multicast address to filter group ID.
+ *
+ * @return IPv6_Address_t with group ID only.
+ */
+static IPv6_Address_t xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address )
+{
+    IPv6_Address_t xReturnGroupID = { 0 };
+
+    configASSERT( pxIPv6Address != NULL );
+
+    ( void ) memcpy( &( xReturnGroupID.ucBytes[ 2 ] ), &( pxIPv6Address->ucBytes[ 2 ] ), 14 );
+
+    return xReturnGroupID;
+}
+
+
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+
+/**
+ * @brief Check if the packet is a loopback packet.
+ *
+ * @param[in] pxIPv6Header: The IP packet in pxNetworkBuffer.
+ *
+ * @return Returns pdTRUE if it's a legal loopback packet, pdFALSE if not .
+ */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+    static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
+    {
+        BaseType_t xReturn = pdFALSE;
+        const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPv6Header->xSourceAddress ) );
+
+        /* Allow loopback packets from this node itself only. */
+        if( ( pxEndPoint != NULL ) &&
+            ( memcmp( pxIPv6Header->xDestinationAddress.ucBytes, FreeRTOS_in6addr_loopback.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) &&
+            ( memcmp( pxIPv6Header->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        {
+            xReturn = pdTRUE;
+        }
+
+        return xReturn;
+    }
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
+
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Check whether this IPv6 address is an allowed multicast address or not.
  *
  * @param[in] pxIPAddress: The IP address to be checked.
  *
- * @return Returns pdTRUE if pxIPAddress is a multicast address, pdFALSE if not .
+ * @return Returns pdTRUE if pxIPAddress is an allowed multicast address, pdFALSE if not.
  */
-BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress )
+BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
 {
-    BaseType_t xReturn;
+    BaseType_t xReturn = pdFALSE;
+    IPv6_Address_t xGroupIDAddress;
 
     if( pxIPAddress->ucBytes[ 0 ] == 0xffU )
     {
-        xReturn = pdTRUE;
-    }
-    else
-    {
-        xReturn = pdFALSE;
+        xGroupIDAddress = IPv6MC_GET_GROUP_ID( pxIPAddress );
+
+        /* From RFC4291 - sec 2.7, packets from multicast address whose scope field is 0
+         * should be silently dropped. */
+        if( IPv6MC_GET_SCOPE_VALUE( pxIPAddress ) == 0U )
+        {
+            xReturn = pdFALSE;
+        }
+
+        /* From RFC4291 - sec 2.7.1, packets from predefined multicast address should never be used.
+         * - 0xFF00::
+         * - 0xFF01::
+         * - ..
+         * - 0xFF0F:: */
+        else if( ( IPv6MC_GET_FLAGS_VALUE( pxIPAddress ) == 0U ) &&
+                 ( memcmp( xGroupIDAddress.ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        {
+            xReturn = pdFALSE;
+        }
+        else
+        {
+            xReturn = pdTRUE;
+        }
     }
 
     return xReturn;
@@ -98,6 +192,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                  size_t uxPrefixLength )
 {
     BaseType_t xResult;
+    const IPv6_Address_t xAllNodesAddress = { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
     /* 0    2    4    6    8    10   12   14 */
     /* ff02:0000:0000:0000:0000:0001:ff66:4a81 */
@@ -109,8 +204,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
         xResult = memcmp( &( pxLeft->ucBytes[ 13 ] ), &( pxRight->ucBytes[ 13 ] ), 3 );
     }
     else
-    if( ( pxRight->ucBytes[ 0 ] == 0xffU ) &&
-        ( pxRight->ucBytes[ 1 ] == 0x02U ) )
+    if( memcmp( pxRight->ucBytes, xAllNodesAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 )
     {
         /* FF02::1 is all node address to reach out all nodes in the same link. */
         xResult = 0;
@@ -189,20 +283,38 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
              * to have incoming messages checked earlier, by the network card driver.
              * This method may decrease the usage of sparse network buffers. */
             const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
+            const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
+            BaseType_t xHasUnspecifiedAddress = pdFALSE;
+
+            /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
+             * either in source or destination address. */
+            if( ( memcmp( pxDestinationIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
+                ( memcmp( pxSourceIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+            {
+                xHasUnspecifiedAddress = pdTRUE;
+            }
 
             /* Is the packet for this IP address? */
-            if( ( pxNetworkBuffer->pxEndPoint != NULL ) ||
-                /* Is it the multicast address FF00::/8 ? */
-                ( xIsIPv6Multicast( pxDestinationIPAddress ) != pdFALSE ) ||
-                /* Or (during DHCP negotiation) we have no IP-address yet? */
-                ( FreeRTOS_IsNetworkUp() == 0 ) )
+            if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+                ( pxNetworkBuffer->pxEndPoint != NULL ) &&
+                ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
             {
-                /* Packet is not for this node, or the network is still not up,
-                 * release it */
+                eReturn = eProcessBuffer;
+            }
+            /* Is it the legal multicast address? */
+            else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+                     ( ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) != pdFALSE ) ||
+                       /* Is it loopback address sent from this node? */
+                       ( xIsIPv6Loopback( pxIPv6Header ) != pdFALSE ) ||
+                       /* Or (during DHCP negotiation) we have no IP-address yet? */
+                       ( FreeRTOS_IsNetworkUp() == 0 ) ) )
+            {
                 eReturn = eProcessBuffer;
             }
             else
             {
+                /* Packet is not for this node, or the network is still not up,
+                 * release it */
                 eReturn = eReleaseBuffer;
                 FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop %pip (from %pip)\n", pxDestinationIPAddress->ucBytes, pxIPv6Header->xSourceAddress.ucBytes ) );
             }
