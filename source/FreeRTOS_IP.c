@@ -590,8 +590,10 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_RA */
-    /* Mention pxEndPoint in case it has not been used. */
+
+    /* Mention pxEndPoint and xIsIPv6 in case they have not been used. */
     ( void ) pxEndPoint;
+    ( void ) xIsIPv6;
 }
 /*-----------------------------------------------------------*/
 
@@ -1931,138 +1933,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     return eReturn;
 }
 
-/*-----------------------------------------------------------*/
-
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-
-/**
- * @brief Although the driver will take care of checksum calculations, the IP-task
- *        will still check if the length fields are OK.
- *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
- *
- * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
- *         should be dropped.
- */
-    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                 size_t uxBufferLength )
-    {
-        size_t uxLength;
-        const IPPacket_t * pxIPPacket;
-        UBaseType_t uxIPHeaderLength;
-        uint8_t ucProtocol;
-        uint16_t usLength;
-        uint16_t ucVersionHeaderLength;
-        size_t uxMinimumLength;
-        BaseType_t xResult = pdFAIL;
-
-        DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
-
-        do
-        {
-            /* Check for minimum packet size: Ethernet header and an IP-header, 34 bytes */
-            if( uxBufferLength < sizeof( IPPacket_t ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
-                break;
-            }
-
-            /* Map the buffer onto a IP-Packet struct to easily access the
-             * fields of the IP packet. */
-
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
-
-            ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;
-
-            /* Test if the length of the IP-header is between 20 and 60 bytes,
-             * and if the IP-version is 4. */
-            if( ( ucVersionHeaderLength < ipIPV4_VERSION_HEADER_LENGTH_MIN ) ||
-                ( ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
-                break;
-            }
-
-            ucVersionHeaderLength = ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2;
-            uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
-
-            /* Check if the complete IP-header is transferred. */
-            if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
-                break;
-            }
-
-            /* Check if the complete IP-header plus protocol data have been transferred: */
-            usLength = pxIPPacket->xIPHeader.usLength;
-            usLength = FreeRTOS_ntohs( usLength );
-
-            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
-                break;
-            }
-
-            /* Identify the next protocol. */
-            ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-
-            /* Switch on the Layer 3/4 protocol. */
-            if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-            {
-                /* Expect at least a complete UDP header. */
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
-            }
-            else if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
-            {
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER;
-            }
-            else if( ( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
-                     ( ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
-            {
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER;
-            }
-            else
-            {
-                /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 5 );
-                break;
-            }
-
-            if( uxBufferLength < uxMinimumLength )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
-                break;
-            }
-
-            uxLength = ( size_t ) usLength;
-            uxLength -= ( ( uint16_t ) uxIPHeaderLength ); /* normally, minus 20. */
-
-            if( ( uxLength < ( ( size_t ) sizeof( UDPHeader_t ) ) ) ||
-                ( uxLength > ( ( size_t ) ipconfigNETWORK_MTU - ( size_t ) uxIPHeaderLength ) ) )
-            {
-                /* For incoming packets, the length is out of bound: either
-                 * too short or too long. For outgoing packets, there is a
-                 * serious problem with the format/length. */
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 7 );
-                break;
-            }
-
-            xResult = pdPASS;
-        } while( ipFALSE_BOOL );
-
-        if( xResult != pdPASS )
-        {
-            /* NOP if ipconfigHAS_PRINTF != 1 */
-            FreeRTOS_printf( ( "xCheckSizeFields: location %ld\n", xLocation ) );
-        }
-
-        return xResult;
-    }
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 /*-----------------------------------------------------------*/
 
 /* This function is used in other files, has external linkage e.g. in
