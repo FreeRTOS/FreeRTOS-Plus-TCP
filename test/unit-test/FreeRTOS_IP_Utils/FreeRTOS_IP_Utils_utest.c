@@ -1420,7 +1420,7 @@ void test_FreeRTOS_strerror_r_Invalid( void )
     pucResult = FreeRTOS_strerror_r( xErrnum, pcBuffer, uxLength );
 
     TEST_ASSERT_EQUAL( pcBuffer, pucResult );
-    TEST_ASSERT_EQUAL_STRING( "Errno 0", pcBuffer );
+    TEST_ASSERT_EQUAL_STRING( "Errno 0x0", pcBuffer );
 }
 
 void test_FreeRTOS_strerror_r_EADDRINUSE( void )
