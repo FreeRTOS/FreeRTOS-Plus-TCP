@@ -53,6 +53,7 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_IPv6_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_IP_Timers.h"
 
