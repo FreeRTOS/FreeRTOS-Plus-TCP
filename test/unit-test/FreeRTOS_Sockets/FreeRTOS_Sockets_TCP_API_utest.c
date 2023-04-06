@@ -1094,6 +1094,43 @@ void test_FreeRTOS_send_MultipleIterationsAndNoSuccess( void )
 }
 
 /*
+ * @brief While waiting for space, the socket gets disconnected.
+ */
+void test_FreeRTOS_send_DisconnectionOccursDuringWait( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    uint8_t pvBuffer[ ipconfigTCP_MSS ];
+    size_t uxDataLength;
+    BaseType_t xFlags = 0;
+    StreamBuffer_t xLocalStreamBuffer;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( pvBuffer, 0, ipconfigTCP_MSS );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
+    xSocket.u.xTCP.txStream = &xLocalStreamBuffer;
+    xSocket.xSendBlockTime = 100;
+
+    uxDataLength = 100;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength - 20, uxDataLength - 20 );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+    vTaskSetTimeOutState_ExpectAnyArgs();
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( NULL );
+
+    xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
+
+    TEST_ASSERT_EQUAL( uxDataLength - 20, xReturn );
+}
+
+/*
  * @brief IP task is calling send function with a NULL buffer. Also there are 20 bytes worth of space
  *        less in the stream buffer as the data length.
  */
