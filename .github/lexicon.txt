@@ -1722,6 +1722,7 @@ xcolon
 xconnected
 xcount
 xcurlength
+xcurrentorder
 xcurstart
 xdatalength
 xdatalengthbytes
@@ -1765,6 +1766,7 @@ xeventgroupwaitbits
 xexpected
 xexpectedmessagetype
 xexpiredstate
+xextheadercount
 xfamily
 xfield
 xflags

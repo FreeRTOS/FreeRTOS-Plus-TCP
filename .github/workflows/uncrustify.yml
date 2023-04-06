@@ -8,7 +8,8 @@ jobs:
   Uncrustify:
     name: Run_Uncrustify
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/bot run uncrustify' }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
+    container: ubuntu:18.04
     steps:
       - name: Dump GitHub context
         env:
@@ -29,16 +30,15 @@ jobs:
         run: |
           echo ${{ steps.upstreamrepo.outputs.RemoteRepo }}:${{ steps.upstreambranch.outputs.branchname }}
       - name: Checkout upstream repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
            repository: ${{ steps.upstreamrepo.outputs.RemoteRepo }}
            ref: ${{ steps.upstreambranch.outputs.branchname }}
-      - name: Install Uncrustify
-        run: sudo apt-get install uncrustify
+      - name: Install Uncrustify and Git
+        run: apt-get update && apt-get install uncrustify git-all
       - name: Run Uncrustify
         run: |
           uncrustify --version
-          find .  -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
           find .  -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
       - name: Push changes to upstream repository
         run: |
