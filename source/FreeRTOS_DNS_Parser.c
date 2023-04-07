@@ -466,17 +466,7 @@
 
                         if( pxNetworkBuffer->pxEndPoint == NULL )
                         {
-                            /* NetworkInterface is obliged to set 'pxEndPoint' in every received packet,
-                             * but in case this has not be done, set it here. */
-
-                            pxNetworkBuffer->pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
-                            FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest: No pxEndPoint yet? Using %lxip\n",
-                                               FreeRTOS_ntohl( pxNetworkBuffer->pxEndPoint ? pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
-
-                            if( pxNetworkBuffer->pxEndPoint == NULL )
-                            {
-                                break;
-                            }
+                            break;
                         }
 
                         pxEndPoint = pxNetworkBuffer->pxEndPoint;
@@ -566,21 +556,17 @@
                             {
                                 pxAnswer = ( ( LLMNRAnswer_t * ) xSet.pucByte );
                                 /* We leave 'usIdentifier' and 'usQuestions' untouched */
-                                #ifndef _lint
-                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_REPONSE ); /* Set the response flag */
-                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                       /* Provide a single answer */
-                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                  /* No authority */
-                                    vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                 /* No additional info */
-                                #endif /* lint */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_REPONSE ); /* Set the response flag */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                       /* Provide a single answer */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                  /* No authority */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                 /* No additional info */
 
                                 pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
 
-                                #ifndef _lint
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usType, xSet.usType );  /* Type A or AAAA: host */
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
-                                    vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
-                                #endif /* lint */
+                                vSetField16( pxAnswer, LLMNRAnswer_t, usType, xSet.usType );  /* Type A or AAAA: host */
+                                vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN ); /* 1: Class IN */
+                                vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
 
                                 usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( xSet.pucByte - pucNewBuffer ) );
 
@@ -1050,14 +1036,31 @@
             NetworkBufferDescriptor_t * pxNetworkBuffer;
             size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
             BaseType_t xDNSHookReturn;
+            uint16_t usLength;
+            DNSMessage_t * pxMessage;
+            NBNSAnswer_t * pxAnswer;
+            NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
             /* Introduce a do {} while (0) loop to allow the use of breaks. */
             do
             {
                 NetworkEndPoint_t xEndPoint;
 
-                /* Check for minimum buffer size. */
+                /* Check for minimum buffer size: 92 bytes. */
                 if( uxBufferLength < uxBytesNeeded )
+                {
+                    break;
+                }
+
+                /* Is a valid payload/network buffer provided? */
+                if( pucUDPPayloadBuffer == NULL )
+                {
+                    break;
+                }
+
+                pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
+
+                if( pxNetworkBuffer == NULL )
                 {
                     break;
                 }
@@ -1088,6 +1091,7 @@
 
                 for( ; ; )
                 {
+                    /* Define the ASCII value of the capital "A". */
                     const uint8_t ucCharA = ( uint8_t ) 0x41U;
 
                     ucByte = ( ( uint8_t ) ( ( pucSource[ 0 ] - ucCharA ) << 4 ) ) |
@@ -1142,31 +1146,24 @@
                     break;
                 }
 
-                uint16_t usLength;
-                DNSMessage_t * pxMessage;
-                NBNSAnswer_t * pxAnswer;
-                NetworkBufferDescriptor_t * pxNewBuffer = NULL;
-
-                /* Someone is looking for a device with ucNBNSName,
-                 * prepare a positive reply. */
-                pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucUDPPayloadBuffer );
-
                 /* When pxUDPPayloadBuffer_to_NetworkBuffer fails, there
                  * is a real problem, like data corruption. */
-                configASSERT( pxNetworkBuffer != NULL );
+                if( pxNetworkBuffer->pxEndPoint == NULL )
+                {
+                    /* Should have been asserted earlier in the call tree. */
+                    break;
+                }
 
-                condifASSERT( pxNetworkBuffer->pxEndPoint != NULL )
                 ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
 
                 /* NBNS only handles IPv4 or "A" records. */
                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
                 xEndPoint.usDNSType = dnsTYPE_A_HOST;
-
                 #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-                    xDNSHookReturn = xApplicationDNSQueryHook( xSet.pcName );
+                    xDNSHookReturn = xApplicationDNSQueryHook( ( const char * ) ucNBNSName );
                 #else
                     xDNSHookReturn = xApplicationDNSQueryHook_Multi( &( xEndPoint ), ( const char * ) ucNBNSName );
-                #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+                #endif
 
                 if( xDNSHookReturn == pdFALSE )
                 {
@@ -1184,6 +1181,10 @@
 
                 if( xBufferAllocFixedSize == pdFALSE )
                 {
+                	/* We're linked with BufferAlolocation_2.c
+                	 * pxResizeNetworkBufferWithDescriptor() will malloc a new bigger buffer,
+                	 * and memcpy the data. The old buffer will be free'd.
+                	 */
                     NetworkBufferDescriptor_t * pxNewBuffer = pxResizeNetworkBufferWithDescriptor( pxNetworkBuffer, uxSizeNeeded );
 
                     if( pxNewBuffer == NULL )
@@ -1222,7 +1223,8 @@
                 vSetField32( pxAnswer, NBNSAnswer_t, ulTTL, dnsNBNS_TTL_VALUE );
                 vSetField16( pxAnswer, NBNSAnswer_t, usDataLength, 6 );           /* 6 bytes including the length field */
                 vSetField16( pxAnswer, NBNSAnswer_t, usNbFlags, dnsNBNS_NAME_FLAGS );
-                vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, xEndPoint.ipv4_settings.ulIPAddress );
+                /* The function vSetField32() expects host-endian values, that is why ntohl() is called. */
+                vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) );
 
                 usLength = ( uint16_t ) ( sizeof( NBNSAnswer_t ) + ( size_t ) offsetof( NBNSRequest_t, usType ) );
 
@@ -1233,7 +1235,7 @@
 
                 if( pxNewBuffer != NULL )
                 {
-                    vReleaseNetworkBufferAndDescriptor( BUFFER_FROM_WHERE_CALL( 111 ) pxNewBuffer );
+                    vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
                 }
             }  while( ipFALSE_BOOL );
         }

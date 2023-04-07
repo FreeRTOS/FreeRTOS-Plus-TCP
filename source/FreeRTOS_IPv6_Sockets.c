@@ -59,8 +59,8 @@
  * @return The socket in case it is connected to the remote IP-address.
  */
     Socket_t pxTCPSocketLookup_IPv6( Socket_t pxSocket,
-                                                const IPv6_Address_t * pxAddress_IPv6,
-                                                uint32_t ulRemoteIP )
+                                     const IPv6_Address_t * pxAddress_IPv6,
+                                     uint32_t ulRemoteIP )
     {
         FreeRTOS_Socket_t * pxResult = NULL;
 
