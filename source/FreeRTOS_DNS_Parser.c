@@ -316,7 +316,8 @@
         #if ( ipconfigUSE_LLMNR == 1 )
             uint16_t usType = 0U;
             uint16_t usClass = 0U;
-        #endif
+        #endif /* ipconfigUSE_LLMNR */
+
         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
             xSet.xDoStore = xExpected;
         #endif
@@ -577,7 +578,7 @@
                                     ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                                     uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                     /* An extra 12 bytes will be sent compared to an A-record. */
-                                    usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
+                                    usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
                                 }
                                 else
                                 {

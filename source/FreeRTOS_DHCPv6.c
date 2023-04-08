@@ -243,9 +243,9 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
     {
         if( ( pxIterator->bits.bIPv6 != pdFALSE_UNSIGNED ) && ( pxIterator->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
         {
-            FreeRTOS_printf( ( "vDHCPProcess: 0x%06lX == 0x%06lX ?\n",
-                               xDHCPMessage.ulTransactionID,
-                               pxIterator->xDHCPData.ulTransactionId ) );
+            FreeRTOS_printf( ( "vDHCPProcess: 0x%06X == 0x%06X ?\n",
+                               ( unsigned int ) xDHCPMessage.ulTransactionID,
+                               ( unsigned int ) pxIterator->xDHCPData.ulTransactionId ) );
 
             if( ( xDHCPMessage.ulTransactionID == pxIterator->xDHCPData.ulTransactionId ) &&
                 ( pxIterator->xDHCPData.eDHCPState != eLeasedAddress ) )
@@ -319,7 +319,7 @@ void vDHCPv6Process( BaseType_t xReset,
             }
             else
             {
-                FreeRTOS_printf( ( "vDHCPv6Process: malloc failed %u byt4es\n", sizeof( *pxEndPoint->pxDHCPMessage ) ) );
+                FreeRTOS_printf( ( "vDHCPv6Process: malloc failed %u bytes\n", ( unsigned int ) sizeof( *pxEndPoint->pxDHCPMessage ) ) );
             }
         }
     }
@@ -380,9 +380,7 @@ void vDHCPv6Process( BaseType_t xReset,
 static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
                                                 DHCPMessage_IPv6_t * pxDHCPMessage )
 {
-    size_t uxDNSIndex;
-
-    FreeRTOS_printf( ( "vDHCPProcess: acked %lxip\n", FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
+    FreeRTOS_printf( ( "vDHCPProcess: acked %xip\n", ( unsigned int ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
 
     /* DHCP completed.  The IP address can now be used, and the
      * timer set to the lease timeout time. */
@@ -943,7 +941,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
         pxDHCPMessage->ucTransactionID[ 1 ] = ( uint8_t ) ( ( ulTransactionID >> 8 ) & 0xffU );
         pxDHCPMessage->ucTransactionID[ 2 ] = ( uint8_t ) ( ulTransactionID & 0xffU );
         pxEndPoint->xDHCPData.ulTransactionId = ulTransactionID;
-        FreeRTOS_debug_printf( ( "Created transaction ID : 0x%06lX\n", ulTransactionID ) );
+        FreeRTOS_debug_printf( ( "Created transaction ID : 0x%06X\n", ( unsigned int ) ulTransactionID ) );
     }
 
     if( ( xRandomOk == pdPASS ) && ( EP_DHCPData.xDHCPSocket != NULL ) )
@@ -1397,7 +1395,7 @@ static BaseType_t prvDHCPv6Analyse( const uint8_t * pucAnswer,
             if( ulOptionsReceived != dhcpMANDATORY_OPTIONS )
             {
                 xResult = pdFAIL;
-                FreeRTOS_printf( ( "prvDHCPv6Analyse: Missing options: %lX not equal to %lX\n", ulOptionsReceived, dhcpMANDATORY_OPTIONS ) );
+                FreeRTOS_printf( ( "prvDHCPv6Analyse: Missing options: %X not equal to %X\n", ( unsigned int ) ulOptionsReceived, ( unsigned int ) dhcpMANDATORY_OPTIONS ) );
             }
         }
     } /* if( xBitConfig_init() ) */

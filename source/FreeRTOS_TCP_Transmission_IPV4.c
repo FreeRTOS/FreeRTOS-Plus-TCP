@@ -391,7 +391,7 @@
         if( xReturn != pdFALSE )
         {
             /* Get a difficult-to-predict initial sequence number for this 4-tuple. */
-            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
+            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( pxSocket->xLocalAddress.ulIP_IPv4,
                                                                           pxSocket->usLocalPort,
                                                                           pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                                                           pxSocket->u.xTCP.usRemotePort );

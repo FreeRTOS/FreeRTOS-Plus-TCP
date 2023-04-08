@@ -80,18 +80,19 @@
         /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
         uint32_t ulInitialSequenceNumber;
+        const NetworkEndPoint_t * pxEndpoint = pxNetworkBuffer->pxEndPoint;
 
         /* Silently discard a SYN packet which was not specifically sent for this node. */
-        if( pxTCPPacket->xIPHeader.ulDestinationIPAddress == *ipLOCAL_IP_ADDRESS_POINTER )
+        if( ( pxEndpoint != NULL ) && ( pxTCPPacket->xIPHeader.ulDestinationIPAddress == pxEndpoint->ipv4_settings.ulIPAddress ) )
         {
             /* Assume that a new Initial Sequence Number will be required. Request
              * it now in order to fail out if necessary. */
-            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
+            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( pxTCPPacket->xIPHeader.ulDestinationIPAddress,
                                                                           pxSocket->usLocalPort,
                                                                           pxTCPPacket->xIPHeader.ulSourceIPAddress,
                                                                           pxTCPPacket->xTCPHeader.usSourcePort );

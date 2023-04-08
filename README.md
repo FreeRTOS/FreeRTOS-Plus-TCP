@@ -39,7 +39,40 @@ Once python is downloaded and installed, you can verify the version from your te
 To run the script, you should switch to the FreeRTOS-Plus-TCP directory that was created using the [Cloning this repository](#cloning-this-repository) step above.
 And then run  `python <Path/to/the/script>/GenerateOriginalFiles.py`.
 
-## Cloning this repository
+## To consume FreeRTOS+TCP
+
+### Consume with CMake
+If using CMake, it is recommended to use this repository using FetchContent.
+Add the following into your project's main or a subdirectory's `CMakeLists.txt`:
+
+- Define the source and version/tag you want to use:
+
+```cmake
+FetchContent_Declare( freertos_plus_tcp
+  GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git
+  GIT_TAG        master #Note: Best practice to use specific git-hash or tagged version
+  GIT_SUBMODULES "" # Don't grab any submodules since not latest
+)
+```
+
+- Configure the FreeRTOS-Kernel and make it available
+  - this particular example supports a native and cross-compiled build option.
+
+```cmake
+set( FREERTOS_PLUS_FAT_DEV_SUPPORT OFF CACHE BOOL "" FORCE)
+# Select the native compile PORT
+set( FREERTOS_PLUS_FAT_PORT "POSIX" CACHE STRING "" FORCE)
+# Select the cross-compile PORT
+if (CMAKE_CROSSCOMPILING)
+  # Eg. Zynq 2019_3 version of port
+  set(FREERTOS_PLUS_FAT_PORT "ZYNQ_2019_3" CACHE STRING "" FORCE)
+endif()
+
+FetchContent_MakeAvailable(freertos_plus_tcp)
+```
+
+### Consuming stand-alone
+
 This repository uses [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to bring in dependent components.
 
 Note: If you download the ZIP file provided by GitHub UI, you will not get the contents of the submodules. (The ZIP file is also not a valid Git repository)

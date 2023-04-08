@@ -344,9 +344,10 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     /* Map the ethernet buffer to the UDPPacket_t struct for easy access to the fields. */
 
     /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const NetworkEndPoint_t * pxEndpoint = pxNetworkBuffer->pxEndPoint;
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );
@@ -357,7 +358,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     {
         if( pxSocket != NULL )
         {
-            if( *ipLOCAL_IP_ADDRESS_POINTER != 0U )
+            if( ( pxEndpoint != NULL ) && ( pxEndpoint->ipv4_settings.ulIPAddress != 0U ) )
             {
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {
@@ -394,9 +395,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
-                        xSourceAddress.sin_addr4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+                        xSourceAddress.sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
                         destinationAddress.sin_port = usPort;
-                        destinationAddress.sin_addr4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
+                        destinationAddress.sin_address.ulIP_IPv4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
 
                         /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
                         if( xHandler( ( Socket_t ) pxSocket,

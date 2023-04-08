@@ -882,6 +882,7 @@ pvargument
 pvbuffer
 pvdata
 pvdestination
+pvethernetbuffer
 pvoptionvalue
 pvparam
 pvparameters
@@ -1240,6 +1241,7 @@ ucflags
 ucgatewayaddress
 uchardwareaddresslength
 uchasuid
+ucheaderextlength
 uchoplimit
 uchops
 ucidentifier
@@ -1725,6 +1727,7 @@ xcolon
 xconnected
 xcount
 xcurlength
+xcurrentorder
 xcurstart
 xdatalength
 xdatalengthbytes
@@ -1768,6 +1771,7 @@ xeventgroupwaitbits
 xexpected
 xexpectedmessagetype
 xexpiredstate
+xextheadercount
 xfamily
 xfield
 xflags

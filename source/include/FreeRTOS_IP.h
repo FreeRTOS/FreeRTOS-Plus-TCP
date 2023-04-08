@@ -282,9 +282,10 @@ uint32_t FreeRTOS_round_down( uint32_t a,
     #define pdFALSE_SIGNED      pdFALSE
     #define pdTRUE_UNSIGNED     ( 1U )
     #define pdFALSE_UNSIGNED    ( 0U )
-    #define ipTRUE_BOOL         ( 1 == 1 )
-    #define ipFALSE_BOOL        ( 1 == 2 )
 #endif
+
+#define ipTRUE_BOOL             ( 1 == 1 )
+#define ipFALSE_BOOL            ( 1 == 2 )
 
 /*
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
@@ -426,14 +427,6 @@ BaseType_t xIsNetworkDownEventPending( void );
 /* "xApplicationGetRandomNumber" is declared but never defined, because it may
  * be defined in a user module. */
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
-
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-
-/* Even when the driver takes care of checksum calculations,
- *  the IP-task will still check if the length fields are OK. */
-    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                 size_t uxBufferLength );
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c.

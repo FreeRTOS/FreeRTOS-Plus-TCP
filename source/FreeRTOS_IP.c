@@ -64,6 +64,9 @@
 #ifndef ipINITIALISATION_RETRY_DELAY
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
 
 /** @brief Maximum time to wait for an ARP resolution while holding a packet. */
 #ifndef ipARP_RESOLUTION_MAX_DELAY
@@ -332,14 +335,14 @@ static void prvProcessIPEventsAndTimers( void )
             if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
                 xAddress.sin_family = FREERTOS_AF_INET6;
-                ( void ) memcpy( xAddress.sin_addr6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( xAddress.sin_addr6.ucBytes ) );
+                ( void ) memcpy( xAddress.sin_address.xIP_IPv6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( xAddress.sin_address.xIP_IPv6.ucBytes ) );
                 /* 'ulLocalAddress' will be set again by vSocketBind(). */
                 ( void ) memset( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, 0, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
             }
             else
             {
                 xAddress.sin_family = FREERTOS_AF_INET;
-                xAddress.sin_addr = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
+                xAddress.sin_address.ulIP_IPv4 = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
                 /* 'ulLocalAddress' will be set again by vSocketBind(). */
                 pxSocket->xLocalAddress.ulIP_IPv4 = 0;
             }
@@ -587,8 +590,10 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_RA */
-    /* Mention pxEndPoint in case it has not been used. */
+
+    /* Mention pxEndPoint and xIsIPv6 in case they have not been used. */
     ( void ) pxEndPoint;
+    ( void ) xIsIPv6;
 }
 /*-----------------------------------------------------------*/
 
@@ -1948,138 +1953,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-
-/**
- * @brief Although the driver will take care of checksum calculations, the IP-task
- *        will still check if the length fields are OK.
- *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
- *
- * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
- *         should be dropped.
- */
-    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                 size_t uxBufferLength )
-    {
-        size_t uxLength;
-        const IPPacket_t * pxIPPacket;
-        UBaseType_t uxIPHeaderLength;
-        uint8_t ucProtocol;
-        uint16_t usLength;
-        uint16_t ucVersionHeaderLength;
-        size_t uxMinimumLength;
-        BaseType_t xResult = pdFAIL;
-
-        DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
-
-        do
-        {
-            /* Check for minimum packet size: Ethernet header and an IP-header, 34 bytes */
-            if( uxBufferLength < sizeof( IPPacket_t ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
-                break;
-            }
-
-            /* Map the buffer onto a IP-Packet struct to easily access the
-             * fields of the IP packet. */
-
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
-
-            ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;
-
-            /* Test if the length of the IP-header is between 20 and 60 bytes,
-             * and if the IP-version is 4. */
-            if( ( ucVersionHeaderLength < ipIPV4_VERSION_HEADER_LENGTH_MIN ) ||
-                ( ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
-                break;
-            }
-
-            ucVersionHeaderLength = ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2;
-            uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
-
-            /* Check if the complete IP-header is transferred. */
-            if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
-                break;
-            }
-
-            /* Check if the complete IP-header plus protocol data have been transferred: */
-            usLength = pxIPPacket->xIPHeader.usLength;
-            usLength = FreeRTOS_ntohs( usLength );
-
-            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
-                break;
-            }
-
-            /* Identify the next protocol. */
-            ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-
-            /* Switch on the Layer 3/4 protocol. */
-            if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-            {
-                /* Expect at least a complete UDP header. */
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
-            }
-            else if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
-            {
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER;
-            }
-            else if( ( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
-                     ( ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
-            {
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER;
-            }
-            else
-            {
-                /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 5 );
-                break;
-            }
-
-            if( uxBufferLength < uxMinimumLength )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
-                break;
-            }
-
-            uxLength = ( size_t ) usLength;
-            uxLength -= ( ( uint16_t ) uxIPHeaderLength ); /* normally, minus 20. */
-
-            if( ( uxLength < ( ( size_t ) sizeof( UDPHeader_t ) ) ) ||
-                ( uxLength > ( ( size_t ) ipconfigNETWORK_MTU - ( size_t ) uxIPHeaderLength ) ) )
-            {
-                /* For incoming packets, the length is out of bound: either
-                 * too short or too long. For outgoing packets, there is a
-                 * serious problem with the format/length. */
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 7 );
-                break;
-            }
-
-            xResult = pdPASS;
-        } while( ipFALSE_BOOL );
-
-        if( xResult != pdPASS )
-        {
-            /* NOP if ipconfigHAS_PRINTF != 1 */
-            FreeRTOS_printf( ( "xCheckSizeFields: location %ld\n", xLocation ) );
-        }
-
-        return xResult;
-    }
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
-/*-----------------------------------------------------------*/
-
 /* This function is used in other files, has external linkage e.g. in
  * FreeRTOS_DNS.c. Not to be made static. */
 
@@ -2147,7 +2020,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
             /* _HT_ I wonder if this ad-hoc search of an end-point it necessary. */
-            FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %lxip?\n", FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
+            FreeRTOS_printf( ( "vReturnEthernetFrame: No pxEndPoint yet for %x ip?\n", ( unsigned int ) FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ) ) );
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -2246,6 +2119,158 @@ uint32_t FreeRTOS_GetIPAddress( void )
     return ulIPAddress;
 }
 /*-----------------------------------------------------------*/
+
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/*
+ * The helper functions here below assume that there is a single
+ * interface and a single end-point (ipconfigIPv4_BACKWARD_COMPATIBLE)
+ */
+
+/**
+ * @brief Sets the IP address of the NIC.
+ *
+ * @param[in] ulIPAddress: IP address of the NIC to be set.
+ */
+    void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
+    {
+        /* Sets the IP address of the NIC. */
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
+        }
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the gateway address of the subnet.
+ *
+ * @return The IP-address of the gateway, zero if a gateway is
+ *         not used/defined.
+ */
+    uint32_t FreeRTOS_GetGatewayAddress( void )
+    {
+        uint32_t ulIPAddress = 0U;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            ulIPAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
+        }
+
+        return ulIPAddress;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the DNS server address.
+ *
+ * @return The IP address of the DNS server.
+ */
+    uint32_t FreeRTOS_GetDNSServerAddress( void )
+    {
+        uint32_t ulIPAddress = 0U;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ];
+        }
+
+        return ulIPAddress;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the netmask for the subnet.
+ *
+ * @return The 32 bit netmask for the subnet.
+ */
+    uint32_t FreeRTOS_GetNetmask( void )
+    {
+        uint32_t ulIPAddress = 0U;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            ulIPAddress = pxEndPoint->ipv4_settings.ulNetMask;
+        }
+
+        return ulIPAddress;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Update the MAC address.
+ *
+ * @param[in] ucMACAddress: the MAC address to be set.
+ */
+    void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
+    {
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            /* Copy the MAC address at the start of the default packet header fragment. */
+            ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ( const void * ) ucMACAddress, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+        }
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the MAC address.
+ *
+ * @return The pointer to MAC address.
+ */
+    const uint8_t * FreeRTOS_GetMACAddress( void )
+    {
+        const uint8_t * pucReturn = NULL;
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            /* Copy the MAC address at the start of the default packet header fragment. */
+            pucReturn = pxEndPoint->xMACAddress.ucBytes;
+        }
+
+        return pucReturn;
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set the netmask for the subnet.
+ *
+ * @param[in] ulNetmask: The 32 bit netmask of the subnet.
+ */
+    void FreeRTOS_SetNetmask( uint32_t ulNetmask )
+    {
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            pxEndPoint->ipv4_settings.ulNetMask = ulNetmask;
+        }
+    }
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set the gateway address.
+ *
+ * @param[in] ulGatewayAddress: The gateway address.
+ */
+    void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
+    {
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            pxEndPoint->ipv4_settings.ulGatewayAddress = ulGatewayAddress;
+        }
+    }
+/*-----------------------------------------------------------*/
+#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) */
 
 /**
  * @brief Returns whether the IP task is ready.

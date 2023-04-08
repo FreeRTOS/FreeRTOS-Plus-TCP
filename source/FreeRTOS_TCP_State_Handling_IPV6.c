@@ -84,7 +84,7 @@
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const TCPPacket_IPv6_t * pxTCPPacket = ( ( const TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         FreeRTOS_Socket_t * pxReturn = NULL;
-        uint32_t ulInitialSequenceNumber;
+        uint32_t ulInitialSequenceNumber = 0;
         BaseType_t xHasSequence = pdFALSE;
 
         configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
@@ -98,13 +98,6 @@
             {
                 xHasSequence = pdTRUE;
             }
-
-/*
- *          ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
- *                                                                        pxSocket->usLocalPort,
- *                                                                        pxTCPPacket->xIPHeader.ulSourceIPAddress,
- *                                                                        pxTCPPacket->xTCPHeader.usSourcePort );
- */
         }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
@@ -160,7 +153,7 @@
             }
         }
 
-        if( ( xHasSequence != 0 ) && ( pxReturn != NULL ) )
+        if( ( xHasSequence != pdFALSE ) && ( pxReturn != NULL ) )
         {
             /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 

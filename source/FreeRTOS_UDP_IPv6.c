@@ -454,6 +454,17 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
     do
     {
+        /* UDPv6 doesn't allow zero-checksum, refer to RFC2460 - section 8.1.
+         * Some platforms (such as Zynq) pass the packet to upper layer for flexibility to allow zero-checksum. */
+        if( pxUDPPacket_IPv6->xUDPHeader.usChecksum == 0U )
+        {
+            FreeRTOS_debug_printf( ( "xProcessReceivedUDPPacket_IPv6: Drop packets with checksum %d\n",
+                                     pxUDPPacket_IPv6->xUDPHeader.usChecksum ) );
+
+            xReturn = pdFAIL;
+            break;
+        }
+
         if( pxSocket != NULL )
         {
             if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
@@ -485,8 +496,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
                         destinationAddress.sin_port = usPort;
-                        ( void ) memcpy( xSourceAddress.sin_addr6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        ( void ) memcpy( destinationAddress.sin_addr6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( xSourceAddress.sin_address.xIP_IPv6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( destinationAddress.sin_address.xIP_IPv6.ucBytes, pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         xSourceAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET6;
                         destinationAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET6;
                         xSourceAddress.sin_len = ( uint8_t ) sizeof( xSourceAddress );
@@ -577,6 +588,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
         {
             const size_t uxIPLength = ipSIZE_OF_IPv6_HEADER;
             uint16_t usTargetPort = FreeRTOS_ntohs( usPort );
+
+            ( void ) pxProtocolHeaders;
 
             /* There is no socket listening to the target port, but still it might
              * be for this node. */

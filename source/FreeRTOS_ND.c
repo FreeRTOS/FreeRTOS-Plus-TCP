@@ -153,7 +153,7 @@
         eARPLookupResult_t eReturn;
 
         /* Mostly used multi-cast address is ff02::. */
-        if( xIsIPv6Multicast( pxAddressToLookup ) != pdFALSE )
+        if( xIsIPv6AllowedMulticast( pxAddressToLookup ) != pdFALSE )
         {
             vSetMultiCastIPv6MacAddress( pxAddressToLookup, pxMACAddress );
 

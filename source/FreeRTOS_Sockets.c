@@ -51,6 +51,10 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 
+#if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+    #include "tcp_mem_stats.h"
+#endif
+
 /* The ItemValue of the sockets xBoundSocketListItem member holds the socket's
  * port number. */
 /** @brief Set the port number for the socket in the xBoundSocketListItem. */
@@ -317,10 +321,12 @@ static void prvSetOptionTimeout( FreeRTOS_Socket_t * pxSocket,
  */
     static BaseType_t prvSetOptionReuseListenSocket( FreeRTOS_Socket_t * pxSocket,
                                                      const void * pvOptionValue );
+
+    static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
+                                        size_t uxSocketSize );
 #endif /* ipconfigUSE_TCP == 1 */
 
-static void prvInitialiseTCPFields( FreeRTOS_Socket_t * pxSocket,
-                                    size_t uxSocketSize );
+
 
 static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
                                        void * pvBuffer,
@@ -1600,12 +1606,12 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
         {
             if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
             {
-                ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+                ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
                 pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
             }
             else
             {
-                pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_addr );
+                pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
                 pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
             }
 
@@ -1684,11 +1690,11 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
         {
             pxSocket->xLocalAddress.ulIP_IPv4 = 0U;
-            ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+            ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
         }
-        else if( pxAddress->sin_addr != FREERTOS_INADDR_ANY )
+        else if( pxAddress->sin_address.ulIP_IPv4 != FREERTOS_INADDR_ANY )
         {
-            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_addr, 7 );
+            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_address.ulIP_IPv4, 7 );
         }
         else
         {
@@ -3313,7 +3319,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
     {
         pxAddress->sin_family = FREERTOS_AF_INET6;
         /* IP address of local machine. */
-        ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addr6.ucBytes ) );
+        ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_address.xIP_IPv6.ucBytes ) );
         /* Local port on this machine. */
         pxAddress->sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
     }
@@ -3322,7 +3328,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
         pxAddress->sin_family = FREERTOS_AF_INET;
         pxAddress->sin_len = ( uint8_t ) sizeof( *pxAddress );
         /* IP address of local machine. */
-        pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
+        pxAddress->sin_address.ulIP_IPv4 = FreeRTOS_htonl( pxSocket->xLocalAddress.ulIP_IPv4 );
 
         /* Local port on this machine. */
         pxAddress->sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
@@ -3524,15 +3530,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
                     FreeRTOS_printf( ( "FreeRTOS_connect: %u to %pip port %u\n",
-                                       pxSocket->usLocalPort, pxAddress->sin_addr6.ucBytes, FreeRTOS_ntohs( pxAddress->sin_port ) ) );
-                    ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_addr6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                       pxSocket->usLocalPort, pxAddress->sin_address.xIP_IPv6.ucBytes, FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                    ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
                 {
                     pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
-                    FreeRTOS_printf( ( "FreeRTOS_connect: %u to %lxip:%u\n",
-                                       pxSocket->usLocalPort, FreeRTOS_ntohl( pxAddress->sin_addr ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
-                    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_addr );
+                    FreeRTOS_printf( ( "FreeRTOS_connect: %u to %xip:%u\n",
+                                       pxSocket->usLocalPort, ( unsigned int ) FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
                 }
 
                 /* Port on remote machine. */
@@ -3716,7 +3722,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     pxAddress->sin_family = FREERTOS_AF_INET6;
                     /* Copy IP-address and port number. */
-                    ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes, pxClientSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
                 }
             }
@@ -3726,7 +3732,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     pxAddress->sin_family = FREERTOS_AF_INET4;
                     /* Copy IP-address and port number. */
-                    pxAddress->sin_addr = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                    pxAddress->sin_address.ulIP_IPv4 = FreeRTOS_ntohl( pxClientSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
                     pxAddress->sin_port = FreeRTOS_ntohs( pxClientSocket->u.xTCP.usRemotePort );
                 }
             }
@@ -5079,7 +5085,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxAddress->sin_family = FREERTOS_AF_INET6;
 
                 /* IP address of remote machine. */
-                ( void ) memcpy( pxAddress->sin_addr6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_addr6.ucBytes ) );
+                ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxAddress->sin_address.xIP_IPv6.ucBytes ) );
 
                 /* Port of remote machine. */
                 pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
@@ -5090,7 +5096,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxAddress->sin_family = FREERTOS_AF_INET;
 
                 /* IP address of remote machine. */
-                pxAddress->sin_addr = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                pxAddress->sin_address.ulIP_IPv4 = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
 
                 /* Port on remote machine. */
                 pxAddress->sin_port = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
@@ -5561,7 +5567,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
             ( void ) snprintf( pcRemoteIp, sizeof( pcRemoteIp ), "%xip", ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
         }
 
-        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6lu %6u%s\n",
+        FreeRTOS_printf( ( "TCP %5d %-*s:%5d %d/%d %-13.13s %6u %6u%s\n",
                            pxSocket->usLocalPort,         /* Local port on this machine */
                            xIPWidth,
                            pcRemoteIp,                    /* IP address of remote machine */
