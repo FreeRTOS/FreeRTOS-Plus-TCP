@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.1
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,9 +24,9 @@
  */
 
 /*
- * @file NTPDemo.c
+ * NTPDemo.c
  *
- * @brief An example of how to lookup a domain using DNS
+ * An example of how to lookup a domain using DNS
  * And also how to send and receive UDP messages to get the NTP time
  *
  */
@@ -98,6 +96,7 @@ static enum EStatus xStatus = EStatusLookup;
 
 static const char * pcTimeServers[] =
 {
+    "ntp1.its.waikato.ac.nz",
     "0.asia.pool.ntp.org",
     "0.europe.pool.ntp.org",
     "0.id.pool.ntp.org",
@@ -110,7 +109,7 @@ static SemaphoreHandle_t xNTPWakeupSem = NULL;
 static uint32_t ulIPAddressFound;
 
 #if ( ipconfigUSE_IPv6 != 0 )
-    static struct freertos_sockaddr6 xIPAddressFound;
+    static struct freertos_sockaddr xIPAddressFound;
 #endif
 static BaseType_t xHasIPAddress = pdFALSE;
 
@@ -230,7 +229,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
                 BaseType_t xReceiveTimeOut = pdMS_TO_TICKS( 5000 );
             #endif
 
-            xAddress.sin_addr = 0ul;
+            xAddress.sin_address.ulIP_IPv4 = 0ul;
             xAddress.sin_port = FreeRTOS_htons( NTP_PORT );
 
             FreeRTOS_bind( xNTP_UDPSocket, &xAddress, sizeof( xAddress ) );
@@ -268,13 +267,13 @@ void vStartNTPTask( uint16_t usTaskStackSize,
                 char pcBuf[ 16 ];
 
                 /* The DNS lookup has a result, or it has reached the time-out. */
-                ulIPAddressFound = pxAddress->ai_addr->sin_addr;
+                ulIPAddressFound = pxAddress->ai_addr->sin_address.ulIP_IPv4;
                 FreeRTOS_inet_ntoa( ulIPAddressFound, pcBuf );
                 FreeRTOS_printf( ( "vDNS_callback: IP address of '%s' found: %s\n", pcName, pcBuf ) );
 
                 if( ulIPAddressFound != 0U )
                 {
-                    memset( xIPAddressFound.sin_addr6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+                    memset( xIPAddressFound.sin_address.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
                     xHasIPAddress = pdTRUE;
                     xStatus = EStatusAsking;
                 }
@@ -282,15 +281,15 @@ void vStartNTPTask( uint16_t usTaskStackSize,
             else if( pxAddress->ai_family == FREERTOS_AF_INET6 )
             {
                 /*  struct freertos_sockaddr * ai_addr */
-                struct freertos_sockaddr6 * sockaddr6 = ( struct freertos_sockaddr6 * ) pxAddress->ai_addr;
+                struct freertos_sockaddr * sockaddr6 = ( struct freertos_sockaddr * ) pxAddress->ai_addr;
 
                 xIPAddressFound.sin_len = sizeof( xIPAddressFound ); /* Ignored, still present for backward compatibility. */
                 xIPAddressFound.sin_family = FREERTOS_AF_INET6;      /* Set to FREERTOS_AF_INET6. */
                 xIPAddressFound.sin_port = FreeRTOS_htons( NTP_PORT );
                 xIPAddressFound.sin_flowinfo = 0;                    /* IPv6 flow information. */
-                memcpy( xIPAddressFound.sin_addr6.ucBytes, sockaddr6->sin_addr6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                memcpy( xIPAddressFound.sin_address.xIP_IPv6.ucBytes, sockaddr6->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
-                FreeRTOS_printf( ( "vDNS_callback: using address %pip\n", xIPAddressFound.sin_addr6.ucBytes ) );
+                FreeRTOS_printf( ( "vDNS_callback: using address %pip\n", xIPAddressFound.sin_address.xIP_IPv6.ucBytes ) );
                 ulIPAddressFound = 0U;
                 xHasIPAddress = pdTRUE;
                 xStatus = EStatusAsking;
@@ -440,11 +439,11 @@ static void prvReadTime( struct SNtpPacket * pxPacket )
     #endif /* ( USE_PLUS_FAT != 0 ) */
 
     /*
-     *  378.067 [NTP client] NTP time: 9/11/2015 16:11:19.559 Difference -20 ms (289 ms)
-     *  379.441 [NTP client] NTP time: 9/11/2015 16:11:20.933 Difference 0 ms (263 ms)
+     *  378.067 [NTP client] NTP time: 9/11/2015 16:11:19.559 Diff -20 ms (289 ms)
+     *  379.441 [NTP client] NTP time: 9/11/2015 16:11:20.933 Diff 0 ms (263 ms)
      */
 
-    FreeRTOS_printf( ( "NTP time: %u/%u/%02u %2u:%02u:%02u.%03u Difference %d %s (%lu ms)\n",
+    FreeRTOS_printf( ( "NTP time: %u/%u/%02u %2u:%02u:%02u.%03u Diff %d %s (%lu ms)\n",
                        ( unsigned ) xTimeStruct.tm_mday,
                        ( unsigned ) xTimeStruct.tm_mon + 1,
                        ( unsigned ) xTimeStruct.tm_year + 1900,
@@ -496,6 +495,11 @@ static void prvReadTime( struct SNtpPacket * pxPacket )
 
 #endif /* ipconfigUSE_CALLBACKS != 0 */
 
+    static const uint8_t rawData[] = {
+        0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe7, 0xb2, 0xc5, 0x30, 0x10, 0xdf, 0xf9, 0xd0,
+    };
 static void prvNTPTask( void * pvParameters )
 {
     BaseType_t xServerIndex = 3;
@@ -613,14 +617,16 @@ static void prvNTPTask( void * pvParameters )
                 prvNTPPacketInit();
                 uxSendTime = xTaskGetTickCount();
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    if( memcmp( xIPAddressFound.sin_addr6.ucBytes, in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                    if( memcmp( xIPAddressFound.sin_address.xIP_IPv6.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         FreeRTOS_printf( ( "Sending UDP message to %pip port %u\n",
-                                           xIPAddressFound.sin_addr6.ucBytes,
+                                           xIPAddressFound.sin_address.xIP_IPv6.ucBytes,
                                            FreeRTOS_ntohs( xIPAddressFound.sin_port ) ) );
-
+                        
+//                      FreeRTOS_inet_pton( FREERTOS_AF_INET6, "2606:4700:f1::1", ( void* )xIPAddressFound.sin_address.xIP_IPv6.ucBytes );
                         FreeRTOS_sendto( xNTP_UDPSocket,
                                          ( void * ) &xNTPPacket, sizeof( xNTPPacket ),
+//                                       rawData, sizeof rawData,
                                          0,
                                          ( const struct freertos_sockaddr * ) &( xIPAddressFound ),
                                          sizeof( xIPAddressFound ) );
@@ -628,16 +634,15 @@ static void prvNTPTask( void * pvParameters )
                     else
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 {
-                    xAddress.sin_addr = ulIPAddressFound;
+                    xAddress.sin_address.ulIP_IPv4 = ulIPAddressFound;
                     xAddress.sin_port = FreeRTOS_htons( NTP_PORT );
 
                     FreeRTOS_printf( ( "Sending UDP message to %xip port %u\n",
-                                       ( unsigned ) FreeRTOS_ntohl( xAddress.sin_addr ),
+                                       ( unsigned ) FreeRTOS_ntohl( xAddress.sin_address.ulIP_IPv4 ),
                                        ( unsigned ) FreeRTOS_ntohs( xAddress.sin_port ) ) );
 
                     FreeRTOS_sendto( xNTP_UDPSocket,
-                                     ( void * ) &xNTPPacket,
-                                     sizeof( xNTPPacket ),
+                                     ( void * ) &xNTPPacket, sizeof( xNTPPacket ),
                                      0, &( xAddress ),
                                      sizeof( xAddress ) );
                 }

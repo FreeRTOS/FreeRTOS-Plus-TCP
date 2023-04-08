@@ -23,56 +23,31 @@
  * http://www.FreeRTOS.org
  */
 
+
+#ifndef DDOS_TESETING_H
+
 /*
- * tcp_mem_stats.h
+ * ddos 1 2 30000   A 30-second UDP attack, using delays of 2 ms between packet.
+ * ddos 1 0 120000  A 2-minute attack, no delays between packets.
+ * ddos 0           Stop the DDoS UDP attack
+ * ddos 2           Show some logging ( number of packs ).
  */
+void vDDoSCommand( char * pcCommand );
 
+/*
+ * server 32002  Create an echoserver on port 32002
+ */
+void vTCPServerCommand( char * pcCommand );
 
-#ifndef TCP_MEM_STATS_H
+/*
+ * client 192.168.2.5 300000000  Exchange 300000000 bytes with an echo server on 192.168.2.5
+ */
+void vTCPClientCommand( char * pcCommand );
 
-    #define TCP_MEM_STATS_H
+/*
+ * buffer 80 10000    Let 80% of the buffer allocation succeed for 10 seconds
+ * buffer 0 20000     Let all buffer allocations fail for 20 seconds
+ */
+void vBufferCommand( char * pcCommand );
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
-    typedef enum xTCP_MEMORY
-    {
-        tcpSOCKET_TCP,
-        tcpSOCKET_UDP,
-        tcpSOCKET_SET,
-        tcpSEMAPHORE,
-        tcpRX_STREAM_BUFFER,
-        tcpTX_STREAM_BUFFER,
-        tcpNETWORK_BUFFER,
-    } TCP_MEMORY_t;
-
-    #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
-
-        void vTCPMemStatCreate( TCP_MEMORY_t xMemType,
-                                void * pxObject,
-                                size_t uxSize );
-
-        void vTCPMemStatDelete( void * pxObject );
-
-        void vTCPMemStatClose( void );
-
-        #define iptraceMEM_STATS_CREATE( xMemType, pxObject, uxSize ) \
-    vTCPMemStatCreate( xMemType, pxObject, uxSize )
-
-        #define iptraceMEM_STATS_DELETE( pxObject ) \
-    vTCPMemStatDelete( pxObject )
-
-        #define iptraceMEM_STATS_CLOSE() \
-    vTCPMemStatClose()
-    #else /* if ( ipconfigUSE_TCP_MEM_STATS != 0 ) */
-
-/* The header file 'IPTraceMacroDefaults.h' will define the default empty macro's. */
-
-    #endif /* ipconfigUSE_TCP_MEM_STATS != 0 */
-
-    #ifdef __cplusplus
-        } /* extern "C" */
-    #endif
-
-#endif /* TCP_MEM_STATS_H */
+#endif /* ifndef DDOS_TESETING_H */

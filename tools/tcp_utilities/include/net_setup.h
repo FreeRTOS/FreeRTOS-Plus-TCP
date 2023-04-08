@@ -1,6 +1,8 @@
 /*
- * FreeRTOS+TCP V2.3.1
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,33 +25,39 @@
  * http://www.FreeRTOS.org
  */
 
-/*
- * A simple demo for NTP using FreeRTOS+TCP
- */
+#ifndef NET_SETUP_H
 
-#ifndef NTPDEMO_H
+#define NET_SETUP_H
 
-#define NTPDEMO_H
+typedef enum xSetupMethod
+{
+	eStatic,
+	eDHCP,
+	eRA,
+} SetupMethod_t;
 
-void vStartNTPTask( uint16_t usTaskStackSize,
-                    UBaseType_t uxTaskPriority );
+typedef struct xV4
+{
+	const char * pcMACAddress;
+	const char * pcIPAddress;
+    const char * pcMask;
+	const char * pcGateway;
+	SetupMethod_t eType;
+	const char * pcDNS[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];
+} SetupV4_t;
 
-/*
- * xIPVersion = 4 or 6.
- * xAsynchronous = true for asynchronous DNS lookups.
- * xLogging = true to get more logging.
- */
-void vNTPSetNTPType( BaseType_t aIPType,
-                     BaseType_t xAsynchronous,
-                     BaseType_t xLogging );
+typedef struct xV6
+{
+	const char * pcMACAddress;
+	const char * pcIPAddress;
+    const char * pcPrefix;
+	size_t   uxPrefixLength;
+	const char * pcGateway;
+	SetupMethod_t eType;
+	const char * pcDNS[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];
+} SetupV6_t;
 
-/* Delete the IP-addresses of the NTP server to force a DNS lookup. */
-void vNTPClearCache( void );
+BaseType_t xSetupEndpoint_v4( NetworkInterface_t * pxInterface, NetworkEndPoint_t * pxEndpoint, SetupV4_t * pxSetup );
+BaseType_t xSetupEndpoint_v6( NetworkInterface_t * pxInterface, NetworkEndPoint_t * pxEndpoint, SetupV6_t * pxSetup  );
 
-/* Check if the NTP task is running. */
-BaseType_t xNTPTaskIsRunning( void );
-
-extern BaseType_t xNTPHasTime;
-extern uint32_t ulNTPTime;
-
-#endif /* ifndef NTPDEMO_H */
+#endif /* NET_SETUP_H */

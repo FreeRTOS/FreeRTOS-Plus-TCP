@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.1
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -622,6 +620,17 @@ static void handle_arpq( char * pcBuffer )
             if( pxResult != NULL )
             {
                 FreeRTOS_freeaddrinfo( pxResult );
+                {
+                    IPv46_Address_t xIP = { 0 };
+                    struct freertos_addrinfo* pxAddressInfo = NULL;
+                    BaseType_t rc = FreeRTOS_ProcessDNSCache( ptr, &xIP, 255, pdTRUE, &pxAddressInfo );
+                        
+                    if( pxAddressInfo != NULL )
+                    {
+                        show_addressinfo( pxAddressInfo );
+                        FreeRTOS_freeaddrinfo( pxAddressInfo );
+                    }
+                }
             }
         }
         else
@@ -907,7 +916,7 @@ static void handle_help( char * pcBuffer )
             #if ( ipconfigUSE_IPv6 != 0 )
                 if( pxEndPoint->bits.bIPv6 )
                 {
-                    if( memcmp( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                    if( memcmp( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                     {
                         FreeRTOS_printf( ( "IPv6: %pip on '%s'\n", pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxEndPoint->pxNetworkInterface->pcName ) );
                     }
@@ -1001,12 +1010,12 @@ static void handle_help( char * pcBuffer )
                 else
             #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
             {
-                FreeRTOS_printf( ( "ping4 to '%s' (%xip)\n", pcHostname, ( unsigned ) FreeRTOS_ntohl( pxDNSResult->ai_addr->sin_addr ) ) );
+                FreeRTOS_printf( ( "ping4 to '%s' (%xip)\n", pcHostname, ( unsigned ) FreeRTOS_ntohl( pxDNSResult->ai_addr->sin_address.ulIP_IPv4 ) ) );
                 xPing4Count = 0;
                 #if ( ipconfigUSE_IPv6 != 0 )
                     xPing6Count = -1;
                 #endif
-                ulPingIPAddress = pxDNSResult->ai_addr->sin_addr;
+                ulPingIPAddress = pxDNSResult->ai_addr->sin_address.ulIP_IPv4;
                 xARPWaitResolution( ulPingIPAddress, pdMS_TO_TICKS( 5000U ) );
                 FreeRTOS_SendPingRequest( ulPingIPAddress, uxPingSize, PING_TIMEOUT );
                 uxPingTimes[ 0 ] = ( TickType_t ) ullGetHighResolutionTime();
@@ -1346,12 +1355,12 @@ void xHandleTesting()
                             struct freertos_sockaddr * pxAddr6;
                             pxAddr6 = ( struct freertos_sockaddr * ) pxResult->ai_addr;
 
-                            FreeRTOS_printf( ( "dns query%d: '%s' = %pip rc = %d\n", ( int ) xIPVersion, pcHost, pxAddr6->sin_addr6.ucBytes, ( int ) rc ) );
+                            FreeRTOS_printf( ( "dns query%d: '%s' = %pip rc = %d\n", ( int ) xIPVersion, pcHost, pxAddr6->sin_address.xIP_IPv6.ucBytes, ( int ) rc ) );
                         }
                         else
                     #endif /* ipconfigUSE_IPv6 */
                     {
-                        uint32_t luIPAddress = pxResult->ai_addr->sin_addr;
+                        uint32_t luIPAddress = pxResult->ai_addr->sin_address.ulIP_IPv4;
                         FreeRTOS_printf( ( "dns query%d: '%s' = %lxip rc = %d\n", ( int ) xIPVersion, pcHost, FreeRTOS_ntohl( luIPAddress ), ( int ) rc ) );
                     }
                 }
@@ -1413,7 +1422,7 @@ void xHandleTesting()
                         #if ( ipconfigUSE_DNS_CACHE != 0 )
                             ulIpAddress = FreeRTOS_dnslookup( pcHost );
                             FreeRTOS_printf( ( "Lookup4 '%s' = %lxip\n", pcHost, FreeRTOS_ntohl( ulIpAddress ) ) );
-                            pxResult->ai_addr->sin_addr = ulIpAddress;
+                            pxResult->ai_addr->sin_address.ulIP_IPv4 = ulIpAddress;
                             pxResult->ai_family = FREERTOS_AF_INET4;
                             pxResult->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
                         #endif

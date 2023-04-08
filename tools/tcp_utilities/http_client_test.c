@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.1
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,7 +22,6 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
-
 
 /**
  * @file http_client.c
@@ -208,11 +205,7 @@
     {
         Socket_t xSocket = NULL;
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-            struct freertos_sockaddr6 xEchoServerAddress;
-        #else
-            struct freertos_sockaddr xEchoServerAddress;
-        #endif
+        struct freertos_sockaddr xEchoServerAddress;
 
         size_t uxInstance;
         int32_t xReturned, xReceivedBytes;
@@ -265,10 +258,8 @@
             TickType_t xSendTimeOut = pdMS_TO_TICKS( 2000U );
             #if ( ipconfigUSE_IPv6 != 0 )
                 IPv6_Address_t xIPAddress_IPv6;
-                struct freertos_sockaddr6 xLocalAddress;
-            #else
-                struct freertos_sockaddr xLocalAddress;
             #endif
+            struct freertos_sockaddr xLocalAddress;
             #if ( ipconfigMULTI_INTERFACE != 0 )
                 struct freertos_addrinfo * pxResult = NULL;
                 struct freertos_addrinfo xHints;
@@ -331,17 +322,17 @@
 
                     if( pxResult->ai_family == FREERTOS_AF_INET4 )
                     {
-/*				ulIPAddress = ( ( struct freertos_sockaddr * ) pxResult->ai_addr )->sin_addr; */
-                        ulIPAddress = pxResult->ai_addr->sin_addr;
+/*				ulIPAddress = ( ( struct freertos_sockaddr * ) pxResult->ai_addr )->sin_address.ulIP_IPv4; */
+                        ulIPAddress = pxResult->ai_addr->sin_address.ulIP_IPv4;
                     }
 
                     #if ( ipconfigUSE_IPv6 != 0 )
                         else if( pxResult->ai_family == FREERTOS_AF_INET6 )
                         {
-                            struct freertos_sockaddr6 * pxAddr6;
+                            struct freertos_sockaddr * pxAddr6;
 
-                            pxAddr6 = ( struct freertos_sockaddr6 * ) pxResult->ai_addr;
-                            memcpy( xIPAddress_IPv6.ucBytes, pxAddr6->sin_addr6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                            pxAddr6 = ( struct freertos_sockaddr * ) pxResult->ai_addr;
+                            memcpy( xIPAddress_IPv6.ucBytes, pxAddr6->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                             xHasIPv6Address = pdTRUE;
                         }
                     #endif
@@ -355,10 +346,10 @@
             #if ( ipconfigUSE_IPv6 != 0 )
                 if( xHasIPv6Address != 0 )
                 {
-                    xEchoServerAddress.sin_len = sizeof( struct freertos_sockaddr6 );
+                    xEchoServerAddress.sin_len = sizeof( struct freertos_sockaddr );
                     xEchoServerAddress.sin_family = FREERTOS_AF_INET6;
                     xEchoServerAddress.sin_port = FreeRTOS_htons( usUsePortNumber );
-                    memcpy( xEchoServerAddress.sin_addr6.ucBytes, xIPAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    memcpy( xEchoServerAddress.sin_address.xIP_IPv6.ucBytes, xIPAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 }
                 else
             #endif
@@ -368,7 +359,7 @@
                 pxAddress->sin_len = sizeof( struct freertos_sockaddr );
                 pxAddress->sin_family = FREERTOS_AF_INET;
                 pxAddress->sin_port = FreeRTOS_htons( usUsePortNumber );
-                pxAddress->sin_addr = ulIPAddress;
+                pxAddress->sin_address.ulIP_IPv4 = ulIPAddress;
             }
             else
             {
@@ -385,7 +376,7 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( xEchoServerAddress.sin_family == FREERTOS_AF_INET6 )
                     {
-                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_addr6 ) );
+                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6) );
 
                         if( pxEndPoint == NULL )
                         {
@@ -394,17 +385,17 @@
 
                         if( pxEndPoint != NULL )
                         {
-                            /*memcpy( xEchoServerAddress.sin_addr6.ucBytes, pxEndPoint->ipv6.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); */
+                            /*memcpy( xEchoServerAddress.sin_address.xIP_IPv6.ucBytes, pxEndPoint->ipv6.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); */
                         }
                     }
                     else
                 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                 {
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_addr, 9999 );
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_address.ulIP_IPv4, 9999 );
 
                     if( pxEndPoint != NULL )
                     {
-                        xBindAddress.sin_addr = pxEndPoint->ipv4_settings.ulIPAddress;
+                        xBindAddress.sin_address.ulIP_IPv4 = pxEndPoint->ipv4_settings.ulIPAddress;
                     }
                 }
             #endif /* if ( ipconfigMULTI_INTERFACE != 0 ) */
@@ -442,7 +433,7 @@
                 if( pxAddress->sin_family == FREERTOS_AF_INET6 )
                 {
                     FreeRTOS_printf( ( "httpTest: FreeRTOS_connect to %pip port %u: rc %d\n",
-                                       xEchoServerAddress.sin_addr6.ucBytes,
+                                       xEchoServerAddress.sin_address.xIP_IPv6.ucBytes,
                                        FreeRTOS_ntohs( pxAddress->sin_port ),
                                        rc ) );
                 }
@@ -450,9 +441,9 @@
             #endif
             {
                 FreeRTOS_printf( ( "httpTest: FreeRTOS_connect from %lxip port %u to %lxip port %u: rc %d\n",
-                                   FreeRTOS_ntohl( pxLocalAddress->sin_addr ),
+                                   FreeRTOS_ntohl( pxLocalAddress->sin_address.ulIP_IPv4 ),
                                    FreeRTOS_ntohs( pxLocalAddress->sin_port ),
-                                   FreeRTOS_ntohl( pxAddress->sin_addr ),
+                                   FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ),
                                    FreeRTOS_ntohs( pxAddress->sin_port ),
                                    rc ) );
             }
