@@ -43,3 +43,37 @@
 #include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP.h"
+
+#include "catch_assert.h"
+#include "FreeRTOS_RA_stubs.c"
+
+
+
+void test_vNDSendRouterSolicitation_Null_Endpoint( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    IPv6_Address_t * pxIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
+
+    catch_assert( vNDSendRouterSolicitation( pxNetworkBuffer, pxIPAddress ) );
+
+}
+
+void test_vNDSendRouterSolicitation_False_bIPv6( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPv6_Address_t * pxIPAddress, xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    //xEndPoint.bits.bIPv6 = 0;
+
+    catch_assert( vNDSendRouterSolicitation( pxNetworkBuffer, pxIPAddress ) );
+
+}
+
+
+

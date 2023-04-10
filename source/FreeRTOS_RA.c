@@ -140,6 +140,7 @@
         BaseType_t xHasLocal;
 
         configASSERT( pxEndPoint != NULL );
+        configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
 
         xHasLocal = xGetLinkLocalAddress( pxEndPoint->pxNetworkInterface, &( xSourceAddress ) );
 
@@ -182,9 +183,6 @@
             pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPRouterSolicitation_IPv6_t ) );
             pxICMPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
             pxICMPPacket->xIPHeader.ucHopLimit = raDEFAULT_HOP_LIMIT;
-
-            configASSERT( pxEndPoint != NULL );
-            configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
 
             /* Normally, the source address is set as 'ipv6_settings.xIPAddress'.
              * But is some routers will not accept a public IP-address, the original
