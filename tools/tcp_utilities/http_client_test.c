@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.1
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,7 +22,6 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
-
 
 /**
  * @file http_client.c
@@ -379,7 +376,7 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( xEchoServerAddress.sin_family == FREERTOS_AF_INET6 )
                     {
-                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6 ) );
+                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6) );
 
                         if( pxEndPoint == NULL )
                         {

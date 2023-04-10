@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.1
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -80,11 +78,11 @@ extern SemaphoreHandle_t xServerSemaphore;
 
 extern uint64_t ullGetHighResolutionTime( void );
 
-uint64_t ullGetHighResolutionTime( void )
-{
-    /* In case you don't have a usec timer function. */
-    return xTaskGetTickCount();
-}
+//uint64_t ullGetHighResolutionTime( void )
+//{
+//    /* In case you don't have a usec timer function. */
+//    return xTaskGetTickCount();
+//}
 #define PING_TIMEOUT    100U
 
 typedef struct xCommandOptions
@@ -622,6 +620,17 @@ static void handle_arpq( char * pcBuffer )
             if( pxResult != NULL )
             {
                 FreeRTOS_freeaddrinfo( pxResult );
+                {
+                    IPv46_Address_t xIP = { 0 };
+                    struct freertos_addrinfo* pxAddressInfo = NULL;
+                    BaseType_t rc = FreeRTOS_ProcessDNSCache( ptr, &xIP, 255, pdTRUE, &pxAddressInfo );
+                        
+                    if( pxAddressInfo != NULL )
+                    {
+                        show_addressinfo( pxAddressInfo );
+                        FreeRTOS_freeaddrinfo( pxAddressInfo );
+                    }
+                }
             }
         }
         else

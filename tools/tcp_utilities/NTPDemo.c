@@ -1,8 +1,6 @@
 /*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
+ * FreeRTOS+TCP V2.3.1
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,9 +24,9 @@
  */
 
 /*
- * @file NTPDemo.c
+ * NTPDemo.c
  *
- * @brief An example of how to lookup a domain using DNS
+ * An example of how to lookup a domain using DNS
  * And also how to send and receive UDP messages to get the NTP time
  *
  */
@@ -98,6 +96,7 @@ static enum EStatus xStatus = EStatusLookup;
 
 static const char * pcTimeServers[] =
 {
+    "ntp1.its.waikato.ac.nz",
     "0.asia.pool.ntp.org",
     "0.europe.pool.ntp.org",
     "0.id.pool.ntp.org",
@@ -109,7 +108,9 @@ static const char * pcTimeServers[] =
 static SemaphoreHandle_t xNTPWakeupSem = NULL;
 static uint32_t ulIPAddressFound;
 
-static struct freertos_sockaddr xIPAddressFound;
+#if ( ipconfigUSE_IPv6 != 0 )
+    static struct freertos_sockaddr xIPAddressFound;
+#endif
 static BaseType_t xHasIPAddress = pdFALSE;
 
 static Socket_t xNTP_UDPSocket = NULL;
@@ -438,11 +439,11 @@ static void prvReadTime( struct SNtpPacket * pxPacket )
     #endif /* ( USE_PLUS_FAT != 0 ) */
 
     /*
-     *  378.067 [NTP client] NTP time: 9/11/2015 16:11:19.559 Difference -20 ms (289 ms)
-     *  379.441 [NTP client] NTP time: 9/11/2015 16:11:20.933 Difference 0 ms (263 ms)
+     *  378.067 [NTP client] NTP time: 9/11/2015 16:11:19.559 Diff -20 ms (289 ms)
+     *  379.441 [NTP client] NTP time: 9/11/2015 16:11:20.933 Diff 0 ms (263 ms)
      */
 
-    FreeRTOS_printf( ( "NTP time: %u/%u/%02u %2u:%02u:%02u.%03u Difference %d %s (%lu ms)\n",
+    FreeRTOS_printf( ( "NTP time: %u/%u/%02u %2u:%02u:%02u.%03u Diff %d %s (%lu ms)\n",
                        ( unsigned ) xTimeStruct.tm_mday,
                        ( unsigned ) xTimeStruct.tm_mon + 1,
                        ( unsigned ) xTimeStruct.tm_year + 1900,
@@ -494,6 +495,11 @@ static void prvReadTime( struct SNtpPacket * pxPacket )
 
 #endif /* ipconfigUSE_CALLBACKS != 0 */
 
+    static const uint8_t rawData[] = {
+        0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe7, 0xb2, 0xc5, 0x30, 0x10, 0xdf, 0xf9, 0xd0,
+    };
 static void prvNTPTask( void * pvParameters )
 {
     BaseType_t xServerIndex = 3;
@@ -616,9 +622,11 @@ static void prvNTPTask( void * pvParameters )
                         FreeRTOS_printf( ( "Sending UDP message to %pip port %u\n",
                                            xIPAddressFound.sin_address.xIP_IPv6.ucBytes,
                                            FreeRTOS_ntohs( xIPAddressFound.sin_port ) ) );
-
+                        
+//                      FreeRTOS_inet_pton( FREERTOS_AF_INET6, "2606:4700:f1::1", ( void* )xIPAddressFound.sin_address.xIP_IPv6.ucBytes );
                         FreeRTOS_sendto( xNTP_UDPSocket,
                                          ( void * ) &xNTPPacket, sizeof( xNTPPacket ),
+//                                       rawData, sizeof rawData,
                                          0,
                                          ( const struct freertos_sockaddr * ) &( xIPAddressFound ),
                                          sizeof( xIPAddressFound ) );
@@ -634,8 +642,7 @@ static void prvNTPTask( void * pvParameters )
                                        ( unsigned ) FreeRTOS_ntohs( xAddress.sin_port ) ) );
 
                     FreeRTOS_sendto( xNTP_UDPSocket,
-                                     ( void * ) &xNTPPacket,
-                                     sizeof( xNTPPacket ),
+                                     ( void * ) &xNTPPacket, sizeof( xNTPPacket ),
                                      0, &( xAddress ),
                                      sizeof( xAddress ) );
                 }

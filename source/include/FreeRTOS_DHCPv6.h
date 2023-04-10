@@ -49,19 +49,20 @@
 /** @brief DHCPMessage_IPv6_t holds all data of a DHCP client. */
     typedef struct xDHCPMessage_IPv6
     {
-        uint8_t uxMessageType;         /**< The type of the last message received: Advertise / Confirm / Reply / Decline */
-        uint8_t ucTransactionID[ 3 ];  /**< ID of a transaction, shall be renewed when the transaction is ready ( and a reply has been received ). */
-        uint32_t ulTransactionID;      /**< The same as above but now as a long integer. */
-        IPv6_Address_t ucDNSServer;    /**< The IP-address of the DHCP server. */
-        uint32_t ulPreferredLifeTime;  /**< The preferred life time. */
-        uint32_t ulValidLifeTime;      /**< The valid life time. */
-        uint32_t ulTimeStamp;          /**< DUID Time: seconds since 1-1-2000. */
-        uint8_t ucprefixLength;        /**< The length of the prefix offered. */
-        uint8_t ucHasUID;              /**< When pdFALSE: a transaction ID must be created. */
-        IPv6_Address_t xPrefixAddress; /**< The prefix offered. */
-        IPv6_Address_t xIPAddress;     /**< The IP-address offered. */
-        ClientServerID_t xClientID;    /**< The UUID of the client. */
-        ClientServerID_t xServerID;    /**< The UUID of the server. */
+        uint8_t uxMessageType;                                            /**< The type of the last message received: Advertise / Confirm / Reply / Decline */
+        uint8_t ucTransactionID[ 3 ];                                     /**< ID of a transaction, shall be renewed when the transaction is ready ( and a reply has been received ). */
+        uint32_t ulTransactionID;                                         /**< The same as above but now as a long integer. */
+        IPv6_Address_t xDNSServers[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< The IP-address of the DHCP server. */
+        size_t uxDNSCount;
+        uint32_t ulPreferredLifeTime;                                     /**< The preferred life time. */
+        uint32_t ulValidLifeTime;                                         /**< The valid life time. */
+        uint32_t ulTimeStamp;                                             /**< DUID Time: seconds since 1-1-2000. */
+        uint8_t ucprefixLength;                                           /**< The length of the prefix offered. */
+        uint8_t ucHasUID;                                                 /**< When pdFALSE: a transaction ID must be created. */
+        IPv6_Address_t xPrefixAddress;                                    /**< The prefix offered. */
+        IPv6_Address_t xIPAddress;                                        /**< The IP-address offered. */
+        ClientServerID_t xClientID;                                       /**< The UUID of the client. */
+        ClientServerID_t xServerID;                                       /**< The UUID of the server. */
     } DHCPMessage_IPv6_t;
 
 /** @brief A struct describing an option. */

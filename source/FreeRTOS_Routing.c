@@ -112,6 +112,13 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
      * when the user chooses to use the default IP-address. */
     pxEndPoint->ipv4_defaults.ulIPAddress = ulIPAddress;
 
+    #if ( ipconfigUSE_DHCP != 0 )
+        if( pxEndPoint->bits.bWantDHCP == 0U )
+    #endif
+    {
+        pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
+    }
+
     /* The field 'ipv4_settings.ulIPAddress' will be set later on. */
 
     ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, sizeof( pxEndPoint->xMACAddress ) );
@@ -596,6 +603,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                          const IPv6_Address_t * pxDNSServerAddress,
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
         {
+            #if ( ipconfigUSE_DHCPv6 != 0 ) || ( ipconfigUSE_RA != 0 )
+                /* Assume that the endpoint has a static address assignment. */
+                BaseType_t xIsStatic = pdTRUE;
+            #endif
             configASSERT( pxIPAddress != NULL );
             configASSERT( ucMACAddress != NULL );
             configASSERT( pxEndPoint != NULL );
@@ -625,6 +636,27 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             ( void ) memcpy( &( pxEndPoint->ipv6_defaults ), &( pxEndPoint->ipv6_settings ), sizeof( pxEndPoint->ipv6_defaults ) );
 
             ( void ) memcpy( pxEndPoint->ipv6_defaults.xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+            #if ( ipconfigUSE_DHCPv6 != 0 ) || ( ipconfigUSE_RA != 0 )
+                xIsStatic = pdTRUE;
+                #if ( ipconfigUSE_DHCPv6 != 0 )
+                    if( pxEndPoint->bits.bWantDHCP != 0 )
+                    {
+                        xIsStatic = pdFALSE;
+                    }
+                #endif
+                #if ( ipconfigUSE_RA != 0 )
+                    if( pxEndPoint->bits.bWantRA != 0 )
+                    {
+                        xIsStatic = pdFALSE;
+                    }
+                #endif
+
+                if( xIsStatic == pdTRUE )
+            #endif /* ( ipconfigUSE_DHCPv6 != 0 ) || ( ipconfigUSE_RA != 0 ) */
+            {
+                ( void ) memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            }
 
             ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
             ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
@@ -1401,11 +1433,13 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
                 break;
         }
 
-        FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
-                                 pxAddress->ucBytes[ 0 ],
-                                 pxAddress->ucBytes[ 1 ],
-                                 pcName,
-                                 pxAddress->ucBytes ) );
+/*
+ *      FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
+ *                               pxAddress->ucBytes[ 0 ],
+ *                               pxAddress->ucBytes[ 1 ],
+ *                               pcName,
+ *                               pxAddress->ucBytes ) );
+ */
     #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
     return eResult;
