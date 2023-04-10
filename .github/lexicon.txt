@@ -981,6 +981,7 @@ pxreceivebuffer
 pxreplyendpoint
 pxresult
 pxresults
+pxteturngroupid
 pxright
 pxsegment
 pxset
