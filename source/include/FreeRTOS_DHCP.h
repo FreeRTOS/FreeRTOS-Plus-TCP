@@ -39,13 +39,6 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 
-#if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
-
-/* DHCP must be able to receive an options field of 312 bytes, the fixed
- * part of the DHCP packet is 240 bytes, and the IP/UDP headers take 28 bytes. */
-    #error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
-#endif
-
 /* Parameter widths in the DHCP packet. */
 #define dhcpCLIENT_HARDWARE_ADDRESS_LENGTH    16      /**< Client hardware address length.*/
 #define dhcpSERVER_HOST_NAME_LENGTH           64      /**< Server host name length. */

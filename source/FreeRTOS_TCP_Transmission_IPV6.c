@@ -53,7 +53,6 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
-#include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_ND.h"
 
 #include "FreeRTOS_TCP_IP.h"

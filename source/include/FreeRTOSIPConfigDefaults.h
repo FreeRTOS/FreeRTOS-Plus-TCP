@@ -2088,6 +2088,12 @@
     #error ipconfigUSE_DHCP should be pdFALSE or pdTRUE
 #endif
 
+#if ( ( ipconfigUSE_DHCP != ipconfigDISABLE ) && ( ipconfigNETWORK_MTU < 586U ) )
+/* DHCP must be able to receive an options field of 312 bytes, the fixed
+ * part of the DHCP packet is 240 bytes, and the IP/UDP headers take 28 bytes. */
+    #error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /*

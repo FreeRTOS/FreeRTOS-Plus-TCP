@@ -69,14 +69,13 @@
 /* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
 /* coverity[misra_c_2012_rule_20_10_violation] */
-#if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-    #define ASSERT_CONCAT_( a, b )    a ## b
-    #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
-    #define STATIC_ASSERT( e ) \
-    enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
+#define ASSERT_CONCAT_( a, b )    a ## b
+#define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
+#define STATIC_ASSERT( e ) \
+enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
 
-    STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
-#endif
+STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
+
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
 static List_t xFreeBuffersList;
 
