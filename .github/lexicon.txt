@@ -1894,7 +1894,7 @@ xqueuegenericsend
 xqueueitem
 xqueuereceive
 xradata
-xrandomok 
+xrandomok
 xrandomtaskhandle
 xrasolicitationrequest
 xready
