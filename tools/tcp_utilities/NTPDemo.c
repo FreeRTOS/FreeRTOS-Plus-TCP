@@ -495,11 +495,12 @@ static void prvReadTime( struct SNtpPacket * pxPacket )
 
 #endif /* ipconfigUSE_CALLBACKS != 0 */
 
-    static const uint8_t rawData[] = {
-        0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe7, 0xb2, 0xc5, 0x30, 0x10, 0xdf, 0xf9, 0xd0,
-    };
+static const uint8_t rawData[] =
+{
+    0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe7, 0xb2, 0xc5, 0x30, 0x10, 0xdf, 0xf9, 0xd0,
+};
 static void prvNTPTask( void * pvParameters )
 {
     BaseType_t xServerIndex = 3;
@@ -622,11 +623,11 @@ static void prvNTPTask( void * pvParameters )
                         FreeRTOS_printf( ( "Sending UDP message to %pip port %u\n",
                                            xIPAddressFound.sin_address.xIP_IPv6.ucBytes,
                                            FreeRTOS_ntohs( xIPAddressFound.sin_port ) ) );
-                        
-//                      FreeRTOS_inet_pton( FREERTOS_AF_INET6, "2606:4700:f1::1", ( void* )xIPAddressFound.sin_address.xIP_IPv6.ucBytes );
+
+/*                      FreeRTOS_inet_pton( FREERTOS_AF_INET6, "2606:4700:f1::1", ( void* )xIPAddressFound.sin_address.xIP_IPv6.ucBytes ); */
                         FreeRTOS_sendto( xNTP_UDPSocket,
                                          ( void * ) &xNTPPacket, sizeof( xNTPPacket ),
-//                                       rawData, sizeof rawData,
+/*                                       rawData, sizeof rawData, */
                                          0,
                                          ( const struct freertos_sockaddr * ) &( xIPAddressFound ),
                                          sizeof( xIPAddressFound ) );

@@ -376,7 +376,7 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( xEchoServerAddress.sin_family == FREERTOS_AF_INET6 )
                     {
-                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6) );
+                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6 ) );
 
                         if( pxEndPoint == NULL )
                         {

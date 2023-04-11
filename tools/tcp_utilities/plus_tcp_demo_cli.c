@@ -78,11 +78,11 @@ extern SemaphoreHandle_t xServerSemaphore;
 
 extern uint64_t ullGetHighResolutionTime( void );
 
-//uint64_t ullGetHighResolutionTime( void )
-//{
-//    /* In case you don't have a usec timer function. */
-//    return xTaskGetTickCount();
-//}
+/*uint64_t ullGetHighResolutionTime( void ) */
+/*{ */
+/*    / * In case you don't have a usec timer function. * / */
+/*    return xTaskGetTickCount(); */
+/*} */
 #define PING_TIMEOUT    100U
 
 typedef struct xCommandOptions
@@ -622,9 +622,9 @@ static void handle_arpq( char * pcBuffer )
                 FreeRTOS_freeaddrinfo( pxResult );
                 {
                     IPv46_Address_t xIP = { 0 };
-                    struct freertos_addrinfo* pxAddressInfo = NULL;
+                    struct freertos_addrinfo * pxAddressInfo = NULL;
                     BaseType_t rc = FreeRTOS_ProcessDNSCache( ptr, &xIP, 255, pdTRUE, &pxAddressInfo );
-                        
+
                     if( pxAddressInfo != NULL )
                     {
                         show_addressinfo( pxAddressInfo );
