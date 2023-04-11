@@ -13,6 +13,7 @@
 #include "FreeRTOS_IP_Private.h"
 
 
+
 /*
  * @brief Send a neighbour solicitation.
  * @param[in] pxIPAddress: A network buffer big enough to hold the ICMP packet.
@@ -32,6 +33,9 @@ eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                      MACAddress_t * const pxMACAddress,
                                      struct xNetworkEndPoint ** ppxEndPoint )
 {
+    memset( pxMACAddress, 0, sizeof( MACAddress_t ) );
+
+    return eARPCacheHit;
 }
 
 /**
