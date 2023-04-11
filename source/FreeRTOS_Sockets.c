@@ -466,14 +466,26 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
         /* Only Ethernet is currently supported. */
         #if ( (ipconfigUSE_IPv4 != 0) && (ipconfigUSE_IPv6 == 0) )
             {
+                if( xDomain != FREERTOS_AF_INET )
+                {
+                    xReturn = pdFAIL;
+                }
                 configASSERT( xDomain == FREERTOS_AF_INET );
             }
         #elif ( (ipconfigUSE_IPv4 == 0) && (ipconfigUSE_IPv6 != 0) )
             {
+                if( xDomain != FREERTOS_AF_INET6 )
+                {
+                    xReturn = pdFAIL;
+                }
                 configASSERT( xDomain == FREERTOS_AF_INET6 );
             } 
         #else
             {
+                if( ( xDomain != FREERTOS_AF_INET ) && ( xDomain != FREERTOS_AF_INET6 ) )
+                {
+                    xReturn = pdFAIL;
+                }
                 configASSERT( ( xDomain == FREERTOS_AF_INET ) || ( xDomain == FREERTOS_AF_INET6 ) );
             }
         #endif
@@ -678,15 +690,18 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 
             pxSocket->xEventGroup = xEventGroup;
 
-            #if ( ipconfigUSE_IPv6 != 0 )
-                if( xDomain == ( BaseType_t ) FREERTOS_AF_INET6 )
-                {
-                    pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
-                }
-                else
-            #endif /* ipconfigUSE_IPv6 != 0 */
+            switch (xDomain)
             {
-                pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case FREERTOS_AF_INET6:
+                        pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                
+                default:
+                    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                    break;
             }
 
             /* Initialise the socket's members.  The semaphore will be created
@@ -1256,15 +1271,26 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
 
         if( pxNetworkBuffer != NULL )
         {
-            if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-            {
-                uxPayloadOffset = xRecv_Update_IPv6( pxNetworkBuffer, pxSourceAddress );
-            }
-            else
-            {
-                uxPayloadOffset = xRecv_Update_IPv4( pxNetworkBuffer, pxSourceAddress );
-            }
 
+            switch (uxIPHeaderSizePacket( pxNetworkBuffer ))
+            {
+
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipSIZE_OF_IPv4_HEADER:
+                        uxPayloadOffset = xRecv_Update_IPv4( pxNetworkBuffer, pxSourceAddress );
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipSIZE_OF_IPv6_HEADER:
+                        uxPayloadOffset = xRecv_Update_IPv6( pxNetworkBuffer, pxSourceAddress );
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                
+                default:
+                    break;
+            }
+            
             xAddressLength = sizeof( struct freertos_sockaddr );
 
             if( pxSourceAddressLength != NULL )
@@ -1354,13 +1380,21 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
     int32_t lReturn = 0;
     IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
-    if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+    switch (pxDestinationAddress->sin_family)
     {
-        ( void ) xSend_UDP_Update_IPv6( pxNetworkBuffer, pxDestinationAddress );
-    }
-    else
-    {
-        ( void ) xSend_UDP_Update_IPv4( pxNetworkBuffer, pxDestinationAddress );
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case FREERTOS_AF_INET6:
+                ( void ) xSend_UDP_Update_IPv6( pxNetworkBuffer, pxDestinationAddress );
+                break;
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case FREERTOS_AF_INET4:
+            default:
+                ( void ) xSend_UDP_Update_IPv4( pxNetworkBuffer, pxDestinationAddress );
+                break;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
     }
 
     pxNetworkBuffer->xDataLength = uxTotalDataLength + uxPayloadOffset;
@@ -1526,15 +1560,24 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
     configASSERT( pxDestinationAddress != NULL );
     configASSERT( pvBuffer != NULL );
 
-    if( pxDestinationAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+    switch( pxDestinationAddress->sin_family )
     {
-        uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER );
-        uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
-    }
-    else
-    {
-        uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER );
-        uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case FREERTOS_AF_INET6:
+                uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER );
+                uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
+                break;
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case FREERTOS_AF_INET4:
+            default:
+                uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER );
+                uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
+                break;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+    
     }
 
     if( uxTotalDataLength <= ( size_t ) uxMaxPayloadLength )
@@ -1613,15 +1656,22 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 
         if( pxAddress != NULL )
         {
-            if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+            switch (pxAddress->sin_family)
             {
-                ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
-                pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
-            }
-            else
-            {
-                pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
-                pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+            #if (ipconfigUSE_IPv6 != 0)
+                case FREERTOS_AF_INET6:
+                    (void)memcpy(pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof(pxSocket->xLocalAddress.xIP_IPv6.ucBytes));
+                    pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            #if (ipconfigUSE_IPv4 != 0)
+                case FREERTOS_AF_INET4:
+                default:
+                    pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl(pxAddress->sin_address.ulIP_IPv4);
+                    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             }
 
             pxSocket->usLocalPort = FreeRTOS_ntohs( pxAddress->sin_port );
@@ -1696,18 +1746,25 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
          * mostly used for logging and debugging purposes */
         pxSocket->usLocalPort = FreeRTOS_ntohs( pxAddress->sin_port );
 
-        if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
+            {
+                pxSocket->xLocalAddress.ulIP_IPv4 = 0U;
+                ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
+            }
+            else
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         {
-            pxSocket->xLocalAddress.ulIP_IPv4 = 0U;
-            ( void ) memcpy( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
-        }
-        else if( pxAddress->sin_address.ulIP_IPv4 != FREERTOS_INADDR_ANY )
-        {
-            pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_address.ulIP_IPv4, 7 );
-        }
-        else
-        {
-            /* Place holder, do nothing, MISRA compliance */
+            #if ( ipconfigUSE_IPv4 != 0 )
+                if( pxAddress->sin_address.ulIP_IPv4 != FREERTOS_INADDR_ANY )
+                {
+                    pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_address.ulIP_IPv4, 7 );
+                }
+                else
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+            {
+                /* Place holder, do nothing, MISRA compliance */
+            }
         }
 
         if( pxSocket->pxEndPoint != NULL )
