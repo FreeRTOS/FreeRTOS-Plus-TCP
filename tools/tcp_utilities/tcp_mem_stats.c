@@ -49,7 +49,6 @@
 
 #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
     #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
-    #pragma warning "ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?"
 #endif
 
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
