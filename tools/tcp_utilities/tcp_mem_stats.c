@@ -1,6 +1,8 @@
 /*
- * FreeRTOS+TCP V2.3.1
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,8 +26,8 @@
  */
 
 /*
- * tcp_mem_stats.c
- * Used to create a CSV file with detailed information about the memory usage of FreeRTOS+TCP.
+ * @file tcp_mem_stats.c
+ * @brief To create a CSV file with detailed information about the memory usage of FreeRTOS+TCP.
  * See tools/tcp_mem_stats.md for further description.
  */
 
@@ -47,11 +49,12 @@
 
 #include "tcp_mem_stats.h"
 
-#ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
-    #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
-#endif
-
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
+
+    #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
+        #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
+        #pragma warning "ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?"
+    #endif
 
 /* When a streambuffer is allocated, 4 extra bytes will be reserved. */
 

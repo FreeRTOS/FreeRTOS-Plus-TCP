@@ -1,6 +1,8 @@
 /*
- * FreeRTOS+TCP V2.3.0
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -59,7 +61,7 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
     memset( pxMetrics, 0, sizeof *pxMetrics );
 
     pxMetrics->xInput = xInputCounters;
-    pxMetrics->XOutput = xOutputCounters;
+    pxMetrics->xOutput = xOutputCounters;
 
     if( !listLIST_IS_INITIALISED( &xBoundUDPSocketsList ) )
     {
@@ -151,8 +153,8 @@ void vShowMetrics( const MetricsType_t * pxMetrics )
                        pxMetrics->xInput.uxPacketCount,
                        pxMetrics->xInput.uxByteCount ) );
     FreeRTOS_printf( ( "    Output : %5lu packets, %5lu bytes\n",
-                       pxMetrics->XOutput.uxPacketCount,
-                       pxMetrics->XOutput.uxByteCount ) );
+                       pxMetrics->xOutput.uxPacketCount,
+                       pxMetrics->xOutput.uxByteCount ) );
 
     #if ( ipconfigUSE_TCP == 1 )
         {

@@ -1,6 +1,8 @@
 /*
- * FreeRTOS+TCP V2.3.1
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,11 +24,6 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
-
-/*
- * tcp_mem_stats.h
- */
-
 
 #ifndef TCP_MEM_STATS_H
 
