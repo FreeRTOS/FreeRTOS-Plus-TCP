@@ -1188,7 +1188,7 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
 
                if( usStatus != 0U )
                {
-				   /* A status of 2 means: NoAddrsAvail. (RFC 3315 - sec 24.4). */
+                   /* A status of 2 means: NoAddrsAvail. (RFC 3315 - sec 24.4). */
                    pxMessage->xHasError = pdTRUE_UNSIGNED;
                }
            }
