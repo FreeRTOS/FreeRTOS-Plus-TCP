@@ -1177,7 +1177,7 @@
             macinit.DestinationAddrFilter = ETH_DESTINATIONADDRFILTER_NORMAL;
             macinit.PromiscuousMode = ETH_PROMISCUOUS_MODE_DISABLE;
             /* Allow all multicast addresses while testing. */
-/*          macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_PERFECT; */
+            /* macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_PERFECT; */
             macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_NONE;
             macinit.UnicastFramesFilter = ETH_UNICASTFRAMESFILTER_PERFECT;
             macinit.HashTableHigh = 0x0uL;

@@ -877,7 +877,6 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
                            pxEndPoint->xMACAddress.ucBytes[ 4 ],
                            pxEndPoint->xMACAddress.ucBytes[ 5 ] ) );
 
-        /* Remove compiler warnings if configASSERT() is not defined. */
         ( void ) xReturn;
     }
     else
@@ -1187,9 +1186,9 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                    FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
                }
 
-               /* In case FreeRTOS_printf is not defined. */
-               if( usStatus == 2U )
+               if( usStatus != 0U )
                {
+				   /* A status of 2 means: NoAddrsAvail. (RFC 3315 - sec 24.4). */
                    pxMessage->xHasError = pdTRUE_UNSIGNED;
                }
            }
