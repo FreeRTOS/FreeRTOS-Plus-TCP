@@ -445,7 +445,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
 
     #if ( ipconfigUSE_DHCP_HOOK != 0 )
         /* Ask the user if a DHCP request is required. */
-        eAnswer = xApplicationDHCPHook( eDHCPPhasePreRequest, EP_DHCPData.ulOfferedIPAddress );
+        eAnswer = xApplicationDHCPHook_IPv6( eDHCPPhasePreRequest, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
 
         if( eAnswer == eDHCPContinue )
     #endif /* ipconfigUSE_DHCP_HOOK */
@@ -537,7 +537,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
         case eWaitingSendFirstDiscover:
             /* Ask the user if a DHCP discovery is required. */
             #if ( ipconfigUSE_DHCP_HOOK != 0 )
-                eAnswer = xApplicationDHCPHook( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress );
+                eAnswer = xApplicationDHCPHook_IPv6( eDHCPPhasePreDiscover, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
 
                 if( eAnswer == eDHCPContinue )
             #endif /* ipconfigUSE_DHCP_HOOK */
@@ -562,7 +562,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
                 {
                     if( eAnswer == eDHCPUseDefaults )
                     {
-                        ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
+                        ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
                     }
 
                     /* The user indicates that the DHCP process does not continue. */
@@ -777,7 +777,7 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
             FreeRTOS_debug_printf( ( "vDHCPv6ProcessEndPoint: Giving up\n" ) );
 
             /* xGivingUp became true either because of a time-out, or because
-             * xApplicationDHCPHook() returned another value than 'eDHCPContinue',
+             * xApplicationDHCPHook_IPv6() returned another value than 'eDHCPContinue',
              * meaning that the conversion is cancelled from here. */
 
             /* Revert to static IP address. */
@@ -1055,19 +1055,8 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
 
                 struct freertos_sockaddr * pxAddress = &( xAddress );
 
-                static unsigned skipCount[ 2 ] = { 0, 0 };
-                int skipIndex = ( ucMessageType == DHCPv6_message_Type_Solicit ) ? 0 : 1;
-
-                if( skipCount[ skipIndex ] > 0U )
-                {
-                    skipCount[ skipIndex ]--;
-                    FreeRTOS_printf( ( "DHCP Skip sending request %u. Skip[%d] %d\n", ucMessageType, skipIndex, skipCount[ skipIndex ] ) );
-                }
-                else
-                {
-                    FreeRTOS_printf( ( "DHCP Sending request %u.\n", ucMessageType ) );
-                    ( void ) FreeRTOS_sendto( EP_DHCPData.xDHCPSocket, ( const void * ) xMessage.ucContents, xMessage.uxIndex, 0, pxAddress, sizeof xAddress );
-                }
+                FreeRTOS_printf( ( "DHCP Sending request %u.\n", ucMessageType ) );
+                ( void ) FreeRTOS_sendto( EP_DHCPData.xDHCPSocket, ( const void * ) xMessage.ucContents, xMessage.uxIndex, 0, pxAddress, sizeof xAddress );
             }
         } /* if( xBitConfig_init( &( xMessage ), NULL, 256 ) == pdTRUE ) */
 

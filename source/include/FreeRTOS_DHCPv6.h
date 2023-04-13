@@ -72,10 +72,23 @@
         size_t uxStart;        /**<  The position in xMessage where the option starts. */
     } DHCPOptionSet_t;
 
+    struct xNetworkEndPoint;
+
 /* Returns the current state of a DHCP process. */
     eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint );
 
-    struct xNetworkEndPoint;
+
+#if ( ipconfigUSE_DHCP_HOOK != 0 )
+
+/* Prototype of the hook (or callback) function that must be provided by the
+ * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
+ * usage information:
+ * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
+ */
+	eDHCPCallbackAnswer_t xApplicationDHCPHook_IPv6( eDHCPCallbackPhase_t eDHCPPhase,
+	                                                 struct xNetworkEndPoint * pxEndPoint,
+	                                                 IPv6_Address_t * pxIPAddress );
+#endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
 /*
  * NOT A PUBLIC API FUNCTION.
