@@ -68,10 +68,10 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
 
-/* The MDNS IPv6 address is ff02::1:3 */
+/* The MDNS IPv6 address is ff02::fb */
     extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
 
-/* The MDNS IPv6 MAC address is 33:33:00:01:00:03 */
+/* The MDNS IPv6 MAC address is 33:33:00:00:00:fb */
     extern const MACAddress_t xMDNS_MACAddressIPv6;
 #endif /* ipconfigUSE_MDNS */
 

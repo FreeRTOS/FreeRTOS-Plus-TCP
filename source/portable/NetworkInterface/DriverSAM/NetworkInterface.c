@@ -189,7 +189,7 @@ static uint32_t prvEMACRxPoll( void );
 
 static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                 NetworkBufferDescriptor_t * const pxBuffer,
+                                                 NetworkBufferDescriptor_t * const pxDescriptor,
                                                  BaseType_t bReleaseAfterSend );
 static BaseType_t prvSAM_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
@@ -764,6 +764,15 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     }
 
     #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+        #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+        {
+            /* Receive IGMP queries by allowing the MAC address that corresponds to 224.0.0.1 */
+            MACAddress_t xIGMP_MacAddress;
+            vSetMultiCastIPv4MacAddress( igmpIGMP_IP_ADDR, &xIGMP_MacAddress );
+            prvAddAllowedMACAddress( pxInterface, xIGMP_MacAddress.ucBytes );
+        }
+        #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
         #if ( ipconfigUSE_LLMNR == ipconfigENABLE )
             prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddress.ucBytes );
         #endif /* ipconfigUSE_LLMNR */
