@@ -122,20 +122,23 @@
 /** @brief The following define is temporary and serves to make the /single source
  * code more similar to the /multi version. */
 
-#define EP_DHCPData                 pxEndPoint->xDHCPData
+#define EP_DHCPData                    pxEndPoint->xDHCPData
 /** @brief Macro to access the IPv6 settings from the pxEndPoint */
-#define EP_IPv6_SETTINGS            pxEndPoint->ipv6_settings
+#define EP_IPv6_SETTINGS               pxEndPoint->ipv6_settings
 
 /** @brief If a lease time is not received, use the default of two days.  48 hours in ticks.
  * Do not use the macro pdMS_TO_TICKS() here as integer overflow can occur. */
-#define dhcpv6DEFAULT_LEASE_TIME    ( ( 48U * 60U * 60U ) * configTICK_RATE_HZ )
+#define dhcpv6DEFAULT_LEASE_TIME       ( ( 48U * 60U * 60U ) * configTICK_RATE_HZ )
 
 /** @brief Don't allow the lease time to be too short. */
-#define dhcpv6MINIMUM_LEASE_TIME    ( pdMS_TO_TICKS( 60000U ) )                  /* 60 seconds in ticks. */
+#define dhcpv6MINIMUM_LEASE_TIME       ( pdMS_TO_TICKS( 60000U ) )               /* 60 seconds in ticks. */
 
 /** @brief The function time() counts since 1-1-1970.  The DHCPv6 time-stamp however
  * uses a time stamp that had zero on 1-1-2000. */
-#define SECS_FROM_1970_TILL_2000    946684800U
+#define SECS_FROM_1970_TILL_2000       946684800U
+
+/** @brief The maximum size of send buffer. */
+#define DHCPv6_SEND_MAX_BUFFER_SIZE    ( 256 )
 
 /** @brief When a reply is received, some options are mandatory for this driver. */
 #define dhcpMANDATORY_OPTIONS                                      \
@@ -954,7 +957,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
         /* Not useful, but MISRA issues a mandatory warning. */
         ( void ) memset( &( xMessage ), 0, sizeof( xMessage ) );
 
-        if( xBitConfig_init( &( xMessage ), NULL, 256 ) == pdTRUE )
+        if( xBitConfig_init( &( xMessage ), NULL, DHCPv6_SEND_MAX_BUFFER_SIZE ) == pdTRUE )
         {
             switch( EP_DHCPData.eDHCPState )
             {
