@@ -3117,13 +3117,17 @@ BaseType_t FreeRTOS_inet_pton( BaseType_t xAddressFamily,
     /* Printable string to struct sockaddr. */
     switch( xAddressFamily )
     {
-        case FREERTOS_AF_INET:
-            xResult = FreeRTOS_inet_pton4( pcSource, pvDestination );
-            break;
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case FREERTOS_AF_INET:
+                xResult = FreeRTOS_inet_pton4( pcSource, pvDestination );
+                break;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-        case FREERTOS_AF_INET6:
-            xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
-            break;
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case FREERTOS_AF_INET6:
+                xResult = FreeRTOS_inet_pton6( pcSource, pvDestination );
+                break;
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         default:
             xResult = -pdFREERTOS_ERRNO_EAFNOSUPPORT;
@@ -3159,13 +3163,17 @@ const char * FreeRTOS_inet_ntop( BaseType_t xAddressFamily,
     /* Printable struct sockaddr to string. */
     switch( xAddressFamily )
     {
-        case FREERTOS_AF_INET4:
-            pcResult = FreeRTOS_inet_ntop4( pvSource, pcDestination, uxSize );
-            break;
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case FREERTOS_AF_INET4:
+                pcResult = FreeRTOS_inet_ntop4( pvSource, pcDestination, uxSize );
+                break;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-        case FREERTOS_AF_INET6:
-            pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
-            break;
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case FREERTOS_AF_INET6:
+                pcResult = FreeRTOS_inet_ntop6( pvSource, pcDestination, uxSize );
+                break;
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         default:
             /* errno should be set to pdFREERTOS_ERRNO_EAFNOSUPPORT. */
@@ -5253,13 +5261,23 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         BaseType_t xResult;
 
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        switch(pxSocket->bits.bIsIPv6)
         {
-            xResult = ( BaseType_t ) ipTYPE_IPv6;
-        }
-        else
-        {
-            xResult = ( BaseType_t ) ipTYPE_IPv4;
+
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE_UNSIGNED:
+                    xResult = ( BaseType_t ) ipTYPE_IPv4;
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE_UNSIGNED:
+                    xResult = ( BaseType_t ) ipTYPE_IPv6;
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            
+            default:
+                break;
         }
 
         return xResult;
