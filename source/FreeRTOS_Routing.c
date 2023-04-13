@@ -143,44 +143,47 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkInterface_t * pxIterator = NULL;
 
-        /* This interface will be added to the end of the list of interfaces, so
-         * there is no pxNext yet. */
-        pxInterface->pxNext = NULL;
-
-        /* The end point for this interface has not yet been set. */
-        /*_RB_ As per other comments, why not set the end point at the same time? */
-        pxInterface->pxEndPoint = NULL;
-
-        if( pxNetworkInterfaces == NULL )
+        if( pxInterface != NULL )
         {
-            /* No other interfaces are set yet, so this is the first in the list. */
-            pxNetworkInterfaces = pxInterface;
-        }
-        else
-        {
-            /* Other interfaces are already defined, so iterate to the end of the
-             * list. */
+            /* This interface will be added to the end of the list of interfaces, so
+            * there is no pxNext yet. */
+            pxInterface->pxNext = NULL;
 
-            /*_RB_ Question - if ipconfigMULTI_INTERFACE is used to define the
-             * maximum number of interfaces, would it be more efficient to have an
-             * array of interfaces rather than a linked list of interfaces? */
-            pxIterator = pxNetworkInterfaces;
+            /* The end point for this interface has not yet been set. */
+            /*_RB_ As per other comments, why not set the end point at the same time? */
+            pxInterface->pxEndPoint = NULL;
 
-            for( ; ; )
+            if( pxNetworkInterfaces == NULL )
             {
-                if( pxIterator == pxInterface )
-                {
-                    /* This interface was already added. */
-                    break;
-                }
+                /* No other interfaces are set yet, so this is the first in the list. */
+                pxNetworkInterfaces = pxInterface;
+            }
+            else
+            {
+                /* Other interfaces are already defined, so iterate to the end of the
+                * list. */
 
-                if( pxIterator->pxNext == NULL )
-                {
-                    pxIterator->pxNext = pxInterface;
-                    break;
-                }
+                /*_RB_ Question - if ipconfigMULTI_INTERFACE is used to define the
+                * maximum number of interfaces, would it be more efficient to have an
+                * array of interfaces rather than a linked list of interfaces? */
+                pxIterator = pxNetworkInterfaces;
 
-                pxIterator = pxIterator->pxNext;
+                for( ; ; )
+                {
+                    if( pxIterator == pxInterface )
+                    {
+                        /* This interface was already added. */
+                        break;
+                    }
+
+                    if( pxIterator->pxNext == NULL )
+                    {
+                        pxIterator->pxNext = pxInterface;
+                        break;
+                    }
+
+                    pxIterator = pxIterator->pxNext;
+                }
             }
         }
 
@@ -621,10 +624,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxNetPrefix->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             }
 
+            ( void ) memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
             /* Copy the current values to the default values. */
             ( void ) memcpy( &( pxEndPoint->ipv6_defaults ), &( pxEndPoint->ipv6_settings ), sizeof( pxEndPoint->ipv6_defaults ) );
-
-            ( void ) memcpy( pxEndPoint->ipv6_defaults.xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
             ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
             ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
