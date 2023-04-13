@@ -99,7 +99,7 @@
                          struct xNetworkEndPoint * pxEndPoint );
 
     #ifdef __cplusplus
-}         /* extern "C" */
+        } /* extern "C" */
     #endif
 
 /* The application should supply the following time-function.

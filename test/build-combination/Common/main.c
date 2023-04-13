@@ -317,7 +317,15 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
         /* Provide a stub for this function. */
         return eDHCPContinue;
     }
-#endif
+
+    eDHCPCallbackAnswer_t xApplicationDHCPHook_IPv6( eDHCPCallbackPhase_t eDHCPPhase,
+                                                     struct xNetworkEndPoint * pxEndPoint,
+                                                     IPv6_Address_t * pxIPAddress )
+    {
+        /* Provide a stub for this function. */
+        return eDHCPContinue;
+    }
+#endif /* if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) ) */
 
 #if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
 
