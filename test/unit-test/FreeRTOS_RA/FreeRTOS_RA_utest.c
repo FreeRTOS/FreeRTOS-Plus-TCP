@@ -56,12 +56,26 @@
 /** The default value for the IPv6-field 'ucHopLimit'. */
 #define raDEFAULT_HOP_LIMIT                255U
 
-#define ndICMP_PREFIX_INFORMATION           3
+/** @brief Options that can be sent in a ROuter Advertisement packet. */
+    #define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
+    #define ndICMP_TARGET_LINK_LAYER_ADDRESS    2
+    #define ndICMP_PREFIX_INFORMATION           3
+    #define ndICMP_REDIRECTED_HEADER            4
+    #define ndICMP_MTU_OPTION                   5
 
 
-#define uxHeaderBytesRS ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) )
-#define uxHeaderBytesRA ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterAdvertisement_IPv6_t ) )
+#define uxHeaderBytesRS                    ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) )
+#define uxHeaderBytesRA                    ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterAdvertisement_IPv6_t ) )
 
+
+/* ===================================================
+ *           Test for vNDSendRouterSolicitation
+ * =================================================== */
+
+/**
+ * @brief This function verify sending an Router Solicitation ICMPv6 
+ *        message With a NULL Endpoint.
+ */
 void test_vNDSendRouterSolicitation_Null_Endpoint( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -73,6 +87,10 @@ void test_vNDSendRouterSolicitation_Null_Endpoint( void )
     catch_assert( vNDSendRouterSolicitation( pxNetworkBuffer, pxIPAddress ) );
 }
 
+/**
+ * @brief This function verify sending an Router Solicitation ICMPv6 message
+ *        With a bIPv6 not set in Endpoint.
+ */
 void test_vNDSendRouterSolicitation_False_bIPv6( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -86,7 +104,47 @@ void test_vNDSendRouterSolicitation_False_bIPv6( void )
     catch_assert( vNDSendRouterSolicitation( pxNetworkBuffer, pxIPAddress ) );
 }
 
-void test_vNDSendRouterSolicitation_HappyPath2( void )
+/**
+ * @brief This function verify sending an Router Solicitation ICMPv6 message
+ *        And RA was able to find a Link-local address.
+ */
+void test_vNDSendRouterSolicitation_xHasLocal( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    NetworkEndPoint_t xEndPoint;
+    IPv6_Address_t xIPAddress;
+    ICMPPacket_IPv6_t * pxICMPPacket, xICMPPacket;
+    IPHeader_IPv6_t xIPHeader;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxICMPPacket = &xICMPPacket;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRS - 1;
+    xNetworkBuffer2.xDataLength = uxHeaderBytesRS + 1;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    xEndPoint.bits.bIPv6 = 1;
+    pxICMPPacket->xIPHeader = xIPHeader;
+
+    memset( &xEndPoint.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
+    memset( &pxICMPPacket->xIPHeader, 0, sizeof( IPHeader_IPv6_t ) );
+
+    /* Link-Local unicast address prefixed FE80::/10 */
+    xEndPoint.ipv6_settings.xIPAddress.ucBytes[ 0 ] = 0xfeU;
+    xEndPoint.ipv6_settings.xIPAddress.ucBytes[ 1 ] = 0x80U;
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+
+    vNDSendRouterSolicitation( pxNetworkBuffer, &xIPAddress );
+}
+
+/**
+ * @brief This function verify sending an Router Solicitation ICMPv6 message
+ *        With a pxDescriptor being NULL.
+ */
+void test_vNDSendRouterSolicitation_NullDesc( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
     NetworkEndPoint_t xEndPoint;
@@ -114,7 +172,11 @@ void test_vNDSendRouterSolicitation_HappyPath2( void )
     vNDSendRouterSolicitation( pxNetworkBuffer, &xIPAddress );
 }
 
-void test_vNDSendRouterSolicitation_HappyPath1( void )
+/**
+ * @brief This function verify succeffully sending an
+ *        ICMPv6 message of the type: Router Solicitation
+ */
+void test_vNDSendRouterSolicitation_HappyPath( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
@@ -146,6 +208,11 @@ void test_vNDSendRouterSolicitation_HappyPath1( void )
     TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.ucNextHeader, ipPROTOCOL_ICMP_IPv6 );
     TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.ucHopLimit, raDEFAULT_HOP_LIMIT );
 }
+
+/* ===================================================
+ *           Test for vReceiveNA
+ * =================================================== */
+
 
 void test_vReceiveNA_NoEndPoint( void )
 {
@@ -214,18 +281,31 @@ void test_vReceiveNA_bIPAddressInUse( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse, 1 );
 }
 
+
+/* ===================================================
+ *           Test for vReceiveRA
+ * =================================================== */
+
+
+/**
+ * @brief This function verify the handling
+ *        of incorrect data length.
+ */
 void test_vReceiveRA_IncorrectDataLength( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
 
     pxNetworkBuffer = &xNetworkBuffer;
+    /* Setting incorrect data length */
     pxNetworkBuffer->xDataLength = uxHeaderBytesRA - 1;
 
     vReceiveRA( pxNetworkBuffer );
-
 }
 
-/* Test to check that prefix can not be reached by the router indicating Advertisement Lifetime as zero. */
+/**
+ * @brief This function verify the handling
+ *        of Advertisement Lifetime as zero. 
+ */
 void test_vReceiveRA_ZeroAdvertisementLifetime( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -240,106 +320,269 @@ void test_vReceiveRA_ZeroAdvertisementLifetime( void )
     pxAdvertisement->usLifetime = 0;
 
     vReceiveRA( pxNetworkBuffer );
-
 }
 
-/* NULL ICMP prefix option pointer as no x`options field present */
+/**
+ * @brief This function verify NULL ICMP prefix
+ *        option pointer as no options field.
+ */
 void test_vReceiveRA_NULL_ICMPprefix( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->xDataLength = uxHeaderBytesRA;
 
     vReceiveRA( pxNetworkBuffer );
-
 }
 
+/**
+ * @brief This function verify ICMP prefix option with
+ *        options present but data length less than the 
+ *        required data length by option field.
+ */
 void test_vReceiveRA_NULL_ICMPprefix_NotEnoughBytes( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    size_t uxIndex = 0U,  uxNeededSize, uxOptionsLength;
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     uint8_t * pucBytes;
     ICMPPrefixOption_IPv6_t * pxPrefixOption;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    /* Data Length to be less than expected */
     pxNetworkBuffer->xDataLength = uxHeaderBytesRA + 10;
     uxNeededSize = uxHeaderBytesRA;
-    
+
     pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
-    /* For Options */
+    /* Number of Options present - 8-byte blocks. */
     uxOptionsLength = 2;
     pxPrefixOption->ucLength = uxOptionsLength;
 
     vReceiveRA( pxNetworkBuffer );
-
 }
 
-void test_vReceiveRA_Valid_ICMPprefix( void )
+/**
+ * @brief This function verify ICMP prefix option with
+ *        options present as ndICMP_SOURCE_LINK_LAYER_ADDRESS.
+ */
+void test_vReceiveRA_Valid_ICMPprefix_Option1( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    size_t uxIndex = 0U,  uxNeededSize, uxOptionsLength;
+    NetworkInterface_t xInterface; 
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
     NetworkEndPoint_t xEndPoint;
     ICMPPrefixOption_IPv6_t * pxPrefixOption;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
-    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + sizeof(ICMPPrefixOption_IPv6_t);
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
     uxNeededSize = uxHeaderBytesRA;
-    
+
     pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
-    memset( pxPrefixOption, 1, sizeof(ICMPPrefixOption_IPv6_t));
+    pxPrefixOption->ucType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify ICMP prefix option with
+ *        options present as ndICMP_TARGET_LINK_LAYER_ADDRESS.
+ */
+void test_vReceiveRA_Valid_ICMPprefix_Option2( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkInterface_t xInterface; 
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
+    uint8_t * pucBytes;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
+    uxNeededSize = uxHeaderBytesRA;
+
+    pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption->ucType = ndICMP_TARGET_LINK_LAYER_ADDRESS;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify ICMP prefix option with
+ *        options present as ndICMP_PREFIX_INFORMATION.
+ */
+void test_vReceiveRA_Valid_ICMPprefix_Option3( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkInterface_t xInterface; 
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
+    uint8_t * pucBytes;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
+    uxNeededSize = uxHeaderBytesRA;
+
+    pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+    
 
     xEndPoint.bits.bWantRA = pdFALSE_UNSIGNED;
-
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     vReceiveRA( pxNetworkBuffer );
-
 }
 
+
+/**
+ * @brief This function verify ICMP prefix option with
+ *        options present as ndICMP_TARGET_LINK_LAYER_ADDRESS.
+ */
+void test_vReceiveRA_Valid_ICMPprefix_Option4( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkInterface_t xInterface; 
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
+    uint8_t * pucBytes;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
+    uxNeededSize = uxHeaderBytesRA;
+
+    pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption->ucType = ndICMP_REDIRECTED_HEADER;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify ICMP prefix option with
+ *        options present as ndICMP_TARGET_LINK_LAYER_ADDRESS.
+ */
+void test_vReceiveRA_Valid_ICMPprefix_Option5( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkInterface_t xInterface; 
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
+    uint8_t * pucBytes;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
+    uxNeededSize = uxHeaderBytesRA;
+
+    pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption->ucType = ndICMP_MTU_OPTION;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+
+    ulChar2u32_ExpectAnyArgsAndReturn( 0x12345678 );
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify ICMP prefix option with
+ *        options present as ndICMP_TARGET_LINK_LAYER_ADDRESS.
+ */
+void test_vReceiveRA_Valid_ICMPprefix_IncorrectOption( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkInterface_t xInterface; 
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
+    uint8_t * pucBytes;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
+    uxNeededSize = uxHeaderBytesRA;
+
+    pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption->ucType = 0;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify vReceiveRA success case.
+ */
 void test_vReceiveRA_vRAProcess( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    size_t uxIndex = 0U,  uxNeededSize, uxOptionsLength;
+    NetworkInterface_t xInterface; 
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
-    NetworkEndPoint_t xEndPoint;
-    ICMPPrefixOption_IPv6_t *pxPrefixOption;
-    IPv6_Address_t xIPAddress;
-
-    /* Setting IPv6 address as "fe80::7009" */
-    memset( &xIPAddress, 0, sizeof( IPv6_Address_t ) );
-    xIPAddress.ucBytes[ 0 ] = 254;
-    xIPAddress.ucBytes[ 1 ] = 128;
-    xIPAddress.ucBytes[ 14 ] = 112;
-    xIPAddress.ucBytes[ 15 ] = 9;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
-    memcpy(&xICMPPacket.xIPHeader.xSourceAddress.ucBytes, &xIPAddress, ipSIZE_OF_IPv6_ADDRESS);
-    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + sizeof(ICMPPrefixOption_IPv6_t);
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
     uxNeededSize = uxHeaderBytesRA;
-    pucBytes = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
+    pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
 
     pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
-    memset( pxPrefixOption, 1, sizeof(ICMPPrefixOption_IPv6_t));
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+    
 
     xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
     xEndPoint.xRAData.eRAState = eRAStateWait;
 
-
-    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
@@ -347,31 +590,223 @@ void test_vReceiveRA_vRAProcess( void )
 
     vReceiveRA( pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( pxPrefixOption->ucPrefixLength, xEndPoint.ipv6_settings.uxPrefixLength );
-    TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bRouterReplied, pdTRUE_UNSIGNED );
-    TEST_ASSERT_EQUAL( xEndPoint.xRAData.ulPreferredLifeTime, pxPrefixOption->ulPreferredLifeTime );
-    TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse , pdFALSE_UNSIGNED );
-    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateIPWait);
+
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv6_settings.uxPrefixLength , pxPrefixOption->ucPrefixLength);
+    TEST_ASSERT_EQUAL(pxEndPoint->xRAData.bits.bRouterReplied , pdTRUE_UNSIGNED);
+    TEST_ASSERT_EQUAL(pxEndPoint->xRAData.uxRetryCount , 0U);
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.ulPreferredLifeTime , FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ));
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.bits.bIPAddressInUse , pdFALSE_UNSIGNED);
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.eRAState , eRAStateIPWait);
 }
 
-/* Verify RA state machine with RA wait state = eRAStateApply {Set during RA_Init} 
-   Failed to get network buffer - pxGetNetworkBufferWithDescriptor
-*/
-void test_vRAProcess_eRAStateApply1(void)
+/* This function verify RA state machine with RA wait state = eRAStateApply {Set during RA_Init}
+ * And failed to get network buffer - pxGetNetworkBufferWithDescriptor
+ */
+void test_vRAProcess_eRAStateApply1( void )
 {
-    NetworkEndPoint_t xEndPoint, *pxEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
     IPv6_Address_t xIPAddress;
 
     pxEndPoint = &xEndPoint;
 
-    memset(pxEndPoint , 0, sizeof(NetworkEndPoint_t));
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
     vDHCP_RATimerReload_Ignore();
 
+    /* pdTRUE for vRAProcessInit */
+    vRAProcess( pdTRUE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateWait );
+}
+
+/* This function verify RA state machine with RA wait state = eRAStateApply {Set during RA_Init}
+ * And Send an ICMPv6 message of the type: Router Solicitation.
+ */
+void test_vRAProcess_eRAStateApply2( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+    ICMPPacket_IPv6_t * pxICMPPacket, xICMPPacket;
+
+    pxEndPoint = &xEndPoint;
+    pxNetworkBuffer = &xNetworkBuffer;
+
+    pxICMPPacket = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndPoint->bits.bIPv6 = 1;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxHeaderBytesRS, 0, &xNetworkBuffer );
+    vDHCP_RATimerReload_Ignore();
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    vReturnEthernetFrame_ExpectAnyArgs();
+
     /* pdFALSE for vRAProcessInit */
     vRAProcess( pdTRUE, &xEndPoint );
 
-    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateWait);
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateWait );
 }
 
+/* This function verify RA state machine with RA wait state = eRAStateWait.
+ */
+void test_vRAProcess_eRAStateWait( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxEndPoint->xRAData.eRAState = eRAStateWait;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    vDHCP_RATimerReload_Ignore();
+
+    /* pdFALSE Indicating vRAProcessInit is already done */
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateWait );
+}
+
+/* This function verify RA state machine with RA wait state = eRAStateWait.
+ * Router Solicitation has been sent, waited for a reply, but no came and
+ * the retry count becomes more that ipconfigRA_SEARCH_COUNT.
+ * */
+void test_vRAProcess_eRAStateWait_RetryExceed( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+    UBaseType_t retry = ( UBaseType_t ) ipconfigRA_SEARCH_COUNT;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxEndPoint->xRAData.eRAState = eRAStateWait;
+    pxEndPoint->xRAData.uxRetryCount = ( UBaseType_t ) ipconfigRA_SEARCH_COUNT;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    vDHCP_RATimerReload_Ignore();
+
+    /* pdFALSE Indicating vRAProcessInit is already done */
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.bits.bRouterReplied, pdFALSE_UNSIGNED );
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.uxRetryCount, 0U );
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateIPWait );
+}
+
+/* This function verify RA state machine with RA wait state = eRAStateIPWait.
+ * With bIPAddressInUse True which implies Another device has responded with the same IPv4 address.
+ */
+void test_vRAProcess_eRAStateIPWait_AddressInUse( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxEndPoint->xRAData.eRAState = eRAStateIPWait;
+    pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    vDHCP_RATimerReload_Ignore();
+
+    /* pdFALSE Indicating vRAProcessInit is already done */
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.uxRetryCount, 0U );
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateIPWait );
+}
+
+/* This function verify RA state machine with RA wait state = eRAStateIPWait,
+ * With retry.
+ */
+void test_vRAProcess_eRAStateIPWait_Retry( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxEndPoint->xRAData.eRAState = eRAStateIPWait;
+    pxEndPoint->xRAData.uxRetryCount = 0;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    vDHCP_RATimerReload_Ignore();
+
+    /* pdFALSE Indicating vRAProcessInit is already done */
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.uxRetryCount, 1U );
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateIPWait );
+}
+
+/* This function verify RA state machine with RA wait state = eRAStateIPWait.
+ * And Obtained configuration from a router.
+ */
+void test_vRAProcess_eRAStateIPWait_RA_SUCCESS( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxEndPoint->xRAData.eRAState = eRAStateIPWait;
+    pxEndPoint->xRAData.uxRetryCount = ipconfigRA_IP_TEST_COUNT;
+    /* Obtained configuration from a router. */
+    pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
+
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
+
+    /* pdFALSE Indicating vRAProcessInit is already done */
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateLease );
+}
+
+/* This function verify RA state machine with RA wait state = eRAStateIPWait.
+ * Using the default network parameters.
+ */
+void test_vRAProcess_eRAStateIPWait_UsingDefaultAddress( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxEndPoint->xRAData.eRAState = eRAStateIPWait;
+    pxEndPoint->xRAData.uxRetryCount = ipconfigRA_IP_TEST_COUNT;
+    /* Using the default network parameters. */
+    pxEndPoint->xRAData.bits.bRouterReplied = pdFALSE_UNSIGNED;
+
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
+
+    /* pdFALSE Indicating vRAProcessInit is already done */
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateFailed );
+}
