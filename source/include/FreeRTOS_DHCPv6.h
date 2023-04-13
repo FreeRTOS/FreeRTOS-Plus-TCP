@@ -78,17 +78,17 @@
     eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint );
 
 
-#if ( ipconfigUSE_DHCP_HOOK != 0 )
+    #if ( ipconfigUSE_DHCP_HOOK != 0 )
 
 /* Prototype of the hook (or callback) function that must be provided by the
  * application if ipconfigUSE_DHCP_HOOK is set to 1.  See the following URL for
  * usage information:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
  */
-	eDHCPCallbackAnswer_t xApplicationDHCPHook_IPv6( eDHCPCallbackPhase_t eDHCPPhase,
-	                                                 struct xNetworkEndPoint * pxEndPoint,
-	                                                 IPv6_Address_t * pxIPAddress );
-#endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
+        eDHCPCallbackAnswer_t xApplicationDHCPHook_IPv6( eDHCPCallbackPhase_t eDHCPPhase,
+                                                         struct xNetworkEndPoint * pxEndPoint,
+                                                         IPv6_Address_t * pxIPAddress );
+    #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
 /*
  * NOT A PUBLIC API FUNCTION.
@@ -99,7 +99,7 @@
                          struct xNetworkEndPoint * pxEndPoint );
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 /* The application should supply the following time-function.
