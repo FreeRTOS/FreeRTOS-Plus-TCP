@@ -2059,14 +2059,23 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            if( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType == ipIPv6_FRAME_TYPE )
+            switch(( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType)
             {
-                /* To do */
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipIPv6_FRAME_TYPE:
+                        /* To do */
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipIPv4_FRAME_TYPE:
+                    default:
+                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             }
-            else
-            {
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
-            }
+
         }
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
@@ -2123,18 +2132,20 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
     pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-    if( ENDPOINT_IS_IPv6( pxEndPoint ) )
-    {
-        for( ;
-             pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+    #if ( ipconfigUSE_IPv6 != 0 )
+        if( ENDPOINT_IS_IPv6( pxEndPoint ) )
         {
-            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+            for( ;
+                pxEndPoint != NULL;
+                pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                break;
+                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                {
+                    break;
+                }
             }
         }
-    }
+    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     /* Returns the IP address of the NIC. */
     if( pxEndPoint == NULL )
