@@ -52,28 +52,31 @@
 #include "FreeRTOS_RA_stubs.c"
 
 /** The default value for the IPv6-field 'ucVersionTrafficClass'. */
-#define raDEFAULT_VERSION_TRAFFIC_CLASS    0x60U
+#define raDEFAULT_VERSION_TRAFFIC_CLASS     0x60U
 /** The default value for the IPv6-field 'ucHopLimit'. */
-#define raDEFAULT_HOP_LIMIT                255U
+#define raDEFAULT_HOP_LIMIT                 255U
 
 /** @brief Options that can be sent in a ROuter Advertisement packet. */
-    #define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
-    #define ndICMP_TARGET_LINK_LAYER_ADDRESS    2
-    #define ndICMP_PREFIX_INFORMATION           3
-    #define ndICMP_REDIRECTED_HEADER            4
-    #define ndICMP_MTU_OPTION                   5
+#define ndICMP_SOURCE_LINK_LAYER_ADDRESS    1
+#define ndICMP_TARGET_LINK_LAYER_ADDRESS    2
+#define ndICMP_PREFIX_INFORMATION           3
+#define ndICMP_REDIRECTED_HEADER            4
+#define ndICMP_MTU_OPTION                   5
 
 
-#define uxHeaderBytesRS                    ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) )
-#define uxHeaderBytesRA                    ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterAdvertisement_IPv6_t ) )
+#define uxHeaderBytesRS                     ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) )
+#define uxHeaderBytesRA                     ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterAdvertisement_IPv6_t ) )
 
 
-/* ===================================================
+/*
+ * ===================================================
  *           Test for vNDSendRouterSolicitation
- * =================================================== */
+ * ===================================================
+ */
+
 
 /**
- * @brief This function verify sending an Router Solicitation ICMPv6 
+ * @brief This function verify sending an Router Solicitation ICMPv6
  *        message With a NULL Endpoint.
  */
 void test_vNDSendRouterSolicitation_Null_Endpoint( void )
@@ -209,11 +212,16 @@ void test_vNDSendRouterSolicitation_HappyPath( void )
     TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.ucHopLimit, raDEFAULT_HOP_LIMIT );
 }
 
-/* ===================================================
+/*
+ * ===================================================
  *           Test for vReceiveNA
- * =================================================== */
+ * ===================================================
+ */
 
-
+/**
+ * @brief This function verify received Neighbour Advertisement message
+ *        without EndPoint.
+ */
 void test_vReceiveNA_NoEndPoint( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -231,6 +239,10 @@ void test_vReceiveNA_NoEndPoint( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse, 0 );
 }
 
+/**
+ * @brief This function verify received Neighbour Advertisement message
+ *        to see that the chosen IP-address is not in use.
+ */
 void test_vReceiveNA_bIPAddressNotInUse( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -250,6 +262,10 @@ void test_vReceiveNA_bIPAddressNotInUse( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse, 0 );
 }
 
+/**
+ * @brief This function verify received Neighbour Advertisement message
+ *        to see that the chosen IP-address is already in use.
+ */
 void test_vReceiveNA_bIPAddressInUse( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -281,11 +297,11 @@ void test_vReceiveNA_bIPAddressInUse( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse, 1 );
 }
 
-
-/* ===================================================
+/*
+ * ===================================================
  *           Test for vReceiveRA
- * =================================================== */
-
+ * ===================================================
+ */
 
 /**
  * @brief This function verify the handling
@@ -304,7 +320,7 @@ void test_vReceiveRA_IncorrectDataLength( void )
 
 /**
  * @brief This function verify the handling
- *        of Advertisement Lifetime as zero. 
+ *        of Advertisement Lifetime as zero.
  */
 void test_vReceiveRA_ZeroAdvertisementLifetime( void )
 {
@@ -338,7 +354,7 @@ void test_vReceiveRA_NULL_ICMPprefix( void )
 
 /**
  * @brief This function verify ICMP prefix option with
- *        options present but data length less than the 
+ *        options present but data length less than the
  *        required data length by option field.
  */
 void test_vReceiveRA_NULL_ICMPprefix_NotEnoughBytes( void )
@@ -372,7 +388,7 @@ void test_vReceiveRA_Valid_ICMPprefix_Option1( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    NetworkInterface_t xInterface; 
+    NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
@@ -401,7 +417,7 @@ void test_vReceiveRA_Valid_ICMPprefix_Option2( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    NetworkInterface_t xInterface; 
+    NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
@@ -430,7 +446,7 @@ void test_vReceiveRA_Valid_ICMPprefix_Option3( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    NetworkInterface_t xInterface; 
+    NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
@@ -447,7 +463,7 @@ void test_vReceiveRA_Valid_ICMPprefix_Option3( void )
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
     /* Only 1 option */
     pxPrefixOption->ucLength = 1;
-    
+
 
     xEndPoint.bits.bWantRA = pdFALSE_UNSIGNED;
 
@@ -466,7 +482,7 @@ void test_vReceiveRA_Valid_ICMPprefix_Option4( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    NetworkInterface_t xInterface; 
+    NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
@@ -495,7 +511,7 @@ void test_vReceiveRA_Valid_ICMPprefix_Option5( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    NetworkInterface_t xInterface; 
+    NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
@@ -526,7 +542,7 @@ void test_vReceiveRA_Valid_ICMPprefix_IncorrectOption( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    NetworkInterface_t xInterface; 
+    NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
@@ -557,11 +573,11 @@ void test_vReceiveRA_vRAProcess( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
-    NetworkInterface_t xInterface; 
+    NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
     size_t uxPrefixOptionlen = 8;
     uint8_t * pucBytes;
-    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     ICMPPrefixOption_IPv6_t * pxPrefixOption;
     ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
 
@@ -577,7 +593,7 @@ void test_vReceiveRA_vRAProcess( void )
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
     /* Only 1 option */
     pxPrefixOption->ucLength = 1;
-    
+
 
     xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
     xEndPoint.xRAData.eRAState = eRAStateWait;
@@ -591,16 +607,24 @@ void test_vReceiveRA_vRAProcess( void )
     vReceiveRA( pxNetworkBuffer );
 
 
-    TEST_ASSERT_EQUAL( pxEndPoint->ipv6_settings.uxPrefixLength , pxPrefixOption->ucPrefixLength);
-    TEST_ASSERT_EQUAL(pxEndPoint->xRAData.bits.bRouterReplied , pdTRUE_UNSIGNED);
-    TEST_ASSERT_EQUAL(pxEndPoint->xRAData.uxRetryCount , 0U);
-    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.ulPreferredLifeTime , FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ));
-    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.bits.bIPAddressInUse , pdFALSE_UNSIGNED);
-    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.eRAState , eRAStateIPWait);
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv6_settings.uxPrefixLength, pxPrefixOption->ucPrefixLength );
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.bits.bRouterReplied, pdTRUE_UNSIGNED );
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.uxRetryCount, 0U );
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.ulPreferredLifeTime, FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ) );
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.bits.bIPAddressInUse, pdFALSE_UNSIGNED );
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.eRAState, eRAStateIPWait );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateApply {Set during RA_Init}
- * And failed to get network buffer - pxGetNetworkBufferWithDescriptor
+/* ===================================================
+ *           Test for vRAProcess
+ * ===================================================
+ */
+
+
+/**
+ *  @brief This function verify RA state machine with RA wait state
+ *         as eRAStateApply {Set during RA_Init}
+ *         And failed to get network buffer.
  */
 void test_vRAProcess_eRAStateApply1( void )
 {
@@ -620,8 +644,10 @@ void test_vRAProcess_eRAStateApply1( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateWait );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateApply {Set during RA_Init}
- * And Send an ICMPv6 message of the type: Router Solicitation.
+/**
+ *  @brief This function verify RA state machine with RA wait state as
+ *         eRAStateApply {Set during RA_Init}
+ *         And Send an ICMPv6 message of the type: Router Solicitation.
  */
 void test_vRAProcess_eRAStateApply2( void )
 {
@@ -653,7 +679,8 @@ void test_vRAProcess_eRAStateApply2( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateWait );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateWait.
+/**
+ *  @brief This function verify RA state machine with RA wait state as eRAStateWait.
  */
 void test_vRAProcess_eRAStateWait( void )
 {
@@ -676,10 +703,11 @@ void test_vRAProcess_eRAStateWait( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateWait );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateWait.
- * Router Solicitation has been sent, waited for a reply, but no came and
- * the retry count becomes more that ipconfigRA_SEARCH_COUNT.
- * */
+/**
+ *  @brief This function verify RA state machine with RA wait state as eRAStateWait.
+ *         Router Solicitation has been sent, waited for a reply, but no came and
+ *         the retry count becomes more that ipconfigRA_SEARCH_COUNT.
+ */
 void test_vRAProcess_eRAStateWait_RetryExceed( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -705,8 +733,10 @@ void test_vRAProcess_eRAStateWait_RetryExceed( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateIPWait );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateIPWait.
- * With bIPAddressInUse True which implies Another device has responded with the same IPv4 address.
+/**
+ *  @brief This function verify RA state machine with RA wait state as eRAStateIPWait.
+ *         With bIPAddressInUse True which implies Another device has
+ *         responded with the same IPv4 address.
  */
 void test_vRAProcess_eRAStateIPWait_AddressInUse( void )
 {
@@ -731,8 +761,9 @@ void test_vRAProcess_eRAStateIPWait_AddressInUse( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateIPWait );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateIPWait,
- * With retry.
+/**
+ *  @brief This function verify RA state machine with RA wait state as eRAStateIPWait,
+ *         With retry.
  */
 void test_vRAProcess_eRAStateIPWait_Retry( void )
 {
@@ -757,8 +788,9 @@ void test_vRAProcess_eRAStateIPWait_Retry( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateIPWait );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateIPWait.
- * And Obtained configuration from a router.
+/**
+ *  @brief This function verify RA state machine with RA wait state as eRAStateIPWait.
+ *         And Obtained configuration from a router.
  */
 void test_vRAProcess_eRAStateIPWait_RA_SUCCESS( void )
 {
@@ -784,8 +816,10 @@ void test_vRAProcess_eRAStateIPWait_RA_SUCCESS( void )
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateLease );
 }
 
-/* This function verify RA state machine with RA wait state = eRAStateIPWait.
- * Using the default network parameters.
+/**
+ *  @brief This function verify RA state machine with RA wait state
+ *         as eRAStateIPWait.
+ *         Using the default network parameters.
  */
 void test_vRAProcess_eRAStateIPWait_UsingDefaultAddress( void )
 {
