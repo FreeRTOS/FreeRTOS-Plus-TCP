@@ -317,7 +317,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     #else
         eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
                                                           struct xNetworkEndPoint * pxEndPoint,
-                                                          IPv6_Address_t * pxIPAddress )
+                                                          IP_Address_t * pxIPAddress )
     #endif
     {
         /* Provide a stub for this function. */
