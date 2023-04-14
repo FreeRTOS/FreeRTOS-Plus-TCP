@@ -478,6 +478,7 @@ leds
 len
 lendofframe
 lessthan
+lidsize
 linkcurr
 linklayer
 linkmd
@@ -1585,6 +1586,7 @@ uxprotocolheaderlength
 uxptr
 uxreloadtime
 uxremainingbytes
+uxremainingsize
 uxremainingtime
 uxremaningtime
 uxremoteport

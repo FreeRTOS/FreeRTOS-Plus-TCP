@@ -1362,7 +1362,7 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                     pxDHCPMessage->xClientID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
                     pxDHCPMessage->xClientID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
 
-                    if( lIDSize <= sizeof( pxDHCPMessage->xClientID.pucID ) )
+                    if( ( size_t ) lIDSize <= sizeof( pxDHCPMessage->xClientID.pucID ) )
                     {
                         ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
                     }
@@ -1396,7 +1396,7 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                     pxDHCPMessage->xServerID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
                     pxDHCPMessage->xServerID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
 
-                    if( lIDSize <= sizeof( pxDHCPMessage->xServerID.pucID ) )
+                    if( ( size_t ) lIDSize <= sizeof( pxDHCPMessage->xServerID.pucID ) )
                     {
                         ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xServerID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
                     }
