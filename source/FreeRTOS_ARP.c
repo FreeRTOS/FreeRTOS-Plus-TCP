@@ -1145,17 +1145,26 @@ void vARPAgeCache( void )
         {
             if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
             {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+
+                switch(pxEndPoint->bits.bIPv6)
                 {
-                    FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
+
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case pdFALSE_UNSIGNED:
+                            FreeRTOS_OutputARPRequest( pxEndPoint->ipv4_settings.ulIPAddress );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case pdTRUE_UNSIGNED:
+                            FreeRTOS_OutputAdvertiseIPv6( pxEndPoint );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                    
+                    default:
+                        break;
                 }
-                else
-                {
-                    if( pxEndPoint->ipv4_settings.ulIPAddress != 0U )
-                    {
-                        FreeRTOS_OutputARPRequest( pxEndPoint->ipv4_settings.ulIPAddress );
-                    }
-                }
+
             }
 
             pxEndPoint = pxEndPoint->pxNext;
