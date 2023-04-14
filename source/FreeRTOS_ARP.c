@@ -56,7 +56,6 @@
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_ND.h"
 
-
 /** @brief When the age of an entry in the ARP table reaches this value (it counts down
  * to zero, so this is an old entry) an ARP request will be sent to see if the
  * entry is still valid and can therefore be refreshed. */
@@ -500,7 +499,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
 
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipSIZE_OF_IPv4_HEADER:
-
+            {
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -523,10 +522,13 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
                 }
                 
                 break;
+                
+            }
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
         #if ( ipconfigUSE_IPv6 != 0 )
             case ipSIZE_OF_IPv6_HEADER:
+            {
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -572,6 +574,7 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
                     }
                 }
                 break;
+            }    
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         
         default:
