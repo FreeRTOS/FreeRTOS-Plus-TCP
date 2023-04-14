@@ -92,9 +92,12 @@ void tearDown( void )
  * The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters 
  * are valid IPv4 default setting.
  *
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
  * Test step:
  *  - Call FreeRTOS_FillEndPoint to fill IP address, netmask, gateway address, 
  *    DNS server address, and MAC address into endpoint.
+ *  - Check if pxNetworkEndPoints is same as input endpoint.
  *  - Check if all setting are correctly stored in endpoint.
  */
 void test_FreeRTOS_FillEndPoint_happy_path( void )
@@ -127,14 +130,19 @@ void test_FreeRTOS_FillEndPoint_happy_path( void )
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint.bits.bIPv6 );
 }
 
+//TODO: NULL input to test_FreeRTOS_FillEndPoint
+
 /**
  * @brief test_FreeRTOS_FillEndPoint_IPv6_happy_path
  * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters 
  * are valid IPv6 default setting.
  *
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
  * Test step:
  *  - Call FreeRTOS_FillEndPoint_IPv6 to fill IP address, netmask, gateway address, 
  *    DNS server address, and MAC address into endpoint.
+ *  - Check if pxNetworkEndPoints is same as input endpoint.
  *  - Check if all setting are correctly stored in endpoint.
  */
 void test_FreeRTOS_FillEndPoint_IPv6_happy_path( void )
@@ -165,82 +173,105 @@ void test_FreeRTOS_FillEndPoint_IPv6_happy_path( void )
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xEndPoint.bits.bIPv6 );
 }
 
+//TODO: NULL input to FreeRTOS_FillEndPoint_IPv6
+
 /**
  * @brief test_FreeRTOS_AddNetworkInterface_happy_path
  * The purpose of this test is to verify FreeRTOS_AddNetworkInterface when input parameter
- * is not NULL value.
+ * is not NULL.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  *
  * Test step:
  *  - Call FreeRTOS_AddNetworkInterface with one valid network interface.
- *  - Check if the input network interface is stored into pxNetworkInterfaces, which is a
- *    global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ *  - Check if the input network interface is stored into pxNetworkInterfaces.
  */
-// void test_FreeRTOS_AddNetworkInterface_happy_path( void )
-// {
-//     NetworkInterface_t xNetworkInterface;
+void test_FreeRTOS_AddNetworkInterface_happy_path( void )
+{
+    NetworkInterface_t xNetworkInterface;
 
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
 
-//     ( void ) FreeRTOS_AddNetworkInterface( &xNetworkInterface );
+    ( void ) FreeRTOS_AddNetworkInterface( &xNetworkInterface );
 
-//     TEST_ASSERT_EQUAL( &xNetworkInterface, pxNetworkInterfaces );
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces->pxNext );
-// }
+    TEST_ASSERT_EQUAL( &xNetworkInterface, pxNetworkInterfaces );
+    TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces->pxNext );
+}
 
-// /**
-//  * @brief test_FreeRTOS_AddNetworkInterface_three_in_a_row
-//  * The purpose of this test is to verify FreeRTOS_AddNetworkInterface when input parameter
-//  * is not NULL value.
-//  *
-//  * Test step:
-//  *  - Call FreeRTOS_AddNetworkInterface three times with three different network interfaces.
-//  *  - Check if all input network interfaces are stored into pxNetworkInterfaces, which is a
-//  *    global variable using in FreeRTOS_Routing as link list head of all interfaces.
-//  */
-// void test_FreeRTOS_AddNetworkInterface_three_in_a_row( void )
-// {
-//     NetworkInterface_t xNetworkInterface[3];
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     int i = 0;
+/**
+ * @brief test_FreeRTOS_AddNetworkInterface_three_in_a_row
+ * The purpose of this test is to verify FreeRTOS_AddNetworkInterface three times with 
+ * different valid input parameters.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ *
+ * Test step:
+ *  - Call FreeRTOS_AddNetworkInterface three times with three different network interfaces.
+ *  - Check if all input network interfaces are stored into pxNetworkInterfaces.
+ */
+void test_FreeRTOS_AddNetworkInterface_three_in_a_row( void )
+{
+    NetworkInterface_t xNetworkInterface[3];
+    NetworkInterface_t * pxNetworkInterface = NULL;
+    int i = 0;
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
+    for( i=0 ; i<3 ; i++ )
+    {
+        memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
 
-//         ( void ) FreeRTOS_AddNetworkInterface( &(xNetworkInterface[i]) );
-//     }
+        ( void ) FreeRTOS_AddNetworkInterface( &(xNetworkInterface[i]) );
+    }
 
-//     pxNetworkInterface = pxNetworkInterfaces;
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         TEST_ASSERT_EQUAL( &(xNetworkInterface[i]), pxNetworkInterface );
-//         pxNetworkInterface = pxNetworkInterface->pxNext;
-//     }
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
-// }
+    pxNetworkInterface = pxNetworkInterfaces;
+    for( i=0 ; i<3 ; i++ )
+    {
+        TEST_ASSERT_EQUAL( &(xNetworkInterface[i]), pxNetworkInterface );
+        pxNetworkInterface = pxNetworkInterface->pxNext;
+    }
+    TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
+}
 
-// void test_FreeRTOS_AddNetworkInterface_null( void )
-// {
-//     InitializeUnitTest();
+/**
+ * @brief test_FreeRTOS_AddNetworkInterface_null
+ * The purpose of this test is to verify FreeRTOS_AddNetworkInterface when input parameter
+ * is NULL.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ *
+ * Test step:
+ *  - Call FreeRTOS_AddNetworkInterface with input NULL.
+ *  - Check if pxNetworkInterfaces is still NULL.
+ */
+void test_FreeRTOS_AddNetworkInterface_null( void )
+{
+    ( void ) FreeRTOS_AddNetworkInterface( NULL );
+    TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces );
+}
 
-//     ( void ) FreeRTOS_AddNetworkInterface( NULL );
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces );
-// }
+/**
+ * @brief test_FreeRTOS_AddNetworkInterface_duplicate_interface
+ * FreeRTOS_AddNetworkInterface should only add same interface once into
+ * the pxNetworkInterfaces.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ *
+ * Test step:
+ *  - Call FreeRTOS_AddNetworkInterface with same input twice.
+ *  - Check if pxNetworkInterfaces is same as input.
+ *  - Check if pxNetworkInterfaces->pxNext is NULL.
+ */
+void test_FreeRTOS_AddNetworkInterface_duplicate_interface( void )
+{
+    NetworkInterface_t xNetworkInterface;
 
-// void test_FreeRTOS_AddNetworkInterface_duplicateInterface( void )
-// {
-//     NetworkInterface_t xNetworkInterface;
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
 
-//     InitializeUnitTest();
+    ( void ) FreeRTOS_AddNetworkInterface( &xNetworkInterface );
+    ( void ) FreeRTOS_AddNetworkInterface( &xNetworkInterface );
 
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-
-//     ( void ) FreeRTOS_AddNetworkInterface( &xNetworkInterface );
-//     ( void ) FreeRTOS_AddNetworkInterface( &xNetworkInterface );
-
-//     TEST_ASSERT_EQUAL( &xNetworkInterface, pxNetworkInterfaces );
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces->pxNext );
-// }
+    TEST_ASSERT_EQUAL( &xNetworkInterface, pxNetworkInterfaces );
+    TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces->pxNext );
+}
 
 // void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
 // {
