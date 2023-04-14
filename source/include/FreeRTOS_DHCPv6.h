@@ -52,8 +52,8 @@
         uint8_t uxMessageType;                                            /**< The type of the last message received: Advertise / Confirm / Reply / Decline */
         uint8_t ucTransactionID[ 3 ];                                     /**< ID of a transaction, shall be renewed when the transaction is ready ( and a reply has been received ). */
         uint32_t ulTransactionID;                                         /**< The same as above but now as a long integer. */
-        IPv6_Address_t xDNSServers[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< The IP-address of the DHCP server. */
-        size_t uxDNSCount;
+        IPv6_Address_t xDNSServers[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< The IP-address of the DNS server. */
+        size_t uxDNSCount;                                                /**< The number of the DNS server stored in xDNSServers. */
         uint32_t ulPreferredLifeTime;                                     /**< The preferred life time. */
         uint32_t ulValidLifeTime;                                         /**< The valid life time. */
         uint32_t ulTimeStamp;                                             /**< DUID Time: seconds since 1-1-2000. */
