@@ -594,9 +594,10 @@ void test_vReceiveRA_vRAProcess( void )
     pxPrefixOption->ucLength = 1;
 
 
-    xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
+    pxEndPoint->bits.bWantRA = pdTRUE_UNSIGNED;
+    pxEndPoint->xRAData.eRAState = eRAStateWait;
 
-    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
