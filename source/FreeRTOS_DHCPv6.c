@@ -292,7 +292,7 @@ static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
 
     if( uxOptionLength < uxMinOptLength )
     {
-        FreeRTOS_printf( ( "prvIsOptionLengthValid: Length %u of option %u is less than minimum requirement %u\n",
+        FreeRTOS_printf( ( "prvIsOptionLengthValid: Length %lu of option %u is less than minimum requirement %lu\n",
                            uxOptionLength,
                            usOption,
                            uxMinOptLength ) );
@@ -300,7 +300,7 @@ static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
     }
     else if( uxOptionLength > uxRemainingSize )
     {
-        FreeRTOS_printf( ( "prvIsOptionLengthValid: Length %u of option %u is larger than remaining buffer size %u\n",
+        FreeRTOS_printf( ( "prvIsOptionLengthValid: Length %lu of option %u is larger than remaining buffer size %lu\n",
                            uxOptionLength,
                            usOption,
                            uxRemainingSize ) );
@@ -1197,7 +1197,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
         if( uxRemain < 4U )
         {
             /* Sub-option length is always larger than 4 to store option code and length. */
-            FreeRTOS_printf( ( "prvDHCPv6_subOption: %s has invalid option with length %u\n",
+            FreeRTOS_printf( ( "prvDHCPv6_subOption: %s has invalid option with length %lu\n",
                                ( usOption == DHCPv6_Option_NonTemporaryAddress ) ? "Address assignment" : "Prefix Delegation",
                                uxRemain ) );
             xReturn = pdFALSE;
@@ -1212,7 +1212,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
         /* Check sub-option length. */
         if( prvIsOptionLengthValid( usOption2, uxLength2, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
         {
-            FreeRTOS_printf( ( "prvDHCPv6_subOption: %u has invalid length %u, remaining buffer size %u\n",
+            FreeRTOS_printf( ( "prvDHCPv6_subOption: %u has invalid length %u, remaining buffer size %lu\n",
                                usOption2,
                                uxLength2,
                                pxMessage->uxSize - pxMessage->uxIndex ) );
@@ -1300,7 +1300,7 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
 
     if( prvIsOptionLengthValid( usOption, pxSet->uxOptionLength, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
     {
-        FreeRTOS_printf( ( "prvDHCPv6_handleOption: Option %u has invalid length %u, remaining buffer size %u\n",
+        FreeRTOS_printf( ( "prvDHCPv6_handleOption: Option %u has invalid length %lu, remaining buffer size %lu\n",
                            usOption,
                            pxSet->uxOptionLength,
                            pxMessage->uxSize - pxMessage->uxIndex ) );
@@ -1340,18 +1340,18 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                        FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
                    }
 
-               if( usStatus != 0U )
-               {
-                   /* A status of 2 means: NoAddrsAvail. (RFC 3315 - sec 24.4). */
-                   pxMessage->xHasError = pdTRUE_UNSIGNED;
+                   if( usStatus != 0U )
+                   {
+                       /* A status of 2 means: NoAddrsAvail. (RFC 3315 - sec 24.4). */
+                       pxMessage->xHasError = pdTRUE_UNSIGNED;
+                   }
                }
-           }
-           break;
+               break;
 
             case DHCPv6_Option_Client_Identifier:
                 uxIDSize = pxSet->uxOptionLength - 4U;
 
-                if( uxIDSize >= 0 )
+                if( uxIDSize >= 0U )
                 {
                     /*
                      *  1 : Link-layer address plus time (DUID-LLT)
@@ -1385,7 +1385,7 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
             case DHCPv6_Option_Server_Identifier:
                 uxIDSize = pxSet->uxOptionLength - 4U;
 
-                if( uxIDSize >= 0 )
+                if( uxIDSize >= 0U )
                 {
                     /*
                      *  1 : Link-layer address plus time (DUID-LLT)
