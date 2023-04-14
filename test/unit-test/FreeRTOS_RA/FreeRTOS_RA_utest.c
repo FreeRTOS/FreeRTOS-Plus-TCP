@@ -1087,15 +1087,3 @@ void test_vRAProcess_eRAStateIPWait_UsingDefaultAddress( void )
 
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateFailed );
 }
-
-/* ===================================================
- *           Test for xRAProcess_HandleOtherStates
- * ===================================================
- */
-
-
-/**
- *  @brief This function verify RA state machine with RA wait state
- *         as eRAStateApply {Set during RA_Init}
- *         And failed to get network buffer.
- */
