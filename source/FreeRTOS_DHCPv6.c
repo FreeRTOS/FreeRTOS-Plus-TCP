@@ -947,7 +947,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
         pxDHCPMessage->ucTransactionID[ 1 ] = ( uint8_t ) ( ( ulTransactionID >> 8 ) & 0xffU );
         pxDHCPMessage->ucTransactionID[ 2 ] = ( uint8_t ) ( ulTransactionID & 0xffU );
         EP_DHCPData.ulTransactionId = ulTransactionID;
-        FreeRTOS_debug_printf( ( "Created transaction ID : 0x%06lX\n", ulTransactionID ) );
+        FreeRTOS_debug_printf( ( "Created transaction ID : 0x%06X\n", ulTransactionID ) );
     }
 
     if( ( xRandomOk == pdPASS ) && ( EP_DHCPData.xDHCPSocket != NULL ) )
@@ -1347,7 +1347,7 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
 
         if( EP_DHCPData.ulTransactionId != pxDHCPMessage->ulTransactionID )
         {
-            FreeRTOS_printf( ( "prvDHCPv6Analyse: Transaction ID 0x%06X is different from sent ID 0x%06X\n",
+            FreeRTOS_printf( ( "prvDHCPv6Analyse: Message %u transaction ID 0x%06X is different from sent ID 0x%06X\n",
                                ( unsigned ) pxDHCPMessage->uxMessageType,
                                ( unsigned ) pxDHCPMessage->ulTransactionID,
                                EP_DHCPData.ulTransactionId ) );
