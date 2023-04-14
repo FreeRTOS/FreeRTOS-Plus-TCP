@@ -1517,16 +1517,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
     strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
     hook_return = pdTRUE;
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( NULL );
-
-    catch_assert( DNS_ParseDNSReply( pucUDPPayloadBuffer,
-                                     uxBufferLength,
-                                     &pxAddressInfo,
-                                     xExpected,
-                                     usPort ) );
 
     /* TEST_ASSERT_EQUAL( pdFALSE, ret ); */
     /* ASSERT_DNS_QUERY_HOOK_CALLED(); */

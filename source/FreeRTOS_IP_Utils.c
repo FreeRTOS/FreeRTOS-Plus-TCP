@@ -902,10 +902,8 @@ void vPreCheckConfigs( void )
             if( uxSize == 8U )
             {
                 /* This is a 64-bit platform, make sure there is enough space in
-                 * pucEthernetBuffer to store a pointer. */
-                configASSERT( ipconfigBUFFER_PADDING >= 14 );
-                /* But it must have this strange alignment: */
-                configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
+                 * pucEthernetBuffer to store a pointer and it must have this strange alignment. */
+                configASSERT( ( ipconfigBUFFER_PADDING >= 14 ) && ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
             }
 
             /* LCOV_EXCL_BR_START */
@@ -1469,7 +1467,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             /* MISRA Ref 21.6.1 [snprintf and logging] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno 0x%lx", xErrnum );
             pcName = NULL;
             break;
     }

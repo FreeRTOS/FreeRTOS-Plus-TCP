@@ -63,7 +63,7 @@
 #define configUSE_ALTERNATIVE_API                        0
 #define configUSE_QUEUE_SETS                             1
 #define configUSE_TASK_NOTIFICATIONS                     1
-#define configSUPPORT_STATIC_ALLOCATION                  1
+#define configSUPPORT_STATIC_ALLOCATION                  0
 #define configINITIAL_TICK_COUNT                         ( ( TickType_t ) 0 ) /* For test. */
 #define configSTREAM_BUFFER_TRIGGER_LEVEL_TEST_MARGIN    1                    /* As there are a lot of tasks running. */
 
@@ -79,6 +79,10 @@
 /* Run time stats gathering configuration options. */
 
 #define configGENERATE_RUN_TIME_STATS             1
+
+/* Co-routine related configuration options. */
+#define configUSE_CO_ROUTINES                     1
+#define configMAX_CO_ROUTINE_PRIORITIES           ( 2 )
 
 /* This demo makes use of one or more example stats formatting functions.  These
  * format the raw data provided by the uxTaskGetSystemState() function in to human
