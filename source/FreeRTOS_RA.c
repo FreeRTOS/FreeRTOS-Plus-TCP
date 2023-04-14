@@ -402,46 +402,6 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief This is an option to test SLAAC. This device will take the IP-address of a
- *        known device in the LAN, just to simulate a IP-address clash.
- *
- * @param[in] xIndex: the index to be used in the list of IP-addresses.
- * @param[out] pxIPAddress: Here the IP-address will be written.
- *
- * @return pdPASS if an existing IP-address has been found and written to pxIPAddress.
- */
-    static BaseType_t prvGetTestAddress( BaseType_t xIndex,
-                                         const IPv6_Address_t * pxIPAddress )
-    {
-        ( void ) xIndex;
-        ( void ) pxIPAddress;
-        return 0;
-
-        #if 0
-            BaseType_t xResult;
-
-            /* For testing only: return an IPv6 address that is already taken in the LAN. */
-            const char * ip_address[] =
-            {
-                "fe80::6816:5e9b:80a0:9edb", /* laptop _HT_ */
-                "fe80::9355:69c7:585a:afe7", /* raspberry */
-            };
-
-            if( xIndex < ARRAY_SIZE_X( ip_address ) )
-            {
-                ( void ) FreeRTOS_inet_pton6( ip_address[ xIndex ], pxIPAddress->ucBytes );
-                xResult = pdPASS;
-            }
-            else
-            {
-                xResult = pdFAIL;
-            }
-            return xResult;
-        #endif /* 0 */
-    }
-/*-----------------------------------------------------------*/
-
-/**
  * @brief Handles the RA wait state and calculates the new timer reload value
  *        based on the wait state. Also checks if any timer has expired. If its found that
  *        there is no other device using the same IP-address vIPNetworkUpCalls() is called
@@ -580,11 +540,6 @@
                }
                break;
 
-            case eRAStateWait:
-                /* Waiting for a router advertisement. */
-                /* Handled here above. */
-                break;
-
             case eRAStateIPTest: /* Assuming an IP address, test if another device is using it already. */
                {
                    size_t uxNeededSize;
@@ -593,19 +548,9 @@
                    /* Get an IP-address, using the network prefix and a random host address. */
                    if( pxEndPoint->xRAData.bits.bIPAddressInUse != 0U )
                    {
-                       static BaseType_t xUseIndex = 0;
-
                        pxEndPoint->xRAData.bits.bIPAddressInUse = pdFALSE_UNSIGNED;
 
-                       if( prvGetTestAddress( xUseIndex, &( pxEndPoint->ipv6_settings.xIPAddress ) ) == pdPASS )
-                       {
-                           /* TESTING ONLY */
-                           xUseIndex++;
-                       }
-                       else
-                       {
-                           ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, pdTRUE );
-                       }
+                       ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, pdTRUE );
 
                        FreeRTOS_printf( ( "RA: Creating a random IP-address\n" ) );
                    }
@@ -625,11 +570,6 @@
                    pxEndPoint->xRAData.eRAState = eRAStateIPWait;
                }
                break;
-
-            case eRAStateIPWait:
-                /* Assuming an IP address, test if another device is using it already. */
-                /* Handled here above. */
-                break;
 
             case eRAStatePreLease:
                 pxEndPoint->xRAData.eRAState = eRAStateLease;
