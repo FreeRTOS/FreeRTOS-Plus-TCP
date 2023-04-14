@@ -248,8 +248,14 @@ BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );
  * usage information:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
  */
-    eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-                                                uint32_t ulIPAddress );
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                    uint32_t ulIPAddress );
+    #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+        eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                                          struct xNetworkEndPoint * pxEndPoint,
+                                                          IP_Address_t * pxIPAddress );
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
 #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )

@@ -446,12 +446,12 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
         eDHCPCallbackAnswer_t eAnswer;
     #endif /* ipconfigUSE_DHCP_HOOK */
 
-    #if ( ipconfigUSE_DHCP_HOOK != 0 )
+    #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
         /* Ask the user if a DHCP request is required. */
-        eAnswer = xApplicationDHCPHook_IPv6( eDHCPPhasePreRequest, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
+        eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreRequest, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
 
         if( eAnswer == eDHCPContinue )
-    #endif /* ipconfigUSE_DHCP_HOOK */
+    #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
     {
         /* An offer has been made, the user wants to continue,
          * generate the request. */
@@ -539,11 +539,11 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
 
         case eWaitingSendFirstDiscover:
             /* Ask the user if a DHCP discovery is required. */
-            #if ( ipconfigUSE_DHCP_HOOK != 0 )
-                eAnswer = xApplicationDHCPHook_IPv6( eDHCPPhasePreDiscover, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
+            #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
+                eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreDiscover, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
 
                 if( eAnswer == eDHCPContinue )
-            #endif /* ipconfigUSE_DHCP_HOOK */
+            #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
             {
                 /* See if prvInitialiseDHCPv6() has created a socket. */
                 if( EP_DHCPData.xDHCPSocket == NULL )
@@ -780,7 +780,7 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
             FreeRTOS_debug_printf( ( "vDHCPv6ProcessEndPoint: Giving up\n" ) );
 
             /* xGivingUp became true either because of a time-out, or because
-             * xApplicationDHCPHook_IPv6() returned another value than 'eDHCPContinue',
+             * xApplicationDHCPHook_Multi() returned another value than 'eDHCPContinue',
              * meaning that the conversion is cancelled from here. */
 
             /* Revert to static IP address. */
