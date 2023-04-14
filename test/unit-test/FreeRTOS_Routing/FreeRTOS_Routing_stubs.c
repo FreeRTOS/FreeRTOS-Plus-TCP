@@ -34,14 +34,14 @@
 #include <string.h>
 #include <stdint.h>
 
-const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
-const struct xIPv6_Address FreeRTOS_in6addr_loopback;
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 
-NetworkInterface_t xInterfaces[ 1 ];
+const struct xIPv6_Address FreeRTOS_in6addr_any;
+const struct xIPv6_Address FreeRTOS_in6addr_loopback;
 
 void InitializeUnitTest()
 {
-    memset( &xInterfaces, 0, sizeof( xInterfaces ) );
     pxNetworkEndPoints = NULL;
     pxNetworkInterfaces = NULL;
 }
