@@ -442,9 +442,9 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
 {
     BaseType_t xGivingUp = pdFALSE;
 
-    #if ( ipconfigUSE_DHCP_HOOK != 0 )
+    #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
         eDHCPCallbackAnswer_t eAnswer;
-    #endif /* ipconfigUSE_DHCP_HOOK */
+    #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
 
     #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
         /* Ask the user if a DHCP request is required. */
@@ -463,7 +463,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
         EP_DHCPData.eDHCPState = eWaitingAcknowledge;
     }
 
-    #if ( ipconfigUSE_DHCP_HOOK != 0 )
+    #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
         else
         {
             if( eAnswer == eDHCPUseDefaults )
@@ -475,7 +475,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
             FreeRTOS_debug_printf( ( "xGivingUp because call-back 2\n" ) );
             xGivingUp = pdTRUE;
         }
-    #endif /* ipconfigUSE_DHCP_HOOK */
+    #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
 
     return xGivingUp;
 }
@@ -520,9 +520,9 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
 {
     BaseType_t xGivingUp = pdFALSE;
 
-    #if ( ipconfigUSE_DHCP_HOOK != 0 )
+    #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
         eDHCPCallbackAnswer_t eAnswer;
-    #endif /* ipconfigUSE_DHCP_HOOK */
+    #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
 
     switch( EP_DHCPData.eDHCPState )
     {
@@ -560,7 +560,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
                 }
             }
 
-            #if ( ipconfigUSE_DHCP_HOOK != 0 )
+            #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
                 else
                 {
                     if( eAnswer == eDHCPUseDefaults )
@@ -572,7 +572,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
                     FreeRTOS_debug_printf( ( "xGivingUp because call-back\n" ) );
                     xGivingUp = pdTRUE;
                 }
-            #endif /* ipconfigUSE_DHCP_HOOK */
+            #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
             break;
 
         case eWaitingOffer:
