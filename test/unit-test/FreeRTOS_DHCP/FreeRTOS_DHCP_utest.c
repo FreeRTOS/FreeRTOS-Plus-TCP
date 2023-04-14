@@ -33,16 +33,16 @@ extern BaseType_t xDHCPSocketUserCount;
 
 static const char * pcHostName = "Unit-Test";
 
-eIPCallbackEvent_t eStubExpectedNetworkEvent;
+eDHCPCallbackPhase_t eStubExpectedDHCPPhase;
 struct xNetworkEndPoint * pxStubExpectedEndPoint;
 uint32_t ulStubExpectedIPAddress;
 eDHCPCallbackAnswer_t eStubExpectedReturn;
 
-eDHCPCallbackAnswer_t xStubApplicationDHCPHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+eDHCPCallbackAnswer_t xStubApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
                                                       struct xNetworkEndPoint * pxEndPoint,
                                                       IP_Address_t * pxIPAddress )
 {
-    TEST_ASSERT_EQUAL( eStubExpectedNetworkEvent, eNetworkEvent );
+    TEST_ASSERT_EQUAL( eStubExpectedDHCPPhase, eDHCPPhase );
     TEST_ASSERT_EQUAL( pxStubExpectedEndPoint, pxEndPoint );
     TEST_ASSERT_EQUAL( ulStubExpectedIPAddress, pxIPAddress->ulIP_IPv4 );
 
@@ -678,7 +678,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
     pxEndPoint->ipv4_defaults.ulIPAddress = 0x12345678;
 
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = ( eDHCPContinue + eDHCPUseDefaults ) << 2;
@@ -719,7 +719,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = ( eDHCPContinue + eDHCPUseDefaults ) << 2;
@@ -764,7 +764,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPUseDefaults;
@@ -806,7 +806,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -836,7 +836,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNULL( void )
     pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
 
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -873,7 +873,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -920,7 +920,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -968,7 +968,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -1017,7 +1017,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Ignore the buffer argument though. */
     FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
     /* Make sure that the user indicates anything else than the desired options. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreDiscover;
+    eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -2291,7 +2291,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Release the UDP buffer. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
     /* Return continue. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreRequest;
+    eStubExpectedDHCPPhase = eDHCPPhasePreRequest;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = ulClientIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -2384,7 +2384,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     /* Release the UDP buffer. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
     /* Return continue. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreRequest;
+    eStubExpectedDHCPPhase = eDHCPPhasePreRequest;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = ulClientIPAddress;
     eStubExpectedReturn = eDHCPContinue;
@@ -2484,7 +2484,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     /* Release the UDP buffer. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
     /* Return continue. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreRequest;
+    eStubExpectedDHCPPhase = eDHCPPhasePreRequest;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = ulClientIPAddress;
     eStubExpectedReturn = eDHCPUseDefaults;
@@ -2582,7 +2582,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Release the UDP buffer. */
     FreeRTOS_ReleaseUDPPayloadBuffer_Expect( DHCPMsg );
     /* Return continue. */
-    eStubExpectedNetworkEvent = eDHCPPhasePreRequest;
+    eStubExpectedDHCPPhase = eDHCPPhasePreRequest;
     pxStubExpectedEndPoint = pxEndPoint;
     ulStubExpectedIPAddress = ulClientIPAddress;
     eStubExpectedReturn = ( eDHCPContinue + eDHCPUseDefaults ) << 1;
