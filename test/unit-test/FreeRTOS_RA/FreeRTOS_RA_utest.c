@@ -110,9 +110,43 @@ void test_vNDSendRouterSolicitation_False_bIPv6( void )
 
 /**
  * @brief This function verify sending an Router Solicitation ICMPv6 message
+ *        And RA was not able to find a Link-local address.
+ */
+void test_vNDSendRouterSolicitation_xHasLocal0( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    IPv6_Address_t xIPAddress;
+    ICMPPacket_IPv6_t * pxICMPPacket, xICMPPacket;
+    IPHeader_IPv6_t xIPHeader;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxICMPPacket = &xICMPPacket;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRS - 1;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    xEndPoint.bits.bIPv6 = 1;
+    pxICMPPacket->xIPHeader = xIPHeader;
+
+    memset( &xEndPoint.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
+    memset( &pxICMPPacket->xIPHeader, 0, sizeof( IPHeader_IPv6_t ) );
+
+    /* Link-Local unicast address prefixed FE80::/10 */
+    xEndPoint.ipv6_settings.xIPAddress.ucBytes[ 0 ] = 0xfeU;
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+
+    vNDSendRouterSolicitation( pxNetworkBuffer, &xIPAddress );
+}
+
+/**
+ * @brief This function verify sending an Router Solicitation ICMPv6 message
  *        And RA was able to find a Link-local address.
  */
-void test_vNDSendRouterSolicitation_xHasLocal( void )
+void test_vNDSendRouterSolicitation_xHasLocal1( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
@@ -242,7 +276,7 @@ void test_vReceiveNA_NoEndPoint( void )
  * @brief This function verify received Neighbour Advertisement message
  *        to see that the chosen IP-address is not in use.
  */
-void test_vReceiveNA_bIPAddressNotInUse( void )
+void test_vReceiveNA_bIPAddressNotInUse1( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
@@ -255,6 +289,40 @@ void test_vReceiveNA_bIPAddressNotInUse( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
 
     FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
+
+    vReceiveNA( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse, 0 );
+}
+
+/**
+ * @brief This function verify received Neighbour Advertisement message
+ *        to see that the chosen IP-address is not in use.
+ */
+void test_vReceiveNA_bIPAddressNotInUse2( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPacket_IPv6_t xICMPPacket;
+    IPv6_Address_t xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
+
+    /* Setting IPv6 address as "fe80::7009" */
+    memset( &xIPAddress, 0, sizeof( IPv6_Address_t ) );
+    xIPAddress.ucBytes[ 0 ] = 254;
+    xIPAddress.ucBytes[ 1 ] = 128;
+    xIPAddress.ucBytes[ 14 ] = 112;
+    xIPAddress.ucBytes[ 15 ] = 9;
+
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xICMPPacket.xICMPHeaderIPv6.xIPv6Address.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
+    vDHCP_RATimerReload_Ignore();
 
     vReceiveNA( pxNetworkBuffer );
 
@@ -335,6 +403,27 @@ void test_vReceiveRA_ZeroAdvertisementLifetime( void )
     pxAdvertisement->usLifetime = 0;
 
     vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify the handling
+ *        of NULL pxInterface.
+ */
+void test_vReceiveRA_NULL_pxInterface( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
+    ICMPPacket_IPv6_t xICMPPacket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + 1;
+    pxNetworkBuffer->pxInterface = NULL;
+
+    pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
+    pxAdvertisement->usLifetime = 1;
+
+    catch_assert( vReceiveRA( pxNetworkBuffer ) );
 }
 
 /**
@@ -619,6 +708,17 @@ void test_vReceiveRA_vRAProcess( void )
  * ===================================================
  */
 
+/**
+ *  @brief This function verify RA state machine
+ *         with RA NULL endpoint.
+ */
+void test_vRAProcess_NULL_EndPoint( void )
+{
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    IPv6_Address_t xIPAddress;
+
+    catch_assert( vRAProcess( pdTRUE, pxEndPoint ) );
+}
 
 /**
  *  @brief This function verify RA state machine with RA wait state
