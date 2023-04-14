@@ -212,7 +212,7 @@ struct xDHCP_DATA
     eDHCPState_t eDHCPState;       /**< The current state of the DHCP state machine. */
     eDHCPState_t eExpectedState;   /**< If the state is not equal the the expected state, no cycle needs to be done. */
     Socket_t xDHCPSocket;
-    /**< Record lastest client ID for DHCPv6. */
+    /**< Record latest client ID for DHCPv6. */
     uint8_t ucClientDUID[ dhcpIPv6_CLIENT_DUID_LENGTH ];
 };
 
