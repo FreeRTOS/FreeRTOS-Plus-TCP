@@ -1811,6 +1811,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipIPv4_FRAME_TYPE:
             default:
+            {            
                 size_t uxLength = ( size_t ) pxIPHeader->ucVersionHeaderLength;
 
                 /* Check if the IP headers are acceptable and if it has our destination.
@@ -1837,6 +1838,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     }
                 }
                 break;
+            }
+
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
     }
 
