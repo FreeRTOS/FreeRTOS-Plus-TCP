@@ -1296,7 +1296,7 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                                           BitConfig_t * pxMessage )
 {
     BaseType_t xReady = pdFALSE;
-    size_t uxIDSize = 0U;
+    int32_t lIDSize = 0;
 
     if( prvIsOptionLengthValid( usOption, pxSet->uxOptionLength, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
     {
@@ -1349,22 +1349,22 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                break;
 
             case DHCPv6_Option_Client_Identifier:
-                uxIDSize = pxSet->uxOptionLength - 4U;
+                lIDSize = ( int32_t ) ( pxSet->uxOptionLength ) - 4;
 
-                if( uxIDSize >= 0U )
+                if( lIDSize >= 0 )
                 {
                     /*
                      *  1 : Link-layer address plus time (DUID-LLT)
                      *  2 : Vendor-assigned unique ID based on Enterprise Number (DUID-EN)
                      *  3 : Link-layer address (DUID-LL)
                      */
-                    pxDHCPMessage->xClientID.uxLength = uxIDSize;
+                    pxDHCPMessage->xClientID.uxLength = ( size_t ) lIDSize;
                     pxDHCPMessage->xClientID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
                     pxDHCPMessage->xClientID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
 
-                    if( uxIDSize <= sizeof( pxDHCPMessage->xClientID.pucID ) )
+                    if( lIDSize <= sizeof( pxDHCPMessage->xClientID.pucID ) )
                     {
-                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, uxIDSize ); /* Link Layer address, 6 bytes */
+                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
                     }
                     else
                     {
@@ -1383,22 +1383,22 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                 break;
 
             case DHCPv6_Option_Server_Identifier:
-                uxIDSize = pxSet->uxOptionLength - 4U;
+                lIDSize = ( int32_t ) ( pxSet->uxOptionLength ) - 4;
 
-                if( uxIDSize >= 0U )
+                if( lIDSize >= 0 )
                 {
                     /*
                      *  1 : Link-layer address plus time (DUID-LLT)
                      *  2 : Vendor-assigned unique ID based on Enterprise Number (DUID-EN)
                      *  3 : Link-layer address (DUID-LL)
                      */
-                    pxDHCPMessage->xServerID.uxLength = uxIDSize;
+                    pxDHCPMessage->xServerID.uxLength = ( size_t ) lIDSize;
                     pxDHCPMessage->xServerID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
                     pxDHCPMessage->xServerID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
 
-                    if( uxIDSize <= sizeof( pxDHCPMessage->xServerID.pucID ) )
+                    if( lIDSize <= sizeof( pxDHCPMessage->xServerID.pucID ) )
                     {
-                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xServerID.pucID, uxIDSize ); /* Link Layer address, 6 bytes */
+                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xServerID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
                     }
                     else
                     {
