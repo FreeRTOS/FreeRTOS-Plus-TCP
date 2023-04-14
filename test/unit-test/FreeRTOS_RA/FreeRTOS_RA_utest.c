@@ -304,11 +304,58 @@ void test_vReceiveNA_bIPAddressNotInUse2( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
     ICMPPacket_IPv6_t xICMPPacket;
-    IPv6_Address_t xIPAddress;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
     xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
+    vDHCP_RATimerReload_Ignore();
+
+    vReceiveNA( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse, 0 );
+}
+
+/**
+ * @brief This function verify received Neighbour Advertisement message
+ *        to see that the chosen IP-address is not in use.
+ */
+void test_vReceiveNA_bIPAddressNotInUse3( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPacket_IPv6_t xICMPPacket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    xEndPoint.xRAData.eRAState = eRAStateWait;
+    xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
+    xEndPoint.xRAData.eRAState = eRAStateIPWait;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
+
+    vReceiveNA( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.bits.bIPAddressInUse, 0 );
+}
+
+/**
+ * @brief This function verify received Neighbour Advertisement message
+ *        to see that the chosen IP-address is not in use.
+ */
+void test_vReceiveNA_bIPAddressNotInUse4( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint;
+    ICMPPacket_IPv6_t xICMPPacket;
+    IPv6_Address_t xIPAddress;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    xEndPoint.xRAData.eRAState = eRAStateWait;
 
     /* Setting IPv6 address as "fe80::7009" */
     memset( &xIPAddress, 0, sizeof( IPv6_Address_t ) );
@@ -650,6 +697,45 @@ void test_vReceiveRA_Valid_ICMPprefix_IncorrectOption( void )
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify vReceiveRA success case.
+ */
+void test_vReceiveRA_vRAProcesssdad( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkInterface_t xInterface;
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    size_t uxPrefixOptionlen = 8;
+    uint8_t * pucBytes;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->xDataLength = uxHeaderBytesRA + uxPrefixOptionlen;
+    uxNeededSize = uxHeaderBytesRA;
+    pxAdvertisement = ( ( const ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
+    pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
+
+    pxPrefixOption = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    /* Only 1 option */
+    pxPrefixOption->ucLength = 1;
+
+
+    pxEndPoint->bits.bWantRA = pdTRUE_UNSIGNED;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    vDHCP_RATimerReload_Ignore();
 
     vReceiveRA( pxNetworkBuffer );
 }
