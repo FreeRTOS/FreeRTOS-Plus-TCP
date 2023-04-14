@@ -63,6 +63,7 @@
 #define ndICMP_REDIRECTED_HEADER            4
 #define ndICMP_MTU_OPTION                   5
 
+#define eRAStateUnkown                      7
 
 #define uxHeaderBytesRS                     ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) )
 #define uxHeaderBytesRA                     ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterAdvertisement_IPv6_t ) )
@@ -113,7 +114,7 @@ void test_vNDSendRouterSolicitation_False_bIPv6( void )
  */
 void test_vNDSendRouterSolicitation_xHasLocal( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
     IPv6_Address_t xIPAddress;
     ICMPPacket_IPv6_t * pxICMPPacket, xICMPPacket;
@@ -122,7 +123,6 @@ void test_vNDSendRouterSolicitation_xHasLocal( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxICMPPacket = &xICMPPacket;
     pxNetworkBuffer->xDataLength = uxHeaderBytesRS - 1;
-    xNetworkBuffer2.xDataLength = uxHeaderBytesRS + 1;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
     xEndPoint.bits.bIPv6 = 1;
@@ -149,7 +149,7 @@ void test_vNDSendRouterSolicitation_xHasLocal( void )
  */
 void test_vNDSendRouterSolicitation_NullDesc( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
     IPv6_Address_t xIPAddress;
     ICMPPacket_IPv6_t * pxICMPPacket, xICMPPacket;
@@ -158,7 +158,6 @@ void test_vNDSendRouterSolicitation_NullDesc( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxICMPPacket = &xICMPPacket;
     pxNetworkBuffer->xDataLength = uxHeaderBytesRS - 1;
-    xNetworkBuffer2.xDataLength = uxHeaderBytesRS + 1;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
     xEndPoint.bits.bIPv6 = 1;
@@ -571,7 +570,7 @@ void test_vReceiveRA_Valid_ICMPprefix_IncorrectOption( void )
  */
 void test_vReceiveRA_vRAProcess( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
     ICMPPacket_IPv6_t xICMPPacket;
     NetworkInterface_t xInterface;
     size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
@@ -596,7 +595,6 @@ void test_vReceiveRA_vRAProcess( void )
 
 
     xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
-    xEndPoint.xRAData.eRAState = eRAStateWait;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
@@ -680,6 +678,64 @@ void test_vRAProcess_eRAStateApply2( void )
 }
 
 /**
+ *  @brief This function verify RA state machine with RA wait state as
+ *         eRAStateLease.
+ */
+void test_vRAProcess_eRAStateLease( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+    ICMPPacket_IPv6_t * pxICMPPacket, xICMPPacket;
+
+    pxEndPoint = &xEndPoint;
+    pxNetworkBuffer = &xNetworkBuffer;
+
+    pxICMPPacket = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndPoint->bits.bIPv6 = 1;
+    pxEndPoint->xRAData.eRAState = eRAStateLease;
+
+    vDHCP_RATimerReload_Ignore();
+
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateApply );
+    TEST_ASSERT_EQUAL( pxEndPoint->xRAData.uxRetryCount, 0U );
+}
+
+/**
+ *  @brief This function verify RA state machine with RA wait state as
+ *         unexpected.
+ */
+void test_vRAProcess_UndefinedState( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint;
+    IPv6_Address_t xIPAddress;
+    ICMPPacket_IPv6_t * pxICMPPacket, xICMPPacket;
+
+    pxEndPoint = &xEndPoint;
+    pxNetworkBuffer = &xNetworkBuffer;
+
+    pxICMPPacket = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndPoint->bits.bIPv6 = 1;
+    /* Unexpected state */
+    pxEndPoint->xRAData.eRAState = eRAStateUnkown;
+
+    vDHCP_RATimerReload_Ignore();
+
+    vRAProcess( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateUnkown );
+}
+
+/**
  *  @brief This function verify RA state machine with RA wait state as eRAStateWait.
  */
 void test_vRAProcess_eRAStateWait( void )
@@ -722,7 +778,7 @@ void test_vRAProcess_eRAStateWait_RetryExceed( void )
     pxEndPoint->xRAData.eRAState = eRAStateWait;
     pxEndPoint->xRAData.uxRetryCount = ( UBaseType_t ) ipconfigRA_SEARCH_COUNT;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     vDHCP_RATimerReload_Ignore();
 
     /* pdFALSE Indicating vRAProcessInit is already done */
@@ -844,3 +900,15 @@ void test_vRAProcess_eRAStateIPWait_UsingDefaultAddress( void )
 
     TEST_ASSERT_EQUAL( xEndPoint.xRAData.eRAState, eRAStateFailed );
 }
+
+/* ===================================================
+ *           Test for xRAProcess_HandleOtherStates
+ * ===================================================
+ */
+
+
+/**
+ *  @brief This function verify RA state machine with RA wait state
+ *         as eRAStateApply {Set during RA_Init}
+ *         And failed to get network buffer.
+ */
