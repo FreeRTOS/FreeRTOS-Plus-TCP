@@ -282,10 +282,12 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
 
-        if( uxIPHeaderSizePacket( pxNewBuffer ) == ipSIZE_OF_IPv6_HEADER )
-        {
-            ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-        }
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( uxIPHeaderSizePacket( pxNewBuffer ) == ipSIZE_OF_IPv6_HEADER )
+            {
+                ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
 
     return pxNewBuffer;
@@ -455,7 +457,9 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
     }
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
-        xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
+        #if ( ipconfigUSE_IPv6 != 0 )
+            xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
     else
     {
@@ -515,30 +519,32 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                           const uint8_t * pucEthernetBuffer,
                                           struct xPacketSummary * pxSet )
 {
-    if( pxSet->xIsIPv6 != pdFALSE )
-    {
-        uint32_t pulHeader[ 2 ];
+    #if ( ipconfigUSE_IPv6 != 0 )
+        if( pxSet->xIsIPv6 != pdFALSE )
+        {
+            uint32_t pulHeader[ 2 ];
 
-        /* IPv6 has a 40-byte pseudo header:
-         * 0..15 Source IPv6 address
-         * 16..31 Target IPv6 address
-         * 32..35 Length of payload
-         * 36..38 three zero's
-         * 39 Next Header, i.e. the protocol type. */
+            /* IPv6 has a 40-byte pseudo header:
+            * 0..15 Source IPv6 address
+            * 16..31 Target IPv6 address
+            * 32..35 Length of payload
+            * 36..38 three zero's
+            * 39 Next Header, i.e. the protocol type. */
 
-        pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
-        pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
-        pulHeader[ 1 ] = ( uint32_t ) pxSet->pxIPPacket_IPv6->ucNextHeader;
-        pulHeader[ 1 ] = FreeRTOS_htonl( pulHeader[ 1 ] );
+            pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
+            pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
+            pulHeader[ 1 ] = ( uint32_t ) pxSet->pxIPPacket_IPv6->ucNextHeader;
+            pulHeader[ 1 ] = FreeRTOS_htonl( pulHeader[ 1 ] );
 
-        pxSet->usChecksum = usGenerateChecksum( 0U,
-                                                &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + offsetof( IPHeader_IPv6_t, xSourceAddress ) ] ),
-                                                ( size_t ) ( 2U * sizeof( pxSet->pxIPPacket_IPv6->xSourceAddress ) ) );
+            pxSet->usChecksum = usGenerateChecksum( 0U,
+                                                    &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + offsetof( IPHeader_IPv6_t, xSourceAddress ) ] ),
+                                                    ( size_t ) ( 2U * sizeof( pxSet->pxIPPacket_IPv6->xSourceAddress ) ) );
 
-        pxSet->usChecksum = usGenerateChecksum( pxSet->usChecksum,
-                                                ( const uint8_t * ) pulHeader,
-                                                ( size_t ) ( sizeof( pulHeader ) ) );
-    }
+            pxSet->usChecksum = usGenerateChecksum( pxSet->usChecksum,
+                                                    ( const uint8_t * ) pulHeader,
+                                                    ( size_t ) ( sizeof( pulHeader ) ) );
+        }
+    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) || ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
     {
@@ -549,36 +555,50 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
-        pxSet->usChecksum = ( uint16_t )
-                            ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                   ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
-                                                   ( size_t ) pxSet->usProtocolBytes ) );
+        #if ( ipconfigUSE_IPv6 != 0 )
+            pxSet->usChecksum = ( uint16_t )
+                                ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                    ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
+                                                    ( size_t ) pxSet->usProtocolBytes ) );
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
     else
     {
-        if( pxSet->xIsIPv6 != pdFALSE )
-        {
-            /* The CRC of the IPv6 pseudo-header has already been calculated. */
-            pxSet->usChecksum = ( uint16_t )
-                                ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                       ( uint8_t * ) &( pxSet->pxProtocolHeaders->xUDPHeader.usSourcePort ),
-                                                       ( size_t ) ( pxSet->usProtocolBytes ) ) );
-        }
-        else
-        {
-            /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
-            uint32_t ulByteCount = pxSet->usProtocolBytes;
-            ulByteCount += 2U * ipSIZE_OF_IPv4_ADDRESS;
 
-            /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
-             * fields */
-            pxSet->usChecksum = ( uint16_t ) ( pxSet->usProtocolBytes + ( ( uint16_t ) pxSet->ucProtocol ) );
+        switch(pxSet->xIsIPv6)
+        {
 
-            /* And then continue at the IPv4 source and destination addresses. */
-            pxSet->usChecksum = ( uint16_t )
-                                ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                       ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
-                                                       ulByteCount ) );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE:
+                    /* The CRC of the IPv6 pseudo-header has already been calculated. */
+                    pxSet->usChecksum = ( uint16_t )
+                                        ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                            ( uint8_t * ) &( pxSet->pxProtocolHeaders->xUDPHeader.usSourcePort ),
+                                                            ( size_t ) ( pxSet->usProtocolBytes ) ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE:
+                default:
+                    {
+                        /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
+                        uint32_t ulByteCount = pxSet->usProtocolBytes;
+                        ulByteCount += 2U * ipSIZE_OF_IPv4_ADDRESS;
+
+                        /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
+                        * fields */
+                        pxSet->usChecksum = ( uint16_t ) ( pxSet->usProtocolBytes + ( ( uint16_t ) pxSet->ucProtocol ) );
+
+                        /* And then continue at the IPv4 source and destination addresses. */
+                        pxSet->usChecksum = ( uint16_t )
+                                            ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                                ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
+                                                                ulByteCount ) );
+                    }
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
         }
 
         /* Sum TCP header and data. */
@@ -715,13 +735,20 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
          * It must have a value of either 0x4x or 0x6x. */
         configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
 
-        if( ucIPType == ipTYPE_IPv6 )
+        switch(ucIPType)
         {
-            uxOffset = sizeof( UDPPacket_IPv6_t );
-        }
-        else /* ucIPType == ipTYPE_IPv4 */
-        {
-            uxOffset = sizeof( UDPPacket_t );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipTYPE_IPv6:
+                    uxOffset = sizeof( UDPPacket_IPv6_t );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipTYPE_IPv4:
+                default:
+                    uxOffset = sizeof( UDPPacket_t );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
         }
 
         pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
