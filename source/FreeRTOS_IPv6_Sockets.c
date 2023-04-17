@@ -53,9 +53,9 @@
  * @brief Called by pxTCPSocketLookup(), this function will check if a socket
  *        is connected to a remote IP-address. It will be called from a loop
  *        iterating through all sockets.
- * @param[in] pxSocket: The socket to be inspected.
- * @param[in] pxAddress_IPv6: The IPv6 address, or NULL if the peer has a IPv4 address.
- * @param[in] ulRemoteIP: The IPv4 address.
+ * @param[in] pxSocket The socket to be inspected.
+ * @param[in] pxAddress_IPv6 The IPv6 address, or NULL if the peer has a IPv4 address.
+ * @param[in] ulRemoteIP The IPv4 address.
  * @return The socket in case it is connected to the remote IP-address.
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
@@ -97,8 +97,8 @@
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet
  *        fields and IPv6 address for the packet to be send.
- * @param[in] pxNetworkBuffer : The packet to be sent.
- * @param[in] pxDestinationAddress: The IPv4 socket address.
+ * @param[in] pxNetworkBuffer  The packet to be sent.
+ * @param[in] pxDestinationAddress The IPv4 socket address.
  * @return  Returns NULL, always.
  */
 void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -122,8 +122,8 @@ void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
 /**
  * @brief Called by FreeRTOS_recvfrom(), this function will update socket
  *        address with IPv6 address from the packet received.
- * @param[in] pxNetworkBuffer : The packet received.
- * @param[in] pxSourceAddress: The IPv4 socket address.
+ * @param[in] pxNetworkBuffer  The packet received.
+ * @param[in] pxSourceAddress The IPv4 socket address.
  * @return The Payload Offset.
  */
 size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -155,7 +155,7 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
 
 /**
  * @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
- * @param usValue : The value to be converted, must be between 0 and 15.
+ * @param usValue  The value to be converted, must be between 0 and 15.
  * @return The character, between '0' and '9', or between 'a' and 'f'.
  */
 char cHexToChar( uint16_t usValue )
@@ -187,9 +187,9 @@ char cHexToChar( uint16_t usValue )
  * @brief Convert a short numeric value to a hex string of at most 4 characters.
  *        The resulting string is **not** null-terminated. The resulting string
  *        will not have leading zero's, except when 'usValue' equals zero.
- * @param[in] pcBuffer : The buffer to which the string is written.
- * @param[in] uxBufferSize : The size of the buffer pointed to by 'pcBuffer'.
- * @param[in] usValue : The 16-bit value to be converted.
+ * @param[in] pcBuffer  The buffer to which the string is written.
+ * @param[in] uxBufferSize  The size of the buffer pointed to by 'pcBuffer'.
+ * @param[in] usValue  The 16-bit value to be converted.
  * @return The number of bytes written to 'pcBuffer'.
  */
 socklen_t uxHexPrintShort( char * pcBuffer,
@@ -232,7 +232,7 @@ socklen_t uxHexPrintShort( char * pcBuffer,
 /**
  * @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
  *        The result of this search will be stored in 'xZeroStart' and 'xZeroLength'.
- * @param pxSet: the set of parameters as used by FreeRTOS_inet_ntop6().
+ * @param pxSet the set of parameters as used by FreeRTOS_inet_ntop6().
  */
 void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
 {
@@ -282,9 +282,9 @@ void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
 /**
  * @brief The location is now at the longest train of zero's. Two colons have to
  *        be printed without a numeric value, e.g. "ff02::1".
- * @param pcDestination: the output buffer where the colons will be printed.
- * @param uxSize: the remaining length of the output buffer.
- * @param pxSet: the set of parameters as used by FreeRTOS_inet_ntop6().
+ * @param pcDestination the output buffer where the colons will be printed.
+ * @param uxSize the remaining length of the output buffer.
+ * @param pxSet the set of parameters as used by FreeRTOS_inet_ntop6().
  * @return pdPASS in case the output buffer is big enough to contain the colons.
  * @note uxSize must be at least 2, enough to print "::". The string will get
  *       null-terminated later on.
@@ -333,9 +333,9 @@ static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
 /**
  * @brief Write a short value, as a hex number with at most 4 characters. E.g. the
  *        value 15 will be printed as "f".
- * @param pcDestination: the output buffer where the hex number is to be printed.
- * @param uxSize: the remaining length of the output buffer.
- * @param pxSet: the set of parameters as used by FreeRTOS_inet_ntop6().
+ * @param pcDestination the output buffer where the hex number is to be printed.
+ * @param uxSize the remaining length of the output buffer.
+ * @param pxSet the set of parameters as used by FreeRTOS_inet_ntop6().
  * @return pdPASS in case the output buffer is big enough to contain the string.
  * @note uxSize must be at least 4, enough to print "abcd". The string will get
  *       null-terminated later on.
@@ -389,10 +389,10 @@ static BaseType_t prv_ntop6_write_short( char * pcDestination,
 /**
  * @brief This function converts a binary IPv6 address to a human readable notation.
  *
- * @param[in] pvSource: The binary address, 16 bytes long..
- * @param[out] pcDestination: The human-readable ( hexadecimal ) notation of the
+ * @param[in] pvSource The binary address, 16 bytes long..
+ * @param[out] pcDestination The human-readable ( hexadecimal ) notation of the
  *                            address.
- * @param[in] uxSize: The size of pvDestination. A value of 40 is recommended.
+ * @param[in] uxSize The size of pvDestination. A value of 40 is recommended.
  *
  * @return pdPASS if the translation was successful or else pdFAIL.
  */
@@ -456,9 +456,9 @@ const char * FreeRTOS_inet_ntop6( const void * pvSource,
 /**
  * @brief Converting a readable IPv6 address to its binary form, add one nibble.
  *
- * @param[in] pxSet : A set of variables describing the conversion.
- * @param[in] ucNew : The hex value, between 0 and 15
- * @param[in] ch : The character, such as '5', 'f', or ':'.
+ * @param[in] pxSet  A set of variables describing the conversion.
+ * @param[in] ucNew  The hex value, between 0 and 15
+ * @param[in] ch  The character, such as '5', 'f', or ':'.
  *
  * @return pdTRUE when the nibble was added, otherwise pdFALSE.
  */
@@ -530,7 +530,7 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
 /**
  * @brief Convert an ASCII character to its corresponding hexadecimal value.
  *        A :: block was found, now fill in the zero's.
- * @param[in] pxSet : A set of variables describing the conversion.
+ * @param[in] pxSet  A set of variables describing the conversion.
  */
 static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
 {
@@ -557,8 +557,8 @@ static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
 /**
  * @brief Convert an IPv6 address in hexadecimal notation to a binary format of 16 bytes.
  *
- * @param[in] pcSource: The address in hexadecimal notation.
- * @param[out] pvDestination: The address in binary format, 16 bytes long.
+ * @param[in] pcSource The address in hexadecimal notation.
+ * @param[out] pvDestination The address in binary format, 16 bytes long.
  *
  * @return The 32-bit representation of IP(v4) address.
  */

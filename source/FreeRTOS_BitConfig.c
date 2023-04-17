@@ -48,9 +48,9 @@
 /**
  * @brief Initialise a bit-config struct.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
- * @param[in] uxSize: The length of the binary data stream.
- * @param[in] pucData: Not NULL if a bit-stream must be analysed, otherwise NULL.
+ * @param[in] pxConfig The structure containing a copy of the bits.
+ * @param[in] uxSize The length of the binary data stream.
+ * @param[in] pucData Not NULL if a bit-stream must be analysed, otherwise NULL.
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
@@ -90,9 +90,9 @@ BaseType_t xBitConfig_init( BitConfig_t * pxConfig,
 /**
  * @brief Initialise a bit-config struct.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
- * @param[in] uxSize: The length of the binary data stream.
- * @param[in] pucData: Not NULL if a bit-stream must be analysed, otherwise NULL.
+ * @param[in] pxConfig The structure containing a copy of the bits.
+ * @param[in] uxSize The length of the binary data stream.
+ * @param[in] pucData Not NULL if a bit-stream must be analysed, otherwise NULL.
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
@@ -132,7 +132,7 @@ BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
 /**
  * @brief Read a byte from the bit stream.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
+ * @param[in] pxConfig The structure containing a copy of the bits.
  *
  * @return A byte value.  When there was not enough data, xHasError will be set.
  */
@@ -154,7 +154,7 @@ uint8_t ucBitConfig_read_8( BitConfig_t * pxConfig )
 /**
  * @brief Read 2 bytes from the bit stream.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
+ * @param[in] pxConfig The structure containing a copy of the bits.
  *
  * @return A 16-bit value.  When there was not enough data, xHasError will be set.
  */
@@ -177,7 +177,7 @@ uint16_t usBitConfig_read_16( BitConfig_t * pxConfig )
 /**
  * @brief Read 4 bytes from the bit stream.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
+ * @param[in] pxConfig The structure containing a copy of the bits.
  *
  * @return A 32-bit value.  When there was not enough data, xHasError will be set.
  */
@@ -202,9 +202,9 @@ uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig )
 /**
  * @brief Read any number bytes from the bit stream.
  *
- * @param[in] pxConfig: The structure containing a copy of the bit stream.
- * @param[in] pucData: The binary data to be written.
- * @param[in] uxSize: The number of bytes to be written.
+ * @param[in] pxConfig The structure containing a copy of the bit stream.
+ * @param[in] pucData The binary data to be written.
+ * @param[in] uxSize The number of bytes to be written.
  *
  * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
@@ -234,8 +234,8 @@ void vBitConfig_write_uc( BitConfig_t * pxConfig,
 /**
  * @brief Write a byte to the bit stream.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
- * @param[in] ucValue: The byte to be written.
+ * @param[in] pxConfig The structure containing a copy of the bits.
+ * @param[in] ucValue The byte to be written.
  *
  * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
@@ -252,8 +252,8 @@ void vBitConfig_write_8( BitConfig_t * pxConfig,
 /**
  * @brief Write a short word to the bit stream.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
- * @param[in] usValue: The 16-bit value to be written.
+ * @param[in] pxConfig The structure containing a copy of the bits.
+ * @param[in] usValue The 16-bit value to be written.
  *
  * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
@@ -273,8 +273,8 @@ void vBitConfig_write_16( BitConfig_t * pxConfig,
 /**
  * @brief Write a 32-bit word to the bit stream.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
- * @param[in] ulValue: The 32-bit value to be written.
+ * @param[in] pxConfig The structure containing a copy of the bits.
+ * @param[in] ulValue The 32-bit value to be written.
  *
  * There is no return value. If the operation has failed,
  *         the field xHasError will be set.
@@ -298,7 +298,7 @@ void vBitConfig_write_32( BitConfig_t * pxConfig,
  * @brief Deallocate ( release ) the buffer, and clear the bit stream structure.
  *        Note that the struct must have be initialised before calling this function.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
+ * @param[in] pxConfig The structure containing a copy of the bits.
  *
  */
 void vBitConfig_release( BitConfig_t * pxConfig )

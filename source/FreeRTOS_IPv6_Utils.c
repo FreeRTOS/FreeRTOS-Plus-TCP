@@ -49,8 +49,8 @@
 /**
  * @brief Set multicast MAC address.
  *
- * @param[in] pxAddress: IPv6 address.
- * @param[out] pxMACAddress: Pointer to MAC address.
+ * @param[in] pxAddress IPv6 address.
+ * @param[out] pxMACAddress Pointer to MAC address.
  */
 void vSetMultiCastIPv6MacAddress( const IPv6_Address_t * pxAddress,
                                   MACAddress_t * pxMACAddress )
@@ -65,9 +65,9 @@ void vSetMultiCastIPv6MacAddress( const IPv6_Address_t * pxAddress,
 /*-----------------------------------------------------------*/
 
 /** @brief Do the first IPv6 length checks at the IP-header level.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] uxBufferLength: The number of bytes to be sent or received.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -115,7 +115,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
 
 /**
  * @brief Check the buffer lengths of an ICMPv6 packet.
- * @param[in] uxBufferLength: The total length of the packet.
+ * @param[in] uxBufferLength The total length of the packet.
  * @param[in] pxSet A struct describing this packet.
  * @return Non-zero in case of an error.
  */

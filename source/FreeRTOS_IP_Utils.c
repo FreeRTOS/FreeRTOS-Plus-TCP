@@ -137,10 +137,10 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
 /**
  * @brief Set checksum in the packet
  *
- * @param pxSet: Pointer to the packet summary that describes the packet,
+ * @param pxSet Pointer to the packet summary that describes the packet,
  *                  to which the checksum will be set.
  *
- * @param usChecksum: Checksum value to be set.
+ * @param usChecksum Checksum value to be set.
  */
 static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
                                     uint16_t usChecksum )
@@ -171,7 +171,7 @@ static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
 /**
  * @brief Get checksum from the packet summary
  *
- * @param pxSet: Pointer to the packet summary that describes the packet,
+ * @param pxSet Pointer to the packet summary that describes the packet,
  *                  from which the checksum will be retrieved.
  *
  * @return Checksum value that is retrieved from pxSet.
@@ -213,7 +213,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
  *
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
- * @param pxEndPoint: The end-point that needs DHCP.
+ * @param pxEndPoint The end-point that needs DHCP.
  */
     BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     {
@@ -371,8 +371,8 @@ static uintptr_t void_ptr_to_uintptr( const void * pvPointer )
 /*-----------------------------------------------------------*/
 
 /** @brief Get and check the specific lengths depending on the protocol ( TCP/UDP/ICMP/IGMP ).
- * @param[in] uxBufferLength: The number of bytes to be sent or received.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -469,7 +469,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
 /*-----------------------------------------------------------*/
 
 /** @brief See if the packet doesn't get bigger than the value of MTU.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -507,9 +507,9 @@ static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet )
 /*-----------------------------------------------------------*/
 
 /** @brief Do the actual checksum calculations, both the pseudo header, and the payload.
- * @param[in] xOutgoingPacket: pdTRUE when the packet is to be sent.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] xOutgoingPacket pdTRUE when the packet is to be sent.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] pxSet A struct describing this packet.
  */
 static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                           const uint8_t * pucEthernetBuffer,
@@ -612,10 +612,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 
 /** @brief For outgoing packets, set the checksum in the packet,
  *        for incoming packets: show logging in case an error occurred.
- * @param[in] xOutgoingPacket: Non-zero if this is an outgoing packet.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] xOutgoingPacket Non-zero if this is an outgoing packet.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength the total number of bytes received, or the number of bytes written
+ * @param[in] pxSet A struct describing this packet.
  */
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             const uint8_t * pucEthernetBuffer,
@@ -762,7 +762,7 @@ BaseType_t xIsCallingFromIPTask( void )
 
 /**
  * @brief Process a 'Network down' event and complete required processing.
- * @param pxInterface: The interface that goes down.
+ * @param pxInterface The interface that goes down.
  */
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */

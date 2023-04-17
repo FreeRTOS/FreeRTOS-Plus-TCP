@@ -285,9 +285,9 @@
 /**
  * @brief Called by prvTCPReturnPacket(), this function will set the the window
  *        size on this side: 'xTCPHeader.usWindow'.
- * @param[in] pxSocket: The socket on which the packet is being sent.
- * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
- * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
+ * @param[in] pxSocket The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
  */
     void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
                                       const NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -369,10 +369,10 @@
 /**
  * @brief Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
  *        in the TCP-header.
- * @param[in] pxSocket: The socket on which the packet is being sent.
- * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
- * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
- * @param[in] ulLen: The size of the packet minus the size of the Ethernet header.
+ * @param[in] pxSocket The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
+ * @param[in] ulLen The size of the packet minus the size of the Ethernet header.
  *
  */
     void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
@@ -697,9 +697,9 @@
 /**
  * @brief Called by prvTCPReturnPacket(), this function makes sure that the network buffer
  *        has 'pxEndPoint' set properly.
- * @param[in] pxSocket: The socket on which the packet is being sent.
- * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
- * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
+ * @param[in] pxSocket The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
  */
     void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                    NetworkBufferDescriptor_t * pxNetworkBuffer,

@@ -194,7 +194,7 @@
 
 /**
  * @brief Define FreeRTOS_gethostbyname() as a normal blocking call.
- * @param[in] pcHostName: The hostname whose IP address is being searched for.
+ * @param[in] pcHostName The hostname whose IP address is being searched for.
  * @return The IP-address of the hostname.
  */
         uint32_t FreeRTOS_gethostbyname( const char * pcHostName )
@@ -219,7 +219,7 @@
 
 /**
  * @brief Remove the entry defined by the search ID to cancel a DNS request.
- * @param[in] pvSearchID: The search ID of the callback function associated with
+ * @param[in] pvSearchID The search ID of the callback function associated with
  *                        the DNS request being cancelled. Note that the value of
  *                        the pointer matters, not the pointee.
  */
@@ -236,10 +236,10 @@
 /**
  * @brief Look-up the IP-address of a host.
  *
- * @param[in] pcName: The name of the node or device
- * @param[in] pcService: Ignored for now.
- * @param[in] pxHints: If not NULL: preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
- * @param[out] ppxResult: An allocated struct, containing the results.
+ * @param[in] pcName The name of the node or device
+ * @param[in] pcService Ignored for now.
+ * @param[in] pxHints If not NULL preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
+ * @param[out] ppxResult An allocated struct, containing the results.
  *
  * @return Zero when the operation was successful, otherwise a negative errno value.
  */
@@ -257,9 +257,9 @@
 /**
  * @brief Internal function: allocate and initialise a new struct of type freertos_addrinfo.
  *
- * @param[in] pcName: the name of the host.
- * @param[in] xFamily: the type of IP-address: FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
- * @param[in] pucAddress: The IP-address of the host.
+ * @param[in] pcName the name of the host.
+ * @param[in] xFamily the type of IP-address: FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] pucAddress The IP-address of the host.
  *
  * @return A pointer to the newly allocated struct, or NULL in case malloc failed..
  */
@@ -311,7 +311,7 @@
 
 /**
  * @brief Free a chain of structs of type 'freertos_addrinfo'.
- * @param[in] pxInfo: The first find result.
+ * @param[in] pxInfo The first find result.
  */
     void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo )
     {
@@ -335,13 +335,13 @@
 /**
  * @brief Asynchronous version of getaddrinfo().
  *
- * @param[in] pcName: The name of the node or device
- * @param[in] pcService: Ignored for now.
- * @param[in] pxHints: If not NULL: preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
- * @param[out] ppxResult: An allocated struct, containing the results.
- * @param[in] pCallback: A user-defined function which will be called on completion, either when found or after a time-out.
- * @param[in] pvSearchID: A user provided void pointer that will be communicated on completion.
- * @param[in] uxTimeout: The maximum number of clock ticks that must be waited for a reply.
+ * @param[in] pcName The name of the node or device
+ * @param[in] pcService Ignored for now.
+ * @param[in] pxHints If not NULL preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
+ * @param[out] ppxResult An allocated struct, containing the results.
+ * @param[in] pCallback A user-defined function which will be called on completion, either when found or after a time-out.
+ * @param[in] pvSearchID A user provided void pointer that will be communicated on completion.
+ * @param[in] uxTimeout The maximum number of clock ticks that must be waited for a reply.
  *
  * @return Zero when the operation was successful, otherwise a negative errno value.
  */
@@ -356,10 +356,10 @@
 
 /**
  * @brief Look-up the IP-address of a host.
- * @param[in] pcName: The name of the node or device
- * @param[in] pcService: Ignored for now.
- * @param[in] pxHints: If not NULL: preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
- * @param[out] ppxResult: An allocated struct, containing the results.
+ * @param[in] pcName The name of the node or device
+ * @param[in] pcService Ignored for now.
+ * @param[in] pxHints If not NULL preferences. Can be used to indicate the preferred type if IP ( v4 or v6 ).
+ * @param[out] ppxResult An allocated struct, containing the results.
  * @return Zero when the operation was successful, otherwise a negative errno value.
  */
         BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* The name of the node or device */
@@ -487,9 +487,9 @@
 
 /**
  * @brief See if pcHostName contains a valid IPv4 or IPv6 IP-address.
- * @param[in] pcHostName: The name to be looked up
- * @param[in] xFamily: the IP-type, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
- * @param[in] ppxAddressInfo: A pointer to a pointer where the find results will
+ * @param[in] pcHostName The name to be looked up
+ * @param[in] xFamily the IP-type, either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
+ * @param[in] ppxAddressInfo A pointer to a pointer where the find results will
  *                            be stored.
  * @return Either 0 or an IP=address.
  */
@@ -983,7 +983,7 @@
 /*!
  * @brief return ip address from the dns reply message
  * @param [in] pxReceiveBuffer received buffer from the DNS server
- * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ * @param[in,out] ppxAddressInfo A pointer to a pointer where the find results
  *                will be stored.
  * @param [in] uxIdentifier matches sent and received packets
  * @param [in] usPort Port from which DNS reply was read
@@ -1153,7 +1153,7 @@
  * @param [in] pcHostName hostname to get its ip address
  * @param [in] uxIdentifier Identifier to match sent and received packets
  * @param [in] xDNSSocket socket
- * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ * @param[in,out] ppxAddressInfo A pointer to a pointer where the find results
  *                will be stored.
  * @param[in] xFamily Either FREERTOS_AF_INET4 or FREERTOS_AF_INET6.
  * @param[in] uxReadTimeOut_ticks The timeout in ticks for waiting. In case the user has supplied

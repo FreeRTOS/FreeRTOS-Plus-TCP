@@ -51,7 +51,7 @@
 /**
  * @brief Set the MSS (Maximum segment size) associated with the given socket.
  *
- * @param[in] pxSocket: The socket whose MSS is to be set.
+ * @param[in] pxSocket The socket whose MSS is to be set.
  */
     void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket )
     {

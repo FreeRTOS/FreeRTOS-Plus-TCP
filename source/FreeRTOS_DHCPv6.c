@@ -213,7 +213,7 @@ static DHCPMessage_IPv6_t xDHCPMessage;
 /**
  * @brief Get the DHCP state from a given endpoint.
  *
- * @param[in] pxEndPoint: The end-point for which vDHCPv6Process() is called.
+ * @param[in] pxEndPoint The end-point for which vDHCPv6Process() is called.
  *
  * @return DHCP state of the given endpoint
  *
@@ -228,7 +228,7 @@ eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
 /**
  * @brief A DHCPv6 reply has been received. See to which end-point it belongs and pass it.
  *
- * @param[in] pxEndPoint: The end-point for which vDHCPv6Process() is called.
+ * @param[in] pxEndPoint The end-point for which vDHCPv6Process() is called.
  *
  * @return In case the message is passed to 'pxEndPoint', return pdFALSE, meaning that
  *         the it has done its periodic processing.
@@ -296,9 +296,9 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
 /**
  * @brief Check the DHCP socket and run one cycle of the DHCP state machine.
  *
- * @param[in] xReset: When pdTRUE, the state machine needs to be reset.  This may happen
+ * @param[in] xReset When pdTRUE, the state machine needs to be reset.  This may happen
  *            when the end-point has just become up.
- * @param[in] pxEndPoint: The end-point that wants a DHCPv6 address.
+ * @param[in] pxEndPoint The end-point that wants a DHCPv6 address.
  */
 void vDHCPv6Process( BaseType_t xReset,
                      struct xNetworkEndPoint * pxEndPoint )
@@ -377,8 +377,8 @@ void vDHCPv6Process( BaseType_t xReset,
 /**
  * @brief The DHCP process is about ready: the server sends a confirmation that the
  *        assigned IPv6 address may be used. The settings will be copied to 'pxEndPoint->ipv6_settings'.
- * @param[in] pxEndPoint: The end-point that is asking for an IP-address.
- * @param[in] pxDHCPMessage: The reply received from the DHCP server.
+ * @param[in] pxEndPoint The end-point that is asking for an IP-address.
+ * @param[in] pxDHCPMessage The reply received from the DHCP server.
  */
 static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
                                                 DHCPMessage_IPv6_t * pxDHCPMessage )
@@ -433,8 +433,8 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 /**
  * @brief An advertise packet has been received. Ask the application if
  *        it it shall send a request to obtain this IP-address.
- * @param[in] pxEndPoint: The end-point that is asking for an IP-address.
- * @param[in] pxDHCPMessage: The advertisement received from the DHCP server.
+ * @param[in] pxEndPoint The end-point that is asking for an IP-address.
+ * @param[in] pxDHCPMessage The advertisement received from the DHCP server.
  * @return When the request will be send, pdFALSE will be returned.
  */
 static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * pxEndPoint,
@@ -483,7 +483,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
 
 /**
  * @brief The first step in the DHCP dialogue is to ask the server for an offer.
- * @param[in] pxEndPoint: The end-point that is asking for an IP-address.
+ * @param[in] pxEndPoint The end-point that is asking for an IP-address.
  */
 static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_t * pxEndPoint )
 {
@@ -510,8 +510,8 @@ static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_t * pxEndPoint 
 
 /**
  * @brief This function is called periodically, or when a message was received for this end-point.
- * @param[in] pxEndPoint: The end-point that is asking for an IP-address.
- * @param[in] pxDHCPMessage: when not NULL, a message that was received for this end-point.
+ * @param[in] pxEndPoint The end-point that is asking for an IP-address.
+ * @param[in] pxDHCPMessage when not NULL, a message that was received for this end-point.
  * @return It returns pdTRUE in case the DHCP process is to be cancelled.
  */
 static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
@@ -734,9 +734,9 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
 /**
  * @brief Run one cycle of the DHCP state machine.
  *
- * @param[in] xReset: pdTRUE is the state machine has to be reset.
- * @param[in] pxEndPoint: The end-point that needs DHCP.
- * @param[in] pxDHCPMessage: A DHCP message that has just been received, or NULL.
+ * @param[in] xReset pdTRUE is the state machine has to be reset.
+ * @param[in] pxEndPoint The end-point that needs DHCP.
+ * @param[in] pxDHCPMessage A DHCP message that has just been received, or NULL.
  */
 static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
                                     NetworkEndPoint_t * pxEndPoint,
@@ -810,7 +810,7 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
  * @brief Close the shared UDP/DHCP socket.  This results in lowering the reference count.
  *        The last user of the socket will close it.
  *
- * @param[in] pxEndPoint: The end-point that wants to close the socket.
+ * @param[in] pxEndPoint The end-point that wants to close the socket.
  */
 static void prvCloseDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 {
@@ -846,7 +846,7 @@ static void prvCloseDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 /**
  * @brief Return the UDP/DHCP socket, or create if it doesn't exist.
  *
- * @param[in] pxEndPoint: The end-point that needs the socket.
+ * @param[in] pxEndPoint The end-point that needs the socket.
  */
 static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 {
@@ -894,7 +894,7 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 /**
  * @brief Initialise the DHCP state machine of a given end-point.
  *
- * @param[in] pxEndPoint: The end-point.
+ * @param[in] pxEndPoint The end-point.
  */
 static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint )
 {
@@ -919,7 +919,7 @@ static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint )
 /**
  * @brief Send a DHCPv6 message to a DHCP server.
  *
- * @param[in] pxEndPoint: The end-point for which a message will be sent.
+ * @param[in] pxEndPoint The end-point for which a message will be sent.
  */
 static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
 {
@@ -1073,10 +1073,10 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
  *        was received.  This function will read sub options like 'IA_Address',
  *        IA_Prefix, and Status_Code.
  *        It parses the raw message and fills 'pxDHCPMessage'.
- * @param[in] usOption: The DHCPv6 option that was received.
- * @param[in] pxSet: It contains the length and offset of the DHCP option.
- * @param[out] pxDHCPMessage: it will be filled with the information from the option.
- * @param[in] pxMessage: The raw packet as it was received.
+ * @param[in] usOption The DHCPv6 option that was received.
+ * @param[in] pxSet It contains the length and offset of the DHCP option.
+ * @param[out] pxDHCPMessage it will be filled with the information from the option.
+ * @param[in] pxMessage The raw packet as it was received.
  */
 static void prvDHCPv6_subOption( uint16_t usOption,
                                  const DHCPOptionSet_t * pxSet,
@@ -1136,10 +1136,10 @@ static void prvDHCPv6_subOption( uint16_t usOption,
 /**
  * @brief A DHCP packet has a list of options, each one starting with a type and a length
  *        field. This function parses a single DHCP option.
- * @param[in] usOption: IPv6 DHCP option to be handled.
- * @param[in] pxSet: It contains the length and offset of the DHCP option.
- * @param[out] pxDHCPMessage: it will be filled with the information from the option.
- * @param[in] pxMessage: The raw packet as it was received.
+ * @param[in] usOption IPv6 DHCP option to be handled.
+ * @param[in] pxSet It contains the length and offset of the DHCP option.
+ * @param[out] pxDHCPMessage it will be filled with the information from the option.
+ * @param[in] pxMessage The raw packet as it was received.
  */
 static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
                                           const DHCPOptionSet_t * pxSet,
@@ -1295,9 +1295,9 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
 /**
  * @brief Analyse the reply from a DHCP server.
  *
- * @param[in] pucAnswer: The payload text of the incoming packet.
- * @param[in] uxTotalLength: The number of valid bytes in pucAnswer.
- * @param[in] pxDHCPMessage: The DHCP object of the end-point.
+ * @param[in] pucAnswer The payload text of the incoming packet.
+ * @param[in] uxTotalLength The number of valid bytes in pucAnswer.
+ * @param[in] pxDHCPMessage The DHCP object of the end-point.
  *
  * @return pdTRUE if the analysis was successful.
  */
@@ -1422,7 +1422,7 @@ static BaseType_t prvDHCPv6Analyse( const uint8_t * pucAnswer,
 /**
  * @brief transform a state number in a descriptive string.
  *
- * @param[in] eState: The DHCP state number.
+ * @param[in] eState The DHCP state number.
  *
  * @return A descriptive string.
  */
