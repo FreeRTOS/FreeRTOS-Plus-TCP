@@ -710,7 +710,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                 default:
                     FreeRTOS_debug_printf( ( "FreeRTOS_socket: Undefined xDomain \n" ) );
 
-                    /* MISRA Rule 16.3 compliance */
+                    /* MISRA 16.4 Compliance */
                     break;
             }
 
@@ -1263,7 +1263,7 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
     FreeRTOS_Socket_t const * pxSocket = xSocket;
     int32_t lReturn;
     EventBits_t xEventBits = ( EventBits_t ) 0;
-    size_t uxPayloadOffset;
+    size_t uxPayloadOffset = 0;
     size_t uxPayloadLength;
     socklen_t xAddressLength;
 
@@ -1298,6 +1298,7 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 
                 default:
+                    /* MISRA 16.4 Compliance */
                     break;
             }
             
@@ -1406,6 +1407,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
         default:
+            /* MISRA 16.4 Compliance */
             break;
     }
 
@@ -1562,8 +1564,8 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 {
     int32_t lReturn = 0;
     FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
-    size_t uxMaxPayloadLength;
-    size_t uxPayloadOffset;
+    size_t uxMaxPayloadLength = 0;
+    size_t uxPayloadOffset = 0;
 
     #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         struct freertos_sockaddr xTempDestinationAddress;
@@ -1603,31 +1605,34 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 
         default:
             FreeRTOS_debug_printf( ( "FreeRTOS_sendto: Undefined sin_family \n" ) );
-
-            /* MISRA Rule 16.3 compliance */
+            lReturn = -pdFREERTOS_ERRNO_EINVAL;
+            /* MISRA 16.4 compliance */
             break;
     
     }
 
-    if( uxTotalDataLength <= ( size_t ) uxMaxPayloadLength )
+    if( lReturn == 0 )
     {
-        /* If the socket is not already bound to an address, bind it now.
-         * Passing NULL as the address parameter tells FreeRTOS_bind() to select
-         * the address to bind to. */
-        if( prvMakeSureSocketIsBound( pxSocket ) == pdTRUE )
+        if( uxTotalDataLength <= ( size_t ) uxMaxPayloadLength )
         {
-            lReturn = prvSendTo_ActualSend( pxSocket, pvBuffer, uxTotalDataLength, xFlags, pxDestinationAddress, uxPayloadOffset );
+            /* If the socket is not already bound to an address, bind it now.
+            * Passing NULL as the address parameter tells FreeRTOS_bind() to select
+            * the address to bind to. */
+            if( prvMakeSureSocketIsBound( pxSocket ) == pdTRUE )
+            {
+                lReturn = prvSendTo_ActualSend( pxSocket, pvBuffer, uxTotalDataLength, xFlags, pxDestinationAddress, uxPayloadOffset );
+            }
+            else
+            {
+                /* No comment. */
+                iptraceSENDTO_SOCKET_NOT_BOUND();
+            }
         }
         else
         {
-            /* No comment. */
-            iptraceSENDTO_SOCKET_NOT_BOUND();
+            /* The data is longer than the available buffer space. */
+            iptraceSENDTO_DATA_TOO_LONG();
         }
-    }
-    else
-    {
-        /* The data is longer than the available buffer space. */
-        iptraceSENDTO_DATA_TOO_LONG();
     }
 
     return lReturn;
@@ -2183,6 +2188,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                     default:
+                        /* MISRA 16.4 Compliance */
                         break;
                     
                 }
@@ -2216,6 +2222,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                     default:
+                        /* MISRA 16.4 Compliance */
                         break;
                 
             }
@@ -3483,6 +3490,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         
         default:
+            /* MISRA 16.4 Compliance */
             break;
     }
 
@@ -3921,6 +3929,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 
                 default:
+                    /* MISRA 16.4 Compliance */
                     break;
             }
 
@@ -5297,6 +5306,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 
                 default:
+                    /* MISRA 16.4 Compliance */
                     break;
             }
 
@@ -5343,6 +5353,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             
             default:
+                /* MISRA 16.4 Compliance */
                 break;
         }
 
@@ -5782,6 +5793,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             default:
+                /* MISRA 16.4 Compliance */
                 break;
             
         }
