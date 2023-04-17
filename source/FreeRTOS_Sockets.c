@@ -1565,21 +1565,24 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
     size_t uxMaxPayloadLength;
     size_t uxPayloadOffset;
 
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        struct freertos_sockaddr xTempDestinationAddress;
+        if ( ( pxDestinationAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxDestinationAddress->sin_family != FREERTOS_AF_INET ) )
+        {
+            (void) memcpy( &xTempDestinationAddress, pxDestinationAddress, sizeof( struct freertos_sockaddr ) );
+            /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
+            is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+            xTempDestinationAddress.sin_family = FREERTOS_AF_INET;
+            pxDestinationAddress = &xTempDestinationAddress;
+        }
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
     /* The function prototype is designed to maintain the expected Berkeley
      * sockets standard, but this implementation does not use all the
      * parameters. */
     ( void ) xDestinationAddressLength;
     configASSERT( pxDestinationAddress != NULL );
     configASSERT( pvBuffer != NULL );
-
-    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-        if ( ( pxDestinationAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxDestinationAddress->sin_family != FREERTOS_AF_INET ) )
-        {
-            /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
-            is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
-            pxDestinationAddress->sin_family = FREERTOS_AF_INET;
-        }
-    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
     switch( pxDestinationAddress->sin_family )
     {
@@ -1656,6 +1659,18 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
     FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
     BaseType_t xReturn = 0;
 
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        struct freertos_sockaddr xTempAddress;
+        if( ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
+        {
+            (void) memcpy( &xTempAddress, pxAddress, sizeof( struct freertos_sockaddr ) );
+            /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
+            is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+            xTempAddress.sin_family = FREERTOS_AF_INET;
+            pxAddress = &xTempAddress;
+        }
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
     ( void ) xAddressLength;
 
     configASSERT( xIsCallingFromIPTask() == pdFALSE );
@@ -1664,16 +1679,6 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
     {
         xReturn = -pdFREERTOS_ERRNO_EINVAL;
     }
-
-    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-        if( ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
-        {
-            /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
-            is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
-            pxAddress->sin_family = FREERTOS_AF_INET;
-        }
-    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
-
 
     /* Once a socket is bound to a port, it can not be bound to a different
      * port number */
@@ -3751,14 +3756,16 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         ( void ) xAddressLength;
 
         #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+            struct freertos_sockaddr xTempAddress;
             if ( ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
             {
+                (void) memcpy( &xTempAddress, pxAddress, sizeof( struct freertos_sockaddr ) );
                 /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
                 is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
-                pxAddress->sin_family = FREERTOS_AF_INET;
+                xTempAddress.sin_family = FREERTOS_AF_INET;
+                pxAddress = &xTempAddress;
             }
         #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
-
 
         xResult = prvTCPConnectStart( pxSocket, pxAddress );
 
