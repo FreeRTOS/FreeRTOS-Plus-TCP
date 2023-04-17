@@ -325,31 +325,28 @@ static BaseType_t prvDHCPv6_handleStatusCode( size_t uxLength,
                                               BitConfig_t * pxMessage )
 {
     BaseType_t xReturn = pdTRUE;
-    size_t uxUsed = 0U, uxStartIndex = pxMessage->uxIndex;
     /* Since length is checked before entering, we can read message directly. */
     uint16_t usStatus = usBitConfig_read_16( pxMessage );
-    uint8_t ucMessage[ 100 ];
+    uint8_t ucMessage[ 50 ];
     /* Minus 2 because we read 2 bytes for usStatus. */
     size_t uxReadLength = uxLength - 2U;
 
     FreeRTOS_printf( ( "Got status code %u\n",
                        usStatus ) );
 
-    if( uxReadLength > sizeof( ucMessage ) - 2U )
+    if( uxReadLength > sizeof( ucMessage ) - 1U )
     {
-        uxReadLength = sizeof( ucMessage ) - 2U;
+        uxReadLength = sizeof( ucMessage ) - 1U;
     }
 
     ( void ) xBitConfig_read_uc( pxMessage, ucMessage, uxReadLength );
-    ucMessage[ uxReadLength + 1 ] = 0;
+    ucMessage[ uxReadLength ] = 0;
     FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
 
-    uxUsed = pxMessage->uxIndex - uxStartIndex;
-
     /* Read the remainder, if present. */
-    if( uxLength > uxUsed )
+    if( uxLength > uxReadLength + 2U )
     {
-        uxReadLength = uxLength - uxUsed;
+        uxReadLength = uxLength - ( uxReadLength + 2U );
         ( void ) xBitConfig_read_uc( pxMessage, NULL, uxReadLength );
     }
 
@@ -1286,12 +1283,10 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                 break;
 
             case DHCPv6_Option_Status_Code:
-               {
-                   xReturn = prvDHCPv6_handleStatusCode( uxLength2,
-                                                         pxMessage );
+                xReturn = prvDHCPv6_handleStatusCode( uxLength2,
+                                                      pxMessage );
 
-                   break;
-               }
+                break;
 
             default:
                 uxRemain = pxSet->uxOptionLength - uxUsed;
@@ -1344,13 +1339,13 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
         switch( usOption )
         {
             case DHCPv6_Option_Status_Code:
-               {
-                   if( prvDHCPv6_handleStatusCode( pxSet->uxOptionLength, pxMessage ) != pdTRUE )
-                   {
-                       pxMessage->xHasError = pdTRUE_UNSIGNED;
-                   }
-               }
-               break;
+
+                if( prvDHCPv6_handleStatusCode( pxSet->uxOptionLength, pxMessage ) != pdTRUE )
+                {
+                    pxMessage->xHasError = pdTRUE_UNSIGNED;
+                }
+
+                break;
 
             case DHCPv6_Option_Client_Identifier:
                 lIDSize = ( int32_t ) ( pxSet->uxOptionLength ) - 4;
