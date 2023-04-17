@@ -582,7 +582,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
 
     #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
         /* Ask the user if a DHCP request is required. */
-        eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreRequest, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
+        eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreRequest, pxEndPoint, ( IP_Address_t * ) &( pxDHCPMessage->xIPAddress ) );
 
         if( eAnswer == eDHCPContinue )
     #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
@@ -674,7 +674,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
         case eWaitingSendFirstDiscover:
             /* Ask the user if a DHCP discovery is required. */
             #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
-                eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreDiscover, pxEndPoint, &( pxDHCPMessage->xIPAddress ) );
+                eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreDiscover, pxEndPoint, ( IP_Address_t * ) ( &( pxDHCPMessage->xIPAddress ) ) );
 
                 if( eAnswer == eDHCPContinue )
             #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
