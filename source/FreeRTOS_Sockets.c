@@ -612,6 +612,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
     Socket_t xReturn;
     BaseType_t xProtocolCpy = xProtocol;
 
+    configASSERT( ( xDomain == FREERTOS_AF_INET6 ) || ( xDomain == FREERTOS_AF_INET ) );
+
     /* Introduce a do-while loop to allow use of break statements. */
     do
     {
@@ -698,9 +700,17 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                         pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case FREERTOS_AF_INET:
+                        pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
                 
                 default:
-                    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                    FreeRTOS_debug_printf( ( "FreeRTOS_socket: Undefined xDomain \n" ) );
+
+                    /* MISRA Rule 16.3 compliance */
                     break;
             }
 
@@ -1391,10 +1401,12 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
         
         #if ( ipconfigUSE_IPv4 != 0 )
             case FREERTOS_AF_INET4:
-            default:
                 ( void ) xSend_UDP_Update_IPv4( pxNetworkBuffer, pxDestinationAddress );
                 break;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+        default:
+            break;
     }
 
     pxNetworkBuffer->xDataLength = uxTotalDataLength + uxPayloadOffset;
@@ -1560,6 +1572,15 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
     configASSERT( pxDestinationAddress != NULL );
     configASSERT( pvBuffer != NULL );
 
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        if ( ( pxDestinationAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxDestinationAddress->sin_family != FREERTOS_AF_INET ) )
+        {
+            /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
+            is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+            pxDestinationAddress->sin_family = FREERTOS_AF_INET;
+        }
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
     switch( pxDestinationAddress->sin_family )
     {
 
@@ -1572,11 +1593,16 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
         
         #if ( ipconfigUSE_IPv4 != 0 )
             case FREERTOS_AF_INET4:
-            default:
                 uxMaxPayloadLength = ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER );
                 uxPayloadOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
                 break;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+        default:
+            FreeRTOS_debug_printf( ( "FreeRTOS_sendto: Undefined sin_family \n" ) );
+
+            /* MISRA Rule 16.3 compliance */
+            break;
     
     }
 
@@ -1639,6 +1665,16 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
         xReturn = -pdFREERTOS_ERRNO_EINVAL;
     }
 
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        if( ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
+        {
+            /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
+            is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+            pxAddress->sin_family = FREERTOS_AF_INET;
+        }
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
+
     /* Once a socket is bound to a port, it can not be bound to a different
      * port number */
     else if( socketSOCKET_IS_BOUND( pxSocket ) )
@@ -1658,20 +1694,23 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
         {
             switch (pxAddress->sin_family)
             {
-            #if (ipconfigUSE_IPv6 != 0)
-                case FREERTOS_AF_INET6:
-                    (void)memcpy(pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof(pxSocket->xLocalAddress.xIP_IPv6.ucBytes));
-                    pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
-                    break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                #if (ipconfigUSE_IPv6 != 0)
+                    case FREERTOS_AF_INET6:
+                        (void)memcpy(pxSocket->xLocalAddress.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, sizeof(pxSocket->xLocalAddress.xIP_IPv6.ucBytes));
+                        pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            #if (ipconfigUSE_IPv4 != 0)
-                case FREERTOS_AF_INET4:
+                #if (ipconfigUSE_IPv4 != 0)
+                    case FREERTOS_AF_INET4:
+                        pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl(pxAddress->sin_address.ulIP_IPv4);
+                        pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
                 default:
-                    pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl(pxAddress->sin_address.ulIP_IPv4);
-                    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+                    FreeRTOS_debug_printf( ( "FreeRTOS_bind: Undefined sin_family \n" ) );
                     break;
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             }
 
             pxSocket->usLocalPort = FreeRTOS_ntohs( pxAddress->sin_port );
@@ -2137,6 +2176,9 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                                                 pxSocket->u.xTCP.usRemotePort );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    default:
+                        break;
                     
                 }
 
@@ -2167,6 +2209,9 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                                         pxSocket->usLocalPort );
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    default:
+                        break;
                 
             }
 
@@ -3642,13 +3687,17 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case FREERTOS_AF_INET4:
-                        default:
                             pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
                             FreeRTOS_printf( ( "FreeRTOS_connect: %u to %xip:%u\n",
                                                 pxSocket->usLocalPort, ( unsigned int ) FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 ), FreeRTOS_ntohs( pxAddress->sin_port ) ) );
                             pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_ntohl( pxAddress->sin_address.ulIP_IPv4 );
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                
+                    default:
+                        FreeRTOS_debug_printf( ( "FreeRTOS_connect: Undefined sin_family \n" ) );
+                        break;
+                
                 }
 
 
@@ -3700,6 +3749,16 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         TimeOut_t xTimeOut;
 
         ( void ) xAddressLength;
+
+        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+            if ( ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
+            {
+                /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
+                is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+                pxAddress->sin_family = FREERTOS_AF_INET;
+            }
+        #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
 
         xResult = prvTCPConnectStart( pxSocket, pxAddress );
 
@@ -5714,6 +5773,9 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
                                     "%pip", pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                break;
             
         }
 
