@@ -315,6 +315,54 @@ static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
 }
 
 /**
+ * @brief A DHCP packet has a list of options, one of them is Status Code. This function is used to parse it.
+ * @param[in] uxLength: Total length for status code.
+ * @param[in] pxMessage: The raw packet as it was received.
+ *
+ * @return pdTRUE if status is success, otherwise pdFALSE.
+ */
+static BaseType_t prvDHCPv6_handleStatusCode( size_t uxLength,
+                                              BitConfig_t * pxMessage )
+{
+    BaseType_t xReturn = pdTRUE;
+    size_t uxUsed = 0U, uxStartIndex = pxMessage->uxIndex;
+    /* Since length is checked before entering, we can read message directly. */
+    uint16_t usStatus = usBitConfig_read_16( pxMessage );
+    uint8_t ucMessage[ 100 ];
+    /* Minus 2 because we read 2 bytes for usStatus. */
+    size_t uxReadLength = uxLength - 2U;
+
+    FreeRTOS_printf( ( "Got status code %u\n",
+                       usStatus ) );
+
+    if( uxReadLength > sizeof( ucMessage ) - 2U )
+    {
+        uxReadLength = sizeof( ucMessage ) - 2U;
+    }
+
+    ( void ) xBitConfig_read_uc( pxMessage, ucMessage, uxReadLength );
+    ucMessage[ uxReadLength + 1 ] = 0;
+    FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
+
+    uxUsed = pxMessage->uxIndex - uxStartIndex;
+
+    /* Read the remainder, if present. */
+    if( uxLength > uxUsed )
+    {
+        uxReadLength = uxLength - uxUsed;
+        ( void ) xBitConfig_read_uc( pxMessage, NULL, uxReadLength );
+    }
+
+    /* A status of 0 means: Success. (RFC 3315 - sec 24.4). */
+    if( usStatus != 0U )
+    {
+        xReturn = pdFALSE;
+    }
+
+    return xReturn;
+}
+
+/**
  * @brief A DHCPv6 reply has been received. See to which end-point it belongs and pass it.
  *
  * @param[in] pxEndPoint: The end-point for which vDHCPv6Process() is called.
@@ -1192,7 +1240,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
         uxRemain = pxSet->uxOptionLength - uxUsed;
     }
 
-    while( uxRemain > 0U )
+    while( ( uxRemain > 0U ) && ( xReturn != pdFALSE ) )
     {
         if( uxRemain < 4U )
         {
@@ -1239,24 +1287,8 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
 
             case DHCPv6_Option_Status_Code:
                {
-                   uint16_t usStatus = usBitConfig_read_16( pxMessage );
-                   uxUsed = pxMessage->uxIndex - pxSet->uxStart;
-
-                   FreeRTOS_printf( ( "%s %s with status %u\n",
-                                      ( usOption == DHCPv6_Option_NonTemporaryAddress ) ? "Address assignment" : "Prefix Delegation",
-                                      ( usStatus == 0U ) ? "succeeded" : "failed", usStatus ) );
-                   /* In case FreeRTOS_printf is not defined. */
-                   ( void ) usStatus;
-
-                   if( pxSet->uxOptionLength > uxUsed )
-                   {
-                       uxRemain = pxSet->uxOptionLength - uxUsed;
-                       uint8_t ucMessage[ 100 ];
-
-                       ( void ) xBitConfig_read_uc( pxMessage, ucMessage, uxRemain );
-                       ucMessage[ uxRemain ] = 0;
-                       FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
-                   }
+                   xReturn = prvDHCPv6_handleStatusCode( uxLength2,
+                                                         pxMessage );
 
                    break;
                }
@@ -1313,36 +1345,8 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
         {
             case DHCPv6_Option_Status_Code:
                {
-                   FreeRTOS_printf( ( "Status code %02x%02x %02x%02x\n",
-                                      *( pxMessage->ucContents + pxMessage->uxIndex ),
-                                      *( pxMessage->ucContents + pxMessage->uxIndex + 1 ),
-                                      *( pxMessage->ucContents + pxMessage->uxIndex + 2 ),
-                                      *( pxMessage->ucContents + pxMessage->uxIndex + 4 ) ) );
-                   uint16_t usStatus = usBitConfig_read_16( pxMessage );
-                   size_t uxUsed = pxMessage->uxIndex - pxSet->uxStart;
-
-                   FreeRTOS_printf( ( "%s %s with status %u\n",
-                                      ( usOption == DHCPv6_Option_NonTemporaryAddress ) ? "Address assignment" : "Prefix Delegation",
-                                      ( usStatus == 0U ) ? "succeeded" : "failed", usStatus ) );
-
-                   if( pxSet->uxOptionLength > uxUsed )
+                   if( prvDHCPv6_handleStatusCode( pxSet->uxOptionLength, pxMessage ) != pdTRUE )
                    {
-                       size_t uxRemain = pxSet->uxOptionLength - uxUsed;
-                       uint8_t ucMessage[ 100 ];
-
-                       if( uxRemain > sizeof( ucMessage ) - 1U )
-                       {
-                           uxRemain = sizeof( ucMessage ) - 1U;
-                       }
-
-                       ( void ) xBitConfig_read_uc( pxMessage, ucMessage, uxRemain );
-                       ucMessage[ uxRemain ] = 0;
-                       FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
-                   }
-
-                   if( usStatus != 0U )
-                   {
-                       /* A status of 2 means: NoAddrsAvail. (RFC 3315 - sec 24.4). */
                        pxMessage->xHasError = pdTRUE_UNSIGNED;
                    }
                }
