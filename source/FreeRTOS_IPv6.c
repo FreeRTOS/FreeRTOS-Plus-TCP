@@ -46,13 +46,13 @@
 /* *INDENT-ON* */
 
 /** @brief Get the scope field in IPv6 multicast address. */
-#define IPv6MC_GET_SCOPE_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0x0FU )
+#define IPv6MC_GET_SCOPE_VALUE( pxIPv6Address )                  ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0x0FU )
 
 /** @brief Get the flags field in IPv6 multicast address. */
-#define IPv6MC_GET_FLAGS_VALUE( pxIPv6Address )    ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0xF0U )
+#define IPv6MC_GET_FLAGS_VALUE( pxIPv6Address )                  ( ( ( pxIPv6Address )->ucBytes[ 1 ] ) & 0xF0U )
 
 /** @brief Get the group ID field in IPv6 multicast address. */
-#define IPv6MC_GET_GROUP_ID( pxIPv6Address )       ( xGetIPv6MulticastGroupID( pxIPv6Address ) )
+#define IPv6MC_GET_GROUP_ID( pxIPv6Address, pxReturnGroupID )    ( xGetIPv6MulticastGroupID( pxIPv6Address, pxReturnGroupID ) )
 
 /**
  * This variable is initialized by the system to contain the wildcard IPv6 address.
@@ -63,6 +63,11 @@ const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
  * This variable is initialized by the system to contain the loopback IPv6 address.
  */
 const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
+
+/**
+ * This variable is initialized by the system to contain the IPv6 multicast address for all nodes.
+ */
+static const struct xIPv6_Address FreeRTOS_in6addr_allnodes = { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv6 packet length. */
@@ -254,18 +259,17 @@ static const struct xIPv6_Address xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0
  * @brief Get the group ID and stored into IPv6_Address_t.
  *
  * @param[in] pxIPv6Address: The multicast address to filter group ID.
- *
- * @return IPv6_Address_t with group ID only.
+ * @param[out] pxReturnGroupID: The buffer to store group ID.
  */
-static IPv6_Address_t xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address )
+static void xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address,
+                                      IPv6_Address_t * pxReturnGroupID )
 {
-    IPv6_Address_t xReturnGroupID = { 0 };
-
     configASSERT( pxIPv6Address != NULL );
+    configASSERT( pxReturnGroupID != NULL );
 
-    ( void ) memcpy( &( xReturnGroupID.ucBytes[ 2 ] ), &( pxIPv6Address->ucBytes[ 2 ] ), 14 );
-
-    return xReturnGroupID;
+    pxReturnGroupID->ucBytes[ 0 ] = 0U;
+    pxReturnGroupID->ucBytes[ 1 ] = 0U;
+    ( void ) memcpy( &( pxReturnGroupID->ucBytes[ 2 ] ), &( pxIPv6Address->ucBytes[ 2 ] ), 14 );
 }
 
 
@@ -317,7 +321,7 @@ BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
 
     if( pxIPAddress->ucBytes[ 0 ] == 0xffU )
     {
-        xGroupIDAddress = IPv6MC_GET_GROUP_ID( pxIPAddress );
+        IPv6MC_GET_GROUP_ID( pxIPAddress, &xGroupIDAddress );
 
         /* From RFC4291 - sec 2.7, packets from multicast address whose scope field is 0
          * should be silently dropped. */
@@ -365,7 +369,6 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                  size_t uxPrefixLength )
 {
     BaseType_t xResult;
-    const IPv6_Address_t xAllNodesAddress = { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
     /* 0    2    4    6    8    10   12   14 */
     /* ff02:0000:0000:0000:0000:0001:ff66:4a81 */
@@ -377,7 +380,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
         xResult = memcmp( &( pxLeft->ucBytes[ 13 ] ), &( pxRight->ucBytes[ 13 ] ), 3 );
     }
     else
-    if( memcmp( pxRight->ucBytes, xAllNodesAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 )
+    if( memcmp( pxRight->ucBytes, FreeRTOS_in6addr_allnodes.ucBytes, sizeof( IPv6_Address_t ) ) == 0 )
     {
         /* FF02::1 is all node address to reach out all nodes in the same link. */
         xResult = 0;
