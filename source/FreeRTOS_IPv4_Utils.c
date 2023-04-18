@@ -45,8 +45,8 @@
 /**
  * @brief Set multicast MAC address.
  *
- * @param[in] ulIPAddress: IP address.
- * @param[out] pxMACAddress: Pointer to MAC address.
+ * @param[in] ulIPAddress IP address.
+ * @param[out] pxMACAddress Pointer to MAC address.
  */
 void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
                                   MACAddress_t * pxMACAddress )
@@ -63,9 +63,9 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
 /*-----------------------------------------------------------*/
 
 /** @brief Do the first IPv4 length checks at the IP-header level.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] uxBufferLength: The number of bytes to be sent or received.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */

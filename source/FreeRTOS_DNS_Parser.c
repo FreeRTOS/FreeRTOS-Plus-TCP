@@ -54,7 +54,7 @@
 
 /**
  * @brief Find the best matching end-point given a reply that was received.
- * @param[in] pxNetworkBuffer: The Ethernet packet that was received.
+ * @param[in] pxNetworkBuffer The Ethernet packet that was received.
  * @return An end-point.
  */
         static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -89,8 +89,8 @@
 /**
  * @brief Read the Name field out of a DNS response packet.
  *
- * @param[in,out] pxSet: a set of variables that are shared among the helper functions.
- * @param[in] uxDestLen: Size of the pcName array.
+ * @param[in,out] pxSet a set of variables that are shared among the helper functions.
+ * @param[in] uxDestLen Size of the pcName array.
  *
  * @return If a fully formed name was found, then return the number of bytes processed in pucByte.
  */
@@ -210,8 +210,8 @@
 /**
  * @brief Simple routine that jumps over the NAME field of a resource record.
  *
- * @param[in] pucByte: The pointer to the resource record.
- * @param[in] uxLength: Length of the resource record.
+ * @param[in] pucByte The pointer to the resource record.
+ * @param[in] uxLength Length of the resource record.
  *
  * @return It returns the number of bytes read, or zero when an error has occurred.
  */
@@ -282,14 +282,14 @@
 /**
  * @brief Process a response packet from a DNS server, or an LLMNR reply.
  *
- * @param[in] pucUDPPayloadBuffer: The DNS response received as a UDP
+ * @param[in] pucUDPPayloadBuffer The DNS response received as a UDP
  *                                 payload.
- * @param[in] uxBufferLength: Length of the UDP payload buffer.
- * @param[in] ppxAddressInfo: A pointer to a pointer where the results will be stored.
- * @param[in] xExpected: indicates whether the identifier in the reply
+ * @param[in] uxBufferLength Length of the UDP payload buffer.
+ * @param[in] ppxAddressInfo A pointer to a pointer where the results will be stored.
+ * @param[in] xExpected indicates whether the identifier in the reply
  *                       was expected, and thus if the DNS cache may be
  *                       updated with the reply.
- * @param[in] usPort: The server port number in order to identify the protocol.
+ * @param[in] usPort The server port number in order to identify the protocol.
  *
  *
  * @return The IP address in the DNS response if present and if xExpected is set to pdTRUE.
@@ -624,8 +624,8 @@
 
 /**
  * @brief perform a dns lookup in the local cache {TODO WRONG}
- * @param[in] pxSet: a set of variables that are shared among the helper functions.
- * @param[out] ppxAddressInfo: a linked list storing the DNS answers.
+ * @param[in] pxSet a set of variables that are shared among the helper functions.
+ * @param[out] ppxAddressInfo a linked list storing the DNS answers.
  * @param[out] uxBytesRead total bytes consumed by the function
  * @return pdTRUE when successful, otherwise pdFALSE.
  */
@@ -909,8 +909,8 @@
 /**
  * @brief Send a DNS message to be used in MDNS, LLMNR or NBNS.
  *
- * @param[in] pxNetworkBuffer: The network buffer descriptor with the DNS message.
- * @param[in] lNetLength: The length of the DNS message.
+ * @param[in] pxNetworkBuffer The network buffer descriptor with the DNS message.
+ * @param[in] lNetLength The length of the DNS message.
  */
         void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                      BaseType_t lNetLength )
@@ -1015,9 +1015,9 @@
 /**
  * @brief Respond to an NBNS query or an NBNS reply.
  *
- * @param[in] pucPayload: the UDP payload of the NBNS message.
- * @param[in] uxBufferLength: Length of the Buffer.
- * @param[in] ulIPAddress: IP address of the sender.
+ * @param[in] pucPayload the UDP payload of the NBNS message.
+ * @param[in] uxBufferLength Length of the Buffer.
+ * @param[in] ulIPAddress IP address of the sender.
  */
         void DNS_TreatNBNS( uint8_t * pucPayload,
                             size_t uxBufferLength,

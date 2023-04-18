@@ -1117,6 +1117,12 @@
     #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
 #endif
 
+/* Set to 1 if you want to receive eNetworkDown notification via vApplicationIPNetworkEventHook() callback.
+ * Not all drivers support this feature. */
+#ifndef ipconfigSUPPORT_NETWORK_DOWN_EVENT
+    #define ipconfigSUPPORT_NETWORK_DOWN_EVENT    0
+#endif
+
 #ifndef ipconfigND_CACHE_ENTRIES
     #define ipconfigND_CACHE_ENTRIES    24
 #endif

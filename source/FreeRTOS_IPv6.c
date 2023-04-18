@@ -85,8 +85,8 @@ static const struct xIPv6_Address FreeRTOS_in6addr_allnodes = { { 0xff, 0x02, 0x
 /**
  * @brief Check IPv6 packet length.
  *
- * @param[in] pvEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
+ * @param[in] pvEthernetBuffer The Ethernet packet received.
+ * @param[in] uxBufferLength The total number of bytes received.
  *
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
@@ -215,7 +215,7 @@ static const struct xIPv6_Address FreeRTOS_in6addr_allnodes = { { 0xff, 0x02, 0x
 /**
  * @brief Check if ucNextHeader is an extension header.
  *
- * @param[in] ucNextHeader: Next header, such as ipIPv6_EXT_HEADER_HOP_BY_HOP.
+ * @param[in] ucNextHeader Next header, such as ipIPv6_EXT_HEADER_HOP_BY_HOP.
  *
  * @return pdTRUE if it's extension header, otherwise pdFALSE.
  */
@@ -258,8 +258,8 @@ static const struct xIPv6_Address xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0
 /**
  * @brief Get the group ID and stored into IPv6_Address_t.
  *
- * @param[in] pxIPv6Address: The multicast address to filter group ID.
- * @param[out] pxReturnGroupID: The buffer to store group ID.
+ * @param[in] pxIPv6Address The multicast address to filter group ID.
+ * @param[out] pxReturnGroupID The buffer to store group ID.
  */
 static void xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address,
                                       IPv6_Address_t * pxReturnGroupID )
@@ -280,7 +280,7 @@ static void xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address,
 /**
  * @brief Check if the packet is a loopback packet.
  *
- * @param[in] pxIPv6Header: The IP packet in pxNetworkBuffer.
+ * @param[in] pxIPv6Header The IP packet in pxNetworkBuffer.
  *
  * @return Returns pdTRUE if it's a legal loopback packet, pdFALSE if not .
  */
@@ -310,7 +310,7 @@ static void xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address,
 /**
  * @brief Check whether this IPv6 address is an allowed multicast address or not.
  *
- * @param[in] pxIPAddress: The IP address to be checked.
+ * @param[in] pxIPAddress The IP address to be checked.
  *
  * @return Returns pdTRUE if pxIPAddress is an allowed multicast address, pdFALSE if not.
  */
@@ -358,9 +358,9 @@ BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
  * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
  * the last 3 bytes of the IPv6 address.
  *
- * @param[in] pxLeft: First IP address.
- * @param[in] pxRight: Second IP address.
- * @param[in] uxPrefixLength: The IP address prefix length in bits.
+ * @param[in] pxLeft First IP address.
+ * @param[in] pxRight Second IP address.
+ * @param[in] uxPrefixLength The IP address prefix length in bits.
  *
  * @return Returns 0 if it can handle it, else non zero .
  */
@@ -441,9 +441,9 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
 /**
  * @brief Check whether this IPv6 packet is to be allowed or to be dropped.
  *
- * @param[in] pxIPv6Header: The IP packet under consideration.
- * @param[in] pxNetworkBuffer: The whole network buffer.
- * @param[in] uxHeaderLength: The length of the header.
+ * @param[in] pxIPv6Header The IP packet under consideration.
+ * @param[in] pxNetworkBuffer The whole network buffer.
+ * @param[in] uxHeaderLength The length of the header.
  *
  * @return Whether the packet should be processed or dropped.
  */
@@ -553,8 +553,8 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 /**
  * @brief Check extension header and next header and return their order.
  *
- * @param[in] ucProtocol: Extension header ID.
- * @param[in] ucNextHeader: Next header ID.
+ * @param[in] ucProtocol Extension header ID.
+ * @param[in] ucNextHeader Next header ID.
  *
  * @return Extension header order in the packet.
  */
@@ -616,8 +616,8 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
 /**
  * @brief Handle the IPv6 extension headers.
  *
- * @param[in,out] pxNetworkBuffer: The received packet that contains IPv6 extension headers.
- * @param[in] xDoRemove: Function removes the extension header if xDoRemove is set to pdTRUE.
+ * @param[in,out] pxNetworkBuffer The received packet that contains IPv6 extension headers.
+ * @param[in] xDoRemove Function removes the extension header if xDoRemove is set to pdTRUE.
  *
  * @return eProcessBuffer in case the options are removed successfully, otherwise
  *         eReleaseBuffer.
@@ -640,6 +640,8 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
     uint8_t ucNextHeader = 0U;
     BaseType_t xNextOrder = 0;
     BaseType_t xExtHeaderCount = 0;
+
+    ( void ) xNextOrder;
 
     while( ( uxIndex + 8U ) < uxMaxLength )
     {

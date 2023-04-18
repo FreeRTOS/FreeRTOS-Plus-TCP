@@ -1837,6 +1837,7 @@ xlastalivetime
 xlastgratuitousarptime
 xlastround
 xlastsource
+xleasetime
 xlength
 xlinkstatustimer
 xlistend
