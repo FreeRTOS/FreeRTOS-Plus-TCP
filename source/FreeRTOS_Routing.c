@@ -1407,33 +1407,6 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
         }
     }
 
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        const char * pcName = "unknown enum";
-
-        switch( eResult )
-        {
-            case eIPv6_Global:
-                pcName = "Global";
-                break;
-
-            case eIPv6_LinkLocal:
-                pcName = "LinkLocal";
-                break;
-
-            case eIPv6_SiteLocal:
-                pcName = "SiteLocal";
-                break;
-
-            case eIPv6_Multicast:
-                pcName = "Multicast";
-                break;
-
-            case eIPv6_Unknown:
-                pcName = "Unknown";
-                break;
-        }
-    #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
-
     return eResult;
 }
 /*-----------------------------------------------------------*/

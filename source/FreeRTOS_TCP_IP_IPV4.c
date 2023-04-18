@@ -98,6 +98,7 @@
     {
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
+        ProtocolHeaders_t * pxProtocolHeaders;
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags;
         uint32_t ulLocalIP;
@@ -117,7 +118,7 @@
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
 
         ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
         usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );

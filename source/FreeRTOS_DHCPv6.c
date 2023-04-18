@@ -1094,6 +1094,7 @@ static void prvDHCPv6_subOption( uint16_t usOption,
     ( void ) ulIAID;
     ( void ) ulTime_1;
     ( void ) ulTime_2;
+    ( void ) usOption;
 
     if( pxSet->uxOptionLength > uxUsed )
     {
