@@ -44,6 +44,7 @@
 #include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IPv6.h"
 
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_Routing_BothV4V6_stubs.c"
@@ -767,3 +768,117 @@ void test_FreeRTOS_NextEndPoint_another_interface( void )
     pxEndPoint = FreeRTOS_NextEndPoint( &( xNetworkInterface[ 2 ] ), pxEndPoint );
     TEST_ASSERT_EQUAL( &( xEndPoint[ 8 ] ), pxEndPoint );
 }
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnIP_IPv4_happy_path
+ * FreeRTOS_FindEndPointOnIP_IPv4 should return the endpoint with specified IPv4 address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with same IP address stored in endpoint.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindEndPointOnIP_IPv4_happy_path( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    /* 0xDF7BA8C0 is 192.168.123.223. */
+    xEndPoint.ipv4_settings.ulIPAddress = 0xDF7BA8C0;
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0xDF7BA8C0, 0 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnIP_IPv4_not_found
+ * FreeRTOS_FindEndPointOnIP_IPv4 should return NULL if no matched endpoint found.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query.
+ *  - Check if returned endpoint is NULL.
+ */
+void test_FreeRTOS_FindEndPointOnIP_IPv4_not_found( void )
+{
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0xDF7BA8C0, 0 );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path
+ * FreeRTOS_FindEndPointOnIP_IPv6 should return the endpoint with specified IPv6 address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *  - Call FreeRTOS_FindEndPointOnIP_IPv6 to query with same IP address stored in endpoint.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    /* IP address -- 2001::1 */
+    const IPv6_Address_t xIPAddress = { 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    /* 0xDF7BA8C0 is 192.168.123.223. */
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xIPAddress.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xIPAddress, xEndPoint.ipv6_settings.uxPrefixLength, 0 );
+
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &xIPAddress );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnIP_IPv6_not_found
+ * FreeRTOS_FindEndPointOnIP_IPv6 should return NULL if no matched endpoint found.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call FreeRTOS_FindEndPointOnIP_IPv6 to query.
+ *  - Check if returned endpoint is NULL.
+ */
+void test_FreeRTOS_FindEndPointOnIP_IPv6_not_found( void )
+{
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    /* IP address -- 2001::1 */
+    const IPv6_Address_t xIPAddress = { 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &xIPAddress );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+
+
+/* TODO FreeRTOS_FindEndPointOnMAC */
+/* TODO FreeRTOS_FindEndPointOnNetMask */
+/* TODO FreeRTOS_InterfaceEndPointOnNetMask */
+/* TODO FreeRTOS_FindEndPointOnNetMask_IPv6 */
+/* TODO FreeRTOS_FirstEndPoint_IPv6 */
+/* TODO FreeRTOS_MatchingEndpoint */
+/* TODO FreeRTOS_FindGateWay */
+/* TODO pxGetSocketEndpoint */
+/* TODO vSetSocketEndpoint */
+/* TODO pcEndpointName */
+/* TODO xIPv6_GetIPType */
