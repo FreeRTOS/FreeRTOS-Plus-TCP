@@ -32,4 +32,8 @@
 *
 *****************************************************************************/
 
+/* Following line is to suppress the incorrect warning [Warning[Pe1644]: definition at
+ * end of file not followed by a semicolon or a declarator] emitted by the IAR Compiler */
+#pragma diag_suppress=Pe1644
+
 __packed

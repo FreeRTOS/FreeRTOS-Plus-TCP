@@ -108,10 +108,6 @@
  */
         const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6 =
         {
-            #ifndef _MSC_VER
-                /* MSC doesn't like this C-style initialisation. */
-                ucBytes :
-            #endif
             { /* ff02::1:3 */
                 0xff, 0x02,
                 0x00, 0x00,
@@ -137,10 +133,6 @@
  */
         const IPv6_Address_t ipMDNS_IP_ADDR_IPv6 =
         {
-            #ifndef _MSC_VER
-                /* MSC doesn't like this C-style initialisation. */
-                ucBytes :
-            #endif
             { /* ff02::fb */
                 0xff, 0x02,
                 0x00, 0x00,

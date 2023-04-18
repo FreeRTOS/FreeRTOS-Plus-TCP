@@ -125,7 +125,12 @@
         {
             if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
             {
-                break;
+                IPv6_Type_t eType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+                if( eType == eIPv6_LinkLocal )
+                {
+                    break;
+                }
             }
         }
 
