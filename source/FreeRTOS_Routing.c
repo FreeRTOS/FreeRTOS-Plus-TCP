@@ -295,16 +295,16 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                    pxEndPoint->xMACAddress.ucBytes[ 5 ],
                                    pxEndPoint->ipv6_defaults.xIPAddress.ucBytes ) );
             }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        #endif
         #if ( ipconfigUSE_IPv4 != 0 )
             if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
             {
                 FreeRTOS_printf( ( "FreeRTOS_AddEndPoint: MAC: %02x-%02x IPv4: %xip\n",
-                                   pxEndPoint->xMACAddress.ucBytes[ 4 ],
-                                   pxEndPoint->xMACAddress.ucBytes[ 5 ],
-                                   ( unsigned ) FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
+                               pxEndPoint->xMACAddress.ucBytes[ 4 ],
+                               pxEndPoint->xMACAddress.ucBytes[ 5 ],
+                               ( unsigned ) FreeRTOS_ntohl( pxEndPoint->ipv4_defaults.ulIPAddress ) ) );
             }
-        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+        #endif
 
         return pxEndPoint;
     }
@@ -402,9 +402,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         while( pxEndPoint != NULL )
         {
             #if ( ipconfigUSE_IPv4 != 0 )
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
-                #endif
+                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+            {
+                if( ( ulIPAddress == 0U ) ||
+                    ( pxEndPoint->ipv4_settings.ulIPAddress == 0U ) ||
+                    ( pxEndPoint->ipv4_settings.ulIPAddress == ulIPAddress ) )
                 {
                     if( ( ulIPAddress == 0U ) ||
                         ( pxEndPoint->ipv4_settings.ulIPAddress == 0U ) ||
@@ -413,7 +415,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                         break;
                     }
                 }
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+            }
+            #endif
 
             pxEndPoint = pxEndPoint->pxNext;
         }
@@ -558,27 +561,21 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
-                    #endif
+                    if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
                     {
                         if( ( ulIPAddress == ~0U ) ||
-                            ( ( ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) == ( pxEndPoint->ipv4_settings.ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) ) )
+                        ( ( ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) == ( pxEndPoint->ipv4_settings.ulIPAddress & pxEndPoint->ipv4_settings.ulNetMask ) ) )
                         {
                             /* Found a match. */
                             break;
                         }
                     }
-                #endif /* if ( ipconfigUSE_IPv4 != 0 ) */
+                #endif
             }
 
             pxEndPoint = pxEndPoint->pxNext;
         }
-
-        /* This was only for debugging. */
-        if( ( pxEndPoint == NULL ) && ( ulWhere != 1U ) && ( ulWhere != 2U ) && ( ulWhere != 4U ) )
         {
-            FreeRTOS_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
                                ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
         }
 
@@ -800,43 +797,19 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
                 switch( xIsIPv6 )
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        case pdTRUE_UNSIGNED:
-                           {
-                               IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                    case pdTRUE_UNSIGNED:
+                        IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
-                               if( xEndpointType != eIPv6_Unknown )
-                               {
-                                   BaseType_t xEndpointGlobal = ( xEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
+                        if( xEndpointType != eIPv6_Unknown )
+                        {
+                            BaseType_t xEndpointGlobal = ( xEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
 
-                                   if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) )
-                                   {
-                                       pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
-                                       xCount[ rMATCH_IP_ADDR ]++;
-                                   }
-                                   else if( xTargetGlobal == xEndpointGlobal )
-                                   {
-                                       pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
-                                       xCount[ rMATCH_IP_ADDR ]++;
-                                   }
-                                   else
-                                   {
-                                       /* do nothing, coverity happy */
-                                   }
-                               }
-                               else
-                               {
-                                   /* do nothing, coverity happy */
-                               }
-
-                               break;
-                           }
-                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-                    #if ( ipconfigUSE_IPv4 != 0 )
-                        case pdFALSE_UNSIGNED:
-
-                            if( pxEndPoint->ipv4_settings.ulIPAddress == pxIPAddressTo->ulIP_IPv4 )
+                            if( ( memcmp( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddressTo->xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 ) )
+                            {
+                                pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
+                                xCount[ rMATCH_IP_ADDR ]++;
+                            }
+                            else if( xTargetGlobal == xEndpointGlobal )
                             {
                                 pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
                                 xCount[ rMATCH_IP_ADDR ]++;
@@ -845,11 +818,21 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                             {
                                 /* do nothing, coverity happy */
                             }
-                            break;
-                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-                    default:
-                        break;
+                        }
+                        else
+                        {
+                            /* do nothing, coverity happy */
+                        }
+                    case pdFALSE_UNSIGNED:
+                        if( pxEndPoint->ipv4_settings.ulIPAddress == pxIPAddressTo->ulIP_IPv4 )
+                        {
+                            pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
+                            xCount[ rMATCH_IP_ADDR ]++;
+                        }
+                        else
+                        {
+                            /* do nothing, coverity happy */
+                        }
                 }
 
                 if( xSameMACAddress == pdTRUE )
@@ -1018,44 +1001,41 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
             switch( xIPType )
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    case ipTYPE_IPv6:
-
-                        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipTYPE_IPv6:
+                    if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+                    {
+                        /* Check if the IP-address is non-zero. */
+                        if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
                         {
-                            /* Check if the IP-address is non-zero. */
-                            if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
-                            {
-                                break;
-                            }
+                            break;
                         }
-                        else
+                    }
+                    else
+                    {
+                        /* do nothing, coverity happy */
+                    }
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipTYPE_IPv4:
+                    if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
+                    {
+                        if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
                         {
-                            /* do nothing, coverity happy */
+                            break;
                         }
-                        break;
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                #if ( ipconfigUSE_IPv4 != 0 )
-                    case ipTYPE_IPv4:
-
-                        if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
-                        {
-                            if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
-                            {
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            /* do nothing, coverity happy */
-                        }
-                        break;
-                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                    }
+                    else
+                    {
+                        /* do nothing, coverity happy */
+                    }
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
                 default:
                     /* This end-point is not the right IP-type. */
                     break;
             }
-
             pxEndPoint = pxEndPoint->pxNext;
         }
 
