@@ -102,7 +102,7 @@
 
 /** @brief Close the socket another time.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
@@ -118,7 +118,7 @@
 
 /** @brief Postpone a call to FreeRTOS_listen() to avoid recursive calls.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket )
@@ -136,7 +136,7 @@
  * @brief As soon as a TCP socket timer expires, this function will be called
  *       (from xTCPTimerCheck). It can send a delayed ACK or new data.
  *
- * @param[in] pxSocket: socket to be checked.
+ * @param[in] pxSocket socket to be checked.
  *
  * @return 0 on success, a negative error code on failure. A negative value will be
  *         returned in case the hang-protection has put the socket in a wait-close state.
@@ -246,7 +246,7 @@
 /**
  * @brief 'Touch' the socket to keep it alive/updated.
  *
- * @param[in] pxSocket: The socket to be updated.
+ * @param[in] pxSocket The socket to be updated.
  *
  * @note This is used for anti-hanging protection and TCP keep-alive messages.
  *       Called in two places: after receiving a packet and after a state change.
@@ -279,8 +279,8 @@
  *        that a socket has got (dis)connected, and setting bit to unblock a call to
  *        FreeRTOS_select().
  *
- * @param[in] pxSocket: The socket whose state we are trying to change.
- * @param[in] eTCPState: The state to which we want to change to.
+ * @param[in] pxSocket The socket whose state we are trying to change.
+ * @param[in] eTCPState The state to which we want to change to.
  */
     void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
                           enum eTCP_STATE eTCPState )
@@ -303,7 +303,7 @@
             /* A socket was in the connecting phase but something
              * went wrong and it should be closed. */
             FreeRTOS_debug_printf( ( "Move from %s to %s\n",
-                                     FreeRTOS_GetTCPStateName( xPreviousState ),
+                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                      FreeRTOS_GetTCPStateName( eTCPState ) ) );
 
             /* Set the flag to show that it was connected before and that the
@@ -546,7 +546,7 @@
 /**
  * @brief Calculate after how much time this socket needs to be checked again.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  *
  * @return The number of clock ticks before the timer expires.
  */
@@ -618,7 +618,7 @@
 /**
  * @brief Process the received TCP packet.
  *
- * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+ * @param[in] pxDescriptor The descriptor in which the TCP packet is held.
  *
  * @return If the processing of the packet was successful, then pdPASS is returned
  *         or else pdFAIL.
@@ -664,7 +664,7 @@
  * @brief In the API accept(), the user asks is there is a new client? As API's can
  *        not walk through the xBoundTCPSocketsList the IP-task will do this.
  *
- * @param[in] pxSocket: The socket for which the bound socket list will be iterated.
+ * @param[in] pxSocket The socket for which the bound socket list will be iterated.
  *
  * @return if there is a new client, then pdTRUE is returned or else, pdFALSE.
  */

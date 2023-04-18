@@ -140,9 +140,9 @@
 /**
  * @brief See if the MAC-address can be resolved because it is a multi-cast address.
  *
- * @param[in] pxAddressToLookup: The IP-address to look-up.
- * @param[out] pxMACAddress: The resulting MAC-address is stored here.
- * @param[out] ppxEndPoint: A pointer to an end-point pointer where the end-point will be stored.
+ * @param[in] pxAddressToLookup The IP-address to look-up.
+ * @param[out] pxMACAddress The resulting MAC-address is stored here.
+ * @param[out] ppxEndPoint A pointer to an end-point pointer where the end-point will be stored.
  *
  * @return An enum, either eARPCacheHit or eARPCacheMiss.
  */
@@ -178,9 +178,9 @@
  * @brief Find the MAC-address of an IPv6 address.  It will first determine if is a multicast
  *        address, if not, it will check the ND cache.
  *
- * @param[in] pxIPAddress: The IPv6 address to be looked up.
- * @param[out] pxMACAddress: The MAC-address found.
- * @param[out] ppxEndPoint: A pointer to a pointer to an end-point, where the end-point will be stored.
+ * @param[in] pxIPAddress The IPv6 address to be looked up.
+ * @param[out] pxMACAddress The MAC-address found.
+ * @param[out] ppxEndPoint A pointer to a pointer to an end-point, where the end-point will be stored.
  *
  * @return An enum which says whether the address was found: eARPCacheHit or eARPCacheMiss.
  */
@@ -274,9 +274,9 @@
  * @brief Store a combination of IP-address, MAC-address and an end-point in a free location
  *        in the ND cache.
  *
- * @param[in] pxMACAddress: The MAC-address
- * @param[in] pxIPAddress: The IP-address
- * @param[in] pxEndPoint: The end-point through which the IP-address can be reached.
+ * @param[in] pxMACAddress The MAC-address
+ * @param[in] pxIPAddress The IP-address
+ * @param[in] pxEndPoint The end-point through which the IP-address can be reached.
  *
  */
     void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
@@ -410,9 +410,9 @@
 /**
  * @brief Look-up an IPv6 address in the cache.
  *
- * @param[in] pxAddressToLookup: The IPv6 address to look-up.Ethernet packet.
- * @param[out] pxMACAddress: The resulting MAC-address will be stored here.
- * @param[out] ppxEndPoint: A pointer to a pointer to an end-point, where the end-point will be stored.
+ * @param[in] pxAddressToLookup The IPv6 address to look-up.Ethernet packet.
+ * @param[out] pxMACAddress The resulting MAC-address will be stored here.
+ * @param[out] ppxEndPoint A pointer to a pointer to an end-point, where the end-point will be stored.
  *
  * @return An enum: either eARPCacheHit or eARPCacheMiss.
  */
@@ -512,8 +512,8 @@
 /**
  * @brief Return an ICMPv6 packet to the peer.
  *
- * @param[in] pxNetworkBuffer: The Ethernet packet.
- * @param[in] uxICMPSize: The number of bytes to be sent.
+ * @param[in] pxNetworkBuffer The Ethernet packet.
+ * @param[in] uxICMPSize The number of bytes to be sent.
  */
     static void prvReturnICMP_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     size_t uxICMPSize )
@@ -558,8 +558,8 @@
  *        add an entry into the ND table that indicates that an ND reply is outstanding
  *        so re-transmissions can be generated.
  *
- * @param[in] pxNetworkBuffer: The network buffer in which the message shall be stored.
- * @param[in] pxIPAddress: The IPv6 address that is asked to send a Neighbour Advertisement.
+ * @param[in] pxNetworkBuffer The network buffer in which the message shall be stored.
+ * @param[in] pxIPAddress The IPv6 address that is asked to send a Neighbour Advertisement.
  *
  * @note Send out an ND request for the IPv6 address contained in pxNetworkBuffer, and
  * add an entry into the ND table that indicates that an ND reply is
@@ -661,9 +661,9 @@
 /**
  * @brief Send a PING request using an ICMPv6 format.
  *
- * @param[in] pxIPAddress: Send an IPv6 PING request.
- * @param[in] uxNumberOfBytesToSend: The number of bytes to be sent.
- * @param[in] uxBlockTimeTicks: The maximum number of clock-ticks to wait while
+ * @param[in] pxIPAddress Send an IPv6 PING request.
+ * @param[in] uxNumberOfBytesToSend The number of bytes to be sent.
+ * @param[in] uxBlockTimeTicks The maximum number of clock-ticks to wait while
  *            putting the message on the queue for the IP-task.
  *
  * @return When failed: pdFAIL, otherwise the PING sequence number.
@@ -821,7 +821,7 @@
  * @brief Returns a printable string for the major ICMPv6 message types.  Used for
  *        debugging only.
  *
- * @param[in] xType: The type of message.
+ * @param[in] xType The type of message.
  *
  * @return A null-terminated string that represents the type the kind of message.
  */
@@ -923,7 +923,7 @@
 /**
  * @brief Process an ICMPv6 packet and send replies when applicable.
  *
- * @param[in] pxNetworkBuffer: The Ethernet packet which contains an IPv6 message.
+ * @param[in] pxNetworkBuffer The Ethernet packet which contains an IPv6 message.
  *
  * @return A const value 'eReleaseBuffer' which means that the network must still be released.
  */
@@ -1122,7 +1122,7 @@
 /**
  * @brief Send out a Neighbour Advertisement message.
  *
- * @param[in] pxEndPoint: The end-point to use.
+ * @param[in] pxEndPoint The end-point to use.
  */
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
@@ -1202,10 +1202,10 @@
 /**
  * @brief Create an IPv16 address, based on a prefix.
  *
- * @param[out] pxIPAddress: The location where the new IPv6 address will be stored.
- * @param[in] pxPrefix: The prefix to be used.
- * @param[in] uxPrefixLength: The length of the prefix.
- * @param[in] xDoRandom: A non-zero value if the bits after the prefix should have a random value.
+ * @param[out] pxIPAddress The location where the new IPv6 address will be stored.
+ * @param[in] pxPrefix The prefix to be used.
+ * @param[in] uxPrefixLength The length of the prefix.
+ * @param[in] xDoRandom A non-zero value if the bits after the prefix should have a random value.
  *
  * @return pdPASS if the operation was successful. Or pdFAIL in case xApplicationGetRandomNumber()
  *         returned an error.

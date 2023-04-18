@@ -90,22 +90,22 @@
 /**
  * Used in checksum calculation.
  */
-typedef union _xUnion32
+typedef union xUnion32
 {
     uint32_t u32;      /**< The 32-bit member of the union. */
     uint16_t u16[ 2 ]; /**< The array of 2 16-bit members of the union. */
     uint8_t u8[ 4 ];   /**< The array of 4 8-bit members of the union. */
-} xUnion32;
+} xUnion32_t;
 
 /**
  * Used in checksum calculation.
  */
-typedef union _xUnionPtr
+typedef union xUnionPtr
 {
     const uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
     const uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
     const uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
-} xUnionPtr;
+} xUnionPtr_t;
 
 /*
  * Returns the network buffer descriptor that owns a given packet buffer.
@@ -137,10 +137,10 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
 /**
  * @brief Set checksum in the packet
  *
- * @param pxSet: Pointer to the packet summary that describes the packet,
+ * @param pxSet Pointer to the packet summary that describes the packet,
  *                  to which the checksum will be set.
  *
- * @param usChecksum: Checksum value to be set.
+ * @param usChecksum Checksum value to be set.
  */
 static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
                                     uint16_t usChecksum )
@@ -171,7 +171,7 @@ static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
 /**
  * @brief Get checksum from the packet summary
  *
- * @param pxSet: Pointer to the packet summary that describes the packet,
+ * @param pxSet Pointer to the packet summary that describes the packet,
  *                  from which the checksum will be retrieved.
  *
  * @return Checksum value that is retrieved from pxSet.
@@ -213,7 +213,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
  *
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
- * @param pxEndPoint: The end-point that needs DHCP.
+ * @param pxEndPoint The end-point that needs DHCP.
  */
     BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     {
@@ -244,8 +244,8 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
 /**
  * @brief Duplicate the given network buffer descriptor with a modified length.
  *
- * @param[in] pxNetworkBuffer: The network buffer to be duplicated.
- * @param[in] uxNewLength: The length for the new buffer.
+ * @param[in] pxNetworkBuffer The network buffer to be duplicated.
+ * @param[in] uxNewLength The length for the new buffer.
  *
  * @return If properly duplicated, then the duplicate network buffer or else, NULL.
  */
@@ -295,8 +295,8 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 /**
  * @brief Get the network buffer descriptor from the packet buffer.
  *
- * @param[in] pvBuffer: The pointer to packet buffer.
- * @param[in] uxOffset: Additional offset (such as the packet length of UDP packet etc.).
+ * @param[in] pvBuffer The pointer to packet buffer.
+ * @param[in] uxOffset Additional offset (such as the packet length of UDP packet etc.).
  *
  * @return The network buffer descriptor if the alignment is correct. Else a NULL is returned.
  */
@@ -371,8 +371,8 @@ static uintptr_t void_ptr_to_uintptr( const void * pvPointer )
 /*-----------------------------------------------------------*/
 
 /** @brief Get and check the specific lengths depending on the protocol ( TCP/UDP/ICMP/IGMP ).
- * @param[in] uxBufferLength: The number of bytes to be sent or received.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -469,7 +469,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
 /*-----------------------------------------------------------*/
 
 /** @brief See if the packet doesn't get bigger than the value of MTU.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -507,9 +507,9 @@ static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet )
 /*-----------------------------------------------------------*/
 
 /** @brief Do the actual checksum calculations, both the pseudo header, and the payload.
- * @param[in] xOutgoingPacket: pdTRUE when the packet is to be sent.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] xOutgoingPacket pdTRUE when the packet is to be sent.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] pxSet A struct describing this packet.
  */
 static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                           const uint8_t * pucEthernetBuffer,
@@ -612,10 +612,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 
 /** @brief For outgoing packets, set the checksum in the packet,
  *        for incoming packets: show logging in case an error occurred.
- * @param[in] xOutgoingPacket: Non-zero if this is an outgoing packet.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] xOutgoingPacket Non-zero if this is an outgoing packet.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength the total number of bytes received, or the number of bytes written
+ * @param[in] pxSet A struct describing this packet.
  */
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             const uint8_t * pucEthernetBuffer,
@@ -658,7 +658,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
 /**
  * @brief Get the network buffer from the packet buffer.
  *
- * @param[in] pvBuffer: Pointer to the packet buffer.
+ * @param[in] pvBuffer Pointer to the packet buffer.
  *
  * @return The network buffer if the alignment is correct. Else a NULL is returned.
  */
@@ -673,7 +673,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
 /**
  * @brief Get the network buffer from the UDP Payload buffer.
  *
- * @param[in] pvBuffer: Pointer to the UDP payload buffer.
+ * @param[in] pvBuffer Pointer to the UDP payload buffer.
  *
  * @return The network buffer if the alignment is correct. Else a NULL is returned.
  */
@@ -762,7 +762,7 @@ BaseType_t xIsCallingFromIPTask( void )
 
 /**
  * @brief Process a 'Network down' event and complete required processing.
- * @param pxInterface: The interface that goes down.
+ * @param pxInterface The interface that goes down.
  */
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
@@ -943,13 +943,13 @@ void vPreCheckConfigs( void )
  *        At the same time, the length of the packet and the length of the different layers
  *        will be checked.
  *
- * @param[in] pucEthernetBuffer: The Ethernet buffer for which the checksum is to be calculated
+ * @param[in] pucEthernetBuffer The Ethernet buffer for which the checksum is to be calculated
  *                               or checked.  'pucEthernetBuffer' is now non-const because the
  *                               function will set the checksum fields, in case 'xOutgoingPacket'
  *                               is pdTRUE.
- * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
+ * @param[in] uxBufferLength the total number of bytes received, or the number of bytes written
  *                            in the packet buffer.
- * @param[in] xOutgoingPacket: Whether this is an outgoing packet or not.
+ * @param[in] xOutgoingPacket Whether this is an outgoing packet or not.
  *
  * @return When xOutgoingPacket is false: the error code can be either: ipINVALID_LENGTH,
  *         ipUNHANDLED_PROTOCOL, ipWRONG_CRC, or ipCORRECT_CRC.
@@ -1119,9 +1119,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 /**
  * @brief Calculates the 16-bit checksum of an array of bytes
  *
- * @param[in] usSum: The initial sum, obtained from earlier data.
- * @param[in] pucNextData: The actual data.
- * @param[in] uxByteCount: The number of bytes.
+ * @param[in] usSum The initial sum, obtained from earlier data.
+ * @param[in] pucNextData The actual data.
+ * @param[in] uxByteCount The number of bytes.
  *
  * @return The 16-bit one's complement of the one's complement sum of all 16-bit
  *         words in the header
@@ -1132,10 +1132,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 {
 /* MISRA/PC-lint doesn't like the use of unions. Here, they are a great
  * aid though to optimise the calculations. */
-    xUnion32 xSum2;
-    xUnion32 xSum;
-    xUnion32 xTerm;
-    xUnionPtr xSource;
+    xUnion32_t xSum2;
+    xUnion32_t xSum;
+    xUnion32_t xTerm;
+    xUnionPtr_t xSource;
     uintptr_t uxAlignBits;
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
@@ -1382,9 +1382,9 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  * @brief Utility function: Convert error number to a human readable
  *        string. Declaration in FreeRTOS_errno_TCP.h.
  *
- * @param[in] xErrnum: The error number.
- * @param[in] pcBuffer: Buffer big enough to be filled with the human readable message.
- * @param[in] uxLength: Maximum length of the buffer.
+ * @param[in] xErrnum The error number.
+ * @param[in] pcBuffer Buffer big enough to be filled with the human readable message.
+ * @param[in] uxLength Maximum length of the buffer.
  *
  * @return The buffer filled with human readable error string.
  */
@@ -1491,8 +1491,8 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
 /**
  * @brief Get the highest value of two int32's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The highest of the two values.
  */
 int32_t FreeRTOS_max_int32( int32_t a,
@@ -1504,8 +1504,8 @@ int32_t FreeRTOS_max_int32( int32_t a,
 
 /**
  * @brief Get the highest value of two uint32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The highest of the two values.
  */
 uint32_t FreeRTOS_max_uint32( uint32_t a,
@@ -1517,8 +1517,8 @@ uint32_t FreeRTOS_max_uint32( uint32_t a,
 
 /**
  * @brief Get the highest value of two size_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The highest of the two values.
  */
 size_t FreeRTOS_max_size_t( size_t a,
@@ -1530,8 +1530,8 @@ size_t FreeRTOS_max_size_t( size_t a,
 
 /**
  * @brief Get the lowest value of two int32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The lowest of the two values.
  */
 int32_t FreeRTOS_min_int32( int32_t a,
@@ -1543,8 +1543,8 @@ int32_t FreeRTOS_min_int32( int32_t a,
 
 /**
  * @brief Get the lowest value of two uint32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The lowest of the two values.
  */
 uint32_t FreeRTOS_min_uint32( uint32_t a,
@@ -1556,8 +1556,8 @@ uint32_t FreeRTOS_min_uint32( uint32_t a,
 
 /**
  * @brief Get the lowest value of two size_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The lowest of the two values.
  */
 size_t FreeRTOS_min_size_t( size_t a,
@@ -1569,8 +1569,8 @@ size_t FreeRTOS_min_size_t( size_t a,
 
 /**
  * @brief Round-up a number to a multiple of 'd'.
- * @param[in] a: the first value.
- * @param[in] d: the second value.
+ * @param[in] a the first value.
+ * @param[in] d the second value.
  * @return A multiple of d.
  */
 uint32_t FreeRTOS_round_up( uint32_t a,
@@ -1591,8 +1591,8 @@ uint32_t FreeRTOS_round_up( uint32_t a,
 
 /**
  * @brief Round-down a number to a multiple of 'd'.
- * @param[in] a: the first value.
- * @param[in] d: the second value.
+ * @param[in] a the first value.
+ * @param[in] d the second value.
  * @return A multiple of d.
  */
 uint32_t FreeRTOS_round_down( uint32_t a,
@@ -1613,7 +1613,7 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 
 /**
  * @brief Convert character array (of size 4) to equivalent 32-bit value.
- * @param[in] pucPtr: The character array.
+ * @param[in] pucPtr The character array.
  * @return 32-bit equivalent value extracted from the character array.
  *
  * @note Going by MISRA rules, these utility functions should not be defined
@@ -1631,7 +1631,7 @@ uint32_t ulChar2u32( const uint8_t * pucPtr )
 
 /**
  * @brief Convert character array (of size 2) to equivalent 16-bit value.
- * @param[in] pucPtr: The character array.
+ * @param[in] pucPtr The character array.
  * @return 16-bit equivalent value extracted from the character array.
  *
  * @note Going by MISRA rules, these utility functions should not be defined

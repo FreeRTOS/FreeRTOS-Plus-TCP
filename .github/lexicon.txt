@@ -478,6 +478,7 @@ leds
 len
 lendofframe
 lessthan
+lidsize
 linkcurr
 linklayer
 linkmd
@@ -625,6 +626,7 @@ noop
 nop
 notnull
 ntoh
+ntohl
 ntp
 ntpclient
 ntpdemo
@@ -961,6 +963,7 @@ pxnetworkbuffer
 pxnetworkendpoints
 pxnetworkinterface
 pxnewaddress
+pxnewbuffer
 pxnewlistitem
 pxnewsocket
 pxnext
@@ -984,8 +987,10 @@ pxprotocolheaders
 pxprotpack
 pxreceivebuffer
 pxreplyendpoint
+pxresizenetworkbufferwithdescriptor
 pxresult
 pxresults
+pxreturngroupid
 pxright
 pxsegment
 pxset
@@ -1511,6 +1516,7 @@ usrequestid
 usretranstime
 ussequencenumber
 ussourceport
+usstatus
 ussum
 ustaskstacksize
 ustime
@@ -1585,6 +1591,7 @@ uxprotocolheaderlength
 uxptr
 uxreloadtime
 uxremainingbytes
+uxremainingsize
 uxremainingtime
 uxremaningtime
 uxremoteport
@@ -1768,6 +1775,7 @@ xemacpsif
 xemactaskhandle
 xenablestate
 xend
+xendpoint
 xentries
 xentryfound
 xerrnum
@@ -1829,6 +1837,7 @@ xlastalivetime
 xlastgratuitousarptime
 xlastround
 xlastsource
+xleasetime
 xlength
 xlinkstatustimer
 xlistend
