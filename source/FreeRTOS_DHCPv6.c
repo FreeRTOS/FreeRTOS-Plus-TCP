@@ -1330,7 +1330,8 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
 {
     BaseType_t xReady = pdFALSE;
     int32_t lIDSize = 0;
-    uint8_t ucClientDUID[ dhcpIPv6_CLIENT_DUID_LENGTH ];
+
+    ( void ) pxEndPoint;
 
     if( prvIsOptionLengthValid( usOption, pxSet->uxOptionLength, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
     {
