@@ -752,7 +752,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
 
             default:
                 FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined ucIPType \n" ) );
-
+                uxOffset = sizeof( UDPPacket_t );
                 /* MISRA 16.4 Compliance */
                 break;
         }
@@ -1022,7 +1022,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
      * Note: MISRA prohibits use of 'goto', thus replaced with breaks. */
     do
     {
-        BaseType_t xResult;
+        BaseType_t xResult = 0;
 
         /* Parse the packet length. */
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -1051,6 +1051,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             default:
+                FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined usFrameType\n" ) );
                 /* MISRA 16.4 Compliance */
                 break;
         }
