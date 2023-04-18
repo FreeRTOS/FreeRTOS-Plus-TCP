@@ -125,7 +125,12 @@
         {
             if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
             {
-                break;
+                IPv6_Type_t eType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+                if( eType == eIPv6_LinkLocal )
+                {
+                    break;
+                }
             }
         }
 
@@ -148,7 +153,7 @@
         eARPLookupResult_t eReturn;
 
         /* Mostly used multi-cast address is ff02::. */
-        if( xIsIPv6Multicast( pxAddressToLookup ) != pdFALSE )
+        if( xIsIPv6AllowedMulticast( pxAddressToLookup ) != pdFALSE )
         {
             vSetMultiCastIPv6MacAddress( pxAddressToLookup, pxMACAddress );
 

@@ -55,7 +55,7 @@
 struct xIP_HEADER
 {
     uint8_t ucVersionHeaderLength;        /**< The version field + internet header length 0 + 1 =  1 */
-    uint8_t ucDifferentiatedServicesCode; /**< Differentiated services code point + ECN    1 + 1 =  2 */
+    uint8_t ucDifferentiatedServicesCode; /**< Differentiated services code point + ECN   1 + 1 =  2 */
     uint16_t usLength;                    /**< Entire Packet size, ex. Ethernet header.   2 + 2 =  4 */
     uint16_t usIdentification;            /**< Identification field                       4 + 2 =  6 */
     uint16_t usFragmentOffset;            /**< Fragment flags and fragment offset         6 + 2 =  8 */

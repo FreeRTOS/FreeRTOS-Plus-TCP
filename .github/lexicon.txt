@@ -116,6 +116,7 @@ cchannel
 cchar
 ce
 centralised
+ceo
 cerrorbuffer
 cgcr
 ch
@@ -182,6 +183,7 @@ dhcpbroadcast
 dhcpcookie
 dhcpserveraddress
 didn
+diff
 dm
 dma
 dmaarbitration
@@ -328,6 +330,7 @@ ext
 extendedstatus
 exti
 faq
+faqhelp
 fb
 fc
 fchwr
@@ -475,6 +478,7 @@ leds
 len
 lendofframe
 lessthan
+lidsize
 linkcurr
 linklayer
 linkmd
@@ -612,6 +616,7 @@ nic
 nn
 nnn
 nnnn
+noaddrsavail
 nobroadcast
 noevent
 nondet
@@ -638,6 +643,7 @@ onreceive
 onsent
 op
 opendns
+openrtos
 optimisation
 optimise
 optimised
@@ -882,6 +888,7 @@ pvargument
 pvbuffer
 pvdata
 pvdestination
+pvethernetbuffer
 pvoptionvalue
 pvparam
 pvparameters
@@ -983,6 +990,7 @@ pxreplyendpoint
 pxresizenetworkbufferwithdescriptor
 pxresult
 pxresults
+pxreturngroupid
 pxright
 pxsegment
 pxset
@@ -1014,6 +1022,7 @@ ra
 ramfunc
 randomised
 randomiser
+rawdata
 rbus
 rcomp
 rcv
@@ -1104,6 +1113,7 @@ sackp
 saf
 safemalloc
 safemallocsaif
+safertos
 sam
 sck
 sdio
@@ -1240,6 +1250,7 @@ ucflags
 ucgatewayaddress
 uchardwareaddresslength
 uchasuid
+ucheaderextlength
 uchoplimit
 uchops
 ucidentifier
@@ -1359,6 +1370,7 @@ ullast
 ulleasetime
 ullen
 ullength
+ullgethighresolutiontime
 ullinkstatusmask
 ullocaladdress
 ullocalip
@@ -1504,6 +1516,7 @@ usrequestid
 usretranstime
 ussequencenumber
 ussourceport
+usstatus
 ussum
 ustaskstacksize
 ustime
@@ -1531,6 +1544,7 @@ uxcurrentseconds
 uxdatalength
 uxdatalengthbytes
 uxdestlen
+uxdnscount
 uxenoughspace
 uxentrycount
 uxflags
@@ -1577,6 +1591,7 @@ uxprotocolheaderlength
 uxptr
 uxreloadtime
 uxremainingbytes
+uxremainingsize
 uxremainingtime
 uxremaningtime
 uxremoteport
@@ -1743,6 +1758,7 @@ xdmarxdescriptors
 xdnsbuf
 xdnscache
 xdnsmessage
+xdnsservers
 xdnssocket
 xdoaccept
 xdocheck
@@ -1888,6 +1904,7 @@ xqueuegenericsend
 xqueueitem
 xqueuereceive
 xradata
+xrandomok
 xrandomtaskhandle
 xrasolicitationrequest
 xready

@@ -65,6 +65,8 @@
     #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
 #endif
 
+#define dhcpIPv6_CLIENT_DUID_LENGTH                ( 14U )
+
 /* Codes of interest found in the DHCP options field. */
 #define dhcpIPv4_ZERO_PAD_OPTION_CODE              ( 0U )      /**< Used to pad other options to make them aligned. See RFC 2132. */
 #define dhcpIPv4_SUBNET_MASK_OPTION_CODE           ( 1U )      /**< Subnet mask. See RFC 2132. */
@@ -210,6 +212,8 @@ struct xDHCP_DATA
     eDHCPState_t eDHCPState;       /**< The current state of the DHCP state machine. */
     eDHCPState_t eExpectedState;   /**< If the state is not equal the the expected state, no cycle needs to be done. */
     Socket_t xDHCPSocket;
+    /**< Record latest client ID for DHCPv6. */
+    uint8_t ucClientDUID[ dhcpIPv6_CLIENT_DUID_LENGTH ];
 };
 
 typedef struct xDHCP_DATA DHCPData_t;
@@ -248,8 +252,14 @@ BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );
  * usage information:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
  */
-    eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-                                                uint32_t ulIPAddress );
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                    uint32_t ulIPAddress );
+    #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+        eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
+                                                          struct xNetworkEndPoint * pxEndPoint,
+                                                          IP_Address_t * pxIPAddress );
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
 #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )

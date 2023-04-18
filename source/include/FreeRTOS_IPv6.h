@@ -62,11 +62,11 @@
 
 
 #define ipIPv6_EXT_HEADER_HOP_BY_HOP             0U
-#define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS    60U
 #define ipIPv6_EXT_HEADER_ROUTING_HEADER         43U
 #define ipIPv6_EXT_HEADER_FRAGMENT_HEADER        44U
-#define ipIPv6_EXT_HEADER_AUTHEN_HEADER          51U
 #define ipIPv6_EXT_HEADER_SECURE_PAYLOAD         50U
+#define ipIPv6_EXT_HEADER_AUTHEN_HEADER          51U
+#define ipIPv6_EXT_HEADER_DESTINATION_OPTIONS    60U
 /* Destination options may follow here in case there are no routing options. */
 #define ipIPv6_EXT_HEADER_MOBILITY_HEADER        135U
 
@@ -96,8 +96,8 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
 extern void FreeRTOS_ClearND( void );
 
-/* Return pdTRUE if the IPv6 address is a multicast address. */
-BaseType_t xIsIPv6Multicast( const IPv6_Address_t * pxIPAddress );
+/* Check whether this IPv6 address is an allowed multicast address or not. */
+BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress );
 
 /* Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
  * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are

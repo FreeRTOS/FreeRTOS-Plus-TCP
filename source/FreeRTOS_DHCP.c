@@ -323,6 +323,9 @@
 
         #if ( ipconfigUSE_DHCP_HOOK != 0 )
             eDHCPCallbackAnswer_t eAnswer;
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
+                IP_Address_t xIPAddress;
+            #endif
         #endif
 
         /* Look for offers coming in. */
@@ -332,7 +335,12 @@
             {
                 #if ( ipconfigUSE_DHCP_HOOK != 0 )
                     /* Ask the user if a DHCP request is required. */
-                    eAnswer = xApplicationDHCPHook( eDHCPPhasePreRequest, EP_DHCPData.ulOfferedIPAddress );
+                    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                        eAnswer = xApplicationDHCPHook( eDHCPPhasePreRequest, EP_DHCPData.ulOfferedIPAddress );
+                    #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+                        xIPAddress.ulIP_IPv4 = EP_DHCPData.ulOfferedIPAddress;
+                        eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreRequest, pxEndPoint, &xIPAddress );
+                    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
                     if( eAnswer == eDHCPContinue )
                 #endif /* ipconfigUSE_DHCP_HOOK */
@@ -545,7 +553,15 @@
 
         /* Ask the user if a DHCP discovery is required. */
         #if ( ipconfigUSE_DHCP_HOOK != 0 )
-            eDHCPCallbackAnswer_t eAnswer = xApplicationDHCPHook( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress );
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                eDHCPCallbackAnswer_t eAnswer = xApplicationDHCPHook( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress );
+            #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+                IP_Address_t xIPAddress;
+                eDHCPCallbackAnswer_t eAnswer;
+
+                xIPAddress.ulIP_IPv4 = pxEndPoint->ipv4_defaults.ulIPAddress;
+                eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreDiscover, pxEndPoint, &xIPAddress );
+            #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
             if( eAnswer == eDHCPContinue )
         #endif /* ipconfigUSE_DHCP_HOOK */
