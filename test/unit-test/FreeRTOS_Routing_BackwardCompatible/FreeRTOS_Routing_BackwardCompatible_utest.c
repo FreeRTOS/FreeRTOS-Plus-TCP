@@ -44,7 +44,7 @@
 #include "mock_event_groups.h"
 
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_Routing_stubs.c"
+#include "FreeRTOS_Routing_BackwardCompatible_stubs.c"
 
 #include "catch_assert.h"
 

@@ -2,8 +2,9 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_Routing" )
+set( project_name "FreeRTOS_Routing_BothV4V6" )
 message( STATUS "${project_name}" )
+set( test_file_name "FreeRTOS_Routing" )
 
 # =====================  Create your mock here  (edit)  ========================
 set(mock_list "")
@@ -48,7 +49,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${test_file_name}.c
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}/${project_name}_stubs.c
 	)
 

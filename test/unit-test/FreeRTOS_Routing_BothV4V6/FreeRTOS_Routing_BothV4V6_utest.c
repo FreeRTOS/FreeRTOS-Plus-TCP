@@ -46,7 +46,7 @@
 #include "mock_FreeRTOS_IP.h"
 
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_Routing_stubs.c"
+#include "FreeRTOS_Routing_BothV4V6_stubs.c"
 
 #include "catch_assert.h"
 
