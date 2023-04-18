@@ -640,13 +640,13 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             #if ( ipconfigUSE_DHCPv6 != 0 ) || ( ipconfigUSE_RA != 0 )
                 xIsStatic = pdTRUE;
                 #if ( ipconfigUSE_DHCPv6 != 0 )
-                    if( pxEndPoint->bits.bWantDHCP != 0 )
+                    if( pxEndPoint->bits.bWantDHCP != 0U )
                     {
                         xIsStatic = pdFALSE;
                     }
                 #endif
                 #if ( ipconfigUSE_RA != 0 )
-                    if( pxEndPoint->bits.bWantRA != 0 )
+                    if( pxEndPoint->bits.bWantRA != 0U )
                     {
                         xIsStatic = pdFALSE;
                     }

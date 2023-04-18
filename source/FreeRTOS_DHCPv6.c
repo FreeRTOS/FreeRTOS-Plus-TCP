@@ -158,7 +158,8 @@ static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
                                           size_t uxOptionLength,
                                           size_t uxRemainingSize );
 
-static BaseType_t prvDHCPv6Analyse( const uint8_t * pucAnswer,
+static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
+                                    const uint8_t * pucAnswer,
                                     size_t uxTotalLength,
                                     DHCPMessage_IPv6_t * pxDHCPMessage );
 
@@ -203,7 +204,8 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                                        DHCPMessage_IPv6_t * pxDHCPMessage,
                                        BitConfig_t * pxMessage );
 
-static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
+static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
+                                          uint16_t usOption,
                                           const DHCPOptionSet_t * pxSet,
                                           DHCPMessage_IPv6_t * pxDHCPMessage,
                                           BitConfig_t * pxMessage );
@@ -227,7 +229,7 @@ static DHCPMessage_IPv6_t xDHCPMessage;
 eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
 {
     configASSERT( pxEndPoint );
-    return pxEndPoint->xDHCPData.eDHCPState;
+    return EP_DHCPData.eDHCPState;
 }
 /*-----------------------------------------------------------*/
 
@@ -489,7 +491,7 @@ void vDHCPv6Process( BaseType_t xReset,
 
             uxLength = ( size_t ) lBytes;
 
-            xResult = prvDHCPv6Analyse( pucUDPPayload, uxLength, &( xDHCPMessage ) );
+            xResult = prvDHCPv6Analyse( pxEndPoint, pucUDPPayload, uxLength, &( xDHCPMessage ) );
 
             FreeRTOS_printf( ( "prvDHCPv6Analyse: %s\n", ( xResult == pdPASS ) ? "Pass" : "Fail" ) );
 
@@ -1078,8 +1080,8 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
         pxDHCPMessage->ucTransactionID[ 0 ] = ( uint8_t ) ( ( ulTransactionID >> 16 ) & 0xffU );
         pxDHCPMessage->ucTransactionID[ 1 ] = ( uint8_t ) ( ( ulTransactionID >> 8 ) & 0xffU );
         pxDHCPMessage->ucTransactionID[ 2 ] = ( uint8_t ) ( ulTransactionID & 0xffU );
-        pxEndPoint->xDHCPData.ulTransactionId = ulTransactionID;
-        FreeRTOS_debug_printf( ( "Created transaction ID : 0x%06X\n", ( unsigned int ) ulTransactionID ) );
+        EP_DHCPData.ulTransactionId = ulTransactionID;
+        FreeRTOS_debug_printf( ( "Created transaction ID : 0x%06X\n", ulTransactionID ) );
     }
 
     if( ( xRandomOk == pdPASS ) && ( EP_DHCPData.xDHCPSocket != NULL ) )
@@ -1123,6 +1125,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 vBitConfig_write_16( &( xMessage ), pxDHCPMessage->xClientID.usHardwareType );                     /* 1 : Ethernet */
                 vBitConfig_write_32( &( xMessage ), pxDHCPMessage->ulTimeStamp );                                  /* DUID Time: seconds since 1-1-2000. */
                 vBitConfig_write_uc( &( xMessage ), pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ); /* Link Layer address, 6 bytes */
+                ( void ) pucBitConfig_peek_last_index_uc( &( xMessage ), EP_DHCPData.ucClientDUID, dhcpIPv6_CLIENT_DUID_LENGTH );
 
                 if( pxDHCPMessage->xServerID.uxLength != 0U )
                 {
@@ -1312,18 +1315,21 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
 /**
  * @brief A DHCP packet has a list of options, each one starting with a type and a length
  *        field. This function parses a single DHCP option.
+ * @param[in] pxEndPoint: The end-point that wants a DHCPv6 address.
  * @param[in] usOption: IPv6 DHCP option to be handled.
  * @param[in] pxSet: It contains the length and offset of the DHCP option.
  * @param[out] pxDHCPMessage: it will be filled with the information from the option.
  * @param[in] pxMessage: The raw packet as it was received.
  */
-static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
+static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
+                                          uint16_t usOption,
                                           const DHCPOptionSet_t * pxSet,
                                           DHCPMessage_IPv6_t * pxDHCPMessage,
                                           BitConfig_t * pxMessage )
 {
     BaseType_t xReady = pdFALSE;
     int32_t lIDSize = 0;
+    uint8_t ucClientDUID[ dhcpIPv6_CLIENT_DUID_LENGTH ];
 
     if( prvIsOptionLengthValid( usOption, pxSet->uxOptionLength, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
     {
@@ -1481,13 +1487,15 @@ static BaseType_t prvDHCPv6_handleOption( uint16_t usOption,
 /**
  * @brief Analyse the reply from a DHCP server.
  *
+ * @param[in] pxEndPoint: The end-point that wants a DHCPv6 address.
  * @param[in] pucAnswer: The payload text of the incoming packet.
  * @param[in] uxTotalLength: The number of valid bytes in pucAnswer.
  * @param[in] pxDHCPMessage: The DHCP object of the end-point.
  *
  * @return pdTRUE if the analysis was successful.
  */
-static BaseType_t prvDHCPv6Analyse( const uint8_t * pucAnswer,
+static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
+                                    const uint8_t * pucAnswer,
                                     size_t uxTotalLength,
                                     DHCPMessage_IPv6_t * pxDHCPMessage )
 {
@@ -1509,6 +1517,16 @@ static BaseType_t prvDHCPv6Analyse( const uint8_t * pucAnswer,
             ( ( ( uint32_t ) pxDHCPMessage->ucTransactionID[ 0 ] ) << 16 ) |
             ( ( ( uint32_t ) pxDHCPMessage->ucTransactionID[ 1 ] ) << 8 ) |
             ( ( ( uint32_t ) pxDHCPMessage->ucTransactionID[ 2 ] ) );
+
+        if( EP_DHCPData.ulTransactionId != pxDHCPMessage->ulTransactionID )
+        {
+            FreeRTOS_printf( ( "prvDHCPv6Analyse: Message %u transaction ID 0x%06X is different from sent ID 0x%06X\n",
+                               ( unsigned ) pxDHCPMessage->uxMessageType,
+                               ( unsigned ) pxDHCPMessage->ulTransactionID,
+                               EP_DHCPData.ulTransactionId ) );
+
+            xResult = pdFAIL;
+        }
 
         FreeRTOS_printf( ( "prvDHCPv6Analyse: Message %u ID theirs 0x%06X\n",
                            ( unsigned ) pxDHCPMessage->uxMessageType,
@@ -1564,7 +1582,7 @@ static BaseType_t prvDHCPv6Analyse( const uint8_t * pucAnswer,
             else
             {
                 ulOptionsReceived |= ( ( ( uint32_t ) 1U ) << usOption );
-                xReady = prvDHCPv6_handleOption( usOption, &( xSet ), pxDHCPMessage, &( xMessage ) );
+                xReady = prvDHCPv6_handleOption( pxEndPoint, usOption, &( xSet ), pxDHCPMessage, &( xMessage ) );
             }
 
             if( xMessage.xHasError != pdFALSE )
