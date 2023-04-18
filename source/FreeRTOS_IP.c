@@ -332,7 +332,7 @@ static void prvProcessIPEventsAndTimers( void )
             pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
             xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
 
-            switch(pxSocket->bits.bIsIPv6)
+            switch( pxSocket->bits.bIsIPv6 )
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case pdFALSE_UNSIGNED:
@@ -351,7 +351,7 @@ static void prvProcessIPEventsAndTimers( void )
                         ( void ) memset( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, 0, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* MISRA 16.4 Compliance */
                     break;
@@ -841,9 +841,8 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    switch(ucIPType)
+    switch( ucIPType )
     {
-
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipTYPE_IPv4:
                 uxPayloadOffset = sizeof( UDPPacket_t );
@@ -855,7 +854,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
                 uxPayloadOffset = sizeof( UDPPacket_IPv6_t );
                 break;
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-        
+
         default:
             /* Shouldn't reach here. */
             /* MISRA 16.4 Compliance */
@@ -948,8 +947,8 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
         if( ENDPOINT_IS_IPv6( pxFirstEndPoint ) )
         {
             for( ;
-                pxFirstEndPoint != NULL;
-                pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
+                 pxFirstEndPoint != NULL;
+                 pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
             {
                 if( ENDPOINT_IS_IPv4( pxFirstEndPoint ) )
                 {
@@ -1787,7 +1786,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     uint8_t ucProtocol = 0U;
     const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
 
-    switch(pxIPPacket->xEthernetHeader.usFrameType)
+    switch( pxIPPacket->xEthernetHeader.usFrameType )
     {
         #if ( ipconfigUSE_IPv6 != 0 )
             case ipIPv6_FRAME_TYPE:
@@ -1805,44 +1804,45 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 eReturn = prvAllowIPPacketIPv6( ( ( const IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
 
                 /* The IP-header type is copied to a location 6 bytes before the messages
-                * starts.  It might be needed later on when a UDP-payload buffer is being
-                * used. */
+                 * starts.  It might be needed later on when a UDP-payload buffer is being
+                 * used. */
                 pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader_IPv6->ucVersionTrafficClass;
                 break;
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-        
+
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipIPv4_FRAME_TYPE:
-            {            
-                size_t uxLength = ( size_t ) pxIPHeader->ucVersionHeaderLength;
+               {
+                   size_t uxLength = ( size_t ) pxIPHeader->ucVersionHeaderLength;
 
-                /* Check if the IP headers are acceptable and if it has our destination.
-                * The lowest four bits of 'ucVersionHeaderLength' indicate the IP-header
-                * length in multiples of 4. */
-                uxHeaderLength = ( size_t ) ( ( uxLength & 0x0FU ) << 2 );
+                   /* Check if the IP headers are acceptable and if it has our destination.
+                    * The lowest four bits of 'ucVersionHeaderLength' indicate the IP-header
+                    * length in multiples of 4. */
+                   uxHeaderLength = ( size_t ) ( ( uxLength & 0x0FU ) << 2 );
 
-                if( ( uxHeaderLength > ( pxNetworkBuffer->xDataLength - ipSIZE_OF_ETH_HEADER ) ) ||
-                    ( uxHeaderLength < ipSIZE_OF_IPv4_HEADER ) )
-                {
-                    eReturn = eReleaseBuffer;
-                }
-                else
-                {
-                    ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-                    /* Check if the IP headers are acceptable and if it has our destination. */
-                    eReturn = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+                   if( ( uxHeaderLength > ( pxNetworkBuffer->xDataLength - ipSIZE_OF_ETH_HEADER ) ) ||
+                       ( uxHeaderLength < ipSIZE_OF_IPv4_HEADER ) )
+                   {
+                       eReturn = eReleaseBuffer;
+                   }
+                   else
+                   {
+                       ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
+                       /* Check if the IP headers are acceptable and if it has our destination. */
+                       eReturn = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
-                    {
-                        /* The IP-header type is copied to a location 6 bytes before the
-                        * messages starts.  It might be needed later on when a UDP-payload
-                        * buffer is being used. */
-                        pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader->ucVersionHeaderLength;
-                    }
-                }
-                break;
-            }
+                       {
+                           /* The IP-header type is copied to a location 6 bytes before the
+                            * messages starts.  It might be needed later on when a UDP-payload
+                            * buffer is being used. */
+                           pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader->ucVersionHeaderLength;
+                       }
+                   }
+
+                   break;
+               }
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-    
+
         default:
             eReturn = eReleaseBuffer;
             FreeRTOS_debug_printf( ( "prvProcessIPPacket: Undefined Frame Type \n" ) );
@@ -1857,15 +1857,15 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     if( eReturn == eProcessBuffer )
     {
         /* Are there IP-options. */
-        switch(pxIPPacket->xEthernetHeader.usFrameType)
+        switch( pxIPPacket->xEthernetHeader.usFrameType )
         {
-
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipIPv4_FRAME_TYPE:
+
                     if( uxHeaderLength > ipSIZE_OF_IPv4_HEADER )
                     {
                         /* The size of the IP-header is larger than 20 bytes.
-                        * The extra space is used for IP-options. */
+                         * The extra space is used for IP-options. */
                         eReturn = prvCheckIP4HeaderOptions( pxNetworkBuffer );
                     }
                     break;
@@ -1873,6 +1873,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
 
             #if ( ipconfigUSE_IPv6 != 0 )
                 case ipIPv6_FRAME_TYPE:
+
                     if( xGetExtensionOrder( ucProtocol, 0U ) > 0 )
                     {
                         eReturn = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
@@ -1885,7 +1886,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     }
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             default:
                 /* MISRA 16.4 Compliance */
                 break;
@@ -1913,24 +1914,24 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                      *  xProcessReceivedUDPPacket(), as soon as it's know that the message
                      *  will be handled.  This will prevent the ARP cache getting
                      *  overwritten with the IP address of useless broadcast packets. */
-                    switch(pxIPPacket->xEthernetHeader.usFrameType)
+                    switch( pxIPPacket->xEthernetHeader.usFrameType )
                     {
-
                         #if ( ipconfigUSE_IPv6 != 0 )
                             case ipIPv6_FRAME_TYPE:
                                 vNDRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), &( pxIPHeader_IPv6->xSourceAddress ), pxNetworkBuffer->pxEndPoint );
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                        
+
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case ipIPv4_FRAME_TYPE:
+
                                 /* IP address is not on the same subnet, ARP table can be updated.
-                                    * Refresh the ARP cache with the IP/MAC-address of the received
-                                    *  packet. For UDP packets, this will be done later in
-                                    *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                                    *  will be handled.  This will prevent the ARP cache getting
-                                    *  overwritten with the IP address of useless broadcast packets.
-                                    */
+                                 * Refresh the ARP cache with the IP/MAC-address of the received
+                                 *  packet. For UDP packets, this will be done later in
+                                 *  xProcessReceivedUDPPacket(), as soon as it's know that the message
+                                 *  will be handled.  This will prevent the ARP cache getting
+                                 *  overwritten with the IP address of useless broadcast packets.
+                                 */
                                 vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -1938,7 +1939,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         default:
                             /* MISRA 16.4 Compliance */
                             break;
-
                     }
                 }
             }
@@ -1951,10 +1951,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         case ipPROTOCOL_ICMP:
 
                             /* The IP packet contained an ICMP frame.  Don't bother checking
-                            * the ICMP checksum, as if it is wrong then the wrong data will
-                            * also be returned, and the source of the ping will know something
-                            * went wrong because it will not be able to validate what it
-                            * receives. */
+                             * the ICMP checksum, as if it is wrong then the wrong data will
+                             * also be returned, and the source of the ping will know something
+                             * went wrong because it will not be able to validate what it
+                             * receives. */
                             #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
                                 {
                                     eReturn = ProcessICMPPacket( pxNetworkBuffer );
@@ -2073,15 +2073,14 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            switch(( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType)
+            switch( ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType )
             {
-
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case ipIPv6_FRAME_TYPE:
                         /* To do */
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case ipIPv4_FRAME_TYPE:
                         pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
@@ -2091,9 +2090,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                 default:
                     /* MISRA 16.4 Compliance */
                     break;
-                    
             }
-
         }
 
         if( pxNetworkBuffer->pxEndPoint != NULL )
@@ -2154,8 +2151,8 @@ uint32_t FreeRTOS_GetIPAddress( void )
         if( ENDPOINT_IS_IPv6( pxEndPoint ) )
         {
             for( ;
-                pxEndPoint != NULL;
-                pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+                 pxEndPoint != NULL;
+                 pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
                 if( ENDPOINT_IS_IPv4( pxEndPoint ) )
                 {
