@@ -2179,11 +2179,11 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE_UNSIGNED:
-                            ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%xip port %u to %xip port %u",
-                                                ( unsigned ) pxSocket->xLocalAddress.ulIP_IPv4,
-                                                pxSocket->usLocalPort,
-                                                ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
-                                                pxSocket->u.xTCP.usRemotePort );
+                            ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%pip port %u to %pip port %u",
+                                            pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
+                                            pxSocket->usLocalPort,
+                                            pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                            pxSocket->u.xTCP.usRemotePort );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -3712,7 +3712,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                         break;
                 
                 }
-
 
                 /* Port on remote machine. */
                 pxSocket->u.xTCP.usRemotePort = FreeRTOS_ntohs( pxAddress->sin_port );
