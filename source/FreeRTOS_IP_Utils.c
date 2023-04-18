@@ -525,11 +525,11 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
             uint32_t pulHeader[ 2 ];
 
             /* IPv6 has a 40-byte pseudo header:
-            * 0..15 Source IPv6 address
-            * 16..31 Target IPv6 address
-            * 32..35 Length of payload
-            * 36..38 three zero's
-            * 39 Next Header, i.e. the protocol type. */
+             * 0..15 Source IPv6 address
+             * 16..31 Target IPv6 address
+             * 32..35 Length of payload
+             * 36..38 three zero's
+             * 39 Next Header, i.e. the protocol type. */
 
             pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
             pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
@@ -558,44 +558,42 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
         #if ( ipconfigUSE_IPv6 != 0 )
             pxSet->usChecksum = ( uint16_t )
                                 ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                    ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
-                                                    ( size_t ) pxSet->usProtocolBytes ) );
+                                                       ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
+                                                       ( size_t ) pxSet->usProtocolBytes ) );
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
     else
     {
-
-        switch(pxSet->xIsIPv6)
+        switch( pxSet->xIsIPv6 )
         {
-
             #if ( ipconfigUSE_IPv6 != 0 )
                 case pdTRUE:
                     /* The CRC of the IPv6 pseudo-header has already been calculated. */
                     pxSet->usChecksum = ( uint16_t )
                                         ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                            ( uint8_t * ) &( pxSet->pxProtocolHeaders->xUDPHeader.usSourcePort ),
-                                                            ( size_t ) ( pxSet->usProtocolBytes ) ) );
+                                                               ( uint8_t * ) &( pxSet->pxProtocolHeaders->xUDPHeader.usSourcePort ),
+                                                               ( size_t ) ( pxSet->usProtocolBytes ) ) );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE:
-                    {
-                        /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
-                        uint32_t ulByteCount = pxSet->usProtocolBytes;
-                        ulByteCount += 2U * ipSIZE_OF_IPv4_ADDRESS;
+                   {
+                       /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
+                       uint32_t ulByteCount = pxSet->usProtocolBytes;
+                       ulByteCount += 2U * ipSIZE_OF_IPv4_ADDRESS;
 
-                        /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
+                       /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
                         * fields */
-                        pxSet->usChecksum = ( uint16_t ) ( pxSet->usProtocolBytes + ( ( uint16_t ) pxSet->ucProtocol ) );
+                       pxSet->usChecksum = ( uint16_t ) ( pxSet->usProtocolBytes + ( ( uint16_t ) pxSet->ucProtocol ) );
 
-                        /* And then continue at the IPv4 source and destination addresses. */
-                        pxSet->usChecksum = ( uint16_t )
-                                            ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                                ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
-                                                                ulByteCount ) );
-                    }
-                    break;
+                       /* And then continue at the IPv4 source and destination addresses. */
+                       pxSet->usChecksum = ( uint16_t )
+                                           ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                                  ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
+                                                                  ulByteCount ) );
+                   }
+                   break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             default:
@@ -738,26 +736,25 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
          * It must have a value of either 0x4x or 0x6x. */
         configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
 
-        switch(ucIPType)
+        switch( ucIPType )
         {
             #if ( ipconfigUSE_IPv6 != 0 )
                 case ipTYPE_IPv6:
                     uxOffset = sizeof( UDPPacket_IPv6_t );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipTYPE_IPv4:
                     uxOffset = sizeof( UDPPacket_t );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-        
+
             default:
                 FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined ucIPType \n" ) );
 
                 /* MISRA 16.4 Compliance */
                 break;
-
         }
 
         pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
@@ -895,10 +892,8 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             #endif /* ( #if( ipconfigUSE_IPv6 != 0 ) */
 
             {
-
-                switch(pxEndPoint->bits.bIPv6)
+                switch( pxEndPoint->bits.bIPv6 )
                 {
-
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
                             ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
@@ -910,7 +905,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                             ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                    
+
                     default:
                         /* MISRA 16.4 Compliance */
                         break;
@@ -1020,8 +1015,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
-    configASSERT( (( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) || 
-    (( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ));
+    configASSERT( ( ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) ||
+                  ( ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) );
 
     /* Introduce a do-while loop to allow use of break statements.
      * Note: MISRA prohibits use of 'goto', thus replaced with breaks. */
@@ -1035,13 +1030,12 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        switch(xSet.pxIPPacket->xEthernetHeader.usFrameType)
+        switch( xSet.pxIPPacket->xEthernetHeader.usFrameType )
         {
-
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipIPv4_FRAME_TYPE:
                     xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
-                    
+
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1055,11 +1049,10 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                     xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             default:
                 /* MISRA 16.4 Compliance */
                 break;
-
         }
 
         if( xResult != 0 )
