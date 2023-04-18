@@ -612,86 +612,158 @@ void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
      }
  }
 
-//  void test_FreeRTOS_NextEndPoint_happy_path( void )
-//  {
-//      NetworkEndPoint_t xEndPoint[3];
-//      NetworkEndPoint_t * pxEndPoint = NULL;
-//      int i=0;
+/**
+ * @brief test_FreeRTOS_NextEndPoint_happy_path
+ * FreeRTOS_NextEndPoint should return next endpoint with specified endpoint.
+ *
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 3 endpoints and stored then into pxNetworkEndPoints.
+ *  - Loop to call FreeRTOS_NextEndPoint to get endpoints.
+ *  - Check if endpoints are returned in correct order.
+ */
+ void test_FreeRTOS_NextEndPoint_happy_path( void )
+ {
+     NetworkEndPoint_t xEndPoint[3];
+     NetworkEndPoint_t * pxEndPoint = NULL;
+     int i=0;
 
-//      
-//      for( i=0 ; i<3 ; i++ )
-//      {
-//          memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) );
+     
+     for( i=0 ; i<3 ; i++ )
+     {
+         memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) );
 
-//          if( pxNetworkEndPoints == NULL )
-//          {
-//              pxNetworkEndPoints = &(xEndPoint[i]);
-//              pxEndPoint = pxNetworkEndPoints;
-//          }
-//          else
-//          {
-//              pxEndPoint->pxNext = &(xEndPoint[i]);
-//              pxEndPoint = pxEndPoint->pxNext;
-//          }
-//      }
+         if( pxNetworkEndPoints == NULL )
+         {
+             pxNetworkEndPoints = &(xEndPoint[i]);
+             pxEndPoint = pxNetworkEndPoints;
+         }
+         else
+         {
+             pxEndPoint->pxNext = &(xEndPoint[i]);
+             pxEndPoint = pxEndPoint->pxNext;
+         }
+     }
 
-//      pxEndPoint = pxNetworkEndPoints;
+     pxEndPoint = pxNetworkEndPoints;
 
-//      for( i=0 ; i<3 ; i++ )
-//      {
-//          TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint );
-//          pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint );
-//      }
+     for( i=0 ; i<3 ; i++ )
+     {
+         TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint );
+         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint );
+     }
 
-//      TEST_ASSERT_EQUAL( NULL, pxEndPoint );
-//  }
+     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+ }
 
-//  void test_FreeRTOS_NextEndPoint_anotherNetIf( void )
-//  {
-//      / * Attach 3 endpoints into each network interface:
-//       * Network interface 0: endpoint 0/1/2
-//       * Network interface 1: endpoint 3/4/5
-//       * Network interface 2: endpoint 6/7/8
-//       * /
-//      NetworkInterface_t xNetworkInterface[3];
-//      NetworkInterface_t * pxNetworkInterface = NULL;
-//      NetworkEndPoint_t xEndPoint[9];
-//      NetworkEndPoint_t * pxEndPoint = NULL;
-//      int i=0, j=0;
+/**
+ * @brief test_FreeRTOS_NextEndPoint_another_interface
+ * FreeRTOS_NextEndPoint should return next endpoint with specified interface.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 3 interfaces and 9 endpoints (e0~e8).
+ *  - Put interfaces & endpoints into the list.
+ *     - Attach 3 endpoints into each network interface
+ *       - Network interface 0: endpoint e0/e1/e2
+ *       - Network interface 1: endpoint e3/e4/e5
+ *       - Network interface 2: endpoint e6/e7/e8
+ *     - Stored endpoints in below order.
+ *       - e0,e3,e6,e1,e4,e7,e2,e5,e8
+ *  - Loop to call FreeRTOS_NextEndPoint to get endpoints for interface 0.
+ *  - Check if returned endpoints are e0 -> e1 -> e2.
+ *  - Loop to call FreeRTOS_NextEndPoint to get endpoints for interface 1.
+ *  - Check if returned endpoints are e3 -> e4 -> e5.
+ *  - Loop to call FreeRTOS_NextEndPoint to get endpoints for interface 2.
+ *  - Check if returned endpoints are e6 -> e7 -> e8.
+ */
+ void test_FreeRTOS_NextEndPoint_another_interface( void )
+ {
+     NetworkInterface_t xNetworkInterface[3];
+     NetworkInterface_t * pxNetworkInterface = NULL;
+     NetworkEndPoint_t xEndPoint[9];
+     NetworkEndPoint_t * pxEndPoint = NULL;
+     int i=0;
+     const int specifiedEndpointOrder[9][2] = \
+        /* {network_interface_index, endpoint_index} */
+        {
+            {0, 0}, 
+          {1, 3}, 
+          {2, 6}, 
+          {0, 1}, 
+          {1, 4}, 
+          {2, 7}, 
+          {0, 2}, 
+          {1, 5}, 
+          {2, 8} 
+        };
+     
+     /* Initialize network interface list. */
+     for( i=0 ; i<3 ; i++ )
+     {
+         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
 
-//      
-//      for( i=0 ; i<3 ; i++ )
-//      {
-//          memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
+         if( pxNetworkInterfaces == NULL )
+         {
+             pxNetworkInterfaces = &(xNetworkInterface[i]);
+             pxNetworkInterface = pxNetworkInterfaces;
+         }
+         else
+         {
+             pxNetworkInterface->pxNext = &(xNetworkInterface[i]);
+             pxNetworkInterface = pxNetworkInterface->pxNext;
+         }
+     }
 
-//          if( pxNetworkInterfaces == NULL )
-//          {
-//              pxNetworkInterfaces = &(xNetworkInterface[i]);
-//              pxNetworkInterface = pxNetworkInterfaces;
+     /* Initialize endpoint list. */
+     for( i=0 ; i<9 ; i++ )
+     {
+         memset( &(xEndPoint[ specifiedEndpointOrder[i][1] ]), 0, sizeof( NetworkEndPoint_t ) );
 
-//              pxNetworkEndPoints = &(xEndPoint[i]);
-//              pxEndPoint = pxNetworkEndPoints;
-//          }
-//          else
-//          {
-//              pxNetworkInterface->pxNext = &(xNetworkInterface[i]);
-//              pxNetworkInterface = pxNetworkInterface->pxNext;
+         if( pxNetworkEndPoints == NULL )
+         {
+             pxNetworkEndPoints = &(xEndPoint[ specifiedEndpointOrder[i][1] ]);
+             pxEndPoint = pxNetworkEndPoints;
+         }
+         else
+         {
+             pxEndPoint->pxNext = &(xEndPoint[ specifiedEndpointOrder[i][1] ]);
+             pxEndPoint = pxEndPoint->pxNext;
+         }
 
-//              pxEndPoint->pxNext = &(xEndPoint[i]);
-//              pxEndPoint = pxEndPoint->pxNext;
-//          }
+         pxEndPoint->pxNetworkInterface = &(xNetworkInterface[ specifiedEndpointOrder[i][0] ]);
+     }
 
-//          xEndPoint[i].pxNetworkInterface = pxNetworkInterface;
-//      }
+        /* Loop to call FreeRTOS_NextEndPoint to get endpoints for interface 0. */
+        /* Check if returned endpoints are e0 -> e1 -> e2. */
+        pxEndPoint = NULL;
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[0]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 0 ]), pxEndPoint );
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[0]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 1 ]), pxEndPoint );
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[0]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 2 ]), pxEndPoint );
 
-//      for( j=0 ; j<9 ; j++ )
-//      {
-//          memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) );
-//      }
+        /* Loop to call FreeRTOS_NextEndPoint to get endpoints for interface 1. */
+        /* Check if returned endpoints are e3 -> e4 -> e5. */
+        pxEndPoint = NULL;
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[1]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 3 ]), pxEndPoint );
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[1]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 4 ]), pxEndPoint );
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[1]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 5 ]), pxEndPoint );
 
-//      for( i=0 ; i<3 ; i++ )
-//      {
-//          pxEndPoint = FreeRTOS_FirstEndPoint( &(xNetworkInterface[i]) );
-//          TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint );
-//      }
-//  }
+        /* Loop to call FreeRTOS_NextEndPoint to get endpoints for interface 2. */
+        /* Check if returned endpoints are e6 -> e7 -> e8. */
+        pxEndPoint = NULL;
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[2]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 6 ]), pxEndPoint );
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[2]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 7 ]), pxEndPoint );
+        pxEndPoint = FreeRTOS_NextEndPoint( &(xNetworkInterface[2]), pxEndPoint);
+        TEST_ASSERT_EQUAL( &(xEndPoint[ 8 ]), pxEndPoint );
+ }

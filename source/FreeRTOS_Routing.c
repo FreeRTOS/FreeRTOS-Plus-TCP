@@ -373,6 +373,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 pxResult = pxResult->pxNext;
             }
         }
+        else
+        {
+            pxResult = FreeRTOS_FirstEndPoint( pxInterface );
+        }
 
         return pxResult;
     }
