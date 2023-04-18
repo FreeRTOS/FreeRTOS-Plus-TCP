@@ -1020,6 +1020,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
+    configASSERT( (( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) || 
+    (( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ));
+
     /* Introduce a do-while loop to allow use of break statements.
      * Note: MISRA prohibits use of 'goto', thus replaced with breaks. */
     do
