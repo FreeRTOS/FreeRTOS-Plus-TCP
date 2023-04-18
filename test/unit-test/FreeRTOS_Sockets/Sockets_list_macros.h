@@ -77,8 +77,5 @@ void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 #undef listLIST_IS_INITIALISED
 BaseType_t listLIST_IS_INITIALISED( List_t * pxList );
-
-BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                void * pvDestination );
                                 
 #endif /* ifndef LIST_MACRO_H */
