@@ -70,11 +70,17 @@
                 }
                 else
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #if ( ipconfigUSE_IPv4 != 0 )
             {
                 IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
                 pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
             }
+            #else
+            {
+                /* do nothing, coverity happy */
+            }
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             if( pxEndPoint != NULL )
             {
@@ -473,14 +479,10 @@
                          * to write into it. */
                         ( void ) memcpy( &( xEndPoint ), pxEndPoint, sizeof( xEndPoint ) );
 
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            {
-                                /*logging*/
-                                FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
+                        /*logging*/
+                        FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
 
-                                xEndPoint.usDNSType = xSet.usType;
-                            }
-                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                        xEndPoint.usDNSType = xSet.usType;
 
                         /* If this is not a reply to our DNS request, it might be an mDNS or an LLMNR
                          * request. Ask the application if it uses the name. */
@@ -514,15 +516,27 @@
                                         }
                                         else
                                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                                    {
-                                        uxExtraLength = sizeof( LLMNRAnswer_t );
-                                    }
+                                    #if ( ipconfigUSE_IPv4 != 0 )
+                                        {
+                                            uxExtraLength = sizeof( LLMNRAnswer_t );
+                                        }
+                                    #else
+                                        {
+                                            /* do nothing, coverity happy */
+                                        }
+                                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                                     /* Set the size of the outgoing packet. */
                                     pxNetworkBuffer->xDataLength = uxDataLength;
                                     pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
                                                                                           uxDataLength +
                                                                                           uxExtraLength );
+
+                                    if( pxNewBuffer != NULL )
+                                    {
+                                        BaseType_t xOffset1, xOffset2;
+
+                                        xOffset1 = ( BaseType_t ) ( xSet.pucByte - pucUDPPayloadBuffer );
 
                                     if( pxNewBuffer != NULL )
                                     {
@@ -755,12 +769,6 @@
 
                         /* Copy the IP address out of the record. Using different pointers
                          * to copy only the portion we want is intentional here. */
-
-                        /*
-                         * Use helper variables for memcpy() to remain
-                         * compliant with MISRA Rule 21.15.  These should be
-                         * optimized away.
-                         */
                         pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
                         pvCopyDest = &( pxSet->ulIPAddress );
                         ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
@@ -796,15 +804,15 @@
                         {
                             BaseType_t xCallbackResult;
 
-                            #if ( ipconfigUSE_IPv6 != 0 )
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
-                                }
-                            #else
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, pxSet->ulIPAddress );
-                                }
-                            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                            {
+                                xCallbackResult = xDNSDoCallback( pxSet, pxSet->ulIPAddress );
+                            }
+                        #else
+                            {
+                                xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
+                            }
+                        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
                             /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
                             if( xCallbackResult != pdFALSE )
@@ -830,6 +838,12 @@
                                     pdFALSE,
                                     NULL );
                                 pxSet->usNumARecordsStored++; /* Track # of A records stored */
+                            }
+
+                            if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
+                            {
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xAddress_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
+                                FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
                             }
 
                             if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
@@ -1097,11 +1111,9 @@
                             IPv46_Address_t xIPAddress;
 
                             xIPAddress.ulIPAddress = ulIPAddress;
-                            #if ( ipconfigUSE_IPv6 != 0 )
-                                {
-                                    xIPAddress.xIs_IPv6 = pdFALSE;
-                                }
-                            #endif
+                            {
+                                xIPAddress.xIs_IPv6 = pdFALSE;
+                            }
 
                             ( void ) FreeRTOS_dns_update( ( char * ) ucNBNSName, &( xIPAddress ), 0, pdFALSE, NULL );
                         }
@@ -1138,11 +1150,7 @@
                             ( void ) memcpy( &xEndPoint, pxNetworkBuffer->pxEndPoint, sizeof( xEndPoint ) );
                         }
 
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            {
-                                xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
-                            }
-                        #endif
+                        xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
 
                         #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                             if( xApplicationDNSQueryHook( ( const char * ) ucNBNSName ) != pdFALSE )
@@ -1209,9 +1217,3 @@
                             vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
                         }
                     }
-                }
-            }
-        }
-
-    #endif /* ipconfigUSE_NBNS */
-#endif /* ipconfigUSE_DNS != 0 */
