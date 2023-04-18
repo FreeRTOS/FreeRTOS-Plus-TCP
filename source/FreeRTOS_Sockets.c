@@ -482,7 +482,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 
                 configASSERT( xDomain == FREERTOS_AF_INET6 );
             }
-        #else  /* if ( ( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_IPv6 == 0 ) ) */
+        #else /* if ( ( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_IPv6 == 0 ) ) */
             {
                 if( ( xDomain != FREERTOS_AF_INET ) && ( xDomain != FREERTOS_AF_INET6 ) )
                 {
@@ -1574,7 +1574,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
             ( void ) memcpy( &xTempDestinationAddress, pxDestinationAddress, sizeof( struct freertos_sockaddr ) );
 
             /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
-            *  is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+             *  is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
             xTempDestinationAddress.sin_family = FREERTOS_AF_INET;
             pxDestinationAddress = &xTempDestinationAddress;
         }
@@ -1671,7 +1671,7 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
             ( void ) memcpy( &xTempAddress, pxAddress, sizeof( struct freertos_sockaddr ) );
 
             /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
-            *  is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+             *  is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
             xTempAddress.sin_family = FREERTOS_AF_INET;
             pxAddress = &xTempAddress;
         }
@@ -3763,7 +3763,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 ( void ) memcpy( &xTempAddress, pxAddress, sizeof( struct freertos_sockaddr ) );
 
                 /* Default to FREERTOS_AF_INET family if either FREERTOS_AF_INET6/FREERTOS_AF_INET
-                *  is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
+                 *  is not specified in sin_family, if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled. */
                 xTempAddress.sin_family = FREERTOS_AF_INET;
                 pxAddress = &xTempAddress;
             }
