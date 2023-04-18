@@ -49,8 +49,8 @@
  * @brief Initialise a bit-config struct.
  *
  * @param[in] pxConfig The structure containing a copy of the bits.
- * @param[in] uxSize The length of the binary data stream.
  * @param[in] pucData Not NULL if a bit-stream must be analysed, otherwise NULL.
+ * @param[in] uxSize The length of the binary data stream.
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
@@ -88,11 +88,11 @@ BaseType_t xBitConfig_init( BitConfig_t * pxConfig,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Initialise a bit-config struct.
+ * @brief Read from a bit-config struct.
  *
  * @param[in] pxConfig The structure containing a copy of the bits.
- * @param[in] uxSize The length of the binary data stream.
  * @param[in] pucData Not NULL if a bit-stream must be analysed, otherwise NULL.
+ * @param[in] uxSize The length of the binary data stream.
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
@@ -128,6 +128,40 @@ BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
     return xResult;
 }
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Peek the last byte from a bit-config struct.
+ *
+ * @param[in] pxConfig: The structure containing a copy of the bits.
+ * @param[in] pucData: The buffer to stored peeked data.
+ * @param[in] uxSize: The length of the binary data stream.
+ *
+ * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
+ */
+BaseType_t pucBitConfig_peek_last_index_uc( BitConfig_t * pxConfig,
+                                            uint8_t * pucData,
+                                            size_t uxSize )
+{
+    BaseType_t xResult = pdFALSE;
+    const size_t uxNeeded = uxSize;
+
+    if( pxConfig->xHasError == pdFALSE )
+    {
+        if( ( pxConfig->uxIndex >= uxNeeded ) && ( pucData != NULL ) )
+        {
+            ( void ) memcpy( pucData, &( pxConfig->ucContents[ pxConfig->uxIndex - uxNeeded ] ), uxNeeded );
+
+            xResult = pdTRUE;
+        }
+        else
+        {
+            /* Not support to peek length larger than write. */
+            pxConfig->xHasError = pdTRUE;
+        }
+    }
+
+    return xResult;
+}
 
 /**
  * @brief Read a byte from the bit stream.
