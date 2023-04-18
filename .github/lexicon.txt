@@ -478,6 +478,7 @@ leds
 len
 lendofframe
 lessthan
+lidsize
 linkcurr
 linklayer
 linkmd
@@ -1512,6 +1513,7 @@ usrequestid
 usretranstime
 ussequencenumber
 ussourceport
+usstatus
 ussum
 ustaskstacksize
 ustime
@@ -1586,6 +1588,7 @@ uxprotocolheaderlength
 uxptr
 uxreloadtime
 uxremainingbytes
+uxremainingsize
 uxremainingtime
 uxremaningtime
 uxremoteport

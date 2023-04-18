@@ -93,8 +93,10 @@
 #define DHCPv6_Option_Client_Identifier            1U
 /** @brief IPv6 DHCP option - Server Identifier */
 #define DHCPv6_Option_Server_Identifier            2U
-/** @brief IPv6 DHCP option - Temporary Address */
+/** @brief IPv6 DHCP option - Non Temporary Address */
 #define DHCPv6_Option_NonTemporaryAddress          3U
+/** @brief IPv6 DHCP option - Temporary Address */
+#define DHCPv6_Option_TemporaryAddress             4U
 /** @brief IPv6 DHCP option - Identity_Association Address */
 #define DHCPv6_Option_IA_Address                   5U
 /** @brief IPv6 DHCP option - Option */
@@ -152,6 +154,10 @@ static Socket_t xDHCPv6Socket;
  * is not used anymore. */
 static BaseType_t xDHCPv6SocketUserCount;
 
+static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
+                                          size_t uxOptionLength,
+                                          size_t uxRemainingSize );
+
 static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
                                     const uint8_t * pucAnswer,
                                     size_t uxTotalLength,
@@ -193,10 +199,10 @@ static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_t * pxEndPoint 
 static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
                                                       DHCPMessage_IPv6_t * pxDHCPMessage );
 
-static void prvDHCPv6_subOption( uint16_t usOption,
-                                 const DHCPOptionSet_t * pxSet,
-                                 DHCPMessage_IPv6_t * pxDHCPMessage,
-                                 BitConfig_t * pxMessage );
+static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
+                                       const DHCPOptionSet_t * pxSet,
+                                       DHCPMessage_IPv6_t * pxDHCPMessage,
+                                       BitConfig_t * pxMessage );
 
 static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
                                           uint16_t usOption,
@@ -226,6 +232,134 @@ eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
     return EP_DHCPData.eDHCPState;
 }
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Check if option length is less than buffer size and larger than minimum requirement.
+ *
+ * @param[in] usOption: The option code.
+ * @param[in] uxOptionLength: The option length to check.
+ * @param[in] uxRemainingSize: Remaining size in the buffer.
+ *
+ * @return pdTRUE if the length is valid, otherwise pdFALSE.
+ */
+static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
+                                          size_t uxOptionLength,
+                                          size_t uxRemainingSize )
+{
+    BaseType_t xReturn = pdTRUE;
+    size_t uxMinOptLength = 0U;
+
+    switch( usOption )
+    {
+        case DHCPv6_Option_NonTemporaryAddress:
+            /* Refer to RFC3315 - sec 22.4, the length of IA_NA should never less than 12. */
+            uxMinOptLength = 12U;
+            break;
+
+        case DHCPv6_Option_TemporaryAddress:
+            /* Refer to RFC3315 - sec 22.5, the length of IA_TA should never less than 4. */
+            uxMinOptLength = 4U;
+            break;
+
+        case DHCPv6_Option_IA_Address:
+            /* Refer to RFC3315 - sec 22.6, the length of IA should never less than 24. */
+            uxMinOptLength = 24U;
+            break;
+
+        case DHCPv6_Option_Preference:
+            /* Refer to RFC3315 - sec 22.8, the length of IA should never less than 1. */
+            uxMinOptLength = 1U;
+            break;
+
+        case DHCPv6_Option_Status_Code:
+            /* Refer to RFC3315 - sec 22.13, the length of status code should never less than 2. */
+            uxMinOptLength = 2U;
+            break;
+
+        case DHCPv6_Option_IA_for_Prefix_Delegation:
+            /* Refer to RFC3633 - sec 9, the length of IA_PD should never less than 12. */
+            uxMinOptLength = 12U;
+            break;
+
+        case DHCPv6_Option_IA_Prefix:
+            /* Refer to RFC3633 - sec 10, the length of status code should never less than 25. */
+            uxMinOptLength = 25U;
+            break;
+
+        default:
+            /* No constrain for other options. */
+            uxMinOptLength = 0U;
+            break;
+    }
+
+    if( uxOptionLength < uxMinOptLength )
+    {
+        FreeRTOS_printf( ( "prvIsOptionLengthValid: Length %lu of option %u is less than minimum requirement %lu\n",
+                           uxOptionLength,
+                           usOption,
+                           uxMinOptLength ) );
+        xReturn = pdFALSE;
+    }
+    else if( uxOptionLength > uxRemainingSize )
+    {
+        FreeRTOS_printf( ( "prvIsOptionLengthValid: Length %lu of option %u is larger than remaining buffer size %lu\n",
+                           uxOptionLength,
+                           usOption,
+                           uxRemainingSize ) );
+        xReturn = pdFALSE;
+    }
+    else
+    {
+        /* Do nothing. */
+    }
+
+    return xReturn;
+}
+
+/**
+ * @brief A DHCP packet has a list of options, one of them is Status Code. This function is used to parse it.
+ * @param[in] uxLength: Total length for status code.
+ * @param[in] pxMessage: The raw packet as it was received.
+ *
+ * @return pdTRUE if status is success, otherwise pdFALSE.
+ */
+static BaseType_t prvDHCPv6_handleStatusCode( size_t uxLength,
+                                              BitConfig_t * pxMessage )
+{
+    BaseType_t xReturn = pdTRUE;
+    /* Since length is checked before entering, we can read message directly. */
+    uint16_t usStatus = usBitConfig_read_16( pxMessage );
+    uint8_t ucMessage[ 50 ];
+    /* Minus 2 because we read 2 bytes for usStatus. */
+    size_t uxReadLength = uxLength - 2U;
+
+    FreeRTOS_printf( ( "Got status code %u\n",
+                       usStatus ) );
+
+    if( uxReadLength > sizeof( ucMessage ) - 1U )
+    {
+        uxReadLength = sizeof( ucMessage ) - 1U;
+    }
+
+    ( void ) xBitConfig_read_uc( pxMessage, ucMessage, uxReadLength );
+    ucMessage[ uxReadLength ] = 0;
+    FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
+
+    /* Read the remainder, if present. */
+    if( uxLength > uxReadLength + 2U )
+    {
+        uxReadLength = uxLength - ( uxReadLength + 2U );
+        ( void ) xBitConfig_read_uc( pxMessage, NULL, uxReadLength );
+    }
+
+    /* A status of 0 means: Success. (RFC 3315 - sec 24.4). */
+    if( usStatus != 0U )
+    {
+        xReturn = pdFALSE;
+    }
+
+    return xReturn;
+}
 
 /**
  * @brief A DHCPv6 reply has been received. See to which end-point it belongs and pass it.
@@ -391,14 +525,14 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 
     /* DHCP completed.  The IP address can now be used, and the
      * timer set to the lease timeout time. */
-    pxEndPoint->ipv6_settings.uxPrefixLength = pxDHCPMessage->ucprefixLength;                                                    /* Number of valid bytes in the network prefix. */
-    ( void ) memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxDHCPMessage->xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxDHCPMessage->xPrefixAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* The network prefix, e.g. fe80::/10 */
+    pxEndPoint->ipv6_settings.uxPrefixLength = pxDHCPMessage->ucprefixLength;                                                             /* Number of valid bytes in the network prefix. */
+    ( void ) memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* The network prefix, e.g. fe80::/10 */
     /*pxEndPoint->xGatewayAddress;	/ * Gateway to the web. * / */
 
     for( uxDNSIndex = 0; uxDNSIndex < pxDHCPMessage->uxDNSCount; uxDNSIndex++ )
     {
-        ( void ) memcpy( pxEndPoint->ipv6_settings.xDNSServerAddresses[ uxDNSIndex ].ucBytes, pxDHCPMessage->xDNSServers[ uxDNSIndex ].ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        ( void ) memcpy( pxEndPoint->ipv6_settings.xDNSServerAddresses[ uxDNSIndex ].ucBytes, pxDHCPMessage->xDNSServers[ uxDNSIndex ].xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     }
 
     EP_DHCPData.eDHCPState = eLeasedAddress;
@@ -1080,11 +1214,13 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
  * @param[in] pxSet: It contains the length and offset of the DHCP option.
  * @param[out] pxDHCPMessage: it will be filled with the information from the option.
  * @param[in] pxMessage: The raw packet as it was received.
+ *
+ * @return It returns pdTRUE in case the option parsed successfully, otherwise pdFALSE.
  */
-static void prvDHCPv6_subOption( uint16_t usOption,
-                                 const DHCPOptionSet_t * pxSet,
-                                 DHCPMessage_IPv6_t * pxDHCPMessage,
-                                 BitConfig_t * pxMessage )
+static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
+                                       const DHCPOptionSet_t * pxSet,
+                                       DHCPMessage_IPv6_t * pxDHCPMessage,
+                                       BitConfig_t * pxMessage )
 {
     uint32_t ulIAID = ulBitConfig_read_32( pxMessage );
     uint32_t ulTime_1 = ulBitConfig_read_32( pxMessage );
@@ -1093,6 +1229,7 @@ static void prvDHCPv6_subOption( uint16_t usOption,
     size_t uxRemain = 0U;
     uint16_t usOption2;
     uint16_t uxLength2;
+    BaseType_t xReturn = pdTRUE;
 
     ( void ) ulIAID;
     ( void ) ulTime_1;
@@ -1103,35 +1240,75 @@ static void prvDHCPv6_subOption( uint16_t usOption,
         uxRemain = pxSet->uxOptionLength - uxUsed;
     }
 
-    usOption2 = usBitConfig_read_16( pxMessage );
-    uxLength2 = usBitConfig_read_16( pxMessage );
-
-    ( void ) uxLength2;
-    uxUsed = pxMessage->uxIndex - pxSet->uxStart;
-
-    switch( usOption2 )
+    while( ( uxRemain > 0U ) && ( xReturn != pdFALSE ) )
     {
-        case DHCPv6_Option_IA_Address:
-            ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            pxDHCPMessage->ulPreferredLifeTime = ulBitConfig_read_32( pxMessage );
-            pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
-            FreeRTOS_printf( ( "IP Address %pip\n", pxDHCPMessage->xIPAddress.ucBytes ) );
+        if( uxRemain < 4U )
+        {
+            /* Sub-option length is always larger than 4 to store option code and length. */
+            FreeRTOS_printf( ( "prvDHCPv6_subOption: %s has invalid option with length %lu\n",
+                               ( usOption == DHCPv6_Option_NonTemporaryAddress ) ? "Address assignment" : "Prefix Delegation",
+                               uxRemain ) );
+            xReturn = pdFALSE;
             break;
+        }
 
-        case DHCPv6_Option_IA_Prefix:
-            pxDHCPMessage->ulPreferredLifeTime = ulBitConfig_read_32( pxMessage );
-            pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
-            pxDHCPMessage->ucprefixLength = ucBitConfig_read_8( pxMessage );
-            ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xPrefixAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            FreeRTOS_printf( ( "Address prefix: %pip length %d\n", pxDHCPMessage->xPrefixAddress.ucBytes, pxDHCPMessage->ucprefixLength ) );
+        usOption2 = usBitConfig_read_16( pxMessage );
+        uxLength2 = usBitConfig_read_16( pxMessage );
+
+        uxUsed = pxMessage->uxIndex - pxSet->uxStart;
+
+        /* Check sub-option length. */
+        if( prvIsOptionLengthValid( usOption2, uxLength2, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
+        {
+            FreeRTOS_printf( ( "prvDHCPv6_subOption: %u has invalid length %u, remaining buffer size %lu\n",
+                               usOption2,
+                               uxLength2,
+                               pxMessage->uxSize - pxMessage->uxIndex ) );
+            xReturn = pdFALSE;
             break;
+        }
 
-        default:
+        switch( usOption2 )
+        {
+            case DHCPv6_Option_IA_Address:
+                ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                pxDHCPMessage->ulPreferredLifeTime = ulBitConfig_read_32( pxMessage );
+                pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
+                FreeRTOS_printf( ( "IP Address %pip\n", pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes ) );
+                break;
+
+            case DHCPv6_Option_IA_Prefix:
+                pxDHCPMessage->ulPreferredLifeTime = ulBitConfig_read_32( pxMessage );
+                pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
+                pxDHCPMessage->ucprefixLength = ucBitConfig_read_8( pxMessage );
+                ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                FreeRTOS_printf( ( "Address prefix: %pip length %d\n", pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, pxDHCPMessage->ucprefixLength ) );
+                break;
+
+            case DHCPv6_Option_Status_Code:
+                xReturn = prvDHCPv6_handleStatusCode( uxLength2,
+                                                      pxMessage );
+
+                break;
+
+            default:
+                uxRemain = pxSet->uxOptionLength - uxUsed;
+                ( void ) xBitConfig_read_uc( pxMessage, NULL, uxRemain );
+                FreeRTOS_printf( ( "prvDHCPv6Analyse: skipped unknown option %u\n", usOption2 ) );
+                break;
+        }
+
+        /* Update remaining length. */
+        uxUsed = pxMessage->uxIndex - pxSet->uxStart;
+        uxRemain = 0U;
+
+        if( pxSet->uxOptionLength > uxUsed )
+        {
             uxRemain = pxSet->uxOptionLength - uxUsed;
-            ( void ) xBitConfig_read_uc( pxMessage, NULL, uxRemain );
-            FreeRTOS_printf( ( "prvDHCPv6Analyse: skipped unknown option %u\n", usOption2 ) );
-            break;
+        }
     }
+
+    return xReturn;
 }
 /*-----------------------------------------------------------*/
 
@@ -1151,160 +1328,156 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
                                           BitConfig_t * pxMessage )
 {
     BaseType_t xReady = pdFALSE;
+    int32_t lIDSize = 0;
     uint8_t ucClientDUID[ dhcpIPv6_CLIENT_DUID_LENGTH ];
 
-    switch( usOption )
+    if( prvIsOptionLengthValid( usOption, pxSet->uxOptionLength, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
     {
-        case DHCPv6_Option_Status_Code:
-           {
-               FreeRTOS_printf( ( "Status code %02x%02x %02x%02x\n",
-                                  *( pxMessage->ucContents + pxMessage->uxIndex ),
-                                  *( pxMessage->ucContents + pxMessage->uxIndex + 1 ),
-                                  *( pxMessage->ucContents + pxMessage->uxIndex + 2 ),
-                                  *( pxMessage->ucContents + pxMessage->uxIndex + 4 ) ) );
-               uint16_t usStatus = usBitConfig_read_16( pxMessage );
-               size_t uxUsed = pxMessage->uxIndex - pxSet->uxStart;
+        FreeRTOS_printf( ( "prvDHCPv6_handleOption: Option %u has invalid length %lu, remaining buffer size %lu\n",
+                           usOption,
+                           pxSet->uxOptionLength,
+                           pxMessage->uxSize - pxMessage->uxIndex ) );
+        xReady = pdTRUE;
+    }
 
-               FreeRTOS_printf( ( "%s %s with status %u\n",
-                                  ( usOption == DHCPv6_Option_NonTemporaryAddress ) ? "Address assignment" : "Prefix Delegation",
-                                  ( usStatus == 0U ) ? "succeeded" : "failed", usStatus ) );
+    if( xReady == pdFALSE )
+    {
+        switch( usOption )
+        {
+            case DHCPv6_Option_Status_Code:
 
-               if( pxSet->uxOptionLength > uxUsed )
+                if( prvDHCPv6_handleStatusCode( pxSet->uxOptionLength, pxMessage ) != pdTRUE )
+                {
+                    pxMessage->xHasError = pdTRUE_UNSIGNED;
+                }
+
+                break;
+
+            case DHCPv6_Option_Client_Identifier:
+                lIDSize = ( int32_t ) ( pxSet->uxOptionLength ) - 4;
+
+                if( lIDSize >= 0 )
+                {
+                    /*
+                     *  1 : Link-layer address plus time (DUID-LLT)
+                     *  2 : Vendor-assigned unique ID based on Enterprise Number (DUID-EN)
+                     *  3 : Link-layer address (DUID-LL)
+                     */
+                    pxDHCPMessage->xClientID.uxLength = ( size_t ) lIDSize;
+                    pxDHCPMessage->xClientID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
+                    pxDHCPMessage->xClientID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
+
+                    if( ( size_t ) lIDSize <= sizeof( pxDHCPMessage->xClientID.pucID ) )
+                    {
+                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
+                    }
+                    else
+                    {
+                        /* The value of DHCPv6_Option_Client_Identifier is invalid. */
+                        FreeRTOS_printf( ( "prvDHCPv6Analyse: client ID too long\n" ) );
+                        xReady = pdTRUE;
+                    }
+                }
+                else
+                {
+                    /* The value of DHCPv6_Option_Client_Identifier is invalid. */
+                    FreeRTOS_printf( ( "prvDHCPv6Analyse: client ID too short\n" ) );
+                    xReady = pdTRUE;
+                }
+
+                break;
+
+            case DHCPv6_Option_Server_Identifier:
+                lIDSize = ( int32_t ) ( pxSet->uxOptionLength ) - 4;
+
+                if( lIDSize >= 0 )
+                {
+                    /*
+                     *  1 : Link-layer address plus time (DUID-LLT)
+                     *  2 : Vendor-assigned unique ID based on Enterprise Number (DUID-EN)
+                     *  3 : Link-layer address (DUID-LL)
+                     */
+                    pxDHCPMessage->xServerID.uxLength = ( size_t ) lIDSize;
+                    pxDHCPMessage->xServerID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
+                    pxDHCPMessage->xServerID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
+
+                    if( ( size_t ) lIDSize <= sizeof( pxDHCPMessage->xServerID.pucID ) )
+                    {
+                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xServerID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
+                    }
+                    else
+                    {
+                        FreeRTOS_printf( ( "prvDHCPv6Analyse: server ID too long\n" ) );
+                    }
+                }
+                else
+                {
+                    /* The value of DHCPv6_Option_Server_Identifier is invalid. */
+                    FreeRTOS_printf( ( "prvDHCPv6Analyse: server ID too short\n" ) );
+                    xReady = pdTRUE;
+                }
+
+                break;
+
+            case DHCPv6_Option_Preference:
                {
-                   size_t uxRemain = pxSet->uxOptionLength - uxUsed;
-                   uint8_t ucMessage[ 100 ];
-
-                   if( uxRemain > sizeof( ucMessage ) - 1U )
-                   {
-                       uxRemain = sizeof( ucMessage ) - 1U;
-                   }
-
-                   ( void ) xBitConfig_read_uc( pxMessage, ucMessage, uxRemain );
-                   ucMessage[ uxRemain ] = 0;
-                   FreeRTOS_printf( ( "Msg: '%s'\n", ucMessage ) );
-               }
-
-               if( usStatus != 0U )
-               {
-                   /* A status of 2 means: NoAddrsAvail. (RFC 3315 - sec 24.4). */
-                   pxMessage->xHasError = pdTRUE_UNSIGNED;
-               }
-           }
-           break;
-
-        case DHCPv6_Option_Client_Identifier:
-           {
-               size_t uxIDSize = pxSet->uxOptionLength - 4U;
-
-               /*
-                *  1 : Link-layer address plus time (DUID-LLT)
-                *  2 : Vendor-assigned unique ID based on Enterprise Number (DUID-EN)
-                *  3 : Link-layer address (DUID-LL)
-                */
-               pxDHCPMessage->xClientID.uxLength = uxIDSize;
-               pxDHCPMessage->xClientID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
-               pxDHCPMessage->xClientID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
-
-               if( uxIDSize <= sizeof( pxDHCPMessage->xClientID.pucID ) )
-               {
-                   /* Refer to RFC3315 - sec 15.3, we need to discard packets with following conditions:
-                    *  - the message does not include a Server Identifier option.
-                    *  - the message does not include a Client Identifier option.
-                    *  - the contents of the Client Identifier option does not match the client's DUID.
-                    *  - the "transaction-id" field value does not match the value the client used in its Solicit message. */
-                   ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, uxIDSize ); /* Link Layer address, 6 bytes */
-
-                   /* Check client DUID. */
-                   if( ( pxSet->uxOptionLength != dhcpIPv6_CLIENT_DUID_LENGTH ) ||
-                       ( pucBitConfig_peek_last_index_uc( pxMessage, ucClientDUID, pxSet->uxOptionLength ) != pdTRUE ) ||
-                       ( memcmp( ucClientDUID, EP_DHCPData.ucClientDUID, dhcpIPv6_CLIENT_DUID_LENGTH ) != 0 ) )
-                   {
-                       FreeRTOS_printf( ( "prvDHCPv6Analyse: wrong client ID\n" ) );
-                       pxMessage->xHasError = pdTRUE;
-                   }
-               }
-               else
-               {
-                   FreeRTOS_printf( ( "prvDHCPv6Analyse: client ID too long\n" ) );
-               }
-           }
-           break;
-
-        case DHCPv6_Option_Server_Identifier:
-           {
-               size_t uxIDSize = pxSet->uxOptionLength - 4U;
-
-               /*
-                *  1 : Link-layer address plus time (DUID-LLT)
-                *  2 : Vendor-assigned unique ID based on Enterprise Number (DUID-EN)
-                *  3 : Link-layer address (DUID-LL)
-                */
-               pxDHCPMessage->xServerID.uxLength = uxIDSize;
-               pxDHCPMessage->xServerID.usDUIDType = usBitConfig_read_16( pxMessage );     /* 0x0001 : Link Layer address + time */
-               pxDHCPMessage->xServerID.usHardwareType = usBitConfig_read_16( pxMessage ); /* 1 = Ethernet. */
-
-               if( uxIDSize <= sizeof( pxDHCPMessage->xServerID.pucID ) )
-               {
-                   ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xServerID.pucID, uxIDSize ); /* Link Layer address, 6 bytes */
-               }
-               else
-               {
-                   FreeRTOS_printf( ( "prvDHCPv6Analyse: server ID too long\n" ) );
-               }
-           }
-           break;
-
-        case DHCPv6_Option_Preference:
-           {
-               uint8_t ucPreference = ucBitConfig_read_8( pxMessage );
-               ( void ) ucPreference;
-           }
-           break;
-
-        case DHCPv6_Option_DNS_recursive_name_server:
-           {
-               size_t uDNSCount;
-
-               if( ( pxSet->uxOptionLength == 0U ) || ( ( pxSet->uxOptionLength % ipSIZE_OF_IPv6_ADDRESS ) != 0U ) )
-               {
-                   FreeRTOS_printf( ( "prvDHCPv6Analyse: bad DNS length\n" ) );
-                   xReady = pdTRUE;
+                   uint8_t ucPreference = ucBitConfig_read_8( pxMessage );
+                   ( void ) ucPreference;
                    break;
                }
 
-               uDNSCount = pxSet->uxOptionLength / ipSIZE_OF_IPv6_ADDRESS;
-
-               while( uDNSCount > 0U )
+            case DHCPv6_Option_DNS_recursive_name_server:
                {
-                   if( pxDHCPMessage->uxDNSCount < ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+                   size_t uDNSCount;
+
+                   if( ( pxSet->uxOptionLength == 0U ) || ( ( pxSet->uxOptionLength % ipSIZE_OF_IPv6_ADDRESS ) != 0U ) )
                    {
-                       ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xDNSServers[ pxDHCPMessage->uxDNSCount ].ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                       pxDHCPMessage->uxDNSCount++;
-                   }
-                   else
-                   {
-                       /* The DNS address can not be stored. Just advance the pointer. */
-                       ( void ) xBitConfig_read_uc( pxMessage, NULL, ipSIZE_OF_IPv6_ADDRESS );
+                       FreeRTOS_printf( ( "prvDHCPv6Analyse: bad DNS length\n" ) );
+                       xReady = pdTRUE;
+                       break;
                    }
 
-                   uDNSCount--;
+                   uDNSCount = pxSet->uxOptionLength / ipSIZE_OF_IPv6_ADDRESS;
+
+                   while( uDNSCount > 0U )
+                   {
+                       if( pxDHCPMessage->uxDNSCount < ipconfigENDPOINT_DNS_ADDRESS_COUNT )
+                       {
+                           ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xDNSServers[ pxDHCPMessage->uxDNSCount ].xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                           pxDHCPMessage->uxDNSCount++;
+                       }
+                       else
+                       {
+                           /* The DNS address can not be stored. Just advance the pointer. */
+                           ( void ) xBitConfig_read_uc( pxMessage, NULL, ipSIZE_OF_IPv6_ADDRESS );
+                       }
+
+                       uDNSCount--;
+                   }
+
+                   break;
                }
-           }
-           break;
 
-        case DHCPv6_Option_Domain_Search_List:
-            ( void ) xBitConfig_read_uc( pxMessage, NULL, pxSet->uxOptionLength );
-            break;
+            case DHCPv6_Option_Domain_Search_List:
+                ( void ) xBitConfig_read_uc( pxMessage, NULL, pxSet->uxOptionLength );
+                break;
 
-        case DHCPv6_Option_NonTemporaryAddress:
-        case DHCPv6_Option_IA_for_Prefix_Delegation:
-            prvDHCPv6_subOption( usOption, pxSet, pxDHCPMessage, pxMessage );
-            break;
+            case DHCPv6_Option_NonTemporaryAddress:
+            case DHCPv6_Option_IA_for_Prefix_Delegation:
 
-        default:
-            FreeRTOS_printf( ( "prvDHCPv6Analyse: Option %u not implemented\n", usOption ) );
-            ( void ) xBitConfig_read_uc( pxMessage, NULL, pxSet->uxOptionLength );
-            break;
+                if( prvDHCPv6_subOption( usOption, pxSet, pxDHCPMessage, pxMessage ) != pdTRUE )
+                {
+                    FreeRTOS_printf( ( "prvDHCPv6_handleOption: prvDHCPv6_subOption returns error.\n" ) );
+                    xReady = pdTRUE;
+                }
+
+                break;
+
+            default:
+                FreeRTOS_printf( ( "prvDHCPv6Analyse: Option %u not implemented\n", usOption ) );
+                ( void ) xBitConfig_read_uc( pxMessage, NULL, pxSet->uxOptionLength );
+                break;
+        }
     }
 
     return xReady;
@@ -1421,6 +1594,12 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
             else if( xMessage.uxIndex == xMessage.uxSize )
             {
                 xReady = pdTRUE;
+            }
+            else if( xReady == pdTRUE )
+            {
+                /* xReady might be set to pdTRUE by prvDHCPv6_handleOption when there happens any error on parsing options. */
+                FreeRTOS_printf( ( "prvDHCPv6Analyse: prvDHCPv6_handleOption returns error.\n" ) );
+                xResult = pdFAIL;
             }
             else
             {
