@@ -79,9 +79,7 @@ typedef enum xIPPreference
 {
     xPreferenceNone,
     xPreferenceIPv4,
-    #if ( ipconfigUSE_IPv6 != 0 )
-        xPreferenceIPv6,
-    #endif
+    xPreferenceIPv6,
 } IPPreference_t;
 
 /** @brief This variable determines he choice of DNS server, either IPv4 or IPv6. */
