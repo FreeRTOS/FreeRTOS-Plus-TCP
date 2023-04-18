@@ -94,28 +94,38 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 {
     uint32_t ulIPAddress;
 
-    /* Fill in and add an end-point to a network interface.
-     * The user must make sure that the object pointed to by 'pxEndPoint'
-     * will remain to exist. */
-    ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+    if( ( pxNetworkInterface == NULL ) || ( pxEndPoint == NULL ) )
+    {
+        /* Invalid input. */
+        FreeRTOS_printf( ( "FreeRTOS_FillEndPoint: Invalid input, netif=%x, endpoint=%x\n",
+                           pxNetworkInterface,
+                           pxEndPoint ) );
+    }
+    else
+    {
+        /* Fill in and add an end-point to a network interface.
+         * The user must make sure that the object pointed to by 'pxEndPoint'
+         * will remain to exist. */
+        ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
 
-    ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
-    pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
-    pxEndPoint->ipv4_settings.ulGatewayAddress = FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] );
-    pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] );
-    pxEndPoint->ipv4_settings.ulBroadcastAddress = ulIPAddress | ~( pxEndPoint->ipv4_settings.ulNetMask );
+        ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
+        pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
+        pxEndPoint->ipv4_settings.ulGatewayAddress = FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] );
+        pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] );
+        pxEndPoint->ipv4_settings.ulBroadcastAddress = ulIPAddress | ~( pxEndPoint->ipv4_settings.ulNetMask );
 
-    /* Copy the current values to the default values. */
-    ( void ) memcpy( &( pxEndPoint->ipv4_defaults ), &( pxEndPoint->ipv4_settings ), sizeof( pxEndPoint->ipv4_defaults ) );
+        /* Copy the current values to the default values. */
+        ( void ) memcpy( &( pxEndPoint->ipv4_defaults ), &( pxEndPoint->ipv4_settings ), sizeof( pxEndPoint->ipv4_defaults ) );
 
-    /* The default IP-address will be used in case DHCP is not used, or also if DHCP has failed, or
-     * when the user chooses to use the default IP-address. */
-    pxEndPoint->ipv4_defaults.ulIPAddress = ulIPAddress;
+        /* The default IP-address will be used in case DHCP is not used, or also if DHCP has failed, or
+         * when the user chooses to use the default IP-address. */
+        pxEndPoint->ipv4_defaults.ulIPAddress = ulIPAddress;
 
-    /* The field 'ipv4_settings.ulIPAddress' will be set later on. */
+        /* The field 'ipv4_settings.ulIPAddress' will be set later on. */
 
-    ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, sizeof( pxEndPoint->xMACAddress ) );
-    ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
+        ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, sizeof( pxEndPoint->xMACAddress ) );
+        ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
+    }
 }
 /*-----------------------------------------------------------*/
 
@@ -146,7 +156,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         if( pxInterface != NULL )
         {
             /* This interface will be added to the end of the list of interfaces, so
-            * there is no pxNext yet. */
+             * there is no pxNext yet. */
             pxInterface->pxNext = NULL;
 
             /* The end point for this interface has not yet been set. */
@@ -161,11 +171,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             else
             {
                 /* Other interfaces are already defined, so iterate to the end of the
-                * list. */
+                 * list. */
 
                 /*_RB_ Question - if ipconfigMULTI_INTERFACE is used to define the
-                * maximum number of interfaces, would it be more efficient to have an
-                * array of interfaces rather than a linked list of interfaces? */
+                 * maximum number of interfaces, would it be more efficient to have an
+                 * array of interfaces rather than a linked list of interfaces? */
                 pxIterator = pxNetworkInterfaces;
 
                 for( ; ; )
@@ -237,6 +247,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                                      NetworkEndPoint_t * pxEndPoint )
     {
         NetworkEndPoint_t * pxIterator = NULL;
+
+        configASSERT( pxInterface != NULL );
 
         /* This end point will go to the end of the list, so there is no pxNext
          * yet. */
@@ -599,38 +611,49 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                          const IPv6_Address_t * pxDNSServerAddress,
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
         {
-            configASSERT( pxIPAddress != NULL );
-            configASSERT( ucMACAddress != NULL );
-            configASSERT( pxEndPoint != NULL );
-
-            ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
-
-            pxEndPoint->bits.bIPv6 = pdTRUE_UNSIGNED;
-
-            pxEndPoint->ipv6_settings.uxPrefixLength = uxPrefixLength;
-
-            if( pxGatewayAddress != NULL )
+            if( ( pxNetworkInterface == NULL ) ||
+                ( pxEndPoint == NULL ) ||
+                ( pxIPAddress == NULL ) ||
+                ( ucMACAddress == NULL ) )
             {
-                ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxGatewayAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                /* Invalid input. */
+                FreeRTOS_printf( ( "FreeRTOS_FillEndPoint_IPv6: Invalid input, netif=%x, endpoint=%x, pxIPAddress=%x, ucMACAddress=%x\n",
+                                   pxNetworkInterface,
+                                   pxEndPoint,
+                                   pxIPAddress,
+                                   ucMACAddress ) );
             }
-
-            if( pxDNSServerAddress != NULL )
+            else
             {
-                ( void ) memcpy( pxEndPoint->ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, pxDNSServerAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+
+                pxEndPoint->bits.bIPv6 = pdTRUE_UNSIGNED;
+
+                pxEndPoint->ipv6_settings.uxPrefixLength = uxPrefixLength;
+
+                if( pxGatewayAddress != NULL )
+                {
+                    ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxGatewayAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                }
+
+                if( pxDNSServerAddress != NULL )
+                {
+                    ( void ) memcpy( pxEndPoint->ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, pxDNSServerAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                }
+
+                if( pxNetPrefix != NULL )
+                {
+                    ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxNetPrefix->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                }
+
+                ( void ) memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+                /* Copy the current values to the default values. */
+                ( void ) memcpy( &( pxEndPoint->ipv6_defaults ), &( pxEndPoint->ipv6_settings ), sizeof( pxEndPoint->ipv6_defaults ) );
+
+                ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
+                ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
             }
-
-            if( pxNetPrefix != NULL )
-            {
-                ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxNetPrefix->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            }
-
-            ( void ) memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-
-            /* Copy the current values to the default values. */
-            ( void ) memcpy( &( pxEndPoint->ipv6_defaults ), &( pxEndPoint->ipv6_settings ), sizeof( pxEndPoint->ipv6_defaults ) );
-
-            ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
-            ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
         }
     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/

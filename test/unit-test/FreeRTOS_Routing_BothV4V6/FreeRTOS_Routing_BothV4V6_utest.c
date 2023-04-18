@@ -82,20 +82,19 @@ void setUp( void )
 /*! called after each testcase */
 void tearDown( void )
 {
-    
 }
 
 /* ==============================  Test Cases  ============================== */
 
 /**
  * @brief test_FreeRTOS_FillEndPoint_happy_path
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters 
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
  * are valid IPv4 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
  * Test step:
- *  - Call FreeRTOS_FillEndPoint to fill IP address, netmask, gateway address, 
+ *  - Call FreeRTOS_FillEndPoint to fill IP address, netmask, gateway address,
  *    DNS server address, and MAC address into endpoint.
  *  - Check if pxNetworkEndPoints is same as input endpoint.
  *  - Check if all setting are correctly stored in endpoint.
@@ -115,7 +114,7 @@ void test_FreeRTOS_FillEndPoint_happy_path( void )
                            ucDefaultGatewayAddress_IPv4,
                            ucDefaultDNSServerAddress_IPv4,
                            ucDefaultMACAddress_IPv4 );
-    
+
     TEST_ASSERT_EQUAL( &xEndPoint, pxNetworkEndPoints );
     TEST_ASSERT_EQUAL( &xEndPoint, xInterfaces.pxEndPoint );
     /* 192.168.123.223 is same as 0xDF7BA8C0. */
@@ -125,22 +124,76 @@ void test_FreeRTOS_FillEndPoint_happy_path( void )
     /* 192.168.123.254 is same as 0xFE7BA8C0. */
     TEST_ASSERT_EQUAL( 0xFE7BA8C0, xEndPoint.ipv4_defaults.ulGatewayAddress );
     /* 192.168.123.1 is same as 0x017BA8C0. */
-    TEST_ASSERT_EQUAL( 0x017BA8C0, xEndPoint.ipv4_defaults.ulDNSServerAddresses[0] );
+    TEST_ASSERT_EQUAL( 0x017BA8C0, xEndPoint.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
     TEST_ASSERT_EQUAL_MEMORY( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint.bits.bIPv6 );
 }
 
-//TODO: NULL input to test_FreeRTOS_FillEndPoint
+/**
+ * @brief test_FreeRTOS_FillEndPoint_null_interface
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint when network interface is NULL.
+ *
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call FreeRTOS_FillEndPoint to fill IP address, netmask, gateway address,
+ *    DNS server address, and MAC address into endpoint with NULL network interface.
+ *  - Check if pxNetworkEndPoints is NULL.
+ */
+void test_FreeRTOS_FillEndPoint_null_interface( void )
+{
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    FreeRTOS_FillEndPoint( NULL,
+                           &xEndPoint,
+                           ucDefaultIPAddress_IPv4,
+                           ucDefaultNetMask_IPv4,
+                           ucDefaultGatewayAddress_IPv4,
+                           ucDefaultDNSServerAddress_IPv4,
+                           ucDefaultMACAddress_IPv4 );
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkEndPoints );
+}
+
+/**
+ * @brief test_FreeRTOS_FillEndPoint_null_endpoint
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint when enpoint is NULL.
+ *
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call FreeRTOS_FillEndPoint to fill IP address, netmask, gateway address,
+ *    DNS server address, and MAC address into endpoint with NULL endpoint.
+ *  - Check if pxNetworkEndPoints is NULL.
+ */
+void test_FreeRTOS_FillEndPoint_null_endpoint( void )
+{
+    NetworkInterface_t xInterfaces;
+
+    memset( &xInterfaces, 0, sizeof( NetworkInterface_t ) );
+
+    FreeRTOS_FillEndPoint( &xInterfaces,
+                           NULL,
+                           ucDefaultIPAddress_IPv4,
+                           ucDefaultNetMask_IPv4,
+                           ucDefaultGatewayAddress_IPv4,
+                           ucDefaultDNSServerAddress_IPv4,
+                           ucDefaultMACAddress_IPv4 );
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkEndPoints );
+}
 
 /**
  * @brief test_FreeRTOS_FillEndPoint_IPv6_happy_path
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters 
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters
  * are valid IPv6 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
  * Test step:
- *  - Call FreeRTOS_FillEndPoint_IPv6 to fill IP address, netmask, gateway address, 
+ *  - Call FreeRTOS_FillEndPoint_IPv6 to fill IP address, netmask, gateway address,
  *    DNS server address, and MAC address into endpoint.
  *  - Check if pxNetworkEndPoints is same as input endpoint.
  *  - Check if all setting are correctly stored in endpoint.
@@ -154,26 +207,84 @@ void test_FreeRTOS_FillEndPoint_IPv6_happy_path( void )
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
     FreeRTOS_FillEndPoint_IPv6( &xInterfaces,
-                           &xEndPoint,
-                           &xDefaultIPAddress_IPv6,
-                           &xDefaultNetPrefix_IPv6,
-                           xDefaultPrefixLength,
-                           &xDefaultGatewayAddress_IPv6,
-                           &xDefaultDNSServerAddress_IPv6,
-                           ucDefaultMACAddress_IPv6 );
-    
+                                &xEndPoint,
+                                &xDefaultIPAddress_IPv6,
+                                &xDefaultNetPrefix_IPv6,
+                                xDefaultPrefixLength,
+                                &xDefaultGatewayAddress_IPv6,
+                                &xDefaultDNSServerAddress_IPv6,
+                                ucDefaultMACAddress_IPv6 );
+
     TEST_ASSERT_EQUAL( &xEndPoint, pxNetworkEndPoints );
     TEST_ASSERT_EQUAL( &xEndPoint, xInterfaces.pxEndPoint );
     TEST_ASSERT_EQUAL_MEMORY( &xDefaultIPAddress_IPv6, xEndPoint.ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL_MEMORY( &xDefaultNetPrefix_IPv6, xEndPoint.ipv6_defaults.xPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL( xDefaultPrefixLength, xEndPoint.ipv6_defaults.uxPrefixLength );
     TEST_ASSERT_EQUAL_MEMORY( &xDefaultGatewayAddress_IPv6, xEndPoint.ipv6_defaults.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    TEST_ASSERT_EQUAL_MEMORY( &xDefaultDNSServerAddress_IPv6, xEndPoint.ipv6_defaults.xDNSServerAddresses[0].ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( &xDefaultDNSServerAddress_IPv6, xEndPoint.ipv6_defaults.xDNSServerAddresses[ 0 ].ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL_MEMORY( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv6, ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xEndPoint.bits.bIPv6 );
 }
 
-//TODO: NULL input to FreeRTOS_FillEndPoint_IPv6
+/**
+ * @brief test_FreeRTOS_FillEndPoint_IPv6_null_interface
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint when network interface is NULL.
+ *
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call FreeRTOS_FillEndPoint_IPv6 to fill IP address, netmask, gateway address,
+ *    DNS server address, and MAC address into endpoint with NULL network interface.
+ *  - Check if pxNetworkEndPoints is NULL.
+ */
+void test_FreeRTOS_FillEndPoint_IPv6_null_interface( void )
+{
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    FreeRTOS_FillEndPoint_IPv6( NULL,
+                                &xEndPoint,
+                                &xDefaultIPAddress_IPv6,
+                                &xDefaultNetPrefix_IPv6,
+                                xDefaultPrefixLength,
+                                &xDefaultGatewayAddress_IPv6,
+                                &xDefaultDNSServerAddress_IPv6,
+                                ucDefaultMACAddress_IPv6 );
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkEndPoints );
+}
+
+/**
+ * @brief test_FreeRTOS_FillEndPoint_IPv6_null_endpoint
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when enpoint is NULL.
+ *
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call FreeRTOS_FillEndPoint_IPv6 to fill IP address, netmask, gateway address,
+ *    DNS server address, and MAC address into endpoint with NULL endpoint.
+ *  - Check if pxNetworkEndPoints is NULL.
+ */
+void test_FreeRTOS_FillEndPoint_IPv6_null_endpoint( void )
+{
+    NetworkInterface_t xInterfaces;
+
+    memset( &xInterfaces, 0, sizeof( NetworkInterface_t ) );
+
+    FreeRTOS_FillEndPoint_IPv6( &xInterfaces,
+                                NULL,
+                                &xDefaultIPAddress_IPv6,
+                                &xDefaultNetPrefix_IPv6,
+                                xDefaultPrefixLength,
+                                &xDefaultGatewayAddress_IPv6,
+                                &xDefaultDNSServerAddress_IPv6,
+                                ucDefaultMACAddress_IPv6 );
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkEndPoints );
+}
+
+/*TODO: NULL input to FreeRTOS_FillEndPoint_IPv6 */
 
 /**
  * @brief test_FreeRTOS_AddNetworkInterface_happy_path
@@ -200,7 +311,7 @@ void test_FreeRTOS_AddNetworkInterface_happy_path( void )
 
 /**
  * @brief test_FreeRTOS_AddNetworkInterface_three_in_a_row
- * The purpose of this test is to verify FreeRTOS_AddNetworkInterface three times with 
+ * The purpose of this test is to verify FreeRTOS_AddNetworkInterface three times with
  * different valid input parameters.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
@@ -211,23 +322,25 @@ void test_FreeRTOS_AddNetworkInterface_happy_path( void )
  */
 void test_FreeRTOS_AddNetworkInterface_three_in_a_row( void )
 {
-    NetworkInterface_t xNetworkInterface[3];
+    NetworkInterface_t xNetworkInterface[ 3 ];
     NetworkInterface_t * pxNetworkInterface = NULL;
     int i = 0;
 
-    for( i=0 ; i<3 ; i++ )
+    for( i = 0; i < 3; i++ )
     {
-        memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
+        memset( &( xNetworkInterface[ i ] ), 0, sizeof( NetworkInterface_t ) );
 
-        ( void ) FreeRTOS_AddNetworkInterface( &(xNetworkInterface[i]) );
+        ( void ) FreeRTOS_AddNetworkInterface( &( xNetworkInterface[ i ] ) );
     }
 
     pxNetworkInterface = pxNetworkInterfaces;
-    for( i=0 ; i<3 ; i++ )
+
+    for( i = 0; i < 3; i++ )
     {
-        TEST_ASSERT_EQUAL( &(xNetworkInterface[i]), pxNetworkInterface );
+        TEST_ASSERT_EQUAL( &( xNetworkInterface[ i ] ), pxNetworkInterface );
         pxNetworkInterface = pxNetworkInterface->pxNext;
     }
+
     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
 }
 
@@ -273,245 +386,243 @@ void test_FreeRTOS_AddNetworkInterface_duplicate_interface( void )
     TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces->pxNext );
 }
 
-// void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
-// {
-//     NetworkInterface_t xNetworkInterface;
-//     NetworkInterface_t * pxNetworkInterface = NULL;
+/* void test_FreeRTOS_FirstNetworkInterface_happy_path( void ) */
+/* { */
+/*     NetworkInterface_t xNetworkInterface; */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
 
-//     InitializeUnitTest();
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-//     pxNetworkInterfaces = &xNetworkInterface;
+/*     InitializeUnitTest(); */
+/*     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) ); */
+/*     pxNetworkInterfaces = &xNetworkInterface; */
 
-//     pxNetworkInterface = FreeRTOS_FirstNetworkInterface();
+/*     pxNetworkInterface = FreeRTOS_FirstNetworkInterface(); */
 
-//     TEST_ASSERT_EQUAL( &xNetworkInterface, pxNetworkInterface );
-// }
+/*     TEST_ASSERT_EQUAL( &xNetworkInterface, pxNetworkInterface ); */
+/* } */
 
-// void test_FreeRTOS_FirstNetworkInterface_null( void )
-// {
-//     NetworkInterface_t * pxNetworkInterface = NULL;
+/* void test_FreeRTOS_FirstNetworkInterface_null( void ) */
+/* { */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
 
-//     InitializeUnitTest();
+/*     InitializeUnitTest(); */
 
-//     pxNetworkInterface = FreeRTOS_FirstNetworkInterface();
+/*     pxNetworkInterface = FreeRTOS_FirstNetworkInterface(); */
 
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
-// }
+/*     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface ); */
+/* } */
 
-// void test_FreeRTOS_NextNetworkInterface_happy_path( void )
-// {
-//     NetworkInterface_t xNetworkInterface[3];
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     int i=0;
+/* void test_FreeRTOS_NextNetworkInterface_happy_path( void ) */
+/* { */
+/*     NetworkInterface_t xNetworkInterface[3]; */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
+/*     int i=0; */
 
-//     InitializeUnitTest();
+/*     InitializeUnitTest(); */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) ); */
 
-//         if( pxNetworkInterfaces == NULL )
-//         {
-//             pxNetworkInterfaces = &(xNetworkInterface[i]);
-//             pxNetworkInterface = pxNetworkInterfaces;
-//         }
-//         else
-//         {
-//             pxNetworkInterface->pxNext = &(xNetworkInterface[i]);
-//             pxNetworkInterface = pxNetworkInterface->pxNext;
-//         }
-//     }
+/*         if( pxNetworkInterfaces == NULL ) */
+/*         { */
+/*             pxNetworkInterfaces = &(xNetworkInterface[i]); */
+/*             pxNetworkInterface = pxNetworkInterfaces; */
+/*         } */
+/*         else */
+/*         { */
+/*             pxNetworkInterface->pxNext = &(xNetworkInterface[i]); */
+/*             pxNetworkInterface = pxNetworkInterface->pxNext; */
+/*         } */
+/*     } */
 
-//     pxNetworkInterface = pxNetworkInterfaces;
+/*     pxNetworkInterface = pxNetworkInterfaces; */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         TEST_ASSERT_EQUAL( &(xNetworkInterface[i]), pxNetworkInterface );
-//         pxNetworkInterface = FreeRTOS_NextNetworkInterface( pxNetworkInterface );
-//     }
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         TEST_ASSERT_EQUAL( &(xNetworkInterface[i]), pxNetworkInterface ); */
+/*         pxNetworkInterface = FreeRTOS_NextNetworkInterface( pxNetworkInterface ); */
+/*     } */
 
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
-// }
+/*     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface ); */
+/* } */
 
-// void test_FreeRTOS_NextNetworkInterface_null( void )
-// {
-//     NetworkInterface_t * pxNetworkInterface = NULL;
+/* void test_FreeRTOS_NextNetworkInterface_null( void ) */
+/* { */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
 
-//     InitializeUnitTest();
+/*     InitializeUnitTest(); */
 
-//     pxNetworkInterface = FreeRTOS_NextNetworkInterface( NULL );
+/*     pxNetworkInterface = FreeRTOS_NextNetworkInterface( NULL ); */
 
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
-// }
+/*     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface ); */
+/* } */
 
-// void test_FreeRTOS_FirstEndPoint_happy_path( void )
-// {
-//     NetworkInterface_t xNetworkInterface;
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     NetworkEndPoint_t xEndPoint;
-//     NetworkEndPoint_t * pxEndPoint = NULL;
+/* void test_FreeRTOS_FirstEndPoint_happy_path( void ) */
+/* { */
+/*     NetworkInterface_t xNetworkInterface; */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
+/*     NetworkEndPoint_t xEndPoint; */
+/*     NetworkEndPoint_t * pxEndPoint = NULL; */
 
-//     InitializeUnitTest();
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-//     pxNetworkInterfaces = &xNetworkInterface;
-//     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+/*     InitializeUnitTest(); */
+/*     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) ); */
+/*     pxNetworkInterfaces = &xNetworkInterface; */
+/*     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) ); */
 
-//     xEndPoint.pxNetworkInterface = pxNetworkInterfaces;
-//     pxNetworkEndPoints = &xEndPoint;
+/*     xEndPoint.pxNetworkInterface = pxNetworkInterfaces; */
+/*     pxNetworkEndPoints = &xEndPoint; */
 
-//     pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterfaces );
+/*     pxEndPoint = FreeRTOS_FirstEndPoint( pxNetworkInterfaces ); */
 
-//     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
-// }
+/*     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint ); */
+/* } */
 
-// void test_FreeRTOS_FirstEndPoint_null( void )
-// {
-//     NetworkInterface_t xNetworkInterface;
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     NetworkEndPoint_t xEndPoint;
-//     NetworkEndPoint_t * pxEndPoint = NULL;
-//     int i=0;
+/* void test_FreeRTOS_FirstEndPoint_null( void ) */
+/* { */
+/*     NetworkInterface_t xNetworkInterface; */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
+/*     NetworkEndPoint_t xEndPoint; */
+/*     NetworkEndPoint_t * pxEndPoint = NULL; */
+/*     int i=0; */
 
-//     InitializeUnitTest();
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-//     pxNetworkInterfaces = &xNetworkInterface;
-//     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+/*     InitializeUnitTest(); */
+/*     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) ); */
+/*     pxNetworkInterfaces = &xNetworkInterface; */
+/*     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) ); */
 
-//     xEndPoint.pxNetworkInterface = pxNetworkInterfaces;
-//     pxNetworkEndPoints = &xEndPoint;
+/*     xEndPoint.pxNetworkInterface = pxNetworkInterfaces; */
+/*     pxNetworkEndPoints = &xEndPoint; */
 
-//     pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+/*     pxEndPoint = FreeRTOS_FirstEndPoint( NULL ); */
 
-//     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
-// }
+/*     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint ); */
+/* } */
 
-// void test_FreeRTOS_FirstEndPoint_anotherNetIf( void )
-// {
-//     /* Attach one endpoint to one network interface. Check if we can get correct endpoint by API. */
-//     NetworkInterface_t xNetworkInterface[3];
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     NetworkEndPoint_t xEndPoint[3];
-//     NetworkEndPoint_t * pxEndPoint = NULL;
-//     int i=0;
+/* void test_FreeRTOS_FirstEndPoint_anotherNetIf( void ) */
+/* { */
+/*     / * Attach one endpoint to one network interface. Check if we can get correct endpoint by API. * / */
+/*     NetworkInterface_t xNetworkInterface[3]; */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
+/*     NetworkEndPoint_t xEndPoint[3]; */
+/*     NetworkEndPoint_t * pxEndPoint = NULL; */
+/*     int i=0; */
 
-//     InitializeUnitTest();
+/*     InitializeUnitTest(); */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
-//         memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) );
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) ); */
+/*         memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) ); */
 
-//         if( pxNetworkInterfaces == NULL )
-//         {
-//             pxNetworkInterfaces = &(xNetworkInterface[i]);
-//             pxNetworkInterface = pxNetworkInterfaces;
+/*         if( pxNetworkInterfaces == NULL ) */
+/*         { */
+/*             pxNetworkInterfaces = &(xNetworkInterface[i]); */
+/*             pxNetworkInterface = pxNetworkInterfaces; */
 
-//             pxNetworkEndPoints = &(xEndPoint[i]);
-//             pxEndPoint = pxNetworkEndPoints;
-//         }
-//         else
-//         {
-//             pxNetworkInterface->pxNext = &(xNetworkInterface[i]);
-//             pxNetworkInterface = pxNetworkInterface->pxNext;
+/*             pxNetworkEndPoints = &(xEndPoint[i]); */
+/*             pxEndPoint = pxNetworkEndPoints; */
+/*         } */
+/*         else */
+/*         { */
+/*             pxNetworkInterface->pxNext = &(xNetworkInterface[i]); */
+/*             pxNetworkInterface = pxNetworkInterface->pxNext; */
 
-//             pxEndPoint->pxNext = &(xEndPoint[i]);
-//             pxEndPoint = pxEndPoint->pxNext;
-//         }
+/*             pxEndPoint->pxNext = &(xEndPoint[i]); */
+/*             pxEndPoint = pxEndPoint->pxNext; */
+/*         } */
 
-//         xEndPoint[i].pxNetworkInterface = pxNetworkInterface;
-//     }
+/*         xEndPoint[i].pxNetworkInterface = pxNetworkInterface; */
+/*     } */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         pxEndPoint = FreeRTOS_FirstEndPoint( &(xNetworkInterface[i]) );
-//         TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint );
-//     }
-// }
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         pxEndPoint = FreeRTOS_FirstEndPoint( &(xNetworkInterface[i]) ); */
+/*         TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint ); */
+/*     } */
+/* } */
 
-// void test_FreeRTOS_NextEndPoint_happy_path( void )
-// {
-//     NetworkEndPoint_t xEndPoint[3];
-//     NetworkEndPoint_t * pxEndPoint = NULL;
-//     int i=0;
+/* void test_FreeRTOS_NextEndPoint_happy_path( void ) */
+/* { */
+/*     NetworkEndPoint_t xEndPoint[3]; */
+/*     NetworkEndPoint_t * pxEndPoint = NULL; */
+/*     int i=0; */
 
-//     InitializeUnitTest();
+/*     InitializeUnitTest(); */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) );
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) ); */
 
-//         if( pxNetworkEndPoints == NULL )
-//         {
-//             pxNetworkEndPoints = &(xEndPoint[i]);
-//             pxEndPoint = pxNetworkEndPoints;
-//         }
-//         else
-//         {
-//             pxEndPoint->pxNext = &(xEndPoint[i]);
-//             pxEndPoint = pxEndPoint->pxNext;
-//         }
-//     }
+/*         if( pxNetworkEndPoints == NULL ) */
+/*         { */
+/*             pxNetworkEndPoints = &(xEndPoint[i]); */
+/*             pxEndPoint = pxNetworkEndPoints; */
+/*         } */
+/*         else */
+/*         { */
+/*             pxEndPoint->pxNext = &(xEndPoint[i]); */
+/*             pxEndPoint = pxEndPoint->pxNext; */
+/*         } */
+/*     } */
 
-//     pxEndPoint = pxNetworkEndPoints;
+/*     pxEndPoint = pxNetworkEndPoints; */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint );
-//         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint );
-//     }
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint ); */
+/*         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ); */
+/*     } */
 
-//     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
-// }
+/*     TEST_ASSERT_EQUAL( NULL, pxEndPoint ); */
+/* } */
 
-// void test_FreeRTOS_NextEndPoint_anotherNetIf( void )
-// {
-//     /* Attach 3 endpoints into each network interface:
-//      * Network interface 0: endpoint 0/1/2
-//      * Network interface 1: endpoint 3/4/5
-//      * Network interface 2: endpoint 6/7/8
-//      */
-//     NetworkInterface_t xNetworkInterface[3];
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     NetworkEndPoint_t xEndPoint[9];
-//     NetworkEndPoint_t * pxEndPoint = NULL;
-//     int i=0, j=0;
+/* void test_FreeRTOS_NextEndPoint_anotherNetIf( void ) */
+/* { */
+/*     / * Attach 3 endpoints into each network interface: */
+/*      * Network interface 0: endpoint 0/1/2 */
+/*      * Network interface 1: endpoint 3/4/5 */
+/*      * Network interface 2: endpoint 6/7/8 */
+/*      * / */
+/*     NetworkInterface_t xNetworkInterface[3]; */
+/*     NetworkInterface_t * pxNetworkInterface = NULL; */
+/*     NetworkEndPoint_t xEndPoint[9]; */
+/*     NetworkEndPoint_t * pxEndPoint = NULL; */
+/*     int i=0, j=0; */
 
-//     InitializeUnitTest();
+/*     InitializeUnitTest(); */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) );
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         memset( &(xNetworkInterface[i]), 0, sizeof( NetworkInterface_t ) ); */
 
-//         if( pxNetworkInterfaces == NULL )
-//         {
-//             pxNetworkInterfaces = &(xNetworkInterface[i]);
-//             pxNetworkInterface = pxNetworkInterfaces;
+/*         if( pxNetworkInterfaces == NULL ) */
+/*         { */
+/*             pxNetworkInterfaces = &(xNetworkInterface[i]); */
+/*             pxNetworkInterface = pxNetworkInterfaces; */
 
-//             pxNetworkEndPoints = &(xEndPoint[i]);
-//             pxEndPoint = pxNetworkEndPoints;
-//         }
-//         else
-//         {
-//             pxNetworkInterface->pxNext = &(xNetworkInterface[i]);
-//             pxNetworkInterface = pxNetworkInterface->pxNext;
+/*             pxNetworkEndPoints = &(xEndPoint[i]); */
+/*             pxEndPoint = pxNetworkEndPoints; */
+/*         } */
+/*         else */
+/*         { */
+/*             pxNetworkInterface->pxNext = &(xNetworkInterface[i]); */
+/*             pxNetworkInterface = pxNetworkInterface->pxNext; */
 
-//             pxEndPoint->pxNext = &(xEndPoint[i]);
-//             pxEndPoint = pxEndPoint->pxNext;
-//         }
+/*             pxEndPoint->pxNext = &(xEndPoint[i]); */
+/*             pxEndPoint = pxEndPoint->pxNext; */
+/*         } */
 
-//         xEndPoint[i].pxNetworkInterface = pxNetworkInterface;
-//     }
+/*         xEndPoint[i].pxNetworkInterface = pxNetworkInterface; */
+/*     } */
 
-//     for( j=0 ; j<9 ; j++ )
-//     {
-//         memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) );
-//     }
+/*     for( j=0 ; j<9 ; j++ ) */
+/*     { */
+/*         memset( &(xEndPoint[i]), 0, sizeof( NetworkEndPoint_t ) ); */
+/*     } */
 
-//     for( i=0 ; i<3 ; i++ )
-//     {
-//         pxEndPoint = FreeRTOS_FirstEndPoint( &(xNetworkInterface[i]) );
-//         TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint );
-//     }
-// }
-
-
+/*     for( i=0 ; i<3 ; i++ ) */
+/*     { */
+/*         pxEndPoint = FreeRTOS_FirstEndPoint( &(xNetworkInterface[i]) ); */
+/*         TEST_ASSERT_EQUAL( &(xEndPoint[i]), pxEndPoint ); */
+/*     } */
+/* } */
