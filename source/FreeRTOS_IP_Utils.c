@@ -580,7 +580,6 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE:
-                default:
                     {
                         /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
                         uint32_t ulByteCount = pxSet->usProtocolBytes;
@@ -599,6 +598,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
+            default:
+                /* Shouldn't reach here */
+                /* MISRA 16.4 Compliance */
+                break;
         }
 
         /* Sum TCP header and data. */
@@ -745,10 +748,16 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
             
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipTYPE_IPv4:
-                default:
                     uxOffset = sizeof( UDPPacket_t );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+        
+            default:
+                FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined ucIPType \n" ) );
+
+                /* MISRA 16.4 Compliance */
+                break;
+
         }
 
         pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
@@ -886,13 +895,25 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             #endif /* ( #if( ipconfigUSE_IPv6 != 0 ) */
 
             {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+
+                switch(pxEndPoint->bits.bIPv6)
                 {
-                    ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
-                }
-                else
-                {
-                    ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
+
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case pdFALSE_UNSIGNED:
+                            ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case pdTRUE_UNSIGNED:
+                            ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                    
+                    default:
+                        /* MISRA 16.4 Compliance */
+                        break;
                 }
 
                 *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
@@ -1011,30 +1032,37 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+        switch(xSet.pxIPPacket->xEthernetHeader.usFrameType)
         {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
-            xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                    xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+                    
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-            if( xResult != 0 )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
+                    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+                    xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            
+            default:
+                /* MISRA 16.4 Compliance */
                 break;
-            }
+
         }
-        else
-        {
-            xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
 
-            if( xResult != 0 )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
-                break;
-            }
+        if( xResult != 0 )
+        {
+            DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
+            break;
         }
 
         {
