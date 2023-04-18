@@ -353,6 +353,7 @@ static void prvProcessIPEventsAndTimers( void )
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 
                 default:
+                    /* MISRA 16.4 Compliance */
                     break;
             }
 
@@ -830,6 +831,8 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
     TickType_t uxBlockTime = uxBlockTimeTicks;
     size_t uxPayloadOffset = 0;
 
+    configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
+
     /* Cap the block time.  The reason for this is explained where
      * ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS is defined (assuming an official
      * FreeRTOSIPConfig.h header file is being used). */
@@ -855,7 +858,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         
         default:
             /* Shouldn't reach here. */
-            configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
+            /* MISRA 16.4 Compliance */
             break;
     }
 
@@ -1810,7 +1813,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
         
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipIPv4_FRAME_TYPE:
-            default:
             {            
                 size_t uxLength = ( size_t ) pxIPHeader->ucVersionHeaderLength;
 
@@ -1839,8 +1841,13 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 }
                 break;
             }
-
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+    
+        default:
+            eReturn = eReleaseBuffer;
+            FreeRTOS_debug_printf( ( "prvProcessIPPacket: Undefined Frame Type \n" ) );
+            /* MISRA 16.4 Compliance */
+            break;
     }
 
     /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
@@ -1880,6 +1887,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             
             default:
+                /* MISRA 16.4 Compliance */
                 break;
         }
 
@@ -1916,7 +1924,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case ipIPv4_FRAME_TYPE:
-                            default:
                                 /* IP address is not on the same subnet, ARP table can be updated.
                                     * Refresh the ARP cache with the IP/MAC-address of the received
                                     *  packet. For UDP packets, this will be done later in
@@ -1927,6 +1934,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                 vARPRefreshCacheEntry( &( pxIPPacket->xEthernetHeader.xSourceAddress ), pxIPHeader->ulSourceIPAddress, pxNetworkBuffer->pxEndPoint );
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                        default:
+                            /* MISRA 16.4 Compliance */
+                            break;
 
                     }
                 }
@@ -2073,10 +2084,14 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                 
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case ipIPv4_FRAME_TYPE:
-                    default:
                         pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPPacket->xIPHeader.ulDestinationIPAddress, 7 );
                         break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                default:
+                    /* MISRA 16.4 Compliance */
+                    break;
+                    
             }
 
         }
