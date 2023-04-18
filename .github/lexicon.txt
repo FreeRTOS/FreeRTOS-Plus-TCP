@@ -626,6 +626,7 @@ noop
 nop
 notnull
 ntoh
+ntohl
 ntp
 ntpclient
 ntpdemo
@@ -962,6 +963,7 @@ pxnetworkbuffer
 pxnetworkendpoints
 pxnetworkinterface
 pxnewaddress
+pxnewbuffer
 pxnewlistitem
 pxnewsocket
 pxnext
@@ -985,6 +987,7 @@ pxprotocolheaders
 pxprotpack
 pxreceivebuffer
 pxreplyendpoint
+pxresizenetworkbufferwithdescriptor
 pxresult
 pxresults
 pxreturngroupid
@@ -1772,6 +1775,7 @@ xemacpsif
 xemactaskhandle
 xenablestate
 xend
+xendpoint
 xentries
 xentryfound
 xerrnum
