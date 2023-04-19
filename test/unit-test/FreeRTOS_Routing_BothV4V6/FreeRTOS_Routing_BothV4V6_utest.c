@@ -1303,10 +1303,190 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_not_found( void )
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
-/* TODO FreeRTOS_FirstEndPoint_IPv6 */
-/* TODO FreeRTOS_MatchingEndpoint */
-/* TODO FreeRTOS_FindGateWay */
+/**
+ * @brief test_FreeRTOS_FindGateWay_IPv4_happy_path
+ * FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv4 gateway address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 IPv4 endpoint and add it to the list.
+ *     - Set the gateway address to 192.168.123.254 (ucDefaultGatewayAddress_IPv4).
+ *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulGatewayAddress = ucDefaultGatewayAddress_IPv4;
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindGateWay_IPv4_not_found
+ * FreeRTOS_FindGateWay should be able to return NULL if no valid IPv4 gateway address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 IPv6 endpoint and add it to the list.
+ *     - Set the gateway address to 2001::fffe (xDefaultGatewayAddress_IPv6).
+ *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindGateWay_IPv4_not_found( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPoint.ipv6_settings.xGatewayAddress.ucBytes, &xDefaultGatewayAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindGateWay_IPv4_multiple_endpoints
+ * FreeRTOS_FindGateWay should be able to return the endpoint with valid IPv4 gateway address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 IPv6 endpoint and add it to the list.
+ *     - Set the gateway address to 2001::fffe (xDefaultGatewayAddress_IPv6).
+ *  - Create 1 IPv4 endpoint and add it to the list.
+ *     - Set the gateway address to 192.168.123.254 (xDefaultGatewayAddress_IPv4).
+ *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
+ *  - Check if returned endpoint is same as second endpoint.
+ */
+void test_FreeRTOS_FindGateWay_IPv4_multiple_endpoints( void )
+{
+    NetworkEndPoint_t xEndPointV4;
+    NetworkEndPoint_t xEndPointV6;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize IPv6 network endpoint and add it to the list. */
+    memset( &xEndPointV6, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPointV6.ipv6_settings.xGatewayAddress.ucBytes, &xDefaultGatewayAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPointV6.bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints = &xEndPointV6;
+
+    /* Initialize IPv4 network endpoint and add it to the list. */
+    memset( &xEndPointV4, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPointV4.ipv4_settings.ulGatewayAddress = ucDefaultGatewayAddress_IPv4;
+    pxNetworkEndPoints->pxNext = &xEndPointV4;
+
+    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
+    TEST_ASSERT_EQUAL( &xEndPointV4, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindGateWay_IPv6_happy_path
+ * FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv6 gateway address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 IPv6 endpoint and add it to the list.
+ *     - Set the gateway address to 2001::fffe (xDefaultGatewayAddress_IPv6).
+ *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv6.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindGateWay_IPv6_happy_path( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPoint.ipv6_settings.xGatewayAddress.ucBytes, &xDefaultGatewayAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv6 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindGateWay_IPv6_not_found
+ * FreeRTOS_FindGateWay should be able to return NULL if no valid IPv6 gateway address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 IPv4 endpoint and add it to the list.
+ *     - Set the gateway address to 192.168.123.254 (ucDefaultGatewayAddress_IPv4).
+ *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv6.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindGateWay_IPv6_not_found( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulGatewayAddress = ucDefaultGatewayAddress_IPv4;
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv6 );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindGateWay_IPv6_multiple_endpoints
+ * FreeRTOS_FindGateWay should be able to return the endpoint with valid IPv6 gateway address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 IPv4 endpoint and add it to the list.
+ *     - Set the gateway address to 192.168.123.254 (xDefaultGatewayAddress_IPv4).
+ *  - Create 1 IPv6 endpoint and add it to the list.
+ *     - Set the gateway address to 2001::fffe (xDefaultGatewayAddress_IPv6).
+ *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
+ *  - Check if returned endpoint is same as second endpoint.
+ */
+void test_FreeRTOS_FindGateWay_IPv6_multiple_endpoints( void )
+{
+    NetworkEndPoint_t xEndPointV4;
+    NetworkEndPoint_t xEndPointV6;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize IPv4 network endpoint and add it to the list. */
+    memset( &xEndPointV4, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPointV4.ipv4_settings.ulGatewayAddress = ucDefaultGatewayAddress_IPv4;
+    pxNetworkEndPoints = &xEndPointV4;
+
+    /* Initialize IPv6 network endpoint and add it to the list. */
+    memset( &xEndPointV6, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPointV6.ipv6_settings.xGatewayAddress.ucBytes, &xDefaultGatewayAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPointV6.bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints->pxNext = &xEndPointV6;
+
+    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv6 );
+    TEST_ASSERT_EQUAL( &xEndPointV6, pxEndPoint );
+}
+
 /* TODO pxGetSocketEndpoint */
 /* TODO vSetSocketEndpoint */
 /* TODO pcEndpointName */
 /* TODO xIPv6_GetIPType */
+/* TODO FreeRTOS_MatchingEndpoint */
