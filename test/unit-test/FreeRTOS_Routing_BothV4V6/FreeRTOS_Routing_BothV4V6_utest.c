@@ -1485,7 +1485,59 @@ void test_FreeRTOS_FindGateWay_IPv6_multiple_endpoints( void )
     TEST_ASSERT_EQUAL( &xEndPointV6, pxEndPoint );
 }
 
-/* TODO pxGetSocketEndpoint */
+/**
+ * @brief test_pxGetSocketEndpoint_happy_path
+ * pxGetSocketEndpoint should be able to return the endpoint attached in socket handler.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *  - Create 1 socket handler.
+ *     - Attach previous endpoint to socket handler.
+ *  - Call pxGetSocketEndpoint with socket handler.
+ *  - Check if returned endpoint is same.
+ */
+void test_pxGetSocketEndpoint_happy_path()
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    FreeRTOS_Socket_t xSocket;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = &xEndPoint;
+
+    /* Initialize socket handler. */
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    xSocket.pxEndPoint = &xEndPoint;
+
+    pxEndPoint = pxGetSocketEndpoint( &xSocket );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_pxGetSocketEndpoint_null
+ * pxGetSocketEndpoint should be able to return NULL if socket handler is also NULL.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call pxGetSocketEndpoint with NULL.
+ *  - Check if returned endpoint is NULL.
+ */
+void test_pxGetSocketEndpoint_null()
+{
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    pxEndPoint = pxGetSocketEndpoint( NULL );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+
+
 /* TODO vSetSocketEndpoint */
 /* TODO pcEndpointName */
 /* TODO xIPv6_GetIPType */
