@@ -734,8 +734,9 @@
                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
                                    size_t uxIPHeaderSize )
     {
-        const IPHeader_t * pxIPHeader = NULL;
-
+        #if ( ipconfigUSE_IPv4 != 0 )
+            const IPHeader_t * pxIPHeader = NULL;
+        #endif
         #if ( ipconfigUSE_IPv6 != 0 )
             const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
