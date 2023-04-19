@@ -911,13 +911,26 @@
     {
         FreeRTOS_Socket_t * pxNewSocket = NULL;
 
-        if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+        switch(uxIPHeaderSizePacket( pxNetworkBuffer ))
         {
-            pxNewSocket = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
-        }
-        else
-        {
-            pxNewSocket = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipSIZE_OF_IPv4_HEADER:
+                    pxNewSocket = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipSIZE_OF_IPv6_HEADER:
+                    pxNewSocket = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            
+            default:
+                /* Shouldn't reach here */
+                /* MISRA 16.4 Compliance */
+                break;
+
         }
 
         return pxNewSocket;
