@@ -60,7 +60,6 @@
 #include "FreeRTOS_TCP_State_Handling.h"
 #include "FreeRTOS_TCP_Utils.h"
 
-
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
@@ -499,20 +498,34 @@
                 {
                     char pcBuffer[ 40 ];
 
-                    if( pxSocket->bits.bIsIPv6 != 0 )
+                    switch(pxSocket->bits.bIsIPv6)
                     {
-                        FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                            pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
-                                            pcBuffer,
-                                            sizeof( pcBuffer ) );
-                    }
-                    else
-                    {
-                        uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-                        FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                            ( const uint8_t * ) &ulIPAddress,
-                                            pcBuffer,
-                                            sizeof( pcBuffer ) );
+
+                        #if ( ipconfigUSE_IPv4 != 0 )
+                            case pdFALSE_UNSIGNED:
+                                {                       
+                                    uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                                    FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                        ( const uint8_t * ) &ulIPAddress,
+                                                        pcBuffer,
+                                                        sizeof( pcBuffer ) );
+                                }
+                                break;
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            case pdTRUE_UNSIGNED:
+                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                    pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                                    pcBuffer,
+                                                    sizeof( pcBuffer ) );
+                                break;
+                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                        
+                        default:
+                            /* MISRA 16.4 Compliance */
+                            break;
+
                     }
 
                     FreeRTOS_debug_printf( ( "Socket %u -> [%s]:%u State %s->%s\n",
@@ -646,13 +659,27 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
+        switch(( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType)
         {
-            xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
-        }
-        else
-        {
-            xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
+
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                    xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                    xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            
+            default:
+                /* Shouldn't reach here */
+                xResult = pdFAIL;
+                /* MISRA 16.4 Compliance */
+                break;
+
         }
 
         return xResult;
