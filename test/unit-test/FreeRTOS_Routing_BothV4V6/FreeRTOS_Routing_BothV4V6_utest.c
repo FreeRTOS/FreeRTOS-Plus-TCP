@@ -1536,9 +1536,52 @@ void test_pxGetSocketEndpoint_null()
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
+/**
+ * @brief test_vSetSocketEndpoint_happy_path
+ * vSetSocketEndpoint can set endpoint to socket handler successfully.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *  - Create 1 socket handler.
+ *  - Call pxGetSocketEndpoint to attach previous endpoint to this socket handler.
+ *  - Check if the endpoint in socket handler is same.
+ */
+void test_vSetSocketEndpoint_happy_path()
+{
+    NetworkEndPoint_t xEndPoint;
+    FreeRTOS_Socket_t xSocket;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = &xEndPoint;
+
+    /* Initialize socket handler. */
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+
+    vSetSocketEndpoint( &xSocket, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( &xEndPoint, xSocket.pxEndPoint );
+}
+
+/**
+ * @brief test_vSetSocketEndpoint_null_socket
+ * vSetSocketEndpoint can return normally when socket handler is NULL.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call pxGetSocketEndpoint with NULL socket handler.
+ */
+void test_vSetSocketEndpoint_null_socket()
+{
+    vSetSocketEndpoint( NULL, NULL );
+}
 
 
-/* TODO vSetSocketEndpoint */
 /* TODO pcEndpointName */
 /* TODO xIPv6_GetIPType */
 /* TODO FreeRTOS_MatchingEndpoint */

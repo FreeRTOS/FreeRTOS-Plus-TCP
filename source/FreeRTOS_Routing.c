@@ -1100,7 +1100,10 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
-        pxSocket->pxEndPoint = pxEndPoint;
+        if( pxSocket != NULL )
+        {
+            pxSocket->pxEndPoint = pxEndPoint;
+        }
     }
 /*-----------------------------------------------------------*/
 
