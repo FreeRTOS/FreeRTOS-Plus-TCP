@@ -500,7 +500,6 @@
             
             default:
                 /* Shouldn't reach here */
-                usLength = 0;
                 lLength = 0;
                 /* MISRA 16.4 Compliance */
                 break;
