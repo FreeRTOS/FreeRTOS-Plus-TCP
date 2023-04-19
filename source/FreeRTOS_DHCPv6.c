@@ -1330,8 +1330,7 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
 {
     BaseType_t xReady = pdFALSE;
     int32_t lIDSize = 0;
-
-    ( void ) pxEndPoint;
+    uint8_t ucClientDUID[ dhcpIPv6_CLIENT_DUID_LENGTH ];
 
     if( prvIsOptionLengthValid( usOption, pxSet->uxOptionLength, pxMessage->uxSize - pxMessage->uxIndex ) != pdTRUE )
     {
@@ -1376,7 +1375,7 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
                          *  - the message does not include a Client Identifier option.
                          *  - the contents of the Client Identifier option does not match the client's DUID.
                          *  - the "transaction-id" field value does not match the value the client used in its Solicit message. */
-                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, uxIDSize ); /* Link Layer address, 6 bytes */
+                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, lIDSize ); /* Link Layer address, 6 bytes */
 
                         /* Check client DUID. */
                         if( ( pxSet->uxOptionLength != dhcpIPv6_CLIENT_DUID_LENGTH ) ||
