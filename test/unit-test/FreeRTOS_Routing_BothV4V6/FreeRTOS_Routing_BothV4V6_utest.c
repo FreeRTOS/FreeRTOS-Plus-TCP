@@ -53,6 +53,15 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* Default IPv4 address is 192.168.123.223, which is 0xDF7BA8C0. */
+#define IPV4_DEFAULT_ADDRESS       ( 0xDF7BA8C0 )
+/* Default IPv4 netmask is 255.255.255.0, which is 0x00FFFFFF. */
+#define IPV4_DEFAULT_NETMASK       ( 0x00FFFFFF )
+/* Default IPv4 netmask is 192.168.123.254, which is 0xFE7BA8C0. */
+#define IPV4_DEFAULT_GATEWAY       ( 0xFE7BA8C0 )
+/* Default IPv4 netmask is 192.168.123.1, which is 0x017BA8C0. */
+#define IPV4_DEFAULT_DNS_SERVER    ( 0x017BA8C0 )
+
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 const uint8_t ucDefaultIPAddress_IPv4[ ipIP_ADDRESS_LENGTH_BYTES ] = { 192, 168, 123, 223 };
@@ -118,14 +127,10 @@ void test_FreeRTOS_FillEndPoint_happy_path( void )
 
     TEST_ASSERT_EQUAL( &xEndPoint, pxNetworkEndPoints );
     TEST_ASSERT_EQUAL( &xEndPoint, xInterfaces.pxEndPoint );
-    /* 192.168.123.223 is same as 0xDF7BA8C0. */
-    TEST_ASSERT_EQUAL( 0xDF7BA8C0, xEndPoint.ipv4_defaults.ulIPAddress );
-    /* 255.255.255.0 is same as 0x00FFFFFF. */
-    TEST_ASSERT_EQUAL( 0x00FFFFFF, xEndPoint.ipv4_defaults.ulNetMask );
-    /* 192.168.123.254 is same as 0xFE7BA8C0. */
-    TEST_ASSERT_EQUAL( 0xFE7BA8C0, xEndPoint.ipv4_defaults.ulGatewayAddress );
-    /* 192.168.123.1 is same as 0x017BA8C0. */
-    TEST_ASSERT_EQUAL( 0x017BA8C0, xEndPoint.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint.ipv4_defaults.ulIPAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint.ipv4_defaults.ulNetMask );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint.ipv4_defaults.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
     TEST_ASSERT_EQUAL_MEMORY( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint.bits.bIPv6 );
 }
@@ -786,12 +791,11 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_happy_path( void )
     NetworkEndPoint_t * pxEndPoint = NULL;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    /* 0xDF7BA8C0 is 192.168.123.223. */
-    xEndPoint.ipv4_settings.ulIPAddress = 0xDF7BA8C0;
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
 
     pxNetworkEndPoints = &xEndPoint;
 
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0xDF7BA8C0, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_ADDRESS, 0 );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
@@ -810,7 +814,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_not_found( void )
 {
     NetworkEndPoint_t * pxEndPoint = NULL;
 
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0xDF7BA8C0, 0 );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_ADDRESS, 0 );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
@@ -830,20 +834,17 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
-    /* IP address -- 2001::1 */
-    const IPv6_Address_t xIPAddress = { 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    /* 0xDF7BA8C0 is 192.168.123.223. */
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xIPAddress.ucBytes, sizeof( IPv6_Address_t ) );
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.ipv6_settings.uxPrefixLength = 64;
 
     pxNetworkEndPoints = &xEndPoint;
 
-    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xIPAddress, xEndPoint.ipv6_settings.uxPrefixLength, 0 );
+    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultIPAddress_IPv6, xEndPoint.ipv6_settings.uxPrefixLength, 0 );
 
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &xIPAddress );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &xDefaultIPAddress_IPv6 );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
@@ -861,10 +862,8 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path( void )
 void test_FreeRTOS_FindEndPointOnIP_IPv6_not_found( void )
 {
     NetworkEndPoint_t * pxEndPoint = NULL;
-    /* IP address -- 2001::1 */
-    const IPv6_Address_t xIPAddress = { 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &xIPAddress );
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &xDefaultIPAddress_IPv6 );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
@@ -1029,11 +1028,139 @@ void test_FreeRTOS_FindEndPointOnMAC_multiple_interface( void )
     }
 }
 
+/**
+ * @brief test_FreeRTOS_FindEndPointOnNetMask_happy_path
+ * FreeRTOS_FindEndPointOnNetMask should be able to find the endpoint within same network region.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *     - Set the IP address to 192.168.123.223.
+ *     - Set the netmask to 255.255.255.0.
+ *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 192.168.123.1.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindEndPointOnNetMask_happy_path( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
-/* TODO FreeRTOS_FindEndPointOnMAC */
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
+    pxNetworkEndPoints = &xEndPoint;
+
+    /* IPV4_DEFAULT_DNS_SERVER is 192.168.123.1 within the network region. */
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( IPV4_DEFAULT_DNS_SERVER, 0 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnNetMask_not_found
+ * FreeRTOS_FindEndPointOnNetMask should be able to return NULL if no endpoint is in same network region.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *     - Set the netmask to 255.255.255.0.
+ *     - Set the IP address to 192.168.123.223.
+ *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 192.168.1.1.
+ *  - Check if returned endpoint is NULL.
+ */
+void test_FreeRTOS_FindEndPointOnNetMask_not_found( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
+    pxNetworkEndPoints = &xEndPoint;
+
+    /* 192.168.1.1 is . */
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( 0x0101A8C0, 0 );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path
+ * FreeRTOS_FindEndPointOnNetMask_IPv6 should be able to find the endpoint within same network region.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *     - Set the IP address to 2001::1.
+ *     - Set the prefix address to 2001::.
+ *     - Set the prefix length to 64.
+ *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 2001::fffe.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = xDefaultPrefixLength;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints = &xEndPoint;
+
+    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultGatewayAddress_IPv6, xDefaultPrefixLength, 0 );
+
+    /* xDefaultGatewayAddress_IPv6 is 2001::fffe within the network region. */
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xDefaultGatewayAddress_IPv6 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnNetMask_IPv6_not_found
+ * FreeRTOS_FindEndPointOnNetMask_IPv6 should be able to return NULL if no endpoint is in same network region.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *     - Set the IP address to 2001::1.
+ *     - Set the prefix address to 2001::.
+ *     - Set the prefix length to 64.
+ *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 2002::fffe.
+ *  - Check if returned endpoint is NULL.
+ */
+void test_FreeRTOS_FindEndPointOnNetMask_IPv6_not_found( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    const IPv6_Address_t xTargetAddress = { 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xfe };
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = xDefaultPrefixLength;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints = &xEndPoint;
+
+    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xTargetAddress, xDefaultPrefixLength, 1 );
+
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xTargetAddress );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
 /* TODO FreeRTOS_FindEndPointOnNetMask */
-/* TODO FreeRTOS_InterfaceEndPointOnNetMask */
 /* TODO FreeRTOS_FindEndPointOnNetMask_IPv6 */
+/* TODO FreeRTOS_InterfaceEndPointOnNetMask */
 /* TODO FreeRTOS_FirstEndPoint_IPv6 */
 /* TODO FreeRTOS_MatchingEndpoint */
 /* TODO FreeRTOS_FindGateWay */

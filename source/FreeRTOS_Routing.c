@@ -706,10 +706,22 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
-            ( void ) pxIPv6Address;
+            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
-            /* _HT_ to be worked out later. */
-            return prvFindFirstAddress_IPv6();
+            while( pxEndPoint != NULL )
+            {
+                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPv6Address, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
+                    {
+                        break;
+                    }
+                }
+
+                pxEndPoint = pxEndPoint->pxNext;
+            }
+
+            return pxEndPoint;
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
