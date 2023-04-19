@@ -48,7 +48,6 @@
 #include "FreeRTOS_DHCP.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
-
 #include "NetworkInterface.h"
 
 #include "FreeRTOS_DNS_Globals.h"

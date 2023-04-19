@@ -98,7 +98,6 @@
                                       char * pcDestination,
                                       socklen_t uxSize );
 
-
 /** @brief Called by pxTCPSocketLookup(), this function will check if a socket
  *         is connected to a remote IP-address. It will be called from a loop
  *         iterating through all sockets. */
