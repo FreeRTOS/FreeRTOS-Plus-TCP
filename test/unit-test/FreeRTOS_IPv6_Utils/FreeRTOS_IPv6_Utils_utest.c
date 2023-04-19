@@ -48,8 +48,10 @@
 #include "FreeRTOSIPConfig.h"
 
 #ifndef ipconfigTCPv6_MSS
-    #define ipconfigTCPv6_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
+    #define ipconfigTCPv6_MSS         ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
 #endif
+
+#define ipSIZE_OF_IPv6_PAYLOAD_LEN    20
 
 /*
  * ===================================================
@@ -128,7 +130,7 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
     memset( pucEthernetBuffer, 0, ipconfigTCPv6_MSS );
 
     pxIPv6Packet = ( IPHeader_IPv6_t * ) pucEthernetBuffer;
-    pxIPv6Packet->usPayloadLength = 20;
+    pxIPv6Packet->usPayloadLength = ipSIZE_OF_IPv6_PAYLOAD_LEN;
     xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pucEthernetBuffer );
 
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
