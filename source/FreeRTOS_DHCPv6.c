@@ -1371,7 +1371,21 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
 
                     if( ( size_t ) lIDSize <= sizeof( pxDHCPMessage->xClientID.pucID ) )
                     {
-                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
+                        /* Refer to RFC3315 - sec 15.3, we need to discard packets with following conditions:
+                         *  - the message does not include a Server Identifier option.
+                         *  - the message does not include a Client Identifier option.
+                         *  - the contents of the Client Identifier option does not match the client's DUID.
+                         *  - the "transaction-id" field value does not match the value the client used in its Solicit message. */
+                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, uxIDSize ); /* Link Layer address, 6 bytes */
+
+                        /* Check client DUID. */
+                        if( ( pxSet->uxOptionLength != dhcpIPv6_CLIENT_DUID_LENGTH ) ||
+                            ( pucBitConfig_peek_last_index_uc( pxMessage, ucClientDUID, pxSet->uxOptionLength ) != pdTRUE ) ||
+                            ( memcmp( ucClientDUID, EP_DHCPData.ucClientDUID, dhcpIPv6_CLIENT_DUID_LENGTH ) != 0 ) )
+                        {
+                            FreeRTOS_printf( ( "prvDHCPv6Analyse: wrong client ID\n" ) );
+                            pxMessage->xHasError = pdTRUE;
+                        }
                     }
                     else
                     {
