@@ -48,9 +48,7 @@
 #include "FreeRTOS_DHCP.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
-#if ( ipconfigUSE_IPv6 != 0 )
-    #include "FreeRTOS_IPv6_Sockets.h"
-#endif
+
 #include "NetworkInterface.h"
 
 #include "FreeRTOS_DNS_Globals.h"

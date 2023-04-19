@@ -495,6 +495,9 @@
                                      char * pcDestination,
                                      socklen_t uxSize );
 
+    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
+                                    void * pvDestination );
+
 /** @brief This function converts a human readable string, representing an 48-bit MAC address,
  * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
     BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
