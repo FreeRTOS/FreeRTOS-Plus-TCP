@@ -45,60 +45,34 @@
 #include "mock_FreeRTOS_IP.h"
 
 #include "FreeRTOS_IPv6_Utils.h"
-
-#include "FreeRTOS_IPv6_Utils_stubs.c"
-
 #include "FreeRTOSIPConfig.h"
 
 #ifndef ipconfigTCPv6_MSS
     #define ipconfigTCPv6_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
 #endif
 
-/** @brief When ucASCIIToHex() can not convert a character,
- *         the value 255 will be returned.
+/*
+ * ===================================================
+ *        Test for vSetMultiCastIPv6MacAddress
+ * ===================================================
  */
-#define socketINVALID_HEX_CHAR    ( 0xffU )
 
-uint8_t ucASCIIToHex( char cChar )
-{
-    char cValue = cChar;
-    uint8_t ucNew;
 
-    if( ( cValue >= '0' ) && ( cValue <= '9' ) )
-    {
-        cValue -= ( char ) '0';
-        /* The value will be between 0 and 9. */
-        ucNew = ( uint8_t ) cValue;
-    }
-    else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
-    {
-        cValue -= ( char ) 'a';
-        ucNew = ( uint8_t ) cValue;
-        /* The value will be between 10 and 15. */
-        ucNew += ( uint8_t ) 10;
-    }
-    else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
-    {
-        cValue -= ( char ) 'A';
-        ucNew = ( uint8_t ) cValue;
-        /* The value will be between 10 and 15. */
-        ucNew += ( uint8_t ) 10;
-    }
-    else
-    {
-        /* The character does not represent a valid hex number, return 255. */
-        ucNew = ( uint8_t ) socketINVALID_HEX_CHAR;
-    }
-
-    return ucNew;
-}
-
+/**
+ * @brief This function verify corretly setting
+ *        a MAC address.
+ */
 void test_vSetMultiCastIPv6MacAddress( void )
 {
     IPv6_Address_t xIPAddress;
     MACAddress_t xMACAddress;
 
-    FreeRTOS_inet_pton6( "fe80::7009", &xIPAddress );
+    /* Setting IPv6 address as "fe80::7009" */
+    memset( &xIPAddress, 0, sizeof( IPv6_Address_t ) );
+    xIPAddress.ucBytes[ 0 ] = 254;
+    xIPAddress.ucBytes[ 1 ] = 128;
+    xIPAddress.ucBytes[ 14 ] = 112;
+    xIPAddress.ucBytes[ 15 ] = 9;
     vSetMultiCastIPv6MacAddress( &xIPAddress, &xMACAddress );
 
     TEST_ASSERT_EQUAL( ( uint8_t ) 0x33U, xMACAddress.ucBytes[ 0 ] );
@@ -109,10 +83,22 @@ void test_vSetMultiCastIPv6MacAddress( void )
     TEST_ASSERT_EQUAL( xIPAddress.ucBytes[ 15 ], xMACAddress.ucBytes[ 5 ] );
 }
 
+/*
+ * ===================================================
+ *          Test for prvChecksumIPv6Checks
+ * ===================================================
+ */
+
+
+/**
+ * @brief This function validate handling of buffer length
+ *        less than the minimum packet size.
+ */
 void test_prvChecksumIPv6Checks_InvalidLength( void )
 {
     uint16_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCPv6_MSS ];
+    /* Buffer length less than the IPv6 Header size */
     size_t uxBufferLength = sizeof( IPHeader_IPv6_t ) - 1;
     BaseType_t xOutgoingPacket;
     struct xPacketSummary xSet;
@@ -122,10 +108,15 @@ void test_prvChecksumIPv6Checks_InvalidLength( void )
 
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
+    /* Return value other than zero implies length check fail */
     TEST_ASSERT_EQUAL( usReturn, 1 );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
+/**
+ * @brief This function validate handling case of
+ *        incomplete IPv6 packet.
+ */
 void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
 {
     uint16_t usReturn;
@@ -146,6 +137,10 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
+/**
+ * @brief This function validate all length checks passing
+ *        successfully.
+ */
 void test_prvChecksumIPv6Checks_Success( void )
 {
     uint16_t usReturn;
@@ -164,6 +159,16 @@ void test_prvChecksumIPv6Checks_Success( void )
     TEST_ASSERT_EQUAL( usReturn, 0 );
 }
 
+/*
+ * ===================================================
+ *        Test for prvChecksumICMPv6Checks
+ * ===================================================
+ */
+
+
+/**
+ * @brief This function verify sending an invalid length.
+ */
 void test_prvChecksumICMPv6Checks_Default_InvalidLength( void )
 {
     uint16_t usReturn;
@@ -184,6 +189,9 @@ void test_prvChecksumICMPv6Checks_Default_InvalidLength( void )
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
+/**
+ * @brief This function verify sending an valid length.
+ */
 void test_prvChecksumICMPv6Checks_Default_ValidLength( void )
 {
     uint16_t usReturn;
@@ -204,6 +212,10 @@ void test_prvChecksumICMPv6Checks_Default_ValidLength( void )
     TEST_ASSERT_EQUAL( ipSIZE_OF_ICMPv6_HEADER, xSet.uxProtocolHeaderLength );
 }
 
+/**
+ * @brief This function verify sending an invalid length
+ *        for ipICMP_PING_REQUEST_IPv6.
+ */
 void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
 {
     uint16_t usReturn;
@@ -224,6 +236,10 @@ void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
+/**
+ * @brief This function verify sending an valid length
+ *        for ipICMP_PING_REQUEST_IPv6.
+ */
 void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
 {
     uint16_t usReturn;
@@ -244,6 +260,10 @@ void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
     TEST_ASSERT_EQUAL( sizeof( ICMPEcho_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
 
+/**
+ * @brief This function verify sending an invalid length
+ *        for ipICMP_PING_REPLY_IPv6.
+ */
 void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
 {
     uint16_t usReturn;
@@ -264,6 +284,10 @@ void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
+/**
+ * @brief This function verify sending an valid length
+ *        for ipICMP_PING_REPLY_IPv6.
+ */
 void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
 {
     uint16_t usReturn;
@@ -284,6 +308,10 @@ void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
     TEST_ASSERT_EQUAL( sizeof( ICMPEcho_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
 
+/**
+ * @brief This function verify sending an invalid length
+ *        for ipICMP_ROUTER_SOLICITATION_IPv6.
+ */
 void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
 {
     uint16_t usReturn;
@@ -304,6 +332,10 @@ void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
+/**
+ * @brief This function verify sending an valid length
+ *        for ipICMP_ROUTER_SOLICITATION_IPv6.
+ */
 void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
 {
     uint16_t usReturn;
