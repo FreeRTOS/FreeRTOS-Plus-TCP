@@ -480,6 +480,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             }
         #endif
 
+        /* If input MAC address is NULL, return NULL. */
+        if( pxMACAddress == NULL )
+        {
+            pxEndPoint = NULL;
+        }
+
         /*_RB_ Question - would it be more efficient to store the mac addresses in
          * uin64_t variables for direct comparison instead of using memcmp()?  [don't
          * know if there is a quick way of creating a 64-bit number from the 48-byte

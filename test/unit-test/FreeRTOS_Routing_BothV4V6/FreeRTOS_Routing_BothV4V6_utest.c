@@ -630,7 +630,6 @@ void test_FreeRTOS_NextEndPoint_happy_path( void )
     NetworkEndPoint_t * pxEndPoint = NULL;
     int i = 0;
 
-
     for( i = 0; i < 3; i++ )
     {
         memset( &( xEndPoint[ i ] ), 0, sizeof( NetworkEndPoint_t ) );
@@ -869,6 +868,166 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_not_found( void )
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
 
+/**
+ * @brief test_FreeRTOS_FindEndPointOnMAC_happy_path
+ * FreeRTOS_FindEndPointOnMAC should return the endpoint with specified MAC address & network interface.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 network interface and add it to the list.
+ *  - Create 1 endpoint, attach to the interface, and add it to the list.
+ *  - Call FreeRTOS_FindEndPointOnMAC to query with same MAC address stored in endpoint.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindEndPointOnMAC_happy_path( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    /* MAC address:  */
+    const MACAddress_t xMACAddress = { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc };
+    NetworkInterface_t xNetworkInterface;
+
+    /* Initialize network interface and add it to the list. */
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPoint.xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    xEndPoint.pxNetworkInterface = &xNetworkInterface;
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindEndPointOnMAC( &xMACAddress, &xNetworkInterface );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnMAC_null_interface
+ * FreeRTOS_FindEndPointOnMAC should return the endpoint with specified MAC address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *  - Call FreeRTOS_FindEndPointOnMAC to query with same MAC address stored in endpoint.
+ *  - Check if returned endpoint is same.
+ */
+void test_FreeRTOS_FindEndPointOnMAC_null_interface( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    /* MAC address:  */
+    const MACAddress_t xMACAddress = { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc };
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPoint.xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindEndPointOnMAC( &xMACAddress, NULL );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnMAC_null_mac
+ * FreeRTOS_FindEndPointOnMAC should return the endpoint with NULL pointer as MAC address.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint and add it to the list.
+ *  - Call FreeRTOS_FindEndPointOnMAC to query with NULL pointer as MAC address.
+ *  - Check if returned endpoint is NULL.
+ */
+void test_FreeRTOS_FindEndPointOnMAC_null_mac( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    /* MAC address:  */
+    const MACAddress_t xMACAddress = { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc };
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( xEndPoint.xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    pxNetworkEndPoints = &xEndPoint;
+
+    pxEndPoint = FreeRTOS_FindEndPointOnMAC( NULL, NULL );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+/**
+ * @brief test_FreeRTOS_FindEndPointOnMAC_multiple_interface
+ * FreeRTOS_FindEndPointOnMAC should return the endpoint attached to the specified interface.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 2 interfaces and add them to the list.
+ *  - Create 2 endpoints with same MAC address, attach to each interface, and add them to the list.
+ *  - Call FreeRTOS_FindEndPointOnMAC to query attached in first interface.
+ *  - Check if returned endpoint is same as first endpoint.
+ *  - Call FreeRTOS_FindEndPointOnMAC to query attached in second interface.
+ *  - Check if returned endpoint is same as second endpoint.
+ */
+void test_FreeRTOS_FindEndPointOnMAC_multiple_interface( void )
+{
+    NetworkEndPoint_t xEndPoint[ 2 ];
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    NetworkInterface_t xNetworkInterface[ 2 ];
+    NetworkInterface_t * pxNetworkInterface = NULL;
+    /* MAC address:  */
+    const MACAddress_t xMACAddress = { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc };
+    int i = 0;
+
+    /* Initialize network interfaces and add them to the list. */
+    for( i = 0; i < 2; i++ )
+    {
+        memset( &( xNetworkInterface[ i ] ), 0, sizeof( NetworkInterface_t ) );
+
+        if( pxNetworkInterfaces == NULL )
+        {
+            pxNetworkInterfaces = &( xNetworkInterface[ i ] );
+            pxNetworkInterface = pxNetworkInterfaces;
+        }
+        else
+        {
+            pxNetworkInterface->pxNext = &( xNetworkInterface[ i ] );
+            pxNetworkInterface = pxNetworkInterface->pxNext;
+        }
+    }
+
+    /* Initialize network endpoints and add them to the list. */
+    for( i = 0; i < 2; i++ )
+    {
+        memset( &( xEndPoint[ i ] ), 0, sizeof( NetworkEndPoint_t ) );
+
+        if( pxNetworkEndPoints == NULL )
+        {
+            pxNetworkEndPoints = &( xEndPoint[ i ] );
+            pxEndPoint = pxNetworkEndPoints;
+        }
+        else
+        {
+            pxEndPoint->pxNext = &( xEndPoint[ i ] );
+            pxEndPoint = pxEndPoint->pxNext;
+        }
+
+        pxEndPoint->pxNetworkInterface = &xNetworkInterface[ i ];
+        memcpy( pxEndPoint->xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    }
+
+    /* Check if we can get correct endpoint by specified network interface. */
+    for( i = 0; i < 2; i++ )
+    {
+        pxEndPoint = FreeRTOS_FindEndPointOnMAC( &xMACAddress, &xNetworkInterface[ i ] );
+        TEST_ASSERT_EQUAL( &( xEndPoint[ i ] ), pxEndPoint );
+    }
+}
 
 
 /* TODO FreeRTOS_FindEndPointOnMAC */
