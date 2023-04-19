@@ -275,26 +275,19 @@
             configASSERT( pdFALSE );
         }
 
-        switch(xIsIPv6)
-        {
+        #if ( ipconfigUSE_IPv4 != 0 )
+            if( xIsIPv6 == pdTRUE )
+            {
+                prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+            }
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-            #if ( ipconfigUSE_IPv4 != 0 )
-                case pdFALSE:
-                    prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-                    break;
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case pdTRUE:
-                    prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-                    break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
-            default:
-                /* MISRA 16.4 Compliance */
-                break;
-
-        }
+        #if ( ipconfigUSE_IPv6 != 0 )
+        if( xIsIPv6 == pdFALSE )
+            {
+                prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+            }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     }
     /*-----------------------------------------------------------*/
