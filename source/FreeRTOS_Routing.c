@@ -1486,10 +1486,20 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
     }
     else
     {
-        ( void ) FreeRTOS_inet_ntop( ( pxEndPoint->bits.bIPv6 != 0U ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4,
-                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                     pcBuffer,
-                                     uxSize );
+        if( pxEndPoint->bits.bIPv6 != 0U )
+        {
+            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                         pcBuffer,
+                                         uxSize );
+        }
+        else
+        {
+            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                         &( pxEndPoint->ipv4_settings.ulIPAddress ),
+                                         pcBuffer,
+                                         uxSize );
+        }
     }
 
     return pcBuffer;

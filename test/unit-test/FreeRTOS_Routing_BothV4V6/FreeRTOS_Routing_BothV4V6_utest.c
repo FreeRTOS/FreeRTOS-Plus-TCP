@@ -45,6 +45,7 @@
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IPv6.h"
+#include "mock_FreeRTOS_Sockets.h"
 
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_Routing_BothV4V6_stubs.c"
@@ -93,6 +94,32 @@ void setUp( void )
 void tearDown( void )
 {
 }
+
+/* ============================  Stub Callback Functions  ============================ */
+
+BaseType_t xStubFreeRTOS_inet_ntop_TargetFamily;
+const void * pvStubFreeRTOS_inet_ntop_TargetSource;
+char * pcStubFreeRTOS_inet_ntop_TargetDestination;
+socklen_t uxStubFreeRTOS_inet_ntop_TargetSize;
+char * pcStubFreeRTOS_inet_ntop_TargetCopySource;
+socklen_t uxStubFreeRTOS_inet_ntop_CopySize;
+
+static const char * pcStubFreeRTOS_inet_ntop( BaseType_t xAddressFamily,
+                                              const void * pvSource,
+                                              char * pcDestination,
+                                              socklen_t uxSize )
+{
+    TEST_ASSERT_EQUAL( xStubFreeRTOS_inet_ntop_TargetFamily, xAddressFamily );
+    TEST_ASSERT_EQUAL( pvStubFreeRTOS_inet_ntop_TargetSource, pvSource );
+    TEST_ASSERT_EQUAL( pcStubFreeRTOS_inet_ntop_TargetDestination, pcDestination );
+    TEST_ASSERT_EQUAL( uxStubFreeRTOS_inet_ntop_TargetSize, uxSize );
+
+    if( ( pcDestination != NULL ) && ( pcStubFreeRTOS_inet_ntop_TargetCopySource != NULL ) )
+    {
+        memcpy( pcDestination, pcStubFreeRTOS_inet_ntop_TargetCopySource, uxStubFreeRTOS_inet_ntop_CopySize );
+    }
+}
+
 
 /* ==============================  Test Cases  ============================== */
 
@@ -1581,7 +1608,201 @@ void test_vSetSocketEndpoint_null_socket()
     vSetSocketEndpoint( NULL, NULL );
 }
 
+/**
+ * @brief test_pcEndpointName_IPv4_happy_path
+ * pcEndpointName can get IPv4 address in string from endpoint.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint.
+ *     - Set the IP address to 192.168.123.223 (IPV4_DEFAULT_ADDRESS).
+ *  - Call pcEndpointName with enough buffer size.
+ *  - Check if return buffer string is "192.168.123.223".
+ */
+void test_pcEndpointName_IPv4_happy_path()
+{
+    NetworkEndPoint_t xEndPoint;
+    FreeRTOS_Socket_t xSocket;
+    const char cIPString[] = "192.168.123.223";
+    int lNameSize = sizeof( cIPString ) + 1;
+    char cName[ lNameSize ];
+    char * pcName = NULL;
 
-/* TODO pcEndpointName */
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+
+    memset( &cName, 0, sizeof( cName ) );
+
+    xStubFreeRTOS_inet_ntop_TargetFamily = FREERTOS_AF_INET4;
+    pvStubFreeRTOS_inet_ntop_TargetSource = &( xEndPoint.ipv4_settings.ulIPAddress );
+    pcStubFreeRTOS_inet_ntop_TargetDestination = cName;
+    uxStubFreeRTOS_inet_ntop_TargetSize = lNameSize;
+    pcStubFreeRTOS_inet_ntop_TargetCopySource = cIPString;
+    uxStubFreeRTOS_inet_ntop_CopySize = lNameSize;
+    FreeRTOS_inet_ntop_Stub( pcStubFreeRTOS_inet_ntop );
+
+    pcName = pcEndpointName( &xEndPoint, cName, lNameSize );
+    TEST_ASSERT_EQUAL_MEMORY( pcName, cIPString, lNameSize );
+}
+
+/**
+ * @brief test_pcEndpointName_IPv4_null_buffer_pointer
+ * pcEndpointName can return normally without accessing null pointer.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Call pcEndpointName with null buffer pointer.
+ */
+void test_pcEndpointName_IPv4_null_buffer_pointer()
+{
+    NetworkEndPoint_t xEndPoint;
+    FreeRTOS_Socket_t xSocket;
+    const char cIPString[] = "192.168.123.223";
+    int lNameSize = sizeof( cIPString ) + 1;
+    char * pcName = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+
+    xStubFreeRTOS_inet_ntop_TargetFamily = FREERTOS_AF_INET4;
+    pvStubFreeRTOS_inet_ntop_TargetSource = &( xEndPoint.ipv4_settings.ulIPAddress );
+    pcStubFreeRTOS_inet_ntop_TargetDestination = NULL;
+    uxStubFreeRTOS_inet_ntop_TargetSize = lNameSize;
+    pcStubFreeRTOS_inet_ntop_TargetCopySource = NULL;
+    uxStubFreeRTOS_inet_ntop_CopySize = 0;
+    FreeRTOS_inet_ntop_Stub( pcStubFreeRTOS_inet_ntop );
+
+    pcName = pcEndpointName( &xEndPoint, NULL, lNameSize );
+    TEST_ASSERT_EQUAL( NULL, pcName );
+}
+
+/**
+ * @brief test_pcEndpointName_IPv4_truncate_buffer
+ * pcEndpointName can get partial IPv4 address in string from endpoint when the buffer size is less than necessary size.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint.
+ *     - Set the IP address to 192.168.123.223 (IPV4_DEFAULT_ADDRESS).
+ *  - Call pcEndpointName with ( enough buffer size - 3 ).
+ *  - Check if return buffer string is "192.168.123.".
+ */
+void test_pcEndpointName_IPv4_truncate_buffer()
+{
+    NetworkEndPoint_t xEndPoint;
+    FreeRTOS_Socket_t xSocket;
+    const char cIPString[] = "192.168.123.223";
+    int lNameSize = sizeof( cIPString ) - 3;
+    char cName[ lNameSize ];
+    char * pcName = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+
+    memset( &cName, 0, sizeof( cName ) );
+
+    xStubFreeRTOS_inet_ntop_TargetFamily = FREERTOS_AF_INET4;
+    pvStubFreeRTOS_inet_ntop_TargetSource = &( xEndPoint.ipv4_settings.ulIPAddress );
+    pcStubFreeRTOS_inet_ntop_TargetDestination = cName;
+    uxStubFreeRTOS_inet_ntop_TargetSize = lNameSize;
+    pcStubFreeRTOS_inet_ntop_TargetCopySource = cIPString;
+    uxStubFreeRTOS_inet_ntop_CopySize = lNameSize;
+    FreeRTOS_inet_ntop_Stub( pcStubFreeRTOS_inet_ntop );
+
+    pcName = pcEndpointName( &xEndPoint, cName, lNameSize );
+    TEST_ASSERT_EQUAL_MEMORY( pcName, cIPString, lNameSize );
+}
+
+/**
+ * @brief test_pcEndpointName_IPv6_happy_path
+ * pcEndpointName can get IPv6 address in string from endpoint.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint.
+ *     - Set the IP address to 2001::1 (xDefaultIPAddress_IPv6).
+ *  - Call pcEndpointName with enough buffer size.
+ *  - Check if return buffer string is "2001::1".
+ */
+void test_pcEndpointName_IPv6_happy_path()
+{
+    NetworkEndPoint_t xEndPoint;
+    FreeRTOS_Socket_t xSocket;
+    const char cIPString[] = "2001::1";
+    int lNameSize = sizeof( cIPString ) + 1;
+    char cName[ lNameSize ];
+    char * pcName = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+
+    memset( &cName, 0, sizeof( cName ) );
+
+    xStubFreeRTOS_inet_ntop_TargetFamily = FREERTOS_AF_INET6;
+    pvStubFreeRTOS_inet_ntop_TargetSource = xEndPoint.ipv6_settings.xIPAddress.ucBytes;
+    pcStubFreeRTOS_inet_ntop_TargetDestination = cName;
+    uxStubFreeRTOS_inet_ntop_TargetSize = lNameSize;
+    pcStubFreeRTOS_inet_ntop_TargetCopySource = cIPString;
+    uxStubFreeRTOS_inet_ntop_CopySize = lNameSize;
+    FreeRTOS_inet_ntop_Stub( pcStubFreeRTOS_inet_ntop );
+
+    pcName = pcEndpointName( &xEndPoint, cName, lNameSize );
+    TEST_ASSERT_EQUAL_MEMORY( pcName, cIPString, lNameSize );
+}
+
+/**
+ * @brief test_pcEndpointName_IPv6_truncate_buffer
+ * pcEndpointName can get partial IPv6 address in string from endpoint when the buffer size is less than necessary size.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 endpoint.
+ *     - Set the IP address to 2001::1 (xDefaultIPAddress_IPv6).
+ *  - Call pcEndpointName with ( enough buffer size - 3 ).
+ *  - Check if return buffer string is "2001".
+ */
+void test_pcEndpointName_IPv6_truncate_buffer()
+{
+    NetworkEndPoint_t xEndPoint;
+    FreeRTOS_Socket_t xSocket;
+    const char cIPString[] = "2001::1";
+    int lNameSize = sizeof( cIPString ) - 3;
+    char cName[ lNameSize ];
+    char * pcName = NULL;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+
+    memset( &cName, 0, sizeof( cName ) );
+
+    xStubFreeRTOS_inet_ntop_TargetFamily = FREERTOS_AF_INET6;
+    pvStubFreeRTOS_inet_ntop_TargetSource = xEndPoint.ipv6_settings.xIPAddress.ucBytes;
+    pcStubFreeRTOS_inet_ntop_TargetDestination = cName;
+    uxStubFreeRTOS_inet_ntop_TargetSize = lNameSize;
+    pcStubFreeRTOS_inet_ntop_TargetCopySource = cIPString;
+    uxStubFreeRTOS_inet_ntop_CopySize = lNameSize;
+    FreeRTOS_inet_ntop_Stub( pcStubFreeRTOS_inet_ntop );
+
+    pcName = pcEndpointName( &xEndPoint, cName, lNameSize );
+    TEST_ASSERT_EQUAL_MEMORY( pcName, cIPString, lNameSize );
+}
+
 /* TODO xIPv6_GetIPType */
 /* TODO FreeRTOS_MatchingEndpoint */
