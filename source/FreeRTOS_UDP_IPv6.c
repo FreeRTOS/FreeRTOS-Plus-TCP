@@ -60,6 +60,7 @@
     #include "FreeRTOS_DNS.h"
 #endif
 
+/* Just make sure the contents doesn't get compiled if IPv6 is not enabled. */
 /* *INDENT-OFF* */
     #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
