@@ -911,9 +911,8 @@
     {
         FreeRTOS_Socket_t * pxNewSocket = NULL;
 
-        switch(uxIPHeaderSizePacket( pxNetworkBuffer ))
+        switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
         {
-
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipSIZE_OF_IPv4_HEADER:
                     pxNewSocket = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
@@ -925,12 +924,11 @@
                     pxNewSocket = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             default:
                 /* Shouldn't reach here */
                 /* MISRA 16.4 Compliance */
                 break;
-
         }
 
         return pxNewSocket;

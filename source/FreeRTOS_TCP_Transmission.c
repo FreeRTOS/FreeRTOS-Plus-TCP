@@ -283,12 +283,11 @@
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
         #if ( ipconfigUSE_IPv6 != 0 )
-        if( xIsIPv6 == pdFALSE )
+            if( xIsIPv6 == pdFALSE )
             {
                 prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
             }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
     }
     /*-----------------------------------------------------------*/
 
@@ -490,9 +489,8 @@
     {
         BaseType_t xReturn = pdTRUE;
 
-        switch(pxSocket->bits.bIsIPv6)
+        switch( pxSocket->bits.bIsIPv6 )
         {
-
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE_UNSIGNED:
                     xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
@@ -504,11 +502,10 @@
                     xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             default:
                 /* MISRA 16.4 Compliance */
                 break;
-
         }
 
         return xReturn;
@@ -742,13 +739,13 @@
         {
             FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
 
-            switch(uxIPHeaderSize)
+            switch( uxIPHeaderSize )
             {
-
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case ipSIZE_OF_IPv4_HEADER:
+
                         /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
-                            * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
+                         * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
                         /* MISRA Ref 11.3.1 [Misaligned access] */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                         /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -758,8 +755,8 @@
                         if( pxNetworkBuffer->pxEndPoint == NULL )
                         {
                             FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %xip => %xip\n",
-                                                ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
-                                                ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
+                                               ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
+                                               ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
                         }
                         break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -775,18 +772,17 @@
                         if( pxNetworkBuffer->pxEndPoint == NULL )
                         {
                             FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
-                                                pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                                pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
+                                               pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                               pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
                         }
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* Shouldn't reach here */
                     pxNetworkBuffer->pxEndPoint = NULL;
                     /* MISRA 16.4 Compliance */
                     break;
-
             }
 
             if( pxNetworkBuffer->pxEndPoint != NULL )
@@ -1320,10 +1316,8 @@
             ( void ) ucTCPFlags;
         #else
             {
-
-                switch(uxIPHeaderSizePacket( pxNetworkBuffer ))
+                switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
                 {
-
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case ipSIZE_OF_IPv4_HEADER:
                             xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
@@ -1335,13 +1329,11 @@
                             xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                    
+
                     default:
                         /* MISRA 16.4 Compliance */
                         break;
-
                 }
-
             }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */
 
