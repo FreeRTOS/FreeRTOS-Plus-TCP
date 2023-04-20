@@ -729,10 +729,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /**
  * @brief Check IP-type, IP- and MAC-address found in the network packet.
  */
-    #define rMATCH_MAC_ADDR    0 /**< Find an endpoint with a matching MAC-address. */
-    #define rMATCH_IP_TYPE     1 /**< Find an endpoint with a matching IP-type, v4 or v6. */
-    #define rMATCH_IP_ADDR     2 /**< Find an endpoint with a matching IP-address. */
-    #define rMATCH_COUNT       3 /**< The number of methods. */
+    #define rMATCH_IP_ADDR        0 /**< Find an endpoint with a matching IP-address. */
+    #define rMATCH_IPv6_GLOBAL    1 /**< Find an endpoint with a matching IPv6 global type. */
+    #define rMATCH_MAC_ADDR       2 /**< Find an endpoint with a matching MAC-address. */
+    #define rMATCH_IP_TYPE        3 /**< Find an endpoint with a matching IP-type, v4 or v6. */
+    #define rMATCH_COUNT          4 /**< The number of methods. */
 
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
@@ -817,8 +818,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                         }
                         else if( xTargetGlobal == xEndpointGlobal )
                         {
-                            pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
-                            xCount[ rMATCH_IP_ADDR ]++;
+                            pxFound[ rMATCH_IPv6_GLOBAL ] = pxEndPoint;
+                            xCount[ rMATCH_IPv6_GLOBAL ]++;
                         }
                         else
                         {
@@ -845,7 +846,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 
         for( xIndex = 0; xIndex < rMATCH_COUNT; xIndex++ )
         {
-            if( xCount[ xIndex ] == 1 )
+            if( xCount[ xIndex ] >= 1 )
             {
                 pxReturn = pxFound[ xIndex ];
                 break;
