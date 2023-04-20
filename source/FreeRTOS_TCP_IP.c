@@ -116,7 +116,7 @@
 
 /** @brief Close the socket another time.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
@@ -132,7 +132,7 @@
 
 /** @brief Postpone a call to FreeRTOS_listen() to avoid recursive calls.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket )
@@ -150,7 +150,7 @@
  * @brief As soon as a TCP socket timer expires, this function will be called
  *       (from xTCPTimerCheck). It can send a delayed ACK or new data.
  *
- * @param[in] pxSocket: socket to be checked.
+ * @param[in] pxSocket socket to be checked.
  *
  * @return 0 on success, a negative error code on failure. A negative value will be
  *         returned in case the hang-protection has put the socket in a wait-close state.
@@ -260,7 +260,7 @@
 /**
  * @brief 'Touch' the socket to keep it alive/updated.
  *
- * @param[in] pxSocket: The socket to be updated.
+ * @param[in] pxSocket The socket to be updated.
  *
  * @note This is used for anti-hanging protection and TCP keep-alive messages.
  *       Called in two places: after receiving a packet and after a state change.
@@ -293,8 +293,8 @@
  *        that a socket has got (dis)connected, and setting bit to unblock a call to
  *        FreeRTOS_select().
  *
- * @param[in] pxSocket: The socket whose state we are trying to change.
- * @param[in] eTCPState: The state to which we want to change to.
+ * @param[in] pxSocket The socket whose state we are trying to change.
+ * @param[in] eTCPState The state to which we want to change to.
  */
     void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
                           enum eTCP_STATE eTCPState )
@@ -317,7 +317,7 @@
             /* A socket was in the connecting phase but something
              * went wrong and it should be closed. */
             FreeRTOS_debug_printf( ( "Move from %s to %s\n",
-                                     FreeRTOS_GetTCPStateName( xPreviousState ),
+                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                      FreeRTOS_GetTCPStateName( eTCPState ) ) );
 
             /* Set the flag to show that it was connected before and that the
@@ -445,26 +445,41 @@
             }
         }
 
+        /* Fill in the new state. */
+        pxSocket->u.xTCP.eTCPState = eTCPState;
+
         if( ( eTCPState == eCLOSED ) ||
             ( eTCPState == eCLOSE_WAIT ) )
         {
             /* Socket goes to status eCLOSED because of a RST.
              * When nobody owns the socket yet, delete it. */
-            if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+            vTaskSuspendAll();
             {
-                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
-
-                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                 {
-                    configASSERT( xIsCallingFromIPTask() != pdFALSE );
-                    vSocketCloseNextTime( pxSocket );
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+                    }
+
+                    xTaskResumeAll();
+
+                    FreeRTOS_printf( ( "vTCPStateChange: Closing socket\n" ) );
+
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                        vSocketCloseNextTime( pxSocket );
+                    }
+                }
+                else
+                {
+                    xTaskResumeAll();
                 }
             }
         }
-
-        /* Fill in the new state. */
-        pxSocket->u.xTCP.eTCPState = eTCPState;
 
         if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
         {
@@ -527,7 +542,7 @@
 /**
  * @brief Calculate after how much time this socket needs to be checked again.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  *
  * @return The number of clock ticks before the timer expires.
  */
@@ -599,7 +614,7 @@
 /**
  * @brief Process the received TCP packet.
  *
- * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+ * @param[in] pxDescriptor The descriptor in which the TCP packet is held.
  *
  * @return If the processing of the packet was successful, then pdPASS is returned
  *         or else pdFAIL.
@@ -619,27 +634,34 @@
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
+        /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
+        ProtocolHeaders_t * pxProtocolHeaders;
+        FreeRTOS_Socket_t * pxSocket;
+        uint16_t ucTCPFlags;
+        uint32_t ulLocalIP;
+        uint16_t usLocalPort;
+        uint16_t usRemotePort;
+        uint32_t ulRemoteIP;
+        uint32_t ulSequenceNumber;
+        uint32_t ulAckNumber;
+        BaseType_t xResult = pdPASS;
+
+        const IPHeader_t * pxIPHeader;
+
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-
-        /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-        FreeRTOS_Socket_t * pxSocket;
-        uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
-        uint32_t ulLocalIP;
-        uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
-        uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-        uint32_t ulRemoteIP;
-        uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
-        uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
-        BaseType_t xResult = pdPASS;
+        pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
 
-        const IPHeader_t * pxIPHeader;
+        ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
+        usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
+        usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
+        ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
+        ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
 
         /* Check for a minimum packet size. */
         if( pxNetworkBuffer->xDataLength < ( ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ) )
@@ -871,7 +893,7 @@
  * @brief In the API accept(), the user asks is there is a new client? As API's can
  *        not walk through the xBoundTCPSocketsList the IP-task will do this.
  *
- * @param[in] pxSocket: The socket for which the bound socket list will be iterated.
+ * @param[in] pxSocket The socket for which the bound socket list will be iterated.
  *
  * @return if there is a new client, then pdTRUE is returned or else, pdFALSE.
  */

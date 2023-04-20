@@ -71,26 +71,10 @@
 #include "FreeRTOS_IP_Private.h"
 #include "NetworkBufferManagement.h"
 
-#define NOP()    asm ( "nop" );
-
 #define phyMIN_PHY_ADDRESS    0
 #define phyMAX_PHY_ADDRESS    31
 
-void test_sleep( uint32_t uxTicks )
-{
-    for( uint32_t j = 0U; j < uxTicks; j++ )
-    {
-        for( uint32_t i = 0U; i < 100000000U; i++ )
-        {
-            NOP();
-        }
-    }
-}
-
-void my_sleep( uint32_t uxTicks )
-{
-    sleep( uxTicks );
-}
+#define MINIMUM_SLEEP_TIME    ( ( TickType_t ) 1 * configTICK_RATE_HZ )
 
 /*** IMPORTANT: Define PEEP in xemacpsif.h and sys_arch_raw.c
  *** to run it on a PEEP board
@@ -245,18 +229,10 @@ void my_sleep( uint32_t uxTicks )
 u32 phymapemac0[ 32 ];
 u32 phymapemac1[ 32 ];
 
-static uint16_t prvAR803x_debug_reg_read( XEmacPs * xemacpsp,
-                                          uint32_t phy_addr,
-                                          u16 reg );
 static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
                                            uint32_t phy_addr,
                                            u16 reg,
                                            u16 value );
-static int prvAR803x_debug_reg_mask( XEmacPs * xemacpsp,
-                                     uint32_t phy_addr,
-                                     u16 reg,
-                                     u16 clear,
-                                     u16 set );
 static void prvSET_AR803x_TX_Timing( XEmacPs * xemacpsp,
                                      uint32_t phy_addr );
 
@@ -482,7 +458,7 @@ static uint32_t get_TI_phy_speed( XEmacPs * xemacpsp,
 
     while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
     {
-        my_sleep( 1 );
+        vTaskDelay( MINIMUM_SLEEP_TIME );
         timeout_counter++;
 
         if( timeout_counter == 30 )
@@ -580,7 +556,7 @@ static uint32_t get_Marvell_phy_speed( XEmacPs * xemacpsp,
 
     while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
     {
-        my_sleep( 1 );
+        vTaskDelay( MINIMUM_SLEEP_TIME );
         XEmacPs_PhyRead( xemacpsp, phy_addr,
                          IEEE_COPPER_SPECIFIC_STATUS_REG_2, &temp );
         timeout_counter++;
@@ -671,7 +647,7 @@ static uint32_t get_Realtek_phy_speed( XEmacPs * xemacpsp,
 
     while( !( status & IEEE_STAT_AUTONEGOTIATE_COMPLETE ) )
     {
-        my_sleep( 1 );
+        vTaskDelay( MINIMUM_SLEEP_TIME );
         timeout_counter++;
 
         if( timeout_counter == 30 )
@@ -812,7 +788,7 @@ static uint32_t get_AR8035_phy_speed( XEmacPs * xemacpsp,
     while( pdTRUE )
     {
         uint32_t status;
-        my_sleep( 1 );
+        vTaskDelay( MINIMUM_SLEEP_TIME );
 
         timeout_counter++;
 
@@ -832,29 +808,8 @@ static uint32_t get_AR8035_phy_speed( XEmacPs * xemacpsp,
     }
 }
 
-static void ar8035Tick( XEmacPs * xemacpsp,
-                        uint32_t phy_addr )
-{
-    uint16_t value;
-    BaseType_t linkState;
-
-    /*Read basic status register */
-    value = XEmacPs_PhyRead2( xemacpsp, phy_addr, IEEE_STATUS_REG_OFFSET );
-    /*Retrieve current link state */
-    linkState = ( value & IEEE_STAT_LINK_STATUS ) ? TRUE : FALSE;
-}
-
 #define AR803X_DEBUG_ADDR    0x1D
 #define AR803X_DEBUG_DATA    0x1E
-static uint16_t prvAR803x_debug_reg_read( XEmacPs * xemacpsp,
-                                          uint32_t phy_addr,
-                                          u16 reg )
-{
-    XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_ADDR, reg );
-
-    return XEmacPs_PhyRead2( xemacpsp, phy_addr, AR803X_DEBUG_DATA );
-}
-
 static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
                                            uint32_t phy_addr,
                                            u16 reg,
@@ -863,29 +818,6 @@ static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
     XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_ADDR, reg );
 
     return XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_DATA, value );
-}
-
-static int prvAR803x_debug_reg_mask( XEmacPs * xemacpsp,
-                                     uint32_t phy_addr,
-                                     u16 reg,
-                                     u16 clear,
-                                     u16 set )
-{
-    u16 val;
-    int ret;
-
-    ret = prvAR803x_debug_reg_read( xemacpsp, phy_addr, reg );
-
-    if( ret < 0 )
-    {
-        return ret;
-    }
-
-    val = ret & 0xffff;
-    val &= ~clear;
-    val |= set;
-
-    return XEmacPs_PhyWrite( xemacpsp, phy_addr, AR803X_DEBUG_DATA, val );
 }
 
 static uint32_t ar8035CheckStatus( XEmacPs * xemacpsp,
@@ -970,6 +902,9 @@ static uint32_t ar8035CheckStatus( XEmacPs * xemacpsp,
 /*		nicNotifyLinkChange(interface); */
     }
 
+    /* Just to prevent compiler warnings about unused variable. */
+    ( void ) linkState;
+
     return linkSpeed;
 }
 
@@ -1015,7 +950,12 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
     XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_IDENTIFIER_1_REG,
                      &phy_identity );
 
-    FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcGetPHIName( phy_identity ), phy_identity ) );
+    const char * pcPHYName = pcGetPHIName( phy_identity );
+
+    FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcPHYName, phy_identity ) );
+
+    /* Just to prevent compiler warnings about unused variablies. */
+    ( void ) pcPHYName;
 
     switch( phy_identity )
     {
@@ -1422,19 +1362,19 @@ u32 Phy_Setup_US( XEmacPs * xemacpsp,
         link_speed = 1000;
         configure_IEEE_phy_speed_US( xemacpsp, link_speed );
         convspeeddupsetting = XEMACPS_GMII2RGMII_SPEED1000_FD;
-        my_sleep( 1 );
+        vTaskDelay( MINIMUM_SLEEP_TIME );
     #elif   defined( ipconfigNIC_LINKSPEED100 )
         SetUpSLCRDivisors( xemacpsp->Config.BaseAddress, 100 );
         link_speed = 100;
         configure_IEEE_phy_speed_US( xemacpsp, link_speed, phy_addr );
         convspeeddupsetting = XEMACPS_GMII2RGMII_SPEED100_FD;
-        my_sleep( 1 );
+        vTaskDelay( MINIMUM_SLEEP_TIME );
     #elif   defined( ipconfigNIC_LINKSPEED10 )
         SetUpSLCRDivisors( xemacpsp->Config.BaseAddress, 10 );
         link_speed = 10;
         configure_IEEE_phy_speed_US( xemacpsp, link_speed, , phy_addr );
         convspeeddupsetting = XEMACPS_GMII2RGMII_SPEED10_FD;
-        my_sleep( 1 );
+        vTaskDelay( MINIMUM_SLEEP_TIME );
     #endif /* ifdef  ipconfigNIC_LINKSPEED_AUTODETECT */
 
     if( conv_present )

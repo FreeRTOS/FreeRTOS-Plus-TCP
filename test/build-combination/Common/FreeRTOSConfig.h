@@ -114,22 +114,18 @@
  * functions. */
 #define configUSE_STATS_FORMATTING_FUNCTIONS       1
 
-/* Assert call defined for debug builds. */
-void vAssertCalled( const char * pcFile,
-                    uint32_t ulLine );
-
-#define configASSERT( x )
-
 /* The function that implements FreeRTOS printf style output, and the macro
  * that maps the configPRINTF() macros to that function. */
-#define configPRINTF( X )
+void vLoggingPrintf( char const * pcFormat,
+                     ... );
+
+#define configPRINTF( X )          vLoggingPrintf X
 
 /* Non-format version thread-safe print. */
-extern void vLoggingPrint( const char * pcMessage );
-#define configPRINT( X )
+#define configPRINT( X )           vLoggingPrintf X
 
 /* Non-format version thread-safe print. */
-#define configPRINT_STRING( X )
+#define configPRINT_STRING( X )    vLoggingPrintf X
 
 /* Application specific definitions follow. **********************************/
 
@@ -219,7 +215,7 @@ extern void vLoggingPrint( const char * pcMessage );
 #define configPROFILING                      ( 0 )
 
 /* Pseudo random number generator used by some tasks. */
-extern uint32_t ulRand();
+extern uint32_t ulRand( void );
 #define configRAND32()    ulRand()
 
 /* The platform that FreeRTOS is running on. */

@@ -116,7 +116,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
 /**
  * @brief Process the ARP packets.
  *
- * @param[in] pxARPFrame: The ARP Frame (the ARP packet).
+ * @param[in] pxARPFrame The ARP Frame (the ARP packet).
  *
  * @return An enum which says whether to return the frame or to release it.
  */
@@ -168,6 +168,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
     /* Introduce a do while loop to allow use of breaks. */
     do
     {
+        uint32_t ulHostEndianProtocolAddr;
+
         /* Only Ethernet hardware type is supported.
          * Only IPv4 address can be present in the ARP packet.
          * The hardware length (the MAC address) must be 6 bytes. And,
@@ -193,7 +195,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
             break;
         }
 
-        uint32_t ulHostEndianProtocolAddr = FreeRTOS_ntohl( ulSenderProtocolAddress );
+        ulHostEndianProtocolAddr = FreeRTOS_ntohl( ulSenderProtocolAddress );
 
         if( ( ipFIRST_LOOPBACK_IPv4 <= ulHostEndianProtocolAddr ) &&
             ( ulHostEndianProtocolAddr < ipLAST_LOOPBACK_IPv4 ) )
@@ -309,8 +311,8 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 
 /**
  * @brief A device has sent an ARP reply, process it.
- * @param[in] pxARPFrame: The ARP packet received.
- * @param[in] ulSenderProtocolAddress: The IPv4 address involved.
+ * @param[in] pxARPFrame The ARP packet received.
+ * @param[in] ulSenderProtocolAddress The IPv4 address involved.
  */
 static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
                                     uint32_t ulSenderProtocolAddress )
@@ -362,7 +364,7 @@ static void vProcessARPPacketReply( const ARPPacket_t * pxARPFrame,
 /**
  * @brief Check whether an IP address is in the ARP cache.
  *
- * @param[in] ulAddressToLookup: The 32-bit representation of an IP address to
+ * @param[in] ulAddressToLookup The 32-bit representation of an IP address to
  *                    check for.
  *
  * @return When the IP-address is found: pdTRUE, else pdFALSE.
@@ -397,7 +399,7 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
 /**
  * @brief Check whether a packet needs ARP resolution if it is on local subnet. If required send an ARP request.
  *
- * @param[in] pxNetworkBuffer: The network buffer with the packet to be checked.
+ * @param[in] pxNetworkBuffer The network buffer with the packet to be checked.
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
@@ -411,7 +413,8 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
     const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    if( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) )
+    if( ( ( pxIPHeader->ulSourceIPAddress & xNetworkAddressing.ulNetMask ) == ( *ipLOCAL_IP_ADDRESS_POINTER & xNetworkAddressing.ulNetMask ) ) &&
+        ( ( pxIPHeader->ulDestinationIPAddress & ipLOOPBACK_NETMASK ) != ( ipLOOPBACK_ADDRESS & ipLOOPBACK_NETMASK ) ) )
     {
         /* If the IP is on the same subnet and we do not have an ARP entry already,
          * then we should send out ARP for finding the MAC address. */
@@ -498,9 +501,9 @@ void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
 /**
  * @brief Add/update the ARP cache entry MAC-address to IP-address mapping.
  *
- * @param[in] pxMACAddress: Pointer to the MAC address whose mapping is being
+ * @param[in] pxMACAddress Pointer to the MAC address whose mapping is being
  *                          updated.
- * @param[in] ulIPAddress: 32-bit representation of the IP-address whose mapping
+ * @param[in] ulIPAddress 32-bit representation of the IP-address whose mapping
  *                         is being updated.
  */
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
@@ -680,8 +683,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 /**
  * @brief Retrieve an entry from the cache table
  *
- * @param[in] pxMACAddress: The MAC-address of the entry of interest.
- * @param[out] pulIPAddress: set to the IP-address found, or unchanged when not found.
+ * @param[in] pxMACAddress The MAC-address of the entry of interest.
+ * @param[out] pulIPAddress set to the IP-address found, or unchanged when not found.
  *
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
@@ -716,8 +719,8 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 /**
  * @brief Look for ulIPAddress in the ARP cache.
  *
- * @param[in,out] pulIPAddress: Pointer to the IP-address to be queried to the ARP cache.
- * @param[in,out] pxMACAddress: Pointer to a MACAddress_t variable where the MAC address
+ * @param[in,out] pulIPAddress Pointer to the IP-address to be queried to the ARP cache.
+ * @param[in,out] pxMACAddress Pointer to a MACAddress_t variable where the MAC address
  *                          will be stored, if found.
  *
  * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
@@ -758,7 +761,8 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
          * can be done. */
         eReturn = eCantSendPacket;
     }
-    else if( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress )
+    else if( ( *ipLOCAL_IP_ADDRESS_POINTER == *pulIPAddress ) ||
+             ( ( *pulIPAddress & ipLOOPBACK_NETMASK ) == ( ipLOOPBACK_ADDRESS & ipLOOPBACK_NETMASK ) ) )
     {
         /* The address of this device. May be useful for the loopback device. */
         eReturn = eARPCacheHit;
@@ -835,9 +839,9 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 /**
  * @brief Lookup an IP address in the ARP cache.
  *
- * @param[in] ulAddressToLookup: The 32-bit representation of an IP address to
+ * @param[in] ulAddressToLookup The 32-bit representation of an IP address to
  *                               lookup.
- * @param[out] pxMACAddress: A pointer to MACAddress_t variable where, if there
+ * @param[out] pxMACAddress A pointer to MACAddress_t variable where, if there
  *                          is an ARP cache hit, the MAC address corresponding to
  *                          the IP address will be stored.
  *
@@ -957,7 +961,7 @@ void vARPSendGratuitous( void )
 /**
  * @brief Create and send an ARP request packet.
  *
- * @param[in] ulIPAddress: A 32-bit representation of the IP-address whose
+ * @param[in] ulIPAddress A 32-bit representation of the IP-address whose
  *                         physical (MAC) address is required.
  */
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
@@ -1018,8 +1022,8 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
  *         needed send an ARP request, and wait for a reply.  This function is useful when
  *         called before FreeRTOS_sendto().
  *
- * @param[in] ulIPAddress: The IP-address to look-up.
- * @param[in] uxTicksToWait: The maximum number of clock ticks to wait for a reply.
+ * @param[in] ulIPAddress The IP-address to look-up.
+ * @param[in] uxTicksToWait The maximum number of clock ticks to wait for a reply.
  *
  * @return Zero when successful.
  */
@@ -1077,7 +1081,7 @@ BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
  * @brief Generate an ARP request packet by copying various constant details to
  *        the buffer.
  *
- * @param[in,out] pxNetworkBuffer: Pointer to the buffer which has to be filled with
+ * @param[in,out] pxNetworkBuffer Pointer to the buffer which has to be filled with
  *                             the ARP request packet details.
  */
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
@@ -1173,8 +1177,8 @@ void FreeRTOS_ClearARP( void )
  *         If so, the packet will be passed to the IP-stack, who will answer it.
  *         The function is to be called within the function xNetworkInterfaceOutput().
  *
- * @param[in] pxDescriptor: The network buffer which is to be checked for loop-back.
- * @param[in] bReleaseAfterSend: pdTRUE: Driver is allowed to transfer ownership of descriptor.
+ * @param[in] pxDescriptor The network buffer which is to be checked for loop-back.
+ * @param[in] bReleaseAfterSend pdTRUE: Driver is allowed to transfer ownership of descriptor.
  *                              pdFALSE: Driver is not allowed to take ownership of descriptor,
  *                                       make a copy of it.
  *

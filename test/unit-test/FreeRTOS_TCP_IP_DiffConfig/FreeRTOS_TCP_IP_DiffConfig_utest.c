@@ -163,6 +163,8 @@ void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
