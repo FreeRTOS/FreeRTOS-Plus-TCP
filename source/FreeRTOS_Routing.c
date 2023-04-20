@@ -1413,51 +1413,54 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
         { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
     };
 
-    for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
+    if( pxAddress != NULL )
     {
-        uint16_t usAddress =
-            ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
-            ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
-
-        if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+        for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
         {
-            eResult = xIPCouples[ xIndex ].eType;
-            break;
+            uint16_t usAddress =
+                ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
+                ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
+
+            if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+            {
+                eResult = xIPCouples[ xIndex ].eType;
+                break;
+            }
         }
+
+        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+            const char * pcName = "unknown enum";
+
+            switch( eResult )
+            {
+                case eIPv6_Global:
+                    pcName = "Global";
+                    break;
+
+                case eIPv6_LinkLocal:
+                    pcName = "LinkLocal";
+                    break;
+
+                case eIPv6_SiteLocal:
+                    pcName = "SiteLocal";
+                    break;
+
+                case eIPv6_Multicast:
+                    pcName = "Multicast";
+                    break;
+
+                case eIPv6_Unknown:
+                    pcName = "Unknown";
+                    break;
+            }
+
+            FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
+                                     pxAddress->ucBytes[ 0 ],
+                                     pxAddress->ucBytes[ 1 ],
+                                     pcName,
+                                     pxAddress->ucBytes ) );
+        #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
     }
-
-    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        const char * pcName = "unknown enum";
-
-        switch( eResult )
-        {
-            case eIPv6_Global:
-                pcName = "Global";
-                break;
-
-            case eIPv6_LinkLocal:
-                pcName = "LinkLocal";
-                break;
-
-            case eIPv6_SiteLocal:
-                pcName = "SiteLocal";
-                break;
-
-            case eIPv6_Multicast:
-                pcName = "Multicast";
-                break;
-
-            case eIPv6_Unknown:
-                pcName = "Unknown";
-                break;
-        }
-
-        FreeRTOS_debug_printf( ( "xIPv6_GetIPType: 0x%02x%02x: type %s (%pip)\n",
-                                 pxAddress->ucBytes[ 0 ],
-                                 pxAddress->ucBytes[ 1 ],
-                                 pcName,
-                                 pxAddress->ucBytes ) );
-    #endif /* if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
     return eResult;
 }

@@ -1804,5 +1804,114 @@ void test_pcEndpointName_IPv6_truncate_buffer()
     TEST_ASSERT_EQUAL_MEMORY( pcName, cIPString, lNameSize );
 }
 
-/* TODO xIPv6_GetIPType */
+/**
+ * @brief test_xIPv6_GetIPType_global
+ * xIPv6_GetIPType returns eIPv6_Global if input address matches 2000::/3.
+ *
+ * Test step:
+ *  - Create 1 IPv6 address.
+ *     - Set the IP address to 2001::1 (xDefaultIPAddress_IPv6).
+ *  - Call xIPv6_GetIPType to check IP type.
+ *  - Check if it returns eIPv6_Global.
+ */
+void test_xIPv6_GetIPType_global()
+{
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( &xDefaultIPAddress_IPv6 );
+    TEST_ASSERT_EQUAL( eIPv6_Global, xReturn );
+}
+
+/**
+ * @brief test_xIPv6_GetIPType_link_local
+ * xIPv6_GetIPType returns eIPv6_LinkLocal if input address matches FE80::/10.
+ *
+ * Test step:
+ *  - Create 1 IPv6 address.
+ *     - Set the IP address to FE8F::1:2.
+ *  - Call xIPv6_GetIPType to check IP type.
+ *  - Check if it returns eIPv6_LinkLocal.
+ */
+void test_xIPv6_GetIPType_link_local()
+{
+    const IPv6_Address_t xIPv6Address = { 0xFE, 0x8F, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( &xIPv6Address );
+    TEST_ASSERT_EQUAL( eIPv6_LinkLocal, xReturn );
+}
+
+/**
+ * @brief test_xIPv6_GetIPType_site_local
+ * xIPv6_GetIPType returns eIPv6_SiteLocal if input address matches FEC0::/10.
+ *
+ * Test step:
+ *  - Create 1 IPv6 address.
+ *     - Set the IP address to FECF::1:2.
+ *  - Call xIPv6_GetIPType to check IP type.
+ *  - Check if it returns eIPv6_SiteLocal.
+ */
+void test_xIPv6_GetIPType_site_local()
+{
+    const IPv6_Address_t xIPv6Address = { 0xFE, 0xCF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( &xIPv6Address );
+    TEST_ASSERT_EQUAL( eIPv6_SiteLocal, xReturn );
+}
+
+/**
+ * @brief test_xIPv6_GetIPType_multicast
+ * xIPv6_GetIPType returns eIPv6_Multicast if input address matches FF00::/8.
+ *
+ * Test step:
+ *  - Create 1 IPv6 address.
+ *     - Set the IP address to FFFF::1:2.
+ *  - Call xIPv6_GetIPType to check IP type.
+ *  - Check if it returns eIPv6_Multicast.
+ */
+void test_xIPv6_GetIPType_multicast()
+{
+    const IPv6_Address_t xIPv6Address = { 0xFF, 0xFF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( &xIPv6Address );
+    TEST_ASSERT_EQUAL( eIPv6_Multicast, xReturn );
+}
+
+/**
+ * @brief test_xIPv6_GetIPType_unknown
+ * xIPv6_GetIPType returns eIPv6_Unknown if input address doesn't match any rule.
+ *
+ * Test step:
+ *  - Create 1 IPv6 address.
+ *     - Set the IP address to 1234::1:2.
+ *  - Call xIPv6_GetIPType to check IP type.
+ *  - Check if it returns eIPv6_Unknown.
+ */
+void test_xIPv6_GetIPType_unknown()
+{
+    const IPv6_Address_t xIPv6Address = { 0x12, 0x34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( &xIPv6Address );
+    TEST_ASSERT_EQUAL( eIPv6_Unknown, xReturn );
+}
+
+/**
+ * @brief test_xIPv6_GetIPType_null
+ * xIPv6_GetIPType returns eIPv6_Unknown if input address is NULL.
+ *
+ * Test step:
+ *  - Call xIPv6_GetIPType with NULL input.
+ *  - Check if it returns eIPv6_Unknown.
+ */
+void test_xIPv6_GetIPType_null()
+{
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( NULL );
+    TEST_ASSERT_EQUAL( eIPv6_Unknown, xReturn );
+}
+
 /* TODO FreeRTOS_MatchingEndpoint */
