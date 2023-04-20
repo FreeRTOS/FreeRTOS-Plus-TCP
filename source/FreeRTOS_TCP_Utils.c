@@ -92,10 +92,8 @@
  */
     void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
-
-        switch(pxSocket->bits.bIsIPv6)
+        switch( pxSocket->bits.bIsIPv6 )
         {
-
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE_UNSIGNED:
                     prvSocketSetMSS_IPV4( pxSocket );
@@ -107,14 +105,12 @@
                     prvSocketSetMSS_IPV6( pxSocket );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             default:
                 /* Shouldn't reach here */
                 /* MISRA 16.4 Compliance */
                 break;
-
         }
-
     }
     /*-----------------------------------------------------------*/
 

@@ -498,19 +498,18 @@
                 {
                     char pcBuffer[ 40 ];
 
-                    switch(pxSocket->bits.bIsIPv6)
+                    switch( pxSocket->bits.bIsIPv6 )
                     {
-
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case pdFALSE_UNSIGNED:
-                                {                       
-                                    uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-                                    FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                        ( const uint8_t * ) &ulIPAddress,
-                                                        pcBuffer,
-                                                        sizeof( pcBuffer ) );
-                                }
-                                break;
+                               {
+                                   uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                                   FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                       ( const uint8_t * ) &ulIPAddress,
+                                                       pcBuffer,
+                                                       sizeof( pcBuffer ) );
+                               }
+                               break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                         #if ( ipconfigUSE_IPv6 != 0 )
@@ -521,11 +520,10 @@
                                                     sizeof( pcBuffer ) );
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                        
+
                         default:
                             /* MISRA 16.4 Compliance */
                             break;
-
                     }
 
                     FreeRTOS_debug_printf( ( "Socket %u -> [%s]:%u State %s->%s\n",
@@ -659,9 +657,8 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        switch(( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType)
+        switch( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType )
         {
-
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipIPv4_FRAME_TYPE:
                     xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
@@ -673,13 +670,12 @@
                     xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             default:
                 /* Shouldn't reach here */
                 xResult = pdFAIL;
                 /* MISRA 16.4 Compliance */
                 break;
-
         }
 
         return xResult;
