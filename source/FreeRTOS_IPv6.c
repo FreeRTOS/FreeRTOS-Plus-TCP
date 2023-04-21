@@ -64,11 +64,6 @@ const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
  */
 const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
 
-/**
- * This variable is initialized by the system to contain the IPv6 multicast address for all nodes.
- */
-static const struct xIPv6_Address FreeRTOS_in6addr_allnodes = { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
-
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv6 packet length. */
     static BaseType_t xCheckIPv6SizeFields( const void * const pvEthernetBuffer,
@@ -369,6 +364,8 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
                                  size_t uxPrefixLength )
 {
     BaseType_t xResult;
+    /* This variable is initialized by the system to contain the IPv6 multicast address for all nodes. */
+    static const struct xIPv6_Address FreeRTOS_in6addr_allnodes = { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
     /* 0    2    4    6    8    10   12   14 */
     /* ff02:0000:0000:0000:0000:0001:ff66:4a81 */
