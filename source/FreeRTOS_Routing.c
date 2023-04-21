@@ -135,10 +135,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         RoutingStats_t xRoutingStatistics;
     #endif
 
-    #if ( ipconfigUSE_IPv6 != 0 )
-        static NetworkEndPoint_t * prvFindFirstAddress_IPv6( void );
-    #endif
-
 /*-----------------------------------------------------------*/
 
 /**
@@ -248,7 +244,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     {
         NetworkEndPoint_t * pxIterator = NULL;
 
-        configASSERT( pxInterface != NULL );
+        /* pxInterface is never NULL, it's checked before calling. */
 
         /* This end point will go to the end of the list, so there is no pxNext
          * yet. */
@@ -412,7 +408,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         while( pxEndPoint != NULL )
         {
             #if ( ipconfigUSE_IPv6 != 0 )
-                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                if( pxEndPoint->bits.bIPv6 == 0U )
             #endif
             {
                 if( ( ulIPAddress == 0U ) ||
@@ -671,33 +667,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
     #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
- * @brief Find the first end-point of the type IPv6.
- *
- * @return The first IPv6 end-point found, or NULL when there are no IPv6 end-points.
- */
-
-        static NetworkEndPoint_t * prvFindFirstAddress_IPv6( void )
-        {
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            while( pxEndPoint != NULL )
-            {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                {
-                    break;
-                }
-
-                pxEndPoint = pxEndPoint->pxNext;
-            }
-
-            return pxEndPoint;
-        }
-    #endif /* ipconfigUSE_IPv6 */
-/*-----------------------------------------------------------*/
-
-    #if ( ipconfigUSE_IPv6 != 0 )
-
-/**
  * @brief Find an end-point that handles a given IPv6-address.
  *
  * @param[in] pxIPv6Address: The IP-address for which an end-point is looked-up.
@@ -729,11 +698,11 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /**
  * @brief Check IP-type, IP- and MAC-address found in the network packet.
  */
-    #define rMATCH_IP_ADDR        0 /**< Find an endpoint with a matching IP-address. */
-    #define rMATCH_IPv6_GLOBAL    1 /**< Find an endpoint with a matching IPv6 global type. */
-    #define rMATCH_MAC_ADDR       2 /**< Find an endpoint with a matching MAC-address. */
-    #define rMATCH_IP_TYPE        3 /**< Find an endpoint with a matching IP-type, v4 or v6. */
-    #define rMATCH_COUNT          4 /**< The number of methods. */
+    #define rMATCH_IP_ADDR      0   /**< Find an endpoint with a matching IP-address. */
+    #define rMATCH_IPv6_TYPE    1   /**< Find an endpoint with a matching IPv6 type (both global or non global). */
+    #define rMATCH_MAC_ADDR     2   /**< Find an endpoint with a matching MAC-address. */
+    #define rMATCH_IP_TYPE      3   /**< Find an endpoint with a matching IP-type, v4 or v6. */
+    #define rMATCH_COUNT        4   /**< The number of methods. */
 
     NetworkEndPoint_t * pxEasyFit( const NetworkInterface_t * pxNetworkInterface,
                                    const uint16_t usFrameType,
@@ -818,8 +787,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                         }
                         else if( xTargetGlobal == xEndpointGlobal )
                         {
-                            pxFound[ rMATCH_IPv6_GLOBAL ] = pxEndPoint;
-                            xCount[ rMATCH_IPv6_GLOBAL ]++;
+                            pxFound[ rMATCH_IPv6_TYPE ] = pxEndPoint;
+                            xCount[ rMATCH_IPv6_TYPE ]++;
                         }
                         else
                         {
@@ -1450,7 +1419,8 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
                     pcName = "Multicast";
                     break;
 
-                case eIPv6_Unknown:
+                default:
+                    /* eIPv6_Unknown */
                     pcName = "Unknown";
                     break;
             }
