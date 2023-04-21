@@ -3178,12 +3178,12 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
             if( ucNibble <= 0x09U )
             {
                 cResult = '0';
-                cResult = ( char ) ( ( uint8_t ) cResult + ucNibble );
+                cResult = ( char ) ( cResult + ucNibble );
             }
             else
             {
                 cResult = cTen; /* Either 'a' or 'A' */
-                cResult = ( char ) ( ( uint8_t ) cResult + ( ucNibble - 10U ) );
+                cResult = ( char ) ( cResult + ( ucNibble - 10U ) );
             }
 
             pcTarget[ uxTarget ] = cResult;

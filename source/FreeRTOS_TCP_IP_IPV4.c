@@ -98,7 +98,7 @@
     {
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-        ProtocolHeaders_t * pxProtocolHeaders;
+        const ProtocolHeaders_t * pxProtocolHeaders;
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags;
         uint32_t ulLocalIP;
