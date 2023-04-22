@@ -606,7 +606,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 else
             #endif
 
-            #if ( ipconfigUSE_LLMNR == 1 )
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
                 if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
                     ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )

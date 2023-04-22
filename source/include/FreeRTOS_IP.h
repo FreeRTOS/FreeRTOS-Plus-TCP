@@ -494,12 +494,10 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 #include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
 
-#if ipconfigUSE_IPv4
-    #include "FreeRTOS_IPv4.h"
-#endif /* ipconfigUSE_IPv4 */
-#if ipconfigUSE_IPv6
-    #include "FreeRTOS_IPv6.h"
-#endif /* ipconfigUSE_IPv6 */
+
+#include "FreeRTOS_IPv4.h"
+
+#include "FreeRTOS_IPv6.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

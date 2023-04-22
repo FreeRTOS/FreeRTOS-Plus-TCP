@@ -147,10 +147,11 @@ endif()
 # on the config defined in the freertos_config
 set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION "CUSTOM" CACHE STRING "FreeRTOS Plus TCP Build Test configuration")
 set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
-    CUSTOM       # Custom (external) configuration -eg from a top-level project
-    ENABLE_ALL   # Enable all configuration settings
-    DISABLE_ALL  # Disable all configuration settings
-    DEFAULT_CONF # Default (typical) configuration
+    CUSTOM                  # Custom (external) configuration -eg from a top-level project
+    ENABLE_ALL              # Enable all configuration settings
+    ENABLE_ALL_IPV4         # Enable all configuration settings IPv4
+    DISABLE_ALL             # Disable all configuration settings
+    DEFAULT_CONF            # Default (typical) configuration
 )
 if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)
     message(FATAL_ERROR "Invalid FREERTOS_PLUS_TCP_TEST_CONFIGURATION value '${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}' should be one of: ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST}")

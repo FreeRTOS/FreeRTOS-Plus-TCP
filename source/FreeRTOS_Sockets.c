@@ -4877,7 +4877,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     if( ulRemoteIP.ulIP_IPv4 == 0U )
                     {
-                        pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.ulIP_IPv4 );
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.ulIP_IPv4 );
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
                     }
                     else
                     {

@@ -275,19 +275,19 @@
             configASSERT( pdFALSE );
         }
 
-        #if ( ipconfigUSE_IPv4 != 0 )
+        #if ( ipconfigUSE_IPv6 != 0 )
             if( xIsIPv6 == pdTRUE )
             {
                 prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
             }
-        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigUSE_IPv4 != 0 )
             if( xIsIPv6 == pdFALSE )
             {
                 prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
             }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
     }
     /*-----------------------------------------------------------*/
 
