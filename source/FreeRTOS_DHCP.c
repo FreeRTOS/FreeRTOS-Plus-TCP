@@ -1471,6 +1471,7 @@
             /* Set the addressing. */
             pxAddress->sin_address.ulIP_IPv4 = ipBROADCAST_IP_ADDRESS;
             pxAddress->sin_port = ( uint16_t ) dhcpSERVER_PORT_IPv4;
+            pxAddress->sin_family = FREERTOS_AF_INET4;
         }
 
         return pucUDPPayloadBuffer;
