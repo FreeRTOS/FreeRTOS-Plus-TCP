@@ -245,7 +245,7 @@ void vCheckNetworkTimers( void )
                         }
                     #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
-                    #if ( ipconfigUSE_RA != 0 )
+                    #if (( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ))
                         if( END_POINT_USES_RA( pxEndPoint ) )
                         {
                             vRAProcess( pdFALSE, pxEndPoint );

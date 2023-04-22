@@ -505,7 +505,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 else
             #endif
 
-            #if ( ipconfigUSE_LLMNR == 1 )
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
                 if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
                     ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
@@ -517,7 +517,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 else
             #endif /* ipconfigUSE_LLMNR */
 
-            #if ( ipconfigUSE_MDNS == 1 )
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_MDNS == 1 )
                 /* A MDNS request, check for the destination port. */
                 if( ( usPort == FreeRTOS_ntohs( ipMDNS_PORT ) ) ||
                     ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipMDNS_PORT ) ) )

@@ -12,6 +12,11 @@ target_include_directories(freertos_plus_tcp_config_all_enable INTERFACE AllEnab
 target_link_libraries(freertos_plus_tcp_config_all_enable INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_all_enable_ipv4 INTERFACE)
+target_include_directories(freertos_plus_tcp_config_all_enable_ipv4 INTERFACE AllEnable_IPv4)
+target_link_libraries(freertos_plus_tcp_config_all_enable_ipv4 INTERFACE freertos_plus_tcp_config_common)
+
+# -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_default INTERFACE)
 target_include_directories(freertos_plus_tcp_config_default INTERFACE DefaultConf)
 target_link_libraries(freertos_plus_tcp_config_default INTERFACE freertos_plus_tcp_config_common)
@@ -27,6 +32,8 @@ elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "DISABLE_ALL" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_disable)
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable)
+elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV4" )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_ipv4)
 else()
     add_library( freertos_config ALIAS freertos_plus_tcp_config_default)
 endif()

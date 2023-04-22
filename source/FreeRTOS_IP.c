@@ -318,8 +318,14 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eARPTimerEvent:
             /* The ARP timer has expired, process the ARP cache. */
-            vARPAgeCache();
-            vNDAgeCache();
+            #if ( ipconfigUSE_IPv4 != 0 )
+                vARPAgeCache();
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                vNDAgeCache();
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        
             break;
 
         case eSocketBindEvent:
@@ -591,7 +597,7 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_DHCPv6 */
-    #if ( ipconfigUSE_RA == 1 )
+    #if ( ( ipconfigUSE_RA == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
         {
             if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) )
             {
@@ -599,7 +605,7 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
                 vRAProcess( pdFALSE, pxEndPoint );
             }
         }
-    #endif /* ipconfigUSE_RA */
+    #endif /* ( ( ipconfigUSE_RA == 1 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
     /* Mention pxEndPoint and xIsIPv6 in case they have not been used. */
     ( void ) pxEndPoint;
@@ -956,8 +962,10 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
                 }
             }
         }
+    #else
+        ( void ) pxFirstEndPoint;
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
+        
     /* At least one IPv4 end-point must be defined. */
     configASSERT( pxFirstEndPoint != NULL );
 
@@ -1474,7 +1482,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         eReturn = eProcessBuffer;
     }
     else
-    #if ( ipconfigUSE_LLMNR == 1 )
+    #if (( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ))
         if( memcmp( xLLMNR_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
         {
             /* The packet is a request for LLMNR - process it. */
@@ -1482,7 +1490,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         }
         else
     #endif /* ipconfigUSE_LLMNR */
-    #if ( ipconfigUSE_MDNS == 1 )
+    #if (( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ))
         if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
         {
             /* The packet is a request for MDNS - process it. */
@@ -1784,7 +1792,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol = 0U;
-    const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+        const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
+    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     switch( pxIPPacket->xEthernetHeader.usFrameType )
     {
