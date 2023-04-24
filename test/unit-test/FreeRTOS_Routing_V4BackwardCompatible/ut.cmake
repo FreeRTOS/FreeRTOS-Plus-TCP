@@ -34,7 +34,6 @@ list(APPEND mock_include_list
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
 set(mock_define_list "")
@@ -58,11 +57,11 @@ set(real_include_directories "")
 list(APPEND real_include_directories
             .
             ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${CMOCK_DIR}/vendor/unity/src
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
 	)
 
 # =====================  Create UnitTest Code here (edit)  =====================
