@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_Routing_BothV4V6" )
+set( project_name "FreeRTOS_Routing_V4V6" )
 message( STATUS "${project_name}" )
 set( test_file_name "FreeRTOS_Routing" )
 
