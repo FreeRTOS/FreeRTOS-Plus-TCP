@@ -179,8 +179,31 @@ void test_FreeRTOS_FirstNetworkInterface_null( void )
     TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
 }
 
+/**
+ * @brief test_FreeRTOS_NextNetworkInterface_happy_path
+ * FreeRTOS_NextNetworkInterface returns next network interface correctly.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ *
+ * Test step:
+ *  - Create 1 network interface and attach them into pxNetworkInterfaces.
+ *  - Check if pxNetworkInterfaces is same as first input.
+ *  - Check if we can query next network interface and get NULL correctly by calling FreeRTOS_NextNetworkInterface.
+ */
+void test_FreeRTOS_NextNetworkInterface_happy_path( void )
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = NULL;
 
-// FreeRTOS_FirstNetworkInterface
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    pxNetworkInterface = FreeRTOS_NextNetworkInterface( &xNetworkInterface );
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
+}
+
+
 // FreeRTOS_NextNetworkInterface
 // FreeRTOS_FirstEndPoint
 // FreeRTOS_NextEndPoint
