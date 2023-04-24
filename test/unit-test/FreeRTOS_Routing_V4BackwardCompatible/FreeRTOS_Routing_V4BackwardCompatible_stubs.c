@@ -33,3 +33,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+
+const struct xIPv6_Address FreeRTOS_in6addr_any;
+const struct xIPv6_Address FreeRTOS_in6addr_loopback;
+
+void InitializeUnitTest()
+{
+    pxNetworkEndPoints = NULL;
+    pxNetworkInterfaces = NULL;
+}

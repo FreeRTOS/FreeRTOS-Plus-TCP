@@ -39,7 +39,7 @@
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "Routing_list_macros.h"
+#include "FreeRTOS_Routing_V4V6_list_macros.h"
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 

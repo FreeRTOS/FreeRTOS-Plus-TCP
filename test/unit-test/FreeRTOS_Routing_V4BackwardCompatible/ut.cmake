@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_Routing_BackwardCompatible" )
+set( project_name "FreeRTOS_Routing_V4BackwardCompatible" )
 message( STATUS "${project_name}" )
 set( test_file_name "FreeRTOS_Routing" )
 
@@ -16,15 +16,14 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv6.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_UDP_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Routing_list_macros.h"
         )
 
 set(mock_include_list "")
@@ -51,7 +50,7 @@ set(real_source_files "")
 # list the files you would like to test here
 list(APPEND real_source_files
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${test_file_name}.c
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_IPv4_Utils.c
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}/${project_name}_stubs.c
 	)
 
 set(real_include_directories "")

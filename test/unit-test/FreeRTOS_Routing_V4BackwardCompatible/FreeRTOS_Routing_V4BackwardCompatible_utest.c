@@ -39,16 +39,33 @@
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "mock_Routing_list_macros.h"
+#include "FreeRTOS_Routing_V4BackwardCompatible_list_macros.h"
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_Routing_BackwardCompatible_stubs.c"
+#include "FreeRTOS_Routing_V4BackwardCompatible_stubs.c"
 
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+
+/* ===========================  EXTERN VARIABLES  =========================== */
+
+/* ============================  Unity Fixtures  ============================ */
+
+/*! called before each testcase */
+void setUp( void )
+{
+    InitializeUnitTest();
+}
+
+/*! called after each testcase */
+void tearDown( void )
+{
+}
+
+/* ==============================  Test Cases  ============================== */
 
 void test_FreeRTOS_FillEndPoint( void )
 {
