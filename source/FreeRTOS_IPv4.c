@@ -46,10 +46,144 @@
 #define ipFIRST_MULTI_CAST_IPv4    0xE0000000U          /**< Lower bound of the IPv4 multicast address. */
 #define ipLAST_MULTI_CAST_IPv4     0xF0000000U          /**< Higher bound of the IPv4 multicast address. */
 
+#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+    /* Check IPv4 packet length. */
+    static BaseType_t xCheckIPv4SizeFields( const void * const pvEthernetBuffer,
+                                            size_t uxBufferLength );
+#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
+
+
+#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+
+/**
+ * @brief Check IPv4 packet length.
+ *
+ * @param[in] pvEthernetBuffer The Ethernet packet received.
+ * @param[in] uxBufferLength The total number of bytes received.
+ *
+ * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
+ *         should be dropped.
+ */
+    static BaseType_t xCheckIPv4SizeFields( const void * const pvEthernetBuffer,
+                                            size_t uxBufferLength )
+    {
+        size_t uxLength;
+        UBaseType_t uxIPHeaderLength;
+        uint8_t ucProtocol;
+        uint16_t usLength;
+        uint16_t ucVersionHeaderLength;
+        size_t uxMinimumLength;
+        BaseType_t xResult = pdFAIL;
+
+        /* Map the buffer onto a IP-Packet struct to easily access the
+         * fields of the IP packet. */
+        const IPPacket_t * const pxIPPacket = ( ( const IPPacket_t * const ) pvEthernetBuffer );
+
+        DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
+
+        do
+        {
+            /* Check for minimum packet size: Ethernet header and an IP-header, 34 bytes */
+            if( uxBufferLength < sizeof( IPPacket_t ) )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
+                break;
+            }
+
+            ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;
+
+            /* Test if the length of the IP-header is between 20 and 60 bytes,
+             * and if the IP-version is 4. */
+            if( ( ucVersionHeaderLength < ipIPV4_VERSION_HEADER_LENGTH_MIN ) ||
+                ( ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX ) )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
+                break;
+            }
+
+            ucVersionHeaderLength = ( uint16_t ) ( ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2U );
+            uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
+
+            /* Check if the complete IP-header is transferred. */
+            if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ) )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
+                break;
+            }
+
+            /* Check if the complete IP-header plus protocol data have been transferred: */
+            usLength = pxIPPacket->xIPHeader.usLength;
+            usLength = FreeRTOS_ntohs( usLength );
+
+            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
+                break;
+            }
+
+            /* Identify the next protocol. */
+            ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
+
+            /* Switch on the Layer 3/4 protocol. */
+            if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
+            {
+                /* Expect at least a complete UDP header. */
+                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
+            }
+            else if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
+            {
+                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER;
+            }
+            else if( ( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
+                     ( ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
+            {
+                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER;
+            }
+            else
+            {
+                /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 5 );
+                break;
+            }
+
+            if( uxBufferLength < uxMinimumLength )
+            {
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
+                break;
+            }
+
+            uxLength = ( size_t ) usLength;
+            uxLength -= ( ( uint16_t ) uxIPHeaderLength ); /* normally, minus 20. */
+
+            if( ( uxLength < ( ( size_t ) sizeof( UDPHeader_t ) ) ) ||
+                ( uxLength > ( ( size_t ) ipconfigNETWORK_MTU - ( size_t ) uxIPHeaderLength ) ) )
+            {
+                /* For incoming packets, the length is out of bound: either
+                 * too short or too long. For outgoing packets, there is a
+                 * serious problem with the format/length. */
+                DEBUG_SET_TRACE_VARIABLE( xLocation, 7 );
+                break;
+            }
+
+            xResult = pdPASS;
+        } while( ipFALSE_BOOL );
+
+        if( xResult != pdPASS )
+        {
+            /* NOP if ipconfigHAS_PRINTF != 1 */
+            FreeRTOS_printf( ( "xCheckIPv4SizeFields: location %ld\n", xLocation ) );
+        }
+
+        return xResult;
+    }
+
+#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Is the IP address an IPv4 multicast address.
  *
- * @param[in] ulIPAddress: The IP address being checked.
+ * @param[in] ulIPAddress The IP address being checked.
  *
  * @return pdTRUE if the IP address is a multicast address or else, pdFALSE.
  */
@@ -74,9 +208,9 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 /**
  * @brief Check whether this IPv4 packet is to be allowed or to be dropped.
  *
- * @param[in] pxIPPacket: The IP packet under consideration.
- * @param[in] pxNetworkBuffer: The whole network buffer.
- * @param[in] uxHeaderLength: The length of the header.
+ * @param[in] pxIPPacket The IP packet under consideration.
+ * @param[in] pxNetworkBuffer The whole network buffer.
+ * @param[in] uxHeaderLength The length of the header.
  *
  * @return Whether the packet should be processed or dropped.
  */
@@ -210,7 +344,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
         {
             if( eReturn == eProcessBuffer )
             {
-                if( xCheckSizeFields( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength ) != pdPASS )
+                if( xCheckIPv4SizeFields( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ) != pdPASS )
                 {
                     /* Some of the length checks were not successful. */
                     eReturn = eReleaseBuffer;
@@ -274,7 +408,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
 
 
 /** @brief Check if the IP-header is carrying options.
- * @param[in] pxNetworkBuffer: the network buffer that contains the packet.
+ * @param[in] pxNetworkBuffer the network buffer that contains the packet.
  *
  * @return Either 'eProcessBuffer' or 'eReleaseBuffer'
  */

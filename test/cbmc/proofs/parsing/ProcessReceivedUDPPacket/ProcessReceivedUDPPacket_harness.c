@@ -50,6 +50,7 @@ void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
     BaseType_t * pxIsWaitingForARPResolution;
+    NetworkEndPoint_t xEndpoint;
 
     pxIsWaitingForARPResolution = safeMalloc( sizeof( BaseType_t ) );
 
@@ -61,6 +62,7 @@ void harness()
     if( pxNetworkBuffer )
     {
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
+        pxNetworkBuffer->pxEndPoint = &xEndpoint;
     }
 
     uint16_t usPort;

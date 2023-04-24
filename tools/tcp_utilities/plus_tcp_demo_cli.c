@@ -80,7 +80,7 @@ extern SemaphoreHandle_t xServerSemaphore;
 
 extern uint64_t ullGetHighResolutionTime( void );
 
-uint64_t ullGetHighResolutionTime( void )
+__attribute__( ( weak ) ) uint64_t ullGetHighResolutionTime( void )
 {
     /* In case you don't have a usec timer function. */
     return xTaskGetTickCount();

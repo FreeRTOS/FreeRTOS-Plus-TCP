@@ -78,10 +78,10 @@
  *         called 'xTCP.xPacket'. A temporary xNetworkBuffer will be used to pass
  *         the data to the NIC.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in] pxDescriptor: The network buffer descriptor carrying the packet.
- * @param[in] ulLen: Length of the packet being sent.
- * @param[in] xReleaseAfterSend: pdTRUE if the ownership of the descriptor is
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in] pxDescriptor The network buffer descriptor carrying the packet.
+ * @param[in] ulLen Length of the packet being sent.
+ * @param[in] xReleaseAfterSend pdTRUE if the ownership of the descriptor is
  *                               transferred to the network interface.
  */
     void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
@@ -306,7 +306,7 @@
  * @brief Let ARP look-up the MAC-address of the peer and initialise the first SYN
  *        packet.
  *
- * @param[in] pxSocket: The socket owning the TCP connection. The first packet shall
+ * @param[in] pxSocket The socket owning the TCP connection. The first packet shall
  *               be created in this socket.
  *
  * @return pdTRUE: if the packet was successfully created and the first SYN can be sent.
@@ -387,7 +387,7 @@
         if( xReturn != pdFALSE )
         {
             /* Get a difficult-to-predict initial sequence number for this 4-tuple. */
-            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
+            ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( pxSocket->xLocalAddress.ulIP_IPv4,
                                                                           pxSocket->usLocalPort,
                                                                           pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
                                                                           pxSocket->u.xTCP.usRemotePort );
@@ -487,8 +487,8 @@
  * @brief Common code for sending a TCP protocol control packet (i.e. no options, no
  *        payload, just flags).
  *
- * @param[in] pxNetworkBuffer: The network buffer received from the peer.
- * @param[in] ucTCPFlags: The flags to determine what kind of packet this is.
+ * @param[in] pxNetworkBuffer The network buffer received from the peer.
+ * @param[in] ucTCPFlags The flags to determine what kind of packet this is.
  *
  * @return pdFAIL always indicating that the packet was not consumed.
  */

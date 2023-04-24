@@ -224,7 +224,7 @@ static BaseType_t xIPTaskInitialised = pdFALSE;
  *        'xNetworkEventQueue'. prvIPTask() is the only task which has access to
  *        the data of the IP-stack, and so it has no need of using mutexes.
  *
- * @param[in] pvParameters: Not used.
+ * @param[in] pvParameters Not used.
  */
 
 /** @brief Stores interface structures. */
@@ -550,7 +550,7 @@ static void prvIPTask_CheckPendingEvents( void )
 /**
  * @brief Call the state machine of either DHCP, DHCPv6, or RA, whichever is activated.
  *
- * @param[in] pxEndPoint: The end-point for which the state-machine will be called.
+ * @param[in] pxEndPoint The end-point for which the state-machine will be called.
  */
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
 {
@@ -590,8 +590,10 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
             }
         }
     #endif /* ipconfigUSE_RA */
-    /* Mention pxEndPoint in case it has not been used. */
+
+    /* Mention pxEndPoint and xIsIPv6 in case they have not been used. */
     ( void ) pxEndPoint;
+    ( void ) xIsIPv6;
 }
 /*-----------------------------------------------------------*/
 
@@ -610,7 +612,7 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
 /**
  * @brief Perform all the required tasks when the network gets connected.
  *
- * @param pxEndPoint: The end-point which goes up.
+ * @param pxEndPoint The end-point which goes up.
  */
 void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
 {
@@ -645,7 +647,7 @@ void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
 /**
  * @brief Handle the incoming Ethernet packets.
  *
- * @param[in] pxBuffer: Linked/un-linked network buffer descriptor(s)
+ * @param[in] pxBuffer Linked/un-linked network buffer descriptor(s)
  *                      to be processed.
  */
 static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
@@ -688,8 +690,8 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 /**
  * @brief Send a network packet.
  *
- * @param[in] pxNetworkBuffer: The message buffer.
- * @param[in] xReleaseAfterSend: When true, the network interface will own the buffer and is responsible for it's release.
+ * @param[in] pxNetworkBuffer The message buffer.
+ * @param[in] xReleaseAfterSend When true, the network interface will own the buffer and is responsible for it's release.
  */
 static void prvForwardTxPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                 BaseType_t xReleaseAfterSend )
@@ -708,7 +710,7 @@ static void prvForwardTxPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
  *         the failure will be noted in the variable 'xNetworkDownEventPending'
  *         and later on a 'network-down' event, it will be executed.
  *
- * @param[in] pxNetworkInterface: The interface that goes down.
+ * @param[in] pxNetworkInterface The interface that goes down.
  */
 void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface )
 {
@@ -741,7 +743,7 @@ void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface )
  *        This function is supposed to be called form an ISR. It is recommended
  * - *        use 'FreeRTOS_NetworkDown()', when calling from a normal task.
  *
- * @param[in] pxNetworkInterface: The interface that goes down.
+ * @param[in] pxNetworkInterface The interface that goes down.
  *
  * @return If the event was processed successfully, then return pdTRUE.
  *         Else pdFALSE.
@@ -783,8 +785,8 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  *        FreeRTOS_GetUDPPayloadBuffer_Multi(), which can
  *        allocate a IPv4 or IPv6 buffer based on ucIPType parameter .
  *
- * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
- * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
+ * @param[in] uxRequestedSizeBytes The size of the UDP payload.
+ * @param[in] uxBlockTimeTicks Maximum amount of time for which this call
  *            can block. This value is capped internally.
  *
  * @return If a buffer was created then the pointer to that buffer is returned,
@@ -802,10 +804,10 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
  * @brief Obtain a buffer big enough for a UDP payload of given size and
  *        given IP type.
  *
- * @param[in] uxRequestedSizeBytes: The size of the UDP payload.
- * @param[in] uxBlockTimeTicks: Maximum amount of time for which this call
+ * @param[in] uxRequestedSizeBytes The size of the UDP payload.
+ * @param[in] uxBlockTimeTicks Maximum amount of time for which this call
  *            can block. This value is capped internally.
- * @param[in] ucIPType: Either ipTYPE_IPv4 (0x40) or ipTYPE_IPv6 (0x60)
+ * @param[in] ucIPType Either ipTYPE_IPv4 (0x40) or ipTYPE_IPv6 (0x60)
  *
  * @return If a buffer was created then the pointer to that buffer is returned,
  *         else a NULL pointer is returned.
@@ -1026,7 +1028,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
 /**
  * @brief Release the UDP payload buffer.
  *
- * @param[in] pvBuffer: Pointer to the UDP buffer that is to be released.
+ * @param[in] pvBuffer Pointer to the UDP buffer that is to be released.
  */
 void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 {
@@ -1042,11 +1044,11 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
  * @brief Get the current IPv4 address configuration. Only non-NULL pointers will
  *        be filled in. pxEndPoint must be non-NULL.
  *
- * @param[out] pulIPAddress: The current IP-address assigned.
- * @param[out] pulNetMask: The netmask used for current subnet.
- * @param[out] pulGatewayAddress: The gateway address.
- * @param[out] pulDNSServerAddress: The DNS server address.
- * @param[in] pxEndPoint: The end-point which is being questioned.
+ * @param[out] pulIPAddress The current IP-address assigned.
+ * @param[out] pulNetMask The netmask used for current subnet.
+ * @param[out] pulGatewayAddress The gateway address.
+ * @param[out] pulDNSServerAddress The DNS server address.
+ * @param[in] pxEndPoint The end-point which is being questioned.
  */
 void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                         uint32_t * pulNetMask,
@@ -1089,10 +1091,10 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
  *        NOTE: This function is kept for backward compatibility. Newer
  *        designs should use FreeRTOS_SetEndPointConfiguration().
  *
- * @param[out] pulIPAddress: The current IP-address assigned.
- * @param[out] pulNetMask: The netmask used for current subnet.
- * @param[out] pulGatewayAddress: The gateway address.
- * @param[out] pulDNSServerAddress: The DNS server address.
+ * @param[out] pulIPAddress The current IP-address assigned.
+ * @param[out] pulNetMask The netmask used for current subnet.
+ * @param[out] pulGatewayAddress The gateway address.
+ * @param[out] pulDNSServerAddress The DNS server address.
  */
     void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                            uint32_t * pulNetMask,
@@ -1113,11 +1115,11 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
  * @brief Set the current IPv4 network address configuration. Only non-NULL pointers will
  *        pointers will be used. pxEndPoint must pointer to a valid end-point.
  *
- * @param[in] pulIPAddress: The current IP-address assigned.
- * @param[in] pulNetMask: The netmask used for current subnet.
- * @param[in] pulGatewayAddress: The gateway address.
- * @param[in] pulDNSServerAddress: The DNS server address.
- * @param[in] pxEndPoint: The end-point which is being questioned.
+ * @param[in] pulIPAddress The current IP-address assigned.
+ * @param[in] pulNetMask The netmask used for current subnet.
+ * @param[in] pulGatewayAddress The gateway address.
+ * @param[in] pulDNSServerAddress The DNS server address.
+ * @param[in] pxEndPoint The end-point which is being questioned.
  */
 void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                         const uint32_t * pulNetMask,
@@ -1160,10 +1162,10 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
  *        NOTE: This function is kept for backward compatibility. Newer
  *        designs should use FreeRTOS_SetEndPointConfiguration().
  *
- * @param[in] pulIPAddress: The current IP-address assigned.
- * @param[in] pulNetMask: The netmask used for current subnet.
- * @param[in] pulGatewayAddress: The gateway address.
- * @param[in] pulDNSServerAddress: The DNS server address.
+ * @param[in] pulIPAddress The current IP-address assigned.
+ * @param[in] pulNetMask The netmask used for current subnet.
+ * @param[in] pulGatewayAddress The gateway address.
+ * @param[in] pulDNSServerAddress The DNS server address.
  */
     void FreeRTOS_SetAddressConfiguration( const uint32_t * pulIPAddress,
                                            const uint32_t * pulNetMask,
@@ -1186,9 +1188,9 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
  * @brief Release the memory that was previously obtained by calling FreeRTOS_recv()
  *        with the flag 'FREERTOS_ZERO_COPY'.
  *
- * @param[in] xSocket: The socket that was read from.
- * @param[in] pvBuffer: The buffer returned in the call to FreeRTOS_recv().
- * @param[in] xByteCount: The number of bytes that have been used.
+ * @param[in] xSocket The socket that was read from.
+ * @param[in] pvBuffer The buffer returned in the call to FreeRTOS_recv().
+ * @param[in] xByteCount The number of bytes that have been used.
  *
  * @return pdPASS if the buffer was released successfully, otherwise pdFAIL is returned.
  */
@@ -1234,9 +1236,9 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
  * @brief Send a ping request to the given IP address. After receiving a reply,
  *        IP-task will call a user-supplied function 'vApplicationPingReplyHook()'.
  *
- * @param[in] ulIPAddress: The IP address to which the ping is to be sent.
- * @param[in] uxNumberOfBytesToSend: Number of bytes in the ping request.
- * @param[in] uxBlockTimeTicks: Maximum number of ticks to wait.
+ * @param[in] ulIPAddress The IP address to which the ping is to be sent.
+ * @param[in] uxNumberOfBytesToSend Number of bytes in the ping request.
+ * @param[in] uxBlockTimeTicks Maximum number of ticks to wait.
  *
  * @return If successfully sent to IP task for processing then the sequence
  *         number of the ping packet or else, pdFAIL.
@@ -1252,10 +1254,10 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         static uint16_t usSequenceNumber = 0;
         uint8_t * pucChar;
         size_t uxTotalLength;
+        BaseType_t xEnoughSpace;
         IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
 
         uxTotalLength = uxNumberOfBytesToSend + sizeof( ICMPPacket_t );
-        BaseType_t xEnoughSpace;
 
         if( uxNumberOfBytesToSend < ( ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ) )
         {
@@ -1328,7 +1330,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 /**
  * @brief Send an event to the IP task. It calls 'xSendEventStructToIPTask' internally.
  *
- * @param[in] eEvent: The event to be sent.
+ * @param[in] eEvent The event to be sent.
  *
  * @return pdPASS if the event was sent (or the desired effect was achieved). Else, pdFAIL.
  */
@@ -1347,8 +1349,8 @@ BaseType_t xSendEventToIPTask( eIPEvent_t eEvent )
 /**
  * @brief Send an event (in form of struct) to the IP task to be processed.
  *
- * @param[in] pxEvent: The event to be sent.
- * @param[in] uxTimeout: Timeout for waiting in case the queue is full. 0 for non-blocking calls.
+ * @param[in] pxEvent The event to be sent.
+ * @param[in] uxTimeout Timeout for waiting in case the queue is full. 0 for non-blocking calls.
  *
  * @return pdPASS if the event was sent (or the desired effect was achieved). Else, pdFAIL.
  */
@@ -1420,7 +1422,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 /**
  * @brief Decide whether this packet should be processed or not based on the IP address in the packet.
  *
- * @param[in] pucEthernetBuffer: The ethernet packet under consideration.
+ * @param[in] pucEthernetBuffer The ethernet packet under consideration.
  *
  * @return Enum saying whether to release or to process the packet.
  */
@@ -1506,7 +1508,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 /**
  * @brief Process the Ethernet packet.
  *
- * @param[in,out] pxNetworkBuffer: the network buffer containing the ethernet packet. If the
+ * @param[in,out] pxNetworkBuffer the network buffer containing the ethernet packet. If the
  *                                 buffer is large enough, it may be reused to send a reply.
  */
 static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
@@ -1641,7 +1643,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 /**
  * @brief Check the sizes of the UDP packet and forward it to the UDP module
  *        ( xProcessReceivedUDPPacket() )
- * @param[in] pxNetworkBuffer: The network buffer containing the UDP packet.
+ * @param[in] pxNetworkBuffer The network buffer containing the UDP packet.
  * @return eReleaseBuffer ( please release the buffer ).
  *         eFrameConsumed ( the buffer has now been released ).
  */
@@ -1748,8 +1750,8 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /**
  * @brief Process an IP-packet.
  *
- * @param[in] pxIPPacket: The IP packet to be processed.
- * @param[in] pxNetworkBuffer: The networkbuffer descriptor having the IP packet.
+ * @param[in] pxIPPacket The IP packet to be processed.
+ * @param[in] pxNetworkBuffer The networkbuffer descriptor having the IP packet.
  *
  * @return An enum to show whether the packet should be released/kept/processed etc.
  */
@@ -1933,146 +1935,14 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-
-/**
- * @brief Although the driver will take care of checksum calculations, the IP-task
- *        will still check if the length fields are OK.
- *
- * @param[in] pucEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
- *
- * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
- *         should be dropped.
- */
-    BaseType_t xCheckSizeFields( const uint8_t * const pucEthernetBuffer,
-                                 size_t uxBufferLength )
-    {
-        size_t uxLength;
-        const IPPacket_t * pxIPPacket;
-        UBaseType_t uxIPHeaderLength;
-        uint8_t ucProtocol;
-        uint16_t usLength;
-        uint16_t ucVersionHeaderLength;
-        size_t uxMinimumLength;
-        BaseType_t xResult = pdFAIL;
-
-        DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
-
-        do
-        {
-            /* Check for minimum packet size: Ethernet header and an IP-header, 34 bytes */
-            if( uxBufferLength < sizeof( IPPacket_t ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
-                break;
-            }
-
-            /* Map the buffer onto a IP-Packet struct to easily access the
-             * fields of the IP packet. */
-
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
-
-            ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;
-
-            /* Test if the length of the IP-header is between 20 and 60 bytes,
-             * and if the IP-version is 4. */
-            if( ( ucVersionHeaderLength < ipIPV4_VERSION_HEADER_LENGTH_MIN ) ||
-                ( ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
-                break;
-            }
-
-            ucVersionHeaderLength = ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2;
-            uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
-
-            /* Check if the complete IP-header is transferred. */
-            if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + uxIPHeaderLength ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
-                break;
-            }
-
-            /* Check if the complete IP-header plus protocol data have been transferred: */
-            usLength = pxIPPacket->xIPHeader.usLength;
-            usLength = FreeRTOS_ntohs( usLength );
-
-            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
-                break;
-            }
-
-            /* Identify the next protocol. */
-            ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-
-            /* Switch on the Layer 3/4 protocol. */
-            if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-            {
-                /* Expect at least a complete UDP header. */
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
-            }
-            else if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
-            {
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER;
-            }
-            else if( ( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
-                     ( ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
-            {
-                uxMinimumLength = uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER;
-            }
-            else
-            {
-                /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 5 );
-                break;
-            }
-
-            if( uxBufferLength < uxMinimumLength )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
-                break;
-            }
-
-            uxLength = ( size_t ) usLength;
-            uxLength -= ( ( uint16_t ) uxIPHeaderLength ); /* normally, minus 20. */
-
-            if( ( uxLength < ( ( size_t ) sizeof( UDPHeader_t ) ) ) ||
-                ( uxLength > ( ( size_t ) ipconfigNETWORK_MTU - ( size_t ) uxIPHeaderLength ) ) )
-            {
-                /* For incoming packets, the length is out of bound: either
-                 * too short or too long. For outgoing packets, there is a
-                 * serious problem with the format/length. */
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 7 );
-                break;
-            }
-
-            xResult = pdPASS;
-        } while( ipFALSE_BOOL );
-
-        if( xResult != pdPASS )
-        {
-            /* NOP if ipconfigHAS_PRINTF != 1 */
-            FreeRTOS_printf( ( "xCheckSizeFields: location %ld\n", xLocation ) );
-        }
-
-        return xResult;
-    }
-#endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
-/*-----------------------------------------------------------*/
-
 /* This function is used in other files, has external linkage e.g. in
  * FreeRTOS_DNS.c. Not to be made static. */
 
 /**
  * @brief Send the Ethernet frame after checking for some conditions.
  *
- * @param[in,out] pxNetworkBuffer: The network buffer which is to be sent.
- * @param[in] xReleaseAfterSend: Whether this network buffer is to be released or not.
+ * @param[in,out] pxNetworkBuffer The network buffer which is to be sent.
+ * @param[in] xReleaseAfterSend Whether this network buffer is to be released or not.
  */
 void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
@@ -2241,7 +2111,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /**
  * @brief Sets the IP address of the NIC.
  *
- * @param[in] ulIPAddress: IP address of the NIC to be set.
+ * @param[in] ulIPAddress IP address of the NIC to be set.
  */
     void FreeRTOS_SetIPAddress( uint32_t ulIPAddress )
     {
@@ -2316,7 +2186,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /**
  * @brief Update the MAC address.
  *
- * @param[in] ucMACAddress: the MAC address to be set.
+ * @param[in] ucMACAddress the MAC address to be set.
  */
     void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
     {
@@ -2353,7 +2223,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /**
  * @brief Set the netmask for the subnet.
  *
- * @param[in] ulNetmask: The 32 bit netmask of the subnet.
+ * @param[in] ulNetmask The 32 bit netmask of the subnet.
  */
     void FreeRTOS_SetNetmask( uint32_t ulNetmask )
     {
@@ -2369,7 +2239,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 /**
  * @brief Set the gateway address.
  *
- * @param[in] ulGatewayAddress: The gateway address.
+ * @param[in] ulGatewayAddress The gateway address.
  */
     void FreeRTOS_SetGatewayAddress( uint32_t ulGatewayAddress )
     {
@@ -2446,7 +2316,7 @@ BaseType_t FreeRTOS_IsEndPointUp( const struct xNetworkEndPoint * pxEndPoint )
  * @brief Return pdTRUE if all end-points belonging to a given interface are up.  When
  *        pxInterface is null, all end-points will be checked.
  *
- * @param[in] pxInterface: The network interface of interest, or NULL to check all end-points.
+ * @param[in] pxInterface The network interface of interest, or NULL to check all end-points.
  *
  * @return pdTRUE if all end-points are up, otherwise pdFALSE;
  */
@@ -2491,7 +2361,7 @@ BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface
 
 /**
  * @brief Get the size of the IP-header, by checking the type of the network buffer.
- * @param[in] pxNetworkBuffer: The network buffer.
+ * @param[in] pxNetworkBuffer The network buffer.
  * @return The size of the corresponding IP-header.
  */
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -2518,7 +2388,7 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 
 /**
  * @brief Get the size of the IP-header, by checking if the socket bIsIPv6 set.
- * @param[in] pxSocket: The socket.
+ * @param[in] pxSocket The socket.
  * @return The size of the corresponding IP-header.
  */
 size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )

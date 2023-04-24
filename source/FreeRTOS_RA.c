@@ -91,8 +91,8 @@
 /**
  * @brief Find a link-local address that is bound to a given interface.
  *
- * @param[in] pxInterface: The interface for which a link-local address is looked up.
- * @param[out] pxAddress: The IP address will be copied to this parameter.
+ * @param[in] pxInterface The interface for which a link-local address is looked up.
+ * @param[out] pxAddress The IP address will be copied to this parameter.
  *
  * @return pdPASS in case a link-local address was found, otherwise pdFAIL.
  */
@@ -123,8 +123,8 @@
 /**
  * @brief Send an ICMPv6 message of the type: Router Solicitation.
  *
- * @param[in] pxNetworkBuffer: The network buffer which can be used for this.
- * @param[in] pxIPAddress: The target address, normally ff02::2
+ * @param[in] pxNetworkBuffer The network buffer which can be used for this.
+ * @param[in] pxIPAddress The target address, normally ff02::2
  *
  */
     void vNDSendRouterSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -216,7 +216,7 @@
 /**
  * @brief Receive a NA ( Neighbour Advertisement ) message to see if a chosen IP-address is already in use.
  *
- * @param[in] pxNetworkBuffer: The buffer that contains the message.
+ * @param[in] pxNetworkBuffer The buffer that contains the message.
  */
     void vReceiveNA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
@@ -248,7 +248,7 @@
 /**
  * @brief Read a received RA reply and return the prefix option from the packet.
  *
- * @param[in] pxNetworkBuffer: The buffer that contains the message.
+ * @param[in] pxNetworkBuffer The buffer that contains the message.
  *
  * @returns Returns the ICMP prefix option pointer, pointing to its location in the
  *          input RA reply message buffer.
@@ -308,6 +308,7 @@
                 case ndICMP_MTU_OPTION: /* 5 */
                    {
                        uint32_t ulMTU;
+                       ( void ) ulMTU;
 
                        /* ulChar2u32 returns host-endian numbers. */
                        ulMTU = ulChar2u32( &( pucBytes[ uxIndex + 4U ] ) );
@@ -333,7 +334,7 @@
  *        prefix offered, and completed with random bits.  It will start testing if another device
  *        already exists that uses the same IP-address.
  *
- * @param[in] pxNetworkBuffer: The buffer that contains the message.
+ * @param[in] pxNetworkBuffer The buffer that contains the message.
  */
     void vReceiveRA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
@@ -407,8 +408,8 @@
  * @brief This is an option to test SLAAC. This device will take the IP-address of a
  *        known device in the LAN, just to simulate a IP-address clash.
  *
- * @param[in] xIndex: the index to be used in the list of IP-addresses.
- * @param[out] pxIPAddress: Here the IP-address will be written.
+ * @param[in] xIndex the index to be used in the list of IP-addresses.
+ * @param[out] pxIPAddress Here the IP-address will be written.
  *
  * @return pdPASS if an existing IP-address has been found and written to pxIPAddress.
  */
@@ -449,8 +450,8 @@
  *        there is no other device using the same IP-address vIPNetworkUpCalls() is called
  *        to send the network up event.
  *
- * @param[in] pxEndPoint: The end point for which RA assignment is required.
- * @param[out] uxReloadTime: Timer reload value in ticks.
+ * @param[in] pxEndPoint The end point for which RA assignment is required.
+ * @param[out] uxReloadTime Timer reload value in ticks.
  *
  * @return New timer reload value.
  */
@@ -541,8 +542,8 @@
 /**
  * @brief Handles the RA states other than the wait states.
  *
- * @param[in] pxEndPoint: The end point for which RA assignment is required.
- * @param[out] uxReloadTime: Timer reload value in ticks.
+ * @param[in] pxEndPoint The end point for which RA assignment is required.
+ * @param[out] uxReloadTime Timer reload value in ticks.
  *
  * @return New timer reload value.
  */
@@ -659,7 +660,7 @@
 /**
  * @brief Initialise the RA state machine.
  *
- * @param[in] pxEndPoint: The end-point for which Router Advertisement is required.
+ * @param[in] pxEndPoint The end-point for which Router Advertisement is required.
  */
     static void vRAProcessInit( NetworkEndPoint_t * pxEndPoint )
     {
@@ -670,8 +671,8 @@
 /**
  * @brief Do a single cycle of the RA state machine.
  *
- * @param[in] xDoReset: pdTRUE if the state machine must be reset.
- * @param[in] pxEndPoint: The end-point for which a RA assignment is required.
+ * @param[in] xDoReset pdTRUE if the state machine must be reset.
+ * @param[in] pxEndPoint The end-point for which a RA assignment is required.
  */
     void vRAProcess( BaseType_t xDoReset,
                      NetworkEndPoint_t * pxEndPoint )

@@ -153,7 +153,7 @@
 /**
  * @brief Check whether a given socket is the DHCP socket or not.
  *
- * @param[in] xSocket: The socket to be checked.
+ * @param[in] xSocket The socket to be checked.
  *
  * @return If the socket given as parameter is the DHCP socket - return
  *         pdTRUE, else pdFALSE.
@@ -178,7 +178,7 @@
 /**
  * @brief Returns the current state of a DHCP process.
  *
- * @param[in] pxEndPoint: the end-point which is going through the DHCP process.
+ * @param[in] pxEndPoint the end-point which is going through the DHCP process.
  */
     eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint )
     {
@@ -190,8 +190,8 @@
 /**
  * @brief Process the DHCP state machine based on current state.
  *
- * @param[in] xReset: Is the DHCP state machine starting over? pdTRUE/pdFALSE.
- * @param[in] pxEndPoint: The end-point for which the DHCP state machine should
+ * @param[in] xReset Is the DHCP state machine starting over? pdTRUE/pdFALSE.
+ * @param[in] pxEndPoint The end-point for which the DHCP state machine should
  *                        make one cycle.
  */
     void vDHCPProcess( BaseType_t xReset,
@@ -312,8 +312,8 @@
  * @brief Called by vDHCPProcessEndPoint(), this function handles the state 'eWaitingOffer'.
  *        If there is a reply, it will be examined, if there is a time-out, there may be a new
  *        new attempt, or it will give up.
- * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
- * @param[in] xDoCheck: When true, the function must handle any replies.
+ * @param[in] pxEndPoint The end-point that is getting an IP-address from a DHCP server
+ * @param[in] xDoCheck When true, the function must handle any replies.
  * @return It returns pdTRUE in case the DHCP process must be given up.
  */
     static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
@@ -323,6 +323,9 @@
 
         #if ( ipconfigUSE_DHCP_HOOK != 0 )
             eDHCPCallbackAnswer_t eAnswer;
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
+                IP_Address_t xIPAddress;
+            #endif
         #endif
 
         /* Look for offers coming in. */
@@ -332,7 +335,12 @@
             {
                 #if ( ipconfigUSE_DHCP_HOOK != 0 )
                     /* Ask the user if a DHCP request is required. */
-                    eAnswer = xApplicationDHCPHook( eDHCPPhasePreRequest, EP_DHCPData.ulOfferedIPAddress );
+                    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                        eAnswer = xApplicationDHCPHook( eDHCPPhasePreRequest, EP_DHCPData.ulOfferedIPAddress );
+                    #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+                        xIPAddress.ulIP_IPv4 = EP_DHCPData.ulOfferedIPAddress;
+                        eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreRequest, pxEndPoint, &xIPAddress );
+                    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
                     if( eAnswer == eDHCPContinue )
                 #endif /* ipconfigUSE_DHCP_HOOK */
@@ -446,8 +454,8 @@
  *        If there is a reply, it will be examined, if there is a time-out, there may be a new
  *        new attempt, or it will give up.
  *        After the acknowledge, the leasing of an IP-address will start.
- * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
- * @param[in] xDoCheck: When true, the function must handle any replies.
+ * @param[in] pxEndPoint The end-point that is getting an IP-address from a DHCP server
+ * @param[in] xDoCheck When true, the function must handle any replies.
  */
     static void vHandleWaitingAcknowledge( NetworkEndPoint_t * pxEndPoint,
                                            BaseType_t xDoCheck )
@@ -536,7 +544,7 @@
 /**
  * @brief Called by vDHCPProcessEndPoint(), this function handles the state 'eWaitingSendFirstDiscover'.
  *        If will send a DISCOVER message to a DHCP server, and move to the next status 'eWaitingOffer'.
- * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
+ * @param[in] pxEndPoint The end-point that is getting an IP-address from a DHCP server
  * @return xGivingUp: when pdTRUE, there was a fatal error and the process can not continue;
  */
     static BaseType_t xHandleWaitingFirstDiscover( NetworkEndPoint_t * pxEndPoint )
@@ -545,7 +553,15 @@
 
         /* Ask the user if a DHCP discovery is required. */
         #if ( ipconfigUSE_DHCP_HOOK != 0 )
-            eDHCPCallbackAnswer_t eAnswer = xApplicationDHCPHook( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress );
+            #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                eDHCPCallbackAnswer_t eAnswer = xApplicationDHCPHook( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress );
+            #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+                IP_Address_t xIPAddress;
+                eDHCPCallbackAnswer_t eAnswer;
+
+                xIPAddress.ulIP_IPv4 = pxEndPoint->ipv4_defaults.ulIPAddress;
+                eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreDiscover, pxEndPoint, &xIPAddress );
+            #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
             if( eAnswer == eDHCPContinue )
         #endif /* ipconfigUSE_DHCP_HOOK */
@@ -596,7 +612,7 @@
 /**
  * @brief Called by vDHCPProcessEndPoint(), this function handles the state 'eLeasedAddress'.
  *        If waits until the lease must be renewed, and then send a new request.
- * @param[in] pxEndPoint: The end-point that is getting an IP-address from a DHCP server
+ * @param[in] pxEndPoint The end-point that is getting an IP-address from a DHCP server
  */
     static void prvHandleWaitingeLeasedAddress( NetworkEndPoint_t * pxEndPoint )
     {
@@ -645,10 +661,10 @@
 /**
  * @brief Process the DHCP state machine based on current state.
  *
- * @param[in] xReset: Is the DHCP state machine starting over? pdTRUE/pdFALSE.
- * @param[in] xDoCheck: true when an incoming message is to be expected, and
+ * @param[in] xReset Is the DHCP state machine starting over? pdTRUE/pdFALSE.
+ * @param[in] xDoCheck true when an incoming message is to be expected, and
  *                      prvProcessDHCPReplies() will be called.
- * @param[in] pxEndPoint: The end-point for which the DHCP state machine should
+ * @param[in] pxEndPoint The end-point for which the DHCP state machine should
  *                        make one cycle.
  */
     static void vDHCPProcessEndPoint( BaseType_t xReset,
@@ -814,7 +830,7 @@
 /**
  * @brief Close the DHCP socket, but only when there are no other end-points
  *        using it.
- * @param[in] pxEndPoint: The end-point that stops using the socket.
+ * @param[in] pxEndPoint The end-point that stops using the socket.
  */
     static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
     {
@@ -908,7 +924,7 @@
  * @brief Initialise the DHCP state machine by creating DHCP socket and
  *        begin the transaction.
  *
- * @param[in] pxEndPoint: The end-point that needs DHCP.
+ * @param[in] pxEndPoint The end-point that needs DHCP.
  */
     static void prvInitialiseDHCP( NetworkEndPoint_t * pxEndPoint )
     {
@@ -939,9 +955,9 @@
 /**
  * @brief Called by prvProcessDHCPReplies(), which walks through an array of DHCP options,
  *        this function will check a single option.
- * @param[in] pxEndPoint: The end-point that needs an IP-address.
- * @param[in] pxSet: A set of variables that describe the parsing process.
- * @param[in] xExpectedMessageType: The type of message expected in the
+ * @param[in] pxEndPoint The end-point that needs an IP-address.
+ * @param[in] pxSet A set of variables that describe the parsing process.
+ * @param[in] xExpectedMessageType The type of message expected in the
  *                                  dhcpIPv4_MESSAGE_TYPE_OPTION_CODE option.
  */
     static void vProcessHandleOption( NetworkEndPoint_t * pxEndPoint,
@@ -1107,7 +1123,7 @@
  *        invariant parameters and valid (non broadcast and non localhost)
  *        IP address being assigned to the device.
  *
- * @param[in] pxDHCPMessage: The DHCP message.
+ * @param[in] pxDHCPMessage  The DHCP message.
  *
  * @return pdPASS if the DHCP response has correct parameters; pdFAIL otherwise.
  */
@@ -1138,7 +1154,7 @@
 /**
  * @brief Check an incoming DHCP option.
  *
- * @param[in] pxSet: A set of variables needed to parse the DHCP reply.
+ * @param[in] pxSet A set of variables needed to parse the DHCP reply.
  *
  * @return pdPASS: 1 when the option must be analysed, 0 when the option
  *                 must be skipped, and -1 when parsing must stop.
@@ -1221,9 +1237,9 @@
 /**
  * @brief Process the DHCP replies.
  *
- * @param[in] xExpectedMessageType: The type of the message the DHCP state machine is expecting.
+ * @param[in] xExpectedMessageType The type of the message the DHCP state machine is expecting.
  *                                  Messages of different type will be dropped.
- * @param[in] pxEndPoint: The end-point to whom the replies are addressed.
+ * @param[in] pxEndPoint The end-point to whom the replies are addressed.
  *
  * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
  */
@@ -1333,11 +1349,11 @@
 /**
  * @brief Create a partial DHCP message by filling in all the 'constant' fields.
  *
- * @param[out] pxAddress: Address to be filled in.
- * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
- * @param[in] pucOptionsArray: The options to be added to the packet.
- * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
- * @param[in] pxEndPoint: The end-point for which the request will be sent.
+ * @param[out] pxAddress Address to be filled in.
+ * @param[out] xOpcode Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
+ * @param[in] pucOptionsArray The options to be added to the packet.
+ * @param[in,out] pxOptionsArraySize Byte count of the options. Its value might change.
+ * @param[in] pxEndPoint The end-point for which the request will be sent.
  *
  * @return Ethernet buffer of the partially created DHCP packet.
  */
@@ -1464,7 +1480,7 @@
 /**
  * @brief Create and send a DHCP request message through the DHCP socket.
  *
- * @param[in] pxEndPoint: The end-point for which the request will be sent.
+ * @param[in] pxEndPoint The end-point for which the request will be sent.
  */
     static BaseType_t prvSendDHCPRequest( NetworkEndPoint_t * pxEndPoint )
     {
@@ -1540,7 +1556,7 @@
 /**
  * @brief Create and send a DHCP discover packet through the DHCP socket.
  *
- * @param[in] pxEndPoint: the end-point for which the discover message will be sent.
+ * @param[in] pxEndPoint the end-point for which the discover message will be sent.
  *
  * @return: pdPASS if the DHCP discover message was sent successfully, pdFAIL otherwise.
  */
@@ -1629,7 +1645,7 @@
  * @brief When DHCP has failed, the code can assign a Link-Layer address, and check if
  *        another device already uses the IP-address.
  *
- * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
+ * param[in] pxEndPoint The end-point that wants to obtain a link-layer address.
  */
         void prvPrepareLinkLayerIPLookUp( NetworkEndPoint_t * pxEndPoint )
         {

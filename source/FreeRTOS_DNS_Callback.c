@@ -48,8 +48,8 @@
  * @brief A DNS reply was received, see if there is any matching entry and
  *        call the handler.
  *
- * @param[in,out] pxSet: a set of variables that are shared among the helper functions.
- * @param[in] pxAddress: Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.
+ * @param[in,out] pxSet a set of variables that are shared among the helper functions.
+ * @param[in] pxAddress Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.
  *
  * @return Returns pdTRUE if uxIdentifier was recognized.
  */
@@ -122,12 +122,12 @@
  * @brief FreeRTOS_gethostbyname_a() was called along with callback parameters.
  *        Store them in a list for later reference.
  *
- * @param[in] pcHostName: The hostname whose IP address is being searched for.
- * @param[in] pvSearchID: The search ID of the DNS callback function to set.
- * @param[in] pCallbackFunction: The callback function pointer.
- * @param[in] uxTimeout: Timeout of the callback function.
- * @param[in] uxIdentifier: Random number used as ID in the DNS message.
- * @param[in] xIsIPv6: pdTRUE if the address type should be IPv6.
+ * @param[in] pcHostName The hostname whose IP address is being searched for.
+ * @param[in] pvSearchID The search ID of the DNS callback function to set.
+ * @param[in] pCallbackFunction The callback function pointer.
+ * @param[in] uxTimeout Timeout of the callback function.
+ * @param[in] uxIdentifier Random number used as ID in the DNS message.
+ * @param[in] xIsIPv6 pdTRUE if the address type should be IPv6.
  */
     void vDNSSetCallBack( const char * pcHostName,
                           void * pvSearchID,
@@ -183,7 +183,7 @@
  * As soon as the list has become empty, the DNS timer will be stopped.
  * In case pvSearchID is supplied, the user wants to cancel a DNS request.
  *
- * @param[in] pvSearchID: The search ID of callback function whose associated
+ * @param[in] pvSearchID The search ID of callback function whose associated
  *                 DNS request is being cancelled. If non-ID specific checking of
  *                 all requests is required, then this field should be kept as NULL.
  */

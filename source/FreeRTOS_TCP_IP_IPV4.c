@@ -79,7 +79,7 @@
 /**
  * @brief Process the received TCP packet.
  *
- * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+ * @param[in] pxDescriptor The descriptor in which the TCP packet is held.
  *
  * @return If the processing of the packet was successful, then pdPASS is returned
  *         or else pdFAIL.
@@ -98,28 +98,33 @@
     {
         /* Function might modify the parameter. */
         NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
+        const ProtocolHeaders_t * pxProtocolHeaders;
+        FreeRTOS_Socket_t * pxSocket;
+        uint16_t ucTCPFlags;
+        uint32_t ulLocalIP;
+        uint16_t usLocalPort;
+        uint16_t usRemotePort;
+        IP_Address_t ulRemoteIP;
+        uint32_t ulSequenceNumber;
+        uint32_t ulAckNumber;
+        BaseType_t xResult = pdPASS;
+
+        const IPHeader_t * pxIPHeader;
 
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-        /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
-
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
-        FreeRTOS_Socket_t * pxSocket;
-        uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
-        uint32_t ulLocalIP;
-        uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
-        uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-        IP_Address_t ulRemoteIP;
-        uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
-        uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
-        BaseType_t xResult = pdPASS;
+        pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
 
-        const IPHeader_t * pxIPHeader;
+        ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
+        usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
+        usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
+        ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
+        ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
 
         /* Check for a minimum packet size. */
         if( pxNetworkBuffer->xDataLength < ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ) )

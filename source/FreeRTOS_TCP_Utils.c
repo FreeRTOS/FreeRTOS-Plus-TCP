@@ -56,10 +56,12 @@
  */
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
+        static char retString[ 10 ];
+
 /**
  * @brief Print out the value of flags in a human readable manner.
  *
- * @param[in] xFlags: The TCP flags.
+ * @param[in] xFlags The TCP flags.
  *
  * @return The string containing the flags.
  */
@@ -86,7 +88,7 @@
 /**
  * @brief Set the MSS (Maximum segment size) associated with the given socket.
  *
- * @param[in] pxSocket: The socket whose MSS is to be set.
+ * @param[in] pxSocket The socket whose MSS is to be set.
  */
     void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {

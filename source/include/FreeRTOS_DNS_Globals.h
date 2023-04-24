@@ -130,12 +130,16 @@
     #endif
     #define ipMDNS_TIME_TO_LIVE      255U
     #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
-    #define ipLLMNR_PORT             5355        /* Standard LLMNR port. */
-    #define ipDNS_PORT               53          /* Standard DNS port. */
-    #define ipDHCP_CLIENT            67
-    #define ipDHCP_SERVER            68
-    #define ipNBNS_PORT              137 /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT             138 /* Datagram Service, not included. */
+    #define ipLLMNR_PORT             5355U       /* Standard LLMNR port. */
+    #define ipDNS_PORT               53U         /* Standard DNS port. */
+    #define ipDHCP_CLIENT_PORT       67U
+    #define ipDHCP_SERVER_PORT       68U
+    #define ipNBNS_PORT              137U /* NetBIOS Name Service. */
+    #define ipNBDGM_PORT             138U /* Datagram Service, not included. */
+    /** @brief Default v6 DHCP client port. */
+    #define ipDHCPv6_CLIENT_PORT     546U
+    /** @brief Default v6 DHCP server port. */
+    #define ipDHCPv6_SERVER_PORT     547U
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
@@ -145,7 +149,7 @@
         BaseType_t ai_socktype;             /**< n.a. */
         BaseType_t ai_protocol;             /**< n.a. */
         socklen_t ai_addrlen;               /**< The length of the address, either ipSIZE_OF_IPv4_ADDRESS or ipSIZE_OF_IPv6_ADDRESS. */
-        struct freertos_sockaddr * ai_addr; /**< The IP-address. Can be mapped onto 'sin_address.xIP_IPv6' in case of IPv6. */
+        struct freertos_sockaddr * ai_addr; /**< The socket address. */
         char * ai_canonname;                /**< The name of the host. */
         struct freertos_addrinfo * ai_next; /**< A pointer to the next find result, or NULL. */
         struct
@@ -314,7 +318,7 @@
  * The following function should be provided by the user and return true if it
  * matches the domain name.
  */
-        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             /* Even though the function is defined in main.c, the rule is violated. */
             /* misra_c_2012_rule_8_6_violation */
             extern BaseType_t xApplicationDNSQueryHook( const char * pcName );
@@ -323,7 +327,7 @@
             /* misra_c_2012_rule_8_6_violation */
             extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
                                                               const char * pcName );
-        #endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+        #endif
 
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */

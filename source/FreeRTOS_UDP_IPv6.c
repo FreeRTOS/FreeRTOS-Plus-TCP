@@ -79,7 +79,7 @@ extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType );
  * @brief Get the first end point of the type (IPv4/IPv6) from the list
  *        the list of end points.
  *
- * @param[in] xIPType: IT type (ipTYPE_IPv6/ipTYPE_IPv4)
+ * @param[in] xIPType IT type (ipTYPE_IPv6/ipTYPE_IPv4)
  *
  * @returns Pointer to the first end point of the given IP type from the
  *          list of end points.
@@ -116,9 +116,9 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
  *        i.e. in the cache 'eARPCacheMiss' was returned.
  *        Either an ARP request or a Neighbour solicitation will be emitted.
  *
- * @param[in] pxNetworkBuffer : The network buffer carrying the UDP or ICMP packet.
+ * @param[in] pxNetworkBuffer  The network buffer carrying the UDP or ICMP packet.
  *
- * @param[out] pxLostBuffer : The pointee will be set to true in case the network packet got released
+ * @param[out] pxLostBuffer  The pointee will be set to true in case the network packet got released
  *                            ( the ownership was taken ).
  */
 static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNetworkBuffer,
@@ -193,7 +193,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
  * @brief Process the generated UDP packet and do other checks before sending the
  *        packet such as ARP cache check and address resolution.
  *
- * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
+ * @param[in] pxNetworkBuffer The network buffer carrying the packet.
  */
 void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
@@ -412,9 +412,9 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
 /**
  * @brief Process the received UDP packet.
  *
- * @param[in] pxNetworkBuffer: The network buffer carrying the UDP packet.
- * @param[in] usPort: The port number on which this packet was received.
- * @param[out] pxIsWaitingForARPResolution: If the packet is awaiting ARP resolution,
+ * @param[in] pxNetworkBuffer The network buffer carrying the UDP packet.
+ * @param[in] usPort The port number on which this packet was received.
+ * @param[out] pxIsWaitingForARPResolution If the packet is awaiting ARP resolution,
  *             this pointer will be set to pdTRUE. pdFALSE otherwise.
  *
  * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
@@ -586,6 +586,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
+
+            ( void ) pxProtocolHeaders;
 
             /* There is no socket listening to the target port, but still it might
              * be for this node. */

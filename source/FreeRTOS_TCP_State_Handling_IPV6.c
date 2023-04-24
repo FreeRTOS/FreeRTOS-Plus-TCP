@@ -68,8 +68,8 @@
 /**
  * @brief Handle 'listen' event on the given socket.
  *
- * @param[in] pxSocket: The socket on which the listen occurred.
- * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
+ * @param[in] pxSocket The socket on which the listen occurred.
+ * @param[in] pxNetworkBuffer The network buffer carrying the packet.
  *
  * @return If a new socket/duplicate socket is created, then the pointer to
  *         that socket is returned or else, a NULL pointer is returned.
@@ -98,13 +98,6 @@
             {
                 xHasSequence = pdTRUE;
             }
-
-/*
- *          ulInitialSequenceNumber = ulApplicationGetNextSequenceNumber( *ipLOCAL_IP_ADDRESS_POINTER,
- *                                                                        pxSocket->usLocalPort,
- *                                                                        pxTCPPacket->xIPHeader.ulSourceIPAddress,
- *                                                                        pxTCPPacket->xTCPHeader.usSourcePort );
- */
         }
 
         /* A pure SYN (without ACK) has come in, create a new socket to answer
@@ -163,7 +156,7 @@
             }
         }
 
-        if( ( xHasSequence != 0 ) && ( pxReturn != NULL ) )
+        if( ( xHasSequence != pdFALSE ) && ( pxReturn != NULL ) )
         {
             /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 

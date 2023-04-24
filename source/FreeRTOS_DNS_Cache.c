@@ -200,13 +200,13 @@
 /**
  * @brief process a DNS Cache request (get, update, or insert)
  *
- * @param[in] pcName: the name of the host
- * @param[in,out] pxIP: when doing a lookup, will be set, when doing an update,
+ * @param[in] pcName the name of the host
+ * @param[in,out] pxIP when doing a lookup, will be set, when doing an update,
  *                       will be read.
- * @param[in] ulTTL: Time To Live (in seconds)
- * @param[in] xLookUp: pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
+ * @param[in] ulTTL Time To Live (in seconds)
+ * @param[in] xLookUp pdTRUE if a look-up is expected, pdFALSE, when the DNS cache must
  *                     be updated.
- * @param[in,out] ppxAddressInfo: A pointer to a pointer where the find results
+ * @param[in,out] ppxAddressInfo A pointer to a pointer where the find results
  *                                will be stored.
  * @return whether the operation was successful
  * @post the global structure \a xDNSCache might be modified
@@ -231,7 +231,7 @@
             pxIP->ulIPAddress = 0U;
         }
 
-        ulCurrentTimeSeconds = ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U;
+        ulCurrentTimeSeconds = ( uint32_t ) ( ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U );
         xResult = prvFindEntryIndex( pcName, pxIP, &uxIndex );
 
         if( xResult == pdTRUE )
@@ -347,7 +347,7 @@
 
 /**
  * @brief get entry at \p index from the cache
- * @param[in]  uxIndex : index in the cache
+ * @param[in]  uxIndex index in the cache
  * @param[out] pxIP fill it with the result
  * @param[in]  ulCurrentTimeSeconds current time
  * @param[out] ppxAddressInfo Target to store the DNS entries.
@@ -407,7 +407,7 @@
 
 /**
  * @brief update entry at \p index in the cache
- * @param[in] uxIndex : index in the cache
+ * @param[in] uxIndex index in the cache
  * @param[in] ulTTL time to live (in seconds)
  * @param[in] pxIP ip to update the cache with
  * @param[in] ulCurrentTimeSeconds current time
@@ -482,8 +482,8 @@
 
 /**
  * @brief Copy DNS cache entries at uxIndex to a linked struct addrinfo.
- * @param[in] uxIndex: The index from where entries must be copied.
- * @param[out] ppxAddressInfo: Target to store the DNS entries.
+ * @param[in] uxIndex The index from where entries must be copied.
+ * @param[out] ppxAddressInfo Target to store the DNS entries.
  */
         static void prvReadDNSCache( BaseType_t uxIndex,
                                      struct freertos_addrinfo ** ppxAddressInfo )
@@ -538,9 +538,9 @@
 
 /**
  * @brief Lookup the given hostname in the DNS cache
- * @param[in] pcHostName: THe host name to lookup
- * @param[in] xFamily: IP type FREERTOS_AF_INET6 / FREERTOS_AF_INET4
- * @param[out] ppxAddressInfo: Target to store the DNS entries.
+ * @param[in] pcHostName THe host name to lookup
+ * @param[in] xFamily IP type FREERTOS_AF_INET6 / FREERTOS_AF_INET4
+ * @param[out] ppxAddressInfo Target to store the DNS entries.
  * @returns This function returns either a valid IPv4 address, or
  *                          in case of an IPv6 lookup, it will return a non-zero.
  */
