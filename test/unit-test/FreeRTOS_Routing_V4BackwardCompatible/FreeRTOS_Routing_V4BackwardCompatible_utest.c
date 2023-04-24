@@ -136,6 +136,49 @@ void test_FreeRTOS_AddNetworkInterface_null( void )
     TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces );
 }
 
+/**
+ * @brief test_FreeRTOS_FirstNetworkInterface_happy_path
+ * FreeRTOS_FirstNetworkInterface should be able to find the first network interface.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ *
+ * Test step:
+ *  - Assign a network interface into pxNetworkInterfaces.
+ *  - Call FreeRTOS_FirstNetworkInterface to get first network interface.
+ *  - Check if the return is same as the input.
+ */
+void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = NULL;
+
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    pxNetworkInterface = FreeRTOS_FirstNetworkInterface();
+
+    TEST_ASSERT_EQUAL( &xNetworkInterface, pxNetworkInterface );
+}
+
+/**
+ * @brief test_FreeRTOS_FirstNetworkInterface_null
+ * FreeRTOS_FirstNetworkInterface should be able to return NULL if there is no network interface avilable.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ *
+ * Test step:
+ *  - Call FreeRTOS_FirstNetworkInterface to get first network interface.
+ *  - Check if the return is NULL.
+ */
+void test_FreeRTOS_FirstNetworkInterface_null( void )
+{
+    NetworkInterface_t * pxNetworkInterface = NULL;
+
+    pxNetworkInterface = FreeRTOS_FirstNetworkInterface();
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkInterface );
+}
+
 
 // FreeRTOS_FirstNetworkInterface
 // FreeRTOS_NextNetworkInterface
