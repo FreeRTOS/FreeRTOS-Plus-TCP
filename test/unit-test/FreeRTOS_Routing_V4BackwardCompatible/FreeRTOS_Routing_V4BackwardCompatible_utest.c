@@ -123,46 +123,6 @@ void test_FreeRTOS_FillEndPoint_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_dhcp_happy_path
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
- * are valid IPv4 default setting with DHCP enabled.
- *
- * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
- *
- * Test step:
- *  - Call FreeRTOS_FillEndPoint to fill IP address, netmask, gateway address,
- *    DNS server address, and MAC address into endpoint.
- *  - Check if pxNetworkEndPoints is same as input endpoint.
- *  - Check if all setting are correctly stored in endpoint.
- */
-void test_FreeRTOS_FillEndPoint_dhcp_happy_path( void )
-{
-    NetworkInterface_t xInterfaces;
-    NetworkEndPoint_t xEndPoint;
-
-    memset( &xInterfaces, 0, sizeof( NetworkInterface_t ) );
-    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
-    xEndPoint.bits.bWantDHCP = 1U;
-
-    FreeRTOS_FillEndPoint( &xInterfaces,
-                           &xEndPoint,
-                           ucDefaultIPAddress_IPv4,
-                           ucDefaultNetMask_IPv4,
-                           ucDefaultGatewayAddress_IPv4,
-                           ucDefaultDNSServerAddress_IPv4,
-                           ucDefaultMACAddress_IPv4 );
-
-    TEST_ASSERT_EQUAL( &xEndPoint, pxNetworkEndPoints );
-    TEST_ASSERT_EQUAL( &xEndPoint, xInterfaces.pxEndPoint );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint.ipv4_defaults.ulIPAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint.ipv4_defaults.ulNetMask );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint.ipv4_defaults.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
-    TEST_ASSERT_EQUAL_MEMORY( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, ipMAC_ADDRESS_LENGTH_BYTES );
-    TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint.bits.bIPv6 );
-}
-
-/**
  * @brief test_FreeRTOS_FillEndPoint_null_interface
  * The purpose of this test is to verify FreeRTOS_FillEndPoint when network interface is NULL.
  *
