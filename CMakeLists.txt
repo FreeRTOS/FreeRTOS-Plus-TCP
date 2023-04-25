@@ -151,6 +151,9 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     ENABLE_ALL              # Enable all configuration settings
     ENABLE_ALL_IPV4         # Enable all configuration settings IPv4
     ENABLE_ALL_IPV6         # Enable all configuration settings IPv6
+    ENABLE_ALL_IPV4_TCP     # Enable all configuration settings IPv4 TCP
+    ENABLE_ALL_IPV6_TCP     # Enable all configuration settings IPv6 TCP
+    ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6
     DISABLE_ALL             # Disable all configuration settings
     DEFAULT_CONF            # Default (typical) configuration
 )
