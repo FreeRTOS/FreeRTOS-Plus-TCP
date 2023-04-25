@@ -46,7 +46,9 @@
 #include "FreeRTOS_TCP_Utils.h"
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
-#if ipconfigUSE_TCP == 1
+/* *INDENT-OFF* */
+#if( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 )
+/* *INDENT-ON* */
 
 /**
  * @brief Set the MSS (Maximum segment size) associated with the given socket.
@@ -86,4 +88,6 @@
     }
     /*-----------------------------------------------------------*/
 
-#endif /* ipconfigUSE_TCP == 1 */
+/* *INDENT-OFF* */
+#endif /* ( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 ) */
+/* *INDENT-ON* */

@@ -62,7 +62,9 @@
 
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
-#if ipconfigUSE_TCP == 1
+/* *INDENT-OFF* */
+#if( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 )
+/* *INDENT-ON* */
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
@@ -351,7 +353,9 @@
     }
     /*-----------------------------------------------------------*/
 
-#endif /* ipconfigUSE_TCP == 1 */
+/* *INDENT-OFF* */
+#endif /* ( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 ) */
+/* *INDENT-ON* */
 
 /* Provide access to private members for testing. */
 #ifdef FREERTOS_ENABLE_UNIT_TESTS
