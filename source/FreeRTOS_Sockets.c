@@ -5863,6 +5863,8 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
+#if ( ipconfigUSE_TCP == 1 )
+
 /**
  * @brief This internal function will check if a given TCP
  *        socket has had any select event, either READ, WRITE,
@@ -5954,6 +5956,8 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
 
         return xSocketBits;
     }
+    
+#endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /**
  * @brief This internal non-blocking function will check all sockets that belong
