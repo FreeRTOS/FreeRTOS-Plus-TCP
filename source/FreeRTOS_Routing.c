@@ -418,6 +418,8 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             pxEndPoint = pxEndPoint->pxNext;
         }
 
+        ( void ) ulIPAddress;
+
         return pxEndPoint;
     }
 /*-----------------------------------------------------------*/
