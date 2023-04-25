@@ -40,6 +40,11 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 
+/* Just make sure the contents doesn't get compiled if IPv4 is not enabled. */
+/* *INDENT-OFF* */
+    #if( ipconfigUSE_IPv4 != 0 )
+/* *INDENT-ON* */
+
 /*-----------------------------------------------------------*/
 
 /**
@@ -147,3 +152,7 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
     return xReturn;
 }
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+    #endif /* ipconfigUSE_IPv4 != 0 ) */
+/* *INDENT-ON* */

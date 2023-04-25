@@ -3423,28 +3423,30 @@ BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
 }
 /*-----------------------------------------------------------*/
 
-/**
- * @brief Convert the IP address from "w.x.y.z" (dotted decimal) format to the 32-bit format.
- *
- * @param[in] pcIPAddress The character string pointer holding the IP-address in the "W.X.Y.Z"
- *                         (dotted decimal) format.
- *
- * @return The 32-bit representation of IP(v4) address.
- */
-uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
-{
-    uint32_t ulReturn = 0U;
-
-    /* inet_pton AF_INET target is a 4-byte 'struct in_addr'. */
-    if( pdFAIL == FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) ) )
+#if( ipconfigUSE_IPv4 != 0 )
+    /**
+     * @brief Convert the IP address from "w.x.y.z" (dotted decimal) format to the 32-bit format.
+     *
+     * @param[in] pcIPAddress The character string pointer holding the IP-address in the "W.X.Y.Z"
+     *                         (dotted decimal) format.
+     *
+     * @return The 32-bit representation of IP(v4) address.
+     */
+    uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
     {
-        /* Return 0 if translation failed. */
-        ulReturn = 0U;
-    }
+        uint32_t ulReturn = 0U;
 
-    return ulReturn;
-}
-/*-----------------------------------------------------------*/
+        /* inet_pton AF_INET target is a 4-byte 'struct in_addr'. */
+        if( pdFAIL == FreeRTOS_inet_pton4( pcIPAddress, &( ulReturn ) ) )
+        {
+            /* Return 0 if translation failed. */
+            ulReturn = 0U;
+        }
+
+        return ulReturn;
+    }
+    /*-----------------------------------------------------------*/
+#endif /* ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief Function to get the local address and IP port of the given socket.
@@ -5956,7 +5958,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
 
         return xSocketBits;
     }
-    
+
 #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /**

@@ -82,13 +82,6 @@
     #define arpIP_CLASH_MAX_RETRIES    1U
 #endif
 
-/*
- * Lookup an MAC address in the ARP cache from the IP address.
- */
-static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
-                                          MACAddress_t * const pxMACAddress,
-                                          NetworkEndPoint_t ** ppxEndPoint );
-
 static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
                                       NetworkEndPoint_t * pxTargetEndPoint,
                                       uint32_t ulSenderProtocolAddress );
@@ -97,9 +90,19 @@ static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
                                     NetworkEndPoint_t * pxTargetEndPoint,
                                     uint32_t ulSenderProtocolAddress );
 
-static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
-                                                    MACAddress_t * const pxMACAddress,
-                                                    struct xNetworkEndPoint ** ppxEndPoint );
+#if( ipconfigUSE_IPv4 != 0 )
+
+    /*
+    * Lookup an MAC address in the ARP cache from the IP address.
+    */
+    static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+                                            MACAddress_t * const pxMACAddress,
+                                            NetworkEndPoint_t ** ppxEndPoint );
+                                            
+    static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
+                                                        MACAddress_t * const pxMACAddress,
+                                                        struct xNetworkEndPoint ** ppxEndPoint );
+#endif /* ipconfigUSE_IPv4 != 0 ) */
 
 static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                                      const uint32_t ulIPAddress,
@@ -876,219 +879,222 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
 
 /*-----------------------------------------------------------*/
 
-/**
- * @brief Look for ulIPAddress in the ARP cache.
- *
- * @param[in,out] pulIPAddress Pointer to the IP-address to be queried to the ARP cache.
- * @param[in,out] pxMACAddress Pointer to a MACAddress_t variable where the MAC address
- *                          will be stored, if found.
- * @param[out] ppxEndPoint Pointer to the end-point of the gateway will be stored.
- *
- * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
- *         refresh the ARP cache entry's age, and return eARPCacheHit. If the IP
- *         address does not exist in the ARP cache return eARPCacheMiss. If the packet
- *         cannot be sent for any reason (maybe DHCP is still in process, or the
- *         addressing needs a gateway but there isn't a gateway defined) then return
- *         eCantSendPacket.
- */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress,
-                                      struct xNetworkEndPoint ** ppxEndPoint )
-{
-    eARPLookupResult_t eReturn;
-    uint32_t ulAddressToLookup;
-    NetworkEndPoint_t * pxEndPoint = NULL;
-
-    configASSERT( pxMACAddress != NULL );
-    configASSERT( pulIPAddress != NULL );
-    configASSERT( ppxEndPoint != NULL );
-
-    *( ppxEndPoint ) = NULL;
-    ulAddressToLookup = *pulIPAddress;
-    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
-
-    if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
+#if( ipconfigUSE_IPv4 != 0 )
+    /**
+     * @brief Look for ulIPAddress in the ARP cache.
+     *
+     * @param[in,out] pulIPAddress Pointer to the IP-address to be queried to the ARP cache.
+     * @param[in,out] pxMACAddress Pointer to a MACAddress_t variable where the MAC address
+     *                          will be stored, if found.
+     * @param[out] ppxEndPoint Pointer to the end-point of the gateway will be stored.
+     *
+     * @return If the IP address exists, copy the associated MAC address into pxMACAddress,
+     *         refresh the ARP cache entry's age, and return eARPCacheHit. If the IP
+     *         address does not exist in the ARP cache return eARPCacheMiss. If the packet
+     *         cannot be sent for any reason (maybe DHCP is still in process, or the
+     *         addressing needs a gateway but there isn't a gateway defined) then return
+     *         eCantSendPacket.
+     */
+    eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                        MACAddress_t * const pxMACAddress,
+                                        struct xNetworkEndPoint ** ppxEndPoint )
     {
-        /* Get the lowest 23 bits of the IP-address. */
-        vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
+        eARPLookupResult_t eReturn;
+        uint32_t ulAddressToLookup;
+        NetworkEndPoint_t * pxEndPoint = NULL;
 
-        eReturn = eCantSendPacket;
-        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        configASSERT( pxMACAddress != NULL );
+        configASSERT( pulIPAddress != NULL );
+        configASSERT( ppxEndPoint != NULL );
 
-        for( ;
-             pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
-        {
-            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
-            {
-                /* For multi-cast, use the first IPv4 end-point. */
-                *( ppxEndPoint ) = pxEndPoint;
-                eReturn = eARPCacheHit;
-                break;
-            }
-        }
-    }
-    else if( ( FreeRTOS_htonl( ulAddressToLookup ) & 0xffU ) == 0xffU ) /* Is this a broadcast address like x.x.x.255 ? */
-    {
-        /* This is a broadcast so it uses the broadcast MAC address. */
-        ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
-        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
-
-        if( pxEndPoint != NULL )
-        {
-            *( ppxEndPoint ) = pxEndPoint;
-        }
-
-        eReturn = eARPCacheHit;
-    }
-    else
-    {
-        eReturn = eARPGetCacheEntryGateWay( pulIPAddress, pxMACAddress, ppxEndPoint );
-    }
-
-    return eReturn;
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief The IPv4 address is apparently a web-address. Find a gateway..
- * @param[in] pulIPAddress The target IP-address. It may be replaced with the IP
- *                          address of a gateway.
- * @param[in] pxMACAddress In case the MAC-address is found in cache, it will be
- *                          stored to the buffer provided.
- * @param[out] ppxEndPoint The end-point of the gateway will be copy to the pointee.
- */
-static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
-                                                    MACAddress_t * const pxMACAddress,
-                                                    struct xNetworkEndPoint ** ppxEndPoint )
-{
-    eARPLookupResult_t eReturn = eARPCacheMiss;
-    uint32_t ulAddressToLookup = *( pulIPAddress );
-    NetworkEndPoint_t * pxEndPoint;
-    uint32_t ulOrginal = *pulIPAddress;
-
-    /* It is assumed that devices with the same netmask are on the same
-     * LAN and don't need a gateway. */
-    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
-
-    if( pxEndPoint == NULL )
-    {
-        /* No matching end-point is found, look for a gateway. */
-        #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
-            eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
-
-            if( eReturn == eARPCacheHit )
-            {
-                /* The stack is configured to store 'remote IP addresses', i.e. addresses
-                 * belonging to a different the netmask.  prvCacheLookup() returned a hit, so
-                 * the MAC address is known. */
-            }
-            else
-        #endif
-        {
-            /* The IP address is off the local network, so look up the
-             * hardware address of the router, if any. */
-            *( ppxEndPoint ) = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv4 );
-
-            if( *( ppxEndPoint ) != NULL )
-            {
-                /* 'ipv4_settings' can be accessed safely, because 'ipTYPE_IPv4' was provided. */
-                ulAddressToLookup = ( *ppxEndPoint )->ipv4_settings.ulGatewayAddress;
-            }
-            else
-            {
-                ulAddressToLookup = *pulIPAddress;
-            }
-        }
-    }
-    else
-    {
-        /* The IP address is on the local network, so lookup the requested
-         * IP address directly. */
+        *( ppxEndPoint ) = NULL;
         ulAddressToLookup = *pulIPAddress;
-        *ppxEndPoint = pxEndPoint;
-    }
+        pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
 
-    #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
-        if( eReturn == eARPCacheMiss )
-    #endif
-    {
-        if( ulAddressToLookup == 0U )
+        if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
         {
-            /* The address is not on the local network, and there is not a
-             * router. */
+            /* Get the lowest 23 bits of the IP-address. */
+            vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
+
             eReturn = eCantSendPacket;
+            pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+
+            for( ;
+                pxEndPoint != NULL;
+                pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+            {
+                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                {
+                    /* For multi-cast, use the first IPv4 end-point. */
+                    *( ppxEndPoint ) = pxEndPoint;
+                    eReturn = eARPCacheHit;
+                    break;
+                }
+            }
+        }
+        else if( ( FreeRTOS_htonl( ulAddressToLookup ) & 0xffU ) == 0xffU ) /* Is this a broadcast address like x.x.x.255 ? */
+        {
+            /* This is a broadcast so it uses the broadcast MAC address. */
+            ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+            pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
+
+            if( pxEndPoint != NULL )
+            {
+                *( ppxEndPoint ) = pxEndPoint;
+            }
+
+            eReturn = eARPCacheHit;
         }
         else
         {
-            eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
-
-            if( ( eReturn != eARPCacheHit ) || ( ulOrginal != ulAddressToLookup ) )
-            {
-                FreeRTOS_debug_printf( ( "ARP %xip %s using %xip\n",
-                                         ( unsigned ) FreeRTOS_ntohl( ulOrginal ),
-                                         ( eReturn == eARPCacheHit ) ? "hit" : "miss",
-                                         ( unsigned ) FreeRTOS_ntohl( ulAddressToLookup ) ) );
-            }
-
-            /* It might be that the ARP has to go to the gateway. */
-            *pulIPAddress = ulAddressToLookup;
+            eReturn = eARPGetCacheEntryGateWay( pulIPAddress, pxMACAddress, ppxEndPoint );
         }
+
+        return eReturn;
     }
+    /*-----------------------------------------------------------*/
 
-    return eReturn;
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Lookup an IP address in the ARP cache.
- *
- * @param[in] ulAddressToLookup The 32-bit representation of an IP address to
- *                               lookup.
- * @param[out] pxMACAddress A pointer to MACAddress_t variable where, if there
- *                          is an ARP cache hit, the MAC address corresponding to
- *                          the IP address will be stored.
- * @param[in,out] ppxEndPoint a pointer to the end-point will be stored.
- *
- * @return When the IP-address is found: eARPCacheHit, when not found: eARPCacheMiss,
- *         and when waiting for a ARP reply: eCantSendPacket.
- */
-static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
-                                          MACAddress_t * const pxMACAddress,
-                                          NetworkEndPoint_t ** ppxEndPoint )
-{
-    BaseType_t x;
-    eARPLookupResult_t eReturn = eARPCacheMiss;
-
-    /* Loop through each entry in the ARP cache. */
-    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    /**
+     * @brief The IPv4 address is apparently a web-address. Find a gateway..
+     * @param[in] pulIPAddress The target IP-address. It may be replaced with the IP
+     *                          address of a gateway.
+     * @param[in] pxMACAddress In case the MAC-address is found in cache, it will be
+     *                          stored to the buffer provided.
+     * @param[out] ppxEndPoint The end-point of the gateway will be copy to the pointee.
+     */
+    static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
+                                                        MACAddress_t * const pxMACAddress,
+                                                        struct xNetworkEndPoint ** ppxEndPoint )
     {
-        /* Does this row in the ARP cache table hold an entry for the IP address
-         * being queried? */
-        if( xARPCache[ x ].ulIPAddress == ulAddressToLookup )
+        eARPLookupResult_t eReturn = eARPCacheMiss;
+        uint32_t ulAddressToLookup = *( pulIPAddress );
+        NetworkEndPoint_t * pxEndPoint;
+        uint32_t ulOrginal = *pulIPAddress;
+
+        /* It is assumed that devices with the same netmask are on the same
+        * LAN and don't need a gateway. */
+        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
+
+        if( pxEndPoint == NULL )
         {
-            /* A matching valid entry was found. */
-            if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )
+            /* No matching end-point is found, look for a gateway. */
+            #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
+                eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
+
+                if( eReturn == eARPCacheHit )
+                {
+                    /* The stack is configured to store 'remote IP addresses', i.e. addresses
+                    * belonging to a different the netmask.  prvCacheLookup() returned a hit, so
+                    * the MAC address is known. */
+                }
+                else
+            #endif
             {
-                /* This entry is waiting an ARP reply, so is not valid. */
+                /* The IP address is off the local network, so look up the
+                * hardware address of the router, if any. */
+                *( ppxEndPoint ) = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv4 );
+
+                if( *( ppxEndPoint ) != NULL )
+                {
+                    /* 'ipv4_settings' can be accessed safely, because 'ipTYPE_IPv4' was provided. */
+                    ulAddressToLookup = ( *ppxEndPoint )->ipv4_settings.ulGatewayAddress;
+                }
+                else
+                {
+                    ulAddressToLookup = *pulIPAddress;
+                }
+            }
+        }
+        else
+        {
+            /* The IP address is on the local network, so lookup the requested
+            * IP address directly. */
+            ulAddressToLookup = *pulIPAddress;
+            *ppxEndPoint = pxEndPoint;
+        }
+
+        #if ( ipconfigARP_STORES_REMOTE_ADDRESSES == 1 )
+            if( eReturn == eARPCacheMiss )
+        #endif
+        {
+            if( ulAddressToLookup == 0U )
+            {
+                /* The address is not on the local network, and there is not a
+                * router. */
                 eReturn = eCantSendPacket;
             }
             else
             {
-                /* A valid entry was found. */
-                ( void ) memcpy( pxMACAddress->ucBytes, xARPCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-                /* ppxEndPoint != NULL was tested in the only caller eARPGetCacheEntry(). */
-                *( ppxEndPoint ) = xARPCache[ x ].pxEndPoint;
-                eReturn = eARPCacheHit;
+                eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
+
+                if( ( eReturn != eARPCacheHit ) || ( ulOrginal != ulAddressToLookup ) )
+                {
+                    FreeRTOS_debug_printf( ( "ARP %xip %s using %xip\n",
+                                            ( unsigned ) FreeRTOS_ntohl( ulOrginal ),
+                                            ( eReturn == eARPCacheHit ) ? "hit" : "miss",
+                                            ( unsigned ) FreeRTOS_ntohl( ulAddressToLookup ) ) );
+                }
+
+                /* It might be that the ARP has to go to the gateway. */
+                *pulIPAddress = ulAddressToLookup;
             }
-
-            break;
         }
-    }
 
-    return eReturn;
-}
-/*-----------------------------------------------------------*/
+        return eReturn;
+    }
+    /*-----------------------------------------------------------*/
+
+    /**
+     * @brief Lookup an IP address in the ARP cache.
+     *
+     * @param[in] ulAddressToLookup The 32-bit representation of an IP address to
+     *                               lookup.
+     * @param[out] pxMACAddress A pointer to MACAddress_t variable where, if there
+     *                          is an ARP cache hit, the MAC address corresponding to
+     *                          the IP address will be stored.
+     * @param[in,out] ppxEndPoint a pointer to the end-point will be stored.
+     *
+     * @return When the IP-address is found: eARPCacheHit, when not found: eARPCacheMiss,
+     *         and when waiting for a ARP reply: eCantSendPacket.
+     */
+    static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+                                            MACAddress_t * const pxMACAddress,
+                                            NetworkEndPoint_t ** ppxEndPoint )
+    {
+        BaseType_t x;
+        eARPLookupResult_t eReturn = eARPCacheMiss;
+
+        /* Loop through each entry in the ARP cache. */
+        for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+        {
+            /* Does this row in the ARP cache table hold an entry for the IP address
+            * being queried? */
+            if( xARPCache[ x ].ulIPAddress == ulAddressToLookup )
+            {
+                /* A matching valid entry was found. */
+                if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )
+                {
+                    /* This entry is waiting an ARP reply, so is not valid. */
+                    eReturn = eCantSendPacket;
+                }
+                else
+                {
+                    /* A valid entry was found. */
+                    ( void ) memcpy( pxMACAddress->ucBytes, xARPCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+                    /* ppxEndPoint != NULL was tested in the only caller eARPGetCacheEntry(). */
+                    *( ppxEndPoint ) = xARPCache[ x ].pxEndPoint;
+                    eReturn = eARPCacheHit;
+                }
+
+                break;
+            }
+        }
+
+        return eReturn;
+    }
+    /*-----------------------------------------------------------*/
+
+#endif /* ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief A call to this function will update (or 'Age') the ARP cache entries.
@@ -1272,66 +1278,68 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 }
 /*-----------------------------------------------------------*/
 
-/**
- * @brief  Wait for address resolution: look-up the IP-address in the ARP-cache, and if
- *         needed send an ARP request, and wait for a reply.  This function is useful when
- *         called before FreeRTOS_sendto().
- *
- * @param[in] ulIPAddress The IP-address to look-up.
- * @param[in] uxTicksToWait The maximum number of clock ticks to wait for a reply.
- *
- * @return Zero when successful.
- */
-BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
-                               TickType_t uxTicksToWait )
-{
-    BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
-    TimeOut_t xTimeOut;
-    MACAddress_t xMACAddress;
-    eARPLookupResult_t xLookupResult;
-    NetworkEndPoint_t * pxEndPoint;
-    size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
-    uint32_t ulIPAddressCopy = ulIPAddress;
-
-    /* The IP-task is not supposed to call this function. */
-    configASSERT( xIsCallingFromIPTask() == pdFALSE );
-
-    xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ), &( pxEndPoint ) );
-
-    if( xLookupResult == eARPCacheMiss )
+#if( ipconfigUSE_IPv4 != 0 )
+    /**
+     * @brief  Wait for address resolution: look-up the IP-address in the ARP-cache, and if
+     *         needed send an ARP request, and wait for a reply.  This function is useful when
+     *         called before FreeRTOS_sendto().
+     *
+     * @param[in] ulIPAddress The IP-address to look-up.
+     * @param[in] uxTicksToWait The maximum number of clock ticks to wait for a reply.
+     *
+     * @return Zero when successful.
+     */
+    BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+                                TickType_t uxTicksToWait )
     {
-        const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
+        BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
+        TimeOut_t xTimeOut;
+        MACAddress_t xMACAddress;
+        eARPLookupResult_t xLookupResult;
+        NetworkEndPoint_t * pxEndPoint;
+        size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
+        uint32_t ulIPAddressCopy = ulIPAddress;
 
-        /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
-        vTaskSetTimeOutState( &xTimeOut );
+        /* The IP-task is not supposed to call this function. */
+        configASSERT( xIsCallingFromIPTask() == pdFALSE );
 
-        while( uxSendCount > 0U )
+        xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ), &( pxEndPoint ) );
+
+        if( xLookupResult == eARPCacheMiss )
         {
-            FreeRTOS_OutputARPRequest( ulIPAddressCopy );
+            const TickType_t uxSleepTime = pdMS_TO_TICKS( 250U );
 
-            vTaskDelay( uxSleepTime );
+            /* We might use ipconfigMAX_ARP_RETRANSMISSIONS here. */
+            vTaskSetTimeOutState( &xTimeOut );
 
-            xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ), &( pxEndPoint ) );
-
-            if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
-                ( xLookupResult != eARPCacheMiss ) )
+            while( uxSendCount > 0U )
             {
-                break;
+                FreeRTOS_OutputARPRequest( ulIPAddressCopy );
+
+                vTaskDelay( uxSleepTime );
+
+                xLookupResult = eARPGetCacheEntry( &( ulIPAddressCopy ), &( xMACAddress ), &( pxEndPoint ) );
+
+                if( ( xTaskCheckForTimeOut( &( xTimeOut ), &( uxTicksToWait ) ) == pdTRUE ) ||
+                    ( xLookupResult != eARPCacheMiss ) )
+                {
+                    break;
+                }
+
+                /* Decrement the count. */
+                uxSendCount--;
             }
-
-            /* Decrement the count. */
-            uxSendCount--;
         }
-    }
 
-    if( xLookupResult == eARPCacheHit )
-    {
-        xResult = 0;
-    }
+        if( xLookupResult == eARPCacheHit )
+        {
+            xResult = 0;
+        }
 
-    return xResult;
-}
-/*-----------------------------------------------------------*/
+        return xResult;
+    }
+    /*-----------------------------------------------------------*/
+#endif /* ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief Generate an ARP request packet by copying various constant details to

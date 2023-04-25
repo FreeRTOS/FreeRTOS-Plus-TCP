@@ -51,6 +51,11 @@
 /** @brief The number of octets that make up an IP address. */
 #define socketMAX_IP_ADDRESS_OCTETS    ( 4U )
 
+/* Just make sure the contents doesn't get compiled if IPv4 is not enabled. */
+/* *INDENT-OFF* */
+    #if( ipconfigUSE_IPv4 != 0 )
+/* *INDENT-ON* */
+
 /**
  * @brief This function converts the character string pcSource into a network address
  *        structure, then copies the network address structure to pvDestination.
@@ -261,3 +266,7 @@ size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
 }
 
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+    #endif /* ipconfigUSE_IPv4 != 0 ) */
+/* *INDENT-ON* */
