@@ -150,6 +150,7 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     CUSTOM                  # Custom (external) configuration -eg from a top-level project
     ENABLE_ALL              # Enable all configuration settings
     ENABLE_ALL_IPV4         # Enable all configuration settings IPv4
+    ENABLE_ALL_IPV6         # Enable all configuration settings IPv6
     DISABLE_ALL             # Disable all configuration settings
     DEFAULT_CONF            # Default (typical) configuration
 )
