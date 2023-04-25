@@ -34,11 +34,11 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
-#define ipconfigUSE_IPv4                           ( 0 )
+#define ipconfigUSE_IPv4                           ( 1 )
 
-#define ipconfigUSE_IPv6                           ( 1 )
+#define ipconfigUSE_IPv6                           ( 0 )
 
-#define ipconfigUSE_DHCPv6                         1
+#define ipconfigUSE_DHCPv6                         0
 #define ipconfigIPv4_BACKWARD_COMPATIBLE           1
 #define ipconfigUSE_ARP_REVERSED_LOOKUP            1
 #define ipconfigUSE_ARP_REMOVE_ENTRY               1
@@ -101,7 +101,7 @@
  * call to FreeRTOS_gethostbyname() will return immediately, without even creating
  * a socket.
  */
-#define ipconfigUSE_DNS_CACHE                      ( 0 )
+#define ipconfigUSE_DNS_CACHE                      ( 1 )
 #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 6 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
@@ -246,7 +246,7 @@ extern uint32_t ulRand();
 #define ipconfigTCP_TIME_TO_LIVE                       128
 
 /* USE_TCP: Use TCP and all its features. */
-#define ipconfigUSE_TCP                                ( 0 )
+#define ipconfigUSE_TCP                                ( 1 )
 
 /* USE_WIN: Let TCP use windowing mechanism. */
 #define ipconfigUSE_TCP_WIN                            ( 1 )
