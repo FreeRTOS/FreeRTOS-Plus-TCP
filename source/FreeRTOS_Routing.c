@@ -1175,7 +1175,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
         ( void ) pxMACAddress;
         ( void ) pxInterface;
 
-        if( memcmp( pxNetworkEndPoints->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
+        if( ( pxMACAddress != NULL ) && ( memcmp( pxNetworkEndPoints->xMACAddress.ucBytes, pxMACAddress->ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) )
         {
             pxResult = pxNetworkEndPoints;
         }

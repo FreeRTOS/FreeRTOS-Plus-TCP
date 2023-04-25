@@ -1896,7 +1896,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_not_found( void )
     xEndPoint.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
     pxNetworkEndPoints = &xEndPoint;
 
-    /* 192.168.1.1 is . */
+    /* 192.168.1.1 is 0x0101A8C0. */
     pxEndPoint = FreeRTOS_FindEndPointOnNetMask( 0x0101A8C0, 0 );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
@@ -2418,7 +2418,7 @@ void test_pxGetSocketEndpoint_null()
  * Test step:
  *  - Create 1 endpoint and add it to the list.
  *  - Create 1 socket handler.
- *  - Call pxGetSocketEndpoint to attach previous endpoint to this socket handler.
+ *  - Call vSetSocketEndpoint to attach previous endpoint to this socket handler.
  *  - Check if the endpoint in socket handler is same.
  */
 void test_vSetSocketEndpoint_happy_path()
@@ -2446,7 +2446,7 @@ void test_vSetSocketEndpoint_happy_path()
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
  * Test step:
- *  - Call pxGetSocketEndpoint with NULL socket handler.
+ *  - Call vSetSocketEndpoint with NULL socket handler.
  */
 void test_vSetSocketEndpoint_null_socket()
 {
