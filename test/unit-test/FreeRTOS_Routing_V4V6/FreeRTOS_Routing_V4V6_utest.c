@@ -86,13 +86,13 @@ const uint8_t ucDefaultMACAddress_IPv6[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x11, 0
 
 /* ============================  Unity Fixtures  ============================ */
 
-/*! called before each testcase */
+/*! called before each test case */
 void setUp( void )
 {
     InitializeUnitTest();
 }
 
-/*! called after each testcase */
+/*! called after each test case */
 void tearDown( void )
 {
 }
@@ -239,7 +239,7 @@ void test_FreeRTOS_FillEndPoint_null_interface( void )
 
 /**
  * @brief test_FreeRTOS_FillEndPoint_null_endpoint
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when enpoint is NULL.
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint when endpoint is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -549,7 +549,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_interface( void )
 
 /**
  * @brief test_FreeRTOS_FillEndPoint_IPv6_null_endpoint
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when enpoint is NULL.
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when endpoint is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -930,7 +930,7 @@ void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
 
 /**
  * @brief test_FreeRTOS_FirstNetworkInterface_null
- * FreeRTOS_FirstNetworkInterface should be able to return NULL if there is no network interface avilable.
+ * FreeRTOS_FirstNetworkInterface should be able to return NULL if there is no network interface available.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  *

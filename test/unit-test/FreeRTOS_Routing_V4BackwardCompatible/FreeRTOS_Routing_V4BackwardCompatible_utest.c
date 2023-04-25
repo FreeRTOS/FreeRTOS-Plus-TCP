@@ -69,13 +69,13 @@ const uint8_t ucDefaultMACAddress_IPv4[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0
 
 /* ============================  Unity Fixtures  ============================ */
 
-/*! called before each testcase */
+/*! called before each test case */
 void setUp( void )
 {
     InitializeUnitTest();
 }
 
-/*! called after each testcase */
+/*! called after each test case */
 void tearDown( void )
 {
 }
@@ -192,7 +192,7 @@ void test_FreeRTOS_FillEndPoint_null_interface( void )
 
 /**
  * @brief test_FreeRTOS_FillEndPoint_null_endpoint
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when enpoint is NULL.
+ * The purpose of this test is to verify FreeRTOS_FillEndPoint when endpoint is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -259,7 +259,7 @@ void test_FreeRTOS_FillEndPoint_multiple_endpoints( void )
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint[ 0 ].bits.bIPv6 );
     memset( &xEndPoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
 
-    /* Assertion trigged due to trying to add second endpoint with backward compatible enabled. */
+    /* Assertion triggered due to trying to add second endpoint with backward compatible enabled. */
     catch_assert( FreeRTOS_FillEndPoint( &xInterfaces,
                                          &xEndPoint[ 1 ],
                                          ucDefaultGatewayAddress_IPv4,
@@ -309,7 +309,7 @@ void test_FreeRTOS_FillEndPoint_same_endpoint( void )
     TEST_ASSERT_EQUAL_MEMORY( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint.bits.bIPv6 );
 
-    /* Assertion trigged due to trying to add second endpoint with backward compatible enabled. */
+    /* Assertion triggered due to trying to add second endpoint with backward compatible enabled. */
     catch_assert( FreeRTOS_FillEndPoint( &xInterfaces,
                                          &xEndPoint,
                                          ucDefaultIPAddress_IPv4,
@@ -414,7 +414,7 @@ void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
 
 /**
  * @brief test_FreeRTOS_FirstNetworkInterface_null
- * FreeRTOS_FirstNetworkInterface should be able to return NULL if there is no network interface avilable.
+ * FreeRTOS_FirstNetworkInterface should be able to return NULL if there is no network interface available.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  *

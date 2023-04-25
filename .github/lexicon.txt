@@ -2,6 +2,7 @@ aaa
 aaaa
 aaaaaaa
 aal
+ab
 abcd
 abuflen
 ack
@@ -114,6 +115,7 @@ cbmc
 ccfg
 cchannel
 cchar
+cd
 ce
 centralised
 ceo
@@ -245,6 +247,7 @@ eestablished
 eevent
 eeventtype
 eexpectedstate
+ef
 eframeconsumed
 eg
 egetlinklayeraddress
@@ -339,9 +342,12 @@ fcowr
 fcs
 fd
 fe
+fecf
 fef
 fes
 ff
+ffee
+ffff
 ffnn
 fifo
 finalise
@@ -673,6 +679,7 @@ pcbuffer
 pcdata
 pcdestination
 pce
+pcendpointname
 pcf
 pcformat
 pcfrom
@@ -929,6 +936,7 @@ pxfrom
 pxgatewayaddress
 pxgetnetworkbuffer
 pxgetnetworkbufferwithdescriptor
+pxgetsocketendpoint
 pxhandleconnected
 pxhandlereceive
 pxhandlesent
@@ -962,6 +970,7 @@ pxnetprefix
 pxnetworkbuffer
 pxnetworkendpoints
 pxnetworkinterface
+pxnetworkinterfaces
 pxnewaddress
 pxnewbuffer
 pxnewlistitem
@@ -1663,6 +1672,7 @@ vreceivera
 vreleasenetworkbufferanddescriptor
 vreturnethernetframe
 vrxfaultinjection
+vsetsocketendpoint
 vsocketbind
 vsocketclose
 vsocketclosenexttime
