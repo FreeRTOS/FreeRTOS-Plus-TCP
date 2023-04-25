@@ -58,12 +58,10 @@
 #include "FreeRTOS_TCP_State_Handling.h"
 #include "FreeRTOS_TCP_Utils.h"
 
-/* *INDENT-OFF* */
-#if( ipconfigUSE_IPv6 != 0 )
-/* *INDENT-ON* */
-
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
-#if ipconfigUSE_TCP == 1
+/* *INDENT-OFF* */
+#if( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_TCP == 1 )
+/* *INDENT-ON* */
 
 /**
  * @brief Handle 'listen' event on the given socket.
@@ -203,8 +201,6 @@
     }
     /*-----------------------------------------------------------*/
 
-#endif /* ipconfigUSE_TCP == 1 */
-
 /* *INDENT-OFF* */
-#endif /* ( ipconfigUSE_IPv6 != 0 ) */
+#endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_TCP == 1 ) */
 /* *INDENT-ON* */
