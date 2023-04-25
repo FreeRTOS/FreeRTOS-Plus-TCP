@@ -1789,13 +1789,16 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn;
-    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
     UBaseType_t uxHeaderLength;
     uint8_t ucProtocol = 0U;
 
     #if ( ipconfigUSE_IPv6 != 0 )
         const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+    #if ( ipconfigUSE_IPv4 != 0 )
+        const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
     switch( pxIPPacket->xEthernetHeader.usFrameType )
     {

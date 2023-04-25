@@ -128,14 +128,8 @@
 
     #define ipLLMNR_PORT             5355U       /* Standard LLMNR port. */
     #define ipDNS_PORT               53U         /* Standard DNS port. */
-    #define ipDHCP_CLIENT_PORT       67U
-    #define ipDHCP_SERVER_PORT       68U
     #define ipNBNS_PORT              137U /* NetBIOS Name Service. */
     #define ipNBDGM_PORT             138U /* Datagram Service, not included. */
-    /** @brief Default v6 DHCP client port. */
-    #define ipDHCPv6_CLIENT_PORT     546U
-    /** @brief Default v6 DHCP server port. */
-    #define ipDHCPv6_SERVER_PORT     547U
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
