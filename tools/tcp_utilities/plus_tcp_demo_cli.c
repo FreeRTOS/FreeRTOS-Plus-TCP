@@ -80,6 +80,9 @@ extern SemaphoreHandle_t xServerSemaphore;
 
 extern uint64_t ullGetHighResolutionTime( void );
 
+/* Some compilers do not support __attribute__( ( weak ) ) for a function declaration,
+ * hence updating the declaration.
+ */
 #pragma WEAK ( ullGetHighResolutionTime )
 uint64_t ullGetHighResolutionTime( void )
 {
