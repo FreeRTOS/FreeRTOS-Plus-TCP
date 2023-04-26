@@ -118,8 +118,11 @@ void test_vProcessGeneratedUDPPacket_CantSendPacket( void )
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
 
+    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pucLocalEthernetBuffer );
+
     /* Cleanup the ethernet buffer. */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eCantSendPacket );
 
@@ -161,6 +164,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketSmaller( void )
 
     /* Map the UDP packet onto the start of the frame. */
     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
     eARPGetCacheEntry_ReturnMemThruPtr_pulIPAddress( &ulLocalIPAddress, sizeof( ulLocalIPAddress ) );
@@ -198,7 +202,6 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
     vConfigureInterfaceAndEndpoints( &xLocalNetworkBuffer, &xEndPoint, &xInterface );
 
     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
-    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     xLocalNetworkBuffer.pucEthernetBuffer = pucLocalEthernetBuffer;
     xLocalNetworkBuffer.xDataLength = sizeof( UDPPacket_t );
@@ -206,6 +209,7 @@ void test_vProcessGeneratedUDPPacket_CacheMiss_PacketNotSmaller( void )
 
     /* / * Cleanup the ethernet buffer. * / */
     memset( pucLocalEthernetBuffer, 0, ipconfigTCP_MSS );
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     /* / * Map the UDP packet onto the start of the frame. * / */
 
@@ -249,6 +253,7 @@ void test_vProcessGeneratedUDPPacket_UnknownARPReturn( void )
 
     /* Map the UDP packet onto the start of the frame. */
     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     /* Return an unknown value. */
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eCantSendPacket + 1 );
@@ -291,6 +296,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_NoICMP( void )
 
     /* Map the UDP packet onto the start of the frame. */
     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
 
@@ -341,6 +347,7 @@ void test_vProcessGeneratedUDPPacket_CacheHit_ICMPPacket_LLMNR_UDPChkSumOption( 
 
     /* Map the UDP packet onto the start of the frame. */
     pxUDPPacket = ( UDPPacket_t * ) pucLocalEthernetBuffer;
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
 
