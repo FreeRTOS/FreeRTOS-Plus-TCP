@@ -80,11 +80,16 @@ extern SemaphoreHandle_t xServerSemaphore;
 
 extern uint64_t ullGetHighResolutionTime( void );
 
-__attribute__( ( weak ) ) uint64_t ullGetHighResolutionTime( void )
+/* Some compilers do not support __attribute__( ( weak ) ) for a function declaration,
+ * hence updating the declaration.
+ */
+#pragma WEAK ( ullGetHighResolutionTime )
+uint64_t ullGetHighResolutionTime( void )
 {
     /* In case you don't have a usec timer function. */
     return xTaskGetTickCount();
 }
+
 #define PING_TIMEOUT    100U
 
 typedef struct xCommandOptions
