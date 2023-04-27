@@ -121,6 +121,27 @@ jobs:
           cmake --build build --target freertos_plus_tcp_build_test
       - name: Build checks (Disable all functionalities)
         run: |
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4
+          cmake --build build --target clean
+          cmake --build build --target freertos_plus_tcp_build_test
+        run: |
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6
+          cmake --build build --target freertos_plus_tcp_build_test
+      - name: Build checks (Disable all functionalities)
+        run: |
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_IPV6
+          cmake --build build --target clean
+          cmake --build build --target freertos_plus_tcp_build_test
+      - name: Build checks (Default configuration)
+        run: |
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_TCP
+          cmake --build build --target clean
+          cmake --build build --target freertos_plus_tcp_build_test
+        run: |
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6_TCP
+          cmake --build build --target freertos_plus_tcp_build_test
+      - name: Build checks (Disable all functionalities)
+        run: |
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
