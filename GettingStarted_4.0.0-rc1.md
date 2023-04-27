@@ -1,3 +1,7 @@
+Moving to 4.0.0-rc2 from 4.0.0-rc1:
+--------------------------------
+In version 4.0.0-rc2, new changes have been added to address IPv6 issues observed by Maxwell protocol tester. Protocol testing involves compliance checks for IPv4 and IPv6 to ensure that the FreeRTOS-Plus-TCP stack is more robust and not vulnerable to the wide range of attacks in today's Internet.
+
 Moving to 4.0.0-rc1 from 3.x.x:
 -----------------------------
 In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
@@ -46,6 +50,21 @@ Change 5:
    - Existing API: vApplicationIPNetworkEventHook
    - New API: vApplicationIPNetworkEventHook_Multi
       - New argument “struct xNetworkInterface * pxNetworkInterface” added.
+      - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
+
+API changes in 4.0.0-rc2:
+----------------------
+
+Change 6:
+   - Existing API: xApplicationDHCPHook
+   - New API: xApplicationDHCPHook_Multi
+      - New argument "struct xNetworkEndPoint * pxEndPoint" added.
+      - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
+
+Change 7:
+   - Existing API: xApplicationDNSQueryHook
+   - New API: xApplicationDNSQueryHook_Multi
+      - New argument "struct xNetworkEndPoint * pxEndPoint" added.
       - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
 
 **NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
