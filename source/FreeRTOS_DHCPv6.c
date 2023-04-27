@@ -666,9 +666,6 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
 
             /* Initial state.  Create the DHCP socket, timer, etc. if they
              * have not already been created. */
-
-            /* Initial state.  Create the DHCP socket, timer, etc. if they
-             * have not already been created. */
             prvInitialiseDHCPv6( pxEndPoint );
             EP_DHCPData.eDHCPState = eWaitingSendFirstDiscover;
             break;
@@ -1006,7 +1003,7 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 
         memset( &xAddress, 0, sizeof( xAddress ) );
         xAddress.sin_family = FREERTOS_AF_INET6;
-        xAddress.sin_len = ( uint8_t ) sizeof( sizeof( xAddress ) );
+        xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
         /* Bind to the standard DHCP client port. */
         xAddress.sin_port = FreeRTOS_htons( ipDHCPv6_CLIENT_PORT );
         xReturn = vSocketBind( xDHCPv6Socket, &xAddress, sizeof( xAddress ), pdFALSE );

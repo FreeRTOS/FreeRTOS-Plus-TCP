@@ -43,9 +43,12 @@ struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
 
 BaseType_t xARPHadIPClash = pdFALSE;
 
+extern Socket_t xDHCPv6Socket;
+
 void InitializeUnitTest()
 {
     pxNetworkEndPoints = NULL;
+    xDHCPv6Socket = NULL;
 }
 
 uint32_t ulApplicationTimeHook( void )
