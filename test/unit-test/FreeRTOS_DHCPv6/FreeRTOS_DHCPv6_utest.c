@@ -60,7 +60,6 @@ void tearDown( void )
 
 /* ==============================  Test Cases  ============================== */
 
-
 /**
  * @brief test_eGetDHCPv6State_happy_path
  * Check if eGetDHCPv6State can return DHCP state correctly.
@@ -74,13 +73,25 @@ void test_eGetDHCPv6State_happy_path()
     NetworkEndPoint_t xEndPoint;
     eDHCPState_t eState = eInitialWait, eStateMax = eNotUsingLeasedAddress;
     eDHCPState_t eReturnState;
-    
+
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    
-    for( eState = eInitialWait ; eState <= eNotUsingLeasedAddress ; eState++ )
+
+    for( eState = eInitialWait; eState <= eNotUsingLeasedAddress; eState++ )
     {
         xEndPoint.xDHCPData.eDHCPState = eState;
         eReturnState = eGetDHCPv6State( &xEndPoint );
         TEST_ASSERT_EQUAL( eState, eReturnState );
     }
+}
+
+/**
+ * @brief test_eGetDHCPv6State_null
+ * Check if eGetDHCPv6State trigger assertion when input is NULL.
+ *
+ * Test step:
+ *  - Call eGetDHCPv6State with NULL.
+ */
+void test_eGetDHCPv6State_null()
+{
+    catch_assert( eGetDHCPv6State( NULL ) );
 }
