@@ -218,7 +218,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     NetworkInterface_t * pxInterface = NULL;
     EthernetHeader_t * pxEthernetHeader = NULL;
     BaseType_t xLostBuffer = pdFALSE;
-    NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
     IPv6_Address_t xIPv6Address;
 
     /* Map the UDP packet onto the start of the frame. */
