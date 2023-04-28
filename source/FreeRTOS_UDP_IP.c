@@ -105,16 +105,16 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 
     switch( pxUDPPacket->xEthernetHeader.usFrameType )
     {
-    #if ( ipconfigUSE_IPv4 != 0 )
-        case ipIPv4_FRAME_TYPE:
-            vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
-            break;
-    #endif
-    #if ( ipconfigUSE_IPv6 != 0 )
-        case ipIPv6_FRAME_TYPE:
-            vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-            break;
-    #endif
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case ipIPv4_FRAME_TYPE:
+                vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+                break;
+        #endif
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case ipIPv6_FRAME_TYPE:
+                vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
+                break;
+        #endif
         default:
             /* do nothing, coverity happy */
             break;
@@ -151,18 +151,18 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
 
     switch( pxUDPPacket->xEthernetHeader.usFrameType )
     {
-    #if ( ipconfigUSE_IPv4 != 0 )
-        case ipIPv4_FRAME_TYPE:
-            xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
-                                                  usPort, pxIsWaitingForARPResolution );
-            break;
-    #endif
-    #if ( ipconfigUSE_IPv6 != 0 )
-        case ipIPv6_FRAME_TYPE:
-            xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
-                                                  usPort, pxIsWaitingForARPResolution );
-            break;
-    #endif
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case ipIPv4_FRAME_TYPE:
+                xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
+                                                          usPort, pxIsWaitingForARPResolution );
+                break;
+        #endif
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case ipIPv6_FRAME_TYPE:
+                xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
+                                                          usPort, pxIsWaitingForARPResolution );
+                break;
+        #endif
         default:
             /* do nothing, coverity happy */
             break;

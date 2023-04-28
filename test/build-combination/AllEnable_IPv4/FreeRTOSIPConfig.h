@@ -34,9 +34,9 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
-#define ipconfigUSE_IPv4    ( 1 )
+#define ipconfigUSE_IPv4                           ( 1 )
 
-#define ipconfigUSE_IPv6    ( 0 )
+#define ipconfigUSE_IPv6                           ( 0 )
 
 #define ipconfigUSE_DHCPv6                         0
 #define ipconfigIPv4_BACKWARD_COMPATIBLE           1
