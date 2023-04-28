@@ -867,7 +867,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             #if ( ipconfigUSE_DHCP == 1 )
                 if( END_POINT_USES_DHCP( pxEndPoint ) )
                 {
-                    #if (( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ))
+                    #if ( ( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
                         if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                         {
                             vDHCPv6Process( pdTRUE, pxEndPoint );
@@ -882,7 +882,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                 else /* Yes this else ought to be here. */
             #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
-            #if ( (ipconfigUSE_RA != 0) && ( ipconfigUSE_IPv6 != 0 ))
+            #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
                 if( END_POINT_USES_RA( pxEndPoint ) )
                 {
                     /* Reset the RA/SLAAC process for this end-point. */
