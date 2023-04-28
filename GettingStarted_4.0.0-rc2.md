@@ -12,6 +12,9 @@ Backward Compatibility Mode:
 
 API changes in 4.0.0-rc1/rc2:
 ----------------------
+
+The changes mentioned below uses ipconfigIPv4_BACKWARD_COMPATIBLE flag to differentiate between old API and new API.
+
 Change 1:
 
    - Existing API: FreeRTOS_IPInit
@@ -47,21 +50,18 @@ Change 5:
    - Existing API: vApplicationIPNetworkEventHook
    - New API: vApplicationIPNetworkEventHook_Multi
       - New argument “struct xNetworkInterface * pxNetworkInterface” added.
-      - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
 
 Change 6:
 
    - Existing API: xApplicationDHCPHook
    - New API: xApplicationDHCPHook_Multi
       - New argument "struct xNetworkEndPoint * pxEndPoint" added.
-      - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
 
 Change 7:
 
    - Existing API: xApplicationDNSQueryHook
    - New API: xApplicationDNSQueryHook_Multi
       - New argument "struct xNetworkEndPoint * pxEndPoint" added.
-      - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
 
 **NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
 
