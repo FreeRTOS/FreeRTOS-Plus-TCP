@@ -350,10 +350,11 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
         }
         else if( eReturned == eARPCacheMiss )
         {
-            if(pxEndPoint != NULL)
+            if( pxEndPoint != NULL )
             {
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
             }
+
             eReturned = prvStartLookup( pxNetworkBuffer, &( xLostBuffer ) );
         }
         else
