@@ -73,18 +73,23 @@
 /* _HT_ this is a temporary aid while testing. In case an end-0point is not found,
  * this function will return the first end-point of the required type,
  * either 'ipTYPE_IPv4' or 'ipTYPE_IPv6' */
-extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType );
+extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
+                                          BaseType_t xIsGlobal );
 
 /**
  * @brief Get the first end point of the type (IPv4/IPv6) from the list
  *        the list of end points.
  *
- * @param[in] xIPType IT type (ipTYPE_IPv6/ipTYPE_IPv4)
+ * @param[in] xIPType IP type (ipTYPE_IPv6/ipTYPE_IPv4)
+ * @param[in] xIsGlobal when pdTRUE, an endpoint with a global address must be
+ *                      returned. When pdFALSE, a local-link endpoint is returned.
+ *                      This only applies to IPv6 endpoints.
  *
  * @returns Pointer to the first end point of the given IP type from the
  *          list of end points.
  */
-NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
+NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
+                                   BaseType_t xIsGlobal )
 {
     NetworkEndPoint_t * pxEndPoint;
 
@@ -96,7 +101,13 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType )
         {
             if( pxEndPoint->bits.bIPv6 != 0U )
             {
-                break;
+                IPv6_Type_t eEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                BaseType_t xEndpointGlobal = ( eEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
+
+                if( xEndpointGlobal == xIsGlobal )
+                {
+                    break;
+                }
             }
         }
         else
@@ -130,7 +141,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
@@ -140,7 +151,9 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 
         if( pxNetworkBuffer->pxEndPoint == NULL )
         {
-            pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ( BaseType_t ) ipTYPE_IPv6 );
+            IPv6_Type_t eTargetType = xIPv6_GetIPType( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
+            BaseType_t xIsGlobal = ( eTargetType == eIPv6_Global ) ? pdTRUE : pdFALSE;
+            pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ( BaseType_t ) ipTYPE_IPv6, xIsGlobal );
             FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
         }
 
@@ -205,7 +218,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
     NetworkInterface_t * pxInterface = NULL;
     EthernetHeader_t * pxEthernetHeader = NULL;
     BaseType_t xLostBuffer = pdFALSE;
-    NetworkEndPoint_t * pxEndPoint = NULL;
+    NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     IPv6_Address_t xIPv6Address;
 
     /* Map the UDP packet onto the start of the frame. */
@@ -341,17 +354,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
             {
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
             }
-            
             eReturned = prvStartLookup( pxNetworkBuffer, &( xLostBuffer ) );
-
-            if( pxNetworkBuffer->pxEndPoint != NULL )
-            {
-                vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-
-                /* pxNetworkBuffer has been sent and released.
-                 * Make sure it won't be used again.. */
-                xLostBuffer = pdTRUE;
-            }
         }
         else
         {
