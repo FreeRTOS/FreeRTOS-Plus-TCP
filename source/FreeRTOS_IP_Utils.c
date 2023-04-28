@@ -996,6 +996,10 @@ void vPreCheckConfigs( void )
                 }
             #endif
             /* LCOV_EXCL_BR_STOP */
+			
+			/* ipIP_TYPE_OFFSET = ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) - ( sizeof( UDPPacket_t ) )
+			   and it MUST be > 0, otherwise storing the IPv4 version byte will overwrite the Ethernet header. */
+			configASSERT( ipIP_TYPE_OFFSET > 0 );
         }
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
