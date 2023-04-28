@@ -3423,15 +3423,16 @@ BaseType_t FreeRTOS_EUI48_pton( const char * pcSource,
 }
 /*-----------------------------------------------------------*/
 
-#if( ipconfigUSE_IPv4 != 0 )
-    /**
-     * @brief Convert the IP address from "w.x.y.z" (dotted decimal) format to the 32-bit format.
-     *
-     * @param[in] pcIPAddress The character string pointer holding the IP-address in the "W.X.Y.Z"
-     *                         (dotted decimal) format.
-     *
-     * @return The 32-bit representation of IP(v4) address.
-     */
+#if ( ipconfigUSE_IPv4 != 0 )
+
+/**
+ * @brief Convert the IP address from "w.x.y.z" (dotted decimal) format to the 32-bit format.
+ *
+ * @param[in] pcIPAddress The character string pointer holding the IP-address in the "W.X.Y.Z"
+ *                         (dotted decimal) format.
+ *
+ * @return The 32-bit representation of IP(v4) address.
+ */
     uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
     {
         uint32_t ulReturn = 0U;
@@ -5865,7 +5866,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
 
 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
-#if ( ipconfigUSE_TCP == 1 )
+    #if ( ipconfigUSE_TCP == 1 )
 
 /**
  * @brief This internal function will check if a given TCP
@@ -5875,91 +5876,91 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
  * @param[in] pxSocket The socket which needs to be checked.
  * @return An event mask of events that are active for this socket.
  */
-    static EventBits_t vSocketSelectTCP( FreeRTOS_Socket_t * pxSocket )
-    {
-        /* Check if the TCP socket has already been accepted by
-         * the owner.  If not, it is useless to return it from a
-         * select(). */
-        BaseType_t bAccepted = pdFALSE;
-        EventBits_t xSocketBits = 0U;
-
-        if( pxSocket->u.xTCP.bits.bPassQueued == pdFALSE_UNSIGNED )
+        static EventBits_t vSocketSelectTCP( FreeRTOS_Socket_t * pxSocket )
         {
-            if( pxSocket->u.xTCP.bits.bPassAccept == pdFALSE_UNSIGNED )
+            /* Check if the TCP socket has already been accepted by
+             * the owner.  If not, it is useless to return it from a
+             * select(). */
+            BaseType_t bAccepted = pdFALSE;
+            EventBits_t xSocketBits = 0U;
+
+            if( pxSocket->u.xTCP.bits.bPassQueued == pdFALSE_UNSIGNED )
             {
-                bAccepted = pdTRUE;
+                if( pxSocket->u.xTCP.bits.bPassAccept == pdFALSE_UNSIGNED )
+                {
+                    bAccepted = pdTRUE;
+                }
             }
-        }
 
-        /* Is the set owner interested in READ events? */
-        if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_READ ) != ( EventBits_t ) 0U )
-        {
-            if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
+            /* Is the set owner interested in READ events? */
+            if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_READ ) != ( EventBits_t ) 0U )
             {
-                if( ( pxSocket->u.xTCP.pxPeerSocket != NULL ) && ( pxSocket->u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
+                {
+                    if( ( pxSocket->u.xTCP.pxPeerSocket != NULL ) && ( pxSocket->u.xTCP.pxPeerSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                    {
+                        xSocketBits |= ( EventBits_t ) eSELECT_READ;
+                    }
+                }
+                else if( ( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED ) && ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+                {
+                    /* This socket has the re-use flag. After connecting it turns into
+                     * a connected socket. Set the READ event, so that accept() will be called. */
+                    xSocketBits |= ( EventBits_t ) eSELECT_READ;
+                }
+                else if( ( bAccepted != 0 ) && ( FreeRTOS_recvcount( pxSocket ) > 0 ) )
                 {
                     xSocketBits |= ( EventBits_t ) eSELECT_READ;
                 }
-            }
-            else if( ( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED ) && ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
-            {
-                /* This socket has the re-use flag. After connecting it turns into
-                 * a connected socket. Set the READ event, so that accept() will be called. */
-                xSocketBits |= ( EventBits_t ) eSELECT_READ;
-            }
-            else if( ( bAccepted != 0 ) && ( FreeRTOS_recvcount( pxSocket ) > 0 ) )
-            {
-                xSocketBits |= ( EventBits_t ) eSELECT_READ;
-            }
-            else
-            {
-                /* Nothing. */
-            }
-        }
-
-        /* Is the set owner interested in EXCEPTION events? */
-        if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
-        {
-            if( ( pxSocket->u.xTCP.eTCPState == eCLOSE_WAIT ) || ( pxSocket->u.xTCP.eTCPState == eCLOSED ) )
-            {
-                xSocketBits |= ( EventBits_t ) eSELECT_EXCEPT;
-            }
-        }
-
-        /* Is the set owner interested in WRITE events? */
-        if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_WRITE ) != 0U )
-        {
-            BaseType_t bMatch = pdFALSE;
-
-            if( bAccepted != 0 )
-            {
-                if( FreeRTOS_tx_space( pxSocket ) > 0 )
+                else
                 {
-                    bMatch = pdTRUE;
+                    /* Nothing. */
                 }
             }
 
-            if( bMatch == pdFALSE )
+            /* Is the set owner interested in EXCEPTION events? */
+            if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
             {
-                if( ( pxSocket->u.xTCP.bits.bConnPrepared != pdFALSE_UNSIGNED ) &&
-                    ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
-                    ( pxSocket->u.xTCP.bits.bConnPassed == pdFALSE_UNSIGNED ) )
+                if( ( pxSocket->u.xTCP.eTCPState == eCLOSE_WAIT ) || ( pxSocket->u.xTCP.eTCPState == eCLOSED ) )
                 {
-                    pxSocket->u.xTCP.bits.bConnPassed = pdTRUE_UNSIGNED;
-                    bMatch = pdTRUE;
+                    xSocketBits |= ( EventBits_t ) eSELECT_EXCEPT;
                 }
             }
 
-            if( bMatch != pdFALSE )
+            /* Is the set owner interested in WRITE events? */
+            if( ( pxSocket->xSelectBits & ( EventBits_t ) eSELECT_WRITE ) != 0U )
             {
-                xSocketBits |= ( EventBits_t ) eSELECT_WRITE;
+                BaseType_t bMatch = pdFALSE;
+
+                if( bAccepted != 0 )
+                {
+                    if( FreeRTOS_tx_space( pxSocket ) > 0 )
+                    {
+                        bMatch = pdTRUE;
+                    }
+                }
+
+                if( bMatch == pdFALSE )
+                {
+                    if( ( pxSocket->u.xTCP.bits.bConnPrepared != pdFALSE_UNSIGNED ) &&
+                        ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) &&
+                        ( pxSocket->u.xTCP.bits.bConnPassed == pdFALSE_UNSIGNED ) )
+                    {
+                        pxSocket->u.xTCP.bits.bConnPassed = pdTRUE_UNSIGNED;
+                        bMatch = pdTRUE;
+                    }
+                }
+
+                if( bMatch != pdFALSE )
+                {
+                    xSocketBits |= ( EventBits_t ) eSELECT_WRITE;
+                }
             }
+
+            return xSocketBits;
         }
 
-        return xSocketBits;
-    }
-
-#endif /* ( ipconfigUSE_TCP == 1 ) */
+    #endif /* ( ipconfigUSE_TCP == 1 ) */
 
 /**
  * @brief This internal non-blocking function will check all sockets that belong
