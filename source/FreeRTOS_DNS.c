@@ -987,7 +987,8 @@
         }
         else
         {
-            BaseType_t xBreakLoop = pdFALSE; 
+            BaseType_t xBreakLoop = pdFALSE;
+
             /* Look for an end-point that has defined a DNS server address. */
             for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
                  pxEndPoint != NULL;
@@ -1044,7 +1045,7 @@
                         break;
                 }
 
-                if(xBreakLoop == pdTRUE)
+                if( xBreakLoop == pdTRUE )
                 {
                     break;
                 }
