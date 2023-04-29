@@ -48,8 +48,8 @@
 #define ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS     1
 #define ipconfigDHCP_FALL_BACK_AUTO_IP             1
 #define ipconfigARP_USE_CLASH_DETECTION            1
-#define ipconfigUSE_LLMNR                          0
-#define ipconfigUSE_NBNS                           0
+#define ipconfigUSE_LLMNR                          1
+#define ipconfigUSE_NBNS                           1
 #define ipconfigUSE_MDNS                           1
 #define ipconfigSUPPORT_OUTGOING_PINGS             1
 #define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    1
@@ -260,7 +260,7 @@ extern uint32_t ulRand();
 
 /* Set ipconfigUSE_DNS to 1 to include a basic DNS client/resolver.  DNS is used
  * through the FreeRTOS_gethostbyname() API function. */
-#define ipconfigUSE_DNS                                0
+#define ipconfigUSE_DNS                                1
 
 /* If ipconfigREPLY_TO_INCOMING_PINGS is set to 1 then the IP stack will
  * generate replies to incoming ICMP echo (ping) requests. */
