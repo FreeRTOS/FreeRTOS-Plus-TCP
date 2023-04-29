@@ -105,7 +105,8 @@
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv4 != 0 )
+    #if ( ipconfigUSE_IPv4 != 0 )
+
 /**
  * @brief perform a dns lookup in the local cache
  * @param pcHostName the lookup name
@@ -113,24 +114,25 @@
  *         cache is not enabled or the lookup is not successful
  * @post the global structure \a xDNSCache might be modified
  */
-    uint32_t FreeRTOS_dnslookup( const char * pcHostName )
-    {
-        IPv46_Address_t xIPv46_Address;
+        uint32_t FreeRTOS_dnslookup( const char * pcHostName )
+        {
+            IPv46_Address_t xIPv46_Address;
 
 /* Looking up an IPv4 address in the DNS cache. */
-        ( void ) memset( &xIPv46_Address, 0, sizeof( xIPv46_Address ) );
-        ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
-                                           &( xIPv46_Address ),
-                                           0,
-                                           pdTRUE,
-                                           NULL );
+            ( void ) memset( &xIPv46_Address, 0, sizeof( xIPv46_Address ) );
+            ( void ) FreeRTOS_ProcessDNSCache( pcHostName,
+                                               &( xIPv46_Address ),
+                                               0,
+                                               pdTRUE,
+                                               NULL );
 
-        return xIPv46_Address.ulIPAddress;
-    }
+            return xIPv46_Address.ulIPAddress;
+        }
 /*-----------------------------------------------------------*/
-#endif /* if ( ipconfigUSE_IPv4 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPv4 != 0 ) */
 
-#if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief Perform a dns lookup in the local cache (IPv6)
  * @param pcHostName The lookup name
@@ -139,29 +141,29 @@
  *         cache is not enabled or the lookup is not successful
  * @post the global structure \a xDNSCache might be modified
  */
-    uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
-                                  IPv6_Address_t * pxAddress_IPv6 )
-    {
-        IPv46_Address_t xIPv46_Address;
-        BaseType_t xResult;
-        uint32_t ulReturn = 0U;
-
-        /* Looking up an IPv6 address in the DNS cache. */
-        ( void ) memset( &xIPv46_Address, 0, sizeof( xIPv46_Address ) );
-        /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
-        xIPv46_Address.xIs_IPv6 = pdTRUE;
-        xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
-
-        if( xResult != pdFALSE )
+        uint32_t FreeRTOS_dnslookup6( const char * pcHostName,
+                                      IPv6_Address_t * pxAddress_IPv6 )
         {
-            ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            ulReturn = 1U;
-        }
+            IPv46_Address_t xIPv46_Address;
+            BaseType_t xResult;
+            uint32_t ulReturn = 0U;
 
-        return ulReturn;
-    }
+            /* Looking up an IPv6 address in the DNS cache. */
+            ( void ) memset( &xIPv46_Address, 0, sizeof( xIPv46_Address ) );
+            /* Let FreeRTOS_ProcessDNSCache only return IPv6 addresses. */
+            xIPv46_Address.xIs_IPv6 = pdTRUE;
+            xResult = FreeRTOS_ProcessDNSCache( pcHostName, &xIPv46_Address, 0, pdTRUE, NULL );
+
+            if( xResult != pdFALSE )
+            {
+                ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ulReturn = 1U;
+            }
+
+            return ulReturn;
+        }
 /*-----------------------------------------------------------*/
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
 /**
  * @brief perform a dns update in the local cache
@@ -282,7 +284,7 @@
                 IP_Address_t xAddress;
                 BaseType_t xFamily = FREERTOS_AF_INET;
 
-                switch(  pxIP->xIs_IPv6 )
+                switch( pxIP->xIs_IPv6 )
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE:
@@ -290,13 +292,13 @@
                             xFamily = FREERTOS_AF_INET6;
                             break;
                     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
-                    
+
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE:
                             xAddress.ulIP_IPv4 = pxIP->ulIPAddress;
                             break;
                     #endif /* if ( ipconfigUSE_IPv4 != 0 ) */
-                    
+
                     default:
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "FreeRTOS_ProcessDNSCache: Undefined IP Type \n" ) );
@@ -519,16 +521,15 @@
             {
                 pxAddresses = &( xDNSCache[ uxIndex ].xAddresses[ uxIPAddressIndex ] );
 
-                switch(pxAddresses->xIs_IPv6)
+                switch( pxAddresses->xIs_IPv6 )
                 {
-
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE:
-                            {
-                                const uint8_t * ucBytes = ( const uint8_t * ) &( pxAddresses->ulIPAddress );
-                                pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
-                            }
-                            break;
+                           {
+                               const uint8_t * ucBytes = ( const uint8_t * ) &( pxAddresses->ulIPAddress );
+                               pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
+                           }
+                           break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                     #if ( ipconfigUSE_IPv6 != 0 )
@@ -536,12 +537,11 @@
                             pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET6, pxAddresses->xAddress_IPv6.ucBytes );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                    
+
                     default:
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "prvReadDNSCache: Undefined IP Type \n" ) );
                         break;
-
                 }
 
                 if( pxNewAddress == NULL )
@@ -576,66 +576,64 @@
             uint32_t ulIPAddress = 0U;
             IPv46_Address_t xIPv46_Address;
 
-            switch(xFamily)
+            switch( xFamily )
             {
-
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case FREERTOS_AF_INET:
-                        {
-                            BaseType_t xFound;
+                       {
+                           BaseType_t xFound;
 
-                            xIPv46_Address.xIs_IPv6 = pdFALSE;
-                            xFound = FreeRTOS_ProcessDNSCache( pcHostName, &( xIPv46_Address ), 0, pdTRUE, ppxAddressInfo );
+                           xIPv46_Address.xIs_IPv6 = pdFALSE;
+                           xFound = FreeRTOS_ProcessDNSCache( pcHostName, &( xIPv46_Address ), 0, pdTRUE, ppxAddressInfo );
 
-                            if( xFound != 0 )
-                            {
-                                if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
-                                {
-                                    const struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
+                           if( xFound != 0 )
+                           {
+                               if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
+                               {
+                                   const struct freertos_sockaddr * sockaddr = ( *( ppxAddressInfo ) )->ai_addr;
 
-                                    ulIPAddress = sockaddr->sin_address.ulIP_IPv4;
-                                }
-                            }
-                            else
-                            {
-                                /* prvGetHostByName will be called to start a DNS lookup. */
-                            }
-                        }
-                        break;
+                                   ulIPAddress = sockaddr->sin_address.ulIP_IPv4;
+                               }
+                           }
+                           else
+                           {
+                               /* prvGetHostByName will be called to start a DNS lookup. */
+                           }
+                       }
+                       break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case FREERTOS_AF_INET6:
-                        {
-                            BaseType_t xFound;
+                       {
+                           BaseType_t xFound;
 
-                            xIPv46_Address.xIs_IPv6 = pdTRUE;
-                            xFound = FreeRTOS_ProcessDNSCache( pcHostName, &( xIPv46_Address ), 0, pdTRUE, ppxAddressInfo );
+                           xIPv46_Address.xIs_IPv6 = pdTRUE;
+                           xFound = FreeRTOS_ProcessDNSCache( pcHostName, &( xIPv46_Address ), 0, pdTRUE, ppxAddressInfo );
 
-                            if( xFound != 0 )
-                            {
-                                if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
-                                {
-                                    /* This function returns either a valid IPv4 address, or
+                           if( xFound != 0 )
+                           {
+                               if( ( ppxAddressInfo != NULL ) && ( *( ppxAddressInfo ) != NULL ) )
+                               {
+                                   /* This function returns either a valid IPv4 address, or
                                     * in case of an IPv6 lookup, it will return a non-zero */
-                                    ulIPAddress = 1U;
-                                }
-                            }
-                            else
-                            {
-                                /* prvGetHostByName will be called to start a DNS lookup. */
-                            }
-                        }
-                        break;
+                                   ulIPAddress = 1U;
+                               }
+                           }
+                           else
+                           {
+                               /* prvGetHostByName will be called to start a DNS lookup. */
+                           }
+                       }
+                       break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "Prepare_CacheLookup: Undefined xFamily \n" ) );
                     break;
-
             }
-                    
+
             return ulIPAddress;
         }
     #endif /* ( ipconfigUSE_DNS_CACHE == 1 ) */
@@ -667,33 +665,32 @@
                     {
                         char pcAddress[ 40 ] = "";
 
-                        switch(pxRow->xAddresses[ 0 ].xIs_IPv6)
+                        switch( pxRow->xAddresses[ 0 ].xIs_IPv6 )
                         {
                             /* The first entry determines the type of row:
-                                                    * either IPv4 or IPv6. */
+                             * either IPv4 or IPv6. */
                             #if ( ipconfigUSE_IPv4 != 0 )
                                 case pdFALSE:
                                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                                    ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
-                                                                    pcAddress,
-                                                                    sizeof( pcAddress ) );
+                                                                 ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
+                                                                 pcAddress,
+                                                                 sizeof( pcAddress ) );
                                     break;
                             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                             #if ( ipconfigUSE_IPv6 != 0 )
                                 case pdTRUE:
                                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                                    ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
-                                                                    pcAddress,
-                                                                    sizeof( pcAddress ) );
+                                                                 ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
+                                                                 pcAddress,
+                                                                 sizeof( pcAddress ) );
                                     break;
                             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                            
+
                             default:
                                 /* MISRA 16.4 Compliance */
                                 FreeRTOS_debug_printf( ( "vShowDNSCacheTable: Undefined IP Type \n" ) );
                                 break;
-
                         }
 
                         FreeRTOS_printf( ( "      %2u: %s\n",

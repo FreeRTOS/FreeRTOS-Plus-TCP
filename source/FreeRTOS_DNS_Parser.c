@@ -72,11 +72,11 @@
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             #if ( ipconfigUSE_IPv4 != 0 )
-            {
-                IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                {
+                    IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
-            }
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
+                }
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             if( pxEndPoint != NULL )
@@ -1171,7 +1171,7 @@
                 #if ( ipconfigUSE_IPv6 != 0 )
                     xEndPoint.usDNSType = dnsTYPE_A_HOST;
                 #endif /* ipconfigUSE_IPv6 */
-                
+
                 #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                     xDNSHookReturn = xApplicationDNSQueryHook( ( const char * ) ucNBNSName );
                 #else
