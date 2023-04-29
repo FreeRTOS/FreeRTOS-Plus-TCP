@@ -87,6 +87,10 @@
     static UBaseType_t uxLastMinQueueSpace = 0;
 #endif
 
+/* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
+#define ipFIRST_MULTI_CAST_IPv4    0xE0000000U          /**< Lower bound of the IPv4 multicast address. */
+#define ipLAST_MULTI_CAST_IPv4     0xF0000000U          /**< Higher bound of the IPv4 multicast address. */
+
 /**
  * Used in checksum calculation.
  */
@@ -1695,5 +1699,50 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
     return ( uint16_t )
            ( ( ( ( uint32_t ) pucPtr[ 0 ] ) << 8 ) |
              ( ( ( uint32_t ) pucPtr[ 1 ] ) ) );
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Set multicast MAC address.
+ *
+ * @param[in] ulIPAddress IP address.
+ * @param[out] pxMACAddress Pointer to MAC address.
+ */
+void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
+                                  MACAddress_t * pxMACAddress )
+{
+    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
+
+    pxMACAddress->ucBytes[ 0 ] = ( uint8_t ) 0x01U;
+    pxMACAddress->ucBytes[ 1 ] = ( uint8_t ) 0x00U;
+    pxMACAddress->ucBytes[ 2 ] = ( uint8_t ) 0x5EU;
+    pxMACAddress->ucBytes[ 3 ] = ( uint8_t ) ( ( ulIP >> 16 ) & 0x7fU ); /* Use 7 bits. */
+    pxMACAddress->ucBytes[ 4 ] = ( uint8_t ) ( ( ulIP >> 8 ) & 0xffU );  /* Use 8 bits. */
+    pxMACAddress->ucBytes[ 5 ] = ( uint8_t ) ( ( ulIP ) & 0xffU );       /* Use 8 bits. */
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Is the IP address an IPv4 multicast address.
+ *
+ * @param[in] ulIPAddress The IP address being checked.
+ *
+ * @return pdTRUE if the IP address is a multicast address or else, pdFALSE.
+ */
+BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
+{
+    BaseType_t xReturn;
+    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
+
+    if( ( ulIP >= ipFIRST_MULTI_CAST_IPv4 ) && ( ulIP < ipLAST_MULTI_CAST_IPv4 ) )
+    {
+        xReturn = pdTRUE;
+    }
+    else
+    {
+        xReturn = pdFALSE;
+    }
+
+    return xReturn;
 }
 /*-----------------------------------------------------------*/

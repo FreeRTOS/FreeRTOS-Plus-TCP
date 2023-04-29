@@ -10,6 +10,7 @@
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_task.h"

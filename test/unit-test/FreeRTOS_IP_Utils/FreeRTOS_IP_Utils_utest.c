@@ -1888,3 +1888,33 @@ void test_usChar2u16( void )
 
     TEST_ASSERT_EQUAL_UINT16( 0x12EF, usResult );
 }
+
+void test_xIsIPv4Multicast_NotMultiCast( void )
+{
+    BaseType_t xReturn;
+    uint32_t ulIPAddress = 0;
+
+    xReturn = xIsIPv4Multicast( ulIPAddress );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xReturn );
+}
+
+void test_xIsIPv4Multicast_NotMultiCast2( void )
+{
+    BaseType_t xReturn;
+    uint32_t ulIPAddress = FreeRTOS_htonl( 0xF0000000 );
+
+    xReturn = xIsIPv4Multicast( ulIPAddress );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xReturn );
+}
+
+void test_xIsIPv4Multicast_IsMultiCast( void )
+{
+    BaseType_t xReturn;
+    uint32_t ulIPAddress = FreeRTOS_htonl( 0xF0000000 - 1 );
+
+    xReturn = xIsIPv4Multicast( ulIPAddress );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+}

@@ -90,19 +90,16 @@ static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
                                     NetworkEndPoint_t * pxTargetEndPoint,
                                     uint32_t ulSenderProtocolAddress );
 
-#if ( ipconfigUSE_IPv4 != 0 )
-
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
  */
-    static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
-                                              MACAddress_t * const pxMACAddress,
-                                              NetworkEndPoint_t ** ppxEndPoint );
+static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+                                            MACAddress_t * const pxMACAddress,
+                                            NetworkEndPoint_t ** ppxEndPoint );
 
-    static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
-                                                        MACAddress_t * const pxMACAddress,
-                                                        struct xNetworkEndPoint ** ppxEndPoint );
-#endif /* ipconfigUSE_IPv4 != 0 ) */
+static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
+                                                    MACAddress_t * const pxMACAddress,
+                                                    struct xNetworkEndPoint ** ppxEndPoint );
 
 static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                                      const uint32_t ulIPAddress,
@@ -879,8 +876,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv4 != 0 )
-
 /**
  * @brief Look for ulIPAddress in the ARP cache.
  *
@@ -1095,8 +1090,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
     }
     /*-----------------------------------------------------------*/
 
-#endif /* ipconfigUSE_IPv4 != 0 ) */
-
 /**
  * @brief A call to this function will update (or 'Age') the ARP cache entries.
  *        The function will also try to prevent a removal of entry by sending
@@ -1279,8 +1272,6 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv4 != 0 )
-
 /**
  * @brief  Wait for address resolution: look-up the IP-address in the ARP-cache, and if
  *         needed send an ARP request, and wait for a reply.  This function is useful when
@@ -1341,7 +1332,6 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
         return xResult;
     }
     /*-----------------------------------------------------------*/
-#endif /* ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief Generate an ARP request packet by copying various constant details to
