@@ -987,6 +987,7 @@
         }
         else
         {
+            BaseType_t xBreakLoop = pdFALSE; 
             /* Look for an end-point that has defined a DNS server address. */
             for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
                  pxEndPoint != NULL;
@@ -1008,7 +1009,7 @@
                                     pxAddress->sin_family = FREERTOS_AF_INET;
                                     pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
                                     pxAddress->sin_address.ulIP_IPv4 = ulIPAddress;
-                                    break;
+                                    xBreakLoop = pdTRUE;
                                 }
                             }
                             break;
@@ -1031,7 +1032,7 @@
                                     ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
                                                      pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes,
                                                      ipSIZE_OF_IPv6_ADDRESS );
-                                    break;
+                                    xBreakLoop = pdTRUE;
                                 }
                             }
                             break;
@@ -1041,6 +1042,11 @@
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference \n" ) );
                         break;
+                }
+
+                if(xBreakLoop == pdTRUE)
+                {
+                    break;
                 }
             }
         }
