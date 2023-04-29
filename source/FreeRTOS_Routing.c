@@ -801,7 +801,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 switch( xIsIPv6 )
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        case pdTRUE_UNSIGNED:
+                        case ( BaseType_t ) pdTRUE_UNSIGNED:
                            {
                                IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
@@ -834,7 +834,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                     #if ( ipconfigUSE_IPv4 != 0 )
-                        case pdFALSE_UNSIGNED:
+                        case ( BaseType_t ) pdFALSE_UNSIGNED:
 
                             if( pxEndPoint->ipv4_settings.ulIPAddress == pxIPAddressTo->ulIP_IPv4 )
                             {
@@ -847,9 +847,6 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                             }
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-                    default:
-                        break;
                 }
 
                 if( xSameMACAddress == pdTRUE )
@@ -1019,7 +1016,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
             switch( xIPType )
             {
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    case ipTYPE_IPv6:
+                    case ( BaseType_t ) ipTYPE_IPv6:
 
                         if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
                         {
@@ -1036,7 +1033,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                 #if ( ipconfigUSE_IPv4 != 0 )
-                    case ipTYPE_IPv4:
+                    case ( BaseType_t ) ipTYPE_IPv4:
 
                         if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
                         {
@@ -1053,6 +1050,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
                 default:
                     /* This end-point is not the right IP-type. */
+                    FreeRTOS_debug_printf( ( "FreeRTOS_FindGateWay: Undefined IP Type \n" ) );
                     break;
             }
 

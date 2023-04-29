@@ -94,7 +94,7 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
  */
 void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-    UDPPacket_t * pxUDPPacket;
+    const UDPPacket_t * pxUDPPacket;
 
     /* Map the UDP packet onto the start of the frame. */
 

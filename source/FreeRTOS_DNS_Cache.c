@@ -504,7 +504,7 @@
             size_t uxIPAddressIndex;
             size_t uxNumIPAddresses = 1U;
             const IPv46_Address_t * pxAddresses;
-            struct freertos_addrinfo * pxNewAddress;
+            struct freertos_addrinfo * pxNewAddress = NULL;
             struct freertos_addrinfo ** ppxLastAddress = ppxAddressInfo;
 
             #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
