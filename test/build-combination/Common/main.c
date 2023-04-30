@@ -115,7 +115,7 @@ int main( void )
      * vApplicationIPNetworkEventHook() below).  The address values passed in here
      * are used if ipconfigUSE_DHCP is set to 0, or if ipconfigUSE_DHCP is set to 1
      * but a DHCP server cannot be contacted. */
-    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) && ( ipconfigUSE_IPv4 != 0 )
         FreeRTOS_printf( ( "FreeRTOS_IPInit\n" ) );
         FreeRTOS_IPInit(
             ucIPAddress,
