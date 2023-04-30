@@ -71,6 +71,9 @@ struct xIPv6_Couple
 };
 /*-----------------------------------------------------------*/
 
+
+#if ( ipconfigUSE_IPv4 != 0 )
+
 /**
  * @brief Configure and install a new IPv4 end-point.
  *
@@ -84,47 +87,48 @@ struct xIPv6_Couple
  * @param[in] ucDNSServerAddress The IP-address of a DNS server.
  * @param[in] ucMACAddress The MAC address of the end-point.
  */
-void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
-                            NetworkEndPoint_t * pxEndPoint,
-                            const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
-                            const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
-{
-    uint32_t ulIPAddress;
-
-    /* Fill in and add an end-point to a network interface.
-     * The user must make sure that the object pointed to by 'pxEndPoint'
-     * will remain to exist. */
-    ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
-
-    ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
-    pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
-    pxEndPoint->ipv4_settings.ulGatewayAddress = FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] );
-    pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] );
-    pxEndPoint->ipv4_settings.ulBroadcastAddress = ulIPAddress | ~( pxEndPoint->ipv4_settings.ulNetMask );
-
-    /* Copy the current values to the default values. */
-    ( void ) memcpy( &( pxEndPoint->ipv4_defaults ), &( pxEndPoint->ipv4_settings ), sizeof( pxEndPoint->ipv4_defaults ) );
-
-    /* The default IP-address will be used in case DHCP is not used, or also if DHCP has failed, or
-     * when the user chooses to use the default IP-address. */
-    pxEndPoint->ipv4_defaults.ulIPAddress = ulIPAddress;
-
-    #if ( ipconfigUSE_DHCP != 0 )
-        if( pxEndPoint->bits.bWantDHCP == 0U )
-    #endif
+    void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
+                                NetworkEndPoint_t * pxEndPoint,
+                                const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ],
+                                const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] )
     {
-        pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
+        uint32_t ulIPAddress;
+
+        /* Fill in and add an end-point to a network interface.
+         * The user must make sure that the object pointed to by 'pxEndPoint'
+         * will remain to exist. */
+        ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+
+        ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
+        pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
+        pxEndPoint->ipv4_settings.ulGatewayAddress = FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] );
+        pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] );
+        pxEndPoint->ipv4_settings.ulBroadcastAddress = ulIPAddress | ~( pxEndPoint->ipv4_settings.ulNetMask );
+
+        /* Copy the current values to the default values. */
+        ( void ) memcpy( &( pxEndPoint->ipv4_defaults ), &( pxEndPoint->ipv4_settings ), sizeof( pxEndPoint->ipv4_defaults ) );
+
+        /* The default IP-address will be used in case DHCP is not used, or also if DHCP has failed, or
+         * when the user chooses to use the default IP-address. */
+        pxEndPoint->ipv4_defaults.ulIPAddress = ulIPAddress;
+
+        #if ( ipconfigUSE_DHCP != 0 )
+            if( pxEndPoint->bits.bWantDHCP == 0U )
+        #endif
+        {
+            pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
+        }
+
+        /* The field 'ipv4_settings.ulIPAddress' will be set later on. */
+
+        ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, sizeof( pxEndPoint->xMACAddress ) );
+        ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
     }
-
-    /* The field 'ipv4_settings.ulIPAddress' will be set later on. */
-
-    ( void ) memcpy( pxEndPoint->xMACAddress.ucBytes, ucMACAddress, sizeof( pxEndPoint->xMACAddress ) );
-    ( void ) FreeRTOS_AddEndPoint( pxNetworkInterface, pxEndPoint );
-}
 /*-----------------------------------------------------------*/
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
 #if ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 )
 

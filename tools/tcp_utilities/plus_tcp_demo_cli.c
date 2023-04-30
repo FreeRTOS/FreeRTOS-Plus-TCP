@@ -534,14 +534,13 @@ static void handle_arpq( char * pcBuffer )
         ulLookUpIP = ulIPAddress;
         xLookupAddress = xAddress;
 
-        switch(xIPType)
+        switch( xIPType )
         {
-
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipTYPE_IPv4:
                     eResult = eARPGetCacheEntry( &ulLookUpIP, &xMACAddress, &pxEndPoint );
                     FreeRTOS_printf( ( "ARPGetCacheEntry returns \"%s\" Look for %xip. Found end-point: %s\n",
-                                    pcARPReturnType( eResult ), ( unsigned ) FreeRTOS_htonl( ulLookUpIP ), ( pxEndPoint != NULL ) ? "yes" : "no" ) );
+                                       pcARPReturnType( eResult ), ( unsigned ) FreeRTOS_htonl( ulLookUpIP ), ( pxEndPoint != NULL ) ? "yes" : "no" ) );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -549,15 +548,14 @@ static void handle_arpq( char * pcBuffer )
                 case ipTYPE_IPv6:
                     eResult = eNDGetCacheEntry( &( xLookupAddress.xIP_IPv6 ), &xMACAddress, &pxEndPoint );
                     FreeRTOS_printf( ( "ARPGetCacheEntry returns \"%s\" Look for %pip. Found end-point: %s\n",
-                                    pcARPReturnType( eResult ), xAddress.xIP_IPv6.ucBytes, ( pxEndPoint != NULL ) ? "yes" : "no" ) );
+                                       pcARPReturnType( eResult ), xAddress.xIP_IPv6.ucBytes, ( pxEndPoint != NULL ) ? "yes" : "no" ) );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             default:
                 /* MISRA 16.4 Compliance */
                 FreeRTOS_debug_printf( ( "handle_arpq: Undefined IP Type \n" ) );
                 break;
-
         }
 
         if( ( eResult == eARPCacheMiss ) && ( pxEndPoint != NULL ) )
@@ -571,13 +569,12 @@ static void handle_arpq( char * pcBuffer )
 
             NetworkBufferDescriptor_t * pxBuffer;
 
-            switch(xIPType)
+            switch( xIPType )
             {
-
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case ipTYPE_IPv4:
                         FreeRTOS_printf( ( "handle_arpq: Looking up %xip\n",
-                                            ( unsigned ) FreeRTOS_ntohl( ulLookUpIP ) ) );
+                                           ( unsigned ) FreeRTOS_ntohl( ulLookUpIP ) ) );
 
                         xARPWaitResolution( ulLookUpIP, 1000U );
                         break;
@@ -597,8 +594,8 @@ static void handle_arpq( char * pcBuffer )
                             pxBuffer->pxEndPoint = pxEndPoint;
                             pxBuffer->pxInterface = pxBuffer->pxEndPoint->pxNetworkInterface;
                             FreeRTOS_printf( ( "handle_arpq: Looking up %pip with%s end-point\n",
-                                                pxBuffer->xIPAddress.xIP_IPv6.ucBytes,
-                                                ( pxBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+                                               pxBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                                               ( pxBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
                             vNDSendNeighbourSolicitation( pxBuffer, &( pxBuffer->xIPAddress.xIP_IPv6 ) );
                         }
@@ -608,21 +605,19 @@ static void handle_arpq( char * pcBuffer )
                         }
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "handle_arpq: Undefined IP Type \n" ) );
                     break;
-
             }
 
             /* Let the IP-task do its work, and wait 500 ms. */
             FreeRTOS_printf( ( "... Pause ...\n" ) );
             vTaskDelay( pdMS_TO_TICKS( 500U ) );
 
-            switch(xIPType)
+            switch( xIPType )
             {
-
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case ipTYPE_IPv4:
                         eResult = eARPGetCacheEntry( &ulLookUpIP, &xMACAddress, &pxEndPoint );
@@ -634,12 +629,11 @@ static void handle_arpq( char * pcBuffer )
                         eResult = eNDGetCacheEntry( &( xLookupAddress.xIP_IPv6 ), &xMACAddress, &pxEndPoint );
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "handle_arpq: Undefined IP Type \n" ) );
                     break;
-
             }
 
             FreeRTOS_printf( ( "handle_arpq: after lookup: \"%s\"\n",
@@ -1033,10 +1027,8 @@ static void handle_help( char * pcBuffer )
 
         if( pxDNSResult != NULL )
         {
-
-            switch(xOptions.xIPVersion)
+            switch( xOptions.xIPVersion )
             {
-
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case 4:
                         FreeRTOS_printf( ( "ping4 to '%s' (%xip)\n", pcHostname, ( unsigned ) FreeRTOS_ntohl( pxDNSResult->ai_addr->sin_address.ulIP_IPv4 ) ) );
@@ -1061,14 +1053,12 @@ static void handle_help( char * pcBuffer )
                         uxPingTimes[ 0 ] = ( TickType_t ) ullGetHighResolutionTime();
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "handle_ping: Undefined IP Type \n" ) );
                     break;
-
             }
-
         }
         else
         {
@@ -1446,9 +1436,8 @@ void xHandleTesting()
 
                     pxResult->ai_addr = &( pxResult->xPrivateStorage.sockaddr );
 
-                    switch(xIPVersion)
+                    switch( xIPVersion )
                     {
-
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case 4:
                                 #if ( ipconfigUSE_DNS_CACHE != 0 )
@@ -1475,14 +1464,12 @@ void xHandleTesting()
                                 }
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                        
+
                         default:
                             /* MISRA 16.4 Compliance */
                             FreeRTOS_debug_printf( ( "pxDNSLookup: Undefined IP Version Type \n" ) );
                             break;
-
                     }
-
                 }
             }
         #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigMULTI_INTERFACE != 0 ) */
@@ -1511,59 +1498,56 @@ void xHandleTesting()
         {
             FreeRTOS_printf( ( "vDNSEvent: family = %d\n", ( int ) pxAddrInfo->ai_family ) );
 
-            switch(pxAddrInfo->ai_family)
+            switch( pxAddrInfo->ai_family )
             {
-
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case FREERTOS_AF_INET:
-                        {
-                            uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
+                       {
+                           uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
 
-                            if( ulIPaddress == 0uL )
-                            {
-                                FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
-                            }
-                            else
-                            {
-                                FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
-                            }
-                        }
-                        break;
+                           if( ulIPaddress == 0uL )
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
+                           }
+                           else
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
+                           }
+                       }
+                       break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case FREERTOS_AF_INET6:
-                        {
-                            BaseType_t xIsEmpty = pdTRUE, xIndex;
+                       {
+                           BaseType_t xIsEmpty = pdTRUE, xIndex;
 
-                            for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
-                            {
-                                if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
-                                {
-                                    xIsEmpty = pdFALSE;
-                                    break;
-                                }
-                            }
+                           for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
+                           {
+                               if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
+                               {
+                                   xIsEmpty = pdFALSE;
+                                   break;
+                               }
+                           }
 
-                            if( xIsEmpty )
-                            {
-                                FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
-                            }
-                            else
-                            {
-                                FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
-                            }
-                        }
-                        break;
+                           if( xIsEmpty )
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
+                           }
+                           else
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
+                           }
+                       }
+                       break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "vDNSEvent: Undefined Family Type \n" ) );
                     break;
-
             }
-
         }
 
         if( xServerWorkTaskHandle != NULL )
