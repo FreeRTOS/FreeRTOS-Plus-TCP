@@ -3761,7 +3761,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             struct freertos_sockaddr xTempAddress;
 
-            if( ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
+            if( ( pxAddress != NULL ) && ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
             {
                 ( void ) memcpy( &xTempAddress, pxAddress, sizeof( struct freertos_sockaddr ) );
 

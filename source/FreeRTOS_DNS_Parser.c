@@ -1167,8 +1167,13 @@
 
                 /* NBNS only handles IPv4 or "A" records. */
                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
-                xEndPoint.usDNSType = dnsTYPE_A_HOST;
 
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    
+                    xEndPoint.usDNSType = dnsTYPE_A_HOST;
+
+                #endif /* #if ( ipconfigUSE_IPv6 != 0 ) */
+                
                 #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                     xDNSHookReturn = xApplicationDNSQueryHook( ( const char * ) ucNBNSName );
                 #else
