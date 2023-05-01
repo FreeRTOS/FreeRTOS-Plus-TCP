@@ -928,7 +928,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
             }
         }
     }
-    else if( ( FreeRTOS_htonl( ulAddressToLookup ) & 0xffU ) == 0xffU )     /* Is this a broadcast address like x.x.x.255 ? */
+    else if( ( FreeRTOS_htonl( ulAddressToLookup ) & 0xffU ) == 0xffU ) /* Is this a broadcast address like x.x.x.255 ? */
     {
         /* This is a broadcast so it uses the broadcast MAC address. */
         ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );

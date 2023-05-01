@@ -805,7 +805,7 @@ struct xIPv6_Couple
                 switch( xIsIPv6 )
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
-                        case ( BaseType_t ) pdTRUE_UNSIGNED:
+                        case ( BaseType_t ) pdTRUE:
                            {
                                IPv6_Type_t xEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
@@ -832,13 +832,12 @@ struct xIPv6_Couple
                                {
                                    /* do nothing, coverity happy */
                                }
-
-                               break;
                            }
+                           break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                     #if ( ipconfigUSE_IPv4 != 0 )
-                        case ( BaseType_t ) pdFALSE_UNSIGNED:
+                        case ( BaseType_t ) pdFALSE:
 
                             if( pxEndPoint->ipv4_settings.ulIPAddress == pxIPAddressTo->ulIP_IPv4 )
                             {
@@ -876,16 +875,16 @@ struct xIPv6_Couple
                 char pcBufferFrom[ 40 ];
                 char pcBufferTo[ 40 ];
                 BaseType_t xFamily = ( usFrameType == ipIPv6_FRAME_TYPE ) ? FREERTOS_AF_INET6 : FREERTOS_AF_INET4;
-                const char * xRetNtopTo; 
+                const char * xRetNtopTo;
                 const char * xRetNtopFrom;
                 xRetNtopTo = FreeRTOS_inet_ntop( xFamily,
-                                    ( void * ) pxIPAddressTo->xIP_IPv6.ucBytes,
-                                    pcBufferTo,
-                                    sizeof( pcBufferTo ) );
+                                                 ( void * ) pxIPAddressTo->xIP_IPv6.ucBytes,
+                                                 pcBufferTo,
+                                                 sizeof( pcBufferTo ) );
                 xRetNtopFrom = FreeRTOS_inet_ntop( xFamily,
-                                    ( void * ) pxIPAddressFrom->xIP_IPv6.ucBytes,
-                                    pcBufferFrom,
-                                    sizeof( pcBufferFrom ) );
+                                                   ( void * ) pxIPAddressFrom->xIP_IPv6.ucBytes,
+                                                   pcBufferFrom,
+                                                   sizeof( pcBufferFrom ) );
 
                 FreeRTOS_printf( ( "EasyFit[%s]: %d %d %d ( %s ->%s ) %s\n",
                                    ( usFrameType == ipIPv6_FRAME_TYPE ) ? "IPv6" : ( usFrameType == ipIPv4_FRAME_TYPE ) ? "IPv4" : ( usFrameType == ipARP_FRAME_TYPE ) ? "ARP" : "UNK",
@@ -917,7 +916,7 @@ struct xIPv6_Couple
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolPacket_t * pxPacket = ( ( const ProtocolPacket_t * ) pucEthernetBuffer );
-        
+
         #if ( ipconfigUSE_IPv6 != 0 )
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -962,9 +961,8 @@ struct xIPv6_Couple
             ( void ) memset( xIPAddressFrom.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
             ( void ) memset( xIPAddressTo.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
 
-            switch(usFrameType)
+            switch( usFrameType )
             {
-
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case ipIPv6_FRAME_TYPE:
                         ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxIPPacket_IPv6->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -975,29 +973,29 @@ struct xIPv6_Couple
 
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case ipARP_FRAME_TYPE:
-                        {
-                            /* MISRA Ref 11.3.1 [Misaligned access] */
-                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                            /* coverity[misra_c_2012_rule_11_3_violation] */
-                            const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
+                       {
+                           /* MISRA Ref 11.3.1 [Misaligned access] */
+                           /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                           /* coverity[misra_c_2012_rule_11_3_violation] */
+                           const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
 
-                            if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
-                            {
-                                ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
-                                xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
-                            }
-                            else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
-                            {
-                                ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
-                                xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
-                            }
-                            else
-                            {
-                                /* do nothing, coverity happy */
-                            }
+                           if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
+                           {
+                               ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                               xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                           }
+                           else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
+                           {
+                               ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                               xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                           }
+                           else
+                           {
+                               /* do nothing, coverity happy */
+                           }
 
-                            FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
-                        }
+                           FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                       }
                         xDoProcessPacket = pdTRUE;
                         break;
 
@@ -1007,15 +1005,11 @@ struct xIPv6_Couple
                         xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
                         xDoProcessPacket = pdTRUE;
                         break;
-
                 #else /* ( ipconfigUSE_IPv4 != 0 ) */
-
                     default:
                         /* MISRA 16.4 Compliance */
                         break;
-
-                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             }
 
             if( xDoProcessPacket == pdTRUE )
@@ -1045,49 +1039,35 @@ struct xIPv6_Couple
 
         while( pxEndPoint != NULL )
         {
-            ( void ) xIPType;
+            #if ( ipconfigUSE_IPv6 == 0 )
+                ( void ) xIPType;
 
-            switch( xIPType )
-            {
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    case ( BaseType_t ) ipTYPE_IPv6:
-
-                        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
-                        {
-                            /* Check if the IP-address is non-zero. */
-                            if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
-                            {
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            /* do nothing, coverity happy */
-                        }
-                        break;
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                #if ( ipconfigUSE_IPv4 != 0 )
-                    case ( BaseType_t ) ipTYPE_IPv4:
-
-                        if( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED )
-                        {
-                            if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
-                            {
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            /* do nothing, coverity happy */
-                        }
-                        break;
-                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-                default:
-                    /* This end-point is not the right IP-type. */
-                    FreeRTOS_debug_printf( ( "FreeRTOS_FindGateWay: Undefined IP Type \n" ) );
+                if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) /* access to ipv4_settings is checked. */
+                {
                     break;
-            }
-
+                }
+            #else
+                if( ( xIPType == ( BaseType_t ) ipTYPE_IPv6 ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
+                {
+                    /* Check if the IP-address is non-zero. */
+                    if( memcmp( FreeRTOS_in6addr_any.ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) != 0 )
+                    {
+                        break;
+                    }
+                }
+                else
+                if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
+                {
+                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U )
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    /* This end-point is not the right IP-type. */
+                }
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             pxEndPoint = pxEndPoint->pxNext;
         }
 

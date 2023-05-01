@@ -966,8 +966,8 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
         ( void ) pxFirstEndPoint;
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-    // /* At least one IPv4 end-point must be defined. */
-    // configASSERT( pxFirstEndPoint != NULL );
+    /* / * At least one IPv4 end-point must be defined. * / */
+    /* configASSERT( pxFirstEndPoint != NULL ); */
 
     /* Check that the configuration values are correct and that the IP-task has not
      * already been initialized. */
