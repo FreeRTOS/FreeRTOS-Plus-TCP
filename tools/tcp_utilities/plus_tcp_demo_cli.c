@@ -325,23 +325,25 @@ static const char * pcARPReturnType( eARPLookupResult_t eResult )
 }
 /*-----------------------------------------------------------*/
 
-static NetworkEndPoint_t * pxFindEndpoint( IPv6_Address_t * pxAddress )
-{
-    NetworkEndPoint_t * pxEndpoint;
-
-    for( pxEndpoint = FreeRTOS_FirstEndPoint( NULL );
-         pxEndpoint != NULL;
-         pxEndpoint = FreeRTOS_NextEndPoint( NULL, pxEndpoint ) )
+#if ( ipconfigUSE_IPv6 != 0 )
+    static NetworkEndPoint_t * pxFindEndpoint( IPv6_Address_t * pxAddress )
     {
-        if( memcmp( pxEndpoint->ipv6_settings.xGatewayAddress.ucBytes, pxAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
-        {
-            break;
-        }
-    }
+        NetworkEndPoint_t * pxEndpoint;
 
-    return pxEndpoint;
-}
+        for( pxEndpoint = FreeRTOS_FirstEndPoint( NULL );
+             pxEndpoint != NULL;
+             pxEndpoint = FreeRTOS_NextEndPoint( NULL, pxEndpoint ) )
+        {
+            if( memcmp( pxEndpoint->ipv6_settings.xGatewayAddress.ucBytes, pxAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+            {
+                break;
+            }
+        }
+
+        return pxEndpoint;
+    }
 /*-----------------------------------------------------------*/
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 static void handle_udp( char * pcBuffer )
 {
