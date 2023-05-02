@@ -1,5 +1,6 @@
-Moving to 4.0.0-rc1 from 3.x.x:
------------------------------
+Moving to 4.0.0-rc1/rc2 from 3.x.x:
+--------------------------------
+
 In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
 
 Some of the APIs have changed which is illustrated in the section below. However, there is a backward compatibility mode provided as well.
@@ -9,8 +10,11 @@ Backward Compatibility Mode:
    If you are moving your code from V3.x.x to V4.0.0-rc1, then set the "ipconfigIPv4_BACKWARD_COMPATIBLE" macro to 1 in “FreeRTOSIPConfigDefaults.h” to run the code in backward compatible mode.
    The "Existing API's" defined in all the API changes below work only when the backward compatibility mode is enabled.
 
-API changes in 4.0.0-rc1:
+API changes in 4.0.0-rc1/rc2:
 ----------------------
+
+The changes mentioned below uses ipconfigIPv4_BACKWARD_COMPATIBLE flag to differentiate between old API and new API.
+
 Change 1:
 
    - Existing API: FreeRTOS_IPInit
@@ -46,7 +50,18 @@ Change 5:
    - Existing API: vApplicationIPNetworkEventHook
    - New API: vApplicationIPNetworkEventHook_Multi
       - New argument “struct xNetworkInterface * pxNetworkInterface” added.
-      - ipconfigIPv4_BACKWARD_COMPATIBLE flag is used to differentiate between old API and new API.
+
+Change 6:
+
+   - Existing API: xApplicationDHCPHook
+   - New API: xApplicationDHCPHook_Multi
+      - New argument "struct xNetworkEndPoint * pxEndPoint" added.
+
+Change 7:
+
+   - Existing API: xApplicationDNSQueryHook
+   - New API: xApplicationDNSQueryHook_Multi
+      - New argument "struct xNetworkEndPoint * pxEndPoint" added.
 
 **NOTE** : We are NOT considering the APIs changes in FreeRTOS_IP_Private.h for backward compatibility as those are not part of published interface.
 
