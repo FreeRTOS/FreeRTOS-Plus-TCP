@@ -53,6 +53,16 @@ void InitializeUnitTest()
 
 uint32_t ulApplicationTimeHook( void )
 {
+    /** @brief The function time() counts since 1-1-1970.  The DHCPv6 time-stamp however
+     * uses a time stamp that had zero on 1-1-2000. */
+    return 946684800U;
+}
+
+eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
+                                                  struct xNetworkEndPoint * pxEndPoint,
+                                                  IP_Address_t * pxIPAddress )
+{
+    return eDHCPContinue;
 }
 
 void * pvPortMalloc( size_t xWantedSize )
