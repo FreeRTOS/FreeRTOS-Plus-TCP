@@ -399,6 +399,7 @@
                     if( pxEndPoint != NULL )
                     {
                         xBindAddress.sin_address.ulIP_IPv4 = pxEndPoint->ipv4_settings.ulIPAddress;
+                        xBindAddress.sin_family = FREERTOS_AF_INET;
                     }
                 }
             #endif /* if ( ipconfigMULTI_INTERFACE != 0 ) */

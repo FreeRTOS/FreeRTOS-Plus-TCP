@@ -1569,7 +1569,7 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
     #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         struct freertos_sockaddr xTempDestinationAddress;
 
-        if( ( pxDestinationAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxDestinationAddress->sin_family != FREERTOS_AF_INET ) )
+        if( ( pxDestinationAddress != NULL ) && ( pxDestinationAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxDestinationAddress->sin_family != FREERTOS_AF_INET ) )
         {
             ( void ) memcpy( &xTempDestinationAddress, pxDestinationAddress, sizeof( struct freertos_sockaddr ) );
 
@@ -1666,7 +1666,7 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
     #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         struct freertos_sockaddr xTempAddress;
 
-        if( ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
+        if( ( pxAddress != NULL ) && ( pxAddress->sin_family != FREERTOS_AF_INET6 ) && ( pxAddress->sin_family != FREERTOS_AF_INET ) )
         {
             ( void ) memcpy( &xTempAddress, pxAddress, sizeof( struct freertos_sockaddr ) );
 
