@@ -103,10 +103,6 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface );
 /* Return pdTRUE if the IPv4 address is a multicast address. */
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
-/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress );
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */

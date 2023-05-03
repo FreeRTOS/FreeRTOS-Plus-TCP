@@ -54,6 +54,10 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
                                   size_t uxBufferLength,
                                   struct xPacketSummary * pxSet );
 
+/* Set the MAC-address that belongs to a given IPv4 multi-cast address. */
+void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
+                                  MACAddress_t * pxMACAddress );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */

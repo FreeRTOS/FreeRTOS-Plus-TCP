@@ -1703,26 +1703,6 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Set multicast MAC address.
- *
- * @param[in] ulIPAddress IP address.
- * @param[out] pxMACAddress Pointer to MAC address.
- */
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress )
-{
-    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
-
-    pxMACAddress->ucBytes[ 0 ] = ( uint8_t ) 0x01U;
-    pxMACAddress->ucBytes[ 1 ] = ( uint8_t ) 0x00U;
-    pxMACAddress->ucBytes[ 2 ] = ( uint8_t ) 0x5EU;
-    pxMACAddress->ucBytes[ 3 ] = ( uint8_t ) ( ( ulIP >> 16 ) & 0x7fU ); /* Use 7 bits. */
-    pxMACAddress->ucBytes[ 4 ] = ( uint8_t ) ( ( ulIP >> 8 ) & 0xffU );  /* Use 8 bits. */
-    pxMACAddress->ucBytes[ 5 ] = ( uint8_t ) ( ( ulIP ) & 0xffU );       /* Use 8 bits. */
-}
-/*-----------------------------------------------------------*/
-
-/**
  * @brief Is the IP address an IPv4 multicast address.
  *
  * @param[in] ulIPAddress The IP address being checked.

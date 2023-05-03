@@ -304,12 +304,14 @@
                         continue;
                     }
                 #else
-                    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
 
-                    if( ( pxEndPoint != NULL ) && ( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) )
-                    {
-                        xARPWaitResolution( pxEndPoint->ipv4_settings.ulGatewayAddress, pdMS_TO_TICKS( 1000U ) );
-                    }
+                        if( ( pxEndPoint != NULL ) && ( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) )
+                        {
+                            xARPWaitResolution( pxEndPoint->ipv4_settings.ulGatewayAddress, pdMS_TO_TICKS( 1000U ) );
+                        }
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                     BaseType_t rc_dns = FreeRTOS_getaddrinfo(
                         pcHostname,  /* The node. */
