@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "FreeRTOS.h"
 
 #include "mock_task.h"
 #include "mock_list.h"
@@ -42,4 +43,49 @@
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
+#include "mock_FreeRTOS_ARP.h"
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IPv6.h"
+#include "mock_FreeRTOS_IP_Utils.h"
+#include "mock_FreeRTOS_IPv6_Utils.h"
+#include "mock_FreeRTOS_Routing.h"
+
+#include "catch_assert.h"
+#include "FreeRTOS_ND_stubs.c"
+
+ARPCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
+
+/*
+ * ===================================================
+ *             Test for eNDGetCacheEntry
+ * ===================================================
+ */
+
+/**
+ * @brief This function find the MAC-address of a multicast IPv6 address
+ *        with a valid endpoint.
+ */
+void test_eNDGetCacheEntry_Multicast( void )
+{
+    IPv6_Address_t xIPAddress;
+    MACAddress_t xMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
+    NetworkEndPoint_t xEndPoint, *pxEndPoint;
+    eARPLookupResult_t eResult;
+    
+    /* Mostly used multi-cast address is ff02::. */
+    memset( &xIPAddress, 0, sizeof( IPv6_Address_t ) );
+    xIPAddress.ucBytes[ 0 ] = 255;
+    xIPAddress.ucBytes[ 1 ] = 2;
+    pxEndPoint = &xEndPoint;
+    pxEndPoint->bits.bIPv6 = 1;
+
+    xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdTRUE );
+    vSetMultiCastIPv6MacAddress_ExpectAnyArgs();
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn(eIPv6_LinkLocal);
+
+    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint);
+
+    TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
+}
