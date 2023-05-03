@@ -88,6 +88,10 @@
 
     #define DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH         128
 
+/** @brief The function time() counts since 1-1-1970.  The DHCPv6 time-stamp however
+ * uses a time stamp that had zero on 1-1-2000. */
+    #define SECS_FROM_1970_TILL_2000                   946684800U
+
 /** @brief The ID of a client or a server. */
     typedef struct xClientServerID
     {

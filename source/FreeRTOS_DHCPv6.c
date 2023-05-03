@@ -84,10 +84,6 @@
 /** @brief Don't allow the lease time to be too short. */
 #define dhcpv6MINIMUM_LEASE_TIME       ( pdMS_TO_TICKS( 60000U ) )               /* 60 seconds in ticks. */
 
-/** @brief The function time() counts since 1-1-1970.  The DHCPv6 time-stamp however
- * uses a time stamp that had zero on 1-1-2000. */
-#define SECS_FROM_1970_TILL_2000       946684800U
-
 /** @brief The maximum size of send buffer. */
 #define DHCPv6_SEND_MAX_BUFFER_SIZE    ( 256 )
 
