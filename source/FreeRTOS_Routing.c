@@ -963,53 +963,56 @@ struct xIPv6_Couple
 
             switch( usFrameType )
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    case ipIPv6_FRAME_TYPE:
+                case ipIPv6_FRAME_TYPE:
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
                         ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxIPPacket_IPv6->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxIPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                         xDoProcessPacket = pdTRUE;
-                        break;
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                #if ( ipconfigUSE_IPv4 != 0 )
-                    case ipARP_FRAME_TYPE:
-                       {
-                           /* MISRA Ref 11.3.1 [Misaligned access] */
-                           /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                           /* coverity[misra_c_2012_rule_11_3_violation] */
-                           const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
+                    break;
 
-                           if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
+
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case ipARP_FRAME_TYPE:
                            {
-                               ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
-                               xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
-                           }
-                           else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
-                           {
-                               ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
-                               xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
-                           }
-                           else
-                           {
-                               /* do nothing, coverity happy */
-                           }
+                               /* MISRA Ref 11.3.1 [Misaligned access] */
+                               /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                               /* coverity[misra_c_2012_rule_11_3_violation] */
+                               const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
 
-                           FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
-                       }
-                        xDoProcessPacket = pdTRUE;
-                        break;
+                               if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
+                               {
+                                   ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                                   xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                               }
+                               else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
+                               {
+                                   ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                                   xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                               }
+                               else
+                               {
+                                   /* do nothing, coverity happy */
+                               }
 
-                    default:
-                        /* ipIPv4_FRAME_TYPE */
-                        xIPAddressFrom.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulSourceIPAddress;
-                        xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
-                        xDoProcessPacket = pdTRUE;
-                        break;
-                #else /* ( ipconfigUSE_IPv4 != 0 ) */
-                    default:
-                        /* MISRA 16.4 Compliance */
-                        break;
-                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                               FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                           }
+                            xDoProcessPacket = pdTRUE;
+                            break;
+
+                        default:
+                            /* ipIPv4_FRAME_TYPE */
+                            xIPAddressFrom.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulSourceIPAddress;
+                            xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
+                            xDoProcessPacket = pdTRUE;
+                            break;
+                    #else /* ( ipconfigUSE_IPv4 != 0 ) */
+                        default:
+                            /* MISRA 16.4 Compliance */
+                            break;
+                            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             }
 
             if( xDoProcessPacket == pdTRUE )
