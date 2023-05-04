@@ -38,6 +38,13 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_Routing.h"
 
+typedef enum eTestDHCPv6HookOperationType
+{
+    eTestDHCPv6HookOperationTypeNone = 0,
+    eTestDHCPv6HookOperationTypeContinue,
+    eTestDHCPv6HookOperationTypeCloseSocketThenContinue,
+} eTestDHCPv6HookOperationType_t;
+
 /** @brief A list of all network end-points.  Each element has a next pointer. */
 struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
 
@@ -45,10 +52,13 @@ BaseType_t xARPHadIPClash = pdFALSE;
 
 extern Socket_t xDHCPv6Socket;
 
+eTestDHCPv6HookOperationType_t eTestDHCPv6HookOperationType = eTestDHCPv6HookOperationTypeContinue;
+
 void InitializeUnitTest()
 {
     pxNetworkEndPoints = NULL;
     xDHCPv6Socket = NULL;
+    eTestDHCPv6HookOperationType = eTestDHCPv6HookOperationTypeContinue;
 }
 
 uint32_t ulApplicationTimeHook( void )
@@ -58,11 +68,23 @@ uint32_t ulApplicationTimeHook( void )
     return 946684800U;
 }
 
+void vSetDHCPHookOperation( eTestDHCPv6HookOperationType_t eOperationType )
+{
+    eTestDHCPv6HookOperationType = eOperationType;
+}
+
 eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
                                                   struct xNetworkEndPoint * pxEndPoint,
                                                   IP_Address_t * pxIPAddress )
 {
-    return eDHCPContinue;
+    eDHCPCallbackAnswer_t eReturn = eDHCPContinue;
+
+    if( eTestDHCPv6HookOperationType == eTestDHCPv6HookOperationTypeCloseSocketThenContinue )
+    {
+        pxEndPoint->xDHCPData.xDHCPSocket = NULL;
+    }
+
+    return eReturn;
 }
 
 void * pvPortMalloc( size_t xWantedSize )

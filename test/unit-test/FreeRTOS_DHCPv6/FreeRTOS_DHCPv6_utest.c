@@ -859,10 +859,6 @@ static void prvPrepareReply()
 /**
  * @brief test_eGetDHCPv6State_happy_path
  * Check if eGetDHCPv6State can return DHCP state correctly.
- *
- * Test step:
- *  - Set endpoint's DHCP state.
- *  - Call eGetDHCPv6State to get state and check if it's correct.
  */
 void test_eGetDHCPv6State_happy_path()
 {
@@ -883,9 +879,6 @@ void test_eGetDHCPv6State_happy_path()
 /**
  * @brief test_eGetDHCPv6State_null
  * Check if eGetDHCPv6State trigger assertion when input is NULL.
- *
- * Test step:
- *  - Call eGetDHCPv6State with NULL.
  */
 void test_eGetDHCPv6State_null()
 {
@@ -895,9 +888,6 @@ void test_eGetDHCPv6State_null()
 /**
  * @brief test_vDHCPv6Process_null
  * Check if vDHCPv6Process trigger assertion when input is NULL.
- *
- * Test step:
- *  - Call vDHCPv6Process with NULL endpoint.
  */
 void test_vDHCPv6Process_null()
 {
@@ -908,10 +898,6 @@ void test_vDHCPv6Process_null()
 /**
  * @brief test_vDHCPv6Process_reset_from_init
  * Check if vDHCPv6Process can reset successfully from eInitialWait.
- *
- * Test step:
- *  - Set endpoint's DHCP state to eInitialWait.
- *  - Call vDHCPv6Process with reset flag and check the state after calling.
  */
 void test_vDHCPv6Process_reset_from_init()
 {
@@ -943,11 +929,6 @@ void test_vDHCPv6Process_reset_from_init()
 /**
  * @brief test_vDHCPv6Process_reset_from_lease
  * Check if vDHCPv6Process can reset successfully from eLeasedAddress.
- *
- * Test step:
- *  - Set endpoint's DHCP state to eLeasedAddress.
- *     - Set IPv6 address to 2001::1.
- *  - Call vDHCPv6Process with reset flag and check the state after calling.
  */
 void test_vDHCPv6Process_reset_from_lease()
 {
@@ -981,11 +962,6 @@ void test_vDHCPv6Process_reset_from_lease()
 /**
  * @brief test_vDHCPv6Process_continue_solicitation_happy_path
  * Check if vDHCPv6Process can continue from eWaitingSendFirstDiscover successfully.
- *
- * Test step:
- *  - Set endpoint's DHCP state to eWaitingSendFirstDiscover.
- *  - Prepare endpoint and function calls for solicit pass path.
- *  - Check if the message is correct for solicitation.
  */
 void test_vDHCPv6Process_continue_solicitation_happy_path()
 {
@@ -1025,12 +1001,6 @@ void test_vDHCPv6Process_continue_solicitation_happy_path()
 /**
  * @brief test_vDHCPv6Process_continue_advertise_happy_path
  * Check if vDHCPv6Process can continue from eWaitingOffer successfully.
- *
- * Test step:
- *  - Set endpoint's DHCP state to eWaitingOffer.
- *  - Prepare endpoint and function calls for advertise pass path.
- *  - Prepare content for DHCPv6 to process.
- *  - Check if the message is correct for advertise.
  */
 void test_vDHCPv6Process_continue_advertise_happy_path()
 {
@@ -1076,12 +1046,6 @@ void test_vDHCPv6Process_continue_advertise_happy_path()
 /**
  * @brief test_vDHCPv6Process_continue_reply_happy_path
  * Check if vDHCPv6Process can continue from eWaitingAcknowledge successfully.
- *
- * Test step:
- *  - Set endpoint's DHCP state to eWaitingAcknowledge.
- *  - Prepare endpoint and function calls for reply pass path.
- *  - Prepare content for DHCPv6 to process.
- *  - Check if the message is correct for reply.
  */
 void test_vDHCPv6Process_continue_reply_happy_path()
 {
@@ -1121,17 +1085,12 @@ void test_vDHCPv6Process_continue_reply_happy_path()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     /* Check if the IP address provided in reply is set to endpoint properly. */
-    TEST_ASSERT_EQUAL_MEMORY( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
  * @brief test_vDHCPv6Process_dhcp_lease
  * The address of endpoint is leased. Endpoint sends the DHCPv6 request to ask for renew.
- *
- * Test step:
- *  - Set endpoint's DHCP state to eLeasedAddress.
- *  - Prepare endpoint and function calls for sending request.
- *  - Check if the request message is correct.
  */
 void test_vDHCPv6Process_dhcp_lease()
 {
@@ -1140,7 +1099,7 @@ void test_vDHCPv6Process_dhcp_lease()
     struct xSOCKET xLocalDHCPv6Socket;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     pxNetworkEndPoints = &xEndPoint;
@@ -1181,13 +1140,48 @@ void test_vDHCPv6Process_dhcp_lease()
 }
 
 /**
+ * @brief test_vDHCPv6Process_giveup_when_socket_null
+ * When the socket is failed on creation, we should use default setting as IP address.
+ */
+void test_vDHCPv6Process_giveup_when_socket_null()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, &xDefaultIPAddress.ucBytes, sizeof( IPv6_Address_t ) );
+    memcpy( xEndPoint.ipv6_defaults.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_defaults.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = NULL;
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    /* When giving up, the state is set to eNotUsingLeasedAddress. Then using default setting as IPv6 address. */
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint.xDHCPData.eDHCPState );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+}
+
+/**
  * @brief test_vDHCPv6Process_wait_reply_timeout
  * Check if vDHCPv6Process send another DHCPv6 reply when timeout triggered on waiting reply.
- *
- * Test step:
- *  - Set endpoint's DHCP state to eWaitingAcknowledge.
- *  - Prepare endpoint and function calls for reply timeout path.
- *  - Check if the request message is correct.
+ * Then reset the state to initial when timeout period is out of bound.
  */
 void test_vDHCPv6Process_wait_reply_timeout()
 {
