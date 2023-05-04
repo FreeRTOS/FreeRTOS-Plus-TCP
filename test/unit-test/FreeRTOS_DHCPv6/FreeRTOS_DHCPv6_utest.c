@@ -25,7 +25,6 @@
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
@@ -53,17 +52,22 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define TEST_DHCPV6_DEBUG               ( 1 )
+#define TEST_DHCPV6_DEBUG                    ( 1 )
 
-#define TEST_DHCPV6_IAID                ( 0x27fe8f95 )
+#define TEST_DHCPV6_IAID                     ( 0x27fe8f95 )
 
-#define TEST_DHCPV6_TRANSACTION_ID      ( 0x123456 )
+#define TEST_DHCPv6_DEFAULT_DUID_TYPE        ( 1U )
+#define TEST_DHCPv6_DIFFERENT_DUID_TYPE      ( 2U )
+#define TEST_DHCPv6_DEFAULT_DUID_LENGTH      ( 14U )
+#define TEST_DHCPv6_DIFFERENT_DUID_LENGTH    ( 12U )
+
+#define TEST_DHCPV6_TRANSACTION_ID           ( 0x123456 )
 static uint8_t ucTestDHCPv6TransactionID[] = { 0x12, 0x34, 0x56 };
 
-#define TEST_DHCPV6_OPTION_CLIENT_ID    ( 0x00010001C792BC80121122334422 )
+#define TEST_DHCPV6_OPTION_CLIENT_ID         ( 0x00010001C792BC80121122334422 )
 static uint8_t ucTestDHCPv6OptionClientID[] = { 0x00, 0x01, 0x00, 0x01, 0xC7, 0x92, 0xBC, 0x80, 0x12, 0x11, 0x22, 0x33, 0x44, 0x22 };
 
-#define TEST_DHCPV6_OPTION_SERVER_ID    ( 0x28BADC54000ACD295EB6 )
+#define TEST_DHCPV6_OPTION_SERVER_ID         ( 0x28BADC54000ACD295EB6 )
 static uint8_t ucTestDHCPv6OptionServerID[] = { 0x28, 0xBA, 0xDC, 0x54, 0x00, 0x0A, 0xCD, 0x29, 0x5E, 0xB6 };
 
 const uint8_t ucDefaultMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
@@ -80,11 +84,6 @@ const IPv6_Address_t xDNSAddress[ 3 ] =
     /* 2001:0470:EC54::FD */
     { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE },
 };
-
-#define TEST_DHCPv6_DEFAULT_DUID_TYPE        ( 1U )
-#define TEST_DHCPv6_DIFFERENT_DUID_TYPE      ( 2U )
-#define TEST_DHCPv6_DEFAULT_DUID_LENGTH      ( 14U )
-#define TEST_DHCPv6_DIFFERENT_DUID_LENGTH    ( 12U )
 
 Socket_t xStubFreeRTOS_setsockopt_xSocket;
 size_t xStubFreeRTOS_setsockopt_uxOptionLength;
@@ -1143,8 +1142,6 @@ static void prvPrepareReplyWithMultipleDNS()
     prvPrepareReply();
     prvAddOptionDNSServer( pdFALSE, 3 );
 }
-
-
 
 /**
  * @brief prvPrepareReplyDifferentServerDUIDType
