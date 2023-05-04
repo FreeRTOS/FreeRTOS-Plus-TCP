@@ -857,6 +857,69 @@ static void prvPrepareReply()
 }
 
 /**
+ * @brief prvPrepareUnknownMsgType
+ * Prepare buffer content with known message type.
+ */
+static void prvPrepareUnknownMsgType()
+{
+    /* We hardcoded the option sequence in advertise message.
+     * 1. Client ID
+     * 2. Server ID
+     * 3. IA_NA
+     *     - Sub-option IA Address
+     *     - Sub-option IA Prefix
+     *     - Sub-option Status Code
+     * 4. Status Code
+     * 5. Preference
+     */
+    uint8_t ucVal;
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    xBitConfig_init_Stub( xStubxBitConfig_init );
+    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
+    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
+    vBitConfig_release_Ignore();
+
+    /* Provide the message type and transaction ID for DHCPv6. */
+    ucVal = 0xEE;
+    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "InvalidMessageType" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+}
+
+/**
+ * @brief prvPrepareWrongTransactionID
+ * Prepare buffer content with different transaction ID.
+ */
+static void prvPrepareWrongTransactionID()
+{
+    /* We hardcoded the option sequence in advertise message.
+     * 1. Client ID
+     * 2. Server ID
+     * 3. IA_NA
+     *     - Sub-option IA Address
+     *     - Sub-option IA Prefix
+     *     - Sub-option Status Code
+     * 4. Status Code
+     * 5. Preference
+     */
+    uint8_t ucVal;
+    uint16_t usVal;
+    uint32_t ulVal;
+    uint8_t ucTestInvalidDHCPv6TransactionID[] = { 0x65, 0x43, 0x21 };
+
+    xBitConfig_init_Stub( xStubxBitConfig_init );
+    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
+    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
+    vBitConfig_release_Ignore();
+
+    /* Provide the message type and transaction ID for DHCPv6. */
+    ucVal = DHCPv6_message_Type_Advertise;
+    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestInvalidDHCPv6TransactionID, 3, "InvalidTransactionID" );
+}
+
+/**
  * @brief test_eGetDHCPv6State_happy_path
  * Check if eGetDHCPv6State can return DHCP state correctly.
  */
@@ -1242,4 +1305,86 @@ void test_vDHCPv6Process_wait_reply_timeout()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eInitialWait, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_recv_unknown_msg_type
+ * Check if vDHCPv6Process can drop packets with unknown message type.
+ */
+void test_vDHCPv6Process_recv_unknown_msg_type()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareUnknownMsgType();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_recv_wrong_transaction_ID
+ * Check if vDHCPv6Process can drop packets with wrong transaction ID.
+ */
+void test_vDHCPv6Process_recv_wrong_transaction_ID()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 144 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareWrongTransactionID();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
 }
