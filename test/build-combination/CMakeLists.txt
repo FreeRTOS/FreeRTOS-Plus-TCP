@@ -13,27 +13,27 @@ target_link_libraries(freertos_plus_tcp_config_all_enable INTERFACE freertos_plu
 
 # -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_all_enable_ipv4 INTERFACE)
-target_include_directories(freertos_plus_tcp_config_all_enable_ipv4 INTERFACE AllEnable_IPv4)
+target_include_directories(freertos_plus_tcp_config_all_enable_ipv4 INTERFACE Enable_IPv4)
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv4 INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_all_enable_ipv6 INTERFACE)
-target_include_directories(freertos_plus_tcp_config_all_enable_ipv6 INTERFACE AllEnable_IPv6)
+target_include_directories(freertos_plus_tcp_config_all_enable_ipv6 INTERFACE Enable_IPv6)
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv6 INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_all_enable_ipv4_ipv6 INTERFACE)
-target_include_directories(freertos_plus_tcp_config_all_enable_ipv4_ipv6 INTERFACE AllEnable_IPv4_IPv6)
+target_include_directories(freertos_plus_tcp_config_all_enable_ipv4_ipv6 INTERFACE Enable_IPv4_IPv6)
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv4_ipv6 INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_all_enable_ipv4_tcp INTERFACE)
-target_include_directories(freertos_plus_tcp_config_all_enable_ipv4_tcp INTERFACE AllEnable_IPv4_TCP)
+target_include_directories(freertos_plus_tcp_config_all_enable_ipv4_tcp INTERFACE Enable_IPv4_TCP)
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv4_tcp INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFACE)
-target_include_directories(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFACE AllEnable_IPv6_TCP)
+target_include_directories(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFACE Enable_IPv6_TCP)
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
