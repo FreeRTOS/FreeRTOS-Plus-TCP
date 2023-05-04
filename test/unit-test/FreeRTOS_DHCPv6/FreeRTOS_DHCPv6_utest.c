@@ -471,6 +471,7 @@ static void vAddBitOperation( eTestDHCPv6BitOperationType_t eType,
         case eTestDHCPv6BitOperationWriteCustom:
         case eTestDHCPv6BitOperationReadCustom:
         case eTestDHCPv6BitOperationReadPeek:
+            TEST_ASSERT_LESS_THAN( TEST_DHCPv6_BIT_OPERATION_MAX_SIZE, ulSize );
             memcpy( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationWriteIndex ].val.ucValCustom, pvVal, ulSize );
             break;
     }
@@ -1311,6 +1312,42 @@ static void prvPrepareAdvertiseStatusCodeLengthTooBig()
 }
 
 /**
+ * @brief prvPrepareAdvertiseStatusCodeLongMessage
+ * Prepare status code with long message.
+ */
+static void prvPrepareAdvertiseStatusCodeLongMessage()
+{
+    uint8_t ucVal;
+    uint16_t usVal;
+    uint32_t ulVal;
+    /* For now, local buffer size is 50. Declare a message with larger size. */
+    const uint8_t ucStatusCodeLongMessage[] = "012345678901234567890123456789012345678901234567890123456789";
+
+    xBitConfig_init_Stub( xStubxBitConfig_init );
+    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
+    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
+    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
+    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
+    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
+    vBitConfig_release_Ignore();
+
+    /* Provide the message type and transaction ID for DHCPv6. */
+    ucVal = DHCPv6_message_Type_Advertise;
+    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+
+    /* Option Status Code */
+    usVal = DHCPv6_Option_Status_Code;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
+    usVal = sizeof( ucStatusCodeLongMessage ) + 2;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusValue" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeLongMessage, 49, "OptionStatusMessage" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &(ucStatusCodeLongMessage[49]), sizeof( ucStatusCodeLongMessage ) - 49, "OptionStatusMessage2" );
+}
+
+/**
  * @brief test_eGetDHCPv6State_happy_path
  * Check if eGetDHCPv6State can return DHCP state correctly.
  */
@@ -2065,6 +2102,47 @@ void test_vDHCPv6Process_prvIsOptionLengthValid_option_larger_than_max_length()
     xTaskGetTickCount_IgnoreAndReturn( 0 );
     
     prvPrepareAdvertiseStatusCodeLengthTooBig();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_prvDHCPv6_handleStatusCode_Message_too_long
+ * Check if vDHCPv6Process can truncate the message in the local buffer.
+ */
+void test_vDHCPv6Process_prvDHCPv6_handleStatusCode_Message_too_long()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 71 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    
+    prvPrepareAdvertiseStatusCodeLongMessage();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
