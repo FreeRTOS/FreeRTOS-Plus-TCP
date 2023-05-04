@@ -42,6 +42,8 @@ typedef enum eTestStubsOperation
 {
     eTestStubsOperationNone = 0,
     eTestStubsAllocateFail,
+    eTestStubsHookFail,
+    eTestStubsHookUseDefault,
 } eTestStubsOperation_t;
 
 /** @brief A list of all network end-points.  Each element has a next pointer. */
@@ -77,6 +79,15 @@ eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhas
                                                   IP_Address_t * pxIPAddress )
 {
     eDHCPCallbackAnswer_t eReturn = eDHCPContinue;
+
+    if( eTestStubsOperation == eTestStubsHookFail )
+    {
+        eReturn = eDHCPStopNoChanges;
+    }
+    else if( eTestStubsOperation == eTestStubsHookUseDefault )
+    {
+        eReturn = eDHCPUseDefaults;
+    }
 
     return eReturn;
 }
