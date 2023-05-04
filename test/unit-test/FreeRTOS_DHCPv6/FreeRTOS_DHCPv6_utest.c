@@ -1727,7 +1727,9 @@ void test_vDHCPv6Process_wait_reply_timeout()
     xTaskGetTickCount_IgnoreAndReturn( pdMS_TO_TICKS( 5001 ) + pdMS_TO_TICKS( 10001 ) + pdMS_TO_TICKS( 20001 ) );
     /* Timeout triggered. Reset the DHCPv6 to initial state */
 
+    /* 1st timeout makes 1st request message resend. */
     prvPrepareRequest();
+    /* 2nd timeout makes 2nd request message resend. */
     prvPrepareRequest();
 
     vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
@@ -1743,10 +1745,10 @@ void test_vDHCPv6Process_wait_reply_timeout()
 }
 
 /**
- * @brief test_vDHCPv6Process_recv_unknown_msg_type
+ * @brief test_vDHCPv6Process_prvDHCPv6Analyse_unknown_msg_type
  * Check if vDHCPv6Process can drop packets with unknown message type.
  */
-void test_vDHCPv6Process_recv_unknown_msg_type()
+void test_vDHCPv6Process_prvDHCPv6Analyse_unknown_msg_type()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1784,10 +1786,10 @@ void test_vDHCPv6Process_recv_unknown_msg_type()
 }
 
 /**
- * @brief test_vDHCPv6Process_recv_wrong_transaction_ID
+ * @brief test_vDHCPv6Process_prvDHCPv6Analyse_wrong_transaction_ID
  * Check if vDHCPv6Process can drop packets with wrong transaction ID.
  */
-void test_vDHCPv6Process_recv_wrong_transaction_ID()
+void test_vDHCPv6Process_prvDHCPv6Analyse_wrong_transaction_ID()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1825,10 +1827,10 @@ void test_vDHCPv6Process_recv_wrong_transaction_ID()
 }
 
 /**
- * @brief test_vDHCPv6Process_recv_read_transaction_ID_error
+ * @brief test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error
  * Check if vDHCPv6Process can drop packets while error occured on bit configuration.
  */
-void test_vDHCPv6Process_recv_read_transaction_ID_error()
+void test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1866,10 +1868,10 @@ void test_vDHCPv6Process_recv_read_transaction_ID_error()
 }
 
 /**
- * @brief test_vDHCPv6Process_recv_read_option_error
+ * @brief test_vDHCPv6Process_prvDHCPv6Analyse_read_option_error
  * Check if vDHCPv6Process can drop packets while error occured on reading option.
  */
-void test_vDHCPv6Process_recv_read_option_error()
+void test_vDHCPv6Process_prvDHCPv6Analyse_read_option_error()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1907,10 +1909,10 @@ void test_vDHCPv6Process_recv_read_option_error()
 }
 
 /**
- * @brief test_vDHCPv6Process_advertise_lack_server_ID
+ * @brief test_vDHCPv6Process_prvDHCPv6Analyse_lack_server_ID
  * Check if vDHCPv6Process can drop packets while advertise message without server ID.
  */
-void test_vDHCPv6Process_advertise_lack_server_ID()
+void test_vDHCPv6Process_prvDHCPv6Analyse_lack_server_ID()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1948,10 +1950,10 @@ void test_vDHCPv6Process_advertise_lack_server_ID()
 }
 
 /**
- * @brief test_vDHCPv6Process_advertise_bit_config_init_error
+ * @brief test_vDHCPv6Process_prvDHCPv6Analyse_bit_config_init_error
  * Check if vDHCPv6Process can drop packets while failing on initialization of bit configuration.
  */
-void test_vDHCPv6Process_advertise_bit_config_init_error()
+void test_vDHCPv6Process_prvDHCPv6Analyse_bit_config_init_error()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1988,10 +1990,10 @@ void test_vDHCPv6Process_advertise_bit_config_init_error()
 }
 
 /**
- * @brief test_vDHCPv6Process_advertise_option_less_than_min_length
+ * @brief test_vDHCPv6Process_prvIsOptionLengthValid_option_less_than_min_length
  * Check if vDHCPv6Process can drop packets when any option's length is less than minimal requirement.
  */
-void test_vDHCPv6Process_advertise_option_less_than_min_length()
+void test_vDHCPv6Process_prvIsOptionLengthValid_option_less_than_min_length()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2029,10 +2031,10 @@ void test_vDHCPv6Process_advertise_option_less_than_min_length()
 }
 
 /**
- * @brief test_vDHCPv6Process_advertise_option_larger_than_max_length
+ * @brief test_vDHCPv6Process_prvIsOptionLengthValid_option_larger_than_max_length
  * Check if vDHCPv6Process can drop packets when any option's length is larger than packet size.
  */
-void test_vDHCPv6Process_advertise_option_larger_than_max_length()
+void test_vDHCPv6Process_prvIsOptionLengthValid_option_larger_than_max_length()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
