@@ -40,8 +40,10 @@
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_ARP.h"
 #include "mock_FreeRTOS_BitConfig.h"
 #include "mock_FreeRTOS_Sockets.h"
+#include "mock_FreeRTOS_DHCP.h"
 
 /*#include "FreeRTOS_IP_stubs.c" */
 #include "catch_assert.h"
@@ -2992,6 +2994,80 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_hook_default()
     vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
     vIPNetworkUpCalls_Expect( &xEndPoint );
 
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_wait_advertise_timeout
+ * Check if vDHCPv6Process send another DHCPv6 solicitation when timeout triggered on waiting advertise.
+ * Then reset the state to initial when timeout period is out of bound.
+ */
+void test_vDHCPv6Process_wait_advertise_timeout()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    /* Assume that DHCPv6 has sent solicitation once. */
+    xEndPoint.xDHCPData.xDHCPTxTime = pdMS_TO_TICKS( 0 );
+    xEndPoint.xDHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 5000 );
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    /* Because we assume DHCPv6 got advertise, so we should set the server information in DHCP message. */
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    /* 1st timeout at 5001ms. */
+    xTaskGetTickCount_IgnoreAndReturn( pdMS_TO_TICKS( 5001 ) );
+    /* Update tx time to 5001ms. And the tx period is updated to 10000ms. */
+    xTaskGetTickCount_IgnoreAndReturn( pdMS_TO_TICKS( 5001 ) );
+    /* 2nd timeout at 5001 + 10001 ms. */
+    xTaskGetTickCount_IgnoreAndReturn( pdMS_TO_TICKS( 5001 ) + pdMS_TO_TICKS( 10001 ) );
+    /* Update tx time to 5001ms + 10001 ms. And the tx period is updated to 20000ms. */
+    xTaskGetTickCount_IgnoreAndReturn( pdMS_TO_TICKS( 5001 ) + pdMS_TO_TICKS( 10001 ) );
+    /* 3rd timeout at 5001 + 10001 + 20001 ms. */
+    xTaskGetTickCount_IgnoreAndReturn( pdMS_TO_TICKS( 5001 ) + pdMS_TO_TICKS( 10001 ) + pdMS_TO_TICKS( 20001 ) );
+    /* Timeout triggered. Reset the DHCPv6 to initial state */
+
+    /* 1st timeout makes 1st solicitation message resend. */
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+    prvPrepareSolicitation();
+
+    /* 2nd timeout makes 2nd solicitation message resend. */
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+    prvPrepareSolicitation();
+
+    /* Final timeout, giving up. */
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    /* 1st process to trigger 1st timeout. */
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+    /* 2nd process to trigger 2nd timeout. */
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+    /* 3rd process to trigger final timeout. */
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint.xDHCPData.eDHCPState );

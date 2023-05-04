@@ -666,23 +666,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
                 {
                     FreeRTOS_debug_printf( ( "vDHCPProcess: giving up %lu > %lu ticks\n", EP_DHCPData.xDHCPTxPeriod, ipconfigMAXIMUM_DISCOVER_TX_PERIOD ) );
 
-                    #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-                        {
-                            /* Only use a fake Ack if the default IP address == 0x00
-                             * and the link local addressing is used.  Start searching
-                             * a free LinkLayer IP-address.  Next state will be
-                             * 'eGetLinkLayerAddress'. */
-                            prvPrepareLinkLayerIPLookUp( pxEndPoint );
-
-                            /* Setting an IP address manually so set to not using
-                             * leased address mode. */
-                            EP_DHCPData.eDHCPState = eGetLinkLayerAddress;
-                        }
-                    #else
-                        {
-                            xGivingUp = pdTRUE;
-                        }
-                    #endif /* ipconfigDHCP_FALL_BACK_AUTO_IP */
+                    xGivingUp = pdTRUE;
                 }
             }
             else
@@ -726,36 +710,6 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
             }
 
             break;
-
-            #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-                case eGetLinkLayerAddress:
-
-                    if( ( xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod )
-                    {
-                        if( xARPHadIPClash == pdFALSE )
-                        {
-                            /* ARP OK. proceed. */
-                            iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
-
-                            EP_DHCPData.eDHCPState = eNotUsingLeasedAddress;
-
-                            /* Auto-IP succeeded, the default configured IP-address will
-                             * be used.  Now call vIPNetworkUpCalls() to send the
-                             * network-up event and start the ARP timer. */
-                            vIPNetworkUpCalls( pxEndPoint );
-                        }
-                        else
-                        {
-                            /* ARP clashed - try another IP address. */
-                            prvPrepareLinkLayerIPLookUp( pxEndPoint );
-
-                            /* Setting an IP address manually so set to not using leased
-                             * address mode. */
-                            EP_DHCPData.eDHCPState = eGetLinkLayerAddress;
-                        }
-                    }
-                    break;
-            #endif /* ipconfigDHCP_FALL_BACK_AUTO_IP */
 
         case eLeasedAddress:
 
@@ -1597,11 +1551,6 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
                 pcName = "eWaitingAcknowledge";
                 break;
 
-                #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-                    case eGetLinkLayerAddress:
-                        pcName = "eGetLinkLayerAddress";
-                        break;
-                #endif
             case eLeasedAddress:
                 pcName = "eLeasedAddress";
                 break;
