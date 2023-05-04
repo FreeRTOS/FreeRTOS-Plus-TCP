@@ -1012,7 +1012,7 @@ struct xIPv6_Couple
                         default:
                             /* MISRA 16.4 Compliance */
                             break;
-                            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             }
 
             if( xDoProcessPacket == pdTRUE )

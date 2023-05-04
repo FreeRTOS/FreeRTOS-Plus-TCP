@@ -1565,22 +1565,24 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             /* Interpret the received Ethernet packet. */
             switch( pxEthernetHeader->usFrameType )
             {
-                case ipARP_FRAME_TYPE:
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipARP_FRAME_TYPE:
 
-                    /* The Ethernet frame contains an ARP packet. */
-                    if( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) )
-                    {
-                        /* MISRA Ref 11.3.1 [Misaligned access] */
-                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                        /* coverity[misra_c_2012_rule_11_3_violation] */
-                        eReturned = eARPProcessPacket( pxNetworkBuffer );
-                    }
-                    else
-                    {
-                        eReturned = eReleaseBuffer;
-                    }
+                        /* The Ethernet frame contains an ARP packet. */
+                        if( pxNetworkBuffer->xDataLength >= sizeof( ARPPacket_t ) )
+                        {
+                            /* MISRA Ref 11.3.1 [Misaligned access] */
+                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                            /* coverity[misra_c_2012_rule_11_3_violation] */
+                            eReturned = eARPProcessPacket( pxNetworkBuffer );
+                        }
+                        else
+                        {
+                            eReturned = eReleaseBuffer;
+                        }
 
-                    break;
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 case ipIPv4_FRAME_TYPE:
                 case ipIPv6_FRAME_TYPE:
