@@ -586,7 +586,6 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
         eDHCPCallbackAnswer_t eAnswer;
     #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
 
-    configASSERT( pxEndPoint != NULL );
     configASSERT( pxDHCPMessage != NULL );
 
     switch( EP_DHCPData.eDHCPState )
