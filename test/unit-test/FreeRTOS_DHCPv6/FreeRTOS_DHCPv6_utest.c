@@ -333,7 +333,10 @@ BaseType_t xStubxBitConfig_read_uc( BitConfig_t * pxConfig,
     #endif
 
     TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationReadCustom, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    memcpy( pucData, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ucValCustom, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ulCustomLength );
+    if( pucData != NULL )
+    {
+        memcpy( pucData, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ucValCustom, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ulCustomLength );
+    }
     ulTestDHCPv6BitOperationReadIndex++;
 
     if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
@@ -491,7 +494,7 @@ static void prvPrepareSolicitation()
     /* Prepare transaction ID. */
     xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
 
-    xBitConfig_init_IgnoreAndReturn( pdTRUE );
+    xBitConfig_init_Stub( xStubxBitConfig_init );
     vBitConfig_write_8_Stub( xStubvBitConfig_write_8 );
     vBitConfig_write_uc_Stub( xStubvBitConfig_write_uc );
     vBitConfig_write_16_Stub( xStubvBitConfig_write_16 );
@@ -710,6 +713,101 @@ static void prvPrepareAdvertise()
 }
 
 /**
+ * @brief prvPrepareAdvertiseIATA
+ * Prepare buffer content as DHCPv6 advertise with IA_TA option.
+ */
+static void prvPrepareAdvertiseIATA()
+{
+    /* We hardcoded the option sequence in advertise message.
+     * 1. Client ID
+     * 2. Server ID
+     * 3. IA_TA - not implemented, ignored
+     * 4. IA_PD
+     */
+    uint8_t ucVal;
+    uint16_t usVal;
+    uint32_t ulVal;
+    const uint8_t ucStatusCodeSuccess[] = "success";
+
+    xBitConfig_init_Stub( xStubxBitConfig_init );
+    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
+    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
+    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
+    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
+    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
+    vBitConfig_release_Ignore();
+
+    /* Provide the message type and transaction ID for DHCPv6. */
+    ucVal = DHCPv6_message_Type_Advertise;
+    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+
+    /* Option Client ID */
+    usVal = DHCPv6_Option_Client_Identifier;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
+    usVal = 14U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
+    /* Client ID - DUID & hardware Type */
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
+    /* Client ID - remain ID */
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
+    /* Call peek function to compare client ID */
+    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
+
+    /* Option Server ID */
+    usVal = DHCPv6_Option_Server_Identifier;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
+    usVal = 14U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
+    /* Server ID - DUID & hardware Type */
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
+    /* Server ID - remain ID */
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
+
+    /* IA_TA */
+    usVal = DHCPv6_Option_TemporaryAddress;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_TA" );
+    usVal = 4U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_TALength" );
+    /* Code will use xBitConfig_read_uc to drop all messages in option IA_TA */
+    ulVal = TEST_DHCPV6_IAID;
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ulVal, 4, "OptionIA_TAIAID" );
+
+    /* Option IA_PD */
+    usVal = DHCPv6_Option_IA_for_Prefix_Delegation;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PD" );
+    usVal = 41U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PDLength" );
+    ulVal = TEST_DHCPV6_IAID;
+    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDIAID" );
+    ulVal = 3600U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDT1" );
+    ulVal = 5400U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDT2" );
+
+    /* Option IA_PD sub-option IA_Prefix */
+    usVal = DHCPv6_Option_IA_Prefix;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_Prefix" );
+    usVal = 25U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PrefixLength" );
+    /* Preferred Life Time */
+    ulVal = 4500U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PrefixPreferLifeTime" );
+    /* Valid Life Time */
+    ulVal = 7200U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PrefixValidLifeTime" );
+    /* Prefix length */
+    ucVal = 64U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionIA_PrefixPrefixLength" );
+    /* Prefix */
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_PrefixPrefixAddress" );
+}
+
+/**
  * @brief prvPrepareAdvertiseNoServerID
  * Prepare buffer content as DHCPv6 advertise without server ID.
  */
@@ -916,7 +1014,7 @@ static void prvPrepareRequest()
     ulVal = 5400U;
     vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDT2" );
 
-    /* Option IA_Prefix */
+    /* Option IA_PD sub-option IA_Prefix */
     usVal = DHCPv6_Option_IA_Prefix;
     vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_Prefix" );
     usVal = 25U;
@@ -1153,6 +1251,66 @@ static void prvPrepareErrorOption()
 }
 
 /**
+ * @brief prvPrepareAdvertiseStatusCodeLengthTooSmall
+ * Prepare content with status code but the option length is less than minimal requirement.
+ */
+static void prvPrepareAdvertiseStatusCodeLengthTooSmall()
+{
+    uint8_t ucVal;
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    xBitConfig_init_Stub( xStubxBitConfig_init );
+    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
+    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
+    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
+    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
+    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
+    vBitConfig_release_Ignore();
+
+    /* Provide the message type and transaction ID for DHCPv6. */
+    ucVal = DHCPv6_message_Type_Advertise;
+    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+
+    /* Option Status Code */
+    usVal = DHCPv6_Option_Status_Code;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
+}
+
+/**
+ * @brief prvPrepareAdvertiseStatusCodeLengthTooBig
+ * Prepare content with status code but the option length is larger than packet size.
+ */
+static void prvPrepareAdvertiseStatusCodeLengthTooBig()
+{
+    uint8_t ucVal;
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    xBitConfig_init_Stub( xStubxBitConfig_init );
+    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
+    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
+    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
+    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
+    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
+    vBitConfig_release_Ignore();
+
+    /* Provide the message type and transaction ID for DHCPv6. */
+    ucVal = DHCPv6_message_Type_Advertise;
+    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+
+    /* Option Status Code */
+    usVal = DHCPv6_Option_Status_Code;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
+    usVal = 0xFFFF;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
+}
+
+/**
  * @brief test_eGetDHCPv6State_happy_path
  * Check if eGetDHCPv6State can return DHCP state correctly.
  */
@@ -1256,10 +1414,10 @@ void test_vDHCPv6Process_reset_from_lease()
 }
 
 /**
- * @brief test_vDHCPv6Process_continue_solicitation_happy_path
+ * @brief test_vDHCPv6Process_solicitation_happy_path
  * Check if vDHCPv6Process can continue from eWaitingSendFirstDiscover successfully.
  */
-void test_vDHCPv6Process_continue_solicitation_happy_path()
+void test_vDHCPv6Process_solicitation_happy_path()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1295,10 +1453,10 @@ void test_vDHCPv6Process_continue_solicitation_happy_path()
 }
 
 /**
- * @brief test_vDHCPv6Process_continue_advertise_happy_path
+ * @brief test_vDHCPv6Process_advertise_happy_path
  * Check if vDHCPv6Process can continue from eWaitingOffer successfully.
  */
-void test_vDHCPv6Process_continue_advertise_happy_path()
+void test_vDHCPv6Process_advertise_happy_path()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1340,10 +1498,54 @@ void test_vDHCPv6Process_continue_advertise_happy_path()
 }
 
 /**
- * @brief test_vDHCPv6Process_continue_reply_happy_path
+ * @brief test_vDHCPv6Process_advertise_IATA_not_implemented
+ * Check if vDHCPv6Process can ignore IA_TA option.
+ */
+void test_vDHCPv6Process_advertise_IATA_not_implemented()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 93 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareAdvertiseIATA();
+    prvPrepareRequest();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    /* The endpoint receives the DHCPv6 Advertise message from DHCPv6 server.
+     * Then change the state to eWaitingAcknowledge. */
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_reply_happy_path
  * Check if vDHCPv6Process can continue from eWaitingAcknowledge successfully.
  */
-void test_vDHCPv6Process_continue_reply_happy_path()
+void test_vDHCPv6Process_reply_happy_path()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1779,6 +1981,88 @@ void test_vDHCPv6Process_advertise_bit_config_init_error()
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
     xBitConfig_init_IgnoreAndReturn( pdFAIL );
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_advertise_option_less_than_min_length
+ * Check if vDHCPv6Process can drop packets when any option's length is less than minimal requirement.
+ */
+void test_vDHCPv6Process_advertise_option_less_than_min_length()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 500 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    
+    prvPrepareAdvertiseStatusCodeLengthTooSmall();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_advertise_option_larger_than_max_length
+ * Check if vDHCPv6Process can drop packets when any option's length is larger than packet size.
+ */
+void test_vDHCPv6Process_advertise_option_larger_than_max_length()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 500 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    
+    prvPrepareAdvertiseStatusCodeLengthTooBig();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
