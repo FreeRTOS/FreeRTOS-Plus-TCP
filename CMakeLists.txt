@@ -149,11 +149,11 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION "CUSTOM" CACHE STRING "FreeRTOS Plus TC
 set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     CUSTOM                  # Custom (external) configuration -eg from a top-level project
     ENABLE_ALL              # Enable all configuration settings
-    ENABLE_ALL_IPV4         # Enable all configuration settings IPv4
-    ENABLE_ALL_IPV6         # Enable all configuration settings IPv6
+    ENABLE_ALL_IPV4         # Enable all configuration settings IPv4 UDP
+    ENABLE_ALL_IPV6         # Enable all configuration settings IPv6 UDP
     ENABLE_ALL_IPV4_TCP     # Enable all configuration settings IPv4 TCP
     ENABLE_ALL_IPV6_TCP     # Enable all configuration settings IPv6 TCP
-    ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6
+    ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6 UDP
     DISABLE_ALL             # Disable all configuration settings
     DEFAULT_CONF            # Default (typical) configuration
 )
