@@ -42,7 +42,6 @@ typedef enum eTestDHCPv6HookOperationType
 {
     eTestDHCPv6HookOperationTypeNone = 0,
     eTestDHCPv6HookOperationTypeContinue,
-    eTestDHCPv6HookOperationTypeCloseSocketThenContinue,
 } eTestDHCPv6HookOperationType_t;
 
 /** @brief A list of all network end-points.  Each element has a next pointer. */
@@ -78,11 +77,6 @@ eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhas
                                                   IP_Address_t * pxIPAddress )
 {
     eDHCPCallbackAnswer_t eReturn = eDHCPContinue;
-
-    if( eTestDHCPv6HookOperationType == eTestDHCPv6HookOperationTypeCloseSocketThenContinue )
-    {
-        pxEndPoint->xDHCPData.xDHCPSocket = NULL;
-    }
 
     return eReturn;
 }

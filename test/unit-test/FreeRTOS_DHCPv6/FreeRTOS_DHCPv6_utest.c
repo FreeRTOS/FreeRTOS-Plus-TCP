@@ -51,7 +51,7 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define TEST_DHCPV6_DEBUG               ( 1 )
+#define TEST_DHCPV6_DEBUG               ( 0 )
 
 #define TEST_DHCPV6_IAID                ( 0x27fe8f95 )
 
