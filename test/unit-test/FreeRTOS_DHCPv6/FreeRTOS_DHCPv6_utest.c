@@ -1125,6 +1125,62 @@ void test_vDHCPv6Process_continue_reply_happy_path()
 }
 
 /**
+ * @brief test_vDHCPv6Process_dhcp_lease
+ * The address of endpoint is leased. Endpoint sends the DHCPv6 request to ask for renew.
+ *
+ * Test step:
+ *  - Set endpoint's DHCP state to eLeasedAddress.
+ *  - Prepare endpoint and function calls for sending request.
+ *  - Check if the request message is correct.
+ */
+void test_vDHCPv6Process_dhcp_lease()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eLeasedAddress;
+    xEndPoint.xDHCPData.eExpectedState = eLeasedAddress;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    xDHCPv6Socket = &xLocalDHCPv6Socket;
+    /* Assume that DHCPv6 had got the advertise and sent request once. */
+    xEndPoint.xDHCPData.xDHCPTxTime = pdMS_TO_TICKS( 0 );
+    xEndPoint.xDHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 5000 );
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    /* Because we assume DHCPv6 got advertise, so we should set the server information in DHCP message. */
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+    xDHCPMessage.xServerID.uxLength = 10U; /* 14 - 4 */
+    xDHCPMessage.xServerID.usDUIDType = 1U;
+    xDHCPMessage.xServerID.usHardwareType = 1U;
+    memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
+    
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    prvPrepareRequest();
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    /* The address of endpoint is leased. Endpoint sends the DHCPv6 request to ask for renew.
+     * Then change the state to eWaitingAcknowledge. */
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
  * @brief test_vDHCPv6Process_wait_reply_timeout
  * Check if vDHCPv6Process send another DHCPv6 reply when timeout triggered on waiting reply.
  *

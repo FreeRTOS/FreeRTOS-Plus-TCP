@@ -1009,6 +1009,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                     break;
 
                 case eWaitingOffer:
+                case eLeasedAddress:
                     ucMessageType = DHCPv6_message_Type_Request;
                     break;
 
@@ -1045,7 +1046,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                     vBitConfig_write_uc( &( xMessage ), pxDHCPMessage->xServerID.pucID, pxDHCPMessage->xServerID.uxLength );
                 }
 
-                if( EP_DHCPData.eDHCPState == eWaitingOffer )
+                if( ( EP_DHCPData.eDHCPState == eWaitingOffer ) || ( EP_DHCPData.eDHCPState == eLeasedAddress ) )
                 {
                     /* DHCPv6_Option_Option_List */
                     vBitConfig_write_16( &( xMessage ), DHCPv6_Option_Option_List );               /* usOption;	Option is 6 */
@@ -1088,7 +1089,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 vBitConfig_write_32( &( xMessage ), ulPreferredLifeTime );                                               /* 4500 */
                 vBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                                  /* 7200 */
 
-                if( EP_DHCPData.eDHCPState == eWaitingOffer )
+                if( ( EP_DHCPData.eDHCPState == eWaitingOffer ) || ( EP_DHCPData.eDHCPState == eLeasedAddress ) )
                 {
                     vBitConfig_write_16( &( xMessage ), DHCPv6_Option_DNS_recursive_name_server ); /* usOption   Option is 23 */
                     vBitConfig_write_16( &( xMessage ), 0U );                                      /* usLength   length is 0 */
