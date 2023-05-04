@@ -92,6 +92,13 @@
  * uses a time stamp that had zero on 1-1-2000. */
     #define SECS_FROM_1970_TILL_2000                   946684800U
 
+/** @brief If a lease time is not received, use the default of two days.  48 hours in ticks.
+ * Do not use the macro pdMS_TO_TICKS() here as integer overflow can occur. */
+    #define dhcpv6DEFAULT_LEASE_TIME                   ( ( 48U * 60U * 60U ) * configTICK_RATE_HZ )
+
+/** @brief Don't allow the lease time to be too short. */
+    #define dhcpv6MINIMUM_LEASE_TIME                   ( pdMS_TO_TICKS( 60000U ) ) /* 60 seconds in ticks. */
+
 /** @brief The ID of a client or a server. */
     typedef struct xClientServerID
     {

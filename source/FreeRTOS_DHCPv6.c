@@ -77,13 +77,6 @@
 /** @brief Macro to access the IPv6 settings from the pxEndPoint */
 #define EP_IPv6_SETTINGS               pxEndPoint->ipv6_settings
 
-/** @brief If a lease time is not received, use the default of two days.  48 hours in ticks.
- * Do not use the macro pdMS_TO_TICKS() here as integer overflow can occur. */
-#define dhcpv6DEFAULT_LEASE_TIME       ( ( 48U * 60U * 60U ) * configTICK_RATE_HZ )
-
-/** @brief Don't allow the lease time to be too short. */
-#define dhcpv6MINIMUM_LEASE_TIME       ( pdMS_TO_TICKS( 60000U ) )               /* 60 seconds in ticks. */
-
 /** @brief The maximum size of send buffer. */
 #define DHCPv6_SEND_MAX_BUFFER_SIZE    ( 256 )
 
@@ -138,8 +131,6 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 
 static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * pxEndPoint,
                                                           DHCPMessage_IPv6_t * pxDHCPMessage );
-
-static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_t * pxEndPoint );
 
 static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
                                                       DHCPMessage_IPv6_t * pxDHCPMessage );
@@ -563,33 +554,6 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
 /*-----------------------------------------------------------*/
 
 /**
- * @brief The first step in the DHCP dialogue is to ask the server for an offer.
- * @param[in] pxEndPoint The end-point that is asking for an IP-address.
- */
-static void vDHCPv6ProcessEndPoint_SendDiscover( NetworkEndPoint_t * pxEndPoint )
-{
-    if( ( xTaskGetTickCount() - EP_DHCPData.xDHCPTxTime ) > EP_DHCPData.xDHCPTxPeriod )
-    {
-        /* Increase the time period, and if it has not got to the
-         * point of giving up - send another request. */
-        EP_DHCPData.xDHCPTxPeriod <<= 1;
-
-        if( EP_DHCPData.xDHCPTxPeriod <= ipconfigMAXIMUM_DISCOVER_TX_PERIOD )
-        {
-            EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
-            prvSendDHCPMessage( pxEndPoint );
-            FreeRTOS_printf( ( "vDHCPProcess: eWaitingAcknowledge: try again with %lu\n", EP_DHCPData.xDHCPTxPeriod ) );
-        }
-        else
-        {
-            /* Give up, start again. */
-            EP_DHCPData.eDHCPState = eInitialWait;
-        }
-    }
-}
-/*-----------------------------------------------------------*/
-
-/**
  * @brief This function is called periodically, or when a message was received for this end-point.
  * @param[in] pxEndPoint The end-point that is asking for an IP-address.
  * @param[in] pxDHCPMessage when not NULL, a message that was received for this end-point.
@@ -604,6 +568,9 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
     #if ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 )
         eDHCPCallbackAnswer_t eAnswer;
     #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE != 1 ) */
+
+    configASSERT( pxEndPoint != NULL );
+    configASSERT( pxDHCPMessage != NULL );
 
     switch( EP_DHCPData.eDHCPState )
     {
@@ -658,7 +625,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
             xGivingUp = pdFALSE;
 
             /* Look for offers coming in. */
-            if( ( pxDHCPMessage != NULL ) && ( pxDHCPMessage->uxMessageType == DHCPv6_message_Type_Advertise ) )
+            if( pxDHCPMessage->uxMessageType == DHCPv6_message_Type_Advertise )
             {
                 xGivingUp = xDHCPv6ProcessEndPoint_HandleAdvertise( pxEndPoint, pxDHCPMessage );
             }
@@ -712,12 +679,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
 
         case eWaitingAcknowledge:
 
-            if( pxDHCPMessage == NULL )
-            {
-                /* Is it time to send another Discover? */
-                vDHCPv6ProcessEndPoint_SendDiscover( pxEndPoint );
-            }
-            else if( pxDHCPMessage->uxMessageType == DHCPv6_message_Type_Reply )
+            if( pxDHCPMessage->uxMessageType == DHCPv6_message_Type_Reply )
             {
                 /* DHCP completed.  The IP address can now be used, and the
                  * timer set to the lease timeout time. */
@@ -741,7 +703,10 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
                 }
                 else
                 {
-                    /* There are no replies yet. */
+                    /* Give up, start again. */
+                    EP_DHCPData.eDHCPState = eInitialWait;
+                    FreeRTOS_debug_printf( ( "vDHCPProcess: timeout period is out of bound, restart DHCPv6\n" ) );
+                    vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
                 }
             }
 
