@@ -69,8 +69,20 @@ const IPv6_Address_t xDefaultNetPrefix = { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0
 
 /* Default IPv6 address is set to 2001:0470:EC54::5 */
 const IPv6_Address_t xDefaultIPAddress = { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
-/* Default DNS address is set to 2001:0470:EC54::FF */
-const IPv6_Address_t xDefaultDNSAddress = { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF };
+const IPv6_Address_t xDNSAddress[ 3 ] =
+{
+    /* 2001:0470:EC54::FF */
+    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF },
+    /* 2001:0470:EC54::FE */
+    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE },
+    /* 2001:0470:EC54::FD */
+    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE },
+};
+
+#define TEST_DHCPv6_DEFAULT_DUID_TYPE        ( 1U )
+#define TEST_DHCPv6_DIFFERENT_DUID_TYPE      ( 2U )
+#define TEST_DHCPv6_DEFAULT_DUID_LENGTH      ( 14U )
+#define TEST_DHCPv6_DIFFERENT_DUID_LENGTH    ( 12U )
 
 Socket_t xStubFreeRTOS_setsockopt_xSocket;
 size_t xStubFreeRTOS_setsockopt_uxOptionLength;
@@ -486,101 +498,495 @@ static void vAddBitOperation( eTestDHCPv6BitOperationType_t eType,
     ulTestDHCPv6BitOperationWriteIndex++;
 }
 
+static void prvSetBitOperationStub()
+{
+    xBitConfig_init_Stub( xStubxBitConfig_init );
+    vBitConfig_write_8_Stub( xStubvBitConfig_write_8 );
+    vBitConfig_write_16_Stub( xStubvBitConfig_write_16 );
+    vBitConfig_write_32_Stub( xStubvBitConfig_write_32 );
+    vBitConfig_write_uc_Stub( xStubvBitConfig_write_uc );
+    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
+    vBitConfig_release_Ignore();
+
+    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
+    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
+    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
+    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
+}
+
+static void prvAddMsgHeader( BaseType_t xIsWrite,
+                             uint8_t ucMessageType )
+{
+    uint8_t ucVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Provide the message type and transaction ID for DHCPv6. */
+        ucVal = ucMessageType;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite8, &ucVal, 1, "Type" );
+        vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+    }
+    else
+    {
+        /* Provide the message type and transaction ID for DHCPv6. */
+        ucVal = ucMessageType;
+        vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "Type" );
+        vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+    }
+}
+
+static void prvAddOptionClient( BaseType_t xIsWrite )
+{
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option Client ID */
+        usVal = DHCPv6_Option_Client_Identifier;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientID" );
+        usVal = 14U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDLength" );
+        /* Client ID - DUID & hardware Type */
+        usVal = 1U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDDUIDType" );
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDHWType" );
+        /* Client ID - Time Stamp */
+        ulVal = ulApplicationTimeHook() - SECS_FROM_1970_TILL_2000;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionClientIDTimeStamp" );
+        /* Client ID - MAC Address */
+        vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucDefaultMACAddress, ipMAC_ADDRESS_LENGTH_BYTES, "OptionClientIDMAC" );
+    }
+    else
+    {
+        usVal = DHCPv6_Option_Client_Identifier;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
+        usVal = 14U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
+        /* Client ID - DUID & hardware Type */
+        usVal = 1U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
+        /* Client ID - remain ID */
+        vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
+    }
+
+    /* Call peek function to compare client ID */
+    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
+}
+
+static void prvAddOptionServer( BaseType_t xIsWrite,
+                                BaseType_t xIsDifferentType,
+                                BaseType_t xIsDifferentLength,
+                                BaseType_t xIsDifferentID )
+{
+    uint16_t usVal;
+    uint32_t ulVal;
+    uint8_t ucDifferentServerID[] = { 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11 };
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option Server ID */
+        usVal = DHCPv6_Option_Server_Identifier;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerID" );
+        usVal = xIsDifferentLength == pdTRUE ? TEST_DHCPv6_DIFFERENT_DUID_LENGTH : TEST_DHCPv6_DEFAULT_DUID_LENGTH;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerIDLength" );
+        /* Server ID - DUID & hardware Type */
+        usVal = xIsDifferentType == pdTRUE ? TEST_DHCPv6_DIFFERENT_DUID_TYPE : TEST_DHCPv6_DEFAULT_DUID_TYPE;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerIDDUIDType" );
+        usVal = 1U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerIDHWType" );
+
+        /* Server ID - remain ID */
+        if( xIsDifferentID == pdFALSE )
+        {
+            vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
+        }
+        else
+        {
+            vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucDifferentServerID, sizeof( ucDifferentServerID ), "OptionServerIDRemain" );
+        }
+    }
+    else
+    {
+        /* Option Server ID */
+        usVal = DHCPv6_Option_Server_Identifier;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
+        usVal = xIsDifferentLength == pdTRUE ? TEST_DHCPv6_DIFFERENT_DUID_LENGTH : TEST_DHCPv6_DEFAULT_DUID_LENGTH;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
+        /* Server ID - DUID & hardware Type */
+        usVal = xIsDifferentType == pdTRUE ? TEST_DHCPv6_DIFFERENT_DUID_TYPE : TEST_DHCPv6_DEFAULT_DUID_TYPE;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
+        usVal = 1U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
+
+        /* Server ID - remain ID */
+        if( xIsDifferentID == pdFALSE )
+        {
+            vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
+        }
+        else
+        {
+            vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucDifferentServerID, sizeof( ucDifferentServerID ), "OptionServerIDRemain" );
+        }
+    }
+}
+
+static void prvAddOptionElapsedTime( BaseType_t xIsWrite )
+{
+    uint16_t usVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option Elapsed Time */
+        usVal = DHCPv6_Option_Elapsed_Time;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsed" );
+        usVal = 2U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsedLength" );
+        usVal = 0U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsedValue" );
+    }
+    else
+    {
+        /* Option Elapsed Time */
+        usVal = DHCPv6_Option_Elapsed_Time;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionElapsed" );
+        usVal = 2U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionElapsedLength" );
+        usVal = 0U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionElapsedValue" );
+    }
+}
+
+static void prvAddOptionIA_Prefix( BaseType_t xIsWrite )
+{
+    uint8_t ucVal;
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option IA_Prefix */
+        usVal = DHCPv6_Option_IA_Prefix;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_Prefix" );
+        usVal = 25U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PrefixLength" );
+        /* Preferred Life Time */
+        ulVal = 4500U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PrefixPreferLifeTime" );
+        /* Valid Life Time */
+        ulVal = 7200U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PrefixValidLifeTime" );
+        /* Prefix length */
+        ucVal = 64U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite8, &ucVal, 1, "OptionIA_PrefixPrefixLength" );
+        /* Prefix */
+        vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_PrefixAddress" );
+    }
+    else
+    {
+        /* Option IA_Prefix */
+        usVal = DHCPv6_Option_IA_Prefix;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_Prefix" );
+        usVal = 25U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PrefixLength" );
+        /* Preferred Life Time */
+        ulVal = 4500U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PrefixPreferLifeTime" );
+        /* Valid Life Time */
+        ulVal = 7200U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PrefixValidLifeTime" );
+        /* Prefix length */
+        ucVal = 64U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionIA_PrefixPrefixLength" );
+        /* Prefix */
+        vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_PrefixAddress" );
+    }
+}
+
+static void prvAddOptionIA_PD( BaseType_t xIsWrite )
+{
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option IA_PD */
+        usVal = DHCPv6_Option_IA_for_Prefix_Delegation;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PD" );
+        usVal = 41U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PDLength" );
+        ulVal = TEST_DHCPV6_IAID;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDIAID" );
+        ulVal = 3600U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDT1" );
+        ulVal = 5400U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDT2" );
+    }
+    else
+    {
+        /* Option IA_PD */
+        usVal = DHCPv6_Option_IA_for_Prefix_Delegation;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PD" );
+        usVal = 41U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PDLength" );
+        ulVal = TEST_DHCPV6_IAID;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDIAID" );
+        ulVal = 3600U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDT1" );
+        ulVal = 5400U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDT2" );
+    }
+
+    /* Add sub-option IA-Prefix */
+    prvAddOptionIA_Prefix( xIsWrite );
+}
+
+static void prvAddOptionIA_NA( BaseType_t xIsWrite,
+                               uint16_t usLength )
+{
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option IA_NA */
+        usVal = DHCPv6_Option_NonTemporaryAddress;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NA" );
+        usVal = usLength;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NALength" );
+        ulVal = TEST_DHCPV6_IAID;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAIAID" );
+        /* T1 */
+        ulVal = 4500U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAT1" );
+        /* T2 */
+        ulVal = 7200U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAT2" );
+    }
+    else
+    {
+        /* Option IA_NA */
+        usVal = DHCPv6_Option_NonTemporaryAddress;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NA" );
+        usVal = usLength;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NALength" );
+        ulVal = TEST_DHCPV6_IAID;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAIAID" );
+        /* T1 */
+        ulVal = 4500U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT1" );
+        /* T2 */
+        ulVal = 7200U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT2" );
+    }
+}
+
+static void prvAddOptionIA_TA( BaseType_t xIsWrite )
+{
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* IA_TA */
+        usVal = DHCPv6_Option_TemporaryAddress;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_TA" );
+        usVal = 4U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_TALength" );
+        /* Code will use xBitConfig_read_uc to drop all messages in option IA_TA */
+        ulVal = TEST_DHCPV6_IAID;
+        vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, &ulVal, 4, "OptionIA_TAIAID" );
+    }
+    else
+    {
+        /* IA_TA */
+        usVal = DHCPv6_Option_TemporaryAddress;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_TA" );
+        usVal = 4U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_TALength" );
+        /* Code will use xBitConfig_read_uc to drop all messages in option IA_TA */
+        ulVal = TEST_DHCPV6_IAID;
+        vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ulVal, 4, "OptionIA_TAIAID" );
+    }
+}
+
+static void prvAddOptionIAAddress( BaseType_t xIsWrite )
+{
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* IA_NA sub-option IA Address */
+        usVal = DHCPv6_Option_IA_Address;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NASubIAAddress" );
+        usVal = 24U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
+        vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
+        /* Preferred Life Time */
+        ulVal = 900U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
+        /* Valid Life Time */
+        ulVal = 900U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
+    }
+    else
+    {
+        /* IA_NA sub-option IA Address */
+        usVal = DHCPv6_Option_IA_Address;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddress" );
+        usVal = 24U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
+        vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
+        /* Preferred Life Time */
+        ulVal = 900U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
+        /* Valid Life Time */
+        ulVal = 900U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
+    }
+}
+
+static void prvAddOptionStatusCode( BaseType_t xIsWrite )
+{
+    const uint8_t ucStatusCodeSuccess[] = "success";
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Status Code */
+        usVal = DHCPv6_Option_Status_Code;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NASubStatus" );
+        usVal = 9U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NASubStatusLength" );
+        usVal = 0U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NASubStatusValue" );
+        /* Status message */
+        vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionIA_NASubStatusMessage" );
+    }
+    else
+    {
+        /* Status Code */
+        usVal = DHCPv6_Option_Status_Code;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatus" );
+        usVal = 9U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatusLength" );
+        usVal = 0U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatusValue" );
+        /* Status message */
+        vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionIA_NASubStatusMessage" );
+    }
+}
+
+static void prvAddOptionPreference( BaseType_t xIsWrite )
+{
+    uint8_t ucVal;
+    uint16_t usVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option Preference */
+        usVal = DHCPv6_Option_Preference;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionPreference" );
+        usVal = 1U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionPreferenceLength" );
+        /* Put 0 as preference value */
+        ucVal = 0U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite8, &ucVal, 1, "OptionPreferenceValue" );
+    }
+    else
+    {
+        /* Option Preference */
+        usVal = DHCPv6_Option_Preference;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreference" );
+        usVal = 1U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreferenceLength" );
+        /* Put 0 as preference value */
+        ucVal = 0U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionPreferenceValue" );
+    }
+}
+
+static void prvAddOptionList( BaseType_t xIsWrite )
+{
+    uint16_t usVal;
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option List */
+        usVal = DHCPv6_Option_Option_List;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionList" );
+        usVal = 4U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionListLength" );
+        usVal = DHCP6_OPTION_REQUEST_DNS;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionListDNS" );
+        usVal = DHCP6_OPTION_REQUEST_DOMAIN_SEARCH_LIST;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionListDomainSearchList" );
+    }
+    else
+    {
+        /* Option List */
+        usVal = DHCPv6_Option_Option_List;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionList" );
+        usVal = 4U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionListLength" );
+        usVal = DHCP6_OPTION_REQUEST_DNS;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionListDNS" );
+        usVal = DHCP6_OPTION_REQUEST_DOMAIN_SEARCH_LIST;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionListDomainSearchList" );
+    }
+}
+
+static void prvAddOptionDNSServer( BaseType_t xIsWrite,
+                                   uint8_t ucDNSNum )
+{
+    uint16_t usVal;
+    int i;
+
+    TEST_ASSERT_LESS_OR_EQUAL( 3, ucDNSNum );
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option DNS recursive name server */
+        usVal = DHCPv6_Option_DNS_recursive_name_server;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDNSRecursiveNameServer" );
+        usVal = 16U * ucDNSNum;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDNSRecursiveNameServerValue" );
+
+        for( i = 0; i < ucDNSNum; i++ )
+        {
+            vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, &xDNSAddress[ i ], sizeof( IPv6_Address_t ), "OptionDNSInfo" );
+        }
+    }
+    else
+    {
+        /* Option DNS recursive name server */
+        usVal = DHCPv6_Option_DNS_recursive_name_server;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSRecursiveNameServer" );
+        usVal = 16U * ucDNSNum;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSRecursiveNameServerValue" );
+
+        for( i = 0; i < ucDNSNum; i++ )
+        {
+            vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &xDNSAddress[ i ], sizeof( IPv6_Address_t ), "OptionDNSInfo" );
+        }
+    }
+}
+
 /**
  * @brief prvPrepareSolicitation
  * Prepare function calls for sending DHCPv6 solicitation message.
  */
 static void prvPrepareSolicitation()
 {
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-
-    /* Prepare transaction ID. */
-    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    vBitConfig_write_8_Stub( xStubvBitConfig_write_8 );
-    vBitConfig_write_uc_Stub( xStubvBitConfig_write_uc );
-    vBitConfig_write_16_Stub( xStubvBitConfig_write_16 );
-    vBitConfig_write_32_Stub( xStubvBitConfig_write_32 );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
-    FreeRTOS_sendto_IgnoreAndReturn( 0 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Solicit;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite8, &ucVal, 1, "TypeSolicit" );
-    vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - Time Stamp */
-    ulVal = ulApplicationTimeHook() - SECS_FROM_1970_TILL_2000;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionClientIDTimeStamp" );
-    /* Client ID - MAC Address */
-    vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucDefaultMACAddress, ipMAC_ADDRESS_LENGTH_BYTES, "OptionClientIDMAC" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* Option Elapsed Time */
-    usVal = DHCPv6_Option_Elapsed_Time;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsed" );
-    usVal = 2U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsedLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsedValue" );
-
-    /* Option IA_PD */
-    usVal = DHCPv6_Option_IA_for_Prefix_Delegation;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PD" );
-    usVal = 41U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PDLength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDIAID" );
-    ulVal = 3600U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDT1" );
-    ulVal = 5400U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDT2" );
-
-    /* Option IA_Prefix */
-    usVal = DHCPv6_Option_IA_Prefix;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_Prefix" );
-    usVal = 25U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PrefixLength" );
-    /* Preferred Life Time */
-    ulVal = 4500U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PrefixPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 7200U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PrefixValidLifeTime" );
-    /* Prefix length */
-    ucVal = 64U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite8, &ucVal, 1, "OptionIA_PrefixPrefixLength" );
-    /* Prefix */
-    vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_PrefixAddress" );
-
-    /* Option IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NA" );
-    usVal = 12U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 4500U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 7200U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAT2" );
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdTRUE, DHCPv6_message_Type_Solicit );
+    prvAddOptionClient( pdTRUE );
+    prvAddOptionElapsedTime( pdTRUE );
+    prvAddOptionIA_PD( pdTRUE );
+    prvAddOptionIA_NA( pdTRUE, 12U );
 }
 
 /**
@@ -599,122 +1005,20 @@ static void prvPrepareAdvertise()
      * 4. Status Code
      * 5. Preference
      */
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const uint8_t ucStatusCodeSuccess[] = "success";
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Advertise;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* Option Server ID */
-    usVal = DHCPv6_Option_Server_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
-    /* Server ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
-    /* Server ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
-
-    /* IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NA" );
-    usVal = 82U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 450U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 784U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT2" );
-
-    /* IA_NA sub-option IA Address */
-    usVal = DHCPv6_Option_IA_Address;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddress" );
-    usVal = 24U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
-    /* Preferred Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
-
-    /* IA_NA sub-option IA Prefix */
-    usVal = DHCPv6_Option_IA_Prefix;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAPrefix" );
-    usVal = 25U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAPrefixLength" );
-    /* Preferred Life Time */
-    ulVal = 4500U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAPrefixPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 7200U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAPrefixValidLifeTime" );
-    /* Prefix length */
-    ucVal = 64U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionIA_NASubIAPrefixPrefixLength" );
-    /* Prefix */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAPrefixPrefixAddress" );
-
-    /* IA_NA sub-option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionIA_NASubStatusMessage" );
-
-    /* Option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionStatusmessage" );
-
-    /* Option Preference */
-    usVal = DHCPv6_Option_Preference;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreference" );
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreferenceLength" );
-    /* Put 0 as preference value */
-    ucVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionPreferenceValue" );
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Advertise );
+    prvAddOptionClient( pdFALSE );
+    prvAddOptionServer( pdFALSE, pdFALSE, pdFALSE, pdFALSE );
+    prvAddOptionIA_NA( pdFALSE, 82U );
+    /* Add IA_Address as sub-option in IA_NA */
+    prvAddOptionIAAddress( pdFALSE );
+    /* Add IA_Prefix as sub-option in IA_NA */
+    prvAddOptionIA_Prefix( pdFALSE );
+    /* Add Status code as sub-option in IA_NA */
+    prvAddOptionStatusCode( pdFALSE );
+    /* Add Status code as option */
+    prvAddOptionStatusCode( pdFALSE );
+    prvAddOptionPreference( pdFALSE );
 }
 
 /**
@@ -729,87 +1033,12 @@ static void prvPrepareAdvertiseIATA()
      * 3. IA_TA - not implemented, ignored
      * 4. IA_PD
      */
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const uint8_t ucStatusCodeSuccess[] = "success";
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Advertise;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* Option Server ID */
-    usVal = DHCPv6_Option_Server_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
-    /* Server ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
-    /* Server ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
-
-    /* IA_TA */
-    usVal = DHCPv6_Option_TemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_TA" );
-    usVal = 4U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_TALength" );
-    /* Code will use xBitConfig_read_uc to drop all messages in option IA_TA */
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ulVal, 4, "OptionIA_TAIAID" );
-
-    /* Option IA_PD */
-    usVal = DHCPv6_Option_IA_for_Prefix_Delegation;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PD" );
-    usVal = 41U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PDLength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDIAID" );
-    ulVal = 3600U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDT1" );
-    ulVal = 5400U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PDT2" );
-
-    /* Option IA_PD sub-option IA_Prefix */
-    usVal = DHCPv6_Option_IA_Prefix;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_Prefix" );
-    usVal = 25U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_PrefixLength" );
-    /* Preferred Life Time */
-    ulVal = 4500U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PrefixPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 7200U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_PrefixValidLifeTime" );
-    /* Prefix length */
-    ucVal = 64U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionIA_PrefixPrefixLength" );
-    /* Prefix */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_PrefixPrefixAddress" );
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Advertise );
+    prvAddOptionClient( pdFALSE );
+    prvAddOptionServer( pdFALSE, pdFALSE, pdFALSE, pdFALSE );
+    prvAddOptionIA_TA( pdFALSE );
+    prvAddOptionIA_PD( pdFALSE );
 }
 
 /**
@@ -827,110 +1056,19 @@ static void prvPrepareAdvertiseNoServerID()
      * 3. Status Code
      * 5. Preference
      */
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const uint8_t ucStatusCodeSuccess[] = "success";
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Advertise;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NA" );
-    usVal = 82U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 450U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 784U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT2" );
-
-    /* IA_NA sub-option IA Address */
-    usVal = DHCPv6_Option_IA_Address;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddress" );
-    usVal = 24U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
-    /* Preferred Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
-
-    /* IA_NA sub-option IA Prefix */
-    usVal = DHCPv6_Option_IA_Prefix;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAPrefix" );
-    usVal = 25U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAPrefixLength" );
-    /* Preferred Life Time */
-    ulVal = 4500U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAPrefixPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 7200U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAPrefixValidLifeTime" );
-    /* Prefix length */
-    ucVal = 64U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionIA_NASubIAPrefixPrefixLength" );
-    /* Prefix */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAPrefixPrefixAddress" );
-
-    /* IA_NA sub-option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionIA_NASubStatusMessage" );
-
-    /* Option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionStatusmessage" );
-
-    /* Option Preference */
-    usVal = DHCPv6_Option_Preference;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreference" );
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreferenceLength" );
-    /* Put 0 as preference value */
-    ucVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionPreferenceValue" );
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Advertise );
+    prvAddOptionClient( pdFALSE );
+    prvAddOptionIA_NA( pdFALSE, 82U );
+    /* Add IA_Address as sub-option in IA_NA */
+    prvAddOptionIAAddress( pdFALSE );
+    /* Add IA_Prefix as sub-option in IA_NA */
+    prvAddOptionIA_Prefix( pdFALSE );
+    /* Add Status code as sub-option in IA_NA */
+    prvAddOptionStatusCode( pdFALSE );
+    /* Add Status code as option */
+    prvAddOptionStatusCode( pdFALSE );
+    prvAddOptionPreference( pdFALSE );
 }
 
 /**
@@ -939,122 +1077,24 @@ static void prvPrepareAdvertiseNoServerID()
  */
 static void prvPrepareRequest()
 {
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-
-    /* Prepare transaction ID. */
-    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    vBitConfig_write_8_Stub( xStubvBitConfig_write_8 );
-    vBitConfig_write_uc_Stub( xStubvBitConfig_write_uc );
-    vBitConfig_write_16_Stub( xStubvBitConfig_write_16 );
-    vBitConfig_write_32_Stub( xStubvBitConfig_write_32 );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
-    FreeRTOS_sendto_IgnoreAndReturn( 0 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Request;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite8, &ucVal, 1, "TypeRequest" );
-    vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - Time Stamp */
-    ulVal = ulApplicationTimeHook() - SECS_FROM_1970_TILL_2000;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionClientIDTimeStamp" );
-    /* Client ID - MAC Address */
-    vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucDefaultMACAddress, ipMAC_ADDRESS_LENGTH_BYTES, "OptionClientIDMAC" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDpeek" );
-
-    /* Option Server ID */
-    usVal = DHCPv6_Option_Server_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerIDLength" );
-    /* Server ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionServerIDHWType" );
-    /* Server ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
-
-    /* Option List */
-    usVal = DHCPv6_Option_Option_List;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionList" );
-    usVal = 4U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionListLength" );
-    usVal = DHCP6_OPTION_REQUEST_DNS;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionListDNS" );
-    usVal = DHCP6_OPTION_REQUEST_DOMAIN_SEARCH_LIST;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionListDomainSearchList" );
-
-    /* Option Elapsed Time */
-    usVal = DHCPv6_Option_Elapsed_Time;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsed" );
-    usVal = 2U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsedLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionElapsedValue" );
-
-    /* Option IA_PD */
-    usVal = DHCPv6_Option_IA_for_Prefix_Delegation;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PD" );
-    usVal = 41U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PDLength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDIAID" );
-    ulVal = 3600U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDT1" );
-    ulVal = 5400U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PDT2" );
-
-    /* Option IA_PD sub-option IA_Prefix */
-    usVal = DHCPv6_Option_IA_Prefix;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_Prefix" );
-    usVal = 25U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_PrefixLength" );
-    /* Preferred Life Time */
-    ulVal = 4500U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PrefixPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 7200U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_PrefixValidLifeTime" );
-    /* Prefix length */
-    ucVal = 64U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite8, &ucVal, 1, "OptionIA_PrefixPrefixLength" );
-    /* Prefix */
-    vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, xDefaultNetPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_PrefixPrefixAddress" );
-
-    /* Option IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NA" );
-    usVal = 12U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 4500U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 7200U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite32, &ulVal, 4, "OptionIA_NAT2" );
-
-    /* Option DNS recursive name server */
-    usVal = DHCPv6_Option_DNS_recursive_name_server;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDNSRecursiveNameServer" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDNSRecursiveNameServerValue" );
+    /* We hardcoded the option sequence in request message.
+     * 1. Client ID
+     * 2. Server ID
+     * 3. Option List
+     * 4. Elapsed Time
+     * 5. IA_PD
+     * 6. IA_NA
+     * 7. DNS Server List
+     */
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdTRUE, DHCPv6_message_Type_Request );
+    prvAddOptionClient( pdTRUE );
+    prvAddOptionServer( pdTRUE, pdFALSE, pdFALSE, pdFALSE );
+    prvAddOptionList( pdTRUE );
+    prvAddOptionElapsedTime( pdTRUE );
+    prvAddOptionIA_PD( pdTRUE );
+    prvAddOptionIA_NA( pdTRUE, 12U );
+    prvAddOptionDNSServer( pdTRUE, 0 );
 }
 
 /**
@@ -1071,95 +1111,15 @@ static void prvPrepareReply()
      * 4. Status Code
      * 5. Preference
      */
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const uint8_t ucStatusCodeSuccess[] = "success";
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Reply;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeReply" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* Option Server ID */
-    usVal = DHCPv6_Option_Server_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
-    /* Server ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
-    /* Server ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
-
-    /* IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NA" );
-    usVal = 40U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 450U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 784U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT2" );
-
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+    prvAddOptionClient( pdFALSE );
+    prvAddOptionServer( pdFALSE, pdFALSE, pdFALSE, pdFALSE );
+    prvAddOptionIA_NA( pdFALSE, 40U );
     /* IA_NA sub-option IA Address */
-    usVal = DHCPv6_Option_IA_Address;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddress" );
-    usVal = 24U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
-    /* Preferred Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
-
-    /* Option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionStatusmessage" );
-
-    /* Option Preference */
-    usVal = DHCPv6_Option_Preference;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreference" );
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreferenceLength" );
-    /* Put 0 as preference value */
-    ucVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionPreferenceValue" );
+    prvAddOptionIAAddress( pdFALSE );
+    prvAddOptionStatusCode( pdFALSE );
+    prvAddOptionPreference( pdFALSE );
 }
 
 /**
@@ -1168,18 +1128,8 @@ static void prvPrepareReply()
  */
 static void prvPrepareReplyWithDNS()
 {
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-
     prvPrepareReply();
-
-    /* Option DNS */
-    usVal = DHCPv6_Option_DNS_recursive_name_server;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNS" );
-    usVal = 16U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &xDefaultDNSAddress, sizeof( xDefaultDNSAddress ), "OptionDNSInfo" );
+    prvAddOptionDNSServer( pdFALSE, 1 );
 }
 
 /**
@@ -1188,22 +1138,8 @@ static void prvPrepareReplyWithDNS()
  */
 static void prvPrepareReplyWithMultipleDNS()
 {
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const IPv6_Address_t xDifferentAddress1 = { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE };
-    const IPv6_Address_t xDifferentAddress2 = { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD };
-
     prvPrepareReply();
-
-    /* Option DNS */
-    usVal = DHCPv6_Option_DNS_recursive_name_server;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNS" );
-    usVal = 48U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &xDefaultDNSAddress, sizeof( xDefaultDNSAddress ), "OptionDNSInfo0" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &xDifferentAddress1, sizeof( xDifferentAddress1 ), "OptionDNSInfo1" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &xDifferentAddress2, sizeof( xDifferentAddress2 ), "OptionDNSInfo2" );
+    prvAddOptionDNSServer( pdFALSE, 3 );
 }
 
 
@@ -1222,97 +1158,15 @@ static void prvPrepareReplyDifferentServerDUIDType()
      * 4. Status Code
      * 5. Preference
      */
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const uint8_t ucStatusCodeSuccess[] = "success";
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Reply;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeReply" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* Option Server ID */
-    usVal = DHCPv6_Option_Server_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
-    /* Server ID - DUID & hardware Type */
-    /* DUID type is set to 1 in endpoint. */
-    usVal = 2U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
-    /* Server ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ), "OptionServerIDRemain" );
-
-    /* IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NA" );
-    usVal = 40U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 450U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 784U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT2" );
-
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+    prvAddOptionClient( pdFALSE );
+    prvAddOptionServer( pdFALSE, pdTRUE, pdFALSE, pdFALSE );
+    prvAddOptionIA_NA( pdFALSE, 40U );
     /* IA_NA sub-option IA Address */
-    usVal = DHCPv6_Option_IA_Address;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddress" );
-    usVal = 24U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
-    /* Preferred Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
-
-    /* Option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionStatusmessage" );
-
-    /* Option Preference */
-    usVal = DHCPv6_Option_Preference;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreference" );
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreferenceLength" );
-    /* Put 0 as preference value */
-    ucVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionPreferenceValue" );
+    prvAddOptionIAAddress( pdFALSE );
+    prvAddOptionStatusCode( pdFALSE );
+    prvAddOptionPreference( pdFALSE );
 }
 
 /**
@@ -1329,96 +1183,15 @@ static void prvPrepareReplyDifferentServerLength()
      * 4. Status Code
      * 5. Preference
      */
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const uint8_t ucStatusCodeSuccess[] = "success";
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Reply;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeReply" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* Option Server ID */
-    usVal = DHCPv6_Option_Server_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
-    /* Server ID length was set to 14 in endpoint. */
-    usVal = 12U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
-    /* Server ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
-    /* Server ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) - 2, "OptionServerIDRemain" );
-
-    /* IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NA" );
-    usVal = 40U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 450U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 784U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT2" );
-
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+    prvAddOptionClient( pdFALSE );
+    prvAddOptionServer( pdFALSE, pdFALSE, pdTRUE, pdFALSE );
+    prvAddOptionIA_NA( pdFALSE, 40U );
     /* IA_NA sub-option IA Address */
-    usVal = DHCPv6_Option_IA_Address;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddress" );
-    usVal = 24U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
-    /* Preferred Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
-
-    /* Option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionStatusmessage" );
-
-    /* Option Preference */
-    usVal = DHCPv6_Option_Preference;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreference" );
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreferenceLength" );
-    /* Put 0 as preference value */
-    ucVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionPreferenceValue" );
+    prvAddOptionIAAddress( pdFALSE );
+    prvAddOptionStatusCode( pdFALSE );
+    prvAddOptionPreference( pdFALSE );
 }
 
 /**
@@ -1435,97 +1208,15 @@ static void prvPrepareReplyDifferentServerDUID()
      * 4. Status Code
      * 5. Preference
      */
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-    const uint8_t ucStatusCodeSuccess[] = "success";
-    uint8_t ucDifferentServerID[] = { 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11 };
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Reply;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeReply" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
-
-    /* Option Client ID */
-    usVal = DHCPv6_Option_Client_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
-    /* Client ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
-    /* Client ID - remain ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
-    /* Call peek function to compare client ID */
-    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeek" );
-
-    /* Option Server ID */
-    usVal = DHCPv6_Option_Server_Identifier;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerID" );
-    usVal = 14U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDLength" );
-    /* Server ID - DUID & hardware Type */
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
-    /* Server ID - remain ID */
-    /* Use different DUID. */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucDifferentServerID, sizeof( ucDifferentServerID ), "OptionServerIDRemain" );
-
-    /* IA_NA */
-    usVal = DHCPv6_Option_NonTemporaryAddress;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NA" );
-    usVal = 40U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NALength" );
-    ulVal = TEST_DHCPV6_IAID;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAIAID" );
-    /* T1 */
-    ulVal = 450U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT1" );
-    /* T2 */
-    ulVal = 784U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NAT2" );
-
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+    prvAddOptionClient( pdFALSE );
+    prvAddOptionServer( pdFALSE, pdFALSE, pdFALSE, pdTRUE );
+    prvAddOptionIA_NA( pdFALSE, 40U );
     /* IA_NA sub-option IA Address */
-    usVal = DHCPv6_Option_IA_Address;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddress" );
-    usVal = 24U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionIA_NASubIAAddressLength" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS, "OptionIA_NASubIAAddressIP" );
-    /* Preferred Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressPreferLifeTime" );
-    /* Valid Life Time */
-    ulVal = 900U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead32, &ulVal, 4, "OptionIA_NASubIAAddressValidLifeTime" );
-
-    /* Option Status Code */
-    usVal = DHCPv6_Option_Status_Code;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatus" );
-    usVal = 9U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusLength" );
-    usVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionStatusValue" );
-    /* Status message */
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucStatusCodeSuccess, sizeof( ucStatusCodeSuccess ), "OptionStatusmessage" );
-
-    /* Option Preference */
-    usVal = DHCPv6_Option_Preference;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreference" );
-    usVal = 1U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionPreferenceLength" );
-    /* Put 0 as preference value */
-    ucVal = 0U;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "OptionPreferenceValue" );
+    prvAddOptionIAAddress( pdFALSE );
+    prvAddOptionStatusCode( pdFALSE );
+    prvAddOptionPreference( pdFALSE );
 }
 
 /**
@@ -1534,19 +1225,8 @@ static void prvPrepareReplyDifferentServerDUID()
  */
 static void prvPrepareUnknownMsgType()
 {
-    uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
-
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = 0xEE;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "InvalidMessageType" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, 0xEE );
 }
 
 /**
@@ -1556,14 +1236,9 @@ static void prvPrepareUnknownMsgType()
 static void prvPrepareWrongTransactionID()
 {
     uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
     uint8_t ucTestInvalidDHCPv6TransactionID[] = { 0x65, 0x43, 0x21 };
 
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    vBitConfig_release_Ignore();
+    prvSetBitOperationStub();
 
     /* Provide the message type and transaction ID for DHCPv6. */
     ucVal = DHCPv6_message_Type_Advertise;
@@ -1578,13 +1253,8 @@ static void prvPrepareWrongTransactionID()
 static void prvPrepareErrorTransactionID()
 {
     uint8_t ucVal;
-    uint16_t usVal;
-    uint32_t ulVal;
 
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    vBitConfig_release_Ignore();
+    prvSetBitOperationStub();
 
     /* Provide the message type and transaction ID for DHCPv6. */
     ucVal = DHCPv6_message_Type_Advertise;
@@ -1601,13 +1271,8 @@ static void prvPrepareErrorOption()
 {
     uint8_t ucVal;
     uint16_t usVal;
-    uint32_t ulVal;
 
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    vBitConfig_release_Ignore();
+    prvSetBitOperationStub();
 
     /* Provide the message type and transaction ID for DHCPv6. */
     ucVal = DHCPv6_message_Type_Advertise;
@@ -1657,22 +1322,10 @@ static void prvPrepareAdvertiseStatusCodeLengthTooSmall()
  */
 static void prvPrepareAdvertiseStatusCodeLengthTooBig()
 {
-    uint8_t ucVal;
     uint16_t usVal;
-    uint32_t ulVal;
 
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Advertise;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Advertise );
 
     /* Option Status Code */
     usVal = DHCPv6_Option_Status_Code;
@@ -1687,24 +1340,12 @@ static void prvPrepareAdvertiseStatusCodeLengthTooBig()
  */
 static void prvPrepareAdvertiseStatusCodeLongMessage()
 {
-    uint8_t ucVal;
     uint16_t usVal;
-    uint32_t ulVal;
     /* For now, local buffer size is 50. Declare a message with larger size. */
     const uint8_t ucStatusCodeLongMessage[] = "012345678901234567890123456789012345678901234567890123456789";
 
-    xBitConfig_init_Stub( xStubxBitConfig_init );
-    pucBitConfig_peek_last_index_uc_Stub( xStubpucBitConfig_peek_last_index_uc );
-    ucBitConfig_read_8_Stub( xStubucBitConfig_read_8 );
-    xBitConfig_read_uc_Stub( xStubxBitConfig_read_uc );
-    usBitConfig_read_16_Stub( xStubusBitConfig_read_16 );
-    ulBitConfig_read_32_Stub( xStubulBitConfig_read_32 );
-    vBitConfig_release_Ignore();
-
-    /* Provide the message type and transaction ID for DHCPv6. */
-    ucVal = DHCPv6_message_Type_Advertise;
-    vAddBitOperation( eTestDHCPv6BitOperationRead8, &ucVal, 1, "TypeAdvertise" );
-    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, ucTestDHCPv6TransactionID, 3, "TransactionID" );
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Advertise );
 
     /* Option Status Code */
     usVal = DHCPv6_Option_Status_Code;
@@ -1849,6 +1490,9 @@ void test_vDHCPv6Process_solicitation_happy_path()
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
 
     /* Prepare bit message for solicitation. */
     prvPrepareSolicitation();
@@ -1898,6 +1542,10 @@ void test_vDHCPv6Process_advertise_happy_path()
 
     prvPrepareAdvertise();
 
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+
     prvPrepareRequest();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
@@ -1942,6 +1590,11 @@ void test_vDHCPv6Process_advertise_IATA_not_implemented()
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
     prvPrepareAdvertiseIATA();
+
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+
     prvPrepareRequest();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
@@ -2037,6 +1690,10 @@ void test_vDHCPv6Process_dhcp_lease()
 
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+
     prvPrepareRequest();
     vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
@@ -2138,8 +1795,15 @@ void test_vDHCPv6Process_wait_reply_timeout()
     /* Timeout triggered. Reset the DHCPv6 to initial state */
 
     /* 1st timeout makes 1st request message resend. */
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
     prvPrepareRequest();
+
     /* 2nd timeout makes 2nd request message resend. */
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
     prvPrepareRequest();
 
     vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
@@ -2644,6 +2308,11 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_multiple_endpoints()
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
     prvPrepareAdvertise();
+
+    xApplicationGetRandomNumber_Stub( xStubxApplicationGetRandomNumber );
+    FreeRTOS_inet_pton6_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_sendto_IgnoreAndReturn( 0 );
+
     prvPrepareRequest();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );

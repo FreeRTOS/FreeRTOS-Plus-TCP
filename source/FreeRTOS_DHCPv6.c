@@ -430,7 +430,6 @@ void vDHCPv6Process( BaseType_t xReset,
 
             /* Get the next UDP message. */
             lBytes = FreeRTOS_recvfrom( EP_DHCPData.xDHCPSocket, &( pucUDPPayload ), 0, xRecvFlags, NULL, NULL );
-            printf( "FreeRTOS_recvfrom returns %d\n", lBytes );
 
             if( lBytes <= 0 )
             {
@@ -1511,7 +1510,6 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
             usOption = usBitConfig_read_16( &xMessage );
             xSet.uxOptionLength = ( size_t ) usBitConfig_read_16( &xMessage );
             xSet.uxStart = xMessage.uxIndex;
-            printf( "Handling option length %d\n", xSet.uxOptionLength );
 
             if( xMessage.xHasError != pdFALSE )
             {
