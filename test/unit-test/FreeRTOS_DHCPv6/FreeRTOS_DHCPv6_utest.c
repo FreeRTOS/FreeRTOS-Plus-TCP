@@ -902,18 +902,18 @@ void test_vDHCPv6Process_null()
 void test_vDHCPv6Process_reset_from_init()
 {
     NetworkEndPoint_t xEndPoint;
-    struct xSOCKET xDHCPv6Socket;
+    struct xSOCKET xLocalDHCPv6Socket;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     xEndPoint.xDHCPData.eDHCPState = eInitialWait;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xDHCPv6Socket );
-    xSocketValid_ExpectAndReturn( &xDHCPv6Socket, pdTRUE );
-    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xDHCPv6Socket, sizeof( TickType_t ) );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
+    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
-    prvSetCheckerAndReturn_vSocketBind( &xDHCPv6Socket );
+    prvSetCheckerAndReturn_vSocketBind( &xLocalDHCPv6Socket );
     vSocketBind_Stub( xStubvSocketBind );
     vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
@@ -933,20 +933,20 @@ void test_vDHCPv6Process_reset_from_init()
 void test_vDHCPv6Process_reset_from_lease()
 {
     NetworkEndPoint_t xEndPoint;
-    struct xSOCKET xDHCPv6Socket;
+    struct xSOCKET xLocalDHCPv6Socket;
     const IPv6_Address_t xIPAddress = { 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     xEndPoint.xDHCPData.eDHCPState = eLeasedAddress;
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xDHCPv6Socket );
-    xSocketValid_ExpectAndReturn( &xDHCPv6Socket, pdTRUE );
-    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xDHCPv6Socket, sizeof( TickType_t ) );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
+    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
-    prvSetCheckerAndReturn_vSocketBind( &xDHCPv6Socket );
+    prvSetCheckerAndReturn_vSocketBind( &xLocalDHCPv6Socket );
     vSocketBind_Stub( xStubvSocketBind );
     vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
@@ -967,10 +967,10 @@ void test_vDHCPv6Process_continue_solicitation_happy_path()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
-    struct xSOCKET xDHCPv6Socket;
+    struct xSOCKET xLocalDHCPv6Socket;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
@@ -979,7 +979,7 @@ void test_vDHCPv6Process_continue_solicitation_happy_path()
 
     xEndPoint.xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     xEndPoint.xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
-    xEndPoint.xDHCPData.xDHCPSocket = &xDHCPv6Socket;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
@@ -1006,10 +1006,10 @@ void test_vDHCPv6Process_continue_advertise_happy_path()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
-    struct xSOCKET xDHCPv6Socket;
+    struct xSOCKET xLocalDHCPv6Socket;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     pxNetworkEndPoints = &xEndPoint;
@@ -1023,7 +1023,7 @@ void test_vDHCPv6Process_continue_advertise_happy_path()
     xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
     xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
     xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
-    xEndPoint.xDHCPData.xDHCPSocket = &xDHCPv6Socket;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
     memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
@@ -1051,10 +1051,10 @@ void test_vDHCPv6Process_continue_reply_happy_path()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
-    struct xSOCKET xDHCPv6Socket;
+    struct xSOCKET xLocalDHCPv6Socket;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     pxNetworkEndPoints = &xEndPoint;
@@ -1068,7 +1068,7 @@ void test_vDHCPv6Process_continue_reply_happy_path()
     xEndPoint.xDHCPData.eDHCPState = eWaitingAcknowledge;
     xEndPoint.xDHCPData.eExpectedState = eWaitingAcknowledge;
     xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
-    xEndPoint.xDHCPData.xDHCPSocket = &xDHCPv6Socket;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
     memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
 
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
@@ -1149,7 +1149,6 @@ void test_vDHCPv6Process_giveup_when_socket_null()
     DHCPMessage_IPv6_t xDHCPMessage;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     pxNetworkEndPoints = &xEndPoint;
@@ -1187,10 +1186,10 @@ void test_vDHCPv6Process_wait_reply_timeout()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
-    struct xSOCKET xDHCPv6Socket;
+    struct xSOCKET xLocalDHCPv6Socket;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     pxNetworkEndPoints = &xEndPoint;
@@ -1204,7 +1203,7 @@ void test_vDHCPv6Process_wait_reply_timeout()
     xEndPoint.xDHCPData.eDHCPState = eWaitingAcknowledge;
     xEndPoint.xDHCPData.eExpectedState = eWaitingAcknowledge;
     xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
-    xEndPoint.xDHCPData.xDHCPSocket = &xDHCPv6Socket;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
     /* Assume that DHCPv6 had got the advertise and sent request once. */
     xEndPoint.xDHCPData.xDHCPTxTime = pdMS_TO_TICKS( 0 );
     xEndPoint.xDHCPData.xDHCPTxPeriod = pdMS_TO_TICKS( 5000 );
