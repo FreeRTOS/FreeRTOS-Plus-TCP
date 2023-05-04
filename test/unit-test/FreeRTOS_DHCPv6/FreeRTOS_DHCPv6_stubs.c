@@ -38,11 +38,11 @@
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_Routing.h"
 
-typedef enum eTestDHCPv6HookOperationType
+typedef enum eTestStubsOperation
 {
-    eTestDHCPv6HookOperationTypeNone = 0,
-    eTestDHCPv6HookOperationTypeContinue,
-} eTestDHCPv6HookOperationType_t;
+    eTestStubsOperationNone = 0,
+    eTestStubsAllocateFail,
+} eTestStubsOperation_t;
 
 /** @brief A list of all network end-points.  Each element has a next pointer. */
 struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
@@ -51,13 +51,13 @@ BaseType_t xARPHadIPClash = pdFALSE;
 
 extern Socket_t xDHCPv6Socket;
 
-eTestDHCPv6HookOperationType_t eTestDHCPv6HookOperationType = eTestDHCPv6HookOperationTypeContinue;
+eTestStubsOperation_t eTestStubsOperation = eTestStubsOperationNone;
 
 void InitializeUnitTest()
 {
     pxNetworkEndPoints = NULL;
     xDHCPv6Socket = NULL;
-    eTestDHCPv6HookOperationType = eTestDHCPv6HookOperationTypeContinue;
+    eTestStubsOperation = eTestStubsOperationNone;
 }
 
 uint32_t ulApplicationTimeHook( void )
@@ -67,9 +67,9 @@ uint32_t ulApplicationTimeHook( void )
     return 946684800U;
 }
 
-void vSetDHCPHookOperation( eTestDHCPv6HookOperationType_t eOperationType )
+void vAddStubsOperation( eTestStubsOperation_t eOperation )
 {
-    eTestDHCPv6HookOperationType = eOperationType;
+    eTestStubsOperation = eOperation;
 }
 
 eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
@@ -83,7 +83,14 @@ eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhas
 
 void * pvPortMalloc( size_t xWantedSize )
 {
-    return malloc( xWantedSize );
+    void * pvReturn = NULL;
+
+    if( eTestStubsOperation != eTestStubsAllocateFail )
+    {
+        pvReturn = malloc( xWantedSize );
+    }
+
+    return pvReturn;
 }
 
 void vPortFree( void * pv )

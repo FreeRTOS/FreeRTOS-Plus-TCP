@@ -332,7 +332,7 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
         pxIterator = pxIterator->pxNext;
     }
 
-    if( ( pxIterator != NULL ) && ( pxIterator->pxDHCPMessage != NULL ) )
+    if( pxIterator != NULL )
     {
         if( pxIterator->pxDHCPMessage->xServerID.usDUIDType != 0U )
         {
@@ -357,6 +357,10 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
             if( pxEndPoint == pxIterator )
             {
                 xDoProcess = pdFALSE;
+            }
+            else
+            {
+                FreeRTOS_printf( ( "Got message on different endpoint.\n" ) );
             }
         }
     }
@@ -395,6 +399,18 @@ void vDHCPv6Process( BaseType_t xReset,
             else
             {
                 FreeRTOS_printf( ( "vDHCPv6Process: malloc failed %u bytes\n", ( unsigned int ) sizeof( *pxEndPoint->pxDHCPMessage ) ) );
+
+                /* Use static IP address. */
+                taskENTER_CRITICAL();
+                {
+                    ( void ) memcpy( EP_IPv6_SETTINGS.xIPAddress.ucBytes, pxEndPoint->ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( EP_IPv6_SETTINGS.xIPAddress );
+                }
+                taskEXIT_CRITICAL();
+
+                EP_DHCPData.eDHCPState = eNotUsingLeasedAddress;
+                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+                xDoProcess = pdFALSE;
             }
         }
     }
@@ -414,6 +430,7 @@ void vDHCPv6Process( BaseType_t xReset,
 
             /* Get the next UDP message. */
             lBytes = FreeRTOS_recvfrom( EP_DHCPData.xDHCPSocket, &( pucUDPPayload ), 0, xRecvFlags, NULL, NULL );
+            printf( "FreeRTOS_recvfrom returns %d\n", lBytes );
 
             if( lBytes <= 0 )
             {
@@ -1495,6 +1512,7 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
             usOption = usBitConfig_read_16( &xMessage );
             xSet.uxOptionLength = ( size_t ) usBitConfig_read_16( &xMessage );
             xSet.uxStart = xMessage.uxIndex;
+            printf( "Handling option length %d\n", xSet.uxOptionLength );
 
             if( xMessage.xHasError != pdFALSE )
             {
