@@ -5639,7 +5639,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
 #endif /* ( ( ipconfigHAS_PRINTF != 0 ) && ( ipconfigUSE_TCP == 1 ) ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+#if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) )
 
 /**
  * @brief This internal function will check if a given TCP
@@ -5732,6 +5732,10 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
 
         return xSocketBits;
     }
+
+#endif /* ( ipconfigUSE_TCP == 1 ) && ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+
+#if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
 
 /**
  * @brief This internal non-blocking function will check all sockets that belong

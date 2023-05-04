@@ -310,7 +310,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     return pxInterface;
 }
 
-#if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )
+#if ( ipconfigUSE_DHCP_HOOK != 0 )
     #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
                                                     uint32_t ulIPAddress )
@@ -323,7 +323,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
         /* Provide a stub for this function. */
         return eDHCPContinue;
     }
-#endif /* if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) ) */
+#endif /* if ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
 #if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
 
