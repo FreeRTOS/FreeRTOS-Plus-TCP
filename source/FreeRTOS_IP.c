@@ -1580,7 +1580,6 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         {
                             eReturned = eReleaseBuffer;
                         }
-
                         break;
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
