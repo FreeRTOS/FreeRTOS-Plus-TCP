@@ -716,16 +716,13 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
             /* Resend the request at the appropriate time to renew the lease. */
             prvCreateDHCPv6Socket( pxEndPoint );
 
-            if( EP_DHCPData.xDHCPSocket != NULL )
-            {
-                EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
-                EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
-                prvSendDHCPMessage( pxEndPoint );
-                EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+            EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
+            EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
+            prvSendDHCPMessage( pxEndPoint );
+            EP_DHCPData.eDHCPState = eWaitingAcknowledge;
 
-                /* From now on, we should be called more often */
-                vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
-            }
+            /* From now on, we should be called more often */
+            vDHCP_RATimerReload( pxEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
             break;
 
@@ -755,8 +752,6 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
                                     DHCPMessage_IPv6_t * pxDHCPMessage )
 {
     BaseType_t xGivingUp = pdFALSE;
-
-    configASSERT( pxEndPoint != NULL );
 
     /* Is DHCP starting over? */
     if( xReset != pdFALSE )

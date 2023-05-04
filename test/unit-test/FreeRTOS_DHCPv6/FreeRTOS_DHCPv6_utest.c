@@ -1649,10 +1649,10 @@ void test_vDHCPv6Process_reply_happy_path()
 }
 
 /**
- * @brief test_vDHCPv6Process_dhcp_lease
- * The address of endpoint is leased. Endpoint sends the DHCPv6 request to ask for renew.
+ * @brief test_vDHCPv6Process_dhcp_lease_timeout
+ * The address of endpoint is timeout. Endpoint sends the DHCPv6 request to ask for renew.
  */
-void test_vDHCPv6Process_dhcp_lease()
+void test_vDHCPv6Process_dhcp_lease_timeout()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3068,4 +3068,73 @@ void test_vDHCPv6Process_wait_advertise_timeout()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_not_using_leased_address
+ * Check if vDHCPv6Process disables the timer when the state is eNotUsingLeasedAddress.
+ */
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_not_using_leased_address()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eNotUsingLeasedAddress;
+    xEndPoint.xDHCPData.eExpectedState = eNotUsingLeasedAddress;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+
+    /* Because we assume DHCPv6 got advertise, so we should set the server information in DHCP message. */
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_unknown_state
+ * Check if vDHCPv6Process ignore everything in unknown state.
+ */
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_unknown_state()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = 0xFE;
+    xEndPoint.xDHCPData.eExpectedState = 0xFE;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+
+    /* Because we assume DHCPv6 got advertise, so we should set the server information in DHCP message. */
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( 0xFE, xEndPoint.xDHCPData.eDHCPState );
 }
