@@ -358,10 +358,6 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
             {
                 xDoProcess = pdFALSE;
             }
-            else
-            {
-                FreeRTOS_printf( ( "Got message on different endpoint.\n" ) );
-            }
         }
     }
 
@@ -1116,7 +1112,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
     }
     else
     {
-        FreeRTOS_printf( ( "prvDHCPv6_subOption: Option %d used length %d is larger than option length %d\n", usOption, uxUsed, pxSet->uxOptionLength ) );
+        FreeRTOS_printf( ( "prvDHCPv6_subOption: Option %u used length %lu is larger than option length %lu\n", usOption, uxUsed, pxSet->uxOptionLength ) );
         xReturn = pdFALSE;
     }
 

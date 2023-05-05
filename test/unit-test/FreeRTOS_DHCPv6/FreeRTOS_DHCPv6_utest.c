@@ -1028,7 +1028,7 @@ static void prvPrepareSolicitation()
  */
 static void prvPrepareAdvertise()
 {
-    /* We hardcoded the option sequence in advertise message.
+    /* We hard code the option sequence in advertise message.
      * 1. Client ID
      * 2. Server ID
      * 3. IA_NA
@@ -1060,7 +1060,7 @@ static void prvPrepareAdvertise()
  */
 static void prvPrepareAdvertiseIATA()
 {
-    /* We hardcoded the option sequence in advertise message.
+    /* We hard code the option sequence in advertise message.
      * 1. Client ID
      * 2. Server ID
      * 3. IA_TA - not implemented, ignored
@@ -1080,7 +1080,7 @@ static void prvPrepareAdvertiseIATA()
  */
 static void prvPrepareAdvertiseNoServerID()
 {
-    /* We hardcoded the option sequence in advertise message.
+    /* We hard code the option sequence in advertise message.
      * 1. Client ID
      * 2. IA_NA
      *     - Sub-option IA Address
@@ -1110,7 +1110,7 @@ static void prvPrepareAdvertiseNoServerID()
  */
 static void prvPrepareAdvertiseSubStatusCodeFail()
 {
-    /* We hardcoded the option sequence in advertise message.
+    /* We hard code the option sequence in advertise message.
      * 1. Client ID
      * 2. Server ID
      * 3. IA_NA
@@ -1149,7 +1149,7 @@ static void prvPrepareAdvertiseSubStatusCodeFail()
  */
 static void prvPrepareRequest()
 {
-    /* We hardcoded the option sequence in request message.
+    /* We hard code the option sequence in request message.
      * 1. Client ID
      * 2. Server ID
      * 3. Option List
@@ -1175,7 +1175,7 @@ static void prvPrepareRequest()
  */
 static void prvPrepareReply()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID
      * 2. Server ID
      * 3. IA_NA
@@ -1230,7 +1230,7 @@ static void prvPrepareReplyWithMultipleDNS()
  */
 static void prvPrepareReplyDifferentServerDUIDType()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID
      * 2. Server ID with different DUID type
      * 3. IA_NA
@@ -1255,7 +1255,7 @@ static void prvPrepareReplyDifferentServerDUIDType()
  */
 static void prvPrepareReplyDifferentServerLength()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID
      * 2. Server ID with different DUID length
      * 3. IA_NA
@@ -1280,7 +1280,7 @@ static void prvPrepareReplyDifferentServerLength()
  */
 static void prvPrepareReplyDifferentServerDUID()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID
      * 2. Server ID with different DUID
      * 3. IA_NA
@@ -1305,7 +1305,7 @@ static void prvPrepareReplyDifferentServerDUID()
  */
 static void prvPrepareReplyInvalidIA_NA()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID
      * 2. Server ID
      * 3. IA_NA - with invalid sub-option length
@@ -1324,7 +1324,7 @@ static void prvPrepareReplyInvalidIA_NA()
  */
 static void prvPrepareReplyInvalidIA_NASubOption()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID
      * 2. Server ID
      * 3. IA_NA - with invalid sub-option
@@ -1357,7 +1357,7 @@ static void prvPrepareReplyInvalidIA_NASubOption()
  */
 static void prvPrepareReplyInvalidIA_PD()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID
      * 2. Server ID
      * 3. IA_PD - with invalid sub-option length
@@ -1388,7 +1388,7 @@ static void prvPrepareReplyInvalidIA_PD()
  */
 static void prvPrepareReplyClientIDTooSmall()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID with length too small
      */
     uint16_t usVal;
@@ -1409,7 +1409,7 @@ static void prvPrepareReplyClientIDTooSmall()
  */
 static void prvPrepareReplyClientIDTooBig()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID with length too small
      */
     uint16_t usVal;
@@ -1434,7 +1434,7 @@ static void prvPrepareReplyClientIDTooBig()
  */
 static void prvPrepareReplyClientIDLengthWrong()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID with length too small
      */
     uint16_t usVal;
@@ -1461,7 +1461,7 @@ static void prvPrepareReplyClientIDLengthWrong()
  */
 static void prvPrepareReplyClientIDPeekFalse()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID with length too small
      */
     uint16_t usVal;
@@ -1490,7 +1490,7 @@ static void prvPrepareReplyClientIDPeekFalse()
  */
 static void prvPrepareReplyClientIDContentWrong()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Client ID with length too small
      */
     uint16_t usVal;
@@ -1519,7 +1519,7 @@ static void prvPrepareReplyClientIDContentWrong()
  */
 static void prvPrepareReplyServerIDTooSmall()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Server ID with length too small
      */
     uint16_t usVal;
@@ -1540,7 +1540,7 @@ static void prvPrepareReplyServerIDTooSmall()
  */
 static void prvPrepareReplyServerIDTooBig()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. Server ID with length too small
      */
     uint16_t usVal;
@@ -1565,7 +1565,7 @@ static void prvPrepareReplyServerIDTooBig()
  */
 static void prvPrepareReplyDNSLengthZero()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. DNS info with 0 length
      */
     prvSetBitOperationStub();
@@ -1579,7 +1579,7 @@ static void prvPrepareReplyDNSLengthZero()
  */
 static void prvPrepareReplyDNSLengthNotAllow()
 {
-    /* We hardcoded the option sequence in reply message.
+    /* We hard code the option sequence in reply message.
      * 1. DNS info with 1 length (length must be a multiple of 16)
      */
     uint16_t usVal;
@@ -2346,7 +2346,7 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_wrong_transaction_ID()
 
 /**
  * @brief test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error
- * Check if vDHCPv6Process can drop packets while error occured on bit configuration.
+ * Check if vDHCPv6Process can drop packets while error occurred on bit configuration.
  */
 void test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error()
 {
@@ -2387,7 +2387,7 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error()
 
 /**
  * @brief test_vDHCPv6Process_prvDHCPv6Analyse_read_option_error
- * Check if vDHCPv6Process can drop packets while error occured on reading option.
+ * Check if vDHCPv6Process can drop packets while error occurred on reading option.
  */
 void test_vDHCPv6Process_prvDHCPv6Analyse_read_option_error()
 {
@@ -2898,7 +2898,7 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_DUI
 
 /**
  * @brief test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_endpoint
- * DHCPv6 agent recevies the message for different endpoint.
+ * DHCPv6 agent receives the message for different endpoint.
  */
 void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_endpoint()
 {
