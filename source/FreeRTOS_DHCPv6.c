@@ -931,9 +931,11 @@ static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint )
 static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
 {
     BaseType_t xRandomOk = pdTRUE;
-    DHCPMessage_IPv6_t * pxDHCPMessage = pxEndPoint->pxDHCPMessage;
+    DHCPMessage_IPv6_t * pxDHCPMessage = NULL;
 
     configASSERT( pxEndPoint != NULL );
+
+    pxDHCPMessage = pxEndPoint->pxDHCPMessage;
 
     if( pxDHCPMessage->ucHasUID == 0U )
     {
@@ -1070,10 +1072,10 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 FreeRTOS_printf( ( "DHCP Sending request %u.\n", ucMessageType ) );
                 ( void ) FreeRTOS_sendto( EP_DHCPData.xDHCPSocket, ( const void * ) xMessage.ucContents, xMessage.uxIndex, 0, pxAddress, sizeof xAddress );
             }
-        } /* if( xBitConfig_init( &( xMessage ), NULL, 256 ) == pdTRUE ) */
 
-        vBitConfig_release( &( xMessage ) );
-    } /* ( xRandomOk == pdPASS ) && ( EP_DHCPData.xDHCPSocket != NULL ) */
+            vBitConfig_release( &( xMessage ) );
+        } /* if( xBitConfig_init( &( xMessage ), NULL, 256 ) == pdTRUE ) */
+    }     /* ( xRandomOk == pdPASS ) && ( EP_DHCPData.xDHCPSocket != NULL ) */
 }
 /*-----------------------------------------------------------*/
 
@@ -1295,6 +1297,7 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
                     else
                     {
                         FreeRTOS_printf( ( "prvDHCPv6Analyse: server ID too long\n" ) );
+                        xReady = pdTRUE;
                     }
                 }
                 else
