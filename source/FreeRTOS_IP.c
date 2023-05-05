@@ -2089,7 +2089,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             {
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case ipIPv6_FRAME_TYPE:
-                        /* To do */
+                        /* No IPv6 endpoint found */
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
