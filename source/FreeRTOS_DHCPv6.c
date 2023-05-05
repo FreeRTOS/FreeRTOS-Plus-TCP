@@ -1110,12 +1110,17 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
     ( void ) ulTime_2;
     ( void ) usOption;
 
-    if( pxSet->uxOptionLength > uxUsed )
+    if( pxSet->uxOptionLength >= uxUsed )
     {
         uxRemain = pxSet->uxOptionLength - uxUsed;
     }
+    else
+    {
+        FreeRTOS_printf( ( "prvDHCPv6_subOption: Option %d used length %d is larger than option length %d\n", usOption, uxUsed, pxSet->uxOptionLength ) );
+        xReturn = pdFALSE;
+    }
 
-    while( ( uxRemain > 0U ) && ( xReturn != pdFALSE ) )
+    while( uxRemain > 0U )
     {
         if( uxRemain < 4U )
         {
@@ -1163,13 +1168,18 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
             case DHCPv6_Option_Status_Code:
                 xReturn = prvDHCPv6_handleStatusCode( uxLength2,
                                                       pxMessage );
-
                 break;
 
             default:
                 ( void ) xBitConfig_read_uc( pxMessage, NULL, uxLength2 - uxUsed );
                 FreeRTOS_printf( ( "prvDHCPv6Analyse: skipped unknown option %u\n", usOption2 ) );
                 break;
+        }
+
+        if( xReturn != pdTRUE )
+        {
+            FreeRTOS_printf( ( "prvDHCPv6_subOption: One of sub-options %d returns error\n", usOption2 ) );
+            break;
         }
 
         /* Update remaining length. */
@@ -1480,15 +1490,15 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
                 xReady = pdTRUE;
                 xResult = pdFAIL;
             }
-            else if( xMessage.uxIndex == xMessage.uxSize )
-            {
-                xReady = pdTRUE;
-            }
             else if( xReady == pdTRUE )
             {
                 /* xReady might be set to pdTRUE by prvDHCPv6_handleOption when there happens any error on parsing options. */
                 FreeRTOS_printf( ( "prvDHCPv6Analyse: prvDHCPv6_handleOption returns error.\n" ) );
                 xResult = pdFAIL;
+            }
+            else if( xMessage.uxIndex == xMessage.uxSize )
+            {
+                xReady = pdTRUE;
             }
             else
             {
