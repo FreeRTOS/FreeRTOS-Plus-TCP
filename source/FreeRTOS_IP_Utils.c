@@ -87,10 +87,6 @@
     static UBaseType_t uxLastMinQueueSpace = 0;
 #endif
 
-/* IPv4 multi-cast addresses range from 224.0.0.0.0 to 240.0.0.0. */
-#define ipFIRST_MULTI_CAST_IPv4    0xE0000000U          /**< Lower bound of the IPv4 multicast address. */
-#define ipLAST_MULTI_CAST_IPv4     0xF0000000U          /**< Higher bound of the IPv4 multicast address. */
-
 /**
  * Used in checksum calculation.
  */
@@ -757,7 +753,6 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
             default:
                 FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined ucIPType \n" ) );
                 uxOffset = sizeof( UDPPacket_t );
-                /* MISRA 16.4 Compliance */
                 break;
         }
 
@@ -1699,30 +1694,5 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
     return ( uint16_t )
            ( ( ( ( uint32_t ) pucPtr[ 0 ] ) << 8 ) |
              ( ( ( uint32_t ) pucPtr[ 1 ] ) ) );
-}
-/*-----------------------------------------------------------*/
-
-/**
- * @brief Is the IP address an IPv4 multicast address.
- *
- * @param[in] ulIPAddress The IP address being checked.
- *
- * @return pdTRUE if the IP address is a multicast address or else, pdFALSE.
- */
-BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
-{
-    BaseType_t xReturn;
-    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
-
-    if( ( ulIP >= ipFIRST_MULTI_CAST_IPv4 ) && ( ulIP < ipLAST_MULTI_CAST_IPv4 ) )
-    {
-        xReturn = pdTRUE;
-    }
-    else
-    {
-        xReturn = pdFALSE;
-    }
-
-    return xReturn;
 }
 /*-----------------------------------------------------------*/

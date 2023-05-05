@@ -1606,7 +1606,6 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
         default:
             FreeRTOS_debug_printf( ( "FreeRTOS_sendto: Undefined sin_family \n" ) );
             lReturn = -pdFREERTOS_ERRNO_EINVAL;
-            /* MISRA 16.4 compliance */
             break;
     }
 

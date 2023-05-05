@@ -674,7 +674,6 @@
             default:
                 /* Shouldn't reach here */
                 xResult = pdFAIL;
-                /* MISRA 16.4 Compliance */
                 break;
         }
 

@@ -781,7 +781,6 @@
                 default:
                     /* Shouldn't reach here */
                     pxNetworkBuffer->pxEndPoint = NULL;
-                    /* MISRA 16.4 Compliance */
                     break;
             }
 
@@ -1331,7 +1330,7 @@
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                     default:
-                        /* MISRA 16.4 Compliance */
+                        xReturn = pdFAIL;
                         break;
                 }
             }

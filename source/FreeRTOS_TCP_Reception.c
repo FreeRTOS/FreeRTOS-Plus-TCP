@@ -500,7 +500,6 @@
             default:
                 /* Shouldn't reach here */
                 lLength = 0;
-                /* MISRA 16.4 Compliance */
                 break;
         }
 
