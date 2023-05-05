@@ -52,7 +52,7 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define TEST_DHCPV6_DEBUG                    ( 1 )
+#define TEST_DHCPV6_DEBUG                    ( 0 )
 
 #define TEST_DHCPV6_IAID                     ( 0x27fe8f95 )
 
@@ -1409,6 +1409,7 @@ void test_vDHCPv6Process_reset_from_init()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     xEndPoint.xDHCPData.eDHCPState = eInitialWait;
+    xEndPoint.xDHCPData.eExpectedState = eInitialWait;
 
     FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
@@ -1443,6 +1444,44 @@ void test_vDHCPv6Process_reset_from_lease()
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     xEndPoint.xDHCPData.eDHCPState = eLeasedAddress;
+    xEndPoint.xDHCPData.eExpectedState = eLeasedAddress;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
+    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
+    FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
+    prvSetCheckerAndReturn_vSocketBind( &xLocalDHCPv6Socket );
+    vSocketBind_Stub( xStubvSocketBind );
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPv6Process( pdTRUE, &xEndPoint );
+
+    /* The endpoint sends the DHCPv6 Solicitation message to find the DHCPv6 server.
+     * Then change the state to eWaitingSendFirstDiscover. */
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xEndPoint.xDHCPData.eDHCPState );
+    /* We should set 2 socket options (FREERTOS_SO_RCVTIMEO and FREERTOS_SO_SNDTIMEO). */
+    TEST_ASSERT_EQUAL( ( 1 << FREERTOS_SO_RCVTIMEO | 1 << FREERTOS_SO_SNDTIMEO ), xStubFreeRTOS_setsockopt_lOptionName_BitMap );
+}
+
+/**
+ * @brief test_vDHCPv6Process_reset_different_state
+ * Check if vDHCPv6Process can reset successfully when state is different from expect state.
+ */
+void test_vDHCPv6Process_reset_different_state()
+{
+    NetworkEndPoint_t xEndPoint;
+    struct xSOCKET xLocalDHCPv6Socket;
+    const IPv6_Address_t xIPAddress = { 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    DHCPMessage_IPv6_t xDHCPMessage;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    xEndPoint.xDHCPData.eDHCPState = eInitialWait;
+    xEndPoint.xDHCPData.eExpectedState = eLeasedAddress;
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
@@ -1503,6 +1542,37 @@ void test_vDHCPv6Process_solicitation_happy_path()
     TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
     TEST_ASSERT_EQUAL( 0, xDHCPMessage.ulTimeStamp );
     TEST_ASSERT_EQUAL( TEST_DHCPV6_TRANSACTION_ID, xEndPoint.xDHCPData.ulTransactionId );
+}
+
+/**
+ * @brief test_vDHCPv6Process_solicitation_different_state
+ * Check if vDHCPv6Process can stop when state is different from expect state.
+ */
+void test_vDHCPv6Process_solicitation_different_state()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
+    xEndPoint.xDHCPData.eExpectedState = eLeasedAddress;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xEndPoint.xDHCPData.eDHCPState );
 }
 
 /**
