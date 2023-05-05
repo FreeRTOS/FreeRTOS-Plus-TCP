@@ -110,6 +110,7 @@ typedef enum eTestDHCPv6BitOperationType
     eTestDHCPv6BitOperationReadCustom,
     eTestDHCPv6BitOperationReadPeek,
     eTestDHCPv6BitOperationSetError,
+    eTestDHCPv6BitOperationReturnFalse,
 } eTestDHCPv6BitOperationType_t;
 
 typedef struct xTestDHCPv6BitOperation
@@ -443,6 +444,12 @@ BaseType_t xStubpucBitConfig_peek_last_index_uc( BitConfig_t * pxConfig,
             FreeRTOS_debug_printf( ( "Setting Error\n" ) );
         #endif
         pxConfig->xHasError = pdTRUE;
+        ulTestDHCPv6BitOperationReadIndex++;
+    }
+
+    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationReturnFalse )
+    {
+        xReturn = pdFALSE;
         ulTestDHCPv6BitOperationReadIndex++;
     }
 
@@ -1302,10 +1309,10 @@ static void prvPrepareReplyInvalidIA_PD()
 }
 
 /**
- * @brief prvPrepareReplyInvalidClientIDTooSmall
+ * @brief prvPrepareReplyClientIDTooSmall
  * Prepare buffer content as DHCPv6 reply.
  */
-static void prvPrepareReplyInvalidClientIDTooSmall()
+static void prvPrepareReplyClientIDTooSmall()
 {
     /* We hardcoded the option sequence in reply message.
      * 1. Client ID with length too small
@@ -1323,10 +1330,10 @@ static void prvPrepareReplyInvalidClientIDTooSmall()
 }
 
 /**
- * @brief prvPrepareReplyInvalidClientIDTooBig
+ * @brief prvPrepareReplyClientIDTooBig
  * Prepare buffer content as DHCPv6 reply.
  */
-static void prvPrepareReplyInvalidClientIDTooBig()
+static void prvPrepareReplyClientIDTooBig()
 {
     /* We hardcoded the option sequence in reply message.
      * 1. Client ID with length too small
@@ -1348,10 +1355,95 @@ static void prvPrepareReplyInvalidClientIDTooBig()
 }
 
 /**
- * @brief prvPrepareReplyInvalidServerIDTooSmall
+ * @brief prvPrepareReplyClientIDLengthWrong
  * Prepare buffer content as DHCPv6 reply.
  */
-static void prvPrepareReplyInvalidServerIDTooSmall()
+static void prvPrepareReplyClientIDLengthWrong()
+{
+    /* We hardcoded the option sequence in reply message.
+     * 1. Client ID with length too small
+     */
+    uint16_t usVal;
+    uint32_t ulVal;
+    uint8_t ucValCustom[ 12 ];
+
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+
+    usVal = DHCPv6_Option_Client_Identifier;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
+    usVal = 16U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
+    /* Client ID - DUID & hardware Type */
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucValCustom, 12, "OptionClientIDRemainBig" );
+}
+
+/**
+ * @brief prvPrepareReplyClientIDPeekFalse
+ * Prepare buffer content as DHCPv6 reply.
+ */
+static void prvPrepareReplyClientIDPeekFalse()
+{
+    /* We hardcoded the option sequence in reply message.
+     * 1. Client ID with length too small
+     */
+    uint16_t usVal;
+    uint32_t ulVal;
+
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+
+    usVal = DHCPv6_Option_Client_Identifier;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
+    usVal = 14U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
+    /* Client ID - DUID & hardware Type */
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucTestDHCPv6OptionClientID[ 4 ], sizeof( ucTestDHCPv6OptionClientID ) - 4, "OptionClientIDRemain" );
+    /* Call peek function to compare client ID */
+    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ), "OptionClientIDPeekFalse" );
+    vAddBitOperation( eTestDHCPv6BitOperationReturnFalse, NULL, 0, "" );
+}
+
+/**
+ * @brief prvPrepareReplyClientIDContentWrong
+ * Prepare buffer content as DHCPv6 reply.
+ */
+static void prvPrepareReplyClientIDContentWrong()
+{
+    /* We hardcoded the option sequence in reply message.
+     * 1. Client ID with length too small
+     */
+    uint16_t usVal;
+    uint32_t ulVal;
+    uint8_t ucWrongClientID[] = { 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11 };
+
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+
+    usVal = DHCPv6_Option_Client_Identifier;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientID" );
+    usVal = 14U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDLength" );
+    /* Client ID - DUID & hardware Type */
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDDUIDType" );
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionClientIDHWType" );
+    vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucWrongClientID[ 4 ], sizeof( ucWrongClientID ) - 4, "OptionClientIDRemain" );
+    /* Call peek function to compare client ID */
+    vAddBitOperation( eTestDHCPv6BitOperationReadPeek, ucWrongClientID, sizeof( ucWrongClientID ), "OptionClientIDPeek" );
+}
+
+/**
+ * @brief prvPrepareReplyServerIDTooSmall
+ * Prepare buffer content as DHCPv6 reply.
+ */
+static void prvPrepareReplyServerIDTooSmall()
 {
     /* We hardcoded the option sequence in reply message.
      * 1. Client ID with length too small
@@ -1369,10 +1461,10 @@ static void prvPrepareReplyInvalidServerIDTooSmall()
 }
 
 /**
- * @brief prvPrepareReplyInvalidServerIDTooBig
+ * @brief prvPrepareReplyServerIDTooBig
  * Prepare buffer content as DHCPv6 reply.
  */
-static void prvPrepareReplyInvalidServerIDTooBig()
+static void prvPrepareReplyServerIDTooBig()
 {
     /* We hardcoded the option sequence in reply message.
      * 1. Client ID with length too small
@@ -3468,6 +3560,110 @@ void test_vDHCPv6Process_prvCloseDHCPv6Socket_multiple_endpoints_close_sockets()
 }
 
 /**
+ * @brief test_prvCloseDHCPv6Socket_close_socket_without_create
+ * When endpoint should do nothing when trying to close socket but no one created it.
+ */
+void test_prvCloseDHCPv6Socket_close_socket_without_create()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    /* Initialize first endpoint */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    xDHCPv6Socket = &xLocalDHCPv6Socket;
+    pxNetworkEndPoints = &xEndPoint;
+
+    prvCloseDHCPv6Socket( &xEndPoint );
+}
+
+/**
+ * @brief test_vDHCPv6Process_prvCreateDHCPv6Socket_create_socket_fail
+ * Endpoints should trigger assertion when FreeRTOS_socket return invalid socket handler.
+ */
+void test_vDHCPv6Process_prvCreateDHCPv6Socket_create_socket_fail()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = NULL;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdFALSE );
+
+    catch_assert( vDHCPv6Process( pdTRUE, &xEndPoint ) );
+}
+
+/**
+ * @brief test_vDHCPv6Process_prvCreateDHCPv6Socket_bind_socket_fail
+ * Endpoints should trigger assertion when vSocketBind return fail.
+ */
+void test_vDHCPv6Process_prvCreateDHCPv6Socket_bind_socket_fail()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+    xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = NULL;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdFALSE );
+    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
+    FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
+    vSocketBind_IgnoreAndReturn( pdFALSE );
+
+    catch_assert( vDHCPv6Process( pdTRUE, &xEndPoint ) );
+}
+
+/**
  * @brief test_prvSendDHCPMessage_null_endpoint
  */
 void test_prvSendDHCPMessage_null_endpoint()
@@ -3762,7 +3958,7 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_small()
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
-    prvPrepareReplyInvalidClientIDTooSmall();
+    prvPrepareReplyClientIDTooSmall();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
@@ -3803,8 +3999,59 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_big()
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
-    prvPrepareReplyInvalidClientIDTooBig();
+    prvPrepareReplyClientIDTooBig();
 
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_wrong_client_id
+ * Check if vDHCPv6Process can drop packet when option length of client ID is wrong.
+ */
+void test_vDHCPv6Process_prvDHCPv6_handleOption_wrong_client_id()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    prvPrepareReplyClientIDLengthWrong();
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    prvPrepareReplyClientIDPeekFalse();
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+    prvPrepareReplyClientIDContentWrong();
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
@@ -3844,7 +4091,7 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_small()
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
-    prvPrepareReplyInvalidServerIDTooSmall();
+    prvPrepareReplyServerIDTooSmall();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
@@ -3885,7 +4132,7 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_big()
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     xTaskGetTickCount_IgnoreAndReturn( 0 );
 
-    prvPrepareReplyInvalidServerIDTooBig();
+    prvPrepareReplyServerIDTooBig();
 
     vDHCPv6Process( pdFALSE, &xEndPoint );
 

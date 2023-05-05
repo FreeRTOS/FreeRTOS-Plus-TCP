@@ -1167,8 +1167,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                 break;
 
             default:
-                uxRemain = pxSet->uxOptionLength - uxUsed;
-                ( void ) xBitConfig_read_uc( pxMessage, NULL, uxRemain );
+                ( void ) xBitConfig_read_uc( pxMessage, NULL, uxLength2 - uxUsed );
                 FreeRTOS_printf( ( "prvDHCPv6Analyse: skipped unknown option %u\n", usOption2 ) );
                 break;
         }
