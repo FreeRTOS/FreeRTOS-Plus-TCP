@@ -344,7 +344,6 @@ void test_prvAllowIPPacketIPv4_IncorrectSizeFields( void )
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-    xIsIPv4Multicast_ExpectAnyArgsAndReturn( pdFALSE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -383,7 +382,6 @@ void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-    xIsIPv4Multicast_ExpectAnyArgsAndReturn( pdFALSE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -429,7 +427,6 @@ void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0xFF12;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-    xIsIPv4Multicast_ExpectAnyArgsAndReturn( pdFALSE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -469,7 +466,6 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-    xIsIPv4Multicast_ExpectAnyArgsAndReturn( pdFALSE );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -507,7 +503,6 @@ void test_prvProcessIPPacket_( void )
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-    xIsIPv4Multicast_ExpectAnyArgsAndReturn( pdFALSE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
