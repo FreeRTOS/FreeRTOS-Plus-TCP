@@ -973,7 +973,6 @@ struct xIPv6_Couple
 
                     break;
 
-
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case ipARP_FRAME_TYPE:
                            {
@@ -1001,18 +1000,18 @@ struct xIPv6_Couple
                            }
                             xDoProcessPacket = pdTRUE;
                             break;
+                    #else /* ( ipconfigUSE_IPv4 != 0 ) */
+                        case ipARP_FRAME_TYPE:
+                        case ipIPv4_FRAME_TYPE:
+                            break;
+                            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                         default:
-                            /* ipIPv4_FRAME_TYPE */
+                            /* Custom frame types and, IPv4 frame types if ipconfigUSE_IPv4 != 0 */
                             xIPAddressFrom.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulSourceIPAddress;
                             xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
                             xDoProcessPacket = pdTRUE;
                             break;
-                    #else /* ( ipconfigUSE_IPv4 != 0 ) */
-                        default:
-                            /* MISRA 16.4 Compliance */
-                            break;
-                            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             }
 
             if( xDoProcessPacket == pdTRUE )
