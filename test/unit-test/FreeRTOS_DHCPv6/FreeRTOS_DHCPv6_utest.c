@@ -3208,3 +3208,86 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_unknown_state()
 
     TEST_ASSERT_EQUAL( 0xFE, xEndPoint.xDHCPData.eDHCPState );
 }
+
+/**
+ * @brief test_vDHCPv6Process_prvCloseDHCPv6Socket_multiple_endpoints_close_sockets
+ * Endpoints should close the socket when last endpoint request to close the socket.
+ */
+void test_vDHCPv6Process_prvCloseDHCPv6Socket_multiple_endpoints_close_sockets()
+{
+    NetworkEndPoint_t xEndPoint[ 2 ];
+    DHCPMessage_IPv6_t xDHCPMessage[ 2 ];
+    struct xSOCKET xLocalDHCPv6Socket[ 2 ];
+
+    /* Initialize first endpoint */
+    memset( &xEndPoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xDHCPMessage[ 0 ], 0, sizeof( DHCPMessage_IPv6_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+
+    memcpy( xEndPoint[ 0 ].xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint[ 0 ].ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint[ 0 ].ipv6_settings.uxPrefixLength = 64;
+    xEndPoint[ 0 ].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 0 ].bits.bWantDHCP = pdTRUE;
+    xEndPoint[ 0 ].xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint[ 0 ].xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint[ 0 ].xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint[ 0 ].xDHCPData.xDHCPSocket = NULL;
+    memcpy( xEndPoint[ 0 ].xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+    xEndPoint[ 0 ].pxDHCPMessage = &xDHCPMessage[ 0 ];
+
+    pxNetworkEndPoints = &xEndPoint[ 0 ];
+
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket[ 0 ] );
+    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
+    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
+    FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
+    prvSetCheckerAndReturn_vSocketBind( &xLocalDHCPv6Socket );
+    vSocketBind_Stub( xStubvSocketBind );
+    vDHCP_RATimerReload_Expect( &xEndPoint[ 0 ], dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPv6Process( pdTRUE, &xEndPoint[ 0 ] );
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xEndPoint[ 0 ].xDHCPData.eDHCPState );
+
+    /* Initialize second endpoint */
+    memset( &xEndPoint[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xDHCPMessage[ 1 ], 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    memcpy( xEndPoint[ 1 ].xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint[ 1 ].ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint[ 1 ].ipv6_settings.uxPrefixLength = 64;
+    xEndPoint[ 1 ].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 1 ].bits.bWantDHCP = pdTRUE;
+    xEndPoint[ 1 ].xDHCPData.eDHCPState = eWaitingOffer;
+    xEndPoint[ 1 ].xDHCPData.eExpectedState = eWaitingOffer;
+    xEndPoint[ 1 ].xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    memcpy( xEndPoint[ 1 ].xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+    xEndPoint[ 1 ].pxDHCPMessage = &xDHCPMessage[ 1 ];
+    xEndPoint[ 1 ].xDHCPData.xDHCPSocket = NULL;
+
+    pxNetworkEndPoints->pxNext = &xEndPoint[ 1 ];
+
+    vDHCP_RATimerReload_Expect( &xEndPoint[ 1 ], dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPv6Process( pdTRUE, &xEndPoint[ 1 ] );
+    TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, xEndPoint[ 1 ].xDHCPData.eDHCPState );
+
+    /* Process 1st endpoint again but got failure at DHCP hook callback. */
+    xEndPoint[ 0 ].xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    vAddStubsOperation( eTestStubsHookFail );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint[ 0 ], pdFALSE );
+    vIPNetworkUpCalls_Expect( &xEndPoint[ 0 ] );
+    vDHCPv6Process( pdFALSE, &xEndPoint[ 0 ] );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint[ 0 ].xDHCPData.eDHCPState );
+
+    /* Process 2nd endpoint again but got failure at DHCP hook callback. Trigger socket close flow */
+    xEndPoint[ 1 ].xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    vAddStubsOperation( eTestStubsHookFail );
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint[ 1 ], pdFALSE );
+    vSocketClose_ExpectAndReturn( &xLocalDHCPv6Socket, NULL );
+    vIPNetworkUpCalls_Expect( &xEndPoint[ 1 ] );
+    vDHCPv6Process( pdFALSE, &xEndPoint[ 1 ] );
+    TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint[ 1 ].xDHCPData.eDHCPState );
+}
