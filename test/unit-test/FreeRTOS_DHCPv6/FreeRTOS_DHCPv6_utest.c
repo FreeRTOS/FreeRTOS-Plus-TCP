@@ -961,7 +961,7 @@ static void prvAddOptionDNSServer( BaseType_t xIsWrite,
         usVal = DHCPv6_Option_DNS_recursive_name_server;
         vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDNSRecursiveNameServer" );
         usVal = 16U * ucDNSNum;
-        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDNSRecursiveNameServerValue" );
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDNSRecursiveNameServerLength" );
 
         for( i = 0; i < ucDNSNum; i++ )
         {
@@ -974,12 +974,37 @@ static void prvAddOptionDNSServer( BaseType_t xIsWrite,
         usVal = DHCPv6_Option_DNS_recursive_name_server;
         vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSRecursiveNameServer" );
         usVal = 16U * ucDNSNum;
-        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSRecursiveNameServerValue" );
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSRecursiveNameServerLength" );
 
         for( i = 0; i < ucDNSNum; i++ )
         {
             vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &xDNSAddress[ i ], sizeof( IPv6_Address_t ), "OptionDNSInfo" );
         }
+    }
+}
+
+static void prvAddOptionDomainSearchList( BaseType_t xIsWrite )
+{
+    uint16_t usVal;
+    uint8_t ucValCustom[ 2 ];
+
+    if( xIsWrite == pdTRUE )
+    {
+        /* Option DNS recursive name server */
+        usVal = DHCPv6_Option_Domain_Search_List;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDomainSearchList" );
+        usVal = 2U;
+        vAddBitOperation( eTestDHCPv6BitOperationWrite16, &usVal, 2, "OptionDomainSearchListLength" );
+        vAddBitOperation( eTestDHCPv6BitOperationWriteCustom, &ucValCustom, 2, "OptionDomainSearchListValue" );
+    }
+    else
+    {
+        /* Option DNS recursive name server */
+        usVal = DHCPv6_Option_Domain_Search_List;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDomainSearchList" );
+        usVal = 2U;
+        vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDomainSearchListLength" );
+        vAddBitOperation( eTestDHCPv6BitOperationReadCustom, &ucValCustom, 2, "OptionDomainSearchListValue" );
     }
 }
 
@@ -1128,6 +1153,16 @@ static void prvPrepareReply()
     prvAddOptionIAAddress( pdFALSE );
     prvAddOptionStatusCode( pdFALSE );
     prvAddOptionPreference( pdFALSE );
+}
+
+/**
+ * @brief prvPrepareReplyWithDomainSearchList
+ * Append 1 DNS server info to reply message.
+ */
+static void prvPrepareReplyWithDomainSearchList()
+{
+    prvPrepareReply();
+    prvAddOptionDomainSearchList( pdFALSE );
 }
 
 /**
@@ -1446,7 +1481,7 @@ static void prvPrepareReplyClientIDContentWrong()
 static void prvPrepareReplyServerIDTooSmall()
 {
     /* We hardcoded the option sequence in reply message.
-     * 1. Client ID with length too small
+     * 1. Server ID with length too small
      */
     uint16_t usVal;
     uint32_t ulVal;
@@ -1467,7 +1502,7 @@ static void prvPrepareReplyServerIDTooSmall()
 static void prvPrepareReplyServerIDTooBig()
 {
     /* We hardcoded the option sequence in reply message.
-     * 1. Client ID with length too small
+     * 1. Server ID with length too small
      */
     uint16_t usVal;
     uint32_t ulVal;
@@ -1483,6 +1518,40 @@ static void prvPrepareReplyServerIDTooBig()
     usVal = 1U;
     vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDDUIDType" );
     vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionServerIDHWType" );
+}
+
+/**
+ * @brief prvPrepareReplyDNSLengthZero
+ * Prepare buffer content as DHCPv6 reply.
+ */
+static void prvPrepareReplyDNSLengthZero()
+{
+    /* We hardcoded the option sequence in reply message.
+     * 1. DNS info with 0 length
+     */
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+    prvAddOptionDNSServer( pdFALSE, 0 );
+}
+
+/**
+ * @brief prvPrepareReplyDNSLengthNotAllow
+ * Prepare buffer content as DHCPv6 reply.
+ */
+static void prvPrepareReplyDNSLengthNotAllow()
+{
+    /* We hardcoded the option sequence in reply message.
+     * 1. DNS info with 1 length (length must be a multiple of 16)
+     */
+    uint16_t usVal;
+
+    prvSetBitOperationStub();
+    prvAddMsgHeader( pdFALSE, DHCPv6_message_Type_Reply );
+    /* Option DNS recursive name server */
+    usVal = DHCPv6_Option_DNS_recursive_name_server;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSRecursiveNameServer" );
+    usVal = 1U;
+    vAddBitOperation( eTestDHCPv6BitOperationRead16, &usVal, 2, "OptionDNSRecursiveNameServerValue" );
 }
 
 /**
@@ -4137,4 +4206,108 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_big()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_invalid_DNS_length
+ * Check if vDHCPv6Process can drop packet when option length of DNS is invalid.
+ */
+void test_vDHCPv6Process_prvDHCPv6_handleOption_invalid_DNS_length()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareReplyDNSLengthZero();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 512 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareReplyDNSLengthNotAllow();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
+}
+
+/**
+ * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_invalid_DNS_length
+ * Check if vDHCPv6Process can drop packet when option length of DNS is invalid.
+ */
+void test_vDHCPv6Process_prvDHCPv6_handleOption_domain_search_list()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 108 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareReplyWithDomainSearchList();
+
+    vDHCP_RATimerReload_Expect( &xEndPoint, dhcpv6DEFAULT_LEASE_TIME );
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    /* Check if the IP address provided in reply is set to endpoint properly. */
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+}
+
+/**
+ * @brief test_prvStateName_coverage
+ * To cover rare scenario in prvStateName
+ */
+void test_prvStateName_coverage()
+{
+    ( void ) prvStateName( eNotUsingLeasedAddress );
+    ( void ) prvStateName( eSendDHCPRequest );
 }

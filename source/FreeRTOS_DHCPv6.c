@@ -1561,7 +1561,7 @@ static BaseType_t prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
                 break;
 
             default:
-                pcName = "UUnknown state";
+                pcName = "Unknown state";
                 break;
         }
 
