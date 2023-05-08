@@ -147,7 +147,6 @@ void test_BindSocket_fail( void )
     ret = DNS_BindSocket( xSocket, usPort );
 
     TEST_ASSERT_EQUAL( pdFALSE, ret );
-
 }
 
 /**
@@ -156,14 +155,14 @@ void test_BindSocket_fail( void )
 void test_BindSocket_success( void )
 {
     struct freertos_sockaddr xAddress;
-    Socket_t xSocket = ( Socket_t )123;
-    uint16_t usPort = ( uint16_t )7;
+    Socket_t xSocket = ( Socket_t ) 123;
+    uint16_t usPort = ( uint16_t ) 7;
     uint32_t ret;
 
     xAddress.sin_family = FREERTOS_AF_INET;
     xAddress.sin_port = usPort;
 
-    FreeRTOS_bind_ExpectAndReturn( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ),pdTRUE );
+    FreeRTOS_bind_ExpectAndReturn( xSocket, &xAddress, ( socklen_t ) sizeof( xAddress ), pdTRUE );
 
     ret = DNS_BindSocket( xSocket, usPort );
 
