@@ -300,6 +300,9 @@ void test_xRecv_Update_IPv6_InvalidFrame_ValidSourceAddress( void )
 
 }
 
+/**
+ * @brief Test for the branch when in the nibble is less than or equal to 9
+ */
 void test_cHexToChar_LessThanEqNine( void )
 {
 
@@ -311,6 +314,9 @@ void test_cHexToChar_LessThanEqNine( void )
 
 }
 
+/**
+ * @brief Test for the branch when in the nibble is greater than or equal to 9
+ */
 void test_cHexToChar_GreaterThanNine( void )
 {
 
@@ -322,6 +328,9 @@ void test_cHexToChar_GreaterThanNine( void )
 
 }
 
+/**
+ * @brief Test for the branch when in the nibble is greater than or equal to 15
+ */
 void test_cHexToChar_GreaterThanFifteen( void )
 {
 
@@ -331,6 +340,9 @@ void test_cHexToChar_GreaterThanFifteen( void )
 
 }
 
+/**
+ * @brief uxHexPrintShort happy path. 
+ */
 void test_uxHexPrintShort( void )
 {
     char cBuffer[5] = {'\0'};
@@ -344,7 +356,9 @@ void test_uxHexPrintShort( void )
 
 }
 
-
+/**
+ * @brief Test when buffer size is bigger than 4 
+ */
 void test_uxHexPrintShort_LongerBuffer( void )
 {
     char cBuffer[7] = {'\0'};
@@ -358,6 +372,9 @@ void test_uxHexPrintShort_LongerBuffer( void )
 
 }
 
+/**
+ * @brief Test when input is just 2 nibbles / 1 byte
+ */
 void test_uxHexPrintShort_OneByteInput( void )
 {
     char cBuffer[5] = {'\0'};
@@ -371,6 +388,9 @@ void test_uxHexPrintShort_OneByteInput( void )
 
 }
 
+/**
+ * @brief Test when input is just 3 nibbles 
+ */
 void test_uxHexPrintShort_OneByteAndNibbleInput( void )
 {
     char cBuffer[5] = {'\0'};
@@ -384,6 +404,9 @@ void test_uxHexPrintShort_OneByteAndNibbleInput( void )
 
 }
 
+/**
+ * @brief Test when input is just 1 nibbles 
+ */
 void test_uxHexPrintShort_NibbleInput( void )
 {
     char cBuffer[5] = {'\0'};
@@ -397,6 +420,9 @@ void test_uxHexPrintShort_NibbleInput( void )
 
 }
 
+/**
+ * @brief Test when input is fe80::7008
+ */
 void test_prv_ntop6_search_zeros( void )
 {
     struct sNTOP6_Set xSet;
@@ -411,6 +437,9 @@ void test_prv_ntop6_search_zeros( void )
     
 }
 
+/**
+ * @brief Test when input is fe80:0:de::7008
+ */
 void test_prv_ntop6_search_zeros_2( void )
 {
     struct sNTOP6_Set xSet;
@@ -425,6 +454,9 @@ void test_prv_ntop6_search_zeros_2( void )
     
 }
 
+/**
+ * @brief Test when input is fe80::ff00:0:7008
+ */
 void test_prv_ntop6_search_zeros_3( void )
 {
     struct sNTOP6_Set xSet;
@@ -439,6 +471,9 @@ void test_prv_ntop6_search_zeros_3( void )
     
 }
 
+/**
+ * @brief Test when input is fe80::
+ */
 void test_prv_ntop6_search_zeros_4( void )
 {
     struct sNTOP6_Set xSet;
@@ -453,6 +488,9 @@ void test_prv_ntop6_search_zeros_4( void )
     
 }
 
+/**
+ * @brief Test when input doesn't have any zero shorts
+ */
 void test_prv_ntop6_search_zeros_NoZeroes( void )
 {
     struct sNTOP6_Set xSet;
@@ -467,10 +505,14 @@ void test_prv_ntop6_search_zeros_NoZeroes( void )
     
 }
 
+/**
+ * @brief Case were there is non zero data after the longest train of zeroes
+ */
 void test_prv_ntop6_write_zeros( void )
 {
     struct sNTOP6_Set xSet;
     char cDestination[41] = {'\0'};
+    BaseType_t xReturn;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
     xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
@@ -479,15 +521,20 @@ void test_prv_ntop6_write_zeros( void )
     xSet.xIndex = xSet.xZeroStart;
     xSet.uxTargetIndex = xSet.xZeroStart * 5; /* Assuming all the previous shorts have 4 chars + 1 colon */
 
-    prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
+    xReturn = prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
 
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL_MEMORY(&cDestination[xSet.xZeroStart * 5], ":", 1);
 
 }
 
+/**
+ * @brief Case were there is no non zero data after the longest train of zeroes
+ */
 void test_prv_ntop6_write_zeros_AddressEndsInZeroes( void )
 {
     struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
     char cDestination[41] = {'\0'};
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
@@ -497,8 +544,69 @@ void test_prv_ntop6_write_zeros_AddressEndsInZeroes( void )
     xSet.xIndex = xSet.xZeroStart;
     xSet.uxTargetIndex = xSet.xZeroStart * 5; /* Assuming all the previous shorts have 4 chars + 1 colon */
 
-    prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
+    xReturn = prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
 
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL_MEMORY(&cDestination[xSet.xZeroStart * 5], "::", 2);
+
+}
+
+/**
+ * @brief Case were there is not enough space in the input buffer.
+ */
+void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer( void )
+{
+    struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+    xSet.xZeroLength = 7;
+    xSet.xZeroStart = 1;
+    xSet.xIndex = xSet.xZeroStart;
+    xSet.uxTargetIndex = 39; 
+
+    xReturn = prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+}
+
+/**
+ * @brief Case were there is not enough space in the input buffer after first insertion to the buffer
+ */
+void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer_2( void )
+{
+    struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+    xSet.xZeroLength = 7;
+    xSet.xZeroStart = 1;
+    xSet.xIndex = 1;
+    xSet.uxTargetIndex = 39; 
+
+    xReturn = prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+}
+
+/**
+ * @brief Case were there is not enough space in the input buffer after first insertion to the buffer
+ */
+void test_prv_ntop6_write_short_( void )
+{
+    struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+
+    xReturn = prv_ntop6_write_short( cDestination, 40, &( xSet ) );
 
 }
