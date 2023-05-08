@@ -295,3 +295,100 @@ void test_xRecv_Update_IPv6_InvalidFrame_ValidSourceAddress( void )
     TEST_ASSERT_EQUAL( 1234, xSourceAddress.sin_port );
 
 }
+
+void test_cHexToChar_LessThanEqNine( void )
+{
+
+    char cRetVal;
+
+    cRetVal = cHexToChar(8);
+
+    TEST_ASSERT_EQUAL( '8', cRetVal );
+
+}
+
+void test_cHexToChar_GreaterThanNine( void )
+{
+
+    char cRetVal;
+
+    cRetVal = cHexToChar(10);
+
+    TEST_ASSERT_EQUAL( 'a', cRetVal );
+
+}
+
+void test_cHexToChar_GreaterThanFifteen( void )
+{
+
+    char cRetVal;
+
+    catch_assert(cHexToChar(16));
+
+}
+
+void test_uxHexPrintShort( void )
+{
+    char cBuffer[5] = {'\0'};
+    size_t xCBuffLen;
+    char *pcExpOp = "cafe";
+
+    xCBuffLen = uxHexPrintShort(cBuffer, 5, 0xCAFE);
+
+    TEST_ASSERT_EQUAL( 4, xCBuffLen );
+    TEST_ASSERT_EQUAL_MEMORY(pcExpOp,cBuffer, xCBuffLen);
+
+}
+
+
+void test_uxHexPrintShort_LongerBuffer( void )
+{
+    char cBuffer[7] = {'\0'};
+    size_t xCBuffLen;
+    char *pcExpOp = "cafe";
+
+    xCBuffLen = uxHexPrintShort(cBuffer, 7, 0xCAFE);
+
+    TEST_ASSERT_EQUAL( 4, xCBuffLen );
+    TEST_ASSERT_EQUAL_MEMORY(pcExpOp,cBuffer, xCBuffLen);
+
+}
+
+void test_uxHexPrintShort_OneByteInput( void )
+{
+    char cBuffer[5] = {'\0'};
+    size_t xCBuffLen;
+    char *pcExpOp = "cafe";
+
+    xCBuffLen = uxHexPrintShort(cBuffer, 5, 0xCA);
+
+    TEST_ASSERT_EQUAL( 2, xCBuffLen );
+    TEST_ASSERT_EQUAL_MEMORY(pcExpOp,cBuffer, xCBuffLen);
+
+}
+
+void test_uxHexPrintShort_OneByteAndNibbleInput( void )
+{
+    char cBuffer[5] = {'\0'};
+    size_t xCBuffLen;
+    char *pcExpOp = "cafe";
+
+    xCBuffLen = uxHexPrintShort(cBuffer, 5, 0xCAF);
+
+    TEST_ASSERT_EQUAL( 3, xCBuffLen );
+    TEST_ASSERT_EQUAL_MEMORY(pcExpOp,cBuffer, xCBuffLen);
+
+}
+
+void test_uxHexPrintShort_NibbleInput( void )
+{
+    char cBuffer[5] = {'\0'};
+    size_t xCBuffLen;
+    char *pcExpOp = "cafe";
+
+    xCBuffLen = uxHexPrintShort(cBuffer, 5, 0xC);
+
+    TEST_ASSERT_EQUAL( 1, xCBuffLen );
+    TEST_ASSERT_EQUAL_MEMORY(pcExpOp,cBuffer, xCBuffLen);
+
+}

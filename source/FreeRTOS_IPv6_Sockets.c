@@ -154,7 +154,7 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
 
 
 /**
- * @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
+ * @brief Converts a 4 bit (nibble) value to a readable hex character, e.g. 14 becomes 'e'.
  * @param usValue  The value to be converted, must be between 0 and 15.
  * @return The character, between '0' and '9', or between 'a' and 'f'.
  */
