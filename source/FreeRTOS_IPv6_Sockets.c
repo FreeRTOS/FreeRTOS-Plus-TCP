@@ -303,7 +303,7 @@ static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
 
         if( ( pxSet->xIndex + pxSet->xZeroLength ) == xShortCount )
         {
-            /* Reached the last index, write a second ";". */
+            /* Reached the last index, write a second ":". */
             if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
             {
                 pcDestination[ pxSet->uxTargetIndex ] = ':';

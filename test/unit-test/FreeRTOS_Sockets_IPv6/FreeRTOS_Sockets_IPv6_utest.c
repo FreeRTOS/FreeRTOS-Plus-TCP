@@ -78,6 +78,10 @@
 
 static const IPv6_Address_t xSampleAddress_IPv6 = { .ucBytes = {0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x70, 0x08 } };
 static const IPv6_Address_t xSampleAddress_IPv6_2 = { .ucBytes = {0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x74, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_3 = { .ucBytes = {0xfe, 0x80, 0, 0, 0, 0xde, 0, 0, 0, 0, 0, 0, 0, 0, 0x70, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_4 = { .ucBytes = {0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0, 0, 0, 0x74, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_5 = { .ucBytes = {0xfe, 0x80, 0, 0xde, 0, 0xde, 0, 0xde, 0, 0xde, 0xff, 0, 0xde, 0, 0x74, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_6 = { .ucBytes = {0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 /* IPv6 address pointer passed but socket is not an IPv6 socket */
 void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NonNULLIPv6Address( void )
@@ -390,5 +394,111 @@ void test_uxHexPrintShort_NibbleInput( void )
 
     TEST_ASSERT_EQUAL( 1, xCBuffLen );
     TEST_ASSERT_EQUAL_MEMORY(pcExpOp,cBuffer, xCBuffLen);
+
+}
+
+void test_prv_ntop6_search_zeros( void )
+{
+    struct sNTOP6_Set xSet;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+
+    prv_ntop6_search_zeros( &( xSet ) );
+
+    TEST_ASSERT_EQUAL( 6, xSet.xZeroLength );
+    TEST_ASSERT_EQUAL( 1, xSet.xZeroStart );
+    
+}
+
+void test_prv_ntop6_search_zeros_2( void )
+{
+    struct sNTOP6_Set xSet;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6_3.ucBytes;
+
+    prv_ntop6_search_zeros( &( xSet ) );
+
+    TEST_ASSERT_EQUAL( 4, xSet.xZeroLength );
+    TEST_ASSERT_EQUAL( 3, xSet.xZeroStart );
+    
+}
+
+void test_prv_ntop6_search_zeros_3( void )
+{
+    struct sNTOP6_Set xSet;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6_4.ucBytes;
+
+    prv_ntop6_search_zeros( &( xSet ) );
+
+    TEST_ASSERT_EQUAL( 4, xSet.xZeroLength );
+    TEST_ASSERT_EQUAL( 1, xSet.xZeroStart );
+    
+}
+
+void test_prv_ntop6_search_zeros_4( void )
+{
+    struct sNTOP6_Set xSet;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6_6.ucBytes;
+
+    prv_ntop6_search_zeros( &( xSet ) );
+
+    TEST_ASSERT_EQUAL( 7, xSet.xZeroLength );
+    TEST_ASSERT_EQUAL( 1, xSet.xZeroStart );
+    
+}
+
+void test_prv_ntop6_search_zeros_NoZeroes( void )
+{
+    struct sNTOP6_Set xSet;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6_5.ucBytes;
+
+    prv_ntop6_search_zeros( &( xSet ) );
+
+    TEST_ASSERT_EQUAL( 0, xSet.xZeroLength );
+    TEST_ASSERT_EQUAL( -1, xSet.xZeroStart );
+    
+}
+
+void test_prv_ntop6_write_zeros( void )
+{
+    struct sNTOP6_Set xSet;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+    xSet.xZeroLength = 6;
+    xSet.xZeroStart = 1;
+    xSet.xIndex = xSet.xZeroStart;
+    xSet.uxTargetIndex = xSet.xZeroStart * 5; /* Assuming all the previous shorts have 4 chars + 1 colon */
+
+    prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
+
+    TEST_ASSERT_EQUAL_MEMORY(&cDestination[xSet.xZeroStart * 5], ":", 1);
+
+}
+
+void test_prv_ntop6_write_zeros_AddressEndsInZeroes( void )
+{
+    struct sNTOP6_Set xSet;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+    xSet.xZeroLength = 7;
+    xSet.xZeroStart = 1;
+    xSet.xIndex = xSet.xZeroStart;
+    xSet.uxTargetIndex = xSet.xZeroStart * 5; /* Assuming all the previous shorts have 4 chars + 1 colon */
+
+    prv_ntop6_write_zeros( cDestination, 40, &( xSet ) );
+
+    TEST_ASSERT_EQUAL_MEMORY(&cDestination[xSet.xZeroStart * 5], "::", 2);
 
 }
