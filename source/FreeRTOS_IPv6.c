@@ -646,6 +646,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
         BaseType_t xCurrentOrder;
         ucNextHeader = pucSource[ uxIndex ];
 
+        FreeRTOS_debug_printf( ( "ucCurrentHeader %u ucNextHeader %u\n", ucCurrentHeader, ucNextHeader ) );
         xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
 
         /* Read the length expressed in number of octets. */
@@ -655,6 +656,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
         if( ( uxIndex + uxHopSize ) >= uxMaxLength )
         {
+            FreeRTOS_debug_printf( ( "The length %u + %u of extension header is larger than buffer size %u \n", uxIndex, uxHopSize, uxMaxLength ) );
             uxIndex = uxMaxLength;
             break;
         }
@@ -686,7 +688,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
          * appear immediately after an IPv6 header only. Outlined
          * by RFC 2460 section 4.1  Extension Header Order.
          */
-        if( ( xExtHeaderCount > 1 ) && ( xCurrentOrder == 1 ) ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
+        if( xNextOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
         {
             FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
             uxIndex = uxMaxLength;
@@ -695,6 +697,8 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
         ucCurrentHeader = ucNextHeader;
     }
+    
+    FreeRTOS_printf( ( "uxIndex=%d, uxMaxLength=%d\n", uxIndex, uxMaxLength ) );
 
     if( uxIndex < uxMaxLength )
     {
