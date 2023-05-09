@@ -274,7 +274,6 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP_wo_assert/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils_DiffConfig/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
@@ -287,6 +286,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.

@@ -19,7 +19,6 @@
  * http://www.FreeRTOS.org
  */
 
-
 /*****************************************************************************
 *
 * See the following URL for configuration information.
@@ -32,18 +31,19 @@
 
 #define _static
 
-#define TEST                                1
+#define TEST                                       1
 
-#define ipconfigUSE_IPv4                    ( 1 )
-#define ipconfigUSE_IPv6                    ( 1 )
+#define ipconfigUSE_IPv4                           ( 1 )
+#define ipconfigUSE_IPv6                           ( 1 )
+#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    ( 0 )
 
-#define ipconfigMULTI_INTERFACE             1
-#define ipconfigIPv4_BACKWARD_COMPATIBLE    0
+#define ipconfigMULTI_INTERFACE                    1
+#define ipconfigIPv4_BACKWARD_COMPATIBLE           0
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF            1
+#define ipconfigHAS_DEBUG_PRINTF                   1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
