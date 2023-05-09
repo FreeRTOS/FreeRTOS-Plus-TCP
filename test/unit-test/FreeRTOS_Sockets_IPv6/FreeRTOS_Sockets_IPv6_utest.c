@@ -892,7 +892,7 @@ void test_prv_inet_pton6_add_nibble_InvalidHexChar_InValidDigit_3rdColon( void )
 }
 
 /**
- * @brief Test for the case when the input is invalid
+ * @brief Test for the case when the input is invalid input
  */
 void test_prv_inet_pton6_add_nibble_InvalidInput( void )
 {
@@ -907,3 +907,122 @@ void test_prv_inet_pton6_add_nibble_InvalidInput( void )
 
 }
 
+/**
+ * @brief Check if the double colons in the string are filled
+ *        with correct
+ */
+void test_prv_inet_pton6_set_zeros( void )
+{
+
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn, xTargetIndex = 4;
+    uint8_t uIPv6Address[ipSIZE_OF_IPv6_ADDRESS] = {0};
+    uint8_t uIPv6AddressExpected[ipSIZE_OF_IPv6_ADDRESS] = {0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 };
+    
+    uIPv6Address[0] = 0xFE;
+    uIPv6Address[1] = 0x80;
+    uIPv6Address[2] = 0x0;
+    uIPv6Address[3] = 0x2;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.xColon = 2;
+    xSet.xTargetIndex = 4;
+    xSet.xHighestIndex = ipSIZE_OF_IPv6_ADDRESS - 2;
+    xSet.pucTarget = uIPv6Address;
+    xSet.ulValue = 0xFE80;
+
+    prv_inet_pton6_set_zeros( &xSet );
+
+    TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6Address, ipSIZE_OF_IPv6_ADDRESS );
+
+}
+
+/**
+ * @brief Normal string IPv6 address conversion
+ */
+void test_FreeRTOS_inet_pton6( void )
+{
+    const char * pcSource = "fe80::2";
+    uint8_t uIPv6AddressDstn[ipSIZE_OF_IPv6_ADDRESS];
+    uint8_t uIPv6AddressExpected[ipSIZE_OF_IPv6_ADDRESS] = {0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2 };
+    BaseType_t xResult;
+
+
+    xResult = FreeRTOS_inet_pton6(pcSource, uIPv6AddressDstn);
+
+    TEST_ASSERT_EQUAL( 1, xResult );
+    TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6AddressDstn, ipSIZE_OF_IPv6_ADDRESS );
+
+}
+
+/**
+ * @brief IPv6 address conversion when input is ::
+ */
+void test_FreeRTOS_inet_pton6_DoubleColonInput( void )
+{
+    const char * pcSource = "::";
+    uint8_t uIPv6AddressDstn[ipSIZE_OF_IPv6_ADDRESS];
+    uint8_t uIPv6AddressExpected[ipSIZE_OF_IPv6_ADDRESS] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    BaseType_t xResult;
+
+
+    xResult = FreeRTOS_inet_pton6(pcSource, uIPv6AddressDstn);
+
+    TEST_ASSERT_EQUAL( 1, xResult );
+    TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6AddressDstn, ipSIZE_OF_IPv6_ADDRESS );
+
+}
+
+/**
+ * @brief IPv6 address conversion when input starts with ::
+ */
+void test_FreeRTOS_inet_pton6_StartsWithSingleColon( void )
+{
+    const char * pcSource = "::fe80:2";
+    uint8_t uIPv6AddressDstn[ipSIZE_OF_IPv6_ADDRESS];
+    uint8_t uIPv6AddressExpected[ipSIZE_OF_IPv6_ADDRESS] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xfe, 0x80, 0, 0x2 };
+    BaseType_t xResult;
+
+
+    xResult = FreeRTOS_inet_pton6(pcSource, uIPv6AddressDstn);
+
+    TEST_ASSERT_EQUAL( 1, xResult );
+    TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6AddressDstn, ipSIZE_OF_IPv6_ADDRESS );
+
+}
+
+/**
+ * @brief IPv6 address conversion with no shorthand notation 
+ */
+void test_FreeRTOS_inet_pton6_NoShortHand( void )
+{
+    const char * pcSource = "fe80:de:de:de:de:ff00:de00:7408";
+    uint8_t uIPv6AddressDstn[ipSIZE_OF_IPv6_ADDRESS];
+    uint8_t uIPv6AddressExpected[ipSIZE_OF_IPv6_ADDRESS] = {0xfe, 0x80, 0, 0xde, 0, 0xde, 0, 0xde, 0, 0xde, 0xff, 0, 0xde, 0, 0x74, 0x08 };
+    BaseType_t xResult;
+
+
+    xResult = FreeRTOS_inet_pton6(pcSource, uIPv6AddressDstn);
+
+    TEST_ASSERT_EQUAL( 1, xResult );
+    TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6AddressDstn, ipSIZE_OF_IPv6_ADDRESS );
+
+}
+
+/**
+ * @brief IPv6 address conversion with longer input
+ */
+void test_FreeRTOS_inet_pton6_LongerInput( void )
+{
+    const char * pcSource = "fe80:de:de:de:de:ff00:de00:7408:7409";
+    uint8_t uIPv6AddressDstn[ipSIZE_OF_IPv6_ADDRESS + 2] = {0};
+    uint8_t uIPv6AddressExpected[ipSIZE_OF_IPv6_ADDRESS + 2] = {0xfe, 0x80, 0, 0xde, 0, 0xde, 0, 0xde, 0, 0xde, 0xff, 0, 0xde, 0, 0x74, 0x08,  0x74, 0x08 };
+    BaseType_t xResult;
+
+
+    xResult = FreeRTOS_inet_pton6(pcSource, uIPv6AddressDstn);
+
+    TEST_ASSERT_EQUAL( 1, xResult );
+    TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6AddressDstn, ipSIZE_OF_IPv6_ADDRESS );
+
+}
