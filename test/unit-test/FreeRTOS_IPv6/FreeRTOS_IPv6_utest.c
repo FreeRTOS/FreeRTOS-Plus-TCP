@@ -293,6 +293,50 @@ void test_prvAllowIPPacketIPv6_loopback_address()
 }
 
 /**
+ * @brief test_prvAllowIPPacketIPv6_loopback_not_match_dest
+ * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::11.
+ * Check if prvAllowIPPacketIPv6 determines to process it.
+ */
+void test_prvAllowIPPacketIPv6_loopback_not_match_dest()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes[ 15 ] = 0x11;
+
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &pxTCPPacket->xIPHeader.xSourceAddress, pxNetworkBuffer->pxEndPoint );
+    FreeRTOS_IsNetworkUp_IgnoreAndReturn( 0 );
+    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
+
+    eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_loopback_not_match_src
+ * Prepare a packet from 2001:1234:5678::10 -> ::1.
+ * Check if prvAllowIPPacketIPv6 determines to process it.
+ */
+void test_prvAllowIPPacketIPv6_loopback_not_match_src()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, FreeRTOS_in6addr_loopback.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &pxTCPPacket->xIPHeader.xSourceAddress, pxNetworkBuffer->pxEndPoint );
+    FreeRTOS_IsNetworkUp_IgnoreAndReturn( 0 );
+    FreeRTOS_FindEndPointOnMAC_ExpectAndReturn( &pxTCPPacket->xEthernetHeader.xSourceAddress, NULL, NULL );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
+
+    eResult = prvAllowIPPacketIPv6( &pxTCPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
  * @brief test_prvAllowIPPacketIPv6_network_down
  * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::FFFF when network is down.
  * Check if prvAllowIPPacketIPv6 determines to process it.
@@ -627,11 +671,270 @@ void test_eHandleIPv6ExtensionHeaders_dest_then_routing()
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
-/*
- * BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
- * BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
- *                               const IPv6_Address_t * pxRight,
- *                               size_t uxPrefixLength )
- * BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
- *                             uint8_t ucNextHeader )
+/**
+ * @brief test_xIsIPv6AllowedMulticast_zero_scope
+ * Prepare a IPv6 addresses FF00:: ~ FFF0::. Check if xIsIPv6AllowedMulticast returns pdFALSE.
  */
+void test_xIsIPv6AllowedMulticast_zero_scope()
+{
+    IPv6_Address_t xMulticastZeroGroupID = { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    BaseType_t xReturn;
+    uint16_t ucScope;
+
+    for( ucScope = 0x0; ucScope <= 0xF0; ucScope += 0x10 )
+    {
+        xMulticastZeroGroupID.ucBytes[ 1 ] = ( uint8_t ) ucScope;
+        xReturn = xIsIPv6AllowedMulticast( &xMulticastZeroGroupID );
+        TEST_ASSERT_EQUAL( pdFALSE, xReturn );
+    }
+}
+
+/**
+ * @brief test_xIsIPv6AllowedMulticast_reserved_address
+ * Prepare IPv6 addresses FF00:: ~ FF0F::. Check if xIsIPv6AllowedMulticast returns pdTRUE.
+ */
+void test_xIsIPv6AllowedMulticast_reserved_address()
+{
+    IPv6_Address_t xMulticastZeroFlag = { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    BaseType_t xReturn;
+    uint8_t ucFlag;
+
+    for( ucFlag = 0x0; ucFlag <= 0xF; ucFlag++ )
+    {
+        xMulticastZeroFlag.ucBytes[ 1 ] = ucFlag;
+        xReturn = xIsIPv6AllowedMulticast( &xMulticastZeroFlag );
+        TEST_ASSERT_EQUAL( pdFALSE, xReturn );
+    }
+}
+
+/**
+ * @brief test_xIsIPv6AllowedMulticast_valid_address
+ * Prepare IPv6 addresse FF11::1. Check if xIsIPv6AllowedMulticast returns pdTRUE.
+ */
+void test_xIsIPv6AllowedMulticast_valid_address()
+{
+    IPv6_Address_t xMulticastZeroFlag = { 0xFF, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    BaseType_t xReturn;
+
+    xReturn = xIsIPv6AllowedMulticast( &xMulticastZeroFlag );
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_LLMNR
+ * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
+ *  - Left:  2001::00AB:CDEF
+ *  - Right: FF02::FFAB:CDEF
+ */
+void test_xCompareIPv6_Address_LLMNR()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xLeftAddress = { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0xcd, 0xef };
+    IPv6_Address_t xRightAddress = { 0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xab, 0xcd, 0xef };
+
+    xReturn = xCompareIPv6_Address( &xLeftAddress, &xRightAddress, 16 );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_all_nodes
+ * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
+ *  - Left:  2001::00AB:CDEF
+ *  - Right: FF02::1
+ */
+void test_xCompareIPv6_Address_all_nodes()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xLeftAddress = { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0xcd, 0xef };
+    IPv6_Address_t xRightAddress = { 0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+
+    xReturn = xCompareIPv6_Address( &xLeftAddress, &xRightAddress, 16 );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_both_local_addresses
+ * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
+ *  - Left:  FE80::1
+ *  - Right: FE80::2
+ */
+void test_xCompareIPv6_Address_both_local_addresses()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xLeftAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    IPv6_Address_t xRightAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
+
+    xReturn = xCompareIPv6_Address( &xLeftAddress, &xRightAddress, 16 );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_coverage_local_address_left_FF80
+ * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
+ *  - Left:  FF80::1
+ *  - Right: FE80::2
+ */
+void test_xCompareIPv6_Address_coverage_local_address_left_FF80()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xLeftAddress = { 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    IPv6_Address_t xRightAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
+
+    xReturn = xCompareIPv6_Address( &xLeftAddress, &xRightAddress, 128 );
+    TEST_ASSERT_NOT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_coverage_local_address_left_FE81
+ * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
+ *  - Left:  FE81::1
+ *  - Right: FE80::2
+ */
+void test_xCompareIPv6_Address_coverage_local_address_left_FE81()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xLeftAddress = { 0xFE, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    IPv6_Address_t xRightAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
+
+    xReturn = xCompareIPv6_Address( &xLeftAddress, &xRightAddress, 128 );
+    TEST_ASSERT_NOT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_coverage_local_address_right_FF80
+ * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
+ *  - Left:  FE80::1
+ *  - Right: FF80::2
+ */
+void test_xCompareIPv6_Address_coverage_local_address_right_FF80()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xLeftAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    IPv6_Address_t xRightAddress = { 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
+
+    xReturn = xCompareIPv6_Address( &xLeftAddress, &xRightAddress, 128 );
+    TEST_ASSERT_NOT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_coverage_local_address_right_FE81
+ * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
+ *  - Left:  FE80::1
+ *  - Right: FE81::2
+ */
+void test_xCompareIPv6_Address_coverage_local_address_right_FE81()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xLeftAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    IPv6_Address_t xRightAddress = { 0xFE, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
+
+    xReturn = xCompareIPv6_Address( &xLeftAddress, &xRightAddress, 128 );
+    TEST_ASSERT_NOT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_zero_prefix_length
+ * Prepare IPv6 address below. With prefix length 0, xCompareIPv6_Address should take all IP address as same region.
+ *  - Left:  2001:1234:5678::5
+ *  - Right: 2001:1234:5678::10
+ */
+void test_xCompareIPv6_Address_zero_prefix_length()
+{
+    BaseType_t xReturn;
+
+    xReturn = xCompareIPv6_Address( &xIPAddressFive, &xIPAddressTen, 0 );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_same_address_prefix_128
+ * Prepare IPv6 address below. With prefix length 128, xCompareIPv6_Address should compare whole IP address.
+ *  - Left:  2001:1234:5678::5
+ *  - Right: 2001:1234:5678::5
+ */
+void test_xCompareIPv6_Address_same_address_prefix_128()
+{
+    BaseType_t xReturn;
+
+    xReturn = xCompareIPv6_Address( &xIPAddressFive, &xIPAddressFive, 128 );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_same_region_prefix_64
+ * Prepare IPv6 address below. With prefix length 64, xCompareIPv6_Address should compare first 64 bit of IP address.
+ *  - Left:  2001:1234:5678::5
+ *  - Right: 2001:1234:5678::10
+ */
+void test_xCompareIPv6_Address_same_region_prefix_64()
+{
+    BaseType_t xReturn;
+
+    xReturn = xCompareIPv6_Address( &xIPAddressFive, &xIPAddressTen, 64 );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_different_region_prefix_64
+ * Prepare IPv6 address below. With prefix length 64, xCompareIPv6_Address should compare first 64 bit of IP address.
+ *  - Left:  2001:1234:5678::5
+ *  - Right: FF01::10
+ */
+void test_xCompareIPv6_Address_different_region_prefix_64()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xRightAddress = { 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
+
+    xReturn = xCompareIPv6_Address( &xIPAddressFive, &xRightAddress, 64 );
+    TEST_ASSERT_NOT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_different_region_prefix_4
+ * Prepare IPv6 address below. With prefix length 4, xCompareIPv6_Address should compare first 4 bit of IP address.
+ *  - Left:  2001:1234:5678::5
+ *  - Right: 4001:1234:5678::5
+ */
+void test_xCompareIPv6_Address_different_region_prefix_4()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xRightAddress;
+
+    memcpy( xRightAddress.ucBytes, &xIPAddressFive, ipSIZE_OF_IPv6_ADDRESS );
+    xRightAddress.ucBytes[ 0 ] = 0x40;
+
+    xReturn = xCompareIPv6_Address( &xIPAddressFive, &xRightAddress, 4 );
+    TEST_ASSERT_NOT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_different_region_prefix_44
+ * Prepare IPv6 address below. With prefix length 44, xCompareIPv6_Address should compare first 44 bit of IP address.
+ *  - Left:  2001:1234:5678::5
+ *  - Right: 2001:1234:5688::5
+ */
+void test_xCompareIPv6_Address_different_region_prefix_44()
+{
+    BaseType_t xReturn;
+    IPv6_Address_t xRightAddress;
+
+    memcpy( xRightAddress.ucBytes, &xIPAddressFive, ipSIZE_OF_IPv6_ADDRESS );
+    xRightAddress.ucBytes[ 5 ] = 0x88;
+
+    xReturn = xCompareIPv6_Address( &xIPAddressFive, &xRightAddress, 44 );
+    TEST_ASSERT_NOT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief test_xCompareIPv6_Address_same_region_prefix_44
+ * Prepare IPv6 address below. With prefix length 44, xCompareIPv6_Address should compare first 44 bit of IP address.
+ *  - Left:  2001:1234:5678::5
+ *  - Right: 2001:1234:5678::10
+ */
+void test_xCompareIPv6_Address_same_region_prefix_44()
+{
+    BaseType_t xReturn;
+
+    xReturn = xCompareIPv6_Address( &xIPAddressFive, &xIPAddressTen, 44 );
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
