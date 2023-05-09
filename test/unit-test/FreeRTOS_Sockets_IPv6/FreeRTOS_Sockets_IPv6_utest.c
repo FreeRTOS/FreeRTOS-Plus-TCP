@@ -596,9 +596,9 @@ void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer_2( void )
 }
 
 /**
- * @brief Case were there is not enough space in the input buffer after first insertion to the buffer
+ * @brief Output size greater than buffer length
  */
-void test_prv_ntop6_write_short_( void )
+void test_prv_ntop6_write_short_SmallerBuffer( void )
 {
     struct sNTOP6_Set xSet;
     BaseType_t xReturn;
@@ -606,7 +606,304 @@ void test_prv_ntop6_write_short_( void )
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
     xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+    xSet.xIndex = 8;
+    xSet.uxTargetIndex = 39;
 
     xReturn = prv_ntop6_write_short( cDestination, 40, &( xSet ) );
 
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
 }
+
+/**
+ * @brief Output size less is enough to fit in the buffer, starts 
+ * from beginning of IPv6 address.
+ */
+void test_prv_ntop6_write_short_EnoughBuffer( void )
+{
+    struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+    xSet.xIndex = 0;
+    xSet.uxTargetIndex = 0;
+
+    xReturn = prv_ntop6_write_short( cDestination, 40, &( xSet ) );
+
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY(&cDestination[0], "fe80", 4);
+    TEST_ASSERT_EQUAL( 4, xSet.uxTargetIndex );
+
+}
+
+/**
+ * @brief Output size less is enough to fit in the buffer, starts 
+ * after beginning of IPv6 address.
+ */
+void test_prv_ntop6_write_short_EnoughBuffer_StartAfterBeginning( void )
+{
+    struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6_5.ucBytes;
+    xSet.xIndex = 1;
+    xSet.uxTargetIndex = 4;
+
+    xReturn = prv_ntop6_write_short( cDestination, 40, &( xSet ) );
+
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY(&cDestination[4], ":de", 3);
+    TEST_ASSERT_EQUAL( 7, xSet.uxTargetIndex );
+
+}
+
+/**
+ * @brief Not enough space to write a short.
+ */
+void test_prv_ntop6_write_short_NotEnoughSpaceForShort( void )
+{
+    struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6_5.ucBytes;
+    xSet.xIndex = 1;
+    xSet.uxTargetIndex = 37;
+
+    xReturn = prv_ntop6_write_short( cDestination, 40, &( xSet ) );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+
+}
+
+/**
+ * @brief Test for fe80::7008.
+ */
+void test_FreeRTOS_inet_ntop6_HappyPath( void )
+{
+    char * pcReturn;
+    char cDestination[41] = {'\0'};
+
+    pcReturn = FreeRTOS_inet_ntop6(xSampleAddress_IPv6.ucBytes, cDestination, 40);
+
+    TEST_ASSERT_EQUAL_MEMORY("fe80::7008", pcReturn, 10);
+
+}
+
+/**
+ * @brief Test for fe80:0:de::7008.
+ */
+void test_FreeRTOS_inet_ntop6_HappyPath_2( void )
+{
+    char * pcReturn;
+    char cDestination[41] = {'\0'};
+
+    pcReturn = FreeRTOS_inet_ntop6(xSampleAddress_IPv6_3.ucBytes, cDestination, 40);
+
+    TEST_ASSERT_EQUAL_MEMORY("fe80:0:de::7008", pcReturn, 16);
+    
+}
+
+/**
+ * @brief Test for fe80:de:de:de:de:ff00:de00:7408.
+ */
+void test_FreeRTOS_inet_ntop6_HappyPath_3( void )
+{
+    char * pcReturn;
+    char cDestination[41] = {'\0'};
+
+    pcReturn = FreeRTOS_inet_ntop6(xSampleAddress_IPv6_5.ucBytes, cDestination, 40);
+
+    TEST_ASSERT_EQUAL_MEMORY("fe80:de:de:de:de:ff00:de00:7408", pcReturn, 32);
+    
+}
+
+/**
+ * @brief Test for fe80::.
+ */
+void test_FreeRTOS_inet_ntop6_HappyPath_4( void )
+{
+    char * pcReturn;
+    char cDestination[41] = {'\0'};
+
+    pcReturn = FreeRTOS_inet_ntop6(xSampleAddress_IPv6_6.ucBytes, cDestination, 40);
+
+    TEST_ASSERT_EQUAL_MEMORY("fe80::", pcReturn, 7);
+    
+}
+
+/**
+ * @brief Test for the case when the incoming character is not a colon.
+ */
+void test_prv_inet_pton6_add_nibble_NotColon( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, 15, 'f');
+
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL( pdTRUE, xSet.xHadDigit );
+    TEST_ASSERT_EQUAL( 15, xSet.ulValue );
+
+}
+
+/**
+ * @brief Test for the case when the incoming character is not a colon and the accumulator
+ *        is non zero
+ */
+void test_prv_inet_pton6_add_nibble_NotColon_AccumulatorNonZero( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.ulValue = 0xFFF;
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, 15, 'f');
+
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL( pdTRUE, xSet.xHadDigit );
+    TEST_ASSERT_EQUAL( 0xFFFF, xSet.ulValue );
+}
+
+/**
+ * @brief Test for the case when the incoming character is not a colon and the accumulator
+ *        overflows.
+ */
+void test_prv_inet_pton6_add_nibble_NotColon_AccumulatorOverflow( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.ulValue = 0xFFFF;
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, 15, 'f');
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+}
+
+/**
+ * @brief Test for the case when the incoming character is a colon and there is a valid digit in the set.
+ */
+void test_prv_inet_pton6_add_nibble_InvalidHexChar_ValidDigit( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn, xTargetIndex = 5;
+    uint8_t uIPv6Address[ipSIZE_OF_IPv6_ADDRESS] = {0};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.xHadDigit = pdTRUE;
+    xSet.xTargetIndex = xTargetIndex;
+    xSet.xHighestIndex = ipSIZE_OF_IPv6_ADDRESS - 2;
+    xSet.pucTarget = uIPv6Address;
+    xSet.ulValue = 0xFE80;
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, socketINVALID_HEX_CHAR, ':');
+
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL( 0xFE, uIPv6Address[xTargetIndex] );
+    TEST_ASSERT_EQUAL( 0x80, uIPv6Address[xTargetIndex + 1] );
+    TEST_ASSERT_EQUAL( xTargetIndex + 2, xSet.xTargetIndex );
+    TEST_ASSERT_EQUAL( pdFALSE, xSet.xHadDigit );
+    TEST_ASSERT_EQUAL( 0, xSet.ulValue );
+
+}
+
+/**
+ * @brief Test for the case when the incoming character is a colon and there is a valid digit in the set
+ *        but buffer overflow
+ */
+void test_prv_inet_pton6_add_nibble_InvalidHexChar_ValidDigit_BufferOverflow( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn, xTargetIndex = ipSIZE_OF_IPv6_ADDRESS - 1;
+    uint8_t uIPv6Address[ipSIZE_OF_IPv6_ADDRESS] = {0};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.xHadDigit = pdTRUE;
+    xSet.xTargetIndex = xTargetIndex;
+    xSet.xHighestIndex = ipSIZE_OF_IPv6_ADDRESS - 2;
+    xSet.pucTarget = uIPv6Address;
+    xSet.ulValue = 0xFE80;
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, socketINVALID_HEX_CHAR, ':');
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+}
+
+/**
+ * @brief Test for the case when the incoming character is a colon and there isn't a valid digit, but
+ *        receives 2nd colon
+ */
+void test_prv_inet_pton6_add_nibble_InvalidHexChar_InValidDigit( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn, xTargetIndex = 5;
+    uint8_t uIPv6Address[ipSIZE_OF_IPv6_ADDRESS] = {0};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.xHadDigit = pdFALSE;
+    xSet.xColon = -1;
+    xSet.xTargetIndex = xTargetIndex;
+    xSet.xHighestIndex = ipSIZE_OF_IPv6_ADDRESS - 2;
+    xSet.pucTarget = uIPv6Address;
+    xSet.ulValue = 0xFE80;
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, socketINVALID_HEX_CHAR, ':');
+
+    TEST_ASSERT_EQUAL( xTargetIndex, xSet.xColon );
+
+}
+
+/**
+ * @brief Test for the case when the incoming character is a colon and there isn't a valid digit, but
+ *        receives 3nd colon
+ */
+void test_prv_inet_pton6_add_nibble_InvalidHexChar_InValidDigit_3rdColon( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn, xTargetIndex = 5;
+    uint8_t uIPv6Address[ipSIZE_OF_IPv6_ADDRESS] = {0};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.xHadDigit = pdFALSE;
+    xSet.xColon = 5;
+    xSet.xTargetIndex = xTargetIndex;
+    xSet.xHighestIndex = ipSIZE_OF_IPv6_ADDRESS - 2;
+    xSet.pucTarget = uIPv6Address;
+    xSet.ulValue = 0xFE80;
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, socketINVALID_HEX_CHAR, ':');
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+}
+
+/**
+ * @brief Test for the case when the input is invalid
+ */
+void test_prv_inet_pton6_add_nibble_InvalidInput( void )
+{
+    struct sPTON6_Set xSet;
+    BaseType_t xReturn, xTargetIndex = 5;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+
+    xReturn = prv_inet_pton6_add_nibble(&xSet, socketINVALID_HEX_CHAR, '-');
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+}
+

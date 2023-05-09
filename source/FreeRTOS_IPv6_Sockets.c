@@ -380,6 +380,10 @@ static BaseType_t prv_ntop6_write_short( char * pcDestination,
                 pxSet->uxTargetIndex += uxLength;
             }
         }
+        else
+        {
+            xReturn = pdFAIL;
+        }
     }
 
     return xReturn;
