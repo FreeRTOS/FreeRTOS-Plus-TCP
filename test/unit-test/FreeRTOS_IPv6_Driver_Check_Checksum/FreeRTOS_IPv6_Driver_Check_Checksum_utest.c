@@ -25,34 +25,51 @@
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
-#include <unity.h>
+#include "unity.h"
 
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
+
+/* This must come after list.h is included (in this case, indirectly
+ * by mock_list.h). */
+#include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv6.h"
 
-void vPortEnterCritical( void )
-{
-}
-void vPortExitCritical( void )
+#include "catch_assert.h"
+
+#include "FreeRTOSIPConfig.h"
+
+/* ===========================  EXTERN VARIABLES  =========================== */
+
+/* ============================  Unity Fixtures  ============================ */
+
+/*! called before each test case */
+void setUp( void )
 {
 }
 
-void * pvPortMalloc( size_t xNeeded )
+/*! called after each test case */
+void tearDown( void )
 {
-    return malloc( xNeeded );
 }
 
-void vPortFree( void * ptr )
+/* ======================== Stub Callback Functions ========================= */
+
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_source_unspecified_address
+ * Prepare a packet with unspecified address in source address.
+ * Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_source_unspecified_address()
 {
-    free( ptr );
+    return;
 }

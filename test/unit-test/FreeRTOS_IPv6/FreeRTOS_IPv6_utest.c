@@ -46,8 +46,6 @@
 
 #include "FreeRTOSIPConfig.h"
 
-#include "FreeRTOS_IPv6_stubs.c"
-
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 extern const struct xIPv6_Address xIPv6UnspecifiedAddress;
