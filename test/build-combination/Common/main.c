@@ -115,7 +115,7 @@ int main( void )
      * vApplicationIPNetworkEventHook() below).  The address values passed in here
      * are used if ipconfigUSE_DHCP is set to 0, or if ipconfigUSE_DHCP is set to 1
      * but a DHCP server cannot be contacted. */
-    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) && ( ipconfigUSE_IPv4 != 0 )
         FreeRTOS_printf( ( "FreeRTOS_IPInit\n" ) );
         FreeRTOS_IPInit(
             ucIPAddress,
@@ -310,7 +310,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
     return pxInterface;
 }
 
-#if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )
+#if ( ipconfigUSE_DHCP_HOOK != 0 )
     #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
                                                     uint32_t ulIPAddress )
@@ -323,7 +323,7 @@ struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
         /* Provide a stub for this function. */
         return eDHCPContinue;
     }
-#endif /* if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) ) */
+#endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
 #if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
 
