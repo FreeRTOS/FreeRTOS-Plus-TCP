@@ -371,14 +371,8 @@ static BaseType_t prv_ntop6_write_short( char * pcDestination,
                                         uxBytesPerShortValue + 1U,
                                         FreeRTOS_ntohs( pxSet->pusAddress[ pxSet->xIndex ] ) );
 
-            if( uxLength <= 0U )
-            {
-                xReturn = pdFAIL;
-            }
-            else
-            {
-                pxSet->uxTargetIndex += uxLength;
-            }
+            /* uxLength will be non zero and positive always. */
+            pxSet->uxTargetIndex += uxLength;
         }
         else
         {

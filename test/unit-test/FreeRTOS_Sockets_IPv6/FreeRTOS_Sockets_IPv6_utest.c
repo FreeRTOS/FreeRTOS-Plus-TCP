@@ -421,6 +421,22 @@ void test_uxHexPrintShort_NibbleInput( void )
 }
 
 /**
+ * @brief Test when buffer overflows 
+ */
+void test_uxHexPrintShort_BufferOverflow( void )
+{
+    char cBuffer[5] = {'\0'};
+    size_t xCBuffLen;
+    char *pcExpOp = "cafe";
+
+    xCBuffLen = uxHexPrintShort(cBuffer, 3, 0xCAF);
+
+    TEST_ASSERT_EQUAL( 2, xCBuffLen );
+    TEST_ASSERT_EQUAL_MEMORY(pcExpOp,cBuffer, xCBuffLen);
+
+}
+
+/**
  * @brief Test when input is fe80::7008
  */
 void test_prv_ntop6_search_zeros( void )
@@ -501,6 +517,25 @@ void test_prv_ntop6_search_zeros_NoZeroes( void )
     prv_ntop6_search_zeros( &( xSet ) );
 
     TEST_ASSERT_EQUAL( 0, xSet.xZeroLength );
+    TEST_ASSERT_EQUAL( -1, xSet.xZeroStart );
+    
+}
+
+/**
+ * @brief xZeroLength is already set to correct value 
+ */
+void test_prv_ntop6_search_zeros_ZeroLengthIsAlreadySet( void )
+{
+    struct sNTOP6_Set xSet;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6_4.ucBytes;
+    xSet.xZeroLength = 4;
+    xSet.xZeroStart = 2;
+
+    prv_ntop6_search_zeros( &( xSet ) );
+
+    TEST_ASSERT_EQUAL( 4, xSet.xZeroLength );
     TEST_ASSERT_EQUAL( -1, xSet.xZeroStart );
     
 }
@@ -596,6 +631,28 @@ void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer_2( void )
 }
 
 /**
+ * @brief Case were target index is greater than size of the destination buffer.
+ */
+void test_prv_ntop6_write_zeros_TargetndexGreater( void )
+{
+    struct sNTOP6_Set xSet;
+    BaseType_t xReturn;
+    char cDestination[41] = {'\0'};
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.pusAddress = xSampleAddress_IPv6.ucBytes;
+    xSet.xZeroLength = 7;
+    xSet.xZeroStart = 1;
+    xSet.xIndex = 1;
+    xSet.uxTargetIndex = 39; 
+
+    xReturn = prv_ntop6_write_zeros( cDestination, 39, &( xSet ) );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+
+}
+
+/**
  * @brief Output size greater than buffer length
  */
 void test_prv_ntop6_write_short_SmallerBuffer( void )
@@ -683,6 +740,20 @@ void test_prv_ntop6_write_short_NotEnoughSpaceForShort( void )
 }
 
 /**
+ * @brief Buffer size is less than the minimum 3 required.
+ */
+void test_FreeRTOS_inet_ntop6_LowBufferSize( void )
+{
+    char * pcReturn;
+    char cDestination[41] = {'\0'};
+
+    pcReturn = FreeRTOS_inet_ntop6(xSampleAddress_IPv6.ucBytes, cDestination, 2);
+
+    TEST_ASSERT_EQUAL( NULL, pcReturn );
+
+}
+
+/**
  * @brief Test for fe80::7008.
  */
 void test_FreeRTOS_inet_ntop6_HappyPath( void )
@@ -738,6 +809,35 @@ void test_FreeRTOS_inet_ntop6_HappyPath_4( void )
     
 }
 
+/**
+ * @brief Case where the destination buffer size is lesser than required
+ *        when writing zeroes..
+ */
+void test_FreeRTOS_inet_ntop6_LesserBufferSize( void )
+{
+    char * pcReturn;
+    char cDestination[41] = {'\0'};
+
+    pcReturn = FreeRTOS_inet_ntop6(xSampleAddress_IPv6_6.ucBytes, cDestination, 5);
+
+    TEST_ASSERT_EQUAL( NULL, pcReturn );
+    
+}
+
+/**
+ * @brief Case where the destination buffer size is lesser than required 
+ *        when writing non zero data.
+ */
+void test_FreeRTOS_inet_ntop6_LesserBufferSizeNonZero( void )
+{
+    char * pcReturn;
+    char cDestination[41] = {'\0'};
+
+    pcReturn = FreeRTOS_inet_ntop6(xSampleAddress_IPv6_5.ucBytes, cDestination, 24);
+
+    TEST_ASSERT_EQUAL( NULL, pcReturn );
+    
+}
 /**
  * @brief Test for the case when the incoming character is not a colon.
  */
@@ -1024,5 +1124,39 @@ void test_FreeRTOS_inet_pton6_LongerInput( void )
 
     TEST_ASSERT_EQUAL( 1, xResult );
     TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6AddressDstn, ipSIZE_OF_IPv6_ADDRESS );
+
+}
+
+/**
+ * @brief Input string IPv6 address terminates in double colon.
+ */
+void test_FreeRTOS_inet_pton6_InputTermintatesInDoubleColon( void )
+{
+    const char * pcSource = "fe80::";
+    uint8_t uIPv6AddressDstn[ipSIZE_OF_IPv6_ADDRESS] = {0};
+    uint8_t uIPv6AddressExpected[ipSIZE_OF_IPv6_ADDRESS] = {0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    BaseType_t xResult;
+
+
+    xResult = FreeRTOS_inet_pton6(pcSource, uIPv6AddressDstn);
+
+    TEST_ASSERT_EQUAL( 1, xResult );
+    TEST_ASSERT_EQUAL_MEMORY(uIPv6AddressExpected, uIPv6AddressDstn, ipSIZE_OF_IPv6_ADDRESS );
+
+}
+
+/**
+ * @brief Input string IPv6 address has invalid character.
+ */
+void test_FreeRTOS_inet_pton6_InputHasInvalidChars( void )
+{
+    const char * pcSource = "fe8k::";
+    uint8_t uIPv6AddressDstn[ipSIZE_OF_IPv6_ADDRESS];
+    BaseType_t xResult;
+
+
+    xResult = FreeRTOS_inet_pton6(pcSource, uIPv6AddressDstn);
+
+    TEST_ASSERT_EQUAL( 0, xResult );
 
 }
