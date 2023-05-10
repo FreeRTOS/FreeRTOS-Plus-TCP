@@ -360,7 +360,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                 default:
                     /* MISRA 16.4 Compliance */
-                    configASSERT( pdFALSE );
+                    break;
             }
 
             xAddress.sin_port = FreeRTOS_ntohs( pxSocket->usLocalPort );
@@ -849,12 +849,6 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 
     switch( ucIPType )
     {
-        #if ( ipconfigUSE_IPv4 != 0 )
-            case ipTYPE_IPv4:
-                uxPayloadOffset = sizeof( UDPPacket_t );
-                break;
-        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
         #if ( ipconfigUSE_IPv6 != 0 )
             case ipTYPE_IPv6:
                 uxPayloadOffset = sizeof( UDPPacket_IPv6_t );
@@ -862,8 +856,10 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         default:
-            /* Shouldn't reach here. */
-            /* MISRA 16.4 Compliance */
+            /* ipTYPE_IPv4 */
+            #if ( ipconfigUSE_IPv4 != 0 )
+                uxPayloadOffset = sizeof( UDPPacket_t );
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
             break;
     }
 

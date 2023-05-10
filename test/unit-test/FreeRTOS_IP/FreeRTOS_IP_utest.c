@@ -283,6 +283,34 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig_NULLBufferReturne
     TEST_ASSERT_NULL( pvReturn );
 }
 
+void test_FreeRTOS_GetUDPPayloadBuffer_UnknownType( void )
+{
+    size_t uxRequestedSizeBytes = 300;
+    TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
+
+    catch_assert( FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, 0xFF ) );
+}
+
+void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig_IPv6( void )
+{
+    size_t uxRequestedSizeBytes = 300;
+    TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
+    void * pvReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t pucEthernetBuffer[ 1500 ];
+
+    /* Put the ethernet buffer in place. */
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = 0;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_IPv6_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
+
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv6 );
+
+    TEST_ASSERT_EQUAL( sizeof( UDPPacket_IPv6_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_IPv6_t ) ] ), pvReturn );
+}
+
 void test_FreeRTOS_ReleaseUDPPayloadBuffer( void )
 {
     void * pvBuffer = ( void * ) 0xFFCDEA;

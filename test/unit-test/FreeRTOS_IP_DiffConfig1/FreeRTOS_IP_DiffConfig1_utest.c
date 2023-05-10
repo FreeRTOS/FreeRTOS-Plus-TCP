@@ -374,7 +374,12 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv4_only_but_IPv6_bind( 
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
-    catch_assert( prvProcessIPEventsAndTimers() );
+    vSocketBind_ExpectAndReturn( &xSocket, NULL, sizeof( struct freertos_sockaddr ), pdFALSE, 0 );
+    vSocketBind_IgnoreArg_pxBindAddress();
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    prvProcessIPEventsAndTimers();
 }
 
 void test_vIPNetworkUpCalls_BackwardCompatible( void )
