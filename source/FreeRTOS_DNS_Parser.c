@@ -59,7 +59,7 @@
  */
         static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
         {
-            NetworkEndPoint_t * pxEndPoint;
+            NetworkEndPoint_t * pxEndPoint = NULL;
 
             #if ( ipconfigUSE_IPv6 != 0 )
                 IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -70,11 +70,14 @@
                 }
                 else
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            {
-                IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
-            }
+            #if ( ipconfigUSE_IPv4 != 0 )
+                {
+                    IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
+                }
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             if( pxEndPoint != NULL )
             {
@@ -512,9 +515,15 @@
                                         }
                                         else
                                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                                    {
-                                        uxExtraLength = sizeof( LLMNRAnswer_t );
-                                    }
+                                    #if ( ipconfigUSE_IPv4 != 0 )
+                                        {
+                                            uxExtraLength = sizeof( LLMNRAnswer_t );
+                                        }
+                                    #else /* ( ipconfigUSE_IPv4 != 0 ) */
+                                        {
+                                            /* do nothing, coverity happy */
+                                        }
+                                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                                     /* Set the size of the outgoing packet. */
                                     pxNetworkBuffer->xDataLength = uxDataLength;
@@ -566,16 +575,18 @@
 
                                 usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( xSet.pucByte - pucNewBuffer ) );
 
-                                if( xSet.usType == dnsTYPE_AAAA_HOST )
-                                {
-                                    size_t uxDistance;
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
-                                    ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                                    uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
-                                    /* An extra 12 bytes will be sent compared to an A-record. */
-                                    usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
-                                }
-                                else
+                                #if ( ipconfigUSE_IPv6 != 0 )
+                                    if( xSet.usType == dnsTYPE_AAAA_HOST )
+                                    {
+                                        size_t uxDistance;
+                                        vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
+                                        ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                        uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
+                                        /* An extra 12 bytes will be sent compared to an A-record. */
+                                        usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
+                                    }
+                                    else
+                                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
                                 {
                                     size_t uxDistance;
                                     vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ( uint16_t ) sizeof( pxAnswer->ulIPAddress ) );
@@ -926,27 +937,29 @@
                             pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
 
-            if( ( ( uxIPHeaderLength == ipSIZE_OF_IPv6_HEADER ) && ( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) == 0x60U ) ) )
-            {
-                UDPPacket_IPv6_t * xUDPPacket_IPv6;
-                IPHeader_IPv6_t * pxIPHeader_IPv6;
-
-                xUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                pxIPHeader_IPv6 = &( xUDPPacket_IPv6->xIPHeader );
-                pxUDPHeader = &xUDPPacket_IPv6->xUDPHeader;
-
-                pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
-
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( ( ( uxIPHeaderLength == ipSIZE_OF_IPv6_HEADER ) && ( ( pxIPHeader->ucVersionHeaderLength & 0xf0U ) == 0x60U ) ) )
                 {
-                    ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                }
+                    UDPPacket_IPv6_t * xUDPPacket_IPv6;
+                    IPHeader_IPv6_t * pxIPHeader_IPv6;
 
-                xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
-                vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
-                uxDataLength = ( size_t ) lNetLength + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
-            }
-            else
+                    xUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+                    pxIPHeader_IPv6 = &( xUDPPacket_IPv6->xIPHeader );
+                    pxUDPHeader = &xUDPPacket_IPv6->xUDPHeader;
+
+                    pxIPHeader_IPv6->usPayloadLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
+
+                    {
+                        ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    }
+
+                    xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
+                    vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
+                    uxDataLength = ( size_t ) lNetLength + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
+                }
+                else
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             {
                 pxUDPHeader = &pxUDPPacket->xUDPHeader;
                 /* HT: started using defines like 'ipSIZE_OF_xxx' */
@@ -1155,6 +1168,7 @@
                 /* NBNS only handles IPv4 or "A" records. */
                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
                 xEndPoint.usDNSType = dnsTYPE_A_HOST;
+
                 #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                     xDNSHookReturn = xApplicationDNSQueryHook( ( const char * ) ucNBNSName );
                 #else

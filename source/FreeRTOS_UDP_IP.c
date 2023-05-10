@@ -94,7 +94,7 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
  */
 void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-    UDPPacket_t * pxUDPPacket;
+    const UDPPacket_t * pxUDPPacket;
 
     /* Map the UDP packet onto the start of the frame. */
 
@@ -103,14 +103,21 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    switch( pxUDPPacket->xEthernetHeader.usFrameType )
     {
-        vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-    }
-    else
-    {
-        pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-        vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case ipIPv4_FRAME_TYPE:
+                vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+                break;
+        #endif
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case ipIPv6_FRAME_TYPE:
+                vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
+                break;
+        #endif
+        default:
+            /* do nothing, coverity happy */
+            break;
     }
 }
 /*-----------------------------------------------------------*/
@@ -142,19 +149,23 @@ BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffe
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+    switch( pxUDPPacket->xEthernetHeader.usFrameType )
     {
-        xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
-                                                  usPort, pxIsWaitingForARPResolution );
-    }
-    else if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-    {
-        xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
-                                                  usPort, pxIsWaitingForARPResolution );
-    }
-    else
-    {
-        /* do nothing, coverity happy */
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case ipIPv4_FRAME_TYPE:
+                xReturn = xProcessReceivedUDPPacket_IPv4( pxNetworkBuffer,
+                                                          usPort, pxIsWaitingForARPResolution );
+                break;
+        #endif
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case ipIPv6_FRAME_TYPE:
+                xReturn = xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer,
+                                                          usPort, pxIsWaitingForARPResolution );
+                break;
+        #endif
+        default:
+            /* do nothing, coverity happy */
+            break;
     }
 
     return xReturn;

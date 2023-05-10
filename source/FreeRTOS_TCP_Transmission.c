@@ -253,17 +253,21 @@
 
         if( pxNetworkBuffer != NULL )
         {
-            if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-            {
-                xIsIPv6 = pdTRUE;
-            }
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+                {
+                    xIsIPv6 = pdTRUE;
+                }
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         }
         else if( pxSocket != NULL )
         {
-            if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
-            {
-                xIsIPv6 = pdTRUE;
-            }
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
+                {
+                    xIsIPv6 = pdTRUE;
+                }
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         }
         else
         {
@@ -271,14 +275,19 @@
             configASSERT( pdFALSE );
         }
 
-        if( xIsIPv6 == pdTRUE )
-        {
-            prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-        }
-        else
-        {
-            prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-        }
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( xIsIPv6 == pdTRUE )
+            {
+                prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+            }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+        #if ( ipconfigUSE_IPv4 != 0 )
+            if( xIsIPv6 == pdFALSE )
+            {
+                prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+            }
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
     }
     /*-----------------------------------------------------------*/
 
@@ -480,13 +489,23 @@
     {
         BaseType_t xReturn = pdTRUE;
 
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        switch( pxSocket->bits.bIsIPv6 )
         {
-            xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
-        }
-        else
-        {
-            xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE_UNSIGNED:
+                    xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE_UNSIGNED:
+                    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* MISRA 16.4 Compliance */
+                break;
         }
 
         return xReturn;
@@ -705,8 +724,9 @@
                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
                                    size_t uxIPHeaderSize )
     {
-        const IPHeader_t * pxIPHeader = NULL;
-
+        #if ( ipconfigUSE_IPv4 != 0 )
+            const IPHeader_t * pxIPHeader = NULL;
+        #endif
         #if ( ipconfigUSE_IPv6 != 0 )
             const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
@@ -719,37 +739,49 @@
         {
             FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
 
-            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
+            switch( uxIPHeaderSize )
             {
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipSIZE_OF_IPv4_HEADER:
 
-                if( pxNetworkBuffer->pxEndPoint == NULL )
-                {
-                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
-                                       pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                       pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
-                }
-            }
-            else
-            {
-                /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
-                 * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
+                        /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
+                         * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
 
-                if( pxNetworkBuffer->pxEndPoint == NULL )
-                {
-                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %xip => %xip\n",
-                                       ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
-                                       ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
-                }
+                        if( pxNetworkBuffer->pxEndPoint == NULL )
+                        {
+                            FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %xip => %xip\n",
+                                               ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
+                                               ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
+                        }
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipSIZE_OF_IPv6_HEADER:
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+
+                        if( pxNetworkBuffer->pxEndPoint == NULL )
+                        {
+                            FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
+                                               pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                               pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
+                        }
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    /* Shouldn't reach here */
+                    pxNetworkBuffer->pxEndPoint = NULL;
+                    break;
             }
 
             if( pxNetworkBuffer->pxEndPoint != NULL )
@@ -1283,13 +1315,23 @@
             ( void ) ucTCPFlags;
         #else
             {
-                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+                switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
                 {
-                    xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
-                }
-                else
-                {
-                    xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case ipSIZE_OF_IPv4_HEADER:
+                            xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case ipSIZE_OF_IPv6_HEADER:
+                            xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    default:
+                        xReturn = pdFAIL;
+                        break;
                 }
             }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */

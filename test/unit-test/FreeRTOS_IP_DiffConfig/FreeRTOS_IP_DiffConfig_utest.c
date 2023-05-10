@@ -555,6 +555,7 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType = ipIPv4_FRAME_TYPE;
 
     pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( &xNetworkBuffer, xNetworkBuffer.xDataLength, &xDuplicateNetworkBuffer );
 
