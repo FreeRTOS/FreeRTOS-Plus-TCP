@@ -39,10 +39,10 @@ set(mock_include_list "")
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
 set(mock_define_list "")
@@ -65,12 +65,11 @@ list(APPEND real_source_files
 set(real_include_directories "")
 # list the directories the module under test includes
 list(APPEND real_include_directories
-                ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-                ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
-                .
                 ${TCP_INCLUDE_DIRS}
+                ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
                 ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
                 ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+                ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
                 ${CMOCK_DIR}/vendor/unity/src
 	)
 
@@ -83,8 +82,7 @@ list(APPEND test_include_directories
             ${CMAKE_BINARY_DIR}/../../../source/portable/Buffermanagement
             ${CMAKE_BINARY_DIR}/../../../source/portable/Compiler/MSVC
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-            ${CMAKE_BINARY_DIR}/Annexed_TCP
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources
+            ${TCP_INCLUDE_DIRS}
         )
 
 # =============================  (end edit)  ===================================

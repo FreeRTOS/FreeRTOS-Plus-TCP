@@ -52,6 +52,7 @@
 #include "mock_NetworkBufferManagement.h"
 #include "mock_NetworkInterface.h"
 #include "mock_FreeRTOS_DHCP.h"
+#include "mock_FreeRTOS_DHCPv6.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_DNS.h"
@@ -560,4 +561,84 @@ void test_prvAllowIPPacketIPv4_UDP_LengthMore( void )
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+void test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv4( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    uint32_t ulDHCPEvent = 0x1234;
+    NetworkEndPoint_t xEndPoints, * pxEndPoints = &xEndPoints;
+    BaseType_t xQueueReturn = 100;
+
+    memset( pxEndPoints, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndPoints->bits.bWantDHCP = pdTRUE_UNSIGNED;
+
+    xReceivedEvent.eEventType = eDHCPEvent;
+    xReceivedEvent.pvData = pxEndPoints;
+
+    vCheckNetworkTimers_Expect();
+
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    uxQueueSpacesAvailable_ExpectAnyArgsAndReturn( xQueueReturn );
+
+    vDHCPProcess_Expect( pdFALSE, pxEndPoints );
+
+    prvProcessIPEventsAndTimers();
+}
+
+void test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv6( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    uint32_t ulDHCPEvent = 0x1234;
+    NetworkEndPoint_t xEndPoints, * pxEndPoints = &xEndPoints;
+    BaseType_t xQueueReturn = 100;
+
+    memset( pxEndPoints, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndPoints->bits.bWantDHCP = pdTRUE_UNSIGNED;
+    pxEndPoints->bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    xReceivedEvent.eEventType = eDHCPEvent;
+    xReceivedEvent.pvData = pxEndPoints;
+
+    vCheckNetworkTimers_Expect();
+
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    uxQueueSpacesAvailable_ExpectAnyArgsAndReturn( xQueueReturn );
+
+    vDHCPv6Process_Expect( pdFALSE, pxEndPoints );
+
+    prvProcessIPEventsAndTimers();
+}
+
+void test_prvProcessIPEventsAndTimers_eDHCPEvent_RA( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    uint32_t ulDHCPEvent = 0x1234;
+    NetworkEndPoint_t xEndPoints, * pxEndPoints = &xEndPoints;
+    BaseType_t xQueueReturn = 100;
+
+    memset( pxEndPoints, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndPoints->bits.bWantRA = pdTRUE_UNSIGNED;
+    pxEndPoints->bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    xReceivedEvent.eEventType = eDHCPEvent;
+    xReceivedEvent.pvData = pxEndPoints;
+
+    vCheckNetworkTimers_Expect();
+
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    uxQueueSpacesAvailable_ExpectAnyArgsAndReturn( xQueueReturn );
+
+    vRAProcess_Expect( pdFALSE, pxEndPoints );
+
+    prvProcessIPEventsAndTimers();
 }

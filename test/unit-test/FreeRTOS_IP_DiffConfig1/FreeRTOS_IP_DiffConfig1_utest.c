@@ -39,6 +39,8 @@
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
+#include "FreeRTOSIPConfig.h"
+
 #include "mock_IP_DiffConfig1_list_macros.h"
 #include "mock_queue.h"
 #include "mock_event_groups.h"
@@ -66,8 +68,6 @@
 
 #include "FreeRTOS_IP_DiffConfig1_stubs.c"
 #include "catch_assert.h"
-
-#include "FreeRTOSIPConfig.h"
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
@@ -375,4 +375,37 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv4_only_but_IPv6_bind( 
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
     catch_assert( prvProcessIPEventsAndTimers() );
+}
+
+void test_vIPNetworkUpCalls_BackwardCompatible( void )
+{
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    vApplicationIPNetworkEventHook_Expect( eNetworkUp );
+    vDNSInitialise_Expect();
+    vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+
+    vIPNetworkUpCalls( &xEndPoint );
+
+    TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xEndPoint.bits.bEndPointUp );
+}
+
+void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfigBackwardCompatible( void )
+{
+    size_t uxRequestedSizeBytes = 300;
+    TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
+    void * pvReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t pucEthernetBuffer[ 1500 ];
+
+    /* Put the ethernet buffer in place. */
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = 0;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
+
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer( uxRequestedSizeBytes, uxBlockTimeTicks );
+
+    TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
 }

@@ -380,7 +380,6 @@ void test_prvIPTask_NetworkDown( void )
 
     /* Reset the static variable. */
     xIPTaskInitialised = pdFALSE;
-    xNetworkDownEventPending = pdFALSE;
 
     /* In prvIPTask_Initialise. */
     vNetworkTimerReload_Ignore();
@@ -411,8 +410,6 @@ void test_prvIPTask_NetworkDown( void )
     prvIPTask( NULL );
 
     TEST_ASSERT_EQUAL( pdTRUE, xIPTaskInitialised );
-    /* Network down event is clear in prvProcessIPEventsAndTimers. */
-    TEST_ASSERT_EQUAL( pdFALSE, xNetworkDownEventPending );
 }
 
 void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
@@ -503,6 +500,34 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
+
+void test_prvProcessIPEventsAndTimers_eNetworkTxEvent_NullInterface( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( EthernetHeader_t ) - 1;
+    pxNetworkBuffer->pxInterface = NULL;
+
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    xReceivedEvent.eEventType = eNetworkTxEvent;
+    xReceivedEvent.pvData = pxNetworkBuffer;
+    xNetworkDownEventPending = pdFALSE;
+
+    vCheckNetworkTimers_Expect();
+
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+
+    prvProcessIPEventsAndTimers();
+}
+
 void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
@@ -536,6 +561,35 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent( void )
 
     vCheckNetworkTimers_Expect();
 
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+
+    vSocketBind_ExpectAndReturn( &xSocket, NULL, sizeof( struct freertos_sockaddr ), pdFALSE, 0 );
+    vSocketBind_IgnoreArg_pxBindAddress();
+
+    vSocketWakeUpUser_Expect( &xSocket );
+
+    prvProcessIPEventsAndTimers();
+
+    TEST_ASSERT_EQUAL( 0, xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL( eSOCKET_BOUND, xSocket.xEventBits | eSOCKET_BOUND );
+}
+
+void test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv6( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    FreeRTOS_Socket_t xSocket;
+
+    xReceivedEvent.eEventType = eSocketBindEvent;
+    xReceivedEvent.pvData = &xSocket;
+
+    xSocket.usLocalPort = ( uint16_t ) ~0U;
+    xSocket.xEventBits = 0;
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+
+    vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
 
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -769,11 +823,12 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void )
 {
     IPStackEvent_t xReceivedEvent;
-    NetworkInterface_t xNetworkInterface, * pxInterface = &xNetworkInterface;
+    NetworkInterface_t xNetworkInterface[2], * pxInterface = &xNetworkInterface[1];
     SocketSelect_t * pxSocketSet = malloc( sizeof( SocketSelect_t ) );
 
     xNetworkDownEventPending = pdTRUE;
-    pxInterface->bits.bCallDownEvent = pdTRUE_UNSIGNED;
+    xNetworkInterface[0].bits.bCallDownEvent = pdFALSE_UNSIGNED;
+    xNetworkInterface[1].bits.bCallDownEvent = pdTRUE_UNSIGNED;
 
     xReceivedEvent.eEventType = eSocketSetDeleteEvent;
     xReceivedEvent.pvData = pxSocketSet;
@@ -787,7 +842,8 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
 
     vEventGroupDelete_Expect( pxSocketSet->xSelectGroup );
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( pxInterface );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xNetworkInterface[0] );
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xNetworkInterface[0], pxInterface );
     /* Since network down event is pending, a call to this function should be expected. */
     prvProcessNetworkDownEvent_Expect( pxInterface );
 

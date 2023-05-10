@@ -360,7 +360,7 @@ static void prvProcessIPEventsAndTimers( void )
 
                 default:
                     /* MISRA 16.4 Compliance */
-                    break;
+                    configASSERT( pdFALSE );
             }
 
             xAddress.sin_port = FreeRTOS_ntohs( pxSocket->usLocalPort );
