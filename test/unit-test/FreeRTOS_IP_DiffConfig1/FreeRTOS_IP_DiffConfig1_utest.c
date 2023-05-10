@@ -414,3 +414,32 @@ void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfigBackwardCompatible(
     TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
 }
+
+void test_FreeRTOS_GetAddressConfiguration_HappyPath( void )
+{
+    uint32_t ulIPAddress;
+    uint32_t ulNetMask;
+    uint32_t ulGatewayAddress;
+    uint32_t ulDNSServerAddress;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    xEndPoint.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.ipv4_settings.ulNetMask = 2;
+    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 4;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
+    TEST_ASSERT_EQUAL( 1, ulIPAddress );
+    TEST_ASSERT_EQUAL( 2, ulNetMask );
+    TEST_ASSERT_EQUAL( 3, ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 4, ulDNSServerAddress );
+}
+
+void test_FreeRTOS_GetAddressConfiguration_NoEndpoint( void )
+{
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
+    FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, NULL );
+}
