@@ -99,13 +99,10 @@
 /** @brief Don't allow the lease time to be too short. */
     #define dhcpv6MINIMUM_LEASE_TIME                   ( pdMS_TO_TICKS( 60000U ) ) /* 60 seconds in ticks. */
 
-    #define ipDHCP_CLIENT_PORT                    67U
-    #define ipDHCP_SERVER_PORT                    68U
-
 /** @brief Default v6 DHCP client port. */
-    #define ipDHCPv6_CLIENT_PORT                  546U
+    #define ipDHCPv6_CLIENT_PORT                       546U
     /** @brief Default v6 DHCP server port. */
-    #define ipDHCPv6_SERVER_PORT                  547U
+    #define ipDHCPv6_SERVER_PORT                       547U
 
 /** @brief The ID of a client or a server. */
     typedef struct xClientServerID
