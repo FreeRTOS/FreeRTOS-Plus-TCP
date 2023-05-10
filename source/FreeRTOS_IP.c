@@ -938,29 +938,9 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 BaseType_t FreeRTOS_IPInit_Multi( void )
 {
     BaseType_t xReturn = pdFALSE;
-    NetworkEndPoint_t * pxFirstEndPoint;
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
-
-    pxFirstEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-    #if ( ipconfigUSE_IPv6 != 0 )
-        if( ENDPOINT_IS_IPv6( pxFirstEndPoint ) )
-        {
-            for( ;
-                 pxFirstEndPoint != NULL;
-                 pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
-            {
-                if( ENDPOINT_IS_IPv4( pxFirstEndPoint ) )
-                {
-                    break;
-                }
-            }
-        }
-    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-        ( void ) pxFirstEndPoint;
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     /* Check that the configuration values are correct and that the IP-task has not
      * already been initialized. */

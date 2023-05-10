@@ -3048,3 +3048,9 @@ void test_CastingFunctions( void )
     const ProtocolHeaders_t * pxConstProtHeader = ( ( const ProtocolHeaders_t * ) pvPtr );
     ProtocolHeaders_t * pxProtHeader = ( ( ProtocolHeaders_t * ) pvPtr );
 }
+
+void test_FreeRTOS_IPInit_Multi_NoInterface( void )
+{
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( NULL );
+    catch_assert( FreeRTOS_IPInit_Multi() );
+}
