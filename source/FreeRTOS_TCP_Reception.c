@@ -464,28 +464,43 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        if( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
+        switch( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType )
         {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            const IPHeader_IPv6_t * pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                   {
+                       /* MISRA Ref 11.3.1 [Misaligned access] */
+                       /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                       /* coverity[misra_c_2012_rule_11_3_violation] */
+                       const IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
-            /* For Coverity: conversion and cast in 2 steps. */
-            usLength = FreeRTOS_htons( pxIPHeader->usPayloadLength );
-            lLength = ( int32_t ) usLength;
-            /* Add the length of the TCP-header, because that was not included in 'usPayloadLength'. */
-            lLength += ( int32_t ) sizeof( IPHeader_IPv6_t );
-        }
-        else
-        {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            const IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                       usLength = FreeRTOS_htons( pxIPHeader->usLength );
+                       lLength = ( int32_t ) usLength;
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-            usLength = FreeRTOS_htons( pxIPHeader->usLength );
-            lLength = ( int32_t ) usLength;
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                   {
+                       /* MISRA Ref 11.3.1 [Misaligned access] */
+                       /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                       /* coverity[misra_c_2012_rule_11_3_violation] */
+                       const IPHeader_IPv6_t * pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+                       /* For Coverity: conversion and cast in 2 steps. */
+                       usLength = FreeRTOS_htons( pxIPHeader->usPayloadLength );
+                       lLength = ( int32_t ) usLength;
+                       /* Add the length of the TCP-header, because that was not included in 'usPayloadLength'. */
+                       lLength += ( int32_t ) sizeof( IPHeader_IPv6_t );
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* Shouldn't reach here */
+                lLength = 0;
+                break;
         }
 
         if( lReceiveLength > lLength )

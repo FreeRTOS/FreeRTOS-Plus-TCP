@@ -384,6 +384,7 @@ void test_usGenerateProtocolChecksum_AllZeroedInput( void )
     BaseType_t xOutgoingPacket;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+    ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -398,6 +399,7 @@ void test_usGenerateProtocolChecksum_InvalidLength( void )
     BaseType_t xOutgoingPacket;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+    ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
@@ -414,6 +416,7 @@ void test_usGenerateProtocolChecksum_InvalidLength2( void )
     IPPacket_t * pxIPPacket;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+    ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
@@ -437,6 +440,7 @@ void test_usGenerateProtocolChecksum_InvalidLength3( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -459,7 +463,7 @@ void test_usGenerateProtocolChecksum_UDPWrongCRCIncomingPacket( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -483,7 +487,7 @@ void test_usGenerateProtocolChecksum_UDPInvalidLength( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -507,7 +511,7 @@ void test_usGenerateProtocolChecksum_UDPOutgoingPacket( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -534,7 +538,7 @@ void test_usGenerateProtocolChecksum_UDPNonZeroChecksum( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -566,7 +570,7 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -596,7 +600,7 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -626,7 +630,7 @@ void test_usGenerateProtocolChecksum_UDPIncorrectCRC( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -655,7 +659,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -688,7 +692,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacket( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -718,7 +722,7 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC_IncomingPacket( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -747,7 +751,7 @@ void test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -778,7 +782,7 @@ void test_usGenerateProtocolChecksum_TCPInvalidLength( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -807,7 +811,7 @@ void test_usGenerateProtocolChecksum_TCPInvalidLength2( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -836,7 +840,7 @@ void test_usGenerateProtocolChecksum_TCPInvalidLength3( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -865,7 +869,7 @@ void test_usGenerateProtocolChecksum_ICMPInvalidLength( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
@@ -892,7 +896,7 @@ void test_usGenerateProtocolChecksum_ICMPInvalidLength2( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
@@ -919,7 +923,7 @@ void test_usGenerateProtocolChecksum_ICMPInvalidLength3( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
@@ -946,7 +950,7 @@ void test_usGenerateProtocolChecksum_ICMPOutgoingChecksum( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
@@ -974,7 +978,7 @@ void test_usGenerateProtocolChecksum_ICMPIncomingIncorrectCRC( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
@@ -1002,7 +1006,7 @@ void test_usGenerateProtocolChecksum_ICMPIncomingCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
@@ -1032,7 +1036,7 @@ void test_usGenerateProtocolChecksum_IGMPInvalidLength( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
@@ -1059,7 +1063,7 @@ void test_usGenerateProtocolChecksum_IGMPInvalidLength2( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
@@ -1086,7 +1090,7 @@ void test_usGenerateProtocolChecksum_IGMPInvalidLength3( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
@@ -1113,7 +1117,7 @@ void test_usGenerateProtocolChecksum_IGMPOutgoingChecksum( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
@@ -1141,7 +1145,7 @@ void test_usGenerateProtocolChecksum_IGMPIncomingIncorrectCRC( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;
@@ -1169,7 +1173,7 @@ void test_usGenerateProtocolChecksum_IGMPIncomingCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_IGMP;

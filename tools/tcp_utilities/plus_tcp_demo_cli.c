@@ -325,23 +325,25 @@ static const char * pcARPReturnType( eARPLookupResult_t eResult )
 }
 /*-----------------------------------------------------------*/
 
-static NetworkEndPoint_t * pxFindEndpoint( IPv6_Address_t * pxAddress )
-{
-    NetworkEndPoint_t * pxEndpoint;
-
-    for( pxEndpoint = FreeRTOS_FirstEndPoint( NULL );
-         pxEndpoint != NULL;
-         pxEndpoint = FreeRTOS_NextEndPoint( NULL, pxEndpoint ) )
+#if ( ipconfigUSE_IPv6 != 0 )
+    static NetworkEndPoint_t * pxFindEndpoint( IPv6_Address_t * pxAddress )
     {
-        if( memcmp( pxEndpoint->ipv6_settings.xGatewayAddress.ucBytes, pxAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
-        {
-            break;
-        }
-    }
+        NetworkEndPoint_t * pxEndpoint;
 
-    return pxEndpoint;
-}
+        for( pxEndpoint = FreeRTOS_FirstEndPoint( NULL );
+             pxEndpoint != NULL;
+             pxEndpoint = FreeRTOS_NextEndPoint( NULL, pxEndpoint ) )
+        {
+            if( memcmp( pxEndpoint->ipv6_settings.xGatewayAddress.ucBytes, pxAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+            {
+                break;
+            }
+        }
+
+        return pxEndpoint;
+    }
 /*-----------------------------------------------------------*/
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
 static void handle_udp( char * pcBuffer )
 {
@@ -534,17 +536,28 @@ static void handle_arpq( char * pcBuffer )
         ulLookUpIP = ulIPAddress;
         xLookupAddress = xAddress;
 
-        if( xIPType == ipTYPE_IPv6 )
+        switch( xIPType )
         {
-            eResult = eNDGetCacheEntry( &( xLookupAddress.xIP_IPv6 ), &xMACAddress, &pxEndPoint );
-            FreeRTOS_printf( ( "ARPGetCacheEntry returns \"%s\" Look for %pip. Found end-point: %s\n",
-                               pcARPReturnType( eResult ), xAddress.xIP_IPv6.ucBytes, ( pxEndPoint != NULL ) ? "yes" : "no" ) );
-        }
-        else
-        {
-            eResult = eARPGetCacheEntry( &ulLookUpIP, &xMACAddress, &pxEndPoint );
-            FreeRTOS_printf( ( "ARPGetCacheEntry returns \"%s\" Look for %xip. Found end-point: %s\n",
-                               pcARPReturnType( eResult ), ( unsigned ) FreeRTOS_htonl( ulLookUpIP ), ( pxEndPoint != NULL ) ? "yes" : "no" ) );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipTYPE_IPv4:
+                    eResult = eARPGetCacheEntry( &ulLookUpIP, &xMACAddress, &pxEndPoint );
+                    FreeRTOS_printf( ( "ARPGetCacheEntry returns \"%s\" Look for %xip. Found end-point: %s\n",
+                                       pcARPReturnType( eResult ), ( unsigned ) FreeRTOS_htonl( ulLookUpIP ), ( pxEndPoint != NULL ) ? "yes" : "no" ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipTYPE_IPv6:
+                    eResult = eNDGetCacheEntry( &( xLookupAddress.xIP_IPv6 ), &xMACAddress, &pxEndPoint );
+                    FreeRTOS_printf( ( "ARPGetCacheEntry returns \"%s\" Look for %pip. Found end-point: %s\n",
+                                       pcARPReturnType( eResult ), xAddress.xIP_IPv6.ucBytes, ( pxEndPoint != NULL ) ? "yes" : "no" ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* MISRA 16.4 Compliance */
+                FreeRTOS_debug_printf( ( "handle_arpq: Undefined IP Type \n" ) );
+                break;
         }
 
         if( ( eResult == eARPCacheMiss ) && ( pxEndPoint != NULL ) )
@@ -558,49 +571,71 @@ static void handle_arpq( char * pcBuffer )
 
             NetworkBufferDescriptor_t * pxBuffer;
 
-            if( xIPType == ipTYPE_IPv6 )
+            switch( xIPType )
             {
-                pxBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 180 ) uxNeededSize, pdMS_TO_TICKS( 100U ) );
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipTYPE_IPv4:
+                        FreeRTOS_printf( ( "handle_arpq: Looking up %xip\n",
+                                           ( unsigned ) FreeRTOS_ntohl( ulLookUpIP ) ) );
 
-                if( pxBuffer != NULL )
-                {
-                    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxBuffer->pucEthernetBuffer );
+                        xARPWaitResolution( ulLookUpIP, 1000U );
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                    /* 'ulLookUpIP' might be the IP-address of a gateway. */
-                    memcpy( pxBuffer->xIPAddress.xIP_IPv6.ucBytes, xLookupAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-                    pxBuffer->pxEndPoint = pxEndPoint;
-                    pxBuffer->pxInterface = pxBuffer->pxEndPoint->pxNetworkInterface;
-                    FreeRTOS_printf( ( "handle_arpq: Looking up %pip with%s end-point\n",
-                                       pxBuffer->xIPAddress.xIP_IPv6.ucBytes,
-                                       ( pxBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipTYPE_IPv6:
+                        pxBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 180 ) uxNeededSize, pdMS_TO_TICKS( 100U ) );
 
-                    vNDSendNeighbourSolicitation( pxBuffer, &( pxBuffer->xIPAddress.xIP_IPv6 ) );
-                }
-                else
-                {
-                    FreeRTOS_printf( ( "handle_arpq: pxGetNetworkBufferWithDescriptor failed\n" ) );
-                }
-            }
-            else
-            {
-                FreeRTOS_printf( ( "handle_arpq: Looking up %xip\n",
-                                   ( unsigned ) FreeRTOS_ntohl( ulLookUpIP ) ) );
+                        if( pxBuffer != NULL )
+                        {
+                            UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxBuffer->pucEthernetBuffer );
 
-                xARPWaitResolution( ulLookUpIP, 1000U );
+                            /* 'ulLookUpIP' might be the IP-address of a gateway. */
+                            memcpy( pxBuffer->xIPAddress.xIP_IPv6.ucBytes, xLookupAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                            pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+                            pxBuffer->pxEndPoint = pxEndPoint;
+                            pxBuffer->pxInterface = pxBuffer->pxEndPoint->pxNetworkInterface;
+                            FreeRTOS_printf( ( "handle_arpq: Looking up %pip with%s end-point\n",
+                                               pxBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                                               ( pxBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+
+                            vNDSendNeighbourSolicitation( pxBuffer, &( pxBuffer->xIPAddress.xIP_IPv6 ) );
+                        }
+                        else
+                        {
+                            FreeRTOS_printf( ( "handle_arpq: pxGetNetworkBufferWithDescriptor failed\n" ) );
+                        }
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    /* MISRA 16.4 Compliance */
+                    FreeRTOS_debug_printf( ( "handle_arpq: Undefined IP Type \n" ) );
+                    break;
             }
 
             /* Let the IP-task do its work, and wait 500 ms. */
             FreeRTOS_printf( ( "... Pause ...\n" ) );
             vTaskDelay( pdMS_TO_TICKS( 500U ) );
 
-            if( xIPType == ipTYPE_IPv6 )
+            switch( xIPType )
             {
-                eResult = eNDGetCacheEntry( &( xLookupAddress.xIP_IPv6 ), &xMACAddress, &pxEndPoint );
-            }
-            else
-            {
-                eResult = eARPGetCacheEntry( &ulLookUpIP, &xMACAddress, &pxEndPoint );
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipTYPE_IPv4:
+                        eResult = eARPGetCacheEntry( &ulLookUpIP, &xMACAddress, &pxEndPoint );
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipTYPE_IPv6:
+                        eResult = eNDGetCacheEntry( &( xLookupAddress.xIP_IPv6 ), &xMACAddress, &pxEndPoint );
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    /* MISRA 16.4 Compliance */
+                    FreeRTOS_debug_printf( ( "handle_arpq: Undefined IP Type \n" ) );
+                    break;
             }
 
             FreeRTOS_printf( ( "handle_arpq: after lookup: \"%s\"\n",
@@ -635,8 +670,9 @@ static void handle_arpq( char * pcBuffer )
         }
     }
 /*-----------------------------------------------------------*/
+#endif /* ( ipconfigMULTI_INTERFACE != 0 ) */
 
-#else /* if ( ipconfigMULTI_INTERFACE != 0 ) */
+#if ( ( ipconfigMULTI_INTERFACE == 0 ) && ( ipconfigUSE_IPv4 != 0 ) )
 
     static void handle_dnsq( char * pcBuffer )
     {
@@ -750,8 +786,8 @@ static void handle_arpq( char * pcBuffer )
             FreeRTOS_printf( ( "Usage: dnsquery <name>\n" ) );
         }
     }
-#endif /* ( ipconfigMULTI_INTERFACE != 0 ) */
 /*-----------------------------------------------------------*/
+#endif /* ( ( ipconfigMULTI_INTERFACE == 0 ) && ( ipconfigUSE_IPv4 != 0 ) ) */
 
 static void handle_rand( char * pcBuffer )
 {
@@ -993,28 +1029,37 @@ static void handle_help( char * pcBuffer )
 
         if( pxDNSResult != NULL )
         {
-            #if ( ipconfigUSE_IPv6 != 0 )
-                if( xOptions.xIPVersion == 6 )
-                {
-                    FreeRTOS_printf( ( "ping6 to '%s' (%pip)\n", pcHostname, pxDNSResult->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
-                    xPing4Count = -1;
-                    xPing6Count = 0;
-                    memcpy( xPing6IPAddress.ucBytes, pxDNSResult->ai_addr->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    FreeRTOS_SendPingRequestIPv6( &xPing6IPAddress, uxPingSize, PING_TIMEOUT );
-                    uxPingTimes[ 0 ] = ( TickType_t ) ullGetHighResolutionTime();
-                }
-                else
-            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            switch( xOptions.xIPVersion )
             {
-                FreeRTOS_printf( ( "ping4 to '%s' (%xip)\n", pcHostname, ( unsigned ) FreeRTOS_ntohl( pxDNSResult->ai_addr->sin_address.ulIP_IPv4 ) ) );
-                xPing4Count = 0;
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case 4:
+                        FreeRTOS_printf( ( "ping4 to '%s' (%xip)\n", pcHostname, ( unsigned ) FreeRTOS_ntohl( pxDNSResult->ai_addr->sin_address.ulIP_IPv4 ) ) );
+                        xPing4Count = 0;
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            xPing6Count = -1;
+                        #endif
+                        ulPingIPAddress = pxDNSResult->ai_addr->sin_address.ulIP_IPv4;
+                        xARPWaitResolution( ulPingIPAddress, pdMS_TO_TICKS( 5000U ) );
+                        FreeRTOS_SendPingRequest( ulPingIPAddress, uxPingSize, PING_TIMEOUT );
+                        uxPingTimes[ 0 ] = ( TickType_t ) ullGetHighResolutionTime();
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
                 #if ( ipconfigUSE_IPv6 != 0 )
-                    xPing6Count = -1;
-                #endif
-                ulPingIPAddress = pxDNSResult->ai_addr->sin_address.ulIP_IPv4;
-                xARPWaitResolution( ulPingIPAddress, pdMS_TO_TICKS( 5000U ) );
-                FreeRTOS_SendPingRequest( ulPingIPAddress, uxPingSize, PING_TIMEOUT );
-                uxPingTimes[ 0 ] = ( TickType_t ) ullGetHighResolutionTime();
+                    case 6:
+                        FreeRTOS_printf( ( "ping6 to '%s' (%pip)\n", pcHostname, pxDNSResult->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
+                        xPing4Count = -1;
+                        xPing6Count = 0;
+                        memcpy( xPing6IPAddress.ucBytes, pxDNSResult->ai_addr->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        FreeRTOS_SendPingRequestIPv6( &xPing6IPAddress, uxPingSize, PING_TIMEOUT );
+                        uxPingTimes[ 0 ] = ( TickType_t ) ullGetHighResolutionTime();
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    /* MISRA 16.4 Compliance */
+                    FreeRTOS_debug_printf( ( "handle_ping: Undefined IP Type \n" ) );
+                    break;
             }
         }
         else
@@ -1391,37 +1436,41 @@ void xHandleTesting()
                     pxResult->ai_canonname = pxResult->xPrivateStorage.ucName;
                     strncpy( pxResult->xPrivateStorage.ucName, pcHost, sizeof( pxResult->xPrivateStorage.ucName ) );
 
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        {
-                            pxResult->ai_addr = ( struct freertos_sockaddr * ) &( pxResult->xPrivateStorage.sockaddr );
-                        }
-                    #else
-                        {
-                            pxResult->ai_addr = &( pxResult->xPrivateStorage.sockaddr4 );
-                        }
-                    #endif
+                    pxResult->ai_addr = &( pxResult->xPrivateStorage.sockaddr );
 
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        memset( xAddress_IPv6.ucBytes, '\0', sizeof( xAddress_IPv6.ucBytes ) );
-
-                        if( xIPVersion == 6 )
-                        {
-                            FreeRTOS_dnslookup6( pcHost, &( xAddress_IPv6 ) );
-                            FreeRTOS_printf( ( "Lookup6 '%s' = %pip\n", pcHost, xAddress_IPv6.ucBytes ) );
-                            pxResult->ai_family = FREERTOS_AF_INET6;
-                            pxResult->ai_addrlen = ipSIZE_OF_IPv6_ADDRESS;
-                            memcpy( pxResult->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes, xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        }
-                        else
-                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                    switch( xIPVersion )
                     {
-                        #if ( ipconfigUSE_DNS_CACHE != 0 )
-                            ulIpAddress = FreeRTOS_dnslookup( pcHost );
-                            FreeRTOS_printf( ( "Lookup4 '%s' = %lxip\n", pcHost, FreeRTOS_ntohl( ulIpAddress ) ) );
-                            pxResult->ai_addr->sin_address.ulIP_IPv4 = ulIpAddress;
-                            pxResult->ai_family = FREERTOS_AF_INET4;
-                            pxResult->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
-                        #endif
+                        #if ( ipconfigUSE_IPv4 != 0 )
+                            case 4:
+                                #if ( ipconfigUSE_DNS_CACHE != 0 )
+                                    ulIpAddress = FreeRTOS_dnslookup( pcHost );
+                                    FreeRTOS_printf( ( "Lookup4 '%s' = %lxip\n", pcHost, FreeRTOS_ntohl( ulIpAddress ) ) );
+                                    pxResult->ai_addr->sin_address.ulIP_IPv4 = ulIpAddress;
+                                    pxResult->ai_family = FREERTOS_AF_INET4;
+                                    pxResult->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
+                                #endif
+                                break;
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            case 6:
+                                memset( xAddress_IPv6.ucBytes, '\0', sizeof( xAddress_IPv6.ucBytes ) );
+
+                                if( xIPVersion == 6 )
+                                {
+                                    FreeRTOS_dnslookup6( pcHost, &( xAddress_IPv6 ) );
+                                    FreeRTOS_printf( ( "Lookup6 '%s' = %pip\n", pcHost, xAddress_IPv6.ucBytes ) );
+                                    pxResult->ai_family = FREERTOS_AF_INET6;
+                                    pxResult->ai_addrlen = ipSIZE_OF_IPv6_ADDRESS;
+                                    memcpy( pxResult->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes, xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                }
+                                break;
+                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                        default:
+                            /* MISRA 16.4 Compliance */
+                            FreeRTOS_debug_printf( ( "pxDNSLookup: Undefined IP Version Type \n" ) );
+                            break;
                     }
                 }
             }
@@ -1451,40 +1500,55 @@ void xHandleTesting()
         {
             FreeRTOS_printf( ( "vDNSEvent: family = %d\n", ( int ) pxAddrInfo->ai_family ) );
 
-            if( pxAddrInfo->ai_family == FREERTOS_AF_INET6 )
+            switch( pxAddrInfo->ai_family )
             {
-                BaseType_t xIsEmpty = pdTRUE, xIndex;
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case FREERTOS_AF_INET:
+                       {
+                           uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
 
-                for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
-                {
-                    if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
-                    {
-                        xIsEmpty = pdFALSE;
-                        break;
-                    }
-                }
+                           if( ulIPaddress == 0uL )
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
+                           }
+                           else
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
+                           }
+                       }
+                       break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                if( xIsEmpty )
-                {
-                    FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
-                }
-                else
-                {
-                    FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
-                }
-            }
-            else
-            {
-                uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case FREERTOS_AF_INET6:
+                       {
+                           BaseType_t xIsEmpty = pdTRUE, xIndex;
 
-                if( ulIPaddress == 0uL )
-                {
-                    FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
-                }
-                else
-                {
-                    FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
-                }
+                           for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
+                           {
+                               if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
+                               {
+                                   xIsEmpty = pdFALSE;
+                                   break;
+                               }
+                           }
+
+                           if( xIsEmpty )
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
+                           }
+                           else
+                           {
+                               FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
+                           }
+                       }
+                       break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    /* MISRA 16.4 Compliance */
+                    FreeRTOS_debug_printf( ( "vDNSEvent: Undefined Family Type \n" ) );
+                    break;
             }
         }
 
@@ -1608,7 +1672,9 @@ static void clear_caches()
     #if ( ipconfigUSE_DNS_CACHE != 0 )
         {
             FreeRTOS_dnsclear();
-            FreeRTOS_ClearND();
+            #if ( ipconfigUSE_IPv6 != 0 )
+                FreeRTOS_ClearND();
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         }
     #endif /* ipconfigUSE_DNS_CACHE */
     #if ( ipconfigMULTI_INTERFACE != 0 )
