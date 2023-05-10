@@ -48,6 +48,17 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
+extern const struct xIPv6_Address xIPv6UnspecifiedAddress;
+
+/* First IPv6 address is 2001:1234:5678::5 */
+const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
+
+/* Second IPv6 address is 2001:1234:5678::10 */
+const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
+
+/* MAC Address for endpoint. */
+const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
+
 /* ============================  Unity Fixtures  ============================ */
 
 /*! called before each test case */
@@ -62,7 +73,247 @@ void tearDown( void )
 
 /* ======================== Stub Callback Functions ========================= */
 
+static NetworkEndPoint_t * prvInitializeEndpoint()
+{
+    static NetworkEndPoint_t xEndpoint;
+
+    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
+    xEndpoint.bits.bIPv6 = 1U;
+    memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    return &xEndpoint;
+}
+
+/*
+ * Prepare a network buffer with following format:
+ *  - Ethernet Header
+ *  - IPv6 Header
+ *  - TCP Header
+ *  - 8 Bytes Payload
+ */
+static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptor()
+{
+    static NetworkBufferDescriptor_t xNetworkBuffer;
+    static uint8_t pcNetworkBuffer[ sizeof( TCPPacket_IPv6_t ) + 8U ];
+    TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pcNetworkBuffer;
+
+    /* Initialize network buffer descriptor. */
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    xNetworkBuffer.pxEndPoint = prvInitializeEndpoint();
+    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pxTCPPacket;
+    xNetworkBuffer.xDataLength = sizeof( TCPPacket_IPv6_t ) + 8U;
+
+    /* Initialize network buffer. */
+    memset( pcNetworkBuffer, 0, sizeof( pcNetworkBuffer ) );
+    /* Ethernet part. */
+    memcpy( pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
+    memcpy( pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
+    pxTCPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    /* IP part. */
+    memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPAddressTen.ucBytes, sizeof( IPv6_Address_t ) );
+    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, sizeof( IPv6_Address_t ) );
+    pxTCPPacket->xIPHeader.ucVersionTrafficClass |= 6U << 4;
+    pxTCPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) + 8U );
+    pxTCPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
+
+    return &xNetworkBuffer;
+}
+
 /* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_happy_path
+ * Prepare a packet with valid length. Check if prvAllowIPPacketIPv6 determines to process it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_happy_path()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_valid_ext_header_length
+ * Prepare a IPv6 packet with extension header. Check if prvAllowIPPacketIPv6 determines to process it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_valid_ext_header_length()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+    /* Modify the extension header */
+    pxIPPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0U;
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_buffer_length_less_than_ip_header
+ * Prepare a packet with length less than IPv6 header. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_buffer_length_less_than_ip_header()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxNetworkBuffer->xDataLength = sizeof( IPHeader_IPv6_t ) - 1U;
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_not_an_ipv6_packet
+ * Prepare a packet with IPv4 version in header. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_not_an_ipv6_packet()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxIPPacket->xIPHeader.ucVersionTrafficClass = 4U << 4;
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_buffer_length_less_than_eth_ip_header
+ * Prepare a packet with length less than Ethernet header + IPv6 header. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_buffer_length_less_than_eth_ip_header()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxNetworkBuffer->xDataLength = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) - 1U;
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_wrong_ip_length
+ * The length in IP header is not equal to real network buffer size. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_wrong_ip_length()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Modify the length in IP header */
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_large_ext_header_length
+ * The extension header length larger than real network buffer size.
+ * Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_large_ext_header_length()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+    /* Modify the extension header */
+    pxIPPacket->xIPHeader.ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 200U; /* 200 * 8 + 8 = 1608 bytes in this extension header. */
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_unknown_procotol
+ * The protocol in IP header is unknown. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_unknown_procotol()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to unknown value */
+    pxIPPacket->xIPHeader.ucNextHeader = 0xFF;
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_TCP_min_requirement
+ * The buffer size is less than TCP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_TCP_min_requirement()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to TCP */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_UDP_min_requirement
+ * The buffer size is less than UDP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_UDP_min_requirement()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to UDP */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement
+ * The buffer size is less than ICMP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to ICMPv6 */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
 
 /**
  * @brief test_prvAllowIPPacketIPv6_source_unspecified_address
@@ -71,5 +322,13 @@ void tearDown( void )
  */
 void test_prvAllowIPPacketIPv6_source_unspecified_address()
 {
-    return;
+    IPHeader_IPv6_t xIPv6Address;
+    eFrameProcessingResult_t eResult;
+
+    memset( &xIPv6Address, 0, sizeof( xIPv6Address ) );
+    memcpy( xIPv6Address.xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xIPv6Address.xSourceAddress.ucBytes, xIPv6UnspecifiedAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    eResult = prvAllowIPPacketIPv6( &xIPv6Address, NULL, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }

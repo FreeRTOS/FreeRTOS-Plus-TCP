@@ -35,7 +35,7 @@
 
 #define ipconfigUSE_IPv4                           ( 1 )
 #define ipconfigUSE_IPv6                           ( 1 )
-#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    ( 1 )
+#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    ( 0 )
 
 #define ipconfigMULTI_INTERFACE                    1
 #define ipconfigIPv4_BACKWARD_COMPATIBLE           0
