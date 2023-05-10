@@ -91,8 +91,12 @@ const IPv6_Address_t xGatewayIPAddress =
 /* IPv6 default MAC address. */
 const MACAddress_t xDefaultMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
 
-#define xHeaderSize    ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t ) )
-/*#define xDataLength 100 */
+#define xHeaderSize                                   ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t ) )
+
+/** @brief When ucAge becomes 3 or less, it is time for a new
+ * neighbour solicitation.
+ */
+#define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
 
 static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
@@ -286,13 +290,12 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_Gateway( void )
     eARPLookupResult_t eResult;
     BaseType_t xUseEntry = 0;
 
-    pxEndPoint = &xEndPoint1;
-    memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    pxEndPoint = &xEndPoint2;
+    memcpy( xEndPoint1.ipv6_settings.xGatewayAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
     memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
-    /*pxEndPoint = &xEndPoint; */
     memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
@@ -302,7 +305,7 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_Gateway( void )
 
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint1 );
 
-    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &xEndPoint2 );
+    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
     TEST_ASSERT_EQUAL_MEMORY( xMACAddress.ucBytes, xNDCache[ xUseEntry ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
@@ -320,13 +323,12 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_Gateway( void )
     eARPLookupResult_t eResult;
     BaseType_t xUseEntry = 0;
 
-    pxEndPoint = &xEndPoint1;
-    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndPoint = &xEndPoint2;
+    memset( &xEndPoint1, 0, sizeof( NetworkEndPoint_t ) );
     memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
     memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
-    /*pxEndPoint = &xEndPoint; */
     memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
@@ -336,7 +338,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_Gateway( void )
 
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( &xEndPoint1 );
 
-    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &xEndPoint2 );
+    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
     TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
 }
@@ -533,6 +535,27 @@ void test_vNDAgeCache_InvalidEntry( void )
 }
 
 /**
+ * @brief This function checks the case when the entry age is
+ *        less than ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION.
+ *        This entry will get removed soon.
+ */
+
+void test_vNDAgeCache_ValidEntry( void )
+{
+    BaseType_t xUseEntry = 1;
+
+    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+
+    /*Update Entry one as invalid ucValid = 0 */
+    xNDCache[ xUseEntry ].ucAge = ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION;
+    xNDCache[ xUseEntry ].ucValid = 1;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+
+    vNDAgeCache();
+}
+
+/**
  * @brief This function checks the case when The age has just ticked down,
  *        with nothing to do.
  */
@@ -640,7 +663,7 @@ void test_vNDAgeCache_NS_HappyPath( void )
     xNDCache[ xUseEntry ].pxEndPoint = &xEndPoint;
     xEndPoint.bits.bIPv6 = 1;
     xNetworkBuffer.xDataLength = xHeaderSize;
-    xNetworkBuffer.pucEthernetBuffer = &xICMPPacket;
+    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );
@@ -697,12 +720,44 @@ void test_FreeRTOS_PrintNDCache( void )
     FreeRTOS_PrintNDCache();
 }
 
-
 /*
  * ===================================================
  *       Test for vNDSendNeighbourSolicitation
  * ===================================================
  */
+
+/**
+ * @brief This function handles the case when vNDSendNeighbourSolicitation
+ *        fails as endpoint is NULL.
+ */
+
+void test_vNDSendNeighbourSolicitation_NULL_EP( void )
+{
+    IPv6_Address_t xIPAddress;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+
+    xNetworkBuffer.pxEndPoint = NULL;
+
+    vNDSendNeighbourSolicitation( &xNetworkBuffer, &xIPAddress );
+}
+
+/**
+ * @brief This function handles the case when vNDSendNeighbourSolicitation
+ *        fails as bIPv6 is not set.
+ */
+
+void test_vNDSendNeighbourSolicitation_bIPv6_NotSet( void )
+{
+    IPv6_Address_t xIPAddress;
+    NetworkEndPoint_t xEndPoint;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+
+    xEndPoint.bits.bIPv6 = pdFALSE;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+
+
+    vNDSendNeighbourSolicitation( &xNetworkBuffer, &xIPAddress );
+}
 
 /**
  * @brief This function Send out an ND request for the IPv6 address contained in pxNetworkBuffer, and
@@ -722,7 +777,7 @@ void test_vNDSendNeighbourSolicitation_HappyPath( void )
     xEndPoint.bits.bIPv6 = 1;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
     xNetworkBuffer.xDataLength = xHeaderSize;
-    xNetworkBuffer.pucEthernetBuffer = &xICMPPacket;
+    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );
@@ -918,7 +973,28 @@ void test_prvProcessICMPMessage_IPv6_NULL_EP( void )
     eFrameProcessingResult_t eReturn;
 
     pxNetworkBuffer->pxEndPoint = NULL;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+}
+
+/**
+ * @brief This function process ICMP message when endpoint is valid
+ *        but the bIPv6 bit is false indicating IPv4 message.
+ */
+
+void test_prvProcessICMPMessage_IPv6_EP( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    eFrameProcessingResult_t eReturn;
+    NetworkEndPoint_t xEndPoint;
+
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -940,7 +1016,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_DEST_UNREACHABLE_IPv6( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_DEST_UNREACHABLE_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -962,7 +1038,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PACKET_TOO_BIG_IPv6( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PACKET_TOO_BIG_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -984,7 +1060,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_TIME_EXEEDED_IPv6( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_TIME_EXEEDED_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1006,7 +1082,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PARAMETER_PROBLEM_IPv6( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PARAMETER_PROBLEM_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1028,7 +1104,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_ROUTER_SOLICITATION_IPv6( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1050,7 +1126,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_ROUTER_ADVERTISEMENT_IPv6( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_ROUTER_ADVERTISEMENT_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1080,7 +1156,40 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_IncorrectSize( voi
     /* Assign less size than expected */
     pxNetworkBuffer->xDataLength = uxICMPSize;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+}
+
+/**
+ * @brief This function process ICMP message when message type is
+ *        ipICMP_PING_REQUEST_IPv6.
+ */
+
+void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_CorrectSize_Assert1( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    size_t uxICMPSize, uxNeededSize;
+    uint16_t usICMPSize;
+
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REQUEST_IPv6;
+    xICMPPacket.xIPHeader.usPayloadLength = 100;
+    usICMPSize = FreeRTOS_ntohs( xICMPPacket.xIPHeader.usPayloadLength );
+    uxICMPSize = ( size_t ) usICMPSize;
+    uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
+    /* Assign less size than expected */
+    pxNetworkBuffer->xDataLength = uxNeededSize + 1;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+
+    usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );
+    vReturnEthernetFrame_ExpectAnyArgs();
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1110,7 +1219,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_CorrectSize( void 
     /* Assign less size than expected */
     pxNetworkBuffer->xDataLength = uxNeededSize + 1;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );
     vReturnEthernetFrame_ExpectAnyArgs();
@@ -1132,7 +1241,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eInvalidData( void )
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
     ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
-    ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( const ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
+    ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
     NetworkEndPoint_t xEndPoint;
     eFrameProcessingResult_t eReturn;
     size_t uxICMPSize, uxNeededSize;
@@ -1147,7 +1256,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eInvalidData( void )
     /* Assign less size than expected */
     pxNetworkBuffer->xDataLength = uxICMPSize;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     vApplicationPingReplyHook_Expect( eInvalidData, pxICMPEchoHeader->usIdentifier );
 
@@ -1162,35 +1271,39 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eInvalidData( void )
  *        It handles case where A reply was received to an outgoing
  *        ping but the payload of the reply was not correct.
  */
-/*TODO */
+
 void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eSuccess( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
-    ICMPPacket_IPv6_t xICMPPacket;
-    ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
-    ICMPEcho_IPv6_t * pxICMPEchoHeader = ( ( const ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
+    ICMPPacket_IPv6_t * pxICMPPacket;
+    ICMPHeader_IPv6_t * pxICMPHeader_IPv6;
+    ICMPEcho_IPv6_t * pxICMPEchoHeader;
+    uint8_t ucBuffer[ sizeof( ICMPPacket_IPv6_t ) + ipBUFFER_PADDING ], * pucByte;
     NetworkEndPoint_t xEndPoint;
+    size_t uxDataLength;
     eFrameProcessingResult_t eReturn;
-    size_t uxICMPSize, uxNeededSize;
-    uint16_t usICMPSize;
-    uint8_t ucBuffer[ sizeof( ICMPPacket_IPv6_t ) + ipBUFFER_PADDING ];
 
-    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
-    xICMPPacket.xIPHeader.usPayloadLength = ipBUFFER_PADDING;
-    usICMPSize = FreeRTOS_ntohs( xICMPPacket.xIPHeader.usPayloadLength );
-    uxICMPSize = ( size_t ) usICMPSize;
-    uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
-    /* Assign less size than expected */
-    pxNetworkBuffer->xDataLength = uxICMPSize;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &ucBuffer;
+    pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxICMPPacket->xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
+    pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_ntohs( ipBUFFER_PADDING );
+    pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+    pxICMPEchoHeader = ( ( ICMPEcho_IPv6_t * ) pxICMPHeader_IPv6 );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
 
-    /*vApplicationPingReplyHook_Expect(eSuccess, pxICMPEchoHeader->usIdentifier); */
+    uxDataLength = ipNUMERIC_CAST( size_t, FreeRTOS_ntohs( pxICMPPacket->xIPHeader.usPayloadLength ) );
+    uxDataLength = uxDataLength - sizeof( ICMPEcho_IPv6_t );
 
-    /* eReturn = prvProcessICMPMessage_IPv6(pxNetworkBuffer); */
+    pucByte = ( ucBuffer + sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + sizeof( ICMPEcho_IPv6_t ) );
 
-    /* TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer); */
+    memset( pucByte, ipECHO_DATA_FILL_BYTE, uxDataLength );
+
+    vApplicationPingReplyHook_Expect( eSuccess, pxICMPEchoHeader->usIdentifier );
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
 }
 
 /**
@@ -1209,7 +1322,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_NULL_EP( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
 
@@ -1235,7 +1348,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_InorrectLen( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->xDataLength = 0;
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
@@ -1264,7 +1377,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_CorrectLen( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->xDataLength = xHeaderSize + ipBUFFER_PADDING;
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
@@ -1290,7 +1403,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->xDataLength = xHeaderSize + ipBUFFER_PADDING;
     memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -1327,7 +1440,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT1( void )
     eFrameProcessingResult_t eReturn;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
     pxARPWaitingNetworkBuffer = NULL;
@@ -1354,12 +1467,12 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT2( void )
     NetworkBufferDescriptor_t xARPWaitingNetworkBuffer;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
-    
+
     pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
-    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv4_HEADER);
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1369,7 +1482,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT2( void )
 /**
  * @brief This function process ICMP message when message type is
  *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
- *        This verifies a case 'pxARPWaitingNetworkBuffer' was 
+ *        This verifies a case 'pxARPWaitingNetworkBuffer' was
  *        not waiting for this new address look-up.
  */
 
@@ -1385,14 +1498,14 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT3( void )
     IPHeader_IPv6_t * pxIPHeader = &( xIPPacket.xIPHeader );
 
     pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
-    pxARPWaitingNetworkBuffer->pucEthernetBuffer = &xIPPacket;
+    pxARPWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    pxNetworkBuffer->pucEthernetBuffer = &xIPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
     memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    
-    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv6_HEADER);
+    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1419,17 +1532,17 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT4( void )
     IPHeader_IPv6_t * pxIPHeader = &( xIPPacket.xIPHeader );
 
     pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
-    pxARPWaitingNetworkBuffer->pucEthernetBuffer = &xIPPacket;
+    pxARPWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
     memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    
 
-    uxIPHeaderSizePacket_IgnoreAndReturn(ipSIZE_OF_IPv6_HEADER);
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
     vReleaseNetworkBufferAndDescriptor_Ignore();
     vIPSetARPResolutionTimerEnableState_ExpectAnyArgs();
@@ -1437,7 +1550,47 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT4( void )
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
-    TEST_ASSERT_EQUAL( pxARPWaitingNetworkBuffer, NULL);
+    TEST_ASSERT_EQUAL( pxARPWaitingNetworkBuffer, NULL );
+}
+
+/**
+ * @brief This function process ICMP message when message type is
+ *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
+ *        This verifies a case where a packet is handled as a new
+ *        incoming IP packet when a neighbour advertisement has been received,
+ *        and 'pxARPWaitingNetworkBuffer' was waiting for this new address look-up.
+ */
+
+void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT5( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
+    NetworkEndPoint_t xEndPoint;
+    eFrameProcessingResult_t eReturn;
+    NetworkBufferDescriptor_t xARPWaitingNetworkBuffer;
+    IPPacket_IPv6_t xIPPacket;
+    IPHeader_IPv6_t * pxIPHeader = &( xIPPacket.xIPHeader );
+
+    pxARPWaitingNetworkBuffer = &xARPWaitingNetworkBuffer;
+    pxARPWaitingNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xIPPacket;
+
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
+    memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
+    xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
+    vIPSetARPResolutionTimerEnableState_ExpectAnyArgs();
+
+    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
+    TEST_ASSERT_EQUAL( pxARPWaitingNetworkBuffer, NULL );
 }
 
 /**
@@ -1454,7 +1607,7 @@ void test_prvProcessICMPMessage_IPv6_default( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = 0;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1477,7 +1630,7 @@ void test_FreeRTOS_OutputAdvertiseIPv6_default( void )
     NetworkEndPoint_t xEndPoint;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-    
+
     FreeRTOS_OutputAdvertiseIPv6( &xEndPoint );
 }
 
@@ -1490,7 +1643,7 @@ void test_FreeRTOS_OutputAdvertiseIPv6_Assert( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     NetworkEndPoint_t xEndPoint;
-    
+
     xEndPoint.pxNetworkInterface = NULL;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( pxNetworkBuffer );
@@ -1505,12 +1658,12 @@ void test_FreeRTOS_OutputAdvertiseIPv6_Assert( void )
 void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
-    ICMPPacket_IPv6_t xICMPPacket, *pxICMPPacket = &xICMPPacket;
+    ICMPPacket_IPv6_t xICMPPacket, * pxICMPPacket = &xICMPPacket;
     ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
     NetworkEndPoint_t xEndPoint;
     NetworkInterface_t xInterface;
 
-    pxNetworkBuffer->pucEthernetBuffer = &xICMPPacket;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     xEndPoint.pxNetworkInterface = &xInterface;
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
@@ -1521,15 +1674,168 @@ void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
 
     FreeRTOS_OutputAdvertiseIPv6( &xEndPoint );
 
-    TEST_ASSERT_EQUAL( pxICMPPacket->xEthernetHeader.usFrameType , ipIPv6_FRAME_TYPE);
-    TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.ucVersionTrafficClass , 0x60);
-    TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.usPayloadLength , FreeRTOS_htons( sizeof( ICMPHeader_IPv6_t ) ));
+    TEST_ASSERT_EQUAL( pxICMPPacket->xEthernetHeader.usFrameType, ipIPv6_FRAME_TYPE );
+    TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.ucVersionTrafficClass, 0x60 );
+    TEST_ASSERT_EQUAL( pxICMPPacket->xIPHeader.usPayloadLength, FreeRTOS_htons( sizeof( ICMPHeader_IPv6_t ) ) );
     TEST_ASSERT_EQUAL_MEMORY( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    
-    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucTypeOfMessage , ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6);
-    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionType , ndICMP_TARGET_LINK_LAYER_ADDRESS);
-    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionLength , 1);
+
+    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucTypeOfMessage, ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6 );
+    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionType, ndICMP_TARGET_LINK_LAYER_ADDRESS );
+    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionLength, 1 );
     TEST_ASSERT_EQUAL_MEMORY( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, sizeof( pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
-    TEST_ASSERT_EQUAL(  pxICMPHeader_IPv6->usChecksum , 0);
+    TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->usChecksum, 0 );
 }
 
+/*
+ * ===================================================
+ *       Test for FreeRTOS_CreateIPv6Address
+ * ===================================================
+ */
+
+/**
+ * @brief Create an IPv16 address, based on a prefix.
+ *        with the bits after the prefix having random value.
+ *        But fails to get the random number.
+ */
+void test_FreeRTOS_CreateIPv6Address_( void )
+{
+    IPv6_Address_t * pxIPAddress, * pxPrefix;
+    size_t uxPrefixLength;
+    BaseType_t xDoRandom = pdTRUE, xReturn;
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
+
+    xReturn = FreeRTOS_CreateIPv6Address( pxIPAddress, pxPrefix, uxPrefixLength, xDoRandom );
+
+    TEST_ASSERT_EQUAL( xReturn, pdFAIL );
+}
+
+/**
+ * @brief Create an IPv16 address, based on a prefix.
+ *        with the bits after the prefix having random value
+ *        but incorrect prefix length.
+ */
+void test_FreeRTOS_CreateIPv6Address_Assert1( void )
+{
+    IPv6_Address_t * pxIPAddress, * pxPrefix;
+    size_t uxPrefixLength = 0;
+    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
+
+    for( xIndex = 0; xIndex < 4; xIndex++ )
+    {
+        xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    }
+
+    catch_assert( FreeRTOS_CreateIPv6Address( pxIPAddress, pxPrefix, uxPrefixLength, xDoRandom ) );
+}
+
+/**
+ * @brief Create an IPv16 address, based on a prefix.
+ *        with the bits after the prefix having random value
+ *        but incorrect prefix length and xDoRandom is 0.
+ */
+void test_FreeRTOS_CreateIPv6Address_Assert2( void )
+{
+    IPv6_Address_t xIPAddress, xPrefix;
+    size_t uxPrefixLength = 8U * ipSIZE_OF_IPv6_ADDRESS;
+    BaseType_t xDoRandom = pdFALSE, xReturn, xIndex;
+
+    catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom ) );
+}
+
+/**
+ * @brief Create an IPv16 address, based on a prefix.
+ *        with the bits after the prefix having random value.
+ */
+void test_FreeRTOS_CreateIPv6Address_Pass1( void )
+{
+    IPv6_Address_t xIPAddress, xPrefix;
+    size_t uxPrefixLength = 8U;
+    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
+
+    for( xIndex = 0; xIndex < 4; xIndex++ )
+    {
+        xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    }
+
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
+
+    TEST_ASSERT_EQUAL( xReturn, pdPASS );
+}
+
+/**
+ * @brief Create an IPv16 address, based on a prefix.
+ *        with the bits after the prefix having random value
+ *        and uxPrefixLength is not a multiple of 8.
+ */
+void test_FreeRTOS_CreateIPv6Address_Pass2( void )
+{
+    IPv6_Address_t xIPAddress, xPrefix;
+    size_t uxPrefixLength = 7;
+    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
+
+    for( xIndex = 0; xIndex < 4; xIndex++ )
+    {
+        xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    }
+
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
+
+    TEST_ASSERT_EQUAL( xReturn, pdPASS );
+}
+
+void test_FreeRTOS_CreateIPv6Address_Pass3( void ) /*CHECK if needed */
+{
+    IPv6_Address_t xIPAddress, xPrefix;
+    size_t uxPrefixLength = 127;
+    BaseType_t xDoRandom = pdTRUE, xReturn, xIndex;
+
+    for( xIndex = 0; xIndex < 4; xIndex++ )
+    {
+        xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    }
+
+    xReturn = FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom );
+
+    TEST_ASSERT_EQUAL( xReturn, pdPASS );
+}
+
+
+void test_pcMessageType_all( void )
+{
+    BaseType_t xType;
+
+    xType = ipICMP_DEST_UNREACHABLE_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_PACKET_TOO_BIG_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_TIME_EXEEDED_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_PARAMETER_PROBLEM_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_PING_REQUEST_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_PING_REPLY_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_ROUTER_SOLICITATION_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_ROUTER_ADVERTISEMENT_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
+    (void) pcMessageType(xType);
+
+    xType = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6 + 1;
+    (void) pcMessageType(xType);
+   
+}
