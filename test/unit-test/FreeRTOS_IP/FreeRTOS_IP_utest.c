@@ -1621,6 +1621,7 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
+
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -1650,6 +1651,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -1714,6 +1716,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdcast1( void )
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
+
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -1743,6 +1746,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -1774,6 +1778,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
+
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -1804,6 +1809,7 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -1889,6 +1895,7 @@ void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxNetworkBuffer->pxEndPoint = NULL;
 
     *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
 
@@ -2117,7 +2124,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2160,7 +2167,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     pxIPHeader->ucVersionHeaderLength = 0x46;
 
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2205,7 +2212,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP( void )
     pxIPHeader->ucVersionHeaderLength = 0x46;
 
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2256,7 +2263,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP2( void )
 
     /* Packet not meant for this node. */
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2307,7 +2314,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP( void )
 
     /* Packet not meant for this node. */
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2352,7 +2359,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_DataLengthCorrect( void )
 
     /* Packet not meant for this node. */
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2407,7 +2414,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     pxUDPPacket->xUDPHeader.usLength = ipconfigTCP_MSS;
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2419,8 +2426,6 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect( void )
     usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdFAIL );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2461,7 +2466,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect2( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2514,7 +2519,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect3( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2568,7 +2573,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2627,7 +2632,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
-
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2678,6 +2683,7 @@ void test_prvProcessIPPacket_TCP( void )
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     /* Set the protocol to be TCP. */
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
@@ -2729,6 +2735,7 @@ void test_prvProcessIPPacket_TCP1( void )
     pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     /* Set the protocol to be TCP. */
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
