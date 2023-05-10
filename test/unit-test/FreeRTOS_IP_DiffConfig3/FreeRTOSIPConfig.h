@@ -64,7 +64,7 @@
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -279,7 +279,7 @@ extern uint32_t ulRand();
  * That function checks if there is a UDP socket listening to a
  * given port number.
  */
-#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS        0
+#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS        1
 
 /* The windows simulator cannot really simulate MAC interrupts, and needs to
  * block occasionally to allow other tasks to run. */

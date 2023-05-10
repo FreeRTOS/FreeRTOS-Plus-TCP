@@ -355,3 +355,24 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
     TEST_ASSERT_EQUAL( NULL, FreeRTOS_GetIPTaskHandle() );
 }
+
+void test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv4_only_but_IPv6_bind( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    FreeRTOS_Socket_t xSocket;
+
+    xReceivedEvent.eEventType = eSocketBindEvent;
+    xReceivedEvent.pvData = &xSocket;
+
+    xSocket.usLocalPort = ( uint16_t ) ~0U;
+    xSocket.xEventBits = 0;
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+
+    vCheckNetworkTimers_Expect();
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+
+    catch_assert( prvProcessIPEventsAndTimers() );
+}
