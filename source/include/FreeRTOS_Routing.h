@@ -165,18 +165,16 @@
                 bWantDHCP : 1,  /**< This end-point wants to use DHCPv4 to obtain an IP-address. */
             #endif /* ipconfigUSE_DHCP */
             #if ( ipconfigUSE_RA != 0 )
-                bWantRA : 1,       /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
+                bWantRA : 1,         /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
             #endif /* ipconfigUSE_RA */
-            bIPv6 : 1,             /**< This end-point has an IP-address of type IPv6. */
+            bIPv6 : 1,               /**< This end-point has an IP-address of type IPv6. */
             #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )
-                bCallDownHook : 1, /**< The network down hook-must be called for this end-point. */
+                bCallDownHook : 1,   /**< The network down hook-must be called for this end-point. */
             #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-            bEndPointUp : 1;       /**< The end-point is up. */
-        } bits;                    /**< A collection of boolean properties. */
-        #if ( ipconfigUSE_IPv6 != 0 )
-            uint8_t usDNSType;     /**< A LLMNR/mDNS lookup is being done for an IPv6 address.
-                                    * This field is only valid while xApplicationDNSQueryHook() is called. */
-        #endif /* ipconfigUSE_IPv6 */
+            bEndPointUp : 1;         /**< The end-point is up. */
+        } bits;                      /**< A collection of boolean properties. */
+        uint8_t usDNSType;           /**< A LLMNR/mDNS lookup is being done for an IPv6 address.
+                                      * This field is only valid while xApplicationDNSQueryHook() is called. */
         #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 )
             IPTimer_t xDHCP_RATimer; /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
         #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 ) */

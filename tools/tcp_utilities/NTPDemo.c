@@ -230,6 +230,7 @@ void vStartNTPTask( uint16_t usTaskStackSize,
 
             xAddress.sin_address.ulIP_IPv4 = 0ul;
             xAddress.sin_port = FreeRTOS_htons( NTP_PORT );
+            xAddress.sin_family = FREERTOS_AF_INET;
 
             FreeRTOS_bind( xNTP_UDPSocket, &xAddress, sizeof( xAddress ) );
             FreeRTOS_setsockopt( xNTP_UDPSocket, 0, FREERTOS_SO_RCVTIMEO, &xReceiveTimeOut, sizeof( xReceiveTimeOut ) );
@@ -628,6 +629,7 @@ static void prvNTPTask( void * pvParameters )
                 {
                     xAddress.sin_address.ulIP_IPv4 = ulIPAddressFound;
                     xAddress.sin_port = FreeRTOS_htons( NTP_PORT );
+                    xAddress.sin_family = FREERTOS_AF_INET;
 
                     FreeRTOS_printf( ( "Sending UDP message to %xip port %u\n",
                                        ( unsigned ) FreeRTOS_ntohl( xAddress.sin_address.ulIP_IPv4 ),

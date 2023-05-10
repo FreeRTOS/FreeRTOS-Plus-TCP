@@ -87,7 +87,6 @@ uint32_t FreeRTOS_GetIPAddress( void );
 /* Return pdTRUE if the IPv4 address is a multicast address. */
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
-
 /* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
 eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer,
