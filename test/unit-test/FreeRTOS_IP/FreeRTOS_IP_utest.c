@@ -3061,3 +3061,39 @@ void test_FreeRTOS_IPInit_Multi_NoInterface( void )
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( NULL );
     catch_assert( FreeRTOS_IPInit_Multi() );
 }
+
+void test_FreeRTOS_GetEndPointConfiguration_AllConfigurations( void )
+{
+    uint32_t ulIPAddress;
+    uint32_t ulNetMask;
+    uint32_t ulGatewayAddress;
+    uint32_t ulDNSServerAddress;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    xEndPoint.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.ipv4_settings.ulNetMask = 2;
+    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 4;
+
+    FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    TEST_ASSERT_EQUAL( 1, ulIPAddress );
+    TEST_ASSERT_EQUAL( 2, ulNetMask );
+    TEST_ASSERT_EQUAL( 3, ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 4, ulDNSServerAddress );
+}
+
+void test_FreeRTOS_GetEndPointConfiguration_AllNull( void )
+{
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    xEndPoint.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.ipv4_settings.ulNetMask = 2;
+    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 4;
+
+    FreeRTOS_GetEndPointConfiguration( NULL, NULL, NULL, NULL, &xEndPoint );
+}
