@@ -35,9 +35,9 @@
 #define TEST                                1
 
 #define ipconfigUSE_IPv4                    ( 1 )
+#define ipconfigUSE_IPv6                    ( 1 )
 
 #define ipconfigMULTI_INTERFACE             1
-
 #define ipconfigIPv4_BACKWARD_COMPATIBLE    0
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
@@ -64,7 +64,7 @@
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -81,7 +81,7 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
 #define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
@@ -279,7 +279,7 @@ extern uint32_t ulRand();
  * That function checks if there is a UDP socket listening to a
  * given port number.
  */
-#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS        1
+#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS        0
 
 /* The windows simulator cannot really simulate MAC interrupts, and needs to
  * block occasionally to allow other tasks to run. */
