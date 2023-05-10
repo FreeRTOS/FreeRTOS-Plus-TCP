@@ -321,6 +321,13 @@ void test_FreeRTOS_ReleaseUDPPayloadBuffer( void )
     FreeRTOS_ReleaseUDPPayloadBuffer( pvBuffer );
 }
 
+void test_FreeRTOS_ReleaseUDPPayloadBuffer_NullNetworkDescriptor( void )
+{
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( NULL, ( NetworkBufferDescriptor_t * ) NULL );
+
+    catch_assert( FreeRTOS_ReleaseUDPPayloadBuffer( NULL ) );
+}
+
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
 {
     FreeRTOS_Socket_t xSocket;
