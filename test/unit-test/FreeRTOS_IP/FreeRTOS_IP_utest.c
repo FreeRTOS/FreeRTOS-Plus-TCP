@@ -3097,3 +3097,35 @@ void test_FreeRTOS_GetEndPointConfiguration_AllNull( void )
 
     FreeRTOS_GetEndPointConfiguration( NULL, NULL, NULL, NULL, &xEndPoint );
 }
+
+void test_FreeRTOS_GetEndPointConfiguration_IPv6Endpoint( void )
+{
+    uint32_t ulIPAddress = 0;
+    uint32_t ulNetMask = 0;
+    uint32_t ulGatewayAddress = 0;
+    uint32_t ulDNSServerAddress = 0;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+
+    FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    TEST_ASSERT_EQUAL( 0, ulIPAddress );
+    TEST_ASSERT_EQUAL( 0, ulNetMask );
+    TEST_ASSERT_EQUAL( 0, ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 0, ulDNSServerAddress );
+}
+
+void test_FreeRTOS_GetEndPointConfiguration_NullEndpoint( void )
+{
+    uint32_t ulIPAddress = 0;
+    uint32_t ulNetMask = 0;
+    uint32_t ulGatewayAddress = 0;
+    uint32_t ulDNSServerAddress = 0;
+
+    FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, NULL );
+    TEST_ASSERT_EQUAL( 0, ulIPAddress );
+    TEST_ASSERT_EQUAL( 0, ulNetMask );
+    TEST_ASSERT_EQUAL( 0, ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 0, ulDNSServerAddress );
+}
