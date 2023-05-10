@@ -70,7 +70,11 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 extern NetworkInterface_t xInterfaces[ 1 ];
+extern BaseType_t xIPTaskInitialised;
+extern BaseType_t xNetworkDownEventPending;
 
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
@@ -80,6 +84,22 @@ void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer
 
 static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
+{
+    pxNetworkInterfaces = NULL;
+    xNetworkDownEventPending = pdFALSE;
+}
+
+/*! called after each test case */
+void tearDown( void )
+{
+}
+
+/* ======================== Stub Callback Functions ========================= */
+
 static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
                                                        NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                        BaseType_t xReleaseAfterSend )
@@ -87,9 +107,6 @@ static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface 
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
 }
-
-extern BaseType_t xIPTaskInitialised;
-extern BaseType_t xNetworkDownEventPending;
 
 static uint8_t ReleaseTCPPayloadBuffer[ 1500 ];
 static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
@@ -119,6 +136,8 @@ static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuf
 
     return ReleaseTCPPayloadBufferxByteCount;
 }
+
+/* ============================== Test Cases ============================== */
 
 void test_vIPNetworkUpCalls( void )
 {
@@ -345,6 +364,55 @@ void test_prvIPTask( void )
     prvIPTask( NULL );
 
     TEST_ASSERT_EQUAL( pdTRUE, xIPTaskInitialised );
+    TEST_ASSERT_EQUAL( pdFALSE, xNetworkDownEventPending );
+}
+
+void test_prvIPTask_NetworkDown( void )
+{
+    NetworkInterface_t xNetworkInterface;
+    IPStackEvent_t xDownEvent;
+
+    memset( &xNetworkInterface, 0, sizeof(xNetworkInterface) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    xDownEvent.eEventType = eNetworkDownEvent;
+    xDownEvent.pvData = &xNetworkInterface;
+
+    /* Reset the static variable. */
+    xIPTaskInitialised = pdFALSE;
+    xNetworkDownEventPending = pdFALSE;
+
+    /* In prvIPTask_Initialise. */
+    vNetworkTimerReload_Ignore();
+
+    /* In FreeRTOS_NetworkDown. */
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+    xQueueGenericSend_ExpectAnyArgsAndReturn( pdPASS );
+
+    /* In prvIPTask_Initialise. */
+    vTCPTimerReload_ExpectAnyArgs();
+    vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
+    vDNSInitialise_Ignore();
+
+    /* In prvIPTask. */
+    ipFOREVER_ExpectAndReturn( pdTRUE );
+
+    /* In prvProcessIPEventsAndTimers. */
+    vCheckNetworkTimers_Ignore();
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xDownEvent, sizeof( xDownEvent ) );
+    prvProcessNetworkDownEvent_Expect( &xNetworkInterface );
+
+    /* In prvIPTask. */
+    ipFOREVER_ExpectAndReturn( pdFALSE );
+
+    /* Parameters do not matter here. */
+    prvIPTask( NULL );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xIPTaskInitialised );
+    /* Network down event is clear in prvProcessIPEventsAndTimers. */
+    TEST_ASSERT_EQUAL( pdFALSE, xNetworkDownEventPending );
 }
 
 void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
@@ -356,7 +424,6 @@ void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
     /* No event received. */
     xQueueReceive_ExpectAnyArgsAndReturn( pdFALSE );
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( NULL );
     prvProcessIPEventsAndTimers();
 }
 
