@@ -1181,8 +1181,12 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 
         /* Get first end point. */
         pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-        FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
+
+        if( pxEndPoint != NULL )
+        {
+            FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
                                            pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+        }
     }
 #endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/

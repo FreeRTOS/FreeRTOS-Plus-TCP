@@ -443,3 +443,31 @@ void test_FreeRTOS_GetAddressConfiguration_NoEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
     FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, NULL );
 }
+
+void test_FreeRTOS_SetAddressConfiguration_HappyPath( void )
+{
+    uint32_t ulIPAddress = 1;
+    uint32_t ulNetMask = 2;
+    uint32_t ulGatewayAddress = 3;
+    uint32_t ulDNSServerAddress = 4;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    xEndPoint.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.ipv4_settings.ulNetMask = 2;
+    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_SetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
+    TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[0] );
+}
+
+void test_FFreeRTOS_SetAddressConfiguration_NoEndpoint( void )
+{
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
+    FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, NULL );
+}
