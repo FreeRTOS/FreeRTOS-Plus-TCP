@@ -646,8 +646,10 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
         BaseType_t xCurrentOrder;
         ucNextHeader = pucSource[ uxIndex ];
 
-        FreeRTOS_debug_printf( ( "ucCurrentHeader %u ucNextHeader %u\n", ucCurrentHeader, ucNextHeader ) );
         xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
+
+        /* To avoid compile warning if debug print is disabled. */
+        ( void ) xCurrentOrder;
 
         /* Read the length expressed in number of octets. */
         uxHopSize = ( size_t ) pucSource[ uxIndex + 1U ];
@@ -656,7 +658,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
         if( ( uxIndex + uxHopSize ) >= uxMaxLength )
         {
-            FreeRTOS_debug_printf( ( "The length %u + %u of extension header is larger than buffer size %u \n", uxIndex, uxHopSize, uxMaxLength ) );
+            FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxMaxLength ) );
             uxIndex = uxMaxLength;
             break;
         }
@@ -697,8 +699,6 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 
         ucCurrentHeader = ucNextHeader;
     }
-    
-    FreeRTOS_printf( ( "uxIndex=%d, uxMaxLength=%d\n", uxIndex, uxMaxLength ) );
 
     if( uxIndex < uxMaxLength )
     {

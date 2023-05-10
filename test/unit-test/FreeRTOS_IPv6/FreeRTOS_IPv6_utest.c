@@ -163,7 +163,7 @@ static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptorWithExtensionHe
     /* IP part. */
     memcpy( pxIPv6Header->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, sizeof( IPv6_Address_t ) );
     memcpy( pxIPv6Header->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, sizeof( IPv6_Address_t ) );
-    pxIPv6Header->usPayloadLength = FreeRTOS_htons( 56 +  +ucProtocolHeaderSize + 1U ); /* Extension header length + protocol header + payload */
+    pxIPv6Header->usPayloadLength = FreeRTOS_htons( 56 + ucProtocolHeaderSize + 1U ); /* Extension header length + protocol header + payload */
     pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
     /* Append extension headers */
     pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
@@ -651,7 +651,7 @@ void test_eHandleIPv6ExtensionHeaders_unknown_extension_header()
 
 /**
  * @brief test_eHandleIPv6ExtensionHeaders_dest_then_routing
- * Prepare a packet with specific extension header order - detination -> routing.
+ * Prepare a packet with specific extension header order - destination -> routing.
  * Check if eHandleIPv6ExtensionHeaders determines to process it.
  */
 void test_eHandleIPv6ExtensionHeaders_dest_then_routing()
@@ -707,7 +707,7 @@ void test_xIsIPv6AllowedMulticast_reserved_address()
 
 /**
  * @brief test_xIsIPv6AllowedMulticast_valid_address
- * Prepare IPv6 addresse FF11::1. Check if xIsIPv6AllowedMulticast returns pdTRUE.
+ * Prepare IPv6 address FF11::1. Check if xIsIPv6AllowedMulticast returns pdTRUE.
  */
 void test_xIsIPv6AllowedMulticast_valid_address()
 {

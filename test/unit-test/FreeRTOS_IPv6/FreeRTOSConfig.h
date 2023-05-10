@@ -30,7 +30,7 @@
 
 #include <assert.h>
 
-#define configPRINTF( X ) printf X
+#define configPRINTF( X )    printf X
 
 /*-----------------------------------------------------------
 * Application specific definitions.

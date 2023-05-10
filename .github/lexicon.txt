@@ -114,6 +114,7 @@ cbmc
 ccfg
 cchannel
 cchar
+cdef
 ce
 centralised
 ceo
@@ -342,6 +343,8 @@ fe
 fef
 fes
 ff
+ffab
+ffff
 ffnn
 fifo
 finalise
@@ -1289,6 +1292,7 @@ ucprefix
 ucprefixlength
 ucprotocol
 ucprotocoladdresslength
+ucprotocolheadersize
 ucrepcount
 ucsenderprotocoladdress
 ucserverhostname
@@ -1872,6 +1876,7 @@ xnetworkinterfaceoutput
 xnetworkparams
 xnetworktimer
 xnetworkup
+xnextorder
 xntppacket
 xntptaskhandle
 xontcpconnect
