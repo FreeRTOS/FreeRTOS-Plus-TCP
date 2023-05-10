@@ -3129,3 +3129,52 @@ void test_FreeRTOS_GetEndPointConfiguration_NullEndpoint( void )
     TEST_ASSERT_EQUAL( 0, ulGatewayAddress );
     TEST_ASSERT_EQUAL( 0, ulDNSServerAddress );
 }
+
+void test_FreeRTOS_SetEndPointConfiguration_AllConfigurations( void )
+{
+    uint32_t ulIPAddress = 1;
+    uint32_t ulNetMask = 2;
+    uint32_t ulGatewayAddress = 3;
+    uint32_t ulDNSServerAddress = 4;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    FreeRTOS_SetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[0] );
+}
+
+void test_FreeRTOS_SetEndPointConfiguration_AllNull( void )
+{
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    FreeRTOS_SetEndPointConfiguration( NULL, NULL, NULL, NULL, &xEndPoint );
+}
+
+void test_FreeRTOS_SetEndPointConfiguration_IPv6Endpoint( void )
+{
+    uint32_t ulIPAddress = 1;
+    uint32_t ulNetMask = 2;
+    uint32_t ulGatewayAddress = 3;
+    uint32_t ulDNSServerAddress = 4;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+
+    FreeRTOS_SetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulDNSServerAddresses[0] );
+}
+
+void test_FreeRTOS_SetEndPointConfiguration_NullEndpoint( void )
+{
+    FreeRTOS_SetEndPointConfiguration( NULL, NULL, NULL, NULL, NULL );
+}
