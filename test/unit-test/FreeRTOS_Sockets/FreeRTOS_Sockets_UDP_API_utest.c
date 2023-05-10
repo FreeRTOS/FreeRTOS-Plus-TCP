@@ -832,6 +832,8 @@ void test_FreeRTOS_sendto_MoreDataThanUDPPayload( void )
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
+
     lResult = FreeRTOS_sendto( xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
     TEST_ASSERT_EQUAL( 0, lResult );
@@ -850,6 +852,7 @@ void test_FreeRTOS_sendto_TCPSocket( void )
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
@@ -870,6 +873,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NoNetworkBuffer( void )
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
@@ -906,6 +910,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = NULL;
 
@@ -953,6 +958,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = NULL;
 
@@ -1000,6 +1006,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = NULL;
 
@@ -1046,6 +1053,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = NULL;
 
@@ -1093,6 +1101,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = NULL;
 
@@ -1138,6 +1147,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = NULL;
 
@@ -1190,6 +1200,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = xLocalFunctionPointer;
 
@@ -1236,6 +1247,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_SendingToIPTaskFails( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = xLocalFunctionPointer;
 
@@ -1282,6 +1294,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy_SendingToIPTaskFails( void )
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
 
+    xDestinationAddress.sin_family = FREERTOS_AF_INET;
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.u.xUDP.pxHandleSent = xLocalFunctionPointer;
 
