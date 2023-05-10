@@ -680,6 +680,7 @@ pchost
 pchostname
 pcipaddress
 pcmessage
+pcmessagetype
 pcname
 pcnames
 pcnetworkbuffer
@@ -1652,7 +1653,9 @@ vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
 vmyconnecthandler
+vndagecache
 vndrefreshcacheentry
+vndsendneighboursolicitation
 vnetworkinterfaceallocateramtobuffers
 vperformaction
 vportfree
@@ -1859,6 +1862,7 @@ xmessage
 xmicreldevice
 xmitcount
 xml
+xndcache
 xnetworkaddressing
 xnetworkbuffer
 xnetworkbufferdescriptor

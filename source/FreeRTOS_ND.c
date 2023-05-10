@@ -525,9 +525,6 @@
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-        configASSERT( pxEndPoint != NULL );
-        configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
-
         ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         ( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( uxICMPSize );
@@ -748,9 +745,6 @@
                     usSequenceNumber++;
 
                     pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-
-                    configASSERT( pxEndPoint != NULL );
-                    configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
 
                     pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPEcho_IPv6_t ) + uxNumberOfBytesToSend );
                     ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );

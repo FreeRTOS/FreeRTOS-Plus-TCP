@@ -134,7 +134,7 @@ void test_eNDGetCacheEntry_Multicast_EndPoint( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
-/* TODO result seems incorrect - Or is it is guarateed to alwasys  have 1 EP then this is just there for coverage*/
+/* TODO result seems incorrect - Or is it is guaranted to always  have 1 EndPoint then this is just there for coverage*/
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
 }
 
@@ -433,7 +433,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
  */
 
 /**
- * @brief This function veriifed that the ip address was not found on ND cache
+ * @brief This function verified that the ip address was not found on ND cache
  *        and there was no free space to store the New Entry, hence the
  *        IP-address, MAC-address and an end-point combination was not stored.
  */
@@ -461,7 +461,7 @@ void test_vNDRefreshCacheEntry_NoMatchingEntry_CacheFull( void )
 
 
 /**
- * @brief This function veriifed that the ip address was not found on ND cache
+ * @brief This function verified that the ip address was not found on ND cache
  *        and there was space to store the New Entry, hence the IP-address,
  *        MAC-address and an end-point combination was stored in that location.
  */
@@ -488,8 +488,8 @@ void test_vNDRefreshCacheEntry_NoMatchingEntry_Add( void )
 }
 
 /**
- * @brief This function veriifed that the ip address was found on ND cache
- *        and the entry was refreshedat the same location.
+ * @brief This function verified that the ip address was found on ND cache
+ *        and the entry was refreshed at the same location.
  */
 
 void test_vNDRefreshCacheEntry_MatchingEntry_Refresh( void )
@@ -633,8 +633,8 @@ void test_vNDAgeCache_ValidEntryDecrement( void )
 }
 
 /**
- * @brief This function handles Sending out an NS request for the IPv6 address,
- *        and fails as Endpoint is NULL.
+ * @brief This function handles Sending out an NEIGHBOR SOLICITATION request
+ *        for the IPv6 address, and fails as Endpoint is NULL.
  */
 
 void test_vNDAgeCache_NS_NULL_EP( void )
@@ -660,8 +660,8 @@ void test_vNDAgeCache_NS_NULL_EP( void )
 }
 
 /**
- * @brief This function handles Sending out an NS request for the IPv6 address,
- *        and fails as pxDescriptor is NULL.
+ * @brief This function handles Sending out an NEIGHBOR SOLICITATION request
+ *        for the IPv6 address, and fails as pxDescriptor is NULL.
  */
 
 void test_vNDAgeCache_NS_Incorrect_DataLen( void )
@@ -768,7 +768,7 @@ void test_FreeRTOS_PrintNDCache( void )
     BaseType_t xUseEntry = 0;
 
     memset( xNDCache, 0, sizeof( xNDCache ) );
-    /* Oth Entry added as a valid Cache Entry to be printed */
+    /* First Entry added as a valid Cache Entry to be printed */
     xNDCache[ xUseEntry ].ucValid = 1;
 
     FreeRTOS_PrintNDCache();
@@ -1977,7 +1977,7 @@ void test_FreeRTOS_CreateIPv6Address_Pass3( void ) /*CHECK if needed */
 
 /**
  * @brief Cover all the pcMessageType print
- *        scenerios.
+ *        scenario.
  */
 
 void test_pcMessageType_all( void )
