@@ -61,6 +61,7 @@
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_IPv4_Private.h"
 #include "mock_FreeRTOS_ND.h"
+#include "mock_FreeRTOS_IPv6.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv4.h"
@@ -83,6 +84,15 @@ eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+/* First IPv6 address is 2001:1234:5678::5 */
+const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
+
+/* Second IPv6 address is 2001:1234:5678::10 */
+const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
+
+/* MAC Address for endpoint. */
+const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
 
 /* ============================ Unity Fixtures ============================ */
 
@@ -2954,6 +2964,275 @@ void test_prvProcessIPPacket_TCP1( void )
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
     TEST_ASSERT_EQUAL( backup + 1, xProcessedTCPMessage );
+}
+
+void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_IPv6_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_IPv6_t * pxIPHeader;
+    UDPPacket_IPv6_t * pxUDPPacket;
+    BaseType_t xReturnValue = pdTRUE;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionTrafficClass = 0x60;
+
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+
+    /* Packet not meant for this node. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+
+    /* Set the protocol to be IPv6 UDP. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
+
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 0 );
+    xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
+}
+
+void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_IPv6_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_IPv6_t * pxIPHeader;
+    UDPPacket_IPv6_t * pxUDPPacket;
+    BaseType_t xReturnValue = pdTRUE;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionTrafficClass = 0x60;
+
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+
+    /* Packet not meant for this node. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+
+    /* Set the protocol to be IPv6 UDP. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
+
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 1 );
+    eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eProcessBuffer );
+    xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
+}
+
+void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_IPv6_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_IPv6_t * pxIPHeader;
+    UDPPacket_IPv6_t * pxUDPPacket;
+    BaseType_t xReturnValue = pdTRUE;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionTrafficClass = 0x60;
+
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+
+    /* Packet not meant for this node. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+
+    /* Set the protocol to be IPv6 UDP. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
+
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 1 );
+    eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eReleaseBuffer );
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_IPv6_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_IPv6_t * pxIPHeader;
+    TCPPacket_IPv6_t * pxTCPPacket;
+    BaseType_t xReturnValue = pdTRUE;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionTrafficClass = 0x60;
+
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+
+    /* Packet not meant for this node. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+
+    /* Set the protocol to be IPv6 UDP. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
+    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    vNDRefreshCacheEntry_Ignore();
+    xProcessReceivedTCPPacket_ExpectAnyArgsAndReturn( pdPASS );
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
+}
+
+void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_IPv6_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_IPv6_t * pxIPHeader;
+    TCPPacket_IPv6_t * pxTCPPacket;
+    BaseType_t xReturnValue = pdTRUE;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionTrafficClass = 0x60;
+
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+
+    /* Packet not meant for this node. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+
+    /* Set the protocol to be IPv6 UDP. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
+    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
+}
+
+void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_IPv6_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_IPv6_t * pxIPHeader;
+    ICMPPacket_IPv6_t * pxICMPPacket;
+    BaseType_t xReturnValue = pdTRUE;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPHeader->ucVersionTrafficClass = 0x60;
+
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+
+    /* Packet not meant for this node. */
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+
+    /* Set the protocol to be IPv6 UDP. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_ICMP_IPv6, 0U, 0 );
+    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    vNDRefreshCacheEntry_Ignore();
+    prvProcessICMPMessage_IPv6_ExpectAnyArgsAndReturn( eReleaseBuffer );
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 void test_vReturnEthernetFrame( void )

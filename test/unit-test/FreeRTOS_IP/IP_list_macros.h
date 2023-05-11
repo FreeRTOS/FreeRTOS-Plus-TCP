@@ -75,18 +75,6 @@ void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
-/* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
-eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
-                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                               UBaseType_t uxHeaderLength );
-
-BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
-                               uint8_t ucNextHeader );
-
-/** @brief Handle the IPv6 extension headers. */
-eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                      BaseType_t xDoRemove );
-
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
