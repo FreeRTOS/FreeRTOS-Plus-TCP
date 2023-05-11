@@ -1437,59 +1437,66 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer )
 {
-    eFrameProcessingResult_t eReturn;
-    const EthernetHeader_t * pxEthernetHeader;
-    const NetworkEndPoint_t * pxEndPoint;
+    eFrameProcessingResult_t eReturn = eProcessBuffer;
+    const EthernetHeader_t * pxEthernetHeader = NULL;
+    const NetworkEndPoint_t * pxEndPoint = NULL;
 
-    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
-
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
-    pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
-
-    /* Examine the destination MAC from the Ethernet header to see if it matches
-     * that of an end point managed by FreeRTOS+TCP. */
-    pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
-
-    if( pxEndPoint != NULL )
+    if( pucEthernetBuffer == NULL )
     {
-        /* The packet was directed to this node - process it. */
-        eReturn = eProcessBuffer;
-    }
-    else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-    {
-        /* The packet was a broadcast - process it. */
-        eReturn = eProcessBuffer;
+        eReturn = eReleaseBuffer;
     }
     else
-    #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-        if( memcmp( xLLMNR_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+    {
+        /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
+
+        /* Examine the destination MAC from the Ethernet header to see if it matches
+        * that of an end point managed by FreeRTOS+TCP. */
+        pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            /* The packet was directed to this node - process it. */
+            eReturn = eProcessBuffer;
+        }
+        else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet was a broadcast - process it. */
+            eReturn = eProcessBuffer;
+        }
+        else
+        #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+            if( memcmp( xLLMNR_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+            {
+                /* The packet is a request for LLMNR - process it. */
+                eReturn = eProcessBuffer;
+            }
+            else
+        #endif /* ipconfigUSE_LLMNR */
+        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+            if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+            {
+                /* The packet is a request for MDNS - process it. */
+                eReturn = eProcessBuffer;
+            }
+            else
+        #endif /* ipconfigUSE_MDNS */
+        if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
+            ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
         {
             /* The packet is a request for LLMNR - process it. */
             eReturn = eProcessBuffer;
         }
         else
-    #endif /* ipconfigUSE_LLMNR */
-    #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-        if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
         {
-            /* The packet is a request for MDNS - process it. */
-            eReturn = eProcessBuffer;
+            /* The packet was not a broadcast, or for this node, just release
+            * the buffer without taking any other action. */
+            eReturn = eReleaseBuffer;
         }
-        else
-    #endif /* ipconfigUSE_MDNS */
-    {
-        /* The packet was not a broadcast, or for this node, just release
-         * the buffer without taking any other action. */
-        eReturn = eReleaseBuffer;
-    }
-
-    if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
-        ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
-    {
-        /* The packet is a request for LLMNR - process it. */
-        eReturn = eProcessBuffer;
     }
 
     #if ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1 )

@@ -1255,13 +1255,13 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent2( void )
 void test_eConsiderFrameForProcessing_NoMatch( void )
 {
     eFrameProcessingResult_t eResult;
-    const NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     memset( ucEthernetBuffer, 0, ipconfigTCP_MSS );
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
+    memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1271,7 +1271,7 @@ void test_eConsiderFrameForProcessing_NoMatch( void )
 void test_eConsiderFrameForProcessing_LocalMACMatch( void )
 {
     eFrameProcessingResult_t eResult;
-    const NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
@@ -1281,10 +1281,10 @@ void test_eConsiderFrameForProcessing_LocalMACMatch( void )
     pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
+    memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usFrameType = 0x00;
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = FreeRTOS_htons( 0 );
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1294,7 +1294,7 @@ void test_eConsiderFrameForProcessing_LocalMACMatch( void )
 void test_eConsiderFrameForProcessing_LocalMACMatch1( void )
 {
     eFrameProcessingResult_t eResult;
-    const NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
@@ -1304,10 +1304,10 @@ void test_eConsiderFrameForProcessing_LocalMACMatch1( void )
     pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
+    memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usFrameType = 0xFFFF;
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = FreeRTOS_htons( 0x0800 );
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1317,7 +1317,7 @@ void test_eConsiderFrameForProcessing_LocalMACMatch1( void )
 void test_eConsiderFrameForProcessing_LocalMACMatch2( void )
 {
     eFrameProcessingResult_t eResult;
-    const NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
@@ -1327,9 +1327,9 @@ void test_eConsiderFrameForProcessing_LocalMACMatch2( void )
     pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
+    memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = 0x0600;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1340,17 +1340,15 @@ void test_eConsiderFrameForProcessing_LocalMACMatch2( void )
 void test_eConsiderFrameForProcessing_BroadCastMACMatch( void )
 {
     eFrameProcessingResult_t eResult;
-    const NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
     pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = 0xFFFF;
@@ -1363,19 +1361,61 @@ void test_eConsiderFrameForProcessing_BroadCastMACMatch( void )
 void test_eConsiderFrameForProcessing_LLMNR_MACMatch( void )
 {
     eFrameProcessingResult_t eResult;
-    const NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
     pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = 0xFFFF;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+void test_eConsiderFrameForProcessing_NotMatch( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+    MACAddress_t xMACAddress = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
+
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, &xMACAddress, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = 0xFFFF;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
+
+    pxEthernetHeader->xDestinationAddress.ucBytes[0] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+    pxEthernetHeader->xDestinationAddress.ucBytes[1] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
