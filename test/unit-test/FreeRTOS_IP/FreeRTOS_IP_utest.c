@@ -99,6 +99,7 @@ const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0
 /*! called before each test case */
 void setUp( void )
 {
+    pxNetworkEndPoints = NULL;
     pxNetworkInterfaces = NULL;
     xNetworkDownEventPending = pdFALSE;
 }
@@ -3047,31 +3048,6 @@ void test_FreeRTOS_GetIPAddress_NoValidEndpoints( void )
     TEST_ASSERT_EQUAL( 0, ulIPAddress );
 }
 
-void test_FreeRTOS_IsNetworkUp( void )
-{
-    BaseType_t xReturn;
-    struct xNetworkEndPoint xEndPoint = { 0 };
-
-    memset( &xEndPoint, 0, sizeof( struct xNetworkEndPoint ) );
-
-
-    xEndPoint.bits.bEndPointUp = pdTRUE;
-    /* xNetworkUp = pdTRUE; */
-    /* xReturn = FreeRTOS_IsNetworkUp(); */
-    xReturn = FreeRTOS_IsEndPointUp( &xEndPoint );
-    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
-
-    /* xNetworkUp = pdFALSE; */
-    /* xReturn = FreeRTOS_IsNetworkUp(); */
-    xEndPoint.bits.bEndPointUp = pdFALSE;
-    xReturn = FreeRTOS_IsEndPointUp( &xEndPoint );
-
-    TEST_ASSERT_EQUAL( pdFALSE, xReturn );
-
-    /* xReturn = FreeRTOS_IsNetworkUp(); TODO to be checked in routing */
-    /* TEST_ASSERT_EQUAL( pdFALSE, xReturn ); */
-}
-
 void test_CastingFunctions( void )
 {
     void * pvPtr;
@@ -3214,4 +3190,64 @@ void test_FreeRTOS_SetEndPointConfiguration_IPv6Endpoint( void )
 void test_FreeRTOS_SetEndPointConfiguration_NullEndpoint( void )
 {
     FreeRTOS_SetEndPointConfiguration( NULL, NULL, NULL, NULL, NULL );
+}
+
+void test_FreeRTOS_IsNetworkUp()
+{
+    BaseType_t xReturn;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+
+    memset( pxEndpoint, 0, sizeof( xEndpoint ) );
+    pxEndpoint->bits.bEndPointUp = pdTRUE;
+
+    pxNetworkEndPoints = pxEndpoint;
+
+    xReturn = FreeRTOS_IsNetworkUp();
+
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+}
+
+void test_FreeRTOS_AllEndPointsUp_NoEndpoints()
+{
+    BaseType_t xReturn;
+    
+    xReturn = FreeRTOS_AllEndPointsUp( NULL );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+}
+
+void test_FreeRTOS_AllEndPointsUp_SpecificInterface()
+{
+    BaseType_t xReturn;
+    NetworkEndPoint_t xEndpoint[3];
+    NetworkInterface_t xInterface[2];
+
+    /* Three endpoints: e0, e1, e2. And 2 interfaces: i0, i1.
+     *  - e0: Attach to i0
+     *  - e1: Attach to i1, and it's up.
+     *  - e2: Attach to i1, and it's down.
+     *  */
+    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
+    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
+
+    memset( &xEndpoint[0], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndpoint[1], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndpoint[2], 0, sizeof( NetworkEndPoint_t ) );
+
+    xEndpoint[0].pxNetworkInterface = &xInterface[0];
+
+    xEndpoint[1].pxNetworkInterface = &xInterface[1];
+    xEndpoint[1].bits.bEndPointUp = pdTRUE;
+    
+    xEndpoint[2].pxNetworkInterface = &xInterface[1];
+    xEndpoint[2].bits.bEndPointUp = pdFALSE;
+
+    /* Append e0~e2 into global endpoint list. */
+    pxNetworkEndPoints = &xEndpoint[0];
+    pxNetworkEndPoints->pxNext = &xEndpoint[1];
+    pxNetworkEndPoints->pxNext->pxNext = &xEndpoint[2];
+    
+    xReturn = FreeRTOS_AllEndPointsUp( &xInterface[1] );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }

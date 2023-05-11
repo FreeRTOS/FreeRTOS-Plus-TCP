@@ -648,18 +648,3 @@ void test_prvCheckIP4HeaderOptions_HeaderLengthSmaller( void )
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
     TEST_ASSERT_EQUAL( ipconfigTCP_MSS - sizeof( IPPacket_t ) - 40, FreeRTOS_ntohs( pxIPHeader->usLength ) );
 }
-
-void test_FreeRTOS_IsNetworkUp()
-{
-    BaseType_t xReturn;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
-
-    memset( pxEndpoint, 0, sizeof( xEndpoint ) );
-    pxEndpoint->bits.bEndPointUp = pdTRUE;
-
-    pxNetworkEndPoints = pxEndpoint;
-
-    xReturn = FreeRTOS_IsNetworkUp();
-
-    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
-}
