@@ -183,7 +183,6 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, xFirstEndPoint );
 
     vPreCheckConfigs_Expect();
 
