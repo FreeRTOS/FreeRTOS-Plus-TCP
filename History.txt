@@ -1,3 +1,6 @@
+Changes between dev/ipv6_integration branch 4.0.0-RC2 and 4.0.0-RC1 releases:
+        + Added changes to fix IPv6 issues observed by Maxwell protocol tester.
+
 Changes between dev/ipv6_integration branch RC1 and main branch V3.0.0 releases:
         + Unified code for IPv4 and IPv6
         + Multiple Interface/Endpoint support

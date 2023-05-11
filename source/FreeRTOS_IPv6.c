@@ -282,6 +282,7 @@ static void xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address,
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
+/* coverity[single_use] */
     static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
     {
         BaseType_t xReturn = pdFALSE;

@@ -197,12 +197,8 @@ struct xARP_PACKET
 typedef struct xARP_PACKET ARPPacket_t;
 
 
-#if ( ipconfigUSE_IPv4 != 0 )
-    #include "FreeRTOS_IPv4_Private.h"
-#endif /* ipconfigUSE_IPv4 */
-#if ( ipconfigUSE_IPv6 != 0 )
-    #include "FreeRTOS_IPv6_Private.h"
-#endif /* ipconfigUSE_IPv6 */
+#include "FreeRTOS_IPv4_Private.h"
+#include "FreeRTOS_IPv6_Private.h"
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one

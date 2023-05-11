@@ -119,27 +119,17 @@
  * The target IP address will be 224.0.0.252
  */
     #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
-        #define ipLLMNR_IP_ADDR      0xE00000FCUL
+        #define ipLLMNR_IP_ADDR    0xE00000FCUL
     #else
-        #define ipLLMNR_IP_ADDR      0xFC0000E0UL
+        #define ipLLMNR_IP_ADDR    0xFC0000E0UL
     #endif /* ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN */
-    #if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
-        #define ipMDNS_IP_ADDRESS    0xe00000fbU /* 224.0.0.251 */
-    #else
-        #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
-    #endif
-    #define ipMDNS_TIME_TO_LIVE      255U
-    #define ipMDNS_PORT              5353U       /* Standard mDNS port. */
-    #define ipLLMNR_PORT             5355U       /* Standard LLMNR port. */
-    #define ipDNS_PORT               53U         /* Standard DNS port. */
-    #define ipDHCP_CLIENT_PORT       67U
-    #define ipDHCP_SERVER_PORT       68U
-    #define ipNBNS_PORT              137U /* NetBIOS Name Service. */
-    #define ipNBDGM_PORT             138U /* Datagram Service, not included. */
-    /** @brief Default v6 DHCP client port. */
-    #define ipDHCPv6_CLIENT_PORT     546U
-    /** @brief Default v6 DHCP server port. */
-    #define ipDHCPv6_SERVER_PORT     547U
+
+    #define ipMDNS_TIME_TO_LIVE    255U
+
+    #define ipLLMNR_PORT           5355U  /* Standard LLMNR port. */
+    #define ipDNS_PORT             53U    /* Standard DNS port. */
+    #define ipNBNS_PORT            137U   /* NetBIOS Name Service. */
+    #define ipNBDGM_PORT           138U   /* Datagram Service, not included. */
 
 /** @brief freertos_addrinfo is the equivalent of 'struct addrinfo'. */
     struct freertos_addrinfo
@@ -331,4 +321,14 @@
 
     #endif /* ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 ) */
 #endif /* ipconfigUSE_DNS */
+
+/* Keeping this outside of ipconfigUSE_DNS flag as these are used inside IPv4 UDP code */
+#define ipMDNS_PORT              5353U       /* Standard mDNS port. */
+
+#if ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN )
+    #define ipMDNS_IP_ADDRESS    0xe00000fbU /* 224.0.0.251 */
+#else
+    #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
+#endif
+
 #endif /* ifndef FREERTOS_DNS_GLOBALS_H */

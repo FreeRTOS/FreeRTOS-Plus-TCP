@@ -1829,6 +1829,7 @@ xipversion
 xisbound
 xiscallingfromiptask
 xisforrx
+xisglobal
 xisinputstream
 xiswaitingarpresolution
 xitemvalue
