@@ -256,3 +256,13 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
+
+void test_prvCheckIP4HeaderOptions_AlwaysRelease( void )
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    eResult = prvCheckIP4HeaderOptions( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
