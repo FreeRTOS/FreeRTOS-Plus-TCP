@@ -469,7 +469,7 @@ void test_FreeRTOS_SetAddressConfiguration_NoEndpoint( void )
 void test_FreeRTOS_SetIPAddress_ValidEndpoint( void )
 {
     NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
-    uint32_t ulIPAddress = 0x00ABCDEF;
+    uint32_t ulIPAddress = 0x00ABCDEFU;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
@@ -480,10 +480,33 @@ void test_FreeRTOS_SetIPAddress_ValidEndpoint( void )
 
 void test_FreeRTOS_SetIPAddress_NullEndpoint( void )
 {
-    uint32_t ulIPAddress = 0x00ABCDEF;
+    uint32_t ulIPAddress = 0x00ABCDEFU;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
 
     FreeRTOS_SetIPAddress( ulIPAddress );
+}
+
+void test_FreeRTOS_GetGatewayAddress_ValidEndpoint( void )
+{
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    uint32_t ulIPAddress = 0U;
+
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxEndpoint->ipv4_settings.ulGatewayAddress = 0x00ABCDEF;
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
+
+    ulIPAddress = FreeRTOS_GetGatewayAddress();
+    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulGatewayAddress, ulIPAddress );
+}
+
+void test_FreeRTOS_GetGatewayAddress_NullEndpoint( void )
+{
+    uint32_t ulIPAddress = 0U;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
+
+    ulIPAddress = FreeRTOS_GetGatewayAddress();
+    TEST_ASSERT_EQUAL( 0U, ulIPAddress );
 }
 
