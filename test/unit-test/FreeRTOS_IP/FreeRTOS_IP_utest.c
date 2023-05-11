@@ -3251,3 +3251,35 @@ void test_FreeRTOS_AllEndPointsUp_SpecificInterface()
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
+
+void test_uxIPHeaderSizeSocket_IPv4()
+{
+    size_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.bits.bIsIPv6 = pdFALSE;
+
+    xReturn = uxIPHeaderSizeSocket( &xSocket );
+    TEST_ASSERT_EQUAL( ipSIZE_OF_IPv4_HEADER, xReturn );
+}
+
+void test_uxIPHeaderSizeSocket_NullSocket()
+{
+    size_t xReturn;
+
+    xReturn = uxIPHeaderSizeSocket( NULL );
+    TEST_ASSERT_EQUAL( ipSIZE_OF_IPv4_HEADER, xReturn );
+}
+
+void test_uxIPHeaderSizeSocket_IPv6()
+{
+    size_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.bits.bIsIPv6 = pdTRUE;
+
+    xReturn = uxIPHeaderSizeSocket( &xSocket );
+    TEST_ASSERT_EQUAL( ipSIZE_OF_IPv6_HEADER, xReturn );
+}
