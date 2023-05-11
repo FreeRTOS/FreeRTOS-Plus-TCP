@@ -617,12 +617,12 @@
     {
         TickType_t uxReloadTime = pdMS_TO_TICKS( 5000U );
 
+        configASSERT( pxEndPoint != NULL );
+
         #if ( ipconfigHAS_PRINTF == 1 )
             /* Remember the initial state, just for logging. */
             eRAState_t eRAState = pxEndPoint->xRAData.eRAState;
         #endif
-
-        configASSERT( pxEndPoint != NULL );
 
         if( xDoReset != pdFALSE )
         {

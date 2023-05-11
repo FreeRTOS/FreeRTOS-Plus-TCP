@@ -68,6 +68,7 @@ bfinsent
 bhasdot
 bhasinit
 binterfaceup
+bipaddressinuse
 bisdefault
 bisforrx
 bist
@@ -1653,13 +1654,16 @@ vlistinitialise
 vlistinitialiseitem
 vmyconnecthandler
 vndrefreshcacheentry
+vndsendroutersolicitation
 vnetworkinterfaceallocateramtobuffers
 vperformaction
 vportfree
 vprintresourcestats
 vprocessgeneratedudppacket
 vraprocess
+vraprocessinit
 vreceivera
+vreceivena
 vreleasenetworkbufferanddescriptor
 vreturnethernetframe
 vrxfaultinjection
