@@ -465,3 +465,25 @@ void test_FreeRTOS_SetAddressConfiguration_NoEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
     FreeRTOS_SetAddressConfiguration( NULL, NULL, NULL, NULL );
 }
+
+void test_FreeRTOS_SetIPAddress_ValidEndpoint( void )
+{
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    uint32_t ulIPAddress = 0x00ABCDEF;
+
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
+
+    FreeRTOS_SetIPAddress( ulIPAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulIPAddress );
+}
+
+void test_FreeRTOS_SetIPAddress_NullEndpoint( void )
+{
+    uint32_t ulIPAddress = 0x00ABCDEF;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
+
+    FreeRTOS_SetIPAddress( ulIPAddress );
+}
+
