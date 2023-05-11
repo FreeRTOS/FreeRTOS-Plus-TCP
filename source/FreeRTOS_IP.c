@@ -835,7 +835,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn = NULL;
     TickType_t uxBlockTime = uxBlockTimeTicks;
-    size_t uxPayloadOffset = 0;
+    size_t uxPayloadOffset = 0U;
 
     configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
 
@@ -1896,11 +1896,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
             
             /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
-            /* LCOV_EXCL_BR_START */
-            default:
+            default: /* LCOV_EXCL_BR_LINE */
                 /* MISRA 16.4 Compliance */
-                break;
-            /* LCOV_EXCL_BR_STOP */
+                break;  /* LCOV_EXCL_BR_LINE */
         }
 
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
@@ -1949,11 +1947,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                         /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
-                        /* LCOV_EXCL_BR_START */
-                        default:
+                        default: /* LCOV_EXCL_BR_LINE */
                             /* MISRA 16.4 Compliance */
-                            break;
-                        /* LCOV_EXCL_BR_STOP */
+                            break; /* LCOV_EXCL_BR_LINE */
                     }
                 }
             }

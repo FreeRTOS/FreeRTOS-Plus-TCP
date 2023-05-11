@@ -642,3 +642,20 @@ void test_FreeRTOS_GetMACAddress_NullEndpoint( void )
     pucReturn = FreeRTOS_GetMACAddress();
     TEST_ASSERT_EQUAL( NULL, pucReturn );
 }
+
+void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig_IPv6NotSupported( void )
+{
+    size_t uxRequestedSizeBytes = 300;
+    TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
+    void * pvReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t pucEthernetBuffer[ 1500 ];
+
+    /* Put the ethernet buffer in place. */
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->xDataLength = 0;
+
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv6 );
+
+    TEST_ASSERT_EQUAL_PTR( NULL, pvReturn );
+}
