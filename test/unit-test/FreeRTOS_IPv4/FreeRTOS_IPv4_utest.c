@@ -623,6 +623,77 @@ void test_prvAllowIPPacketIPv4_HappyPath( void )
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
+void test_prvAllowIPPacketIPv4_LoopbackHappyPath( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    const MACAddress_t xMACAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndpoint;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->ulDestinationIPAddress = 0xD0D00101;
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( pxEndpoint );
+
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+void test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndpoint;
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xE0E00102;
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+
+    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
 void test_prvCheckIP4HeaderOptions_HeaderLengthSmaller( void )
 {
     eFrameProcessingResult_t eResult;
