@@ -146,7 +146,7 @@ void test_BindSocket_fail( void )
 
     ret = DNS_BindSocket( xSocket, usPort );
 
-    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    TEST_ASSERT_EQUAL( 0, ret );
 }
 
 /**
@@ -163,7 +163,7 @@ void test_BindSocket_success( void )
 
     ret = DNS_BindSocket( xSocket, usPort );
 
-    TEST_ASSERT_EQUAL( pdTRUE, ret );
+    TEST_ASSERT_EQUAL( 1, ret );
 }
 
 /**
