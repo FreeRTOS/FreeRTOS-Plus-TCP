@@ -49,7 +49,6 @@
 
 #include "FreeRTOS_IPv4.h"
 
-#include "FreeRTOS_IPv4_stubs.c"
 #include "catch_assert.h"
 
 

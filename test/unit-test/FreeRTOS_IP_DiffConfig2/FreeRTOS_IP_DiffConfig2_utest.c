@@ -58,6 +58,7 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IP.h"
 

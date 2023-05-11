@@ -62,9 +62,9 @@
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_IPv4_Private.h"
 #include "mock_FreeRTOS_ND.h"
+#include "mock_FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IP_DiffConfig1_stubs.c"
 #include "catch_assert.h"

@@ -62,9 +62,9 @@
 #include "mock_FreeRTOS_IPv4_Private.h"
 #include "mock_FreeRTOS_ND.h"
 #include "mock_FreeRTOS_IPv6.h"
+#include "mock_FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IP_stubs.c"
 #include "catch_assert.h"
@@ -1786,14 +1786,8 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
@@ -1829,14 +1823,9 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
 
@@ -1875,13 +1864,8 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
 
@@ -1926,13 +1910,8 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP2( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
 
@@ -1977,13 +1956,8 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
     /* Set the protocol to be ICMP. */
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -2022,13 +1996,8 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_DataLengthCorrect( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
     /* Set the protocol to be ICMP. */
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
@@ -2077,13 +2046,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2129,12 +2092,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect2( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
@@ -2182,12 +2140,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect3( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdFAIL );
 
@@ -2236,12 +2189,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
@@ -2295,12 +2243,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
@@ -2346,12 +2289,7 @@ void test_prvProcessIPPacket_TCP( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntry_ExpectAnyArgs();
@@ -2398,12 +2336,7 @@ void test_prvProcessIPPacket_TCP1( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
-
-    usGenerateChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntry_ExpectAnyArgs();
