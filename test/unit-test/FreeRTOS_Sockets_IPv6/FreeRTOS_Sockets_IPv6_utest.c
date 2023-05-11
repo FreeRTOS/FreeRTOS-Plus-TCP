@@ -62,6 +62,8 @@
 
 #include "FreeRTOSIPConfig.h"
 
+#define SAMPLE_IPv4_ADDR    0xABCD1234
+
 /* The maximum segment size used by TCP, it is the maximum size of
  * the TCP payload per packet.
  * For IPv4: when MTU equals 1500, the MSS equals 1460.
@@ -76,14 +78,16 @@
     #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) )
 #endif
 
-static const IPv6_Address_t xSampleAddress_IPv6 = { .ucBytes = { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x70, 0x08 } };
-static const IPv6_Address_t xSampleAddress_IPv6_2 = { .ucBytes = { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x74, 0x08 } };
-static const IPv6_Address_t xSampleAddress_IPv6_3 = { .ucBytes = { 0xfe, 0x80, 0, 0, 0, 0xde, 0, 0, 0, 0, 0, 0, 0, 0, 0x70, 0x08 } };
-static const IPv6_Address_t xSampleAddress_IPv6_4 = { .ucBytes = { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0, 0, 0, 0x74, 0x08 } };
-static const IPv6_Address_t xSampleAddress_IPv6_5 = { .ucBytes = { 0xfe, 0x80, 0, 0xde, 0, 0xde, 0, 0xde, 0, 0xde, 0xff, 0, 0xde, 0, 0x74, 0x08 } };
-static const IPv6_Address_t xSampleAddress_IPv6_6 = { .ucBytes = { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+static const IPv6_Address_t xSampleAddress_IPv6 = { /* .ucBytes = */ { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x70, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_2 = { /* .ucBytes = */ { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x74, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_3 = { /* .ucBytes = */ { 0xfe, 0x80, 0, 0, 0, 0xde, 0, 0, 0, 0, 0, 0, 0, 0, 0x70, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_4 = { /* .ucBytes = */ { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0, 0, 0, 0x74, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_5 = { /* .ucBytes = */ { 0xfe, 0x80, 0, 0xde, 0, 0xde, 0, 0xde, 0, 0xde, 0xff, 0, 0xde, 0, 0x74, 0x08 } };
+static const IPv6_Address_t xSampleAddress_IPv6_6 = { /* .ucBytes = */ { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-/* IPv6 address pointer passed but socket is not an IPv6 socket */
+/**
+ * @brief IPv6 address pointer passed but socket is not an IPv6 socket
+ */
 void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NonNULLIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -92,12 +96,14 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NonNULLIPv6Address( void )
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, 0xABCD1234 );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
 
-/* NULL IPv6 address pointer passed and socket is not an IPv6 socket */
+/**
+ * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket
+ */
 void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -106,12 +112,14 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address( void )
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, 0xABCD1234 );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
 
-/* NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a matching IPv4 address is passed */
+/**
+ * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a matching IPv4 address is passed
+ */
 void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_MatchingIPv4Address( void )
 {
     FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
@@ -120,14 +128,16 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_MatchingIPv4Addre
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
-    xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xABCD1234;
+    xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, 0xABCD1234 );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
 
     TEST_ASSERT_EQUAL( &xSocket, pxRetSocket );
 }
 
-/* NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a non matching IPv4 address is passed */
+/**
+ * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a non matching IPv4 address is passed
+ */
 void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Address( void )
 {
     FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
@@ -138,12 +148,14 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Ad
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
     xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xDBCD1235;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, 0xABCD1234 );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
 
-/* NULL IPv6 address pointer passed and socket is an IPv6 socket */
+/**
+ * @brief NULL IPv6 address pointer passed and socket is an IPv6 socket
+ */
 void test_pxTCPSocketLookup_IPv6_IPv6Socket_NULLIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -152,12 +164,14 @@ void test_pxTCPSocketLookup_IPv6_IPv6Socket_NULLIPv6Address( void )
 
     xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, 0xABCD1234 );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
 
-/* Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses match */
+/**
+ * @brief Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses match
+ */
 void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__MatchingIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -168,12 +182,14 @@ void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__MatchingIPv6Addr
     memcpy( &xAddress_IPv6, &xSampleAddress_IPv6, sizeof( IPv6_Address_t ) );
     memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, &xSampleAddress_IPv6, sizeof( IPv6_Address_t ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, 0xABCD1234 );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
 
     TEST_ASSERT_EQUAL( &xSocket, pxRetSocket );
 }
 
-/* Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses doesn't match */
+/**
+ * @brief Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses doesn't match
+ */
 void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__NonMatchingIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -184,12 +200,14 @@ void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__NonMatchingIPv6A
     memcpy( &xAddress_IPv6, &xSampleAddress_IPv6, sizeof( IPv6_Address_t ) );
     memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, &xSampleAddress_IPv6_2, sizeof( IPv6_Address_t ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, 0xABCD1234 );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
 
-/* Catch configASSERT in case NULL pxDestinationAddress is passed */
+/**
+ * @brief Catch configASSERT in case NULL pxDestinationAddress is passed
+ */
 void test_xSend_UDP_Update_IPv6_NullDestinationAddr( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -197,7 +215,9 @@ void test_xSend_UDP_Update_IPv6_NullDestinationAddr( void )
     catch_assert( xSend_UDP_Update_IPv6( &xNetworkBuffer, NULL ) );
 }
 
-/* Valid network buffer and destination addresses are passed and the output is compared */
+/**
+ * @brief Valid network buffer and destination addresses are passed and the output is compared
+ */
 void test_xSend_UDP_Update_IPv6( void )
 {
     struct freertos_sockaddr xDestinationAddress;
@@ -219,7 +239,9 @@ void test_xSend_UDP_Update_IPv6( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/* Test for invalid IP frame type */
+/**
+ * @brief Test for invalid IP frame type
+ */
 void test_xRecv_Update_IPv6_InvalidFrame( void )
 {
     struct freertos_sockaddr xSourceAddress;
@@ -239,7 +261,9 @@ void test_xRecv_Update_IPv6_InvalidFrame( void )
     TEST_ASSERT_EQUAL( 0, xRetVal );
 }
 
-/* NULL source address pointer */
+/**
+ * @brief NULL source address pointer
+ */
 void test_xRecv_Update_IPv6_InvalidFrame_NullSourceAddress( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -258,7 +282,9 @@ void test_xRecv_Update_IPv6_InvalidFrame_NullSourceAddress( void )
     TEST_ASSERT_EQUAL( ipUDP_PAYLOAD_OFFSET_IPv6, xRetVal );
 }
 
-/* Test for invalid IP frame type */
+/**
+ * @brief Test for invalid IP frame type
+ */
 void test_xRecv_Update_IPv6_InvalidFrame_ValidSourceAddress( void )
 {
     struct freertos_sockaddr xSourceAddress;
