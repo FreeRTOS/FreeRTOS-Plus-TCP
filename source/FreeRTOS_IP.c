@@ -1864,7 +1864,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     if( eReturn == eProcessBuffer )
     {
         /* Are there IP-options. */
-        switch( pxIPPacket->xEthernetHeader.usFrameType )
+        /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+        switch( pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipIPv4_FRAME_TYPE:
@@ -1917,11 +1918,12 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 else
                 {
                     /* Refresh the ARP cache with the IP/MAC-address of the received
-                     *  packet.  For UDP packets, this will be done later in
-                     *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                     *  will be handled.  This will prevent the ARP cache getting
-                     *  overwritten with the IP address of useless broadcast packets. */
-                    switch( pxIPPacket->xEthernetHeader.usFrameType )
+                     * packet.  For UDP packets, this will be done later in
+                     * xProcessReceivedUDPPacket(), as soon as it's know that the message
+                     * will be handled.  This will prevent the ARP cache getting
+                     * overwritten with the IP address of useless broadcast packets. */
+                    /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+                    switch( pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
                             case ipIPv6_FRAME_TYPE:
@@ -2135,7 +2137,8 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             }
             else
             {
-                /* do nothing, coverity happy */
+                /* This should never reach or the packet is gone without any infomation. */
+                configASSERT( pdFALSE );
             }
         }
     }

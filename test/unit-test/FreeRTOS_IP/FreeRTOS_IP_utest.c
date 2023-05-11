@@ -2409,7 +2409,7 @@ void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
-    /* Set the protocol to be ICMP. */
+    /* Set the protocol to be UDP. */
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2446,7 +2446,40 @@ void test_prvProcessIPPacket_UDP_LargerLoopbackAddress( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
-    /* Set the protocol to be ICMP. */
+    /* Set the protocol to be UDP. */
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+void test_prvProcessIPPacket_UDP_IPHeaderLengthTooLarge( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
+
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    /* The length in IP header is larger than buffer size. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
+
+    /* Packet not meant for this node. */
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipLAST_LOOPBACK_IPv4 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
+    /* Set the protocol to be UDP. */
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2839,10 +2872,10 @@ void test_vReturnEthernetFrame_ReleaseAfterSend( void )
     TEST_ASSERT_EQUAL( 0, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-void test_vReturnEthernetFrame_ReleaseAfterSendFail( void )
+void test_vReturnEthernetFrame_NeitherIPTaskNorReleaseAfterSend( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    BaseType_t xReleaseAfterSend = pdTRUE;
+    BaseType_t xReleaseAfterSend = pdFALSE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -2870,13 +2903,8 @@ void test_vReturnEthernetFrame_ReleaseAfterSendFail( void )
 
     xIPTaskInitialised = pdTRUE;
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
-    xQueueGenericSend_IgnoreAndReturn( pdFAIL );
-    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
-    vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
-
-    TEST_ASSERT_EQUAL( 0, NetworkInterfaceOutputFunction_Stub_Called );
+    catch_assert( vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend ) );
 }
 
 void test_vReturnEthernetFrame_UnknownFrameType( void )
