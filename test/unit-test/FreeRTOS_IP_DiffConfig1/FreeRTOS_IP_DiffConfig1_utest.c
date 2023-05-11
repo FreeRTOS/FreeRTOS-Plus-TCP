@@ -460,8 +460,8 @@ void test_FreeRTOS_SetAddressConfiguration_HappyPath( void )
     TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[0] );
 }
 
-void test_FFreeRTOS_SetAddressConfiguration_NoEndpoint( void )
+void test_FreeRTOS_SetAddressConfiguration_NoEndpoint( void )
 {
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
-    FreeRTOS_GetAddressConfiguration( NULL, NULL, NULL, NULL );
+    FreeRTOS_SetAddressConfiguration( NULL, NULL, NULL, NULL );
 }

@@ -1262,6 +1262,15 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent2( void )
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
+void test_eConsiderFrameForProcessing_NullBufferDescriptor( void )
+{
+    eFrameProcessingResult_t eResult;
+
+    eResult = eConsiderFrameForProcessing( NULL );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
 void test_eConsiderFrameForProcessing_NoMatch( void )
 {
     eFrameProcessingResult_t eResult;
@@ -1431,6 +1440,28 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+void test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
+
+    pxEthernetHeader->xDestinationAddress.ucBytes[0] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+    pxEthernetHeader->xDestinationAddress.ucBytes[1] = 0x00;
+    pxEthernetHeader->usFrameType = 0xFFFF;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 void test_prvProcessEthernetPacket_NoData( void )
@@ -2347,6 +2378,80 @@ void test_prvProcessIPPacket_TCP1( void )
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
     TEST_ASSERT_EQUAL( backup + 1, xProcessedTCPMessage );
+}
+
+void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    /* Packet not meant for this node. */
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+
+    /* Set the protocol to be ICMP. */
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+void test_prvProcessIPPacket_UDP_LargerLoopbackAddress( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = 0;
+
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    /* Packet not meant for this node. */
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipLAST_LOOPBACK_IPv4 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+
+    /* Set the protocol to be ICMP. */
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )

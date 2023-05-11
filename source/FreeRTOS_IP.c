@@ -338,7 +338,7 @@ static void prvProcessIPEventsAndTimers( void )
             pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
             xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
 
-            switch( pxSocket->bits.bIsIPv6 )
+            switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case pdFALSE_UNSIGNED:
@@ -357,7 +357,7 @@ static void prvProcessIPEventsAndTimers( void )
                         ( void ) memset( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, 0, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
+                
                 default:
                     /* MISRA 16.4 Compliance */
                     break;
@@ -847,8 +847,14 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    switch( ucIPType )
+    switch( ucIPType ) /* LCOV_EXCL_BR_LINE */
     {
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case ipTYPE_IPv4:
+                uxPayloadOffset = sizeof( UDPPacket_t );
+                break;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
         #if ( ipconfigUSE_IPv6 != 0 )
             case ipTYPE_IPv6:
                 uxPayloadOffset = sizeof( UDPPacket_IPv6_t );
@@ -856,10 +862,8 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         default:
-            /* ipTYPE_IPv4 */
-            #if ( ipconfigUSE_IPv4 != 0 )
-                uxPayloadOffset = sizeof( UDPPacket_t );
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+            /* Shouldn't reach here. */
+            /* MISRA 16.4 Compliance */
             break;
     }
 
