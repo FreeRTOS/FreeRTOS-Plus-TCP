@@ -142,7 +142,7 @@ void test_BindSocket_fail( void )
     uint16_t usPort;
     uint32_t ret;
 
-    FreeRTOS_bind_ExpectAnyArgsAndReturn( pdFALSE );
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
 
     ret = DNS_BindSocket( xSocket, usPort );
 
@@ -159,7 +159,7 @@ void test_BindSocket_success( void )
     uint16_t usPort;
     uint32_t ret;
 
-    FreeRTOS_bind_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 1 );
 
     ret = DNS_BindSocket( xSocket, usPort );
 
