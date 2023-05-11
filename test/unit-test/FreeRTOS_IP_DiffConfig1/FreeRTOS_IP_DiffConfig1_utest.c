@@ -422,7 +422,7 @@ void test_FreeRTOS_GetAddressConfiguration_HappyPath( void )
     xEndPoint.ipv4_settings.ulIPAddress = 1;
     xEndPoint.ipv4_settings.ulNetMask = 2;
     xEndPoint.ipv4_settings.ulGatewayAddress = 3;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 4;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
     FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
@@ -457,7 +457,7 @@ void test_FreeRTOS_SetAddressConfiguration_HappyPath( void )
     TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
     TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
     TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[0] );
+    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] );
 }
 
 void test_FreeRTOS_SetAddressConfiguration_NoEndpoint( void )
@@ -537,11 +537,11 @@ void test_FreeRTOS_GetDNSServerAddress_ValidEndpoint( void )
     uint32_t ulIPAddress = 0U;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-    pxEndpoint->ipv4_settings.ulDNSServerAddresses[0] = 0x00ABCDEF;
+    pxEndpoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = 0x00ABCDEF;
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     ulIPAddress = FreeRTOS_GetDNSServerAddress();
-    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulDNSServerAddresses[0], ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulDNSServerAddresses[ 0 ], ulIPAddress );
 }
 
 void test_FreeRTOS_GetDNSServerAddress_NullEndpoint( void )

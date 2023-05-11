@@ -418,7 +418,7 @@ void test_prvIPTask_NetworkDown( void )
     NetworkInterface_t xNetworkInterface;
     IPStackEvent_t xDownEvent;
 
-    memset( &xNetworkInterface, 0, sizeof(xNetworkInterface) );
+    memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
     pxNetworkInterfaces = &xNetworkInterface;
 
     xDownEvent.eEventType = eNetworkDownEvent;
@@ -869,12 +869,12 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void )
 {
     IPStackEvent_t xReceivedEvent;
-    NetworkInterface_t xNetworkInterface[2], * pxInterface = &xNetworkInterface[1];
+    NetworkInterface_t xNetworkInterface[ 2 ], * pxInterface = &xNetworkInterface[ 1 ];
     SocketSelect_t * pxSocketSet = malloc( sizeof( SocketSelect_t ) );
 
     xNetworkDownEventPending = pdTRUE;
-    xNetworkInterface[0].bits.bCallDownEvent = pdFALSE_UNSIGNED;
-    xNetworkInterface[1].bits.bCallDownEvent = pdTRUE_UNSIGNED;
+    xNetworkInterface[ 0 ].bits.bCallDownEvent = pdFALSE_UNSIGNED;
+    xNetworkInterface[ 1 ].bits.bCallDownEvent = pdTRUE_UNSIGNED;
 
     xReceivedEvent.eEventType = eSocketSetDeleteEvent;
     xReceivedEvent.pvData = pxSocketSet;
@@ -888,8 +888,8 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
 
     vEventGroupDelete_Expect( pxSocketSet->xSelectGroup );
 
-    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xNetworkInterface[0] );
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xNetworkInterface[0], pxInterface );
+    FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xNetworkInterface[ 0 ] );
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xNetworkInterface[ 0 ], pxInterface );
     /* Since network down event is pending, a call to this function should be expected. */
     prvProcessNetworkDownEvent_Expect( pxInterface );
 
@@ -1434,8 +1434,8 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    pxEthernetHeader->xDestinationAddress.ucBytes[0] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
-    pxEthernetHeader->xDestinationAddress.ucBytes[1] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
+    pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+    pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1456,8 +1456,8 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    pxEthernetHeader->xDestinationAddress.ucBytes[0] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
-    pxEthernetHeader->xDestinationAddress.ucBytes[1] = 0x00;
+    pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+    pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = 0x00;
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1818,7 +1818,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-    
+
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
@@ -1855,7 +1855,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
-    
+
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
@@ -2552,8 +2552,8 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
 
     /* Packet not meant for this node. */
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
@@ -2597,8 +2597,8 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
 
     /* Packet not meant for this node. */
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
@@ -2643,8 +2643,8 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
 
     /* Packet not meant for this node. */
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
@@ -2688,8 +2688,8 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
 
     /* Packet not meant for this node. */
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
@@ -2733,8 +2733,8 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
 
     /* Packet not meant for this node. */
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
@@ -2776,8 +2776,8 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
 
     /* Packet not meant for this node. */
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS);
+    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
@@ -3090,16 +3090,16 @@ void test_FreeRTOS_GetIPAddress_NullEndpoint( void )
 void test_FreeRTOS_GetIPAddress_MultipleEndpoints( void )
 {
     uint32_t ulIPAddress;
-    NetworkEndPoint_t xEndPoints[2]; /* IPv6->IPv4 */
+    NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv4 */
 
-    memset( &xEndPoints[0], 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoints[0].bits.bIPv6 = pdTRUE;
-    memset( &xEndPoints[1], 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoints[1].bits.bIPv6 = pdFALSE;
-    xEndPoints[1].ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 1 ].bits.bIPv6 = pdFALSE;
+    xEndPoints[ 1 ].ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
 
-    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[0] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[0], &xEndPoints[1] );
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
 
     ulIPAddress = FreeRTOS_GetIPAddress();
 
@@ -3109,16 +3109,16 @@ void test_FreeRTOS_GetIPAddress_MultipleEndpoints( void )
 void test_FreeRTOS_GetIPAddress_NoValidEndpoints( void )
 {
     uint32_t ulIPAddress;
-    NetworkEndPoint_t xEndPoints[2]; /* IPv6->IPv6 */
+    NetworkEndPoint_t xEndPoints[ 2 ]; /* IPv6->IPv6 */
 
-    memset( &xEndPoints[0], 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoints[0].bits.bIPv6 = pdTRUE;
-    memset( &xEndPoints[1], 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoints[1].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[ 1 ].bits.bIPv6 = pdTRUE;
 
-    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[0] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[0], &xEndPoints[1] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[1], NULL );
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 1 ], NULL );
 
     ulIPAddress = FreeRTOS_GetIPAddress();
 
@@ -3165,7 +3165,7 @@ void test_FreeRTOS_GetEndPointConfiguration_AllConfigurations( void )
     xEndPoint.ipv4_settings.ulIPAddress = 1;
     xEndPoint.ipv4_settings.ulNetMask = 2;
     xEndPoint.ipv4_settings.ulGatewayAddress = 3;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 4;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
     FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
     TEST_ASSERT_EQUAL( 1, ulIPAddress );
@@ -3183,7 +3183,7 @@ void test_FreeRTOS_GetEndPointConfiguration_AllNull( void )
     xEndPoint.ipv4_settings.ulIPAddress = 1;
     xEndPoint.ipv4_settings.ulNetMask = 2;
     xEndPoint.ipv4_settings.ulGatewayAddress = 3;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = 4;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
     FreeRTOS_GetEndPointConfiguration( NULL, NULL, NULL, NULL, &xEndPoint );
 }
@@ -3234,7 +3234,7 @@ void test_FreeRTOS_SetEndPointConfiguration_AllConfigurations( void )
     TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
     TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
     TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[0] );
+    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] );
 }
 
 void test_FreeRTOS_SetEndPointConfiguration_AllNull( void )
@@ -3261,7 +3261,7 @@ void test_FreeRTOS_SetEndPointConfiguration_IPv6Endpoint( void )
     TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulIPAddress );
     TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulNetMask );
     TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulDNSServerAddresses[0] );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] );
 }
 
 void test_FreeRTOS_SetEndPointConfiguration_NullEndpoint( void )
@@ -3288,10 +3288,10 @@ void test_FreeRTOS_IsEndPointUp_NoEndpoints()
 {
     BaseType_t xReturn;
     NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
-    
+
     memset( pxEndpoint, 0, sizeof( xEndpoint ) );
     pxEndpoint->bits.bEndPointUp = pdTRUE;
-    
+
     xReturn = FreeRTOS_IsEndPointUp( pxEndpoint );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
@@ -3300,7 +3300,7 @@ void test_FreeRTOS_IsEndPointUp_NoEndpoints()
 void test_FreeRTOS_AllEndPointsUp_NoEndpoints()
 {
     BaseType_t xReturn;
-    
+
     xReturn = FreeRTOS_AllEndPointsUp( NULL );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
@@ -3309,35 +3309,35 @@ void test_FreeRTOS_AllEndPointsUp_NoEndpoints()
 void test_FreeRTOS_AllEndPointsUp_SpecificInterface()
 {
     BaseType_t xReturn;
-    NetworkEndPoint_t xEndpoint[3];
-    NetworkInterface_t xInterface[2];
+    NetworkEndPoint_t xEndpoint[ 3 ];
+    NetworkInterface_t xInterface[ 2 ];
 
     /* Three endpoints: e0, e1, e2. And 2 interfaces: i0, i1.
      *  - e0: Attach to i0
      *  - e1: Attach to i1, and it's up.
      *  - e2: Attach to i1, and it's down.
      *  */
-    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
-    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
+    memset( &xInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
+    memset( &xInterface[ 1 ], 0, sizeof( NetworkInterface_t ) );
 
-    memset( &xEndpoint[0], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndpoint[1], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndpoint[2], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndpoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndpoint[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndpoint[ 2 ], 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndpoint[0].pxNetworkInterface = &xInterface[0];
+    xEndpoint[ 0 ].pxNetworkInterface = &xInterface[ 0 ];
 
-    xEndpoint[1].pxNetworkInterface = &xInterface[1];
-    xEndpoint[1].bits.bEndPointUp = pdTRUE;
-    
-    xEndpoint[2].pxNetworkInterface = &xInterface[1];
-    xEndpoint[2].bits.bEndPointUp = pdFALSE;
+    xEndpoint[ 1 ].pxNetworkInterface = &xInterface[ 1 ];
+    xEndpoint[ 1 ].bits.bEndPointUp = pdTRUE;
+
+    xEndpoint[ 2 ].pxNetworkInterface = &xInterface[ 1 ];
+    xEndpoint[ 2 ].bits.bEndPointUp = pdFALSE;
 
     /* Append e0~e2 into global endpoint list. */
-    pxNetworkEndPoints = &xEndpoint[0];
-    pxNetworkEndPoints->pxNext = &xEndpoint[1];
-    pxNetworkEndPoints->pxNext->pxNext = &xEndpoint[2];
-    
-    xReturn = FreeRTOS_AllEndPointsUp( &xInterface[1] );
+    pxNetworkEndPoints = &xEndpoint[ 0 ];
+    pxNetworkEndPoints->pxNext = &xEndpoint[ 1 ];
+    pxNetworkEndPoints->pxNext->pxNext = &xEndpoint[ 2 ];
+
+    xReturn = FreeRTOS_AllEndPointsUp( &xInterface[ 1 ] );
 
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }

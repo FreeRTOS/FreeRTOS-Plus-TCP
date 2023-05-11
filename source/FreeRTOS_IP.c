@@ -357,7 +357,7 @@ static void prvProcessIPEventsAndTimers( void )
                         ( void ) memset( pxSocket->xLocalAddress.xIP_IPv6.ucBytes, 0, sizeof( pxSocket->xLocalAddress.xIP_IPv6.ucBytes ) );
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                
+
                 default:
                     /* MISRA 16.4 Compliance */
                     break;
@@ -1189,7 +1189,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
         if( pxEndPoint != NULL )
         {
             FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
-                                           pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+                                               pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
         }
     }
 #endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
@@ -1459,7 +1459,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
         /* Examine the destination MAC from the Ethernet header to see if it matches
-        * that of an end point managed by FreeRTOS+TCP. */
+         * that of an end point managed by FreeRTOS+TCP. */
         pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
 
         if( pxEndPoint != NULL )
@@ -1498,7 +1498,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         else
         {
             /* The packet was not a broadcast, or for this node, just release
-            * the buffer without taking any other action. */
+             * the buffer without taking any other action. */
             eReturn = eReleaseBuffer;
         }
     }
@@ -1894,11 +1894,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     }
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-            
+
             /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
-            default: /* LCOV_EXCL_LINE */
+            default:   /* LCOV_EXCL_LINE */
                 /* MISRA 16.4 Compliance */
-                break;  /* LCOV_EXCL_LINE */
+                break; /* LCOV_EXCL_LINE */
         }
 
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
@@ -1947,7 +1947,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                         /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
-                        default: /* LCOV_EXCL_LINE */
+                        default:   /* LCOV_EXCL_LINE */
                             /* MISRA 16.4 Compliance */
                             break; /* LCOV_EXCL_LINE */
                     }
