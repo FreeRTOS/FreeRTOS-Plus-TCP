@@ -1894,10 +1894,13 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     }
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
+            
+            /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+            /* LCOV_EXCL_BR_START */
             default:
                 /* MISRA 16.4 Compliance */
                 break;
+            /* LCOV_EXCL_BR_STOP */
         }
 
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
@@ -1945,9 +1948,12 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
+                        /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+                        /* LCOV_EXCL_BR_START */
                         default:
                             /* MISRA 16.4 Compliance */
                             break;
+                        /* LCOV_EXCL_BR_STOP */
                     }
                 }
             }

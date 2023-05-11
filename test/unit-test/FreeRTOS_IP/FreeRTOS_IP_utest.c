@@ -2455,6 +2455,43 @@ void test_prvProcessIPPacket_UDP_LargerLoopbackAddress( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+void test_prvProcessIPPacket_UDP_LessLoopbackAddress( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_t * pxIPHeader;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = 0;
+
+    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+
+    /* Packet not meant for this node. */
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 - 1 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+
+    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+
+    /* Set the protocol to be UDP. */
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
 void test_prvProcessIPPacket_UDP_IPHeaderLengthTooLarge( void )
 {
     eFrameProcessingResult_t eResult;
@@ -2873,6 +2910,46 @@ void test_vReturnEthernetFrame_ReleaseAfterSend( void )
     TEST_ASSERT_EQUAL( 0, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
+void test_vReturnEthernetFrame_ReleaseAfterSendFail( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+
+    memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+
+    pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
+
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
+
+    xIPTaskInitialised = pdTRUE;
+    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
+    xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
+    xQueueGenericSend_IgnoreAndReturn( pdFAIL );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
+
+    TEST_ASSERT_EQUAL( 0, NetworkInterfaceOutputFunction_Stub_Called );
+}
+
 void test_vReturnEthernetFrame_NeitherIPTaskNorReleaseAfterSend( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -3203,6 +3280,19 @@ void test_FreeRTOS_IsNetworkUp()
     pxNetworkEndPoints = pxEndpoint;
 
     xReturn = FreeRTOS_IsNetworkUp();
+
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+}
+
+void test_FreeRTOS_IsEndPointUp_NoEndpoints()
+{
+    BaseType_t xReturn;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    
+    memset( pxEndpoint, 0, sizeof( xEndpoint ) );
+    pxEndpoint->bits.bEndPointUp = pdTRUE;
+    
+    xReturn = FreeRTOS_IsEndPointUp( pxEndpoint );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
