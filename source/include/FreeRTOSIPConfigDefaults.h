@@ -241,9 +241,8 @@
     #define ipconfigUSE_IPv6    ( 1 )
 #endif
 
-#if ( ipconfigUSE_IPv4 != 1 ) || ( ipconfigUSE_IPv6 != 1 )
-    #error "Build separation for both IPv4 and IPv6 is work in progress. \
-    Please enable both ipconfigUSE_IPv4 and ipconfigUSE_IPv6 flags."
+#if ( ipconfigUSE_IPv4 != 1 ) && ( ipconfigUSE_IPv6 != 1 )
+    #error "Invalid build configuration"
 #endif
 
 /*
@@ -743,6 +742,10 @@
  */
 #ifndef ipconfigUSE_DNS
     #define ipconfigUSE_DNS    1
+#endif
+
+#if ( ipconfigUSE_IPv4 == 0 ) && ( ipconfigUSE_DNS != 0 )
+    #error "IPv4 (ipconfigUSE_IPv4) needs to be enabled to use DNS"
 #endif
 
 /* When looking up a host with DNS, this macro determines how long the

@@ -60,6 +60,7 @@
     #include "FreeRTOS_DNS.h"
 #endif
 
+/* Just make sure the contents doesn't get compiled if IPv6 is not enabled. */
 /* *INDENT-OFF* */
     #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
@@ -615,7 +616,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 else
             #endif
 
-            #if ( ipconfigUSE_LLMNR == 1 )
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
                 if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
                     ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
