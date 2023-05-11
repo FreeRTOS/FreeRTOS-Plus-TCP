@@ -577,3 +577,27 @@ void test_FreeRTOS_UpdateMACAddress_NullEndpoint( void )
     FreeRTOS_UpdateMACAddress( ucMACAddress );
 }
 
+void test_FreeRTOS_GetMACAddress_ValidEndpoint( void )
+{
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
+    uint8_t * pucReturn = NULL;
+
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+    memcpy( pxEndpoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
+
+    pucReturn = FreeRTOS_GetMACAddress();
+    TEST_ASSERT_EQUAL_MEMORY( ucMACAddress, pucReturn, ipMAC_ADDRESS_LENGTH_BYTES );
+}
+
+void test_FreeRTOS_GetMACAddress_NullEndpoint( void )
+{
+    uint8_t * pucReturn = NULL;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
+
+    pucReturn = FreeRTOS_GetMACAddress();
+    TEST_ASSERT_EQUAL( NULL, pucReturn );
+}
+
