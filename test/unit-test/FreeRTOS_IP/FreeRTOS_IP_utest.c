@@ -1798,29 +1798,25 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -1833,34 +1829,28 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
-
-    pxIPHeader->ucVersionHeaderLength = 0x46;
-
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x46;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-
     vARPRefreshCacheEntry_ExpectAnyArgs();
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -1873,39 +1863,30 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
-
-    pxIPHeader->ucVersionHeaderLength = 0x46;
-
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x46;
+    pxIPHeader->ucProtocol = ipPROTOCOL_ICMP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-
     vARPRefreshCacheEntry_ExpectAnyArgs();
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
-
     ProcessICMPPacket_ExpectAndReturn( pxNetworkBuffer, eReleaseBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -1918,41 +1899,31 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMP2( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x46;
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x46;
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
-
     vARPRefreshCacheEntry_ExpectAnyArgs();
-
     ProcessICMPPacket_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -1964,35 +1935,28 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x46;
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x46;
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2004,35 +1968,28 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_DataLengthCorrect( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x46;
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x46;
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2044,39 +2001,31 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
-
-    pxUDPPacket->xUDPHeader.usLength = ipconfigTCP_MSS;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    /* Initialize UDP layer. */
+    pxUDPPacket->xUDPHeader.usLength = ipconfigTCP_MSS;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
 
@@ -2090,42 +2039,33 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect2( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
-
-    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    /* Initialize UDP layer. */
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2138,42 +2078,33 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDP_AllLengthCorrect3( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
-
-    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    /* Initialize UDP layer. */
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdFAIL );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2194,35 +2125,27 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
-
-    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    /* Initialize UDP layer. */
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
     xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
@@ -2240,7 +2163,6 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
@@ -2248,35 +2170,27 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
 
+    /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-
-    /* Set the protocol to be ICMP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
-
-    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
+
+    /* Initialize UDP layer. */
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
     xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
@@ -2293,7 +2207,6 @@ void test_prvProcessIPPacket_TCP( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
@@ -2301,31 +2214,25 @@ void test_prvProcessIPPacket_TCP( void )
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-    /* Set the protocol to be TCP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntry_ExpectAnyArgs();
-
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdPASS );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2339,7 +2246,6 @@ void test_prvProcessIPPacket_TCP1( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
@@ -2348,31 +2254,25 @@ void test_prvProcessIPPacket_TCP1( void )
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( UDPPacket_t );
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFE;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
-    /* Set the protocol to be TCP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntry_ExpectAnyArgs();
-
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdFAIL );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2386,32 +2286,28 @@ void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
-    /* Set the protocol to be UDP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2423,32 +2319,28 @@ void test_prvProcessIPPacket_UDP_LargerLoopbackAddress( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = 0;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipLAST_LOOPBACK_IPv4 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipLAST_LOOPBACK_IPv4 );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
-    /* Set the protocol to be UDP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2460,32 +2352,28 @@ void test_prvProcessIPPacket_UDP_LessLoopbackAddress( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = 0;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 - 1 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    pxIPHeader->ulSourceIPAddress = 0xC0C00101;
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionHeaderLength = 0x45;
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 - 1 );
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-
-    /* Set the protocol to be UDP. */
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2497,27 +2385,24 @@ void test_prvProcessIPPacket_UDP_IPHeaderLengthTooLarge( void )
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
+    /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    /* The length in IP header is larger than buffer size. */
-    pxIPHeader->ucVersionHeaderLength = 0x4F;
-
-    /* Packet not meant for this node. */
-    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipLAST_LOOPBACK_IPv4 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
-    /* Set the protocol to be UDP. */
+    /* Initialize IP layer. */
+    /* The length in IP header is larger than buffer size. */
+    pxIPHeader->ucVersionHeaderLength = 0x4F;
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2530,7 +2415,6 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
     UDPPacket_IPv6_t * pxUDPPacket;
@@ -2538,27 +2422,24 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
     pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPHeader->ucVersionTrafficClass = 0x60;
-
-    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
-
-    /* Packet not meant for this node. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-
-    /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+
+    /* Initialize IP layer. */
+    pxIPHeader->ucVersionTrafficClass = 0x60;
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
 
+    /* Initialize UDP layer. */
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
@@ -2575,7 +2456,6 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
     UDPPacket_IPv6_t * pxUDPPacket;
@@ -2583,25 +2463,27 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
 
+    /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
 
+    /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
     pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
     pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
 
     /* Packet not meant for this node. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
     memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
-    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
 
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
@@ -3049,13 +2931,13 @@ void test_FreeRTOS_GetIPAddress( void )
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndPoint.ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
 
     ulIPAddress = FreeRTOS_GetIPAddress();
 
-    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, ulIPAddress );
+    TEST_ASSERT_EQUAL( 0xAB12CD34, ulIPAddress );
 }
 
 void test_FreeRTOS_GetIPAddress_DefaultSetting( void )
@@ -3067,13 +2949,13 @@ void test_FreeRTOS_GetIPAddress_DefaultSetting( void )
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
     xEndPoint.ipv4_settings.ulIPAddress = 0;
-    xEndPoint.ipv4_defaults.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    xEndPoint.ipv4_defaults.ulIPAddress = 0xAB12CD34;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
 
     ulIPAddress = FreeRTOS_GetIPAddress();
 
-    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, ulIPAddress );
+    TEST_ASSERT_EQUAL( 0xAB12CD34, ulIPAddress );
 }
 
 void test_FreeRTOS_GetIPAddress_NullEndpoint( void )
@@ -3096,14 +2978,14 @@ void test_FreeRTOS_GetIPAddress_MultipleEndpoints( void )
     xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
     memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
     xEndPoints[ 1 ].bits.bIPv6 = pdFALSE;
-    xEndPoints[ 1 ].ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    xEndPoints[ 1 ].ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
 
     ulIPAddress = FreeRTOS_GetIPAddress();
 
-    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, ulIPAddress );
+    TEST_ASSERT_EQUAL( 0xAB12CD34, ulIPAddress );
 }
 
 void test_FreeRTOS_GetIPAddress_NoValidEndpoints( void )

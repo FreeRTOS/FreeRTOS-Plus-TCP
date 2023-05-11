@@ -198,8 +198,10 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
@@ -207,10 +209,10 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress + 1;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_IsNetworkUp_ExpectAndReturn( pdTRUE );
@@ -228,24 +230,24 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    xEndpoint.ipv4_settings.ulIPAddress = 0xAB12CD34;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = xEndpoint.ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndpoint );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( pxEndpoint );
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -260,15 +262,18 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = 0xFFFFFFFF;
@@ -290,18 +295,21 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdcast1( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     NetworkEndPoint_t xEndPoints;
     IPV4Parameters_t * xIPv4Addressing = &( xEndPoints.ipv4_settings );
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = xIPv4Addressing->ulBroadcastAddress;
@@ -324,8 +332,10 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pxEndPoint = NULL;
@@ -333,7 +343,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAB12CD34;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = ipLLMNR_IP_ADDR;
@@ -355,18 +365,21 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x00;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
+    pxIPHeader->ulDestinationIPAddress = 1;
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
@@ -386,15 +399,18 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x00;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
@@ -418,19 +434,22 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -449,19 +468,22 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast2( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
@@ -481,8 +503,10 @@ void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 1, sizeof( NetworkBufferDescriptor_t ) );
@@ -491,11 +515,11 @@ void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxNetworkBuffer->pxEndPoint = NULL;
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -516,19 +540,22 @@ void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -553,19 +580,22 @@ void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -592,19 +622,22 @@ void test_prvAllowIPPacketIPv4_HappyPath( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
+    pxNetworkBuffer->pxEndPoint = pxEndpoint;
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
-
-    pxIPHeader->ulDestinationIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
