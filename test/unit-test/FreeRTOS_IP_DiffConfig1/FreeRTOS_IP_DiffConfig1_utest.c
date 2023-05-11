@@ -487,6 +487,27 @@ void test_FreeRTOS_SetIPAddress_NullEndpoint( void )
     FreeRTOS_SetIPAddress( ulIPAddress );
 }
 
+void test_FreeRTOS_SetGatewayAddress_ValidEndpoint( void )
+{
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    uint32_t ulIPAddress = 0x00ABCDEF;
+
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
+
+    FreeRTOS_SetGatewayAddress( ulIPAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulGatewayAddress );
+}
+
+void test_FreeRTOS_SetGatewayAddress_NullEndpoint( void )
+{
+    uint32_t ulIPAddress = 0x00ABCDEF;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
+
+    FreeRTOS_SetGatewayAddress( ulIPAddress );
+}
+
 void test_FreeRTOS_GetGatewayAddress_ValidEndpoint( void )
 {
     NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
