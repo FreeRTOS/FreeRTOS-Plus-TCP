@@ -48,10 +48,22 @@
 #include "FreeRTOSIPConfig.h"
 
 #ifndef ipconfigTCPv6_MSS
-    #define ipconfigTCPv6_MSS         ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
+    #define ipconfigTCPv6_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
 #endif
 
+/* Setting IPv6 address as "fe80::7009" */
+const IPv6_Address_t xDefaultIPAddress =
+{
+    0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70, 0x09
+};
+
 #define ipSIZE_OF_IPv6_PAYLOAD_LEN    20
+
+#define ipICMP_Incorrect_Msg_IPv6     0
+
+/* Buffer length check of ICMPv6 packet failed. */
+#define ipFail_INVALID_LENGTH         10
 
 /*
  * ===================================================
@@ -61,7 +73,7 @@
 
 
 /**
- * @brief This function verify corretly setting
+ * @brief This function verify correctly setting
  *        a MAC address.
  */
 void test_vSetMultiCastIPv6MacAddress( void )
@@ -70,11 +82,7 @@ void test_vSetMultiCastIPv6MacAddress( void )
     MACAddress_t xMACAddress;
 
     /* Setting IPv6 address as "fe80::7009" */
-    memset( &xIPAddress, 0, sizeof( IPv6_Address_t ) );
-    xIPAddress.ucBytes[ 0 ] = 254;
-    xIPAddress.ucBytes[ 1 ] = 128;
-    xIPAddress.ucBytes[ 14 ] = 112;
-    xIPAddress.ucBytes[ 15 ] = 9;
+    memcpy( &xIPAddress, &xDefaultIPAddress, sizeof( IPv6_Address_t ) );
     vSetMultiCastIPv6MacAddress( &xIPAddress, &xMACAddress );
 
     TEST_ASSERT_EQUAL( ( uint8_t ) 0x33U, xMACAddress.ucBytes[ 0 ] );
@@ -111,7 +119,7 @@ void test_prvChecksumIPv6Checks_InvalidLength( void )
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
     /* Return value other than zero implies length check fail */
-    TEST_ASSERT_EQUAL( usReturn, 1 );
+    TEST_ASSERT_EQUAL( 1, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -135,7 +143,7 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
 
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, 2 );
+    TEST_ASSERT_EQUAL( 2, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -158,7 +166,7 @@ void test_prvChecksumIPv6Checks_Success( void )
 
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, pdFALSE );
+    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
 }
 
 /*
@@ -180,14 +188,14 @@ void test_prvChecksumICMPv6Checks_Default_InvalidLength( void )
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xICMPHeaderIPv6.ucTypeOfMessage = 0;
+    xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_Incorrect_Msg_IPv6;
     xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, 10 );
+    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -234,7 +242,7 @@ void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, 10 );
+    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -258,7 +266,7 @@ void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, pdFALSE );
+    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
     TEST_ASSERT_EQUAL( sizeof( ICMPEcho_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
 
@@ -282,7 +290,7 @@ void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, 10 );
+    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -306,7 +314,7 @@ void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, pdFALSE );
+    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
     TEST_ASSERT_EQUAL( sizeof( ICMPEcho_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
 
@@ -330,7 +338,7 @@ void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, 10 );
+    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -354,6 +362,6 @@ void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, pdFALSE );
+    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
     TEST_ASSERT_EQUAL( sizeof( ICMPRouterSolicitation_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
