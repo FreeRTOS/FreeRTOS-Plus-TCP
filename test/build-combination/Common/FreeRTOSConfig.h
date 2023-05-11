@@ -111,13 +111,16 @@
 
 /* The function that implements FreeRTOS printf style output, and the macro
  * that maps the configPRINTF() macros to that function. */
-#define configPRINTF( X )
+void vLoggingPrintf( char const * pcFormat,
+                     ... );
+
+#define configPRINTF( X )          vLoggingPrintf X
 
 /* Non-format version thread-safe print. */
-#define configPRINT( X )
+#define configPRINT( X )           vLoggingPrintf X
 
 /* Non-format version thread-safe print. */
-#define configPRINT_STRING( X )
+#define configPRINT_STRING( X )    vLoggingPrintf X
 
 /* Application specific definitions follow. **********************************/
 

@@ -46,6 +46,11 @@
 #define ipFIRST_MULTI_CAST_IPv4    0xE0000000U          /**< Lower bound of the IPv4 multicast address. */
 #define ipLAST_MULTI_CAST_IPv4     0xF0000000U          /**< Higher bound of the IPv4 multicast address. */
 
+/* Just make sure the contents doesn't get compiled if IPv4 is not enabled. */
+/* *INDENT-OFF* */
+    #if( ipconfigUSE_IPv4 != 0 )
+/* *INDENT-ON* */
+
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv4 packet length. */
     static BaseType_t xCheckIPv4SizeFields( const void * const pvEthernetBuffer,
@@ -58,8 +63,8 @@
 /**
  * @brief Check IPv4 packet length.
  *
- * @param[in] pvEthernetBuffer: The Ethernet packet received.
- * @param[in] uxBufferLength: The total number of bytes received.
+ * @param[in] pvEthernetBuffer The Ethernet packet received.
+ * @param[in] uxBufferLength The total number of bytes received.
  *
  * @return pdPASS when the length fields in the packet OK, pdFAIL when the packet
  *         should be dropped.
@@ -101,7 +106,7 @@
                 break;
             }
 
-            ucVersionHeaderLength = ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2;
+            ucVersionHeaderLength = ( uint16_t ) ( ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2U );
             uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
 
             /* Check if the complete IP-header is transferred. */
@@ -183,7 +188,7 @@
 /**
  * @brief Is the IP address an IPv4 multicast address.
  *
- * @param[in] ulIPAddress: The IP address being checked.
+ * @param[in] ulIPAddress The IP address being checked.
  *
  * @return pdTRUE if the IP address is a multicast address or else, pdFALSE.
  */
@@ -208,9 +213,9 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 /**
  * @brief Check whether this IPv4 packet is to be allowed or to be dropped.
  *
- * @param[in] pxIPPacket: The IP packet under consideration.
- * @param[in] pxNetworkBuffer: The whole network buffer.
- * @param[in] uxHeaderLength: The length of the header.
+ * @param[in] pxIPPacket The IP packet under consideration.
+ * @param[in] pxNetworkBuffer The whole network buffer.
+ * @param[in] uxHeaderLength The length of the header.
  *
  * @return Whether the packet should be processed or dropped.
  */
@@ -408,7 +413,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPack
 
 
 /** @brief Check if the IP-header is carrying options.
- * @param[in] pxNetworkBuffer: the network buffer that contains the packet.
+ * @param[in] pxNetworkBuffer the network buffer that contains the packet.
  *
  * @return Either 'eProcessBuffer' or 'eReleaseBuffer'
  */
@@ -466,3 +471,7 @@ eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * c
     return eReturn;
 }
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+    #endif /* ipconfigUSE_IPv4 != 0 ) */
+/* *INDENT-ON* */

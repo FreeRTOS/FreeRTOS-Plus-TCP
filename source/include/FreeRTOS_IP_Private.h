@@ -197,12 +197,8 @@ struct xARP_PACKET
 typedef struct xARP_PACKET ARPPacket_t;
 
 
-#if ( ipconfigUSE_IPv4 != 0 )
-    #include "FreeRTOS_IPv4_Private.h"
-#endif /* ipconfigUSE_IPv4 */
-#if ( ipconfigUSE_IPv6 != 0 )
-    #include "FreeRTOS_IPv6_Private.h"
-#endif /* ipconfigUSE_IPv6 */
+#include "FreeRTOS_IPv4_Private.h"
+#include "FreeRTOS_IPv6_Private.h"
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one
@@ -384,10 +380,10 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 #define SOCKET_EVENT_BIT_COUNT         8
 
 #define vSetField16( pxBase, xType, xField, usValue )                                                        \
-    {                                                                                                        \
+    do {                                                                                                     \
         ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( usValue ) >> 8 );    \
         ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( usValue ) & 0xffU ); \
-    }
+    } while( ipFALSE_BOOL )
 
 #define vSetField32( pxBase, xType, xField, ulValue )                                                                  \
     {                                                                                                                  \

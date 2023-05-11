@@ -40,13 +40,19 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 
+/* Just make sure the contents doesn't get compiled if IPv4 is not enabled. */
+/* *INDENT-OFF* */
+    #if( ipconfigUSE_IPv4 != 0 )
+/* *INDENT-ON* */
+
+
 /*-----------------------------------------------------------*/
 
 /**
  * @brief Set multicast MAC address.
  *
- * @param[in] ulIPAddress: IP address.
- * @param[out] pxMACAddress: Pointer to MAC address.
+ * @param[in] ulIPAddress IP address.
+ * @param[out] pxMACAddress Pointer to MAC address.
  */
 void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
                                   MACAddress_t * pxMACAddress )
@@ -63,9 +69,9 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
 /*-----------------------------------------------------------*/
 
 /** @brief Do the first IPv4 length checks at the IP-header level.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] uxBufferLength: The number of bytes to be sent or received.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -147,3 +153,7 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
     return xReturn;
 }
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+    #endif /* ipconfigUSE_IPv4 != 0 ) */
+/* *INDENT-ON* */

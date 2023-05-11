@@ -277,15 +277,28 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 #define pdMS_TO_MIN_TICKS( xTimeInMs )    ipMS_TO_MIN_TICKS( xTimeInMs )
 
 #ifndef pdTRUE_SIGNED
-    /* Temporary solution: eventually the defines below will appear in 'Source\include\projdefs.h' */
-    #define pdTRUE_SIGNED       pdTRUE
-    #define pdFALSE_SIGNED      pdFALSE
-    #define pdTRUE_UNSIGNED     ( 1U )
-    #define pdFALSE_UNSIGNED    ( 0U )
-#endif
+    #define pdTRUE_SIGNED    pdTRUE
+#endif /* pdTRUE_SIGNED */
 
-#define ipTRUE_BOOL             ( 1 == 1 )
-#define ipFALSE_BOOL            ( 1 == 2 )
+#ifndef pdFALSE_SIGNED
+    #define pdFALSE_SIGNED    pdFALSE
+#endif /* pdFALSE_SIGNED */
+
+#ifndef pdTRUE_UNSIGNED
+    #define pdTRUE_UNSIGNED    ( 1U )
+#endif /* pdTRUE_UNSIGNED */
+
+#ifndef pdFALSE_UNSIGNED
+    #define pdFALSE_UNSIGNED    ( 0U )
+#endif /* pdFALSE_UNSIGNED */
+
+#ifndef ipTRUE_BOOL
+    #define ipTRUE_BOOL    ( 1 == 1 )
+#endif /* ipTRUE_BOOL */
+
+#ifndef ipFALSE_BOOL
+    #define ipFALSE_BOOL    ( 1 == 2 )
+#endif /* ipFALSE_BOOL */
 
 /*
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
@@ -481,12 +494,10 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 #include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
 
-#if ipconfigUSE_IPv4
-    #include "FreeRTOS_IPv4.h"
-#endif /* ipconfigUSE_IPv4 */
-#if ipconfigUSE_IPv6
-    #include "FreeRTOS_IPv6.h"
-#endif /* ipconfigUSE_IPv6 */
+
+#include "FreeRTOS_IPv4.h"
+
+#include "FreeRTOS_IPv6.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -60,7 +60,6 @@
 #include "FreeRTOS_TCP_State_Handling.h"
 #include "FreeRTOS_TCP_Utils.h"
 
-
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
@@ -102,7 +101,7 @@
 
 /** @brief Close the socket another time.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
@@ -118,7 +117,7 @@
 
 /** @brief Postpone a call to FreeRTOS_listen() to avoid recursive calls.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket )
@@ -136,7 +135,7 @@
  * @brief As soon as a TCP socket timer expires, this function will be called
  *       (from xTCPTimerCheck). It can send a delayed ACK or new data.
  *
- * @param[in] pxSocket: socket to be checked.
+ * @param[in] pxSocket socket to be checked.
  *
  * @return 0 on success, a negative error code on failure. A negative value will be
  *         returned in case the hang-protection has put the socket in a wait-close state.
@@ -246,7 +245,7 @@
 /**
  * @brief 'Touch' the socket to keep it alive/updated.
  *
- * @param[in] pxSocket: The socket to be updated.
+ * @param[in] pxSocket The socket to be updated.
  *
  * @note This is used for anti-hanging protection and TCP keep-alive messages.
  *       Called in two places: after receiving a packet and after a state change.
@@ -279,8 +278,8 @@
  *        that a socket has got (dis)connected, and setting bit to unblock a call to
  *        FreeRTOS_select().
  *
- * @param[in] pxSocket: The socket whose state we are trying to change.
- * @param[in] eTCPState: The state to which we want to change to.
+ * @param[in] pxSocket The socket whose state we are trying to change.
+ * @param[in] eTCPState The state to which we want to change to.
  */
     void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
                           enum eTCP_STATE eTCPState )
@@ -303,7 +302,7 @@
             /* A socket was in the connecting phase but something
              * went wrong and it should be closed. */
             FreeRTOS_debug_printf( ( "Move from %s to %s\n",
-                                     FreeRTOS_GetTCPStateName( xPreviousState ),
+                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                      FreeRTOS_GetTCPStateName( eTCPState ) ) );
 
             /* Set the flag to show that it was connected before and that the
@@ -499,20 +498,32 @@
                 {
                     char pcBuffer[ 40 ];
 
-                    if( pxSocket->bits.bIsIPv6 != 0 )
+                    switch( pxSocket->bits.bIsIPv6 )
                     {
-                        FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                            pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
-                                            pcBuffer,
-                                            sizeof( pcBuffer ) );
-                    }
-                    else
-                    {
-                        uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-                        FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                            ( const uint8_t * ) &ulIPAddress,
-                                            pcBuffer,
-                                            sizeof( pcBuffer ) );
+                        #if ( ipconfigUSE_IPv4 != 0 )
+                            case pdFALSE_UNSIGNED:
+                               {
+                                   uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                                   FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                       ( const uint8_t * ) &ulIPAddress,
+                                                       pcBuffer,
+                                                       sizeof( pcBuffer ) );
+                               }
+                               break;
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            case pdTRUE_UNSIGNED:
+                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                    pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                                    pcBuffer,
+                                                    sizeof( pcBuffer ) );
+                                break;
+                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                        default:
+                            /* MISRA 16.4 Compliance */
+                            break;
                     }
 
                     FreeRTOS_debug_printf( ( "Socket %u -> [%s]:%u State %s->%s\n",
@@ -546,7 +557,7 @@
 /**
  * @brief Calculate after how much time this socket needs to be checked again.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  *
  * @return The number of clock ticks before the timer expires.
  */
@@ -618,7 +629,7 @@
 /**
  * @brief Process the received TCP packet.
  *
- * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+ * @param[in] pxDescriptor The descriptor in which the TCP packet is held.
  *
  * @return If the processing of the packet was successful, then pdPASS is returned
  *         or else pdFAIL.
@@ -646,13 +657,24 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        if( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType == ipIPv6_FRAME_TYPE )
+        switch( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType )
         {
-            xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
-        }
-        else
-        {
-            xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                    xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                    xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* Shouldn't reach here */
+                xResult = pdFAIL;
+                break;
         }
 
         return xResult;
@@ -664,7 +686,7 @@
  * @brief In the API accept(), the user asks is there is a new client? As API's can
  *        not walk through the xBoundTCPSocketsList the IP-task will do this.
  *
- * @param[in] pxSocket: The socket for which the bound socket list will be iterated.
+ * @param[in] pxSocket The socket for which the bound socket list will be iterated.
  *
  * @return if there is a new client, then pdTRUE is returned or else, pdFALSE.
  */

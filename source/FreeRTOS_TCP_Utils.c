@@ -56,10 +56,12 @@
  */
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
+        static char retString[ 10 ];
+
 /**
  * @brief Print out the value of flags in a human readable manner.
  *
- * @param[in] xFlags: The TCP flags.
+ * @param[in] xFlags The TCP flags.
  *
  * @return The string containing the flags.
  */
@@ -86,17 +88,28 @@
 /**
  * @brief Set the MSS (Maximum segment size) associated with the given socket.
  *
- * @param[in] pxSocket: The socket whose MSS is to be set.
+ * @param[in] pxSocket The socket whose MSS is to be set.
  */
     void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        switch( pxSocket->bits.bIsIPv6 )
         {
-            prvSocketSetMSS_IPV6( pxSocket );
-        }
-        else
-        {
-            prvSocketSetMSS_IPV4( pxSocket );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE_UNSIGNED:
+                    prvSocketSetMSS_IPV4( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE_UNSIGNED:
+                    prvSocketSetMSS_IPV6( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* Shouldn't reach here */
+                /* MISRA 16.4 Compliance */
+                break;
         }
     }
     /*-----------------------------------------------------------*/

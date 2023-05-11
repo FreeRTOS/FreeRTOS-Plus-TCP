@@ -59,6 +59,11 @@
     #include "FreeRTOS_DNS.h"
 #endif
 
+/* Just make sure the contents doesn't get compiled if IPv4 is not enabled. */
+/* *INDENT-OFF* */
+    #if( ipconfigUSE_IPv4 != 0 )
+/* *INDENT-ON* */
+
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 
@@ -68,7 +73,7 @@
  * @brief Process the generated UDP packet and do other checks before sending the
  *        packet such as ARP cache check and address resolution.
  *
- * @param[in] pxNetworkBuffer: The network buffer carrying the packet.
+ * @param[in] pxNetworkBuffer The network buffer carrying the packet.
  */
 void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
@@ -324,9 +329,9 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 /**
  * @brief Process the received UDP packet.
  *
- * @param[in] pxNetworkBuffer: The network buffer carrying the UDP packet.
- * @param[in] usPort: The port number on which this packet was received.
- * @param[out] pxIsWaitingForARPResolution: If the packet is awaiting ARP resolution,
+ * @param[in] pxNetworkBuffer The network buffer carrying the UDP packet.
+ * @param[in] usPort The port number on which this packet was received.
+ * @param[out] pxIsWaitingForARPResolution If the packet is awaiting ARP resolution,
  *             this pointer will be set to pdTRUE. pdFALSE otherwise.
  *
  * @return pdPASS in case the UDP packet could be processed. Else pdFAIL is returned.
@@ -337,6 +342,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
 {
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
+    const UDPPacket_t * pxUDPPacket;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -346,7 +352,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     const NetworkEndPoint_t * pxEndpoint = pxNetworkBuffer->pxEndPoint;
 
     /* Caller must check for minimum packet size. */
@@ -499,7 +505,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 else
             #endif
 
-            #if ( ipconfigUSE_LLMNR == 1 )
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
                 if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
                     ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
@@ -511,7 +517,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 else
             #endif /* ipconfigUSE_LLMNR */
 
-            #if ( ipconfigUSE_MDNS == 1 )
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_MDNS == 1 )
                 /* A MDNS request, check for the destination port. */
                 if( ( usPort == FreeRTOS_ntohs( ipMDNS_PORT ) ) ||
                     ( pxUDPPacket->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipMDNS_PORT ) ) )
@@ -552,3 +558,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     return xReturn;
 }
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+    #endif /* ipconfigUSE_IPv4 != 0 ) */
+/* *INDENT-ON* */

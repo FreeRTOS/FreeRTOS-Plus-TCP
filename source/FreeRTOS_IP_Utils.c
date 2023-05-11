@@ -90,22 +90,22 @@
 /**
  * Used in checksum calculation.
  */
-typedef union _xUnion32
+typedef union xUnion32
 {
     uint32_t u32;      /**< The 32-bit member of the union. */
     uint16_t u16[ 2 ]; /**< The array of 2 16-bit members of the union. */
     uint8_t u8[ 4 ];   /**< The array of 4 8-bit members of the union. */
-} xUnion32;
+} xUnion32_t;
 
 /**
  * Used in checksum calculation.
  */
-typedef union _xUnionPtr
+typedef union xUnionPtr
 {
     const uint32_t * u32ptr; /**< The pointer member to a 32-bit variable. */
     const uint16_t * u16ptr; /**< The pointer member to a 16-bit variable. */
     const uint8_t * u8ptr;   /**< The pointer member to an 8-bit variable. */
-} xUnionPtr;
+} xUnionPtr_t;
 
 /*
  * Returns the network buffer descriptor that owns a given packet buffer.
@@ -137,10 +137,10 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
 /**
  * @brief Set checksum in the packet
  *
- * @param pxSet: Pointer to the packet summary that describes the packet,
+ * @param pxSet Pointer to the packet summary that describes the packet,
  *                  to which the checksum will be set.
  *
- * @param usChecksum: Checksum value to be set.
+ * @param usChecksum Checksum value to be set.
  */
 static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
                                     uint16_t usChecksum )
@@ -171,7 +171,7 @@ static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
 /**
  * @brief Get checksum from the packet summary
  *
- * @param pxSet: Pointer to the packet summary that describes the packet,
+ * @param pxSet Pointer to the packet summary that describes the packet,
  *                  from which the checksum will be retrieved.
  *
  * @return Checksum value that is retrieved from pxSet.
@@ -213,7 +213,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
  *
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
- * @param pxEndPoint: The end-point that needs DHCP.
+ * @param pxEndPoint The end-point that needs DHCP.
  */
     BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     {
@@ -244,8 +244,8 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
 /**
  * @brief Duplicate the given network buffer descriptor with a modified length.
  *
- * @param[in] pxNetworkBuffer: The network buffer to be duplicated.
- * @param[in] uxNewLength: The length for the new buffer.
+ * @param[in] pxNetworkBuffer The network buffer to be duplicated.
+ * @param[in] uxNewLength The length for the new buffer.
  *
  * @return If properly duplicated, then the duplicate network buffer or else, NULL.
  */
@@ -282,10 +282,12 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
 
-        if( uxIPHeaderSizePacket( pxNewBuffer ) == ipSIZE_OF_IPv6_HEADER )
-        {
-            ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-        }
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( uxIPHeaderSizePacket( pxNewBuffer ) == ipSIZE_OF_IPv6_HEADER )
+            {
+                ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
 
     return pxNewBuffer;
@@ -295,8 +297,8 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 /**
  * @brief Get the network buffer descriptor from the packet buffer.
  *
- * @param[in] pvBuffer: The pointer to packet buffer.
- * @param[in] uxOffset: Additional offset (such as the packet length of UDP packet etc.).
+ * @param[in] pvBuffer The pointer to packet buffer.
+ * @param[in] uxOffset Additional offset (such as the packet length of UDP packet etc.).
  *
  * @return The network buffer descriptor if the alignment is correct. Else a NULL is returned.
  */
@@ -371,8 +373,8 @@ static uintptr_t void_ptr_to_uintptr( const void * pvPointer )
 /*-----------------------------------------------------------*/
 
 /** @brief Get and check the specific lengths depending on the protocol ( TCP/UDP/ICMP/IGMP ).
- * @param[in] uxBufferLength: The number of bytes to be sent or received.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -455,7 +457,9 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
     }
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
-        xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
+        #if ( ipconfigUSE_IPv6 != 0 )
+            xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
     else
     {
@@ -469,7 +473,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
 /*-----------------------------------------------------------*/
 
 /** @brief See if the packet doesn't get bigger than the value of MTU.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] pxSet A struct describing this packet.
  *
  * @return Non-zero in case of an error.
  */
@@ -507,38 +511,40 @@ static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet )
 /*-----------------------------------------------------------*/
 
 /** @brief Do the actual checksum calculations, both the pseudo header, and the payload.
- * @param[in] xOutgoingPacket: pdTRUE when the packet is to be sent.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] xOutgoingPacket pdTRUE when the packet is to be sent.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] pxSet A struct describing this packet.
  */
 static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                                           const uint8_t * pucEthernetBuffer,
                                           struct xPacketSummary * pxSet )
 {
-    if( pxSet->xIsIPv6 != pdFALSE )
-    {
-        uint32_t pulHeader[ 2 ];
+    #if ( ipconfigUSE_IPv6 != 0 )
+        if( pxSet->xIsIPv6 != pdFALSE )
+        {
+            uint32_t pulHeader[ 2 ];
 
-        /* IPv6 has a 40-byte pseudo header:
-         * 0..15 Source IPv6 address
-         * 16..31 Target IPv6 address
-         * 32..35 Length of payload
-         * 36..38 three zero's
-         * 39 Next Header, i.e. the protocol type. */
+            /* IPv6 has a 40-byte pseudo header:
+             * 0..15 Source IPv6 address
+             * 16..31 Target IPv6 address
+             * 32..35 Length of payload
+             * 36..38 three zero's
+             * 39 Next Header, i.e. the protocol type. */
 
-        pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
-        pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
-        pulHeader[ 1 ] = ( uint32_t ) pxSet->pxIPPacket_IPv6->ucNextHeader;
-        pulHeader[ 1 ] = FreeRTOS_htonl( pulHeader[ 1 ] );
+            pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
+            pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
+            pulHeader[ 1 ] = ( uint32_t ) pxSet->pxIPPacket_IPv6->ucNextHeader;
+            pulHeader[ 1 ] = FreeRTOS_htonl( pulHeader[ 1 ] );
 
-        pxSet->usChecksum = usGenerateChecksum( 0U,
-                                                &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + offsetof( IPHeader_IPv6_t, xSourceAddress ) ] ),
-                                                ( size_t ) ( 2U * sizeof( pxSet->pxIPPacket_IPv6->xSourceAddress ) ) );
+            pxSet->usChecksum = usGenerateChecksum( 0U,
+                                                    &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + offsetof( IPHeader_IPv6_t, xSourceAddress ) ] ),
+                                                    ( size_t ) ( 2U * sizeof( pxSet->pxIPPacket_IPv6->xSourceAddress ) ) );
 
-        pxSet->usChecksum = usGenerateChecksum( pxSet->usChecksum,
-                                                ( const uint8_t * ) pulHeader,
-                                                ( size_t ) ( sizeof( pulHeader ) ) );
-    }
+            pxSet->usChecksum = usGenerateChecksum( pxSet->usChecksum,
+                                                    ( const uint8_t * ) pulHeader,
+                                                    ( size_t ) ( sizeof( pulHeader ) ) );
+        }
+    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) || ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
     {
@@ -549,36 +555,51 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 
     else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
     {
-        pxSet->usChecksum = ( uint16_t )
-                            ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                   ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
-                                                   ( size_t ) pxSet->usProtocolBytes ) );
+        #if ( ipconfigUSE_IPv6 != 0 )
+            pxSet->usChecksum = ( uint16_t )
+                                ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                       ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
+                                                       ( size_t ) pxSet->usProtocolBytes ) );
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
     else
     {
-        if( pxSet->xIsIPv6 != pdFALSE )
+        switch( pxSet->xIsIPv6 )
         {
-            /* The CRC of the IPv6 pseudo-header has already been calculated. */
-            pxSet->usChecksum = ( uint16_t )
-                                ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                       ( uint8_t * ) &( pxSet->pxProtocolHeaders->xUDPHeader.usSourcePort ),
-                                                       ( size_t ) ( pxSet->usProtocolBytes ) ) );
-        }
-        else
-        {
-            /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
-            uint32_t ulByteCount = pxSet->usProtocolBytes;
-            ulByteCount += 2U * ipSIZE_OF_IPv4_ADDRESS;
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE:
+                    /* The CRC of the IPv6 pseudo-header has already been calculated. */
+                    pxSet->usChecksum = ( uint16_t )
+                                        ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                               ( uint8_t * ) &( pxSet->pxProtocolHeaders->xUDPHeader.usSourcePort ),
+                                                               ( size_t ) ( pxSet->usProtocolBytes ) ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
-             * fields */
-            pxSet->usChecksum = ( uint16_t ) ( pxSet->usProtocolBytes + ( ( uint16_t ) pxSet->ucProtocol ) );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE:
+                   {
+                       /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
+                       uint32_t ulByteCount = pxSet->usProtocolBytes;
+                       ulByteCount += 2U * ipSIZE_OF_IPv4_ADDRESS;
 
-            /* And then continue at the IPv4 source and destination addresses. */
-            pxSet->usChecksum = ( uint16_t )
-                                ( ~usGenerateChecksum( pxSet->usChecksum,
-                                                       ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
-                                                       ulByteCount ) );
+                       /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
+                        * fields */
+                       pxSet->usChecksum = ( uint16_t ) ( pxSet->usProtocolBytes + ( ( uint16_t ) pxSet->ucProtocol ) );
+
+                       /* And then continue at the IPv4 source and destination addresses. */
+                       pxSet->usChecksum = ( uint16_t )
+                                           ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                                  ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
+                                                                  ulByteCount ) );
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            default:
+                /* Shouldn't reach here */
+                /* MISRA 16.4 Compliance */
+                break;
         }
 
         /* Sum TCP header and data. */
@@ -612,10 +633,10 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 
 /** @brief For outgoing packets, set the checksum in the packet,
  *        for incoming packets: show logging in case an error occurred.
- * @param[in] xOutgoingPacket: Non-zero if this is an outgoing packet.
- * @param[in] pucEthernetBuffer: The buffer containing the packet.
- * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
- * @param[in] pxSet: A struct describing this packet.
+ * @param[in] xOutgoingPacket Non-zero if this is an outgoing packet.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength the total number of bytes received, or the number of bytes written
+ * @param[in] pxSet A struct describing this packet.
  */
 static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
                                             const uint8_t * pucEthernetBuffer,
@@ -658,7 +679,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
 /**
  * @brief Get the network buffer from the packet buffer.
  *
- * @param[in] pvBuffer: Pointer to the packet buffer.
+ * @param[in] pvBuffer Pointer to the packet buffer.
  *
  * @return The network buffer if the alignment is correct. Else a NULL is returned.
  */
@@ -673,7 +694,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
 /**
  * @brief Get the network buffer from the UDP Payload buffer.
  *
- * @param[in] pvBuffer: Pointer to the UDP payload buffer.
+ * @param[in] pvBuffer Pointer to the UDP payload buffer.
  *
  * @return The network buffer if the alignment is correct. Else a NULL is returned.
  */
@@ -715,13 +736,24 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
          * It must have a value of either 0x4x or 0x6x. */
         configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
 
-        if( ucIPType == ipTYPE_IPv6 )
+        switch( ucIPType )
         {
-            uxOffset = sizeof( UDPPacket_IPv6_t );
-        }
-        else /* ucIPType == ipTYPE_IPv4 */
-        {
-            uxOffset = sizeof( UDPPacket_t );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipTYPE_IPv6:
+                    uxOffset = sizeof( UDPPacket_IPv6_t );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipTYPE_IPv4:
+                    uxOffset = sizeof( UDPPacket_t );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            default:
+                FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined ucIPType \n" ) );
+                uxOffset = sizeof( UDPPacket_t );
+                break;
         }
 
         pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
@@ -762,7 +794,7 @@ BaseType_t xIsCallingFromIPTask( void )
 
 /**
  * @brief Process a 'Network down' event and complete required processing.
- * @param pxInterface: The interface that goes down.
+ * @param pxInterface The interface that goes down.
  */
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
@@ -834,13 +866,13 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             #if ( ipconfigUSE_DHCP == 1 )
                 if( END_POINT_USES_DHCP( pxEndPoint ) )
                 {
-                    #if ( ipconfigUSE_DHCPv6 != 0 )
+                    #if ( ( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
                         if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                         {
                             vDHCPv6Process( pdTRUE, pxEndPoint );
                         }
                         else
-                    #endif /* ipconfigUSE_DHCPv6 */
+                    #endif /* (( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 )) */
                     {
                         /* Reset the DHCP process for this end-point. */
                         vDHCPProcess( pdTRUE, pxEndPoint );
@@ -849,23 +881,33 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
                 else /* Yes this else ought to be here. */
             #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
-            #if ( ipconfigUSE_RA != 0 )
+            #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
                 if( END_POINT_USES_RA( pxEndPoint ) )
                 {
                     /* Reset the RA/SLAAC process for this end-point. */
                     vRAProcess( pdTRUE, pxEndPoint );
                 }
                 else
-            #endif /* ( #if( ipconfigUSE_IPv6 != 0 ) */
+            #endif /* ( (ipconfigUSE_RA != 0) && ( ipconfigUSE_IPv6 != 0 )) */
 
             {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                switch( pxEndPoint->bits.bIPv6 )
                 {
-                    ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
-                }
-                else
-                {
-                    ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case pdFALSE_UNSIGNED:
+                            ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case pdTRUE_UNSIGNED:
+                            ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    default:
+                        /* MISRA 16.4 Compliance */
+                        break;
                 }
 
                 *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
@@ -943,13 +985,13 @@ void vPreCheckConfigs( void )
  *        At the same time, the length of the packet and the length of the different layers
  *        will be checked.
  *
- * @param[in] pucEthernetBuffer: The Ethernet buffer for which the checksum is to be calculated
+ * @param[in] pucEthernetBuffer The Ethernet buffer for which the checksum is to be calculated
  *                               or checked.  'pucEthernetBuffer' is now non-const because the
  *                               function will set the checksum fields, in case 'xOutgoingPacket'
  *                               is pdTRUE.
- * @param[in] uxBufferLength: the total number of bytes received, or the number of bytes written
+ * @param[in] uxBufferLength the total number of bytes received, or the number of bytes written
  *                            in the packet buffer.
- * @param[in] xOutgoingPacket: Whether this is an outgoing packet or not.
+ * @param[in] xOutgoingPacket Whether this is an outgoing packet or not.
  *
  * @return When xOutgoingPacket is false: the error code can be either: ipINVALID_LENGTH,
  *         ipUNHANDLED_PROTOCOL, ipWRONG_CRC, or ipCORRECT_CRC.
@@ -972,11 +1014,14 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
+    configASSERT( ( ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) ||
+                  ( ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) );
+
     /* Introduce a do-while loop to allow use of break statements.
      * Note: MISRA prohibits use of 'goto', thus replaced with breaks. */
     do
     {
-        BaseType_t xResult;
+        BaseType_t xResult = 0;
 
         /* Parse the packet length. */
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -984,30 +1029,36 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        if( xSet.pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+        switch( xSet.pxIPPacket->xEthernetHeader.usFrameType )
         {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                    xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
 
-            xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-            if( xResult != 0 )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
+                    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+                    xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined usFrameType\n" ) );
+                /* MISRA 16.4 Compliance */
                 break;
-            }
         }
-        else
-        {
-            xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
 
-            if( xResult != 0 )
-            {
-                DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
-                break;
-            }
+        if( xResult != 0 )
+        {
+            DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
+            break;
         }
 
         {
@@ -1119,9 +1170,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 /**
  * @brief Calculates the 16-bit checksum of an array of bytes
  *
- * @param[in] usSum: The initial sum, obtained from earlier data.
- * @param[in] pucNextData: The actual data.
- * @param[in] uxByteCount: The number of bytes.
+ * @param[in] usSum The initial sum, obtained from earlier data.
+ * @param[in] pucNextData The actual data.
+ * @param[in] uxByteCount The number of bytes.
  *
  * @return The 16-bit one's complement of the one's complement sum of all 16-bit
  *         words in the header
@@ -1132,10 +1183,10 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 {
 /* MISRA/PC-lint doesn't like the use of unions. Here, they are a great
  * aid though to optimise the calculations. */
-    xUnion32 xSum2;
-    xUnion32 xSum;
-    xUnion32 xTerm;
-    xUnionPtr xSource;
+    xUnion32_t xSum2;
+    xUnion32_t xSum;
+    xUnion32_t xTerm;
+    xUnionPtr_t xSource;
     uintptr_t uxAlignBits;
     uint32_t ulCarry = 0U;
     uint16_t usTemp;
@@ -1382,9 +1433,9 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  * @brief Utility function: Convert error number to a human readable
  *        string. Declaration in FreeRTOS_errno_TCP.h.
  *
- * @param[in] xErrnum: The error number.
- * @param[in] pcBuffer: Buffer big enough to be filled with the human readable message.
- * @param[in] uxLength: Maximum length of the buffer.
+ * @param[in] xErrnum The error number.
+ * @param[in] pcBuffer Buffer big enough to be filled with the human readable message.
+ * @param[in] uxLength Maximum length of the buffer.
  *
  * @return The buffer filled with human readable error string.
  */
@@ -1491,8 +1542,8 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
 
 /**
  * @brief Get the highest value of two int32's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The highest of the two values.
  */
 int32_t FreeRTOS_max_int32( int32_t a,
@@ -1504,8 +1555,8 @@ int32_t FreeRTOS_max_int32( int32_t a,
 
 /**
  * @brief Get the highest value of two uint32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The highest of the two values.
  */
 uint32_t FreeRTOS_max_uint32( uint32_t a,
@@ -1517,8 +1568,8 @@ uint32_t FreeRTOS_max_uint32( uint32_t a,
 
 /**
  * @brief Get the highest value of two size_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The highest of the two values.
  */
 size_t FreeRTOS_max_size_t( size_t a,
@@ -1530,8 +1581,8 @@ size_t FreeRTOS_max_size_t( size_t a,
 
 /**
  * @brief Get the lowest value of two int32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The lowest of the two values.
  */
 int32_t FreeRTOS_min_int32( int32_t a,
@@ -1543,8 +1594,8 @@ int32_t FreeRTOS_min_int32( int32_t a,
 
 /**
  * @brief Get the lowest value of two uint32_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The lowest of the two values.
  */
 uint32_t FreeRTOS_min_uint32( uint32_t a,
@@ -1556,8 +1607,8 @@ uint32_t FreeRTOS_min_uint32( uint32_t a,
 
 /**
  * @brief Get the lowest value of two size_t's.
- * @param[in] a: the first value.
- * @param[in] b: the second value.
+ * @param[in] a the first value.
+ * @param[in] b the second value.
  * @return The lowest of the two values.
  */
 size_t FreeRTOS_min_size_t( size_t a,
@@ -1569,8 +1620,8 @@ size_t FreeRTOS_min_size_t( size_t a,
 
 /**
  * @brief Round-up a number to a multiple of 'd'.
- * @param[in] a: the first value.
- * @param[in] d: the second value.
+ * @param[in] a the first value.
+ * @param[in] d the second value.
  * @return A multiple of d.
  */
 uint32_t FreeRTOS_round_up( uint32_t a,
@@ -1591,8 +1642,8 @@ uint32_t FreeRTOS_round_up( uint32_t a,
 
 /**
  * @brief Round-down a number to a multiple of 'd'.
- * @param[in] a: the first value.
- * @param[in] d: the second value.
+ * @param[in] a the first value.
+ * @param[in] d the second value.
  * @return A multiple of d.
  */
 uint32_t FreeRTOS_round_down( uint32_t a,
@@ -1613,7 +1664,7 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 
 /**
  * @brief Convert character array (of size 4) to equivalent 32-bit value.
- * @param[in] pucPtr: The character array.
+ * @param[in] pucPtr The character array.
  * @return 32-bit equivalent value extracted from the character array.
  *
  * @note Going by MISRA rules, these utility functions should not be defined
@@ -1631,7 +1682,7 @@ uint32_t ulChar2u32( const uint8_t * pucPtr )
 
 /**
  * @brief Convert character array (of size 2) to equivalent 16-bit value.
- * @param[in] pucPtr: The character array.
+ * @param[in] pucPtr The character array.
  * @return 16-bit equivalent value extracted from the character array.
  *
  * @note Going by MISRA rules, these utility functions should not be defined

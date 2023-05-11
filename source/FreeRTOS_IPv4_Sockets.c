@@ -51,13 +51,18 @@
 /** @brief The number of octets that make up an IP address. */
 #define socketMAX_IP_ADDRESS_OCTETS    ( 4U )
 
+/* Just make sure the contents doesn't get compiled if IPv4 is not enabled. */
+/* *INDENT-OFF* */
+    #if( ipconfigUSE_IPv4 != 0 )
+/* *INDENT-ON* */
+
 /**
  * @brief This function converts the character string pcSource into a network address
  *        structure, then copies the network address structure to pvDestination.
  *        pvDestination is written in network byte order.
  *
- * @param[in] pcSource: The character string in holding the IP address.
- * @param[out] pvDestination: The returned network address in 32-bit network-endian format.
+ * @param[in] pcSource The character string in holding the IP address.
+ * @param[out] pvDestination The returned network address in 32-bit network-endian format.
  *
  * @return pdPASS if the translation was successful or else pdFAIL.
  */
@@ -180,10 +185,10 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
 /**
  * @brief Convert the 32-bit representation of the IP-address to the dotted decimal format.
  *
- * @param[in] pvSource: The pointer to the 32-bit representation of the IP-address.
- * @param[out] pcDestination: The pointer to a character array where the string of the
+ * @param[in] pvSource The pointer to the 32-bit representation of the IP-address.
+ * @param[out] pcDestination The pointer to a character array where the string of the
  *                           dotted decimal IP format.
- * @param[in] uxSize: Size of the character array. This value makes sure that the code
+ * @param[in] uxSize Size of the character array. This value makes sure that the code
  *                    doesn't write beyond it's bounds.
  *
  * @return The pointer to the string holding the dotted decimal format of the IP-address. If
@@ -217,8 +222,8 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet
  *        fields and IPv4 address for the packet to be send.
- * @param[in] pxNetworkBuffer : The packet to be sent.
- * @param[in] pxDestinationAddress: The IPv4 socket address.
+ * @param[in] pxNetworkBuffer  The packet to be sent.
+ * @param[in] pxDestinationAddress The IPv4 socket address.
  * @return  Returns NULL, always.
  */
 void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -239,8 +244,8 @@ void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
 /**
  * @brief Called by FreeRTOS_recvfrom(), this function will update socket
  *        address with IPv4 address from the packet received.
- * @param[in] pxNetworkBuffer : The packet received.
- * @param[in] pxSourceAddress: The IPv4 socket address.
+ * @param[in] pxNetworkBuffer  The packet received.
+ * @param[in] pxSourceAddress The IPv4 socket address.
  * @return  The Payload Offset.
  */
 size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -261,3 +266,7 @@ size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
 }
 
 /*-----------------------------------------------------------*/
+
+/* *INDENT-OFF* */
+    #endif /* ipconfigUSE_IPv4 != 0 ) */
+/* *INDENT-ON* */

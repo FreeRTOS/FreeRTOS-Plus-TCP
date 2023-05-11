@@ -75,7 +75,7 @@
 /**
  * @brief Check if the outgoing connection is already prepared, if not
  *         call prvTCPPrepareConnect() to continue the preparation.
- * @param[in] pxSocket: The socket that wants to connect.
+ * @param[in] pxSocket The socket that wants to connect.
  * @return Returns pdTRUE if the connection is prepared, i.e. the MAC-
  *         address of the peer is already known. */
     static BaseType_t prvTCPMakeSurePrepared( FreeRTOS_Socket_t * pxSocket )
@@ -98,7 +98,7 @@
 /**
  * @brief prvTCPSendPacket() will be called when the socket time-out has been reached.
  *
- * @param[in] pxSocket: The socket owning the connection.
+ * @param[in] pxSocket The socket owning the connection.
  *
  * @return Number of bytes to be sent.
  *
@@ -190,8 +190,8 @@
  *        long as there is data to be sent and as long as the transmit
  *        window isn't full.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in,out] ppxNetworkBuffer: Pointer to pointer to the network buffer.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in,out] ppxNetworkBuffer Pointer to pointer to the network buffer.
  *
  * @return Total number of bytes sent.
  */
@@ -237,10 +237,10 @@
  *         called 'xTCP.xPacket'. A temporary xNetworkBuffer will be used to pass
  *         the data to the NIC.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in] pxDescriptor: The network buffer descriptor carrying the packet.
- * @param[in] ulLen: Length of the packet being sent.
- * @param[in] xReleaseAfterSend: pdTRUE if the ownership of the descriptor is
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in] pxDescriptor The network buffer descriptor carrying the packet.
+ * @param[in] ulLen Length of the packet being sent.
+ * @param[in] xReleaseAfterSend pdTRUE if the ownership of the descriptor is
  *                               transferred to the network interface.
  */
     void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
@@ -253,17 +253,21 @@
 
         if( pxNetworkBuffer != NULL )
         {
-            if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
-            {
-                xIsIPv6 = pdTRUE;
-            }
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+                {
+                    xIsIPv6 = pdTRUE;
+                }
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         }
         else if( pxSocket != NULL )
         {
-            if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
-            {
-                xIsIPv6 = pdTRUE;
-            }
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( uxIPHeaderSizeSocket( pxSocket ) == ipSIZE_OF_IPv6_HEADER )
+                {
+                    xIsIPv6 = pdTRUE;
+                }
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
         }
         else
         {
@@ -271,23 +275,28 @@
             configASSERT( pdFALSE );
         }
 
-        if( xIsIPv6 == pdTRUE )
-        {
-            prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-        }
-        else
-        {
-            prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
-        }
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( xIsIPv6 == pdTRUE )
+            {
+                prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+            }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+        #if ( ipconfigUSE_IPv4 != 0 )
+            if( xIsIPv6 == pdFALSE )
+            {
+                prvTCPReturnPacket_IPV4( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+            }
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
     }
     /*-----------------------------------------------------------*/
 
 /**
  * @brief Called by prvTCPReturnPacket(), this function will set the the window
  *        size on this side: 'xTCPHeader.usWindow'.
- * @param[in] pxSocket: The socket on which the packet is being sent.
- * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
- * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
+ * @param[in] pxSocket The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
  */
     void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
                                       const NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -369,10 +378,10 @@
 /**
  * @brief Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
  *        in the TCP-header.
- * @param[in] pxSocket: The socket on which the packet is being sent.
- * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
- * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
- * @param[in] ulLen: The size of the packet minus the size of the Ethernet header.
+ * @param[in] pxSocket The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
+ * @param[in] ulLen The size of the packet minus the size of the Ethernet header.
  *
  */
     void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
@@ -430,7 +439,7 @@
 /**
  * @brief Create the TCP window for the given socket.
  *
- * @param[in] pxSocket: The socket for which the window is being created.
+ * @param[in] pxSocket The socket for which the window is being created.
  *
  * @note The SYN event is very important: the sequence numbers, which have a kind of
  *       random starting value, are being synchronized. The sliding window manager
@@ -465,7 +474,7 @@
  * @brief Let ARP look-up the MAC-address of the peer and initialise the first SYN
  *        packet.
  *
- * @param[in] pxSocket: The socket owning the TCP connection. The first packet shall
+ * @param[in] pxSocket The socket owning the TCP connection. The first packet shall
  *               be created in this socket.
  *
  * @return pdTRUE: if the packet was successfully created and the first SYN can be sent.
@@ -480,13 +489,23 @@
     {
         BaseType_t xReturn = pdTRUE;
 
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        switch( pxSocket->bits.bIsIPv6 )
         {
-            xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
-        }
-        else
-        {
-            xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE_UNSIGNED:
+                    xReturn = prvTCPPrepareConnect_IPV4( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE_UNSIGNED:
+                    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* MISRA 16.4 Compliance */
+                break;
         }
 
         return xReturn;
@@ -498,7 +517,7 @@
 /**
  * @brief Get the window scaling factor for the TCP connection.
  *
- * @param[in] pxSocket: The socket owning the TCP connection.
+ * @param[in] pxSocket The socket owning the TCP connection.
  *
  * @return The scaling factor.
  */
@@ -535,9 +554,9 @@
  *        communicate what MSS (Maximum Segment Size) they intend to use, whether Selective
  *        ACK's ( SACK ) are supported, and the size of the reception window ( WSOPT ).
  *
- * @param[in] pxSocket: The socket being used for communication. It is used to set
+ * @param[in] pxSocket The socket being used for communication. It is used to set
  *                      the MSS.
- * @param[in,out] pxTCPHeader: The TCP packet header being used in the SYN transmission.
+ * @param[in,out] pxTCPHeader The TCP packet header being used in the SYN transmission.
  *                             The MSS and corresponding options shall be set in this
  *                             header itself.
  *
@@ -590,10 +609,10 @@
  * @brief Check if the size of a network buffer is big enough to hold the outgoing message.
  *        Allocate a new bigger network buffer when necessary.
  *
- * @param[in] pxSocket: Socket whose buffer is being resized.
- * @param[in] pxNetworkBuffer: The network buffer whose size is being increased.
- * @param[in] lDataLen: Length of the data to be put in the buffer.
- * @param[in] uxOptionsLength: Length of options.
+ * @param[in] pxSocket Socket whose buffer is being resized.
+ * @param[in] pxNetworkBuffer The network buffer whose size is being increased.
+ * @param[in] lDataLen Length of the data to be put in the buffer.
+ * @param[in] uxOptionsLength Length of options.
  *
  * @return If the resizing is successful: The new buffer with the size being asked for
  *                with old data copied in it.
@@ -697,16 +716,17 @@
 /**
  * @brief Called by prvTCPReturnPacket(), this function makes sure that the network buffer
  *        has 'pxEndPoint' set properly.
- * @param[in] pxSocket: The socket on which the packet is being sent.
- * @param[in] pxNetworkBuffer: The network buffer carrying the outgoing message.
- * @param[in] uxIPHeaderSize: The size of the IP-header, which depends on the IP-type.
+ * @param[in] pxSocket The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
  */
     void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                    NetworkBufferDescriptor_t * pxNetworkBuffer,
                                    size_t uxIPHeaderSize )
     {
-        const IPHeader_t * pxIPHeader = NULL;
-
+        #if ( ipconfigUSE_IPv4 != 0 )
+            const IPHeader_t * pxIPHeader = NULL;
+        #endif
         #if ( ipconfigUSE_IPv6 != 0 )
             const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
         #endif
@@ -719,37 +739,49 @@
         {
             FreeRTOS_printf( ( "prvTCPReturnPacket: No pxEndPoint yet?\n" ) );
 
-            if( uxIPHeaderSize == ipSIZE_OF_IPv6_HEADER )
+            switch( uxIPHeaderSize )
             {
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipSIZE_OF_IPv4_HEADER:
 
-                if( pxNetworkBuffer->pxEndPoint == NULL )
-                {
-                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
-                                       pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                       pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
-                }
-            }
-            else
-            {
-                /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
-                 * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-                pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
+                        /*_RB_ Was FreeRTOS_FindEndPointOnIP_IPv4() but changed to FreeRTOS_FindEndPointOnNetMask()
+                         * as it is using the destination address.  I'm confused here as sometimes the addresses are swapped. */
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxIPHeader->ulDestinationIPAddress, 8 );
 
-                if( pxNetworkBuffer->pxEndPoint == NULL )
-                {
-                    FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %xip => %xip\n",
-                                       ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
-                                       ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
-                }
+                        if( pxNetworkBuffer->pxEndPoint == NULL )
+                        {
+                            FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %xip => %xip\n",
+                                               ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulSourceIPAddress ),
+                                               ( unsigned int ) FreeRTOS_ntohl( pxIPHeader->ulDestinationIPAddress ) ) );
+                        }
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipSIZE_OF_IPv6_HEADER:
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+                        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPHeader_IPv6->xDestinationAddress ) );
+
+                        if( pxNetworkBuffer->pxEndPoint == NULL )
+                        {
+                            FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
+                                               pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                               pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
+                        }
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    /* Shouldn't reach here */
+                    pxNetworkBuffer->pxEndPoint = NULL;
+                    break;
             }
 
             if( pxNetworkBuffer->pxEndPoint != NULL )
@@ -765,9 +797,9 @@
 /**
  * @brief Prepare an outgoing message, in case anything has to be sent.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in,out] ppxNetworkBuffer: Pointer to the pointer to the network buffer.
- * @param[in] uxOptionsLength: The length of the TCP options.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in,out] ppxNetworkBuffer Pointer to the pointer to the network buffer.
+ * @param[in] uxOptionsLength The length of the TCP options.
  *
  * @return Length of the data to be sent if everything is correct. Else, -1
  *         is returned in case of any error.
@@ -987,7 +1019,7 @@
  * @brief The API FreeRTOS_send() adds data to the TX stream. Add
  *        this data to the windowing system to it can be transmitted.
  *
- * @param[in] pxSocket: The socket owning the connection.
+ * @param[in] pxSocket The socket owning the connection.
  */
     void prvTCPAddTxData( FreeRTOS_Socket_t * pxSocket )
     {
@@ -1027,8 +1059,8 @@
 /**
  * @brief Set the TCP options (if any) for the outgoing packet.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in] pxNetworkBuffer: The network buffer holding the packet.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in] pxNetworkBuffer The network buffer holding the packet.
  *
  * @return Length of the TCP options after they are set.
  */
@@ -1113,10 +1145,10 @@
  *        ipconfigUSE_TCP_WIN is defined, and if only an ACK must be sent, it will be
  *        checked if it would better be postponed for efficiency.
  *
- * @param[in] pxSocket: The socket owning the TCP connection.
- * @param[in] ppxNetworkBuffer: Pointer to pointer to the network buffer.
- * @param[in] ulReceiveLength: The length of the received buffer.
- * @param[in] xByteCount: Length of the data to be sent.
+ * @param[in] pxSocket The socket owning the TCP connection.
+ * @param[in] ppxNetworkBuffer Pointer to pointer to the network buffer.
+ * @param[in] ulReceiveLength The length of the received buffer.
+ * @param[in] xByteCount Length of the data to be sent.
  *
  * @return The number of bytes actually sent.
  */
@@ -1267,8 +1299,8 @@
  * @brief Common code for sending a TCP protocol control packet (i.e. no options, no
  *        payload, just flags).
  *
- * @param[in] pxNetworkBuffer: The network buffer received from the peer.
- * @param[in] ucTCPFlags: The flags to determine what kind of packet this is.
+ * @param[in] pxNetworkBuffer The network buffer received from the peer.
+ * @param[in] ucTCPFlags The flags to determine what kind of packet this is.
  *
  * @return pdFAIL always indicating that the packet was not consumed.
  */
@@ -1283,13 +1315,23 @@
             ( void ) ucTCPFlags;
         #else
             {
-                if( uxIPHeaderSizePacket( pxNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER )
+                switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
                 {
-                    xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
-                }
-                else
-                {
-                    xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case ipSIZE_OF_IPv4_HEADER:
+                            xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case ipSIZE_OF_IPv6_HEADER:
+                            xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    default:
+                        xReturn = pdFAIL;
+                        break;
                 }
             }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */
@@ -1304,7 +1346,7 @@
  *        case #3. In summary, an RST was received with a sequence number that is
  *        unexpected but still within the window.
  *
- * @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
+ * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */
@@ -1317,7 +1359,7 @@
 /**
  * @brief Send a RST (Reset) to peer in case the packet cannot be handled.
  *
- * @param[in] pxNetworkBuffer: The network buffer descriptor with the packet.
+ * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
  *
  * @return Returns the value back from #prvTCPSendSpecialPacketHelper.
  */

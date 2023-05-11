@@ -241,9 +241,8 @@
     #define ipconfigUSE_IPv6    ( 1 )
 #endif
 
-#if ( ipconfigUSE_IPv4 != 1 ) || ( ipconfigUSE_IPv6 != 1 )
-    #error "Build separation for both IPv4 and IPv6 is work in progress. \
-    Please enable both ipconfigUSE_IPv4 and ipconfigUSE_IPv6 flags."
+#if ( ipconfigUSE_IPv4 != 1 ) && ( ipconfigUSE_IPv6 != 1 )
+    #error "Invalid build configuration"
 #endif
 
 /*
@@ -745,6 +744,10 @@
     #define ipconfigUSE_DNS    1
 #endif
 
+#if ( ipconfigUSE_IPv4 == 0 ) && ( ipconfigUSE_DNS != 0 )
+    #error "IPv4 (ipconfigUSE_IPv4) needs to be enabled to use DNS"
+#endif
+
 /* When looking up a host with DNS, this macro determines how long the
  * call to FreeRTOS_recvfrom() will wait for a reply.
  * When there is no reply, the request will be repeated up to
@@ -1115,6 +1118,12 @@
  * which will be called by the stack for any frame with an unsupported EtherType. */
 #ifndef ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES
     #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
+#endif
+
+/* Set to 1 if you want to receive eNetworkDown notification via vApplicationIPNetworkEventHook() callback.
+ * Not all drivers support this feature. */
+#ifndef ipconfigSUPPORT_NETWORK_DOWN_EVENT
+    #define ipconfigSUPPORT_NETWORK_DOWN_EVENT    0
 #endif
 
 #ifndef ipconfigND_CACHE_ENTRIES
