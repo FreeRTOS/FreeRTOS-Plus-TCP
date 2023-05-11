@@ -533,6 +533,27 @@ void test_FreeRTOS_GetDNSServerAddress_NullEndpoint( void )
     TEST_ASSERT_EQUAL( 0U, ulIPAddress );
 }
 
+void test_FreeRTOS_SetNetmask_ValidEndpoint( void )
+{
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    uint32_t ulIPAddress = 0x00ABCDEF;
+
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
+
+    FreeRTOS_SetNetmask( ulIPAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulNetMask );
+}
+
+void test_FreeRTOS_SetNetmask_NullEndpoint( void )
+{
+    uint32_t ulIPAddress = 0x00ABCDEF;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
+
+    FreeRTOS_SetNetmask( ulIPAddress );
+}
+
 void test_FreeRTOS_GetNetmask_ValidEndpoint( void )
 {
     NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
@@ -600,4 +621,3 @@ void test_FreeRTOS_GetMACAddress_NullEndpoint( void )
     pucReturn = FreeRTOS_GetMACAddress();
     TEST_ASSERT_EQUAL( NULL, pucReturn );
 }
-
