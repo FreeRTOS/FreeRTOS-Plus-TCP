@@ -3447,7 +3447,7 @@ void test_vReturnEthernetFrame_IPv6NoEndpoint( void )
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 }
 
-void test_FreeRTOS_GetIPAddress( void ) /* TODO */
+void test_FreeRTOS_GetIPAddress( void )
 {
     uint32_t ulIPAddress;
 
@@ -3462,6 +3462,55 @@ void test_FreeRTOS_GetIPAddress( void ) /* TODO */
     ulIPAddress = FreeRTOS_GetIPAddress();
 
     TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, ulIPAddress );
+}
+
+void test_FreeRTOS_GetIPAddress_NullEndpoint( void )
+{
+    uint32_t ulIPAddress;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
+
+    ulIPAddress = FreeRTOS_GetIPAddress();
+
+    TEST_ASSERT_EQUAL( 0, ulIPAddress );
+}
+
+void test_FreeRTOS_GetIPAddress_MultipleEndpoints( void )
+{
+    uint32_t ulIPAddress;
+    NetworkEndPoint_t xEndPoints[2]; /* IPv6->IPv4 */
+
+    memset( &xEndPoints[0], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[0].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[1], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[1].bits.bIPv6 = pdFALSE;
+    xEndPoints[1].ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[0] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[0], &xEndPoints[1] );
+
+    ulIPAddress = FreeRTOS_GetIPAddress();
+
+    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, ulIPAddress );
+}
+
+void test_FreeRTOS_GetIPAddress_NoValidEndpoints( void )
+{
+    uint32_t ulIPAddress;
+    NetworkEndPoint_t xEndPoints[2]; /* IPv6->IPv6 */
+
+    memset( &xEndPoints[0], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[0].bits.bIPv6 = pdTRUE;
+    memset( &xEndPoints[1], 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoints[1].bits.bIPv6 = pdTRUE;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[0] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[0], &xEndPoints[1] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[1], NULL );
+
+    ulIPAddress = FreeRTOS_GetIPAddress();
+
+    TEST_ASSERT_EQUAL( 0, ulIPAddress );
 }
 
 void test_FreeRTOS_IsNetworkUp( void )

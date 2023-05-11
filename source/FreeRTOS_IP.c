@@ -2157,7 +2157,8 @@ uint32_t FreeRTOS_GetIPAddress( void )
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                /* Break if the endpoint is IPv4. */
+                if( pxEndPoint->bits.bIPv6 == 0U )
                 {
                     break;
                 }
