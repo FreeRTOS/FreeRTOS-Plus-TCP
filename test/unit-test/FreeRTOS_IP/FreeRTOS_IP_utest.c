@@ -2980,6 +2980,24 @@ void test_FreeRTOS_GetIPAddress( void )
     TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, ulIPAddress );
 }
 
+void test_FreeRTOS_GetIPAddress_DefaultSetting( void )
+{
+    uint32_t ulIPAddress;
+
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0;
+    xEndPoint.ipv4_defaults.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
+
+    ulIPAddress = FreeRTOS_GetIPAddress();
+
+    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, ulIPAddress );
+}
+
 void test_FreeRTOS_GetIPAddress_NullEndpoint( void )
 {
     uint32_t ulIPAddress;
