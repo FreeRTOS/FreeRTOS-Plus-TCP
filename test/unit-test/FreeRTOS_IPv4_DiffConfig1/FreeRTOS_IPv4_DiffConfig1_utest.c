@@ -43,23 +43,7 @@
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP_Utils.h"
-#include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
-#include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
-#include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_DHCPv6.h"
-#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
-#include "mock_FreeRTOS_IP.h"
 
 #include "FreeRTOS_IPv4.h"
 
@@ -68,8 +52,31 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
+{
+}
+
+/*! called after each test case */
+void tearDown( void )
+{
+}
+
+/* ======================== Stub Callback Functions ========================= */
+
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_prvAllowIPPacketIPv4_BufferLengthLess
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * buffer length is less than IP packet minimum requirement.
+ */
 void test_prvAllowIPPacketIPv4_BufferLengthLess( void )
 {
     eFrameProcessingResult_t eResult;
@@ -113,6 +120,11 @@ void test_prvAllowIPPacketIPv4_BufferLengthLess( void )
     }
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_HeaderLengthLess
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * IP header length is less than minimum requirement (0x45).
+ */
 void test_prvAllowIPPacketIPv4_HeaderLengthLess( void )
 {
     eFrameProcessingResult_t eResult;
@@ -153,7 +165,12 @@ void test_prvAllowIPPacketIPv4_HeaderLengthLess( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacketIPv4_HeaderLengthMore( void )
+/**
+ * @brief test_prvAllowIPPacketIPv4_HeaderLengthMore
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * IP header length is greater than maximum requirement (0x4F).
+ */
+void test_prvAllowIPPacketIPv4_BufferLengthLessThan( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -193,7 +210,12 @@ void test_prvAllowIPPacketIPv4_HeaderLengthMore( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacketIPv4_HeaderLengthMoreThanTotalLength( void )
+/**
+ * @brief test_prvAllowIPPacketIPv4_BufferLengthLessThanIPRequirement
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * buffer length is less than ethernet header + IP header.
+ */
+void test_prvAllowIPPacketIPv4_BufferLengthLessThanIPRequirement( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -233,6 +255,11 @@ void test_prvAllowIPPacketIPv4_HeaderLengthMoreThanTotalLength( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_IPPacketLengthMoreThanTotalLength
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * buffer length is less than length in IP header.
+ */
 void test_prvAllowIPPacketIPv4_IPPacketLengthMoreThanTotalLength( void )
 {
     eFrameProcessingResult_t eResult;
@@ -273,6 +300,11 @@ void test_prvAllowIPPacketIPv4_IPPacketLengthMoreThanTotalLength( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_UDP_IncorrectPacketLen
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * buffer length is less than length in UDP packet minimum requirement.
+ */
 void test_prvAllowIPPacketIPv4_UDP_IncorrectPacketLen( void )
 {
     eFrameProcessingResult_t eResult;
@@ -313,6 +345,11 @@ void test_prvAllowIPPacketIPv4_UDP_IncorrectPacketLen( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_TCP_IncorrectPacketLen
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * buffer length is less than length in TCP packet minimum requirement.
+ */
 void test_prvAllowIPPacketIPv4_TCP_IncorrectPacketLen( void )
 {
     eFrameProcessingResult_t eResult;
@@ -353,6 +390,11 @@ void test_prvAllowIPPacketIPv4_TCP_IncorrectPacketLen( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_ICMP_IncorrectPacketLen
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * buffer length is less than length in ICMP packet minimum requirement.
+ */
 void test_prvAllowIPPacketIPv4_ICMP_IncorrectPacketLen( void )
 {
     eFrameProcessingResult_t eResult;
@@ -393,6 +435,11 @@ void test_prvAllowIPPacketIPv4_ICMP_IncorrectPacketLen( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_IGMP_IncorrectPacketLen
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * buffer length is less than length in IGMP packet minimum requirement.
+ */
 void test_prvAllowIPPacketIPv4_IGMP_IncorrectPacketLen( void )
 {
     eFrameProcessingResult_t eResult;
@@ -433,6 +480,11 @@ void test_prvAllowIPPacketIPv4_IGMP_IncorrectPacketLen( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_NoProt
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * protocol is unknown in IP header.
+ */
 void test_prvAllowIPPacketIPv4_NoProt( void )
 {
     eFrameProcessingResult_t eResult;
@@ -473,6 +525,11 @@ void test_prvAllowIPPacketIPv4_NoProt( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_UDP_LengthLess
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * length in IP header is less than UDP packet minimum requirement.
+ */
 void test_prvAllowIPPacketIPv4_UDP_LengthLess( void )
 {
     eFrameProcessingResult_t eResult;
@@ -513,6 +570,11 @@ void test_prvAllowIPPacketIPv4_UDP_LengthLess( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_UDP_LengthMore
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * length in IP header is greater than UDP packet maximum size.
+ */
 void test_prvAllowIPPacketIPv4_UDP_LengthMore( void )
 {
     eFrameProcessingResult_t eResult;

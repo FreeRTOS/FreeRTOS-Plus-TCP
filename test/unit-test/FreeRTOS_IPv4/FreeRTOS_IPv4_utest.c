@@ -43,6 +43,7 @@
 #include "mock_IPv4_list_macros.h"
 #include "mock_queue.h"
 #include "mock_event_groups.h"
+
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_Routing.h"
@@ -50,7 +51,6 @@
 #include "FreeRTOS_IPv4.h"
 
 #include "catch_assert.h"
-
 
 /* =========================== EXTERN VARIABLES =========================== */
 
@@ -72,6 +72,10 @@ void tearDown( void )
 
 /* ============================== Test Cases ============================== */
 
+/**
+ * @brief test_xIsIPv4Multicast_NotMultiCast
+ * To validate if xIsIPv4Multicast() judges 0x0 is not a multicast address.
+ */
 void test_xIsIPv4Multicast_NotMultiCast( void )
 {
     BaseType_t xReturn;
@@ -82,7 +86,11 @@ void test_xIsIPv4Multicast_NotMultiCast( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-void test_xIsIPv4Multicast_NotMultiCast2( void )
+/**
+ * @brief test_xIsIPv4Multicast_NotMultiCastF0000000
+ * To validate if xIsIPv4Multicast() judges 0xF0000000 is not a multicast address.
+ */
+void test_xIsIPv4Multicast_NotMultiCastF0000000( void )
 {
     BaseType_t xReturn;
     uint32_t ulIPAddress = FreeRTOS_htonl( 0xF0000000 );
@@ -92,6 +100,10 @@ void test_xIsIPv4Multicast_NotMultiCast2( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
+/**
+ * @brief test_xIsIPv4Multicast_IsMultiCast
+ * To validate if xIsIPv4Multicast() judges 0xEFFFFFFF is a multicast address.
+ */
 void test_xIsIPv4Multicast_IsMultiCast( void )
 {
     BaseType_t xReturn;
@@ -102,7 +114,12 @@ void test_xIsIPv4Multicast_IsMultiCast( void )
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
-void test_prvAllowIPPacketIPv4( void )
+/**
+ * @brief test_prvAllowIPPacketIPv4_LessHeaderLength
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when ucVersionHeaderLength
+ * is less than ipIPV4_VERSION_HEADER_LENGTH_MIN.
+ */
+void test_prvAllowIPPacketIPv4_LessHeaderLength( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -115,12 +132,18 @@ void test_prvAllowIPPacketIPv4( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ipIPV4_VERSION_HEADER_LENGTH_MIN - 1;
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_FragmentedPacket
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when fragment flag (ipFRAGMENT_OFFSET_BIT_MASK)
+ * is set. IP fragmentation is not supported in stack.
+ */
 void test_prvAllowIPPacketIPv4_FragmentedPacket( void )
 {
     eFrameProcessingResult_t eResult;
@@ -144,7 +167,12 @@ void test_prvAllowIPPacketIPv4_FragmentedPacket( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacketIPv4_FragmentedPacket1( void )
+/**
+ * @brief test_prvAllowIPPacketIPv4_MoreFragmentedPacket
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when fragment flag (ipFRAGMENT_FLAGS_MORE_FRAGMENTS)
+ * is set. IP fragmentation is not supported in stack.
+ */
+void test_prvAllowIPPacketIPv4_MoreFragmentedPacket( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -167,7 +195,12 @@ void test_prvAllowIPPacketIPv4_FragmentedPacket1( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacketIPv4_IncorrectLength( void )
+/**
+ * @brief test_prvAllowIPPacketIPv4_GreaterHeaderLength
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when ucVersionHeaderLength
+ * is greater than ipIPV4_VERSION_HEADER_LENGTH_MAX.
+ */
+void test_prvAllowIPPacketIPv4_GreaterHeaderLength( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -190,6 +223,11 @@ void test_prvAllowIPPacketIPv4_IncorrectLength( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_NotMatchingIP
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when no endpoint
+ * matches the input packet.
+ */
 void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 {
     eFrameProcessingResult_t eResult;
@@ -222,6 +260,11 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * source IP is broadcase address, which is not allowed.
+ */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
 {
     eFrameProcessingResult_t eResult;
@@ -237,6 +280,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndpoint;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -254,6 +298,12 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * source IP is broadcase address, which is not allowed. Even the
+ * destination IP address is also broadcast.
+ */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
 {
     eFrameProcessingResult_t eResult;
@@ -287,43 +337,12 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdcast1( void )
-{
-    eFrameProcessingResult_t eResult;
-    IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    UBaseType_t uxHeaderLength = 0;
-    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
-    IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
-
-    NetworkEndPoint_t xEndPoints;
-    IPV4Parameters_t * xIPv4Addressing = &( xEndPoints.ipv4_settings );
-
-    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    pxNetworkBuffer->pxEndPoint = NULL;
-    pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
-
-    pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = xIPv4Addressing->ulBroadcastAddress;
-
-    pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
-
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
-    FreeRTOS_IsNetworkUp_ExpectAndReturn( pdFALSE );
-
-    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
-
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
-}
-
+/**
+ * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * source IP is broadcase address, which is not allowed. Even the
+ * destination IP address is LLMNR.
+ */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
 {
     eFrameProcessingResult_t eResult;
@@ -357,6 +376,12 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * source IP is broadcase address, which is not allowed. And
+ * the destination IP is 0.
+ */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
 {
     eFrameProcessingResult_t eResult;
@@ -365,10 +390,8 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
@@ -376,10 +399,8 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0;
-
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = 1;
+    pxIPHeader->ulDestinationIPAddress = 0;
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
@@ -391,6 +412,12 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * destination MAC address is broadcast address but the IP address is not broadcast address.
+ * And the endpoint is up.
+ */
 void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
 {
     eFrameProcessingResult_t eResult;
@@ -399,18 +426,14 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = NULL;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-
-    pxEndpoint->ipv4_settings.ulIPAddress = 0;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
@@ -426,6 +449,11 @@ void test_prvAllowIPPacketIPv4_DestMACBrdCast_DestIPUnicast( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_SrcMACBrdCast
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * source MAC address is broadcast address, which is not allowed.
+ */
 void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
 {
     eFrameProcessingResult_t eResult;
@@ -434,10 +462,8 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
@@ -445,11 +471,9 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
-
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = 0xFFFFFFFF;
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -460,7 +484,13 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacketIPv4_SrcMACBrdCast2( void )
+/**
+ * @brief test_prvAllowIPPacketIPv4_SrcMACBrdCastDestMACBrdCast
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * source MAC address is broadcast address, which is not allowed. Even
+ * the destination MAC address is also broadcast address.
+ */
+void test_prvAllowIPPacketIPv4_SrcMACBrdCastDestMACBrdCast( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -468,10 +498,8 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast2( void )
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
-    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
@@ -479,11 +507,9 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast2( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
-
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = 0xFFFFFFFF;
 
     memcpy( pxIPPacket->xEthernetHeader.xSourceAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
@@ -495,6 +521,11 @@ void test_prvAllowIPPacketIPv4_SrcMACBrdCast2( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * source IP address is multicast address, which is not allowed.
+ */
 void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
 {
     eFrameProcessingResult_t eResult;
@@ -532,6 +563,11 @@ void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_IncorrectChecksum
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * IP checksum is incorrect.
+ */
 void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
 {
     eFrameProcessingResult_t eResult;
@@ -572,6 +608,11 @@ void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_IncorrectChecksum
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * protocol checksum is incorrect.
+ */
 void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
 {
     eFrameProcessingResult_t eResult;
@@ -614,6 +655,10 @@ void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_HappyPath
+ * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer in happy path.
+ */
 void test_prvAllowIPPacketIPv4_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
@@ -656,6 +701,11 @@ void test_prvAllowIPPacketIPv4_HappyPath( void )
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_LoopbackHappyPath
+ * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer and skip checking
+ * checksum when it's a loop-back packet.
+ */
 void test_prvAllowIPPacketIPv4_LoopbackHappyPath( void )
 {
     eFrameProcessingResult_t eResult;
@@ -691,6 +741,11 @@ void test_prvAllowIPPacketIPv4_LoopbackHappyPath( void )
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when destimation MAC address is broadcast
+ * but IP address is not broadcast.
+ */
 void test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast( void )
 {
     eFrameProcessingResult_t eResult;
@@ -727,6 +782,11 @@ void test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvCheckIP4HeaderOptions_HeaderLengthSmaller
+ * To validate if prvCheckIP4HeaderOptions() reduces the length correctly
+ * for options on IP header length.
+ */
 void test_prvCheckIP4HeaderOptions_HeaderLengthSmaller( void )
 {
     eFrameProcessingResult_t eResult;

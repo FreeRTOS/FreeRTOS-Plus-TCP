@@ -43,22 +43,7 @@
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP_Utils.h"
-#include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
-#include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
-#include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
-#include "mock_FreeRTOS_IP.h"
 
 #include "FreeRTOS_IPv4.h"
 
@@ -67,8 +52,31 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
+{
+}
+
+/*! called after each test case */
+void tearDown( void )
+{
+}
+
+/* ======================== Stub Callback Functions ========================= */
+
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_prvAllowIPPacketIPv4_BroadcastSourceIP
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when source IP address
+ * is broadcast, which is not allowed.
+ */
 void test_prvAllowIPPacketIPv4_BroadcastSourceIP( void )
 {
     eFrameProcessingResult_t eResult;
@@ -105,7 +113,12 @@ void test_prvAllowIPPacketIPv4_BroadcastSourceIP( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
-void test_prvAllowIPPacketIPv4_IncorrectSizeFields( void )
+/**
+ * @brief test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when buffer size is
+ * less than IP packet minimum requirement.
+ */
+void test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -121,6 +134,7 @@ void test_prvAllowIPPacketIPv4_IncorrectSizeFields( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndpoint;
+    pxNetworkBuffer->xDataLength = 0;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
@@ -141,6 +155,11 @@ void test_prvAllowIPPacketIPv4_IncorrectSizeFields( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_UDPCheckSumZero
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
+ * UDP checksum is zero, which is not allowed.
+ */
 void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
 {
     eFrameProcessingResult_t eResult;
@@ -182,6 +201,10 @@ void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_UDP_HappyPath
+ * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer for UDP happy path.
+ */
 void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
@@ -230,6 +253,10 @@ void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
+/**
+ * @brief test_prvAllowIPPacketIPv4_TCP_HappyPath
+ * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer for TCP happy path.
+ */
 void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
@@ -272,12 +299,20 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
+/**
+ * @brief test_prvCheckIP4HeaderOptions_AlwaysRelease
+ * To validate if prvCheckIP4HeaderOptions() returns eReleaseBuffer in any case.
+ */
 void test_prvCheckIP4HeaderOptions_AlwaysRelease( void )
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
 
     eResult = prvCheckIP4HeaderOptions( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+
+    eResult = prvCheckIP4HeaderOptions( NULL );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
