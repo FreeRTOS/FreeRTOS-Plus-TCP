@@ -263,7 +263,7 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
 
 /**
  * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert
- * Because configASSERT is disabled in this configuration, there is no assertion 
+ * Because configASSERT is disabled in this configuration, there is no assertion
  * even though available buffer size is less than input length.
  */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert( void )
@@ -282,7 +282,7 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert( void )
 
 /**
  * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert
- * Because configASSERT is disabled in this configuration, there is no assertion 
+ * Because configASSERT is disabled in this configuration, there is no assertion
  * even though bytes released from FreeRTOS_recv() is different from request.
  */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert( void )

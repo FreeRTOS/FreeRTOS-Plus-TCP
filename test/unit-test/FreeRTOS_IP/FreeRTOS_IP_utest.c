@@ -2118,7 +2118,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     /* Initialize network buffer descriptor. */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
-    
+
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
