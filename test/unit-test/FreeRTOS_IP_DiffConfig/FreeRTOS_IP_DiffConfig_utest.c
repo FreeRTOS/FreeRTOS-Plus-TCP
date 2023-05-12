@@ -44,21 +44,10 @@
 #include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
-#include "mock_FreeRTOS_ARP.h"
 #include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
-#include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
-#include "mock_FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -66,6 +55,8 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+
+/* =========================== EXTERN VARIABLES =========================== */
 
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
@@ -77,6 +68,23 @@ extern BaseType_t xIPTaskInitialised;
 extern BaseType_t xNetworkDownEventPending;
 extern BaseType_t xNetworkUp;
 extern UBaseType_t uxQueueMinimumSpace;
+
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
+{
+    pxNetworkEndPoints = NULL;
+    pxNetworkInterfaces = NULL;
+    xNetworkDownEventPending = pdFALSE;
+}
+
+/*! called after each test case */
+void tearDown( void )
+{
+}
+
+/* ======================== Stub Callback Functions ========================= */
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
@@ -116,6 +124,12 @@ static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuf
     return ReleaseTCPPayloadBufferxByteCount;
 }
 
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_prvProcessIPEventsAndTimers_NoEventReceived
+ * To validate the flow of prvProcessIPEventsAndTimers to handle eNoEvent.
+ */
 void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
 {
     vCheckNetworkTimers_Expect();
@@ -128,6 +142,11 @@ void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
     prvProcessIPEventsAndTimers();
 }
 
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace
+ * To validate the flow of prvProcessIPEventsAndTimers doesn't update
+ * uxQueueMinimumSpace when uxQueueSpacesAvailable() returns more.
+ */
 void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace( void )
 {
     IPStackEvent_t xReceivedEvent;
@@ -152,6 +171,11 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace( void )
     TEST_ASSERT_EQUAL( xQueueReturn - 10, uxQueueMinimumSpace );
 }
 
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace
+ * To validate the flow of prvProcessIPEventsAndTimers updates uxQueueMinimumSpace
+ * when uxQueueSpacesAvailable() returns less.
+ */
 void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_MoreSpace( void )
 {
     IPStackEvent_t xReceivedEvent;
@@ -185,6 +209,11 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_MoreSpace( void )
     TEST_ASSERT_EQUAL( xQueueReturn, uxQueueMinimumSpace );
 }
 
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eSocketSelectEvent
+ * To validate if prvProcessIPEventsAndTimers calls xTaskNotifyGive (xTaskGenericNotify)
+ * while handling eSocketSelectEvent.
+ */
 void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
@@ -213,18 +242,11 @@ void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
     prvProcessIPEventsAndTimers();
 }
 
-TaskHandle_t IPInItHappyPath_xTaskHandleToSet = ( TaskHandle_t ) 0xCDBA9087;
-static BaseType_t StubxTaskCreate( TaskFunction_t pxTaskCode,
-                                   const char * const pcName, /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
-                                   const configSTACK_DEPTH_TYPE usStackDepth,
-                                   void * const pvParameters,
-                                   UBaseType_t uxPriority,
-                                   TaskHandle_t * const pxCreatedTask )
-{
-    *pxCreatedTask = IPInItHappyPath_xTaskHandleToSet;
-    return pdPASS;
-}
-
+/**
+ * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert
+ * The input buffer pointer must be obtained by calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag.
+ * Because configASSERT is disabled in this configuration, there is no assertion in this test case.
+ */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -239,6 +261,11 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
+/**
+ * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert
+ * Because configASSERT is disabled in this configuration, there is no assertion 
+ * even though available buffer size is less than input length.
+ */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -253,6 +280,11 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert( void )
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
+/**
+ * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert
+ * Because configASSERT is disabled in this configuration, there is no assertion 
+ * even though bytes released from FreeRTOS_recv() is different from request.
+ */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -269,6 +301,10 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert( void )
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
+/**
+ * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_HappyPath
+ * To validate happy path for FreeRTOS_ReleaseTCPPayloadBuffer.
+ */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_HappyPath( void )
 {
     FreeRTOS_Socket_t xSocket;
@@ -285,6 +321,10 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_HappyPath( void )
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
+/**
+ * @brief test_vReturnEthernetFrame_DuplicationFailed
+ * To validate if vReturnEthernetFrame is able to handle NULL network buffer descriptor.
+ */
 void test_vReturnEthernetFrame_DuplicationFailed( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -300,6 +340,10 @@ void test_vReturnEthernetFrame_DuplicationFailed( void )
     vReturnEthernetFrame( &xNetworkBuffer, xReleaseAfterSend );
 }
 
+/**
+ * @brief test_vReturnEthernetFrame_DuplicationSuccess
+ * To validate if vReturnEthernetFrame is able to handle duplicate network buffer descriptor.
+ */
 void test_vReturnEthernetFrame_DuplicationSuccess( void )
 {
     NetworkBufferDescriptor_t xDuplicateNetworkBuffer;
@@ -348,7 +392,11 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-void test_vReturnEthernetFrame( void )
+/**
+ * @brief test_vReturnEthernetFrame_xReleaseAfterSend
+ * To validate if vReturnEthernetFrame is able to send with input network buffer descriptor.
+ */
+void test_vReturnEthernetFrame_xReleaseAfterSend( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdTRUE;
@@ -386,6 +434,11 @@ void test_vReturnEthernetFrame( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
+/**
+ * @brief test_vReturnEthernetFrame_DataLenMoreThanRequired
+ * To validate if vReturnEthernetFrame changes the source/destination MAC addresses correctly
+ * and transmits though network interface. And the buffer length is equal to ipconfigETHERNET_MINIMUM_PACKET_BYTES.
+ */
 void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
@@ -424,6 +477,10 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
+/**
+ * @brief test_uxGetMinimumIPQueueSpace
+ * To validate if uxGetMinimumIPQueueSpace returns correct minimum queue space.
+ */
 void test_uxGetMinimumIPQueueSpace( void )
 {
     UBaseType_t uxReturn;

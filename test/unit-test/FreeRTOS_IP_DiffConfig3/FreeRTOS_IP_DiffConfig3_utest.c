@@ -43,23 +43,9 @@
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
-#include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
 #include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_DHCPv6.h"
-#include "mock_FreeRTOS_Sockets.h"
-#include "mock_FreeRTOS_Routing.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
-#include "mock_FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -67,6 +53,8 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+
+/* =========================== EXTERN VARIABLES =========================== */
 
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
@@ -79,44 +67,29 @@ extern BaseType_t xNetworkDownEventPending;
 extern BaseType_t xNetworkUp;
 extern UBaseType_t uxQueueMinimumSpace;
 
-BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
-BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
 {
-    NetworkInterfaceOutputFunction_Stub_Called++;
-    return 0;
+    pxNetworkEndPoints = NULL;
+    pxNetworkInterfaces = NULL;
+    xNetworkDownEventPending = pdFALSE;
 }
 
-static uint8_t ReleaseTCPPayloadBuffer[ 1500 ];
-static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
-static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
-                                                         uint8_t ** ppucData,
-                                                         int lCounter )
+/*! called after each test case */
+void tearDown( void )
 {
-    *ppucData = &ReleaseTCPPayloadBuffer[ 150 ];
-
-    return 0xFFFFFF;
 }
 
-static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize( StreamBuffer_t * pxBuffer,
-                                                            uint8_t ** ppucData,
-                                                            int lCounter )
-{
-    *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
+/* ======================== Stub Callback Functions ========================= */
 
-    return( ReleaseTCPPayloadBufferxByteCount >> 1 );
-}
+/* ============================== Test Cases ============================== */
 
-static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuffer,
-                                                          uint8_t ** ppucData,
-                                                          int lCounter )
-{
-    *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
-
-    return ReleaseTCPPayloadBufferxByteCount;
-}
-
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv4
+ * To validate if prvProcessIPEventsAndTimers() calls vDHCPProcess() while receiving eDHCPEvent.
+ */
 void test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv4( void )
 {
     IPStackEvent_t xReceivedEvent;
@@ -143,6 +116,11 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv4( void )
     prvProcessIPEventsAndTimers();
 }
 
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv6
+ * To validate if prvProcessIPEventsAndTimers() calls vDHCPv6Process() while receiving eDHCPEvent
+ * and the endpoint is IPv6.
+ */
 void test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv6( void )
 {
     IPStackEvent_t xReceivedEvent;
@@ -170,6 +148,11 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent_DHCPv6( void )
     prvProcessIPEventsAndTimers();
 }
 
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eDHCPEvent_RA
+ * To validate if prvProcessIPEventsAndTimers() calls vRAProcess() while receiving eDHCPEvent
+ * and the endpoint is configured for RA.
+ */
 void test_prvProcessIPEventsAndTimers_eDHCPEvent_RA( void )
 {
     IPStackEvent_t xReceivedEvent;
