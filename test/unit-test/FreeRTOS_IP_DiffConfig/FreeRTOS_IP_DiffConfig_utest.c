@@ -128,7 +128,7 @@ static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuf
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_NoEventReceived
- * To validate the flow of prvProcessIPEventsAndTimers to handle eNoEvent.
+ * To validate the flow of prvProcessIPEventsAndTimers() to handle eNoEvent.
  */
 void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
 {
@@ -144,7 +144,7 @@ void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace
- * To validate the flow of prvProcessIPEventsAndTimers doesn't update
+ * To validate the flow of prvProcessIPEventsAndTimers() doesn't update
  * uxQueueMinimumSpace when uxQueueSpacesAvailable() returns more.
  */
 void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace( void )
@@ -173,7 +173,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL_LessSpace
- * To validate the flow of prvProcessIPEventsAndTimers updates uxQueueMinimumSpace
+ * To validate the flow of prvProcessIPEventsAndTimers() updates uxQueueMinimumSpace
  * when uxQueueSpacesAvailable() returns less.
  */
 void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_MoreSpace( void )
@@ -211,7 +211,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_MoreSpace( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketSelectEvent
- * To validate if prvProcessIPEventsAndTimers calls xTaskNotifyGive (xTaskGenericNotify)
+ * To validate if prvProcessIPEventsAndTimers() calls xTaskNotifyGive (xTaskGenericNotify)
  * while handling eSocketSelectEvent.
  */
 void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )

@@ -2139,7 +2139,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             }
             else
             {
-                /* This should never reach or the packet is gone without any infomation. */
+                /* This should never reach or the packet is gone. */
                 configASSERT( pdFALSE );
             }
         }

@@ -263,7 +263,7 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
 /**
  * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch
  * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
- * source IP is broadcase address, which is not allowed.
+ * source IP is broadcast address, which is not allowed.
  */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
 {
@@ -301,7 +301,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
 /**
  * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast
  * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
- * source IP is broadcase address, which is not allowed. Even the
+ * source IP is broadcast address, which is not allowed. Even the
  * destination IP address is also broadcast.
  */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
@@ -340,7 +340,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
 /**
  * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR
  * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
- * source IP is broadcase address, which is not allowed. Even the
+ * source IP is broadcast address, which is not allowed. Even the
  * destination IP address is LLMNR.
  */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
@@ -379,7 +379,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
 /**
  * @brief test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP
  * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when
- * source IP is broadcase address, which is not allowed. And
+ * source IP is broadcast address, which is not allowed. And
  * the destination IP is 0.
  */
 void test_prvAllowIPPacketIPv4_SourceIPBrdCast_NoLocalIP( void )
@@ -743,7 +743,7 @@ void test_prvAllowIPPacketIPv4_LoopbackHappyPath( void )
 
 /**
  * @brief test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast
- * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when destimation MAC address is broadcast
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when destination MAC address is broadcast
  * but IP address is not broadcast.
  */
 void test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast( void )

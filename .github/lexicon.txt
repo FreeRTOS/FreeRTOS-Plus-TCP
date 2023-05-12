@@ -279,6 +279,7 @@ enetworkrxevent
 enetworktxevent
 enetworkup
 enhanceddescriptorformat
+enoevent
 enotconn
 enotusingleasedaddress
 enum
@@ -749,6 +750,7 @@ pre
 printf
 printfs
 processdhcpreplies
+processicmppacket
 processippacket
 projdefs
 promiscuousmode
@@ -785,6 +787,8 @@ prvpreparelinklayeriplookup
 prvpreparelookup
 prvprocessdhcpreplies
 prvprocessdnscache
+prvprocessethernetpacket
+prvprocessipeventsandtimers
 prvprocessippacket
 prvprocessnetworkdownevent
 prvreadnamefield
@@ -1589,6 +1593,8 @@ uxpayloadsize
 uxprefixlength
 uxprotocolheaderlength
 uxptr
+uxqueueminimumspace
+uxqueuespacesavailable
 uxreloadtime
 uxremainingbytes
 uxremainingsize
@@ -1642,9 +1648,11 @@ vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
 ve
+veventgroupdelete
 vipnetworkupcalls
 vipreloaddhcptimer
 vipsetdhcptimerenablestate
+vipsettcptimerexpiredstate
 vl
 vlan
 vlantagcomparison
@@ -1776,6 +1784,7 @@ xemactaskhandle
 xenablestate
 xend
 xendpoint
+xendpoints
 xentries
 xentryfound
 xerrnum
@@ -1863,6 +1872,7 @@ xnetworkaddressing
 xnetworkbuffer
 xnetworkbufferdescriptor
 xnetworkbuffersemaphore
+xnetworkbuffersinitialise
 xnetworkdowneventpending
 xnetworkendpoint
 xnetworkeventqueue
@@ -1902,7 +1912,9 @@ xprocessreceivedudppacket
 xprotocol
 xprotocolcpy
 xqueuecreateset
+xqueuegenericcreatestatic
 xqueuegenericsend
+xqueuegenericsendfromisr
 xqueueitem
 xqueuereceive
 xradata
@@ -1932,6 +1944,7 @@ xselectbits
 xsendblocktime
 xsenderhardwareaddress
 xsendeventstructtoiptask
+xsendeventtoiptask
 xsendlength
 xserverid
 xserversemaphore
@@ -1954,9 +1967,12 @@ xtargethardwareaddress
 xtargetindex
 xtaskcheckfortimeout
 xtaskcreate
+xtaskcreatestatic
+xtaskgenericnotify
 xtaskgetcurrenttaskhandle
 xtaskgettickcount
 xtaskhandle
+xtasknotifygive
 xtaskresumeall
 xtcp
 xtcpchecknewclient
