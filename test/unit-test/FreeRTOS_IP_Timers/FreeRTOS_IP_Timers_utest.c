@@ -66,11 +66,9 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 extern IPTimer_t xARPTimer;
-#if ( ipconfigUSE_DHCP != 0 )
-    /** @brief DHCP timer, to send requests and to renew a reservation.  */
-    extern IPTimer_t xDHCPTimer;
-#endif
 #if ( ipconfigUSE_TCP != 0 )
     /** @brief TCP timer, to check for timeouts, resends. */
     extern IPTimer_t xTCPTimer;
@@ -89,12 +87,37 @@ extern IPTimer_t xARPTimer;
 
 extern IPTimer_t xARPResolutionTimer;
 
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
+{
+    static NetworkEndPoint_t xEndpoint;
+
+    memset( &xEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxNetworkEndPoints = &xEndpoint;
+    pxNetworkInterfaces = NULL;
+}
+
+/*! called after each test case */
+void tearDown( void )
+{
+}
+
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_xCalculateSleepTime_AllTimersInactive
+ * To validate if xCalculateSleepTime returns ipconfigMAX_IP_TASK_SLEEP_TIME
+ * when all timers are inactive.
+ */
 void test_xCalculateSleepTime_AllTimersInactive( void )
 {
     TickType_t uxTicks;
 
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
 
@@ -103,36 +126,46 @@ void test_xCalculateSleepTime_AllTimersInactive( void )
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME, uxTicks );
 }
 
+/**
+ * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreater
+ * To validate if xCalculateSleepTime returns ipconfigMAX_IP_TASK_SLEEP_TIME
+ * when remaining time of all timers are greater than or equal to ipconfigMAX_IP_TASK_SLEEP_TIME.
+ */
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreater( void )
 {
     TickType_t uxTicks;
 
     xARPTimer.bActive = pdTRUE;
-    xDHCPTimer.bActive = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
 
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    pxNetworkEndPoints->xDHCP_RATimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME + 1;
+    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME + 2;
+    xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME + 3;
 
     uxTicks = xCalculateSleepTime();
 
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME, uxTicks );
 }
 
-void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne( void )
+/**
+ * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptARP
+ * To validate if xCalculateSleepTime returns the shortest remaining time
+ * of all active timers. In this case, ARP timer has the shortest remaining time.
+ */
+void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptARP( void )
 {
     TickType_t uxTicks;
 
     xARPTimer.bActive = pdTRUE;
-    xDHCPTimer.bActive = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
 
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
-    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    pxNetworkEndPoints->xDHCP_RATimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
 
@@ -141,17 +174,51 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne( void )
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
 }
 
-void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne1( void )
+/**
+ * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDHCP
+ * To validate if xCalculateSleepTime returns the shortest remaining time
+ * of all active timers. In this case, DHCP timer has the shortest remaining time.
+ */
+void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDHCP( void )
 {
     TickType_t uxTicks;
+    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+
+    memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    pxNetworkEndPoints = pxEndpoint;
 
     xARPTimer.bActive = pdTRUE;
-    xDHCPTimer.bActive = pdTRUE;
+    pxEndpoint->xDHCP_RATimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
 
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    pxEndpoint->xDHCP_RATimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
+    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+
+    uxTicks = xCalculateSleepTime();
+
+    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
+}
+
+/**
+ * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptTCP
+ * To validate if xCalculateSleepTime returns the shortest remaining time
+ * of all active timers. In this case, TCP timer has the shortest remaining time.
+ */
+void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptTCP( void )
+{
+    TickType_t uxTicks;
+
+    xARPTimer.bActive = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
+    xDNSTimer.bActive = pdTRUE;
+    xTCPTimer.bActive = pdTRUE;
+
+    xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    pxNetworkEndPoints->xDHCP_RATimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
 
@@ -160,36 +227,22 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne1( void )
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
 }
 
-void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne2( void )
+/**
+ * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDNS
+ * To validate if xCalculateSleepTime returns the shortest remaining time
+ * of all active timers. In this case, DNS timer has the shortest remaining time.
+ */
+void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDNS( void )
 {
     TickType_t uxTicks;
 
     xARPTimer.bActive = pdTRUE;
-    xDHCPTimer.bActive = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdTRUE;
 
     xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
-    xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-
-    uxTicks = xCalculateSleepTime();
-
-    TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
-}
-
-void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne3( void )
-{
-    TickType_t uxTicks;
-
-    xARPTimer.bActive = pdTRUE;
-    xDHCPTimer.bActive = pdTRUE;
-    xDNSTimer.bActive = pdTRUE;
-    xTCPTimer.bActive = pdTRUE;
-
-    xARPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
-    xDHCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
+    pxNetworkEndPoints->xDHCP_RATimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xTCPTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME;
     xDNSTimer.ulRemainingTime = ipconfigMAX_IP_TASK_SLEEP_TIME - 10;
 
@@ -198,10 +251,14 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptOne3( void )
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
 }
 
+/**
+ * @brief test_vCheckNetworkTimers_AllTimersDisabled
+ * To validate if vCheckNetworkTimers runs normally when all timers are inactive.
+ */
 void test_vCheckNetworkTimers_AllTimersDisabled( void )
 {
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
 
@@ -214,10 +271,14 @@ void test_vCheckNetworkTimers_AllTimersDisabled( void )
     vCheckNetworkTimers();
 }
 
+/**
+ * @brief test_vCheckNetworkTimers_ARPTimerActiveAndExpired
+ * To validate if vCheckNetworkTimers handles ARP timer expired event as expected.
+ */
 void test_vCheckNetworkTimers_ARPTimerActiveAndExpired( void )
 {
     xARPTimer.bActive = pdTRUE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
 
@@ -236,10 +297,15 @@ void test_vCheckNetworkTimers_ARPTimerActiveAndExpired( void )
     vCheckNetworkTimers();
 }
 
-void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired( void )
+/**
+ * @brief test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpiredNullBuffer
+ * To validate if vCheckNetworkTimers handles ARP resolution timer expired event as expected.
+ * And there is no buffer waiting for ARP reply.
+ */
+void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpiredNullBuffer( void )
 {
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdTRUE;
@@ -257,12 +323,19 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired( void )
     vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
+    
+    TEST_ASSERT_EQUAL( pdTRUE, xARPResolutionTimer.bExpired );
 }
 
-void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired2( void )
+/**
+ * @brief test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired
+ * To validate if vCheckNetworkTimers handles ARP resolution timer expired event as expected.
+ * And there is a buffer waiting for ARP reply.
+ */
+void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired( void )
 {
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdTRUE;
@@ -292,12 +365,12 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
     NetworkEndPoint_t xEndPoint = { 0 };
 
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
 
-    xDHCPTimer.bExpired = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bExpired = pdTRUE;
 
     xEndPoint.pxNext = NULL;
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
@@ -324,7 +397,7 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
     NetworkEndPoint_t xEndPoint = { 0 };
 
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdTRUE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
@@ -337,7 +410,7 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
     xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
     pxNetworkEndPoints = &xEndPoint;
 
-    vTaskSetTimeOutState_Expect( &( xDHCPTimer.xTimeOut ) );
+    vTaskSetTimeOutState_Expect( &( pxNetworkEndPoints->xDHCP_RATimer.xTimeOut ) );
 
     vDNSCheckCallBack_Expect( NULL );
 
@@ -353,7 +426,7 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
 void test_vCheckNetworkTimers_AllTimersInactive_1( void )
 {
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
@@ -373,7 +446,7 @@ void test_vCheckNetworkTimers_AllTimersInactive_1( void )
 void test_vCheckNetworkTimers_AllTimersInactive_2( void )
 {
     xARPTimer.bActive = pdFALSE;
-    xDHCPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
     xDNSTimer.bActive = pdFALSE;
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
@@ -634,7 +707,7 @@ void test_vIPSetDHCP_RATimerEnableState_False( void )
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
     vIPSetDHCP_RATimerEnableState( &xEndPoint, xEnableState );
 
-    TEST_ASSERT_EQUAL( xEnableState, xDHCPTimer.bActive );
+    TEST_ASSERT_EQUAL( xEnableState, pxNetworkEndPoints->xDHCP_RATimer.bActive );
 }
 
 void test_vIPSetDHCP_RATimerEnableState_True( void )
