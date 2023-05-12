@@ -134,7 +134,7 @@ void test_eNDGetCacheEntry_Multicast_EndPoint( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
-/* TODO result seems incorrect - Or is it is guaranted to always  have 1 EndPoint then this is just there for coverage*/
+/* TODO result seems incorrect - Or is it is guaranteed to always  have 1 EndPoint then this is just there for coverage*/
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
 }
 
