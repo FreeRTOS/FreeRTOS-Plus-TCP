@@ -42,6 +42,7 @@
 #include "mock_IP_list_macros.h"
 #include "mock_queue.h"
 #include "mock_event_groups.h"
+#include "mock_FreeRTOS_Stream_Buffer.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
@@ -591,7 +592,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent( void )
     xReceivedEvent.pvData = pxNetworkBuffer;
 
     /* Put an unknown frame type for prvProcessEthernetPacket to release buffer directly. */
-    pxEthernetHeader->usframe type = 0xFF;
+    pxEthernetHeader->usFrameType = 0xFF;
 
     /* prvProcessIPEventsAndTimers */
     vCheckNetworkTimers_Expect();
@@ -1095,7 +1096,7 @@ void test_FreeRTOS_SendPingRequest_HappyPath( void )
     TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucTypeOfService );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usIdentifier );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
-    TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usframe type );
+    TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );
     TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT, pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
     TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( ipPACKET_CONTAINS_ICMP_DATA, pxNetworkBuffer->usPort );
@@ -1146,7 +1147,7 @@ void test_FreeRTOS_SendPingRequest_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucTypeOfService );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usIdentifier );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
-    TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usframe type );
+    TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );
     TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT, pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
     TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( ipPACKET_CONTAINS_ICMP_DATA, pxNetworkBuffer->usPort );
@@ -1503,7 +1504,7 @@ void test_eConsiderFrameForProcessing_LocalMACMatch( void )
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usframe type = FreeRTOS_htons( 0x0800 );
+    pxEthernetHeader->usFrameType = FreeRTOS_htons( 0x0800 );
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1511,11 +1512,11 @@ void test_eConsiderFrameForProcessing_LocalMACMatch( void )
 }
 
 /**
- * @brief test_eConsiderFrameForProcessing_LocalMACMatchInvalidframe type
+ * @brief test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType
  * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is unknown
  * even though the MAC address in packet matches endpoint's MAC address.
  */
-void test_eConsiderFrameForProcessing_LocalMACMatchInvalidframe type( void )
+void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType( void )
 {
     eFrameProcessingResult_t eResult;
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1533,7 +1534,7 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidframe type( void )
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usframe type = FreeRTOS_htons( 0 );
+    pxEthernetHeader->usFrameType = FreeRTOS_htons( 0 );
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1541,11 +1542,11 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidframe type( void )
 }
 
 /**
- * @brief test_eConsiderFrameForProcessing_LocalMACMatchInvalidframe type1
+ * @brief test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType1
  * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is unknown
  * even though the MAC address in packet matches endpoint's MAC address.
  */
-void test_eConsiderFrameForProcessing_LocalMACMatchInvalidframe type1( void )
+void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType1( void )
 {
     eFrameProcessingResult_t eResult;
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1563,7 +1564,7 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidframe type1( void )
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usframe type = 0x0600;
+    pxEthernetHeader->usFrameType = 0x0600;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1590,7 +1591,7 @@ void test_eConsiderFrameForProcessing_BroadCastMACMatch( void )
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usframe type = 0xFFFF;
+    pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1617,7 +1618,7 @@ void test_eConsiderFrameForProcessing_LLMNR_MACMatch( void )
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usframe type = 0xFFFF;
+    pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1645,7 +1646,7 @@ void test_eConsiderFrameForProcessing_NotMatch( void )
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, &xMACAddress, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usframe type = 0xFFFF;
+    pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1673,7 +1674,7 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
 
     pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
     pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
-    pxEthernetHeader->usframe type = 0xFFFF;
+    pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1701,7 +1702,7 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch( void )
 
     pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
     pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = 0x00;
-    pxEthernetHeader->usframe type = 0xFFFF;
+    pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1736,11 +1737,11 @@ void test_prvProcessEthernetPacket_NullNetworkBufferDescriptor( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_Unknownframe type
+ * @brief test_prvProcessEthernetPacket_UnknownFrameType
  * To validate if prvProcessEthernetPacket calls vReleaseNetworkBufferAndDescriptor
  * to release the network buffer descriptor when the ethernet frame type is unknown.
  */
-void test_prvProcessEthernetPacket_Unknownframe type( void )
+void test_prvProcessEthernetPacket_UnknownFrameType( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1750,7 +1751,7 @@ void test_prvProcessEthernetPacket_Unknownframe type( void )
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxEthernetHeader = ( EthernetHeader_t * ) ucEtherBuffer;
-    pxEthernetHeader->usframe type = 0xFFFF;
+    pxEthernetHeader->usFrameType = 0xFFFF;
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
@@ -1760,10 +1761,10 @@ void test_prvProcessEthernetPacket_Unknownframe type( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_ARPframe type1
+ * @brief test_prvProcessEthernetPacket_ARPFrameType1
  * To validate the flow to handle ARP packets but eARPProcessPacket() returns eReleaseBuffer.
  */
-void test_prvProcessEthernetPacket_ARPframe type1( void )
+void test_prvProcessEthernetPacket_ARPFrameType1( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1777,7 +1778,7 @@ void test_prvProcessEthernetPacket_ARPframe type1( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipARP_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eReleaseBuffer );
 
@@ -1787,10 +1788,10 @@ void test_prvProcessEthernetPacket_ARPframe type1( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_ARPframe type2
+ * @brief test_prvProcessEthernetPacket_ARPFrameType2
  * To validate the flow to handle ARP packets but eARPProcessPacket() returns eProcessBuffer.
  */
-void test_prvProcessEthernetPacket_ARPframe type2( void )
+void test_prvProcessEthernetPacket_ARPFrameType2( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1804,7 +1805,7 @@ void test_prvProcessEthernetPacket_ARPframe type2( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipARP_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
@@ -1814,11 +1815,11 @@ void test_prvProcessEthernetPacket_ARPframe type2( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution
+ * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution
  * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
  * without pxARPWaitingNetworkBuffer.
  */
-void test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution( void )
+void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1834,7 +1835,7 @@ void test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipARP_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingARPResolution );
 
@@ -1844,11 +1845,11 @@ void test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution2
+ * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2
  * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
  * with pxARPWaitingNetworkBuffer.
  */
-void test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution2( void )
+void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1864,7 +1865,7 @@ void test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution2( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipARP_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eWaitingARPResolution );
 
@@ -1874,10 +1875,10 @@ void test_prvProcessEthernetPacket_ARPframe type_WaitingARPResolution2( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_ARPframe type_eReturnEthernetFrame
+ * @brief test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame
  * To validate the flow to handle ARP packets but eARPProcessPacket() returns eReturnEthernetFrame.
  */
-void test_prvProcessEthernetPacket_ARPframe type_eReturnEthernetFrame( void )
+void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
 {
     struct xNetworkInterface xInterface, * pxInterface = &xInterface;
     NetworkBufferDescriptor_t xNetworkBuffer, xARPWaitingBuffer;
@@ -1897,7 +1898,7 @@ void test_prvProcessEthernetPacket_ARPframe type_eReturnEthernetFrame( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipARP_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eReturnEthernetFrame );
 
@@ -1909,10 +1910,10 @@ void test_prvProcessEthernetPacket_ARPframe type_eReturnEthernetFrame( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_ARPframe type_eReturnEthernetFrame
+ * @brief test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame
  * To validate the flow to handle ARP packets but eARPProcessPacket() returns eFrameConsumed.
  */
-void test_prvProcessEthernetPacket_ARPframe type_eFrameConsumed( void )
+void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, xARPWaitingBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1926,7 +1927,7 @@ void test_prvProcessEthernetPacket_ARPframe type_eFrameConsumed( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipARP_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
     eARPProcessPacket_ExpectAndReturn( pxNetworkBuffer, eFrameConsumed );
 
@@ -1934,11 +1935,11 @@ void test_prvProcessEthernetPacket_ARPframe type_eFrameConsumed( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_ARPframe type_SmallerDataLength
+ * @brief test_prvProcessEthernetPacket_ARPFrameType_SmallerDataLength
  * To validate the flow to handle ARP packets but the data length is smaller than
  * minimum size of ARP packet.
  */
-void test_prvProcessEthernetPacket_ARPframe type_SmallerDataLength( void )
+void test_prvProcessEthernetPacket_ARPFrameType_SmallerDataLength( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1952,7 +1953,7 @@ void test_prvProcessEthernetPacket_ARPframe type_SmallerDataLength( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipARP_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipARP_FRAME_TYPE;
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
@@ -1960,11 +1961,11 @@ void test_prvProcessEthernetPacket_ARPframe type_SmallerDataLength( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_IPv4frame type_LessData
+ * @brief test_prvProcessEthernetPacket_IPv4FrameType_LessData
  * To validate the flow to handle IPv4 packets but the data length is smaller than
  * minimum size of IPv4 packet.
  */
-void test_prvProcessEthernetPacket_IPv4frame type_LessData( void )
+void test_prvProcessEthernetPacket_IPv4FrameType_LessData( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -1978,7 +1979,7 @@ void test_prvProcessEthernetPacket_IPv4frame type_LessData( void )
 
     memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxEthernetHeader->usframe type = ipIPv4_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
@@ -1986,11 +1987,11 @@ void test_prvProcessEthernetPacket_IPv4frame type_LessData( void )
 }
 
 /**
- * @brief test_prvProcessEthernetPacket_IPv4frame type_AptData
+ * @brief test_prvProcessEthernetPacket_IPv4FrameType_AptData
  * To validate the flow to handle IPv4 packets but the length in IP header is smaller than
  * minimum requirement.
  */
-void test_prvProcessEthernetPacket_IPv4frame type_AptData( void )
+void test_prvProcessEthernetPacket_IPv4FrameType_AptData( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
@@ -2005,7 +2006,7 @@ void test_prvProcessEthernetPacket_IPv4frame type_AptData( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxEthernetHeader->usframe type = ipIPv4_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
 
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
@@ -2035,7 +2036,7 @@ void test_prvProcessIPPacket_HeaderLengthSmaller( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     pxIPHeader->ucVersionHeaderLength = 0xF0;
 
@@ -2063,7 +2064,7 @@ void test_prvProcessIPPacket_HeaderLengthGreater( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     pxIPHeader->ucVersionHeaderLength = 0xFF;
 
@@ -2077,10 +2078,10 @@ void test_prvProcessIPPacket_HeaderLengthGreater( void )
 }
 
 /**
- * @brief test_prvProcessIPPacket_Unknownframe type
+ * @brief test_prvProcessIPPacket_UnknownFrameType
  * To validate the flow to handle unknown ethernet frame type.
  */
-void test_prvProcessIPPacket_Unknownframe type( void )
+void test_prvProcessIPPacket_UnknownFrameType( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
@@ -2094,7 +2095,7 @@ void test_prvProcessIPPacket_Unknownframe type( void )
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxIPPacket->xEthernetHeader.usframe type = 0xFF;
+    pxIPPacket->xEthernetHeader.usFrameType = 0xFF;
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2122,7 +2123,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2158,7 +2159,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2197,7 +2198,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2237,7 +2238,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPProcess( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2278,7 +2279,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPZeroLength( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2322,7 +2323,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader( 
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2365,7 +2366,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPHappyPath( void )
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2408,7 +2409,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail( void )
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2454,7 +2455,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2504,7 +2505,7 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2551,7 +2552,7 @@ void test_prvProcessIPPacket_TCP( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2596,7 +2597,7 @@ void test_prvProcessIPPacket_TCPProcessFail( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2638,7 +2639,7 @@ void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2676,7 +2677,7 @@ void test_prvProcessIPPacket_UDP_GreaterLoopbackAddress( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2714,7 +2715,7 @@ void test_prvProcessIPPacket_UDP_LessLoopbackAddress( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2752,7 +2753,7 @@ void test_prvProcessIPPacket_UDP_IPHeaderLengthTooLarge( void )
     /* Initialize ethernet layer. */
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     /* Initialize IP layer. */
     /* The length in IP header is larger than buffer size. */
@@ -2789,7 +2790,7 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
@@ -2834,7 +2835,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
 
     pxIPHeader->ucVersionTrafficClass = 0x60;
@@ -2896,7 +2897,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
     memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
 
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
@@ -2945,7 +2946,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
     memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
@@ -2995,7 +2996,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
     memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
@@ -3042,7 +3043,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
     memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
-    pxIPPacket->xEthernetHeader.usframe type = ipIPv6_FRAME_TYPE;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
@@ -3281,10 +3282,10 @@ void test_vReturnEthernetFrame_NeitherIPTaskNorReleaseAfterSend( void )
 }
 
 /**
- * @brief test_vReturnEthernetFrame_Unknownframe type
+ * @brief test_vReturnEthernetFrame_UnknownFrameType
  * To validate if vReturnEthernetFrame handles unknown ethernet frame type.
  */
-void test_vReturnEthernetFrame_Unknownframe type( void )
+void test_vReturnEthernetFrame_UnknownFrameType( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdFALSE;
@@ -3304,7 +3305,7 @@ void test_vReturnEthernetFrame_Unknownframe type( void )
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
     memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
-    pxEthernetHeader->usframe type = 0xFF;
+    pxEthernetHeader->usFrameType = 0xFF;
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
@@ -3337,7 +3338,7 @@ void test_vReturnEthernetFrame_IPv6NoEndpoint( void )
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
     memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
-    pxEthernetHeader->usframe type = ipIPv6_FRAME_TYPE;
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
