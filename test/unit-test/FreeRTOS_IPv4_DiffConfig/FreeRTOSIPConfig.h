@@ -340,10 +340,6 @@ extern uint32_t ulRand();
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 
-#define ipconfigCHECK_IP_QUEUE_SPACE               ( 1 )
-#define ipconfigSELECT_USES_NOTIFY                 ( 1 )
-#define ipconfigUSE_LINKED_RX_MESSAGES             ( 1 )
 #define ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS    ( 0 )
-#define ipconfigZERO_COPY_TX_DRIVER                ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */
