@@ -95,6 +95,8 @@ void setUp( void )
     static NetworkEndPoint_t xEndpoint;
 
     memset( &xEndpoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndpoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    xEndpoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
 
     pxNetworkEndPoints = &xEndpoint;
     pxNetworkInterfaces = NULL;
@@ -109,7 +111,7 @@ void tearDown( void )
 
 /**
  * @brief test_xCalculateSleepTime_AllTimersInactive
- * To validate if xCalculateSleepTime returns ipconfigMAX_IP_TASK_SLEEP_TIME
+ * To validate if xCalculateSleepTime() returns ipconfigMAX_IP_TASK_SLEEP_TIME
  * when all timers are inactive.
  */
 void test_xCalculateSleepTime_AllTimersInactive( void )
@@ -128,7 +130,7 @@ void test_xCalculateSleepTime_AllTimersInactive( void )
 
 /**
  * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreater
- * To validate if xCalculateSleepTime returns ipconfigMAX_IP_TASK_SLEEP_TIME
+ * To validate if xCalculateSleepTime() returns ipconfigMAX_IP_TASK_SLEEP_TIME
  * when remaining time of all timers are greater than or equal to ipconfigMAX_IP_TASK_SLEEP_TIME.
  */
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreater( void )
@@ -152,7 +154,7 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreater( void )
 
 /**
  * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptARP
- * To validate if xCalculateSleepTime returns the shortest remaining time
+ * To validate if xCalculateSleepTime() returns the shortest remaining time
  * of all active timers. In this case, ARP timer has the shortest remaining time.
  */
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptARP( void )
@@ -176,7 +178,7 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptARP( void )
 
 /**
  * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDHCP
- * To validate if xCalculateSleepTime returns the shortest remaining time
+ * To validate if xCalculateSleepTime() returns the shortest remaining time
  * of all active timers. In this case, DHCP timer has the shortest remaining time.
  */
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDHCP( void )
@@ -205,7 +207,7 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDHCP( void )
 
 /**
  * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptTCP
- * To validate if xCalculateSleepTime returns the shortest remaining time
+ * To validate if xCalculateSleepTime() returns the shortest remaining time
  * of all active timers. In this case, TCP timer has the shortest remaining time.
  */
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptTCP( void )
@@ -229,7 +231,7 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptTCP( void )
 
 /**
  * @brief test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDNS
- * To validate if xCalculateSleepTime returns the shortest remaining time
+ * To validate if xCalculateSleepTime() returns the shortest remaining time
  * of all active timers. In this case, DNS timer has the shortest remaining time.
  */
 void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDNS( void )
@@ -253,7 +255,7 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDNS( void )
 
 /**
  * @brief test_vCheckNetworkTimers_AllTimersDisabled
- * To validate if vCheckNetworkTimers runs normally when all timers are inactive.
+ * To validate if vCheckNetworkTimers() runs normally when all timers are inactive.
  */
 void test_vCheckNetworkTimers_AllTimersDisabled( void )
 {
@@ -273,7 +275,7 @@ void test_vCheckNetworkTimers_AllTimersDisabled( void )
 
 /**
  * @brief test_vCheckNetworkTimers_ARPTimerActiveAndExpired
- * To validate if vCheckNetworkTimers handles ARP timer expired event as expected.
+ * To validate if vCheckNetworkTimers() handles ARP timer expired event as expected.
  */
 void test_vCheckNetworkTimers_ARPTimerActiveAndExpired( void )
 {
@@ -299,7 +301,7 @@ void test_vCheckNetworkTimers_ARPTimerActiveAndExpired( void )
 
 /**
  * @brief test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpiredNullBuffer
- * To validate if vCheckNetworkTimers handles ARP resolution timer expired event as expected.
+ * To validate if vCheckNetworkTimers() handles ARP resolution timer expired event as expected.
  * And there is no buffer waiting for ARP reply.
  */
 void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpiredNullBuffer( void )
@@ -329,7 +331,7 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpiredNullBuffer( void
 
 /**
  * @brief test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired
- * To validate if vCheckNetworkTimers handles ARP resolution timer expired event as expected.
+ * To validate if vCheckNetworkTimers() handles ARP resolution timer expired event as expected.
  * And there is a buffer waiting for ARP reply.
  */
 void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired( void )
@@ -360,10 +362,12 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpired( void )
     TEST_ASSERT_EQUAL_PTR( NULL, pxARPWaitingNetworkBuffer );
 }
 
+/**
+ * @brief test_vCheckNetworkTimers_DHCPTimerActiveAndExpired
+ * To validate if vCheckNetworkTimers() handles DHCP timer expired event as expected.
+ */
 void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 {
-    NetworkEndPoint_t xEndPoint = { 0 };
-
     xARPTimer.bActive = pdFALSE;
     pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
     xDNSTimer.bActive = pdFALSE;
@@ -372,14 +376,7 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 
     pxNetworkEndPoints->xDHCP_RATimer.bExpired = pdTRUE;
 
-    xEndPoint.pxNext = NULL;
-    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
-    xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
-    xEndPoint.xDHCP_RATimer.bActive = pdTRUE;
-    xEndPoint.xDHCP_RATimer.bExpired = pdTRUE;
-    pxNetworkEndPoints = &xEndPoint;
-
-    vTaskSetTimeOutState_Expect( &( xEndPoint.xDHCP_RATimer.xTimeOut ) );
+    vTaskSetTimeOutState_Expect( &( pxNetworkEndPoints->xDHCP_RATimer.xTimeOut ) );
 
     xSendDHCPEvent_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -392,6 +389,10 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
     vCheckNetworkTimers();
 }
 
+/**
+ * @brief test_vCheckNetworkTimers_DNSTimerActiveAndExpired
+ * To validate if vCheckNetworkTimers() handles DNS timer expired event as expected.
+ */
 void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
 {
     NetworkEndPoint_t xEndPoint = { 0 };
@@ -423,7 +424,12 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
     vCheckNetworkTimers();
 }
 
-void test_vCheckNetworkTimers_AllTimersInactive_1( void )
+/**
+ * @brief test_vCheckNetworkTimers_AllTimersInactivePendingMessages
+ * To validate if vCheckNetworkTimers() handles the flow that all timers are inactive,
+ * and there are messages pending in the queue.
+ */
+void test_vCheckNetworkTimers_AllTimersInactivePendingMessages( void )
 {
     xARPTimer.bActive = pdFALSE;
     pxNetworkEndPoints->xDHCP_RATimer.bActive = pdFALSE;
@@ -431,7 +437,6 @@ void test_vCheckNetworkTimers_AllTimersInactive_1( void )
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
 
-    pxNetworkEndPoints = NULL;
     xProcessedTCPMessage = pdTRUE;
 
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
@@ -443,6 +448,11 @@ void test_vCheckNetworkTimers_AllTimersInactive_1( void )
     vCheckNetworkTimers();
 }
 
+/**
+ * @brief test_vCheckNetworkTimers_AllTimersInactivePendingMessages
+ * To validate if vCheckNetworkTimers() handles the flow that all timers are inactive,
+ * and there is no messages pending in the queue.
+ */
 void test_vCheckNetworkTimers_AllTimersInactive_2( void )
 {
     xARPTimer.bActive = pdFALSE;
@@ -471,6 +481,10 @@ void test_vCheckNetworkTimers_AllTimersInactive_2( void )
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xTCPTimer.bActive );
 }
 
+/**
+ * @brief test_prvIPTimerStart_NonZeroTime
+ * To validate if prvIPTimerStart() activate the timer with non zero time.
+ */
 void test_prvIPTimerStart_NonZeroTime( void )
 {
     IPTimer_t xTimer;
@@ -485,6 +499,11 @@ void test_prvIPTimerStart_NonZeroTime( void )
     TEST_ASSERT_EQUAL( pdFALSE, xTimer.bExpired );
 }
 
+/**
+ * @brief test_prvIPTimerStart_ZeroTime
+ * To validate if prvIPTimerStart() activate the timer with zero time.
+ * Timer must be expired after calling.
+ */
 void test_prvIPTimerStart_ZeroTime( void )
 {
     IPTimer_t xTimer;
@@ -499,6 +518,11 @@ void test_prvIPTimerStart_ZeroTime( void )
     TEST_ASSERT_EQUAL( pdTRUE, xTimer.bExpired );
 }
 
+/**
+ * @brief test_vIPTimerStartARPResolution
+ * To validate if vIPTimerStartARPResolution() activate the ARP resolution timer
+ * with zero time. Timer must be expired after calling.
+ */
 void test_vIPTimerStartARPResolution( void )
 {
     TickType_t xTime = 0x00;
@@ -512,6 +536,10 @@ void test_vIPTimerStartARPResolution( void )
     TEST_ASSERT_EQUAL( pdTRUE, xARPResolutionTimer.bExpired );
 }
 
+/**
+ * @brief test_vIPTimerStartARPResolution
+ * To validate if vTCPTimerReload() activate the TCP timer with non-zero time.
+ */
 void test_vTCPTimerReload( void )
 {
     TickType_t xTime = 0x12A;
@@ -526,6 +554,10 @@ void test_vTCPTimerReload( void )
     TEST_ASSERT_EQUAL( pdFALSE, xTCPTimer.bExpired );
 }
 
+/**
+ * @brief test_vARPTimerReload
+ * To validate if vARPTimerReload() activate the ARP timer with non-zero time.
+ */
 void test_vARPTimerReload( void )
 {
     TickType_t xTime = 0x12A;
@@ -540,6 +572,10 @@ void test_vARPTimerReload( void )
     TEST_ASSERT_EQUAL( pdFALSE, xARPTimer.bExpired );
 }
 
+/**
+ * @brief test_vDHCP_RATimerReload
+ * To validate if vTCPTimerReload() activate the DHCP timer with non-zero time.
+ */
 void test_vDHCP_RATimerReload( void )
 {
     TickType_t xTime = 0x12A;
@@ -561,6 +597,10 @@ void test_vDHCP_RATimerReload( void )
     TEST_ASSERT_EQUAL( pdFALSE, xEndPoint.xDHCP_RATimer.bExpired );
 }
 
+/**
+ * @brief test_vDNSTimerReload
+ * To validate if vDNSTimerReload() activate the DNS timer with non-zero time.
+ */
 void test_vDNSTimerReload( void )
 {
     TickType_t xTime = 0x12A;
@@ -575,6 +615,10 @@ void test_vDNSTimerReload( void )
     TEST_ASSERT_EQUAL( pdFALSE, xDNSTimer.bExpired );
 }
 
+/**
+ * @brief test_prvIPTimerCheck_TimerDisabled
+ * To validate if prvIPTimerCheck() returns pdFALSE when timer is inactive.
+ */
 void test_prvIPTimerCheck_TimerDisabled( void )
 {
     BaseType_t xResult;
@@ -587,6 +631,10 @@ void test_prvIPTimerCheck_TimerDisabled( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
+/**
+ * @brief test_prvIPTimerCheck_TimerDisabled
+ * To validate if prvIPTimerCheck() returns pdTRUE when timer is expired.
+ */
 void test_prvIPTimerCheck_TimerExpired( void )
 {
     BaseType_t xResult;
@@ -607,6 +655,10 @@ void test_prvIPTimerCheck_TimerExpired( void )
     TEST_ASSERT_EQUAL( pdFALSE, xTimer.bExpired );
 }
 
+/**
+ * @brief test_prvIPTimerCheck_TimerNotExpired
+ * To validate if prvIPTimerCheck() returns pdFALSE when timer is not expired yet.
+ */
 void test_prvIPTimerCheck_TimerNotExpired( void )
 {
     BaseType_t xResult;
@@ -623,7 +675,11 @@ void test_prvIPTimerCheck_TimerNotExpired( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
-void test_prvIPTimerCheck_TimerNotExpired1( void )
+/**
+ * @brief test_prvIPTimerCheck_TimerExpiredInxTaskCheckForTimeOut
+ * To validate if prvIPTimerCheck() returns pdTRUE when timer expired in xTaskCheckForTimeOut().
+ */
+void test_prvIPTimerCheck_TimerExpiredInxTaskCheckForTimeOut( void )
 {
     BaseType_t xResult;
     IPTimer_t xTimer;
@@ -645,6 +701,10 @@ void test_prvIPTimerCheck_TimerNotExpired1( void )
     TEST_ASSERT_EQUAL( pdFALSE, xTimer.bExpired );
 }
 
+/**
+ * @brief test_vIPSetTCPTimerExpiredState_False
+ * To validate if vIPSetTCPTimerExpiredState() sets TCP timer to non expired state.
+ */
 void test_vIPSetTCPTimerExpiredState_False( void )
 {
     BaseType_t xExpiredState = pdFALSE;
@@ -654,6 +714,10 @@ void test_vIPSetTCPTimerExpiredState_False( void )
     TEST_ASSERT_EQUAL( xExpiredState, xTCPTimer.bExpired );
 }
 
+/**
+ * @brief test_vIPSetTCPTimerExpiredState_False
+ * To validate if vIPSetTCPTimerExpiredState() sets TCP timer to expired state.
+ */
 void test_vIPSetTCPTimerExpiredState_True( void )
 {
     BaseType_t xExpiredState = pdTRUE;
@@ -663,6 +727,10 @@ void test_vIPSetTCPTimerExpiredState_True( void )
     TEST_ASSERT_EQUAL( xExpiredState, xTCPTimer.bExpired );
 }
 
+/**
+ * @brief test_vIPSetARPTimerEnableState_False
+ * To validate if vIPSetARPTimerEnableState() sets ARP timer to non expired state.
+ */
 void test_vIPSetARPTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
@@ -672,6 +740,10 @@ void test_vIPSetARPTimerEnableState_False( void )
     TEST_ASSERT_EQUAL( xEnableState, xARPTimer.bActive );
 }
 
+/**
+ * @brief test_vIPSetARPTimerEnableState_True
+ * To validate if vIPSetARPTimerEnableState() sets ARP timer to expired state.
+ */
 void test_vIPSetARPTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
@@ -681,6 +753,11 @@ void test_vIPSetARPTimerEnableState_True( void )
     TEST_ASSERT_EQUAL( xEnableState, xARPTimer.bActive );
 }
 
+/**
+ * @brief test_vIPSetARPResolutionTimerEnableState_False
+ * To validate if vIPSetARPResolutionTimerEnableState() sets ARP resolution timer
+ * to non expired state.
+ */
 void test_vIPSetARPResolutionTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
@@ -690,6 +767,11 @@ void test_vIPSetARPResolutionTimerEnableState_False( void )
     TEST_ASSERT_EQUAL( xEnableState, xARPResolutionTimer.bActive );
 }
 
+/**
+ * @brief test_vIPSetARPResolutionTimerEnableState_True
+ * To validate if vIPSetARPResolutionTimerEnableState() sets ARP resolution timer
+ * to expired state.
+ */
 void test_vIPSetARPResolutionTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
@@ -699,6 +781,11 @@ void test_vIPSetARPResolutionTimerEnableState_True( void )
     TEST_ASSERT_EQUAL( xEnableState, xARPResolutionTimer.bActive );
 }
 
+/**
+ * @brief test_vIPSetDHCP_RATimerEnableState_False
+ * To validate if vIPSetDHCP_RATimerEnableState() sets DHCP timer
+ * to non expired state.
+ */
 void test_vIPSetDHCP_RATimerEnableState_False( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -710,6 +797,11 @@ void test_vIPSetDHCP_RATimerEnableState_False( void )
     TEST_ASSERT_EQUAL( xEnableState, pxNetworkEndPoints->xDHCP_RATimer.bActive );
 }
 
+/**
+ * @brief test_vIPSetDHCP_RATimerEnableState_False
+ * To validate if vIPSetDHCP_RATimerEnableState() sets DHCP timer
+ * to expired state.
+ */
 void test_vIPSetDHCP_RATimerEnableState_True( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -721,6 +813,11 @@ void test_vIPSetDHCP_RATimerEnableState_True( void )
     TEST_ASSERT_EQUAL( xEnableState, xEndPoint.xDHCP_RATimer.bActive );
 }
 
+/**
+ * @brief test_vIPSetDNSTimerEnableState_False
+ * To validate if vIPSetDNSTimerEnableState() sets DNS timer
+ * to non expired state.
+ */
 void test_vIPSetDNSTimerEnableState_False( void )
 {
     BaseType_t xEnableState = pdFALSE;
@@ -730,6 +827,11 @@ void test_vIPSetDNSTimerEnableState_False( void )
     TEST_ASSERT_EQUAL( xEnableState, xDNSTimer.bActive );
 }
 
+/**
+ * @brief test_vIPSetDNSTimerEnableState_True
+ * To validate if vIPSetDNSTimerEnableState() sets DNS timer
+ * to expired state.
+ */
 void test_vIPSetDNSTimerEnableState_True( void )
 {
     BaseType_t xEnableState = pdTRUE;
