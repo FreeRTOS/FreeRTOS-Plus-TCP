@@ -58,38 +58,38 @@
 #include "FreeRTOS_ND.h"
 
 /** @brief The ND cache. */
-NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
+extern NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
 
 /* Setting IPv6 address as "fe80::7009" */
-const IPv6_Address_t xDefaultIPAddress =
+static const IPv6_Address_t xDefaultIPAddress =
 {
     0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70, 0x09
 };
 
 /* IPv6 multi-cast address is ff02::. */
-const IPv6_Address_t xMultiCastIPAddress =
+static const IPv6_Address_t xMultiCastIPAddress =
 {
     0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 /* Setting eIPv6_SiteLocal IPv6 address as "feC0::7009" */
-const IPv6_Address_t xSiteLocalIPAddress =
+static const IPv6_Address_t xSiteLocalIPAddress =
 {
     0xfe, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70, 0x09
 };
 
 /* Setting IPv6 Gateway address as "fe80::1" */
-const IPv6_Address_t xGatewayIPAddress =
+static const IPv6_Address_t xGatewayIPAddress =
 {
     0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01
 };
 
 /* IPv6 default MAC address. */
-const MACAddress_t xDefaultMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
+static const MACAddress_t xDefaultMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 };
 
 #define xHeaderSize                                   ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t ) )
 
@@ -204,7 +204,7 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_InvalidEndPoint( void )
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
 
-    ( void ) memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -233,8 +233,8 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_ValidEndPoint( void )
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
-    memset( &xEndPoint2, 0, sizeof( NetworkEndPoint_t ) );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
+    ( void ) memset( &xEndPoint2, 0, sizeof( NetworkEndPoint_t ) );
     ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -265,7 +265,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_InvalidEntry( void )
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
 
-    ( void ) memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xNDCache[ xUseEntry ].ucValid = 0; /*Invalid Cache entry needs to be skipped */
     pxEndPoint = &xEndPoint;
@@ -292,7 +292,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_InvalidEntry2( void )
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
 
-    ( void ) memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xNDCache[ xUseEntry ].ucValid = 0; /*Invalid Cache entry needs to be skipped */
 
@@ -319,7 +319,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEntry( void )
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
     pxEndPoint = &xEndPoint;
@@ -345,12 +345,12 @@ void test_eNDGetCacheEntry_NDCacheLookupHit_Gateway( void )
     BaseType_t xUseEntry = 0;
 
     pxEndPoint = &xEndPoint2;
-    memcpy( xEndPoint1.ipv6_settings.xGatewayAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
-    memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    ( void ) memcpy( xEndPoint1.ipv6_settings.xGatewayAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
-    memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
 
@@ -378,12 +378,12 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_Gateway( void )
     BaseType_t xUseEntry = 0;
 
     pxEndPoint = &xEndPoint2;
-    memset( &xEndPoint1, 0, sizeof( NetworkEndPoint_t ) );
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
-    memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    ( void ) memset( &xEndPoint1, 0, sizeof( NetworkEndPoint_t ) );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xGatewayIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
     xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
-    memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xIPAddress.ucBytes, xSiteLocalIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
 
@@ -409,8 +409,8 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
     eARPLookupResult_t eResult;
     BaseType_t xUseEntry = 0;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
-    memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
     pxEndPoint = &xEndPoint;
 
@@ -445,12 +445,12 @@ void test_vNDRefreshCacheEntry_NoMatchingEntry_CacheFull( void )
     NetworkEndPoint_t xEndPoint;
     int i;
 
-    memset( xIPAddress.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
-
+    ( void ) memset( xIPAddress.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     /* Filling the ND cache with non matching IP/MAC combination */
     for( i = 0; i < ipconfigND_CACHE_ENTRIES; i++ )
     {
-        memcpy( xNDCache[ i ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        ( void ) memcpy( xNDCache[ i ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         xNDCache[ i ].ucAge = 255;
         xNDCache[ i ].ucValid = pdTRUE;
     }
@@ -473,7 +473,7 @@ void test_vNDRefreshCacheEntry_NoMatchingEntry_Add( void )
     NetworkEndPoint_t xEndPoint;
     BaseType_t xUseEntry = 0;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -499,10 +499,10 @@ void test_vNDRefreshCacheEntry_MatchingEntry_Refresh( void )
     NetworkEndPoint_t xEndPoint;
     BaseType_t xUseEntry = 1;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xNDCache[ xUseEntry ].ucValid = pdTRUE;
 
     /* Since a matching entry is found at xUseEntry = 1st location, the entry will be refreshed.*/
@@ -526,6 +526,7 @@ void test_vNDAgeCache_InvalidCache( void )
 {
     int i;
 
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     /* Invalidate all cache entry. */
     for( i = 0; i < ipconfigND_CACHE_ENTRIES; i++ )
     {
@@ -546,6 +547,7 @@ void test_vNDAgeCache_AgeZero( void )
     NetworkEndPoint_t xEndPoint;
     BaseType_t xUseEntry = 1, i;
 
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
     /* Invalidate all cache entry. */
     for( i = 0; i < ipconfigND_CACHE_ENTRIES; i++ )
     {
@@ -554,11 +556,11 @@ void test_vNDAgeCache_AgeZero( void )
 
     xNDCache[ xUseEntry ].ucAge = 1;
     xNDCache[ xUseEntry ].ucValid = 1;
-    memset( &xMACAddress, 0, sizeof( MACAddress_t ) );
-    memset( &xIPAddress, 0, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memset( &xMACAddress, 0, sizeof( MACAddress_t ) );
+    ( void ) memset( &xIPAddress, 0, ipSIZE_OF_IPv6_ADDRESS );
 
-    memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     vNDAgeCache();
 
@@ -577,7 +579,7 @@ void test_vNDAgeCache_InvalidEntry( void )
 {
     BaseType_t xUseEntry = 1;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
 
     /*Update Entry one as invalid ucValid = 0 */
     xNDCache[ xUseEntry ].ucAge = 10;
@@ -598,7 +600,7 @@ void test_vNDAgeCache_ValidEntry( void )
 {
     BaseType_t xUseEntry = 1;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
 
     /*Update Entry one as invalid ucValid = 0 */
     xNDCache[ xUseEntry ].ucAge = ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION;
@@ -621,7 +623,7 @@ void test_vNDAgeCache_ValidEntryDecrement( void )
     NetworkEndPoint_t xEndPoint1, xEndPoint2;
     BaseType_t xUseEntry = 1, xAgeDefault = 10;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
 
     /*Update Entry one as Valid entry */
     xNDCache[ xUseEntry ].ucAge = xAgeDefault;
@@ -645,7 +647,7 @@ void test_vNDAgeCache_NS_NULL_EP( void )
     BaseType_t xUseEntry = 1, xAgeDefault = 10;
     NetworkBufferDescriptor_t xNetworkBuffer;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
 
     /*Update Entry one as Valid entry */
     xNDCache[ xUseEntry ].ucAge = xAgeDefault;
@@ -672,7 +674,7 @@ void test_vNDAgeCache_NS_Incorrect_DataLen( void )
     BaseType_t xUseEntry = 1, xAgeDefault = 10;
     NetworkBufferDescriptor_t xNetworkBuffer;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
 
     xNetworkBuffer.xDataLength = xHeaderSize - 1;
     /*Update Entry one as Valid entry */
@@ -709,7 +711,7 @@ void test_vNDAgeCache_NS_HappyPath( void )
     ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = &( pxICMPPacket->xICMPHeaderIPv6 );
     uint32_t ulPayloadLength = 32U;
 
-    memset( xNDCache, 0, sizeof( NDCacheRow_t ) * ipconfigND_CACHE_ENTRIES );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache )  );
 
     /*Update Entry one as Valid entry */
     xNDCache[ xUseEntry ].ucAge = xAgeDefault;
@@ -749,8 +751,8 @@ void test_FreeRTOS_ClearND( void )
     NDCacheRow_t xTempNDCache[ ipconfigND_CACHE_ENTRIES ];
 
     /* Set xNDCache to non zero entries*/
-    memset( xNDCache, 1, sizeof( xNDCache ) );
-    memset( xTempNDCache, 0, sizeof( xTempNDCache ) );
+    ( void ) memset( xNDCache, 1, sizeof( xNDCache ) );
+    ( void ) memset( xTempNDCache, 0, sizeof( xTempNDCache ) );
     FreeRTOS_ClearND();
 
     TEST_ASSERT_EQUAL_MEMORY( xNDCache, xTempNDCache, sizeof( xNDCache ) );
@@ -767,7 +769,7 @@ void test_FreeRTOS_PrintNDCache( void )
 {
     BaseType_t xUseEntry = 0;
 
-    memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
     /* First Entry added as a valid Cache Entry to be printed */
     xNDCache[ xUseEntry ].ucValid = 1;
 
@@ -1466,7 +1468,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eSuccess( void )
 
     pucByte = ( ucBuffer + sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + sizeof( ICMPEcho_IPv6_t ) );
 
-    memset( pucByte, ipECHO_DATA_FILL_BYTE, uxDataLength );
+    ( void ) memset( pucByte, ipECHO_DATA_FILL_BYTE, uxDataLength );
 
     vApplicationPingReplyHook_Expect( eSuccess, pxICMPEchoHeader->usIdentifier );
 
@@ -1574,9 +1576,9 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION( void )
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->xDataLength = xHeaderSize + ipBUFFER_PADDING;
-    memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( xEndPoint.xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xEndPoint.xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
 
@@ -1671,7 +1673,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT3( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
@@ -1707,8 +1709,8 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT4( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
-    memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
@@ -1748,8 +1750,8 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT5( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6;
-    memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
@@ -1834,7 +1836,7 @@ void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
 
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     xEndPoint.pxNetworkInterface = &xInterface;
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
