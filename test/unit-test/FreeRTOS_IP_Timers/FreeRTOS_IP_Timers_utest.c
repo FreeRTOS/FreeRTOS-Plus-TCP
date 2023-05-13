@@ -428,6 +428,29 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 }
 
 /**
+ * @brief test_vCheckNetworkTimers_DHCPv6TimerActiveAndExpired
+ * To validate if vCheckNetworkTimers() handles DHCPv6 timer expired event as expected.
+ */
+void test_vCheckNetworkTimers_DHCPv6TimerActiveAndExpired( void )
+{
+    pxNetworkEndPoints->bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
+    pxNetworkEndPoints->xDHCP_RATimer.bExpired = pdTRUE;
+
+    vTaskSetTimeOutState_Expect( &( pxNetworkEndPoints->xDHCP_RATimer.xTimeOut ) );
+
+    xSendDHCPEvent_ExpectAnyArgsAndReturn( pdTRUE );
+
+    uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
+
+    vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
+
+    vCheckNetworkTimers();
+}
+
+/**
  * @brief test_vCheckNetworkTimers_RATimerActiveAndExpired
  * To validate if vCheckNetworkTimers() handles RA timer expired event as expected.
  */
@@ -524,6 +547,74 @@ void test_vCheckNetworkTimers_NetworkTimerActiveAndExpired( void )
     vTaskSetTimeOutState_Expect( &( xNetworkTimer.xTimeOut ) );
 
     FreeRTOS_NetworkDown_Expect( &xInterface[1] );
+
+    vCheckNetworkTimers();
+}
+
+/**
+ * @brief test_vCheckNetworkTimers_NetworkTimerActiveAndExpired
+ * To validate if vCheckNetworkTimers() handles network timer expired event as expected.
+ */
+void test_vCheckNetworkTimers_NetworkInterfacesAllUp( void )
+{
+    NetworkInterface_t xInterface[2];
+
+    /* First interface is up, but second one is down. */
+    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
+    xInterface[0].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
+    xInterface[1].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+
+    /* Append the interfaces to the global list. */
+    pxNetworkInterfaces = &xInterface[0];
+    pxNetworkInterfaces->pxNext = &xInterface[1];
+
+    xNetworkTimer.bActive = pdTRUE;
+    xNetworkTimer.bExpired = pdTRUE;
+
+    xAllNetworksUp = pdFALSE;
+
+    uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
+
+    vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
+
+    vTaskSetTimeOutState_Expect( &( xNetworkTimer.xTimeOut ) );
+
+    vCheckNetworkTimers();
+
+    TEST_ASSERT_EQUAL( pdTRUE, xAllNetworksUp );
+}
+
+/**
+ * @brief test_vCheckNetworkTimers_NetworkInterfacesAlreadyUp
+ * To validate if vCheckNetworkTimers() skip handling network timer when all interfaces are up.
+ */
+void test_vCheckNetworkTimers_NetworkInterfacesAlreadyUp( void )
+{
+    NetworkInterface_t xInterface[2];
+
+    /* First interface is up, but second one is down. */
+    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
+    xInterface[0].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
+    xInterface[1].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+
+    /* Append the interfaces to the global list. */
+    pxNetworkInterfaces = &xInterface[0];
+    pxNetworkInterfaces->pxNext = &xInterface[1];
+
+    xNetworkTimer.bActive = pdTRUE;
+    xNetworkTimer.bExpired = pdTRUE;
+
+    xAllNetworksUp = pdTRUE;
+
+    uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
+
+    vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
 }
