@@ -265,26 +265,26 @@ void test_xCalculateSleepTime_MultipleDHCPTimers( void )
 {
     TickType_t uxTicks;
     NetworkEndPoint_t xEndpoints[ 3 ];
-    
+
     /* First endpoint is inactive but has shortest remaining time. */
-    memset( &xEndpoints[0], 0, sizeof( NetworkEndPoint_t ) );
-    xEndpoints[0].xDHCP_RATimer.bActive = pdFALSE;
-    xEndpoints[0].xDHCP_RATimer.ulRemainingTime = 1U;
-    
+    memset( &xEndpoints[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndpoints[ 0 ].xDHCP_RATimer.bActive = pdFALSE;
+    xEndpoints[ 0 ].xDHCP_RATimer.ulRemainingTime = 1U;
+
     /* Second endpoint is active but has shorter remaining time than third endpoint. */
-    memset( &xEndpoints[1], 0, sizeof( NetworkEndPoint_t ) );
-    xEndpoints[1].xDHCP_RATimer.bActive = pdTRUE;
-    xEndpoints[1].xDHCP_RATimer.ulRemainingTime = 2U;
-    
+    memset( &xEndpoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndpoints[ 1 ].xDHCP_RATimer.bActive = pdTRUE;
+    xEndpoints[ 1 ].xDHCP_RATimer.ulRemainingTime = 2U;
+
     /* Third endpoint is active and has longest remaining time. */
-    memset( &xEndpoints[2], 0, sizeof( NetworkEndPoint_t ) );
-    xEndpoints[2].xDHCP_RATimer.bActive = pdTRUE;
-    xEndpoints[2].xDHCP_RATimer.ulRemainingTime = 3U;
+    memset( &xEndpoints[ 2 ], 0, sizeof( NetworkEndPoint_t ) );
+    xEndpoints[ 2 ].xDHCP_RATimer.bActive = pdTRUE;
+    xEndpoints[ 2 ].xDHCP_RATimer.ulRemainingTime = 3U;
 
     /* Append these endpoints to global list. */
-    pxNetworkEndPoints = &xEndpoints[0];
-    pxNetworkEndPoints->pxNext = &xEndpoints[1];
-    pxNetworkEndPoints->pxNext->pxNext = &xEndpoints[2];
+    pxNetworkEndPoints = &xEndpoints[ 0 ];
+    pxNetworkEndPoints->pxNext = &xEndpoints[ 1 ];
+    pxNetworkEndPoints->pxNext->pxNext = &xEndpoints[ 2 ];
 
     uxTicks = xCalculateSleepTime();
 
@@ -363,7 +363,7 @@ void test_vCheckNetworkTimers_ARPResolutionTimerActiveAndExpiredNullBuffer( void
     vSocketListenNextTime_Expect( NULL );
 
     vCheckNetworkTimers();
-    
+
     TEST_ASSERT_EQUAL( pdTRUE, xARPResolutionTimer.bExpired );
 }
 
@@ -521,17 +521,17 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
  */
 void test_vCheckNetworkTimers_NetworkTimerActiveAndExpired( void )
 {
-    NetworkInterface_t xInterface[2];
+    NetworkInterface_t xInterface[ 2 ];
 
     /* First interface is up, but second one is down. */
-    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
-    xInterface[0].bits.bInterfaceUp = pdTRUE_UNSIGNED;
-    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
-    xInterface[1].bits.bInterfaceUp = pdFALSE_UNSIGNED;
+    memset( &xInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
+    xInterface[ 0 ].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[ 1 ], 0, sizeof( NetworkInterface_t ) );
+    xInterface[ 1 ].bits.bInterfaceUp = pdFALSE_UNSIGNED;
 
     /* Append the interfaces to the global list. */
-    pxNetworkInterfaces = &xInterface[0];
-    pxNetworkInterfaces->pxNext = &xInterface[1];
+    pxNetworkInterfaces = &xInterface[ 0 ];
+    pxNetworkInterfaces->pxNext = &xInterface[ 1 ];
 
     xNetworkTimer.bActive = pdTRUE;
     xNetworkTimer.bExpired = pdTRUE;
@@ -546,7 +546,7 @@ void test_vCheckNetworkTimers_NetworkTimerActiveAndExpired( void )
 
     vTaskSetTimeOutState_Expect( &( xNetworkTimer.xTimeOut ) );
 
-    FreeRTOS_NetworkDown_Expect( &xInterface[1] );
+    FreeRTOS_NetworkDown_Expect( &xInterface[ 1 ] );
 
     vCheckNetworkTimers();
 }
@@ -557,17 +557,17 @@ void test_vCheckNetworkTimers_NetworkTimerActiveAndExpired( void )
  */
 void test_vCheckNetworkTimers_NetworkInterfacesAllUp( void )
 {
-    NetworkInterface_t xInterface[2];
+    NetworkInterface_t xInterface[ 2 ];
 
     /* First interface is up, but second one is down. */
-    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
-    xInterface[0].bits.bInterfaceUp = pdTRUE_UNSIGNED;
-    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
-    xInterface[1].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
+    xInterface[ 0 ].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[ 1 ], 0, sizeof( NetworkInterface_t ) );
+    xInterface[ 1 ].bits.bInterfaceUp = pdTRUE_UNSIGNED;
 
     /* Append the interfaces to the global list. */
-    pxNetworkInterfaces = &xInterface[0];
-    pxNetworkInterfaces->pxNext = &xInterface[1];
+    pxNetworkInterfaces = &xInterface[ 0 ];
+    pxNetworkInterfaces->pxNext = &xInterface[ 1 ];
 
     xNetworkTimer.bActive = pdTRUE;
     xNetworkTimer.bExpired = pdTRUE;
@@ -593,17 +593,17 @@ void test_vCheckNetworkTimers_NetworkInterfacesAllUp( void )
  */
 void test_vCheckNetworkTimers_NetworkInterfacesAlreadyUp( void )
 {
-    NetworkInterface_t xInterface[2];
+    NetworkInterface_t xInterface[ 2 ];
 
     /* First interface is up, but second one is down. */
-    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
-    xInterface[0].bits.bInterfaceUp = pdTRUE_UNSIGNED;
-    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
-    xInterface[1].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
+    xInterface[ 0 ].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[ 1 ], 0, sizeof( NetworkInterface_t ) );
+    xInterface[ 1 ].bits.bInterfaceUp = pdTRUE_UNSIGNED;
 
     /* Append the interfaces to the global list. */
-    pxNetworkInterfaces = &xInterface[0];
-    pxNetworkInterfaces->pxNext = &xInterface[1];
+    pxNetworkInterfaces = &xInterface[ 0 ];
+    pxNetworkInterfaces->pxNext = &xInterface[ 1 ];
 
     xNetworkTimer.bActive = pdTRUE;
     xNetworkTimer.bExpired = pdTRUE;
