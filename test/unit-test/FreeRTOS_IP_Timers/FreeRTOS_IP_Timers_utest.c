@@ -58,6 +58,7 @@
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_DNS_Callback.h"
+#include "mock_FreeRTOS_ND.h"
 
 #include "FreeRTOS_IP_Timers.h"
 
@@ -102,6 +103,15 @@ void setUp( void )
 
     pxNetworkEndPoints = &xEndpoint;
     pxNetworkInterfaces = NULL;
+
+    xAllNetworksUp = pdFALSE;
+
+    /* Reset all timers. */
+    memset( &xARPTimer, 0, sizeof( IPTimer_t ) );
+    memset( &xDNSTimer, 0, sizeof( IPTimer_t ) );
+    memset( &xTCPTimer, 0, sizeof( IPTimer_t ) );
+    memset( &xARPResolutionTimer, 0, sizeof( IPTimer_t ) );
+    memset( &xNetworkTimer, 0, sizeof( IPTimer_t ) );
 }
 
 /*! called after each test case */
@@ -427,6 +437,36 @@ void test_vCheckNetworkTimers_DHCPTimerActiveAndExpired( void )
 }
 
 /**
+ * @brief test_vCheckNetworkTimers_RATimerActiveAndExpired
+ * To validate if vCheckNetworkTimers() handles RA timer expired event as expected.
+ */
+void test_vCheckNetworkTimers_RATimerActiveAndExpired( void )
+{
+    xARPTimer.bActive = pdFALSE;
+    pxNetworkEndPoints->xDHCP_RATimer.bActive = pdTRUE;
+    xDNSTimer.bActive = pdFALSE;
+    xTCPTimer.bActive = pdFALSE;
+    xARPResolutionTimer.bActive = pdFALSE;
+
+    pxNetworkEndPoints->xDHCP_RATimer.bExpired = pdTRUE;
+    pxNetworkEndPoints->bits.bIPv6 = pdTRUE;
+    pxNetworkEndPoints->bits.bWantDHCP = pdFALSE;
+    pxNetworkEndPoints->bits.bWantRA = pdTRUE;
+
+    vTaskSetTimeOutState_Expect( &( pxNetworkEndPoints->xDHCP_RATimer.xTimeOut ) );
+
+    vRAProcess_Expect( pdFALSE, pxNetworkEndPoints );
+
+    uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
+
+    vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
+
+    vCheckNetworkTimers();
+}
+
+/**
  * @brief test_vCheckNetworkTimers_DNSTimerActiveAndExpired
  * To validate if vCheckNetworkTimers() handles DNS timer expired event as expected.
  */
@@ -457,6 +497,42 @@ void test_vCheckNetworkTimers_DNSTimerActiveAndExpired( void )
     vSocketCloseNextTime_Expect( NULL );
 
     vSocketListenNextTime_Expect( NULL );
+
+    vCheckNetworkTimers();
+}
+
+/**
+ * @brief test_vCheckNetworkTimers_NetworkTimerActiveAndExpired
+ * To validate if vCheckNetworkTimers() handles network timer expired event as expected.
+ */
+void test_vCheckNetworkTimers_NetworkTimerActiveAndExpired( void )
+{
+    NetworkInterface_t xInterface[2];
+
+    /* First interface is up, but second one is down. */
+    memset( &xInterface[0], 0, sizeof( NetworkInterface_t ) );
+    xInterface[0].bits.bInterfaceUp = pdTRUE_UNSIGNED;
+    memset( &xInterface[1], 0, sizeof( NetworkInterface_t ) );
+    xInterface[1].bits.bInterfaceUp = pdFALSE_UNSIGNED;
+
+    /* Append the interfaces to the global list. */
+    pxNetworkInterfaces = &xInterface[0];
+    pxNetworkInterfaces->pxNext = &xInterface[1];
+
+    xNetworkTimer.bActive = pdTRUE;
+    xNetworkTimer.bExpired = pdTRUE;
+
+    xAllNetworksUp = pdFALSE;
+
+    uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
+
+    vSocketCloseNextTime_Expect( NULL );
+
+    vSocketListenNextTime_Expect( NULL );
+
+    vTaskSetTimeOutState_Expect( &( xNetworkTimer.xTimeOut ) );
+
+    FreeRTOS_NetworkDown_Expect( &xInterface[1] );
 
     vCheckNetworkTimers();
 }

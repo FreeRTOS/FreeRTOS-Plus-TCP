@@ -30,6 +30,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Callback.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ND.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/IP_Timers_list_macros.h"
         )
 
