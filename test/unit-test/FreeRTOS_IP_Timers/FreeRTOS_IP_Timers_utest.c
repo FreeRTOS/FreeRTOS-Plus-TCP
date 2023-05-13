@@ -86,6 +86,8 @@ extern IPTimer_t xARPTimer;
 #endif
 
 extern IPTimer_t xARPResolutionTimer;
+extern BaseType_t xAllNetworksUp;
+extern IPTimer_t xNetworkTimer;
 
 /* ============================ Unity Fixtures ============================ */
 
@@ -251,6 +253,41 @@ void test_xCalculateSleepTime_AllTimersActive_AllTimesGreaterExceptDNS( void )
     uxTicks = xCalculateSleepTime();
 
     TEST_ASSERT_EQUAL( ipconfigMAX_IP_TASK_SLEEP_TIME - 10, uxTicks );
+}
+
+/**
+ * @brief test_xCalculateSleepTime_MultipleDHCPTimers
+ * To validate if xCalculateSleepTime() returns the shortest remaining time
+ * of all active DHCP timers.
+ */
+void test_xCalculateSleepTime_MultipleDHCPTimers( void )
+{
+    TickType_t uxTicks;
+    NetworkEndPoint_t xEndpoints[ 3 ];
+    
+    /* First endpoint is inactive but has shortest remaining time. */
+    memset( &xEndpoints[0], 0, sizeof( NetworkEndPoint_t ) );
+    xEndpoints[0].xDHCP_RATimer.bActive = pdFALSE;
+    xEndpoints[0].xDHCP_RATimer.ulRemainingTime = 1U;
+    
+    /* Second endpoint is active but has shorter remaining time than third endpoint. */
+    memset( &xEndpoints[1], 0, sizeof( NetworkEndPoint_t ) );
+    xEndpoints[1].xDHCP_RATimer.bActive = pdTRUE;
+    xEndpoints[1].xDHCP_RATimer.ulRemainingTime = 2U;
+    
+    /* Third endpoint is active and has longest remaining time. */
+    memset( &xEndpoints[2], 0, sizeof( NetworkEndPoint_t ) );
+    xEndpoints[2].xDHCP_RATimer.bActive = pdTRUE;
+    xEndpoints[2].xDHCP_RATimer.ulRemainingTime = 3U;
+
+    /* Append these endpoints to global list. */
+    pxNetworkEndPoints = &xEndpoints[0];
+    pxNetworkEndPoints->pxNext = &xEndpoints[1];
+    pxNetworkEndPoints->pxNext->pxNext = &xEndpoints[2];
+
+    uxTicks = xCalculateSleepTime();
+
+    TEST_ASSERT_EQUAL( 2U, uxTicks );
 }
 
 /**
@@ -613,6 +650,24 @@ void test_vDNSTimerReload( void )
     TEST_ASSERT_EQUAL( xTime, xDNSTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdTRUE, xDNSTimer.bActive );
     TEST_ASSERT_EQUAL( pdFALSE, xDNSTimer.bExpired );
+}
+
+/**
+ * @brief test_vNetworkTimerReload
+ * To validate if vNetworkTimerReload() activate the network timer with non-zero time.
+ */
+void test_vNetworkTimerReload( void )
+{
+    TickType_t xTime = 0x12A;
+
+    vTaskSetTimeOutState_Expect( &xNetworkTimer.xTimeOut );
+
+    vNetworkTimerReload( xTime );
+
+    TEST_ASSERT_EQUAL( 0x12A, xNetworkTimer.ulReloadTime );
+    TEST_ASSERT_EQUAL( xTime, xNetworkTimer.ulRemainingTime );
+    TEST_ASSERT_EQUAL( pdTRUE, xNetworkTimer.bActive );
+    TEST_ASSERT_EQUAL( pdFALSE, xNetworkTimer.bExpired );
 }
 
 /**
