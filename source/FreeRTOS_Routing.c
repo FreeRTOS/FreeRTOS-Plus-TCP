@@ -836,9 +836,9 @@ struct xIPv6_Couple
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                    default:  /* LCOV_EXCL_LINE */
+                    default:   /* LCOV_EXCL_LINE */
                         /* MISRA 16.4 Compliance */
-                        break;  /* LCOV_EXCL_LINE */
+                        break; /* LCOV_EXCL_LINE */
                 }
 
                 if( xSameMACAddress == pdTRUE )
