@@ -192,6 +192,63 @@ void test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned( void )
     TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, uxNewLength );
 }
 
+void test_pxDuplicateNetworkBufferWithDescriptor_NullBufferReturned( void )
+{
+    NetworkBufferDescriptor_t * pxReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    size_t uxNewLength = 0x34;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    memset( &xNetworkBuffer2, 0, sizeof( NetworkBufferDescriptor_t ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = NULL;
+
+    pxNetworkBuffer->xDataLength = uxNewLength;
+    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = 0xABCDEF56;
+    pxNetworkBuffer->usPort = 0x1234;
+    pxNetworkBuffer->usBoundPort = 0xFFAA;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, pxNetworkBuffer );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    catch_assert( pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength ) );
+}
+
+void test_pxDuplicateNetworkBufferWithDescriptor_IPv6( void )
+{
+    NetworkBufferDescriptor_t * pxReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    size_t uxNewLength = ipconfigTCP_MSS;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuffer2[ ipconfigTCP_MSS ];
+    IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    memset( &xNetworkBuffer2, 0, sizeof( NetworkBufferDescriptor_t ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    memset( ucEthBuffer, 0xAB, ipconfigTCP_MSS );
+    xNetworkBuffer2.pucEthernetBuffer = ucEthBuffer2;
+    memset( ucEthBuffer2, 0x00, ipconfigTCP_MSS );
+
+    pxNetworkBuffer->xDataLength = uxNewLength;
+    memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    pxNetworkBuffer->usPort = 0x1234;
+    pxNetworkBuffer->usBoundPort = 0xFFAA;
+
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, &xNetworkBuffer2 );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
+
+    TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
+    TEST_ASSERT_EQUAL_MEMORY( &xIPv6Address, &pxNetworkBuffer->xIPAddress.xIP_IPv6, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+}
+
 void test_prvPacketBuffer_to_NetworkBuffer_NULLParam( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
