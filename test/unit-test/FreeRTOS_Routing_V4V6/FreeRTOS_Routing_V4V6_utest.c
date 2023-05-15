@@ -3721,3 +3721,52 @@ void test_FreeRTOS_MatchingEndpoint_buffer_address_not_aligned()
 
     catch_assert( FreeRTOS_MatchingEndpoint( NULL, ( const uint8_t * ) pcNetworkBuffer ) );
 }
+
+/**
+ * @brief test_FreeRTOS_MatchingEndpoint_match_custom_frametype
+ * FreeRTOS_MatchingEndpoint returns the endpoint matched for custom frame type.
+ *
+ * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
+ * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
+ *
+ * Test step:
+ *  - Create 1 interface and 1 endpoint.
+ *  - Put interface & endpoint into the list.
+ *     - Assign 192.168.123.223 (IPV4_DEFAULT_ADDRESS) to the endpoint.
+ *     - Assign ab:cd:ef:11:22:33 (ucDefaultMACAddress_IPv4) to the endpoint.
+ *     - Assign 0xFF as frame type to the endpoint.
+ *     - Attach endpoint to interface.
+ *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
+ */
+void test_FreeRTOS_MatchingEndpoint_match_custom_frametype()
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    uint8_t * pcNetworkBuffer[ sizeof( TCPPacket_IPv6_t ) + 4 ] __attribute__( ( aligned( 32 ) ) );
+    ProtocolPacket_t * pxProtocolPacket = ( ProtocolPacket_t * ) ( ( uintptr_t ) ( pcNetworkBuffer ) + 2U );
+
+    /* Initialize network interface. */
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    /* Initialize endpoint. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
+    xEndPoint.pxNetworkInterface = &xNetworkInterface;
+    pxNetworkEndPoints = &xEndPoint;
+
+    /* Initialize network buffer. */
+    memset( pcNetworkBuffer, 0, sizeof( pcNetworkBuffer ) );
+    /* Ethernet part. */
+    memcpy( pxProtocolPacket->xTCPPacket.xEthernetHeader.xDestinationAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
+    memcpy( pxProtocolPacket->xTCPPacket.xEthernetHeader.xSourceAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
+    pxProtocolPacket->xTCPPacket.xEthernetHeader.usFrameType = 0xFF;
+    /* IP part. */
+    pxProtocolPacket->xTCPPacket.xIPHeader.ulSourceIPAddress = IPV4_DEFAULT_ADDRESS;
+    pxProtocolPacket->xTCPPacket.xIPHeader.ulDestinationIPAddress = IPV4_DEFAULT_ADDRESS;
+
+    pxEndPoint = FreeRTOS_MatchingEndpoint( &xNetworkInterface, ( const uint8_t * ) ( pxProtocolPacket ) );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}

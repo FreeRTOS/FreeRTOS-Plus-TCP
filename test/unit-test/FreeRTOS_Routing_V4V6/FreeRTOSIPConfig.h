@@ -38,7 +38,7 @@
 
 #define ipconfigUSE_IPv4                  ( 1 )
 
-#define ipconfigUSE_IPV6                  ( 1 )
+#define ipconfigUSE_IPv6                  ( 1 )
 
 #define ipconfigUSE_RA                    ( 1 )
 
