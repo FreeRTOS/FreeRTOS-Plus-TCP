@@ -39,7 +39,6 @@
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "FreeRTOS_Routing_V4V6_list_macros.h"
 #include "mock_queue.h"
 #include "mock_event_groups.h"
 
@@ -48,7 +47,6 @@
 #include "mock_FreeRTOS_Sockets.h"
 
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_Routing_V4V6_stubs.c"
 
 #include "catch_assert.h"
 
@@ -66,6 +64,8 @@
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 extern RoutingStats_t xRoutingStatistics;
+const struct xIPv6_Address FreeRTOS_in6addr_any;
+const struct xIPv6_Address FreeRTOS_in6addr_loopback;
 
 const uint8_t ucDefaultIPAddress_IPv4[ ipIP_ADDRESS_LENGTH_BYTES ] = { 192, 168, 123, 223 };
 const uint8_t ucDefaultNetMask_IPv4[ ipIP_ADDRESS_LENGTH_BYTES ] = { 255, 255, 255, 0 };
@@ -89,7 +89,8 @@ const uint8_t ucDefaultMACAddress_IPv6[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x11, 0
 /*! called before each test case */
 void setUp( void )
 {
-    InitializeUnitTest();
+    pxNetworkEndPoints = NULL;
+    pxNetworkInterfaces = NULL;
 }
 
 /*! called after each test case */

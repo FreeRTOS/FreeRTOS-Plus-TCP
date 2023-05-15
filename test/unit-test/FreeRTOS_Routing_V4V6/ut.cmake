@@ -50,7 +50,6 @@ set(real_source_files "")
 # list the files you would like to test here
 list(APPEND real_source_files
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${test_file_name}.c
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}/${project_name}_stubs.c
 	)
 
 set(real_include_directories "")
