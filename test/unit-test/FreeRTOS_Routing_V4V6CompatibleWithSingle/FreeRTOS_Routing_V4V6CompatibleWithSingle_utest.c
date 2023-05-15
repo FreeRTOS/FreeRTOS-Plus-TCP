@@ -582,25 +582,25 @@ void test_FreeRTOS_FirstEndPoint_another_interface( void )
  *  - Call FreeRTOS_FirstEndPoint to get attached endpoint.
  *  - Check if returned endpoint is same as attached one.
  */
-// void test_FreeRTOS_FirstEndPoint_IPv6_happy_path( void )
-// {
-//     NetworkInterface_t xNetworkInterface;
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     NetworkEndPoint_t xEndPoint;
-//     NetworkEndPoint_t * pxEndPoint = NULL;
+void test_FreeRTOS_FirstEndPoint_IPv6_happy_path( void )
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = NULL;
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-//     pxNetworkInterfaces = &xNetworkInterface;
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
 
-//     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-//     xEndPoint.bits.bIPv6 = pdTRUE;
-//     xEndPoint.pxNetworkInterface = pxNetworkInterfaces;
-//     pxNetworkEndPoints = &xEndPoint;
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.pxNetworkInterface = pxNetworkInterfaces;
+    pxNetworkEndPoints = &xEndPoint;
 
-//     pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxNetworkInterfaces );
+    pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( pxNetworkInterfaces );
 
-//     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
-// }
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
 
 /**
  * @brief test_FreeRTOS_FirstEndPoint_IPv6_null
@@ -616,25 +616,25 @@ void test_FreeRTOS_FirstEndPoint_another_interface( void )
  *  - Call FreeRTOS_FirstEndPoint_IPv6 to get attached endpoint with NULL input.
  *  - Check if returned endpoint is same as attached one.
  */
-// void test_FreeRTOS_FirstEndPoint_IPv6_null( void )
-// {
-//     NetworkInterface_t xNetworkInterface;
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     NetworkEndPoint_t xEndPoint;
-//     NetworkEndPoint_t * pxEndPoint = NULL;
+void test_FreeRTOS_FirstEndPoint_IPv6_null( void )
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkInterface_t * pxNetworkInterface = NULL;
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-//     pxNetworkInterfaces = &xNetworkInterface;
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
 
-//     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-//     xEndPoint.bits.bIPv6 = pdTRUE;
-//     xEndPoint.pxNetworkInterface = pxNetworkInterfaces;
-//     pxNetworkEndPoints = &xEndPoint;
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.pxNetworkInterface = pxNetworkInterfaces;
+    pxNetworkEndPoints = &xEndPoint;
 
-//     pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
+    pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( NULL );
 
-//     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
-// }
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
 
 /**
  * @brief test_FreeRTOS_FirstEndPoint_IPv6_another_interface
@@ -656,65 +656,65 @@ void test_FreeRTOS_FirstEndPoint_another_interface( void )
  *  - Loop to call FreeRTOS_FirstEndPoint to get e0 with each network interface.
  *  - Check if returned endpoint is same as e0.
  */
-// void test_FreeRTOS_FirstEndPoint_IPv6_another_interface( void )
-// {
-//     /* Attach one endpoint to one network interface. Check if we can get correct endpoint by API. */
-//     NetworkInterface_t xNetworkInterface[ 3 ];
-//     NetworkInterface_t * pxNetworkInterface = NULL;
-//     NetworkEndPoint_t xEndPoint[ 6 ];
-//     NetworkEndPoint_t * pxEndPoint = NULL;
-//     int i = 0;
+void test_FreeRTOS_FirstEndPoint_IPv6_another_interface( void )
+{
+    /* Attach one endpoint to one network interface. Check if we can get correct endpoint by API. */
+    NetworkInterface_t xNetworkInterface[ 3 ];
+    NetworkInterface_t * pxNetworkInterface = NULL;
+    NetworkEndPoint_t xEndPoint[ 6 ];
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    int i = 0;
 
-//     for( i = 0; i < 3; i++ )
-//     {
-//         memset( &( xNetworkInterface[ i ] ), 0, sizeof( NetworkInterface_t ) );
+    for( i = 0; i < 3; i++ )
+    {
+        memset( &( xNetworkInterface[ i ] ), 0, sizeof( NetworkInterface_t ) );
 
-//         if( pxNetworkInterfaces == NULL )
-//         {
-//             pxNetworkInterfaces = &( xNetworkInterface[ i ] );
-//             pxNetworkInterface = pxNetworkInterfaces;
-//         }
-//         else
-//         {
-//             pxNetworkInterface->pxNext = &( xNetworkInterface[ i ] );
-//             pxNetworkInterface = pxNetworkInterface->pxNext;
-//         }
-//     }
+        if( pxNetworkInterfaces == NULL )
+        {
+            pxNetworkInterfaces = &( xNetworkInterface[ i ] );
+            pxNetworkInterface = pxNetworkInterfaces;
+        }
+        else
+        {
+            pxNetworkInterface->pxNext = &( xNetworkInterface[ i ] );
+            pxNetworkInterface = pxNetworkInterface->pxNext;
+        }
+    }
 
-//     for( i = 0; i < 6; i++ )
-//     {
-//         bool bShouldBeIPv6 = i >= 3 ? true : false;
-//         memset( &( xEndPoint[ i ] ), 0, sizeof( NetworkEndPoint_t ) );
+    for( i = 0; i < 6; i++ )
+    {
+        bool bShouldBeIPv6 = i >= 3 ? true : false;
+        memset( &( xEndPoint[ i ] ), 0, sizeof( NetworkEndPoint_t ) );
 
-//         if( pxNetworkEndPoints == NULL )
-//         {
-//             pxNetworkEndPoints = &( xEndPoint[ i ] );
-//             pxEndPoint = pxNetworkEndPoints;
-//         }
-//         else
-//         {
-//             pxEndPoint->pxNext = &( xEndPoint[ i ] );
-//             pxEndPoint = pxEndPoint->pxNext;
-//         }
+        if( pxNetworkEndPoints == NULL )
+        {
+            pxNetworkEndPoints = &( xEndPoint[ i ] );
+            pxEndPoint = pxNetworkEndPoints;
+        }
+        else
+        {
+            pxEndPoint->pxNext = &( xEndPoint[ i ] );
+            pxEndPoint = pxEndPoint->pxNext;
+        }
 
-//         if( bShouldBeIPv6 )
-//         {
-//             xEndPoint[ i ].pxNetworkInterface = &( xNetworkInterface[ i - 3 ] );
-//             xEndPoint[ i ].bits.bIPv6 = pdTRUE;
-//         }
-//         else
-//         {
-//             xEndPoint[ i ].pxNetworkInterface = &( xNetworkInterface[ i ] );
-//             xEndPoint[ i ].bits.bIPv6 = pdFALSE;
-//         }
-//     }
+        if( bShouldBeIPv6 )
+        {
+            xEndPoint[ i ].pxNetworkInterface = &( xNetworkInterface[ i - 3 ] );
+            xEndPoint[ i ].bits.bIPv6 = pdTRUE;
+        }
+        else
+        {
+            xEndPoint[ i ].pxNetworkInterface = &( xNetworkInterface[ i ] );
+            xEndPoint[ i ].bits.bIPv6 = pdFALSE;
+        }
+    }
 
-//     for( i = 0; i < 3; i++ )
-//     {
-//         pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( &( xNetworkInterface[ i ] ) );
-//         TEST_ASSERT_EQUAL( &( xEndPoint[ 0 ] ), pxEndPoint );
-//     }
-// }
+    for( i = 0; i < 3; i++ )
+    {
+        pxEndPoint = FreeRTOS_FirstEndPoint_IPv6( &( xNetworkInterface[ i ] ) );
+        TEST_ASSERT_EQUAL( &( xEndPoint[ 0 ] ), pxEndPoint );
+    }
+}
 
 /**
  * @brief test_FreeRTOS_NextEndPoint_happy_path
@@ -1174,26 +1174,26 @@ void test_FreeRTOS_MatchingEndpoint_match_IPv4_address()
  *     - Attach endpoint to interface.
  *  - Call FreeRTOS_FindEndPointOnIP_IPv6 and check if returned endpoint is same.
  */
-// void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path()
-// {
-//     NetworkInterface_t xNetworkInterface;
-//     NetworkEndPoint_t xEndPoint;
-//     NetworkEndPoint_t * pxEndPoint = NULL;
+void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path()
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
-//     /* Initialize network interface. */
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-//     pxNetworkInterfaces = &xNetworkInterface;
+    /* Initialize network interface. */
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
 
-//     /* Initialize endpoint. */
-//     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-//     xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
-//     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
-//     xEndPoint.pxNetworkInterface = &xNetworkInterface;
-//     pxNetworkEndPoints = &xEndPoint;
+    /* Initialize endpoint. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
+    xEndPoint.pxNetworkInterface = &xNetworkInterface;
+    pxNetworkEndPoints = &xEndPoint;
 
-//     pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( NULL );
-//     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
-// }
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( NULL );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
 
 /**
  * @brief test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path
@@ -1210,55 +1210,23 @@ void test_FreeRTOS_MatchingEndpoint_match_IPv4_address()
  *     - Attach endpoint to interface.
  *  - Call FreeRTOS_FindEndPointOnNetMask_IPv6 and check if returned endpoint is same.
  */
-// void test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path()
-// {
-//     NetworkInterface_t xNetworkInterface;
-//     NetworkEndPoint_t xEndPoint;
-//     NetworkEndPoint_t * pxEndPoint = NULL;
-
-//     /* Initialize network interface. */
-//     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
-//     pxNetworkInterfaces = &xNetworkInterface;
-
-//     /* Initialize endpoint. */
-//     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-//     xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
-//     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
-//     xEndPoint.pxNetworkInterface = &xNetworkInterface;
-//     pxNetworkEndPoints = &xEndPoint;
-
-//     pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( NULL );
-//     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
-// }
-
-/**
- * @brief test_pcEndpointName_IPv6_happy_path
- * pcEndpointName can't get IPv6 address in string from endpoint due to IPv6 is disabled.
- *
- * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
- * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
- *
- * Test step:
- *  - Create 1 endpoint.
- *     - Set the IP address to 2001::1 (xDefaultIPAddress_IPv6).
- *  - Call pcEndpointName with enough buffer size.
- *  - Check if return buffer string is NULL.
- */
-void test_pcEndpointName_IPv6_happy_path()
+void test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path()
 {
+    NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
-    FreeRTOS_Socket_t xSocket;
-    const char cIPString[] = "2001::1";
-    int lNameSize = sizeof( cIPString ) + 1;
-    char cName[ lNameSize ];
-    const char * pcName;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
-    /* Initialize network endpoint and add it to the list. */
+    /* Initialize network interface. */
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    /* Initialize endpoint. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
+    xEndPoint.pxNetworkInterface = &xNetworkInterface;
+    pxNetworkEndPoints = &xEndPoint;
 
-    memset( &cName, 0, sizeof( cName ) );
-
-    pcName = pcEndpointName( &xEndPoint, cName, lNameSize );
-    TEST_ASSERT_EQUAL_STRING( "NULL", pcName );
+    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( NULL );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }

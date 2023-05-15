@@ -786,7 +786,8 @@ struct xIPv6_Couple
                 pxFound[ rMATCH_IP_TYPE ] = pxEndPoint;
                 xCount[ rMATCH_IP_TYPE ]++;
 
-                switch( xIsIPv6 )
+                /* Case default is impossible to reach because no endpoints for disabled IP type. */
+                switch( xIsIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case ( BaseType_t ) pdTRUE:
@@ -834,6 +835,10 @@ struct xIPv6_Couple
                             }
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                    default:  /* LCOV_EXCL_LINE */
+                        /* MISRA 16.4 Compliance */
+                        break;  /* LCOV_EXCL_LINE */
                 }
 
                 if( xSameMACAddress == pdTRUE )
@@ -1001,10 +1006,11 @@ struct xIPv6_Couple
                     break;
 
                 default:
-                    /* Custom frame types */
-                    xIPAddressFrom.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulSourceIPAddress;
-                    xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
-                    xDoProcessPacket = pdTRUE;
+                    #if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES == 1 )
+                        /* Custom frame types, match by MAC address only. */
+                        xDoProcessPacket = pdTRUE;
+                    #endif
+
                     break;
             }
 
@@ -1494,7 +1500,7 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
     }
     else
     {
-        switch( pxEndPoint->bits.bIPv6 )
+        switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE_UNSIGNED:
@@ -1516,6 +1522,7 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
 
             default:
                 /* MISRA 16.4 Compliance */
+                ( void ) snprintf( pcBuffer, uxSize, "NULL" );
                 break;
         }
     }

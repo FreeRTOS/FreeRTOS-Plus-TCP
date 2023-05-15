@@ -3424,8 +3424,8 @@ void test_FreeRTOS_MatchingEndpoint_IPv6_not_found()
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
 
     /* FreeRTOS_inet_ntop is used to print for debugging. Ignore it here. */
-    FreeRTOS_inet_ntop_IgnoreAndReturn( NULL );
-    FreeRTOS_inet_ntop_IgnoreAndReturn( NULL );
+    FreeRTOS_inet_ntop_IgnoreAndReturn( "2001::1" );
+    FreeRTOS_inet_ntop_IgnoreAndReturn( "2001::1" );
 
     pxEndPoint = FreeRTOS_MatchingEndpoint( &xNetworkInterface, ( const uint8_t * ) ( pxTCPPacket ) );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
@@ -3725,7 +3725,8 @@ void test_FreeRTOS_MatchingEndpoint_buffer_address_not_aligned()
 
 /**
  * @brief test_FreeRTOS_MatchingEndpoint_match_custom_frametype
- * FreeRTOS_MatchingEndpoint returns the endpoint matched for custom frame type.
+ * FreeRTOS_MatchingEndpoint returns NULL when receiving custom frame type
+ * but ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES is off.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3737,7 +3738,7 @@ void test_FreeRTOS_MatchingEndpoint_buffer_address_not_aligned()
  *     - Assign ab:cd:ef:11:22:33 (ucDefaultMACAddress_IPv4) to the endpoint.
  *     - Assign 0xFF as frame type to the endpoint.
  *     - Attach endpoint to interface.
- *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
+ *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is NULL.
  */
 void test_FreeRTOS_MatchingEndpoint_match_custom_frametype()
 {
@@ -3769,5 +3770,5 @@ void test_FreeRTOS_MatchingEndpoint_match_custom_frametype()
     pxProtocolPacket->xTCPPacket.xIPHeader.ulDestinationIPAddress = IPV4_DEFAULT_ADDRESS;
 
     pxEndPoint = FreeRTOS_MatchingEndpoint( &xNetworkInterface, ( const uint8_t * ) ( pxProtocolPacket ) );
-    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }

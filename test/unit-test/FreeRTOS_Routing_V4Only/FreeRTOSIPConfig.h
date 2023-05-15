@@ -32,26 +32,30 @@
 
 #define _static
 
-#define TEST                        1
+#define TEST                              1
 
-#define ipconfigUSE_IPv4            ( 1 )
+#define ipconfigMULTI_INTERFACE           1
 
-#define ipconfigUSE_IPv6                  ( 1 )
+#define ipconfigUSE_IPv4                  ( 1 )
 
-#define ipconfigUSE_RA                    ( 0 )
+#define ipconfigUSE_IPv6                  ( 0 )
 
-#define ipconfigCOMPATIBLE_WITH_SINGLE    ( 1 )
+#define ipconfigUSE_RA                    ( 1 )
 
-#define ipconfigHAS_ROUTING_STATISTICS    ( 0 )
+#define ipconfigUSE_DHCPv6                ( 1 )
 
-#define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES ( 0 )
+#define ipconfigCOMPATIBLE_WITH_SINGLE    ( 0 )
+
+#define ipconfigHAS_ROUTING_STATISTICS    ( 1 )
+
+#define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    1
+#define ipconfigHAS_DEBUG_PRINTF          1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    #define FreeRTOS_debug_printf( X )    printf( X )
+    #define FreeRTOS_debug_printf( X )    printf X
 #endif
 
 /* Set to 1 to print out non debugging messages, for example the output of the
@@ -60,7 +64,7 @@
  * messages. */
 #define ipconfigHAS_PRINTF    1
 #if ( ipconfigHAS_PRINTF == 1 )
-    #define FreeRTOS_printf( X )    printf( X )
+    #define FreeRTOS_printf( X )    printf X
 #endif
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
