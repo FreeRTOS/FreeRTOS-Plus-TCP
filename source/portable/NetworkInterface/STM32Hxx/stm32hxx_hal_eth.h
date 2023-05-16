@@ -1808,7 +1808,6 @@
                                                     ETH_MACConfigTypeDef * macconf );
             HAL_StatusTypeDef HAL_ETH_SetDMAConfig( ETH_HandleTypeDef * heth,
                                                     ETH_DMAConfigTypeDef * dmaconf );
-            void HAL_ETH_SetMDIOClockRange( ETH_HandleTypeDef * heth );
 
 /* MAC VLAN Processing APIs    ************************************************/
             void HAL_ETH_SetRxVLANIdentifier( ETH_HandleTypeDef * heth,

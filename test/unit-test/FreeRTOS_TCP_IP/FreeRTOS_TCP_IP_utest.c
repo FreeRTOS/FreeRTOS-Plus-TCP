@@ -587,6 +587,8 @@ void test_vTCPStateChange_ClosedState( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eCLOSED;
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
@@ -617,6 +619,8 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSyn( void )
     xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
@@ -647,6 +651,8 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSynFirst( void )
     xSocket.u.xTCP.eTCPState = eSYN_FIRST;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
@@ -680,6 +686,8 @@ void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
@@ -711,6 +719,8 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSynRecvd( void )
     xSocket.u.xTCP.eTCPState = eSYN_RECEIVED;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
@@ -738,6 +748,8 @@ void test_vTCPStateChange_ClosedWaitState( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
     eTCPState = eCLOSE_WAIT;
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
@@ -769,6 +781,9 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask( void )
 
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
 
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
@@ -801,6 +816,8 @@ void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask( void )
 
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
     catch_assert( vTCPStateChange( &xSocket, eTCPState ) );
@@ -821,6 +838,8 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask1( void )
 
     xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
@@ -851,6 +870,8 @@ void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask1( void )
 
     xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
     catch_assert( vTCPStateChange( &xSocket, eTCPState ) );
@@ -872,6 +893,8 @@ void test_vTCPStateChange_ClosedWaitState_ReuseSocket( void )
     xSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
 
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
 
@@ -946,6 +969,8 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketInactive( void )
     xTCPWindowLoggingLevel = 2;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, 0 );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -991,6 +1016,8 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive( void )
     xHandleConnectedLength = 0;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -1036,6 +1063,8 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( vo
     xHandleConnectedLength = 0;
 
     prvTCPSocketIsActive_ExpectAndReturn( xSocket.u.xTCP.eTCPState, pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
 
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -1685,6 +1714,9 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
+
     xTaskGetTickCount_ExpectAndReturn( 1000 );
     xTaskGetTickCount_ExpectAndReturn( 1500 );
 
@@ -1768,6 +1800,9 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( 0 );
+
     xTaskGetTickCount_ExpectAndReturn( 1000 );
     xTaskGetTickCount_ExpectAndReturn( 1500 );
 

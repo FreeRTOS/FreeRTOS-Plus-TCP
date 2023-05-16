@@ -178,7 +178,7 @@ static int detect_phy( XEmacPs * xemacpsp )
         {
             XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PHYSID2_OFFSET, &id_upper );
             id = ( ( ( uint32_t ) id_upper ) << 16 ) | ( id_lower & 0xFFF0 );
-            FreeRTOS_printf( ( "XEmacPs detect_phy: %04lX at address %d.\n", id, phy_addr ) );
+            FreeRTOS_printf( ( "XEmacPs detect_phy: %04lX at address %u.\n", id, ( unsigned ) phy_addr ) );
             phy_detected = phy_addr;
             return phy_addr;
         }

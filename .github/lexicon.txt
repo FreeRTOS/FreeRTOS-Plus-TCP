@@ -231,6 +231,7 @@ egetlinklayeraddress
 ehertype
 einitialwait
 einprogress
+einval
 einvalidchecksum
 einvaliddata
 eleasedaddress
@@ -275,6 +276,7 @@ esocketsetdeleteevent
 esocketsignalevent
 espressif
 estacktxevent
+estatus
 esuccess
 etcpacceptevent
 etcpnetstat
@@ -786,6 +788,7 @@ pvparameters
 pvportmalloc
 pvportmallocsocket
 pvsearchid
+pvsocketid
 pvsource
 pxackmessage
 pxaddr
@@ -983,6 +986,7 @@ skipnamefield
 snd
 snprintf
 sockaddr
+socketid
 socketset
 sockopt
 sof
@@ -1339,6 +1343,7 @@ uxremainingtime
 uxremaningtime
 uxremoteport
 uxrequestedsizebytes
+uxresult
 uxright
 uxrxstreamsize
 uxrxwinsize
@@ -1395,8 +1400,10 @@ vrxfaultinjection
 vsocketbind
 vsocketclose
 vsocketclosenexttime
+vsocketgetsocketid
 vsocketlistennexttime
 vsocketselect
+vsocketsetsocketid
 vsocketwakeupuser
 vtasklist
 vtasknotifygivefromisr
@@ -1518,6 +1525,7 @@ xlastalivetime
 xlastgratuitousarptime
 xlastround
 xlastsource
+xleasetime
 xlength
 xlinkstatustimer
 xlistend

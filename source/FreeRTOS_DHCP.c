@@ -129,7 +129,7 @@
 /**
  * @brief Check whether a given socket is the DHCP socket or not.
  *
- * @param[in] xSocket: The socket to be checked.
+ * @param[in] xSocket The socket to be checked.
  *
  * @return If the socket given as parameter is the DHCP socket - return
  *         pdTRUE, else pdFALSE.
@@ -155,7 +155,7 @@
  * @brief The application can indicate a preferred IP address by calling this function.
  *        before starting up the IP-task by calling FreeRTOS_IPInit().
  *
- * @param[in] ulIPAddress: The preferred IP-address.
+ * @param[in] ulIPAddress The preferred IP-address.
  *
  * @return The previous value of ulPreferredIPAddress.
  */
@@ -181,8 +181,8 @@
 /**
  * @brief Process the DHCP state machine based on current state.
  *
- * @param[in] xReset: Is the DHCP state machine starting over? pdTRUE/pdFALSE.
- * @param[in] eExpectedState: The function will only run if the state is expected.
+ * @param[in] xReset Is the DHCP state machine starting over? pdTRUE/pdFALSE.
+ * @param[in] eExpectedState The function will only run if the state is expected.
  */
     void vDHCPProcess( BaseType_t xReset,
                        eDHCPState_t eExpectedState )
@@ -680,7 +680,7 @@
  *        invariant parameters and valid (non broadcast and non localhost)
  *        IP address being assigned to the device.
  *
- * @param[in] pxDHCPMessage: The DHCP message.
+ * @param[in] pxDHCPMessage The DHCP message.
  *
  * @return pdPASS if the DHCP response has correct parameters; pdFAIL otherwise.
  */
@@ -710,7 +710,7 @@
 /**
  * @brief Process the DHCP replies.
  *
- * @param[in] xExpectedMessageType: The type of the message the DHCP state machine is expecting.
+ * @param[in] xExpectedMessageType The type of the message the DHCP state machine is expecting.
  *                                  Messages of different type will be dropped.
  *
  * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
@@ -980,10 +980,10 @@
 /**
  * @brief Create a partial DHCP message by filling in all the 'constant' fields.
  *
- * @param[out] pxAddress: Address to be filled in.
- * @param[out] xOpcode: Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
- * @param[in] pucOptionsArray: The options to be added to the packet.
- * @param[in,out] pxOptionsArraySize: Byte count of the options. Its value might change.
+ * @param[out] pxAddress Address to be filled in.
+ * @param[out] xOpcode Opcode to be filled in the packet. Will always be 'dhcpREQUEST_OPCODE'.
+ * @param[in] pucOptionsArray The options to be added to the packet.
+ * @param[in,out] pxOptionsArraySize Byte count of the options. Its value might change.
  *
  * @return Ethernet buffer of the partially created DHCP packet.
  */

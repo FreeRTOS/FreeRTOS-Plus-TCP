@@ -276,14 +276,28 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 #define pdMS_TO_MIN_TICKS( xTimeInMs )    ipMS_TO_MIN_TICKS( xTimeInMs )
 
 #ifndef pdTRUE_SIGNED
-    /* Temporary solution: eventually the defines below will appear in 'Source\include\projdefs.h' */
-    #define pdTRUE_SIGNED       pdTRUE
-    #define pdFALSE_SIGNED      pdFALSE
-    #define pdTRUE_UNSIGNED     ( 1U )
+    #define pdTRUE_SIGNED    pdTRUE
+#endif /* pdTRUE_SIGNED */
+
+#ifndef pdFALSE_SIGNED
+    #define pdFALSE_SIGNED    pdFALSE
+#endif /* pdFALSE_SIGNED */
+
+#ifndef pdTRUE_UNSIGNED
+    #define pdTRUE_UNSIGNED    ( 1U )
+#endif /* pdTRUE_UNSIGNED */
+
+#ifndef pdFALSE_UNSIGNED
     #define pdFALSE_UNSIGNED    ( 0U )
-    #define ipTRUE_BOOL         ( 1 == 1 )
-    #define ipFALSE_BOOL        ( 1 == 2 )
-#endif
+#endif /* pdFALSE_UNSIGNED */
+
+#ifndef ipTRUE_BOOL
+    #define ipTRUE_BOOL    ( 1 == 1 )
+#endif /* ipTRUE_BOOL */
+
+#ifndef ipFALSE_BOOL
+    #define ipFALSE_BOOL    ( 1 == 2 )
+#endif /* ipFALSE_BOOL */
 
 /*
  * FULL, UP-TO-DATE AND MAINTAINED REFERENCE DOCUMENTATION FOR ALL THESE
