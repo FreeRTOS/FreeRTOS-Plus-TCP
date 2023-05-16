@@ -660,7 +660,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
     }
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        else if( ( xOutgoingPacket == pdFALSE ) && ( pxSet->usChecksum != ipCORRECT_CRC ) )
+        else if( pxSet->usChecksum != ipCORRECT_CRC )
         {
             uint16_t usGot;
             usGot = prvGetChecksumFromPacket( pxSet );

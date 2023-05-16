@@ -59,6 +59,7 @@
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_IPv4_Utils.h"
+#include "mock_FreeRTOS_IPv6_Utils.h"
 
 #include "FreeRTOS_IP_Utils.h"
 
@@ -85,6 +86,34 @@ extern size_t uxMinLastSize;
 static BaseType_t xNetworkInterfaceInitialise_returnTrue( NetworkInterface_t * xInterface )
 {
     return pdTRUE;
+}
+
+static BaseType_t prvChecksumICMPv6Checks_Valid( size_t uxBufferLength,
+                                    struct xPacketSummary * pxSet,
+                                  int NumCalls )
+{
+    pxSet->uxProtocolHeaderLength = ipSIZE_OF_ICMPv6_HEADER;
+    return 0;
+}
+
+static BaseType_t prvChecksumIPv6Checks_Valid( uint8_t * pucEthernetBuffer,
+                                  size_t uxBufferLength,
+                                  struct xPacketSummary * pxSet,
+                                  int NumCalls )
+{
+    IPPacket_IPv6_t * pxIPPacket;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxSet->xIsIPv6 = pdTRUE;
+
+    pxSet->uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
+    pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
+    pxSet->ucProtocol = pxIPPacket->xIPHeader.ucNextHeader;
+    pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
+    pxSet->usProtocolBytes = pxSet->usPayloadLength;
+
+    return 0;
 }
 
 static BaseType_t prvChecksumIPv4Checks_Valid( uint8_t * pucEthernetBuffer,
@@ -1440,6 +1469,233 @@ void test_usGenerateProtocolChecksum_IGMPIncomingCorrectCRC( void )
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_UnknownEthernetType
+ * To validate usGenerateProtocolChecksum triggers assertion when frame type in
+ * ethernet header is unknown.
+ */
+void test_usGenerateProtocolChecksum_UnknownEthernetType( void )
+{
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_t * pxIPPacket;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxProtPack = ( ProtocolPacket_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = 0xFF;
+
+    catch_assert( usGenerateProtocolChecksum( pucEthernetBuffer, ipconfigTCP_MSS, xOutgoingPacket ) );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_ICMPv6IncomingCorrectCRC
+ * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
+ * checksum in ICMPv6 header is correct.
+ */
+void test_usGenerateProtocolChecksum_ICMPv6IncomingCorrectCRC( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    ICMPPacket_IPv6_t * pxICMPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0x89FF;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+    prvChecksumICMPv6Checks_Stub( prvChecksumICMPv6Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_ICMPv6IncomingIncorrectCRC
+ * To validate usGenerateProtocolChecksum returns ipWRONG_CRC if
+ * checksum in ICMPv6 header is incorrect.
+ */
+void test_usGenerateProtocolChecksum_ICMPv6IncomingIncorrectCRC( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    ICMPPacket_IPv6_t * pxICMPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+    prvChecksumICMPv6Checks_Stub( prvChecksumICMPv6Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
+    TEST_ASSERT_EQUAL( 0, pxICMPv6Packet->xICMPHeaderIPv6.usChecksum );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_UDPv6IncomingCorrectCRC
+ * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
+ * checksum in UDPv6 header is correct.
+ */
+void test_usGenerateProtocolChecksum_UDPv6IncomingCorrectCRC( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    UDPPacket_IPv6_t * pxUDPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
+    pxUDPv6Packet->xUDPHeader.usChecksum = 0xB2FF;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+ 
+    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_UDPv6IncomingIncorrectCRC
+ * To validate usGenerateProtocolChecksum returns ipWRONG_CRC if
+ * checksum in UDPv6 header is incorrect.
+ */
+void test_usGenerateProtocolChecksum_UDPv6IncomingIncorrectCRC( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    UDPPacket_IPv6_t * pxUDPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
+    pxUDPv6Packet->xUDPHeader.usChecksum = 0x1111;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
+    TEST_ASSERT_EQUAL( 0x1111, pxUDPv6Packet->xUDPHeader.usChecksum );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_TCPv6IncomingCorrectCRC
+ * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
+ * checksum in TCPv6 header is correct.
+ */
+void test_usGenerateProtocolChecksum_TCPv6IncomingCorrectCRC( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    TCPPacket_IPv6_t * pxTCPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxTCPv6Packet = ( TCPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
+    pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
+    pxTCPv6Packet->xTCPHeader.usChecksum = 0xBDAF;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+ 
+    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_TCPv6IncomingIncorrectCRC
+ * To validate usGenerateProtocolChecksum returns ipWRONG_CRC if
+ * checksum in UDPv6 header is incorrect.
+ */
+void test_usGenerateProtocolChecksum_TCPv6IncomingIncorrectCRC( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    TCPPacket_IPv6_t * pxTCPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxTCPv6Packet = ( TCPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
+    pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
+    pxTCPv6Packet->xTCPHeader.usChecksum = 0x1111;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
+    TEST_ASSERT_EQUAL( 0x1111, pxTCPv6Packet->xTCPHeader.usChecksum );
 }
 
 void test_usGenerateChecksum_UnallignedAccess( void )
