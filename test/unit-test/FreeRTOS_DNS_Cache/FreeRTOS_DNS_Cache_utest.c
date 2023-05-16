@@ -154,7 +154,7 @@ void test_processDNS_CACHE_Success( void )
 }
 
 /**
- * @brief rahul.kar Ensures that the same entry is inserted into the cache and retrieved for IPv6
+ * @brief Ensures that the same entry is inserted into the cache and retrieved for IPv6
  */
 void test_processDNS_CACHE_Success2( void )
 {
@@ -181,7 +181,7 @@ void test_processDNS_CACHE_Success2( void )
 }
 
 /**
- * @brief rahul.kar Ensures that failure occurs when different entry is inserted into the cache and retrieved
+ * @brief Ensures that failure occurs when different entry is inserted into the cache and retrieved for IPv6
  */
 void test_processDNS_CACHE_Fail_IPv6( void )
 {
@@ -207,7 +207,7 @@ void test_processDNS_CACHE_Fail_IPv6( void )
 }
 
 /**
- * @brief rahul.kar Cannot Confirm that the record is still fresh.
+ * @brief Cannot Confirm that the record in the DNS Cache is still fresh.
  */
 void test_processDNS_CACHE_Entry_NotFresh( void )
 {
@@ -442,7 +442,7 @@ void test_processDNS_CACHE_exceed_dns_name_limit( void )
 }
 
 /**
- * @brief rahul.kar DNS Lookup success
+ * @brief DNS Lookup success
  */
 
 
@@ -481,7 +481,7 @@ void test_prepare_DNSLookup( void )
 
 
 /**
- * @brief rahul.kar DNS Lookup fail : pxAddressInfo = NULL
+ * @brief DNS Lookup fail : pxAddressInfo = NULL
  */
 
 void test_prepare_DNSLookup2( void )
@@ -511,7 +511,7 @@ void test_prepare_DNSLookup2( void )
 }
 
 /**
- * @brief rahul.kar DNS Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo = NULL )
+ * @brief DNS Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo = NULL )
  */
 void test_prepare_DNSLookup3( void )
 {
@@ -539,7 +539,7 @@ void test_prepare_DNSLookup3( void )
 }
 
 /**
- * @brief rahul.kar DNS Lookup fail : (*ppxAddressInfo) == NULL
+ * @brief DNS Lookup fail : (*ppxAddressInfo) == NULL
  */
 void test_prepare_DNSLookup4( void )
 {
@@ -567,7 +567,7 @@ void test_prepare_DNSLookup4( void )
 }
 
 /**
- * @brief rahul.kar DNS Lookup fail : Different entry lookup
+ * @brief DNS Lookup fail : Different entry lookup
  */
 void test_prepare_DNSLookup5( void )
 {
@@ -594,7 +594,7 @@ void test_prepare_DNSLookup5( void )
 }
 
 /**
- * @brief rahul.kar DNS Lookup fail : xFamily invalid
+ * @brief DNS Lookup fail : xFamily invalid
  */
 void test_prepare_DNSLookup6( void )
 {
@@ -619,7 +619,7 @@ void test_prepare_DNSLookup6( void )
 }
 
 /**
- * @brief rahul.kar DNS Lookup success : IPv6
+ * @brief DNS Lookup success : IPv6
  */
 
 void test_prepare_DNSLookup_IPv6( void )
@@ -650,7 +650,7 @@ void test_prepare_DNSLookup_IPv6( void )
 }
 
 /**
- * @brief rahul.kar DNS IPv6 Lookup fail : pxAddressInfo = NULL
+ * @brief DNS IPv6 Lookup fail : pxAddressInfo = NULL
  */
 
 void test_prepare_DNSLookup2_IPv6( void )
@@ -680,7 +680,7 @@ void test_prepare_DNSLookup2_IPv6( void )
 }
 
 /**
- * @brief rahul.kar DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo = NULL )
+ * @brief DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo = NULL )
  */
 void test_prepare_DNSLookup3_IPv6( void )
 {
@@ -708,7 +708,7 @@ void test_prepare_DNSLookup3_IPv6( void )
 }
 
 /**
- * @brief rahul.kar DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL
+ * @brief DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL
  */
 void test_prepare_DNSLookup4_IPv6( void )
 {
@@ -736,7 +736,7 @@ void test_prepare_DNSLookup4_IPv6( void )
 }
 
 /**
- * @brief rahul.kar DNS IPv6 Lookup fail : Different entry lookup
+ * @brief DNS IPv6 Lookup fail : Different entry lookup
  */
 void test_prepare_DNSLookup5_IPv6( void )
 {
