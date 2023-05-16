@@ -318,6 +318,15 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
     TEST_ASSERT_EQUAL( ( uint32_t ) pxAddrOfNetBuffer, ( uint32_t ) pxNetworkBuffer );
 }
 
+void test_pxUDPPayloadBuffer_to_NetworkBuffer_NullInput( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer );
+}
+
 void test_xIsCallingFromIPTask_NotCallingFromIPTask( void )
 {
     BaseType_t xReturn;
