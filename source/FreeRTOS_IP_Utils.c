@@ -417,14 +417,25 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
 
         if( xReturn == 0 )
         {
-            uint8_t ucLength = ( ( ( pxSet->pxProtocolHeaders->xTCPHeader.ucTCPOffset >> 4U ) - 5U ) << 2U );
-            size_t uxOptionsLength = ( size_t ) ucLength;
-            pxSet->uxProtocolHeaderLength = ipSIZE_OF_TCP_HEADER + uxOptionsLength;
-            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                {
-                    pxSet->pcType = "TCP";
-                }
-            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+            uint8_t ucLength = pxSet->pxProtocolHeaders->xTCPHeader.ucTCPOffset >> 4U;
+            size_t uxOptionsLength;
+
+            if( ucLength < 5U || ucLength > 15U )
+            {
+                pxSet->usChecksum = ipINVALID_LENGTH;
+                xReturn = 9;
+            }
+            else
+            {
+                uxOptionsLength = ( size_t ) ( ( ucLength - 5U ) << 2U );
+
+                pxSet->uxProtocolHeaderLength = ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+                #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                    {
+                        pxSet->pcType = "TCP";
+                    }
+                #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+            }
         }
     }
     else if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
@@ -434,7 +445,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
             ( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + ipSIZE_OF_ICMPv4_HEADER ) ) )
         {
             pxSet->usChecksum = ipINVALID_LENGTH;
-            xReturn = 9;
+            xReturn = 10;
         }
 
         if( xReturn == 0 )
@@ -968,13 +979,14 @@ void vPreCheckConfigs( void )
 
             uxSize = sizeof( UDPHeader_t );
             configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
-            /* LCOV_EXCL_BR_STOP */
+
             #if ipconfigUSE_TCP == 1
                 {
                     uxSize = sizeof( TCPHeader_t );
                     configASSERT( uxSize == ( ipEXPECTED_TCPHeader_t_SIZE + ipSIZE_TCP_OPTIONS ) );
                 }
             #endif
+            /* LCOV_EXCL_BR_STOP */
         }
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }

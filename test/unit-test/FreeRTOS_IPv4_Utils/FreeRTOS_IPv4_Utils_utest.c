@@ -70,7 +70,22 @@
 
 /* ============================== Test Cases ============================== */
 
-void test_ok()
+/**
+ * @brief test_vSetMultiCastIPv4MacAddress
+ * To validate if vSetMultiCastIPv4MacAddress sets IPv4 multicast MAC address correctly
+ * into input pointer.
+ */
+void test_vSetMultiCastIPv4MacAddress( void )
 {
-    
+    uint32_t ulIP = 0xABCDEF12;
+    MACAddress_t xMACAddress;
+
+    vSetMultiCastIPv4MacAddress( ulIP, &xMACAddress );
+
+    TEST_ASSERT_EQUAL( ( uint8_t ) 0x01U, xMACAddress.ucBytes[ 0 ] );
+    TEST_ASSERT_EQUAL( ( uint8_t ) 0x00U, xMACAddress.ucBytes[ 1 ] );
+    TEST_ASSERT_EQUAL( ( uint8_t ) 0x5EU, xMACAddress.ucBytes[ 2 ] );
+    TEST_ASSERT_EQUAL( ( uint8_t ) ( ( FreeRTOS_ntohl( ulIP ) >> 16 ) & 0x7fU ), xMACAddress.ucBytes[ 3 ] );
+    TEST_ASSERT_EQUAL( ( uint8_t ) ( ( FreeRTOS_ntohl( ulIP ) >> 8 ) & 0xffU ), xMACAddress.ucBytes[ 4 ] );
+    TEST_ASSERT_EQUAL( ( uint8_t ) ( ( FreeRTOS_ntohl( ulIP ) ) & 0xffU ), xMACAddress.ucBytes[ 5 ] );
 }
