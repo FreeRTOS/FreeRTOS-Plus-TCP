@@ -1557,6 +1557,7 @@ uxgetminimumipqueuespace
 uxhead
 uxheaderbytes
 uxheaderlength
+uxhexprintshort
 uxhostlen
 uxhosttype
 uxicmpsize
