@@ -539,10 +539,10 @@
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                     /* Case default is never toggled. */
-                    default:    /* LCOV_EXCL_LINE */
+                    default: /* LCOV_EXCL_LINE */
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "prvReadDNSCache: Undefined IP Type \n" ) );
-                        break;  /* LCOV_EXCL_LINE */
+                        break; /* LCOV_EXCL_LINE */
                 }
 
                 if( pxNewAddress == NULL )
@@ -573,7 +573,7 @@
         uint32_t Prepare_CacheLookup( const char * pcHostName,
                                       BaseType_t xFamily,
                                       struct freertos_addrinfo ** ppxAddressInfo )
-         {
+        {
             uint32_t ulIPAddress = 0U;
             IPv46_Address_t xIPv46_Address;
 

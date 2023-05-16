@@ -93,22 +93,22 @@ void tearDown( void )
 /**
  * @brief cache entry format structure
  */
-    typedef struct xDNS_CACHE_TABLE_ROW
-    {
-        IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
-        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
-        uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
-        uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */
-        #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-            uint8_t ucNumIPAddresses;                                        /*!< number of ip addresses for the same entry */
-            uint8_t ucCurrentIPAddress;                                      /*!< current ip address index */
-        #endif
-    } DNSCacheRow_t;
+typedef struct xDNS_CACHE_TABLE_ROW
+{
+    IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ];     /*!< The IP address(es) of an ARP cache entry. */
+    char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                            /*!< The name of the host */
+    uint32_t ulTTL;                                                          /*!< Time-to-Live (in seconds) from the DNS server. */
+    uint32_t ulTimeWhenAddedInSeconds;                                       /*!< time at which the entry was added */
+    #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
+        uint8_t ucNumIPAddresses;                                            /*!< number of ip addresses for the same entry */
+        uint8_t ucCurrentIPAddress;                                          /*!< current ip address index */
+    #endif
+} DNSCacheRow_t;
 
 /*!
  * @brief DNS cache structure instantiation
  */
-    static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
+static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
 
 
 /* =============================  TEST CASES  =============================== */
@@ -199,7 +199,7 @@ void test_processDNS_CACHE_Fail_IPv6( void )
                          &pxIP,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 10000 );                 /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 10000 );                /* 5 seconds */
 
     ulReturn = FreeRTOS_dnslookup6( "helloworld", &pxIP );
 
@@ -226,7 +226,7 @@ void test_processDNS_CACHE_Entry_NotFresh( void )
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
 
-    xTaskGetTickCount_ExpectAndReturn( 8000 );                 /* 8 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 8000 ); /* 8 seconds */
 
     x = FreeRTOS_dnslookup( "hello" );
 
@@ -450,12 +450,13 @@ void test_prepare_DNSLookup( void )
 {
     BaseType_t x = 0U;
     BaseType_t xFamily;
-    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo ) );
-    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo * ) );
+    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo * ) );
     IPv46_Address_t xAddress;
     uint32_t ulIP = 1234U;
 
-    struct freertos_sockaddr * sockaddr =( struct freertos_sockaddr * )malloc( sizeof( struct freertos_sockaddr ) );
+    struct freertos_sockaddr * sockaddr = ( struct freertos_sockaddr * ) malloc( sizeof( struct freertos_sockaddr ) );
+
     sockaddr->sin_address.ulIP_IPv4 = ulIP;
 
     pxAddressInfo->ai_addr = sockaddr;
@@ -473,7 +474,7 @@ void test_prepare_DNSLookup( void )
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL );
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    xDNSCache[0].xAddresses[0] = xAddress;
+    xDNSCache[ 0 ].xAddresses[ 0 ] = xAddress;
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( ulIP, x );
@@ -489,7 +490,7 @@ void test_prepare_DNSLookup2( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo * pxAddressInfo = NULL;
-    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo * ) );
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo * ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET;
@@ -503,7 +504,7 @@ void test_prepare_DNSLookup2( void )
                          &xAddress,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 3 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
     x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
@@ -546,7 +547,7 @@ void test_prepare_DNSLookup4( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo ) );
+    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET;
@@ -573,8 +574,8 @@ void test_prepare_DNSLookup5( void )
 {
     BaseType_t x = 0U;
     BaseType_t xFamily;
-    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo * ) );;
-    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo ) );
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo * ) );
+    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET;
@@ -601,7 +602,7 @@ void test_prepare_DNSLookup6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo ) );
+    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET ^ FREERTOS_AF_INET6;
@@ -626,8 +627,8 @@ void test_prepare_DNSLookup_IPv6( void )
 {
     BaseType_t x = 0U;
     BaseType_t xFamily;
-    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo ) );
-    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo * ) );;
+    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo * ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;
@@ -642,7 +643,7 @@ void test_prepare_DNSLookup_IPv6( void )
                          &xAddress,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 3 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
@@ -658,7 +659,7 @@ void test_prepare_DNSLookup2_IPv6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo * pxAddressInfo = NULL;
-    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo * ) );
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo * ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;
@@ -672,7 +673,7 @@ void test_prepare_DNSLookup2_IPv6( void )
                          &xAddress,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 3 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
     x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
@@ -715,7 +716,7 @@ void test_prepare_DNSLookup4_IPv6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo ) );
+    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;
@@ -742,8 +743,8 @@ void test_prepare_DNSLookup5_IPv6( void )
 {
     BaseType_t x = 0U;
     BaseType_t xFamily;
-    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo * ) );;
-    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * )malloc( sizeof( struct freertos_addrinfo ) );
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo * ) );
+    struct freertos_addrinfo * pxAddressInfo = ( struct freertos_addrinfo * ) malloc( sizeof( struct freertos_addrinfo ) );
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;
