@@ -57,7 +57,7 @@
 void test_xBitConfig_init_Fail( void )
 {
     BitConfig_t xConfig, * pxConfig = &xConfig;
-    uint8_t * pucData;
+    uint8_t * pucData = NULL;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     BaseType_t xResult = pdFALSE;
 
@@ -85,6 +85,8 @@ void test_xBitConfig_init_pucDataNull( void )
 
     memset( ucContent, 1, uxSize );
     memset( ucContentReturn, 0, uxSize );
+    pxConfig->ucContents = ucContent;
+
     pvPortMalloc_ExpectAnyArgsAndReturn( ucContent );
 
     xResult = xBitConfig_init( pxConfig, pucData, uxSize );
