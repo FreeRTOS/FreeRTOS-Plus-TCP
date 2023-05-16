@@ -60,10 +60,14 @@ const IPv6_Address_t xDefaultIPAddress =
 
 #define ipSIZE_OF_IPv6_PAYLOAD_LEN    20
 
-#define ipICMP_Incorrect_Msg_IPv6     0
+#define ipICMP_INCORRECT_MSG_IPv6     0
 
 /* Buffer length check of ICMPv6 packet failed. */
-#define ipFail_INVALID_LENGTH         10
+#define ipFAIL_INVALID_LENGTH         10
+/* Non Zero failure for prvChecksumIPv6Checks  */
+#define ipFAIL_LEN_CHECK              1
+#define ipFAIL_PACKET_CHECK           2
+#define ipPASS_IPv6Checks             0
 
 /*
  * ===================================================
@@ -106,7 +110,7 @@ void test_vSetMultiCastIPv6MacAddress( void )
  */
 void test_prvChecksumIPv6Checks_InvalidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCPv6_MSS ];
     /* Buffer length less than the IPv6 Header size */
     size_t uxBufferLength = sizeof( IPHeader_IPv6_t ) - 1;
@@ -119,7 +123,7 @@ void test_prvChecksumIPv6Checks_InvalidLength( void )
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
     /* Return value other than zero implies length check fail */
-    TEST_ASSERT_EQUAL( 1, usReturn );
+    TEST_ASSERT_EQUAL( ipFAIL_LEN_CHECK, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -129,7 +133,7 @@ void test_prvChecksumIPv6Checks_InvalidLength( void )
  */
 void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCPv6_MSS ];
     IPHeader_IPv6_t * pxIPv6Packet;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
@@ -143,7 +147,7 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
 
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( 2, usReturn );
+    TEST_ASSERT_EQUAL( ipFAIL_PACKET_CHECK, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -153,7 +157,7 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
  */
 void test_prvChecksumIPv6Checks_Success( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCPv6_MSS ];
     IPHeader_IPv6_t * pxIPv6Packet;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
@@ -166,7 +170,7 @@ void test_prvChecksumIPv6Checks_Success( void )
 
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
+    TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
 }
 
 /*
@@ -181,21 +185,21 @@ void test_prvChecksumIPv6Checks_Success( void )
  */
 void test_prvChecksumICMPv6Checks_Default_InvalidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_ICMPv6_HEADER - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_Incorrect_Msg_IPv6;
+    xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_INCORRECT_MSG_IPv6;
     xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
+    TEST_ASSERT_EQUAL( ipFAIL_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -204,7 +208,7 @@ void test_prvChecksumICMPv6Checks_Default_InvalidLength( void )
  */
 void test_prvChecksumICMPv6Checks_Default_ValidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_ICMPv6_HEADER + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
@@ -218,7 +222,7 @@ void test_prvChecksumICMPv6Checks_Default_ValidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( usReturn, 0 );
+    TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
     TEST_ASSERT_EQUAL( ipSIZE_OF_ICMPv6_HEADER, xSet.uxProtocolHeaderLength );
 }
 
@@ -228,7 +232,7 @@ void test_prvChecksumICMPv6Checks_Default_ValidLength( void )
  */
 void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
@@ -242,7 +246,7 @@ void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
+    TEST_ASSERT_EQUAL( ipFAIL_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -252,7 +256,7 @@ void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
  */
 void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
@@ -266,7 +270,7 @@ void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
+    TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
     TEST_ASSERT_EQUAL( sizeof( ICMPEcho_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
 
@@ -276,7 +280,7 @@ void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
  */
 void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
@@ -290,7 +294,7 @@ void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
+    TEST_ASSERT_EQUAL( ipFAIL_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -300,7 +304,7 @@ void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
  */
 void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
@@ -314,7 +318,7 @@ void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
+    TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
     TEST_ASSERT_EQUAL( sizeof( ICMPEcho_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
 
@@ -324,7 +328,7 @@ void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
  */
 void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
@@ -338,7 +342,7 @@ void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( ipFail_INVALID_LENGTH, usReturn );
+    TEST_ASSERT_EQUAL( ipFAIL_INVALID_LENGTH, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
 }
 
@@ -348,7 +352,7 @@ void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
  */
 void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
 {
-    uint16_t usReturn;
+    BaseType_t usReturn;
     size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
@@ -362,6 +366,6 @@ void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
 
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
-    TEST_ASSERT_EQUAL( pdFALSE, usReturn );
+    TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
     TEST_ASSERT_EQUAL( sizeof( ICMPRouterSolicitation_IPv6_t ), xSet.uxProtocolHeaderLength );
 }
