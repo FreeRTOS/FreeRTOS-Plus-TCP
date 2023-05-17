@@ -1745,6 +1745,10 @@ void test_usGenerateProtocolChecksum_TCPv6OutgoingCorrectCRC( void )
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
 
+/**
+ * @brief test_usGenerateChecksum_UnallignedAccess
+ * To toggle unalign address in usGenerateProtocolChecksum.
+ */
 void test_usGenerateChecksum_UnallignedAccess( void )
 {
     uint16_t usResult;
@@ -1765,9 +1769,13 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
-    TEST_ASSERT_EQUAL( 23130, usResult );
+    TEST_ASSERT_EQUAL( 0x5A5A, usResult );
 }
 
+/**
+ * @brief test_usGenerateChecksum_OneByteToChecksum
+ * To toggle unalign address in usGenerateProtocolChecksum with one byte length.
+ */
 void test_usGenerateChecksum_OneByteToChecksum( void )
 {
     uint16_t usResult;
@@ -1788,9 +1796,13 @@ void test_usGenerateChecksum_OneByteToChecksum( void )
 
     usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
 
-    TEST_ASSERT_EQUAL( 43776, usResult );
+    TEST_ASSERT_EQUAL( 0xAB00, usResult );
 }
 
+/**
+ * @brief test_usGenerateChecksum_OneByteAllignedButZeroLength
+ * To validate usGenerateProtocolChecksum with one byte align but zero length.
+ */
 void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
 {
     uint16_t usResult;
@@ -1814,6 +1826,10 @@ void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
     TEST_ASSERT_EQUAL( 0, usResult );
 }
 
+/**
+ * @brief test_usGenerateChecksum_TwoByteAlligned
+ * To validate usGenerateProtocolChecksum with two byte align and 1 length.
+ */
 void test_usGenerateChecksum_TwoByteAlligned( void )
 {
     uint16_t usResult;
@@ -1837,6 +1853,10 @@ void test_usGenerateChecksum_TwoByteAlligned( void )
     TEST_ASSERT_EQUAL( 43776, usResult );
 }
 
+/**
+ * @brief test_usGenerateChecksum_TwoByteAllignedTwoLength
+ * To validate usGenerateProtocolChecksum with two byte align and 2 length.
+ */
 void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
 {
     uint16_t usResult;
@@ -1860,6 +1880,10 @@ void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
     TEST_ASSERT_EQUAL( 43947, usResult );
 }
 
+/**
+ * @brief test_usGenerateChecksum_FourByteAlligned
+ * To validate usGenerateProtocolChecksum with four byte align and 2 length.
+ */
 void test_usGenerateChecksum_FourByteAlligned( void )
 {
     uint16_t usResult;
@@ -1883,6 +1907,10 @@ void test_usGenerateChecksum_FourByteAlligned( void )
     TEST_ASSERT_EQUAL( 43947, usResult );
 }
 
+/**
+ * @brief test_usGenerateChecksum_FourByteAllignedSumOverflow
+ * To validate usGenerateProtocolChecksum with four byte align and sum overflow.
+ */
 void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
 {
     uint16_t usResult;
@@ -1906,6 +1934,10 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
     TEST_ASSERT_EQUAL( 2484, usResult );
 }
 
+/**
+ * @brief test_usGenerateChecksum_FourByteAllignedSumOverflow2
+ * To validate usGenerateProtocolChecksum with four byte align and sum overflow.
+ */
 void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
 {
     uint16_t usResult;
@@ -1929,6 +1961,11 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
     TEST_ASSERT_EQUAL( 21759, usResult );
 }
 
+/**
+ * @brief test_vPrintResourceStats_BufferCountMore
+ * To validate vPrintResourceStats when minimum free network buffer
+ * is greater than last record.
+ */
 void test_vPrintResourceStats_BufferCountMore( void )
 {
     uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 2 );
@@ -1937,14 +1974,25 @@ void test_vPrintResourceStats_BufferCountMore( void )
     vPrintResourceStats();
 }
 
+/**
+ * @brief test_vPrintResourceStats_BufferCountMore
+ * To validate vPrintResourceStats when minimum free network buffer
+ * is less than last record.
+ */
 void test_vPrintResourceStats_BufferCountLess( void )
 {
     uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
 
     vPrintResourceStats();
+    TEST_ASSERT_EQUAL( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2, uxLastMinBufferCount  );
 }
 
+/**
+ * @brief test_vPrintResourceStats_LastBuffer_NE_0
+ * To validate vPrintResourceStats when minimum ever free heap size
+ * is less than last record.
+ */
 void test_vPrintResourceStats_LastBuffer_NE_0( void )
 {
     uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -1958,6 +2006,11 @@ void test_vPrintResourceStats_LastBuffer_NE_0( void )
     TEST_ASSERT_EQUAL( 2, uxMinLastSize );
 }
 
+/**
+ * @brief test_vPrintResourceStats_LastBuffer_NE_0
+ * To validate vPrintResourceStats when minimum ever free heap size
+ * is greater than last record.
+ */
 void test_vPrintResourceStats_MinSizeIsBigger( void )
 {
     uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -1971,6 +2024,10 @@ void test_vPrintResourceStats_MinSizeIsBigger( void )
     TEST_ASSERT_EQUAL( 10, uxMinLastSize );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_Invalid
+ * To validate FreeRTOS_strerror_r with invalid errno.
+ */
 void test_FreeRTOS_strerror_r_Invalid( void )
 {
     const char * pucResult;
@@ -1986,6 +2043,10 @@ void test_FreeRTOS_strerror_r_Invalid( void )
     TEST_ASSERT_EQUAL_STRING( "Errno 0x0", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EADDRINUSE
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EADDRINUSE.
+ */
 void test_FreeRTOS_strerror_r_EADDRINUSE( void )
 {
     const char * pucResult;
@@ -2001,6 +2062,10 @@ void test_FreeRTOS_strerror_r_EADDRINUSE( void )
     TEST_ASSERT_EQUAL_STRING( "EADDRINUSE", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_ENOMEM
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_ENOMEM.
+ */
 void test_FreeRTOS_strerror_r_ENOMEM( void )
 {
     const char * pucResult;
@@ -2016,6 +2081,10 @@ void test_FreeRTOS_strerror_r_ENOMEM( void )
     TEST_ASSERT_EQUAL_STRING( "ENOMEM", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EADDRNOTAVAIL
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EADDRNOTAVAIL.
+ */
 void test_FreeRTOS_strerror_r_EADDRNOTAVAIL( void )
 {
     const char * pucResult;
@@ -2031,6 +2100,10 @@ void test_FreeRTOS_strerror_r_EADDRNOTAVAIL( void )
     TEST_ASSERT_EQUAL_STRING( "EADDRNOTAVAIL", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_ENOPROTOOPT
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_ENOPROTOOPT.
+ */
 void test_FreeRTOS_strerror_r_ENOPROTOOPT( void )
 {
     const char * pucResult;
@@ -2046,6 +2119,10 @@ void test_FreeRTOS_strerror_r_ENOPROTOOPT( void )
     TEST_ASSERT_EQUAL_STRING( "ENOPROTOOPT", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EBADF
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EBADF.
+ */
 void test_FreeRTOS_strerror_r_EBADF( void )
 {
     const char * pucResult;
@@ -2061,6 +2138,10 @@ void test_FreeRTOS_strerror_r_EBADF( void )
     TEST_ASSERT_EQUAL_STRING( "EBADF", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_ENOSPC
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_ENOSPC.
+ */
 void test_FreeRTOS_strerror_r_ENOSPC( void )
 {
     const char * pucResult;
@@ -2076,6 +2157,10 @@ void test_FreeRTOS_strerror_r_ENOSPC( void )
     TEST_ASSERT_EQUAL_STRING( "ENOSPC", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_ECANCELED
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_ECANCELED.
+ */
 void test_FreeRTOS_strerror_r_ECANCELED( void )
 {
     const char * pucResult;
@@ -2091,6 +2176,10 @@ void test_FreeRTOS_strerror_r_ECANCELED( void )
     TEST_ASSERT_EQUAL_STRING( "ECANCELED", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_ENOTCONN
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_ENOTCONN.
+ */
 void test_FreeRTOS_strerror_r_ENOTCONN( void )
 {
     const char * pucResult;
@@ -2106,6 +2195,10 @@ void test_FreeRTOS_strerror_r_ENOTCONN( void )
     TEST_ASSERT_EQUAL_STRING( "ENOTCONN", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EINPROGRESS
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EINPROGRESS.
+ */
 void test_FreeRTOS_strerror_r_EINPROGRESS( void )
 {
     const char * pucResult;
@@ -2121,6 +2214,10 @@ void test_FreeRTOS_strerror_r_EINPROGRESS( void )
     TEST_ASSERT_EQUAL_STRING( "EINPROGRESS", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EOPNOTSUPP
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EOPNOTSUPP.
+ */
 void test_FreeRTOS_strerror_r_EOPNOTSUPP( void )
 {
     const char * pucResult;
@@ -2136,6 +2233,10 @@ void test_FreeRTOS_strerror_r_EOPNOTSUPP( void )
     TEST_ASSERT_EQUAL_STRING( "EOPNOTSUPP", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EINTR
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EINTR.
+ */
 void test_FreeRTOS_strerror_r_EINTR( void )
 {
     const char * pucResult;
@@ -2151,6 +2252,10 @@ void test_FreeRTOS_strerror_r_EINTR( void )
     TEST_ASSERT_EQUAL_STRING( "EINTR", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_ETIMEDOUT
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_ETIMEDOUT.
+ */
 void test_FreeRTOS_strerror_r_ETIMEDOUT( void )
 {
     const char * pucResult;
@@ -2166,6 +2271,10 @@ void test_FreeRTOS_strerror_r_ETIMEDOUT( void )
     TEST_ASSERT_EQUAL_STRING( "ETIMEDOUT", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EINVAL
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EINVAL.
+ */
 void test_FreeRTOS_strerror_r_EINVAL( void )
 {
     const char * pucResult;
@@ -2181,6 +2290,10 @@ void test_FreeRTOS_strerror_r_EINVAL( void )
     TEST_ASSERT_EQUAL_STRING( "EINVAL", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EWOULDBLOCK
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EWOULDBLOCK.
+ */
 void test_FreeRTOS_strerror_r_EWOULDBLOCK( void )
 {
     const char * pucResult;
@@ -2196,6 +2309,10 @@ void test_FreeRTOS_strerror_r_EWOULDBLOCK( void )
     TEST_ASSERT_EQUAL_STRING( "EWOULDBLOCK", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_EISCONN
+ * To validate FreeRTOS_strerror_r with pdFREERTOS_ERRNO_EISCONN.
+ */
 void test_FreeRTOS_strerror_r_EISCONN( void )
 {
     const char * pucResult;
@@ -2211,6 +2328,10 @@ void test_FreeRTOS_strerror_r_EISCONN( void )
     TEST_ASSERT_EQUAL_STRING( "EISCONN", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_strerror_r_ZeroLengthBuffer
+ * To validate FreeRTOS_strerror_r with zero length buffer.
+ */
 void test_FreeRTOS_strerror_r_ZeroLengthBuffer( void )
 {
     const char * pucResult;
@@ -2226,9 +2347,13 @@ void test_FreeRTOS_strerror_r_ZeroLengthBuffer( void )
     TEST_ASSERT_EQUAL_STRING( "", pcBuffer );
 }
 
+/**
+ * @brief test_FreeRTOS_max_int32
+ * To validate FreeRTOS_max_int32.
+ */
 void test_FreeRTOS_max_int32( void )
 {
-    int32_t smaller, bigger, lResult;
+    int32_t lResult;
 
     for( int i = -100; i < 100; i++ )
     {
@@ -2249,9 +2374,13 @@ void test_FreeRTOS_max_int32( void )
     }
 }
 
+/**
+ * @brief test_FreeRTOS_max_uint32
+ * To validate FreeRTOS_max_uint32.
+ */
 void test_FreeRTOS_max_uint32( void )
 {
-    uint32_t smaller, bigger, lResult;
+    uint32_t lResult;
 
     for( uint32_t i = 0; i < 100; i++ )
     {
@@ -2272,9 +2401,13 @@ void test_FreeRTOS_max_uint32( void )
     }
 }
 
+/**
+ * @brief test_FreeRTOS_max_size_t
+ * To validate FreeRTOS_max_size_t.
+ */
 void test_FreeRTOS_max_size_t( void )
 {
-    uint32_t smaller, bigger, lResult;
+    uint32_t lResult;
 
     for( uint32_t i = 0; i < 100; i++ )
     {
@@ -2295,9 +2428,13 @@ void test_FreeRTOS_max_size_t( void )
     }
 }
 
+/**
+ * @brief test_FreeRTOS_min_int32
+ * To validate FreeRTOS_min_int32.
+ */
 void test_FreeRTOS_min_int32( void )
 {
-    int32_t smaller, bigger, lResult;
+    int32_t lResult;
 
     for( int i = -100; i < 100; i++ )
     {
@@ -2318,9 +2455,13 @@ void test_FreeRTOS_min_int32( void )
     }
 }
 
+/**
+ * @brief test_FreeRTOS_min_uint32
+ * To validate FreeRTOS_min_uint32.
+ */
 void test_FreeRTOS_min_uint32( void )
 {
-    uint32_t smaller, bigger, lResult;
+    uint32_t lResult;
 
     for( uint32_t i = 0; i < 100; i++ )
     {
@@ -2341,9 +2482,13 @@ void test_FreeRTOS_min_uint32( void )
     }
 }
 
+/**
+ * @brief test_FreeRTOS_min_size_t
+ * To validate FreeRTOS_min_size_t.
+ */
 void test_FreeRTOS_min_size_t( void )
 {
-    uint32_t smaller, bigger, lResult;
+    uint32_t lResult;
 
     for( uint32_t i = 0; i < 100; i++ )
     {
@@ -2364,6 +2509,10 @@ void test_FreeRTOS_min_size_t( void )
     }
 }
 
+/**
+ * @brief test_FreeRTOS_round_up
+ * To validate FreeRTOS_round_up.
+ */
 void test_FreeRTOS_round_up( void )
 {
     uint32_t ulResult;
@@ -2394,6 +2543,10 @@ void test_FreeRTOS_round_up( void )
     TEST_ASSERT_EQUAL( 0x123AD, ulResult );
 }
 
+/**
+ * @brief test_FreeRTOS_round_down
+ * To validate FreeRTOS_round_down.
+ */
 void test_FreeRTOS_round_down( void )
 {
     uint32_t ulResult;
@@ -2424,6 +2577,10 @@ void test_FreeRTOS_round_down( void )
     TEST_ASSERT_EQUAL( 0x123AD, ulResult );
 }
 
+/**
+ * @brief test_ulChar2u32
+ * To validate ulChar2u32.
+ */
 void test_ulChar2u32( void )
 {
     uint32_t ulResult;
@@ -2434,6 +2591,10 @@ void test_ulChar2u32( void )
     TEST_ASSERT_EQUAL_UINT32( 0xAA0012EF, ulResult );
 }
 
+/**
+ * @brief test_usChar2u16
+ * To validate usChar2u16.
+ */
 void test_usChar2u16( void )
 {
     uint16_t usResult;
