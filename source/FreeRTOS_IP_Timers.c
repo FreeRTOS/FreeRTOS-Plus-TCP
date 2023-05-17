@@ -580,7 +580,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
             pxEndPoint->xDHCP_RATimer.bActive = pdFALSE_UNSIGNED;
         }
     }
-#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
+#endif /* if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )

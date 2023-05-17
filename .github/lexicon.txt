@@ -782,6 +782,8 @@ prvhandlelisten
 prvhandlesynreceived
 prvinitialisedhcp
 prviptask
+prviptimercheck
+prviptimerstart
 prvlinkstatuschange
 prvnotifyqueuesetcontainer
 prvntptask
@@ -1675,8 +1677,10 @@ varpagecache
 varpgeneraterequestpacket
 varprefreshcacheentry
 varpsendgratuitous
+varptimerreload
 vcastconstpointerto
 vcastconstptrto
+vchecknetworktimers
 vcleartxbuffers
 vconfiguretimerforruntimestats
 vdhcpprocess
@@ -1684,12 +1688,17 @@ vdhcpprocessendpoint
 vdnscheckcallback
 vdnsinitialise
 vdnssetcallback
+vdnstimerreload
 ve
 veventgroupdelete
 vipnetworkupcalls
 vipreloaddhcptimer
+vipsetarpresolutiontimerenablestate
+vipsetarptimerenablestate
 vipsetdhcptimerenablestate
+vipsetdnstimerenablestate
 vipsettcptimerexpiredstate
+viptimerstartarpresolution
 vl
 vlan
 vlantagcomparison
@@ -1699,6 +1708,7 @@ vlistinitialiseitem
 vmyconnecthandler
 vndrefreshcacheentry
 vnetworkinterfaceallocateramtobuffers
+vnetworktimerreload
 vperformaction
 vportfree
 vprintresourcestats
@@ -1723,6 +1733,7 @@ vtasknotifygivefromisr
 vtcpnetstat
 vtcpstatechange
 vtcptimergetage
+vtcptimerreload
 vtcptimerset
 vtcpwindowdestroy
 vtcpwindowfree
@@ -1776,6 +1787,7 @@ xbufferlength
 xbufferlistitem
 xbytecount
 xbytesleft
+xcalculatesleeptime
 xcallbacklist
 xcheckloopback
 xclearonexit
