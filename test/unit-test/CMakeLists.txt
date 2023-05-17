@@ -53,9 +53,11 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 
 # Set TCP includes.
 set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
-		  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4.h"
-		  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6.h"
-		  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_BitConfig.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ND.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
@@ -68,10 +70,11 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Private.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4_Private.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6_Private.h"
-		  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4_Sockets.h"
-		  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6_Sockets.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4_Sockets.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6_Sockets.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_UDP_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DHCP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DHCPv6.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Cache.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_DNS_Globals.h"
@@ -258,6 +261,7 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP_DataLenLessThanMinPacket/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_DHCPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Tiny_TCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DNS/ut.cmake )
@@ -273,7 +277,11 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_DiffConfig3/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP_wo_assert/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils_DiffConfig/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig1/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
@@ -286,6 +294,8 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Driver_Check_Checksum/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
@@ -295,10 +305,16 @@ add_custom_target( coverage
     DEPENDS cmock unity
     FreeRTOS_ARP_utest
     FreeRTOS_DHCP_utest
+    FreeRTOS_DHCPv6_utest
     FreeRTOS_UDP_IP_utest
     FreeRTOS_IP_utest
+    FreeRTOS_IP_DiffConfig_utest
+    FreeRTOS_IP_DiffConfig1_utest
+    FreeRTOS_IP_DiffConfig2_utest
+    FreeRTOS_IP_DiffConfig3_utest
     FreeRTOS_ICMP_utest
     FreeRTOS_IP_Utils_utest
+    FreeRTOS_IPv6_Utils_utest
     FreeRTOS_IP_Timers_utest
     FreeRTOS_Stream_Buffer_utest
     FreeRTOS_DNS_utest
@@ -307,8 +323,14 @@ add_custom_target( coverage
     FreeRTOS_TCP_Reception_utest
     FreeRTOS_TCP_State_Handling
     FreeRTOS_TCP_Transmission
-    FreeRTOS_TCP_IP FreeRTOS_TCP_Utils
+    FreeRTOS_TCP_IP
+    FreeRTOS_TCP_Utils
     FreeRTOS_Sockets_IPv6_utest
+    FreeRTOS_IPv6_utest
+    FreeRTOS_IPv6_Driver_Check_Checksum_utest
+    FreeRTOS_IPv4_utest
+    FreeRTOS_IPv4_DiffConfig_utest
+    FreeRTOS_IPv4_DiffConfig1_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 

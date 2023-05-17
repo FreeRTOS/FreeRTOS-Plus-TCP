@@ -34,10 +34,10 @@
 
 #define TEST                                1
 
-#define ipconfigUSE_IPv4                    1
+#define ipconfigUSE_IPv4                    ( 1 )
+#define ipconfigUSE_IPv6                    ( 1 )
 
 #define ipconfigMULTI_INTERFACE             1
-
 #define ipconfigIPv4_BACKWARD_COMPATIBLE    1
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
@@ -81,7 +81,7 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
 #define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
