@@ -940,6 +940,7 @@ pvsource
 pxackmessage
 pxaddr
 pxaddress
+pxaddresses
 pxaddressinfo
 pxaddresslength
 pxaddresstolookup
