@@ -420,7 +420,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
             uint8_t ucLength = pxSet->pxProtocolHeaders->xTCPHeader.ucTCPOffset >> 4U;
             size_t uxOptionsLength;
 
-            if( ucLength < 5U || ucLength > 15U )
+            if( ucLength < 5U )
             {
                 pxSet->usChecksum = ipINVALID_LENGTH;
                 xReturn = 9;

@@ -102,6 +102,14 @@ static BaseType_t prvChecksumICMPv6Checks_Valid( size_t uxBufferLength,
     return 0;
 }
 
+static BaseType_t prvChecksumICMPv6Checks_BigHeaderLength( size_t uxBufferLength,
+                                    struct xPacketSummary * pxSet,
+                                  int NumCalls )
+{
+    pxSet->uxProtocolHeaderLength = 0xFF;
+    return 0;
+}
+
 static BaseType_t prvChecksumIPv6Checks_Valid( uint8_t * pucEthernetBuffer,
                                   size_t uxBufferLength,
                                   struct xPacketSummary * pxSet,
@@ -811,7 +819,7 @@ void test_usGenerateProtocolChecksum_UnknownProtocol( void )
 }
 
 /**
- * @brief test_usGenerateProtocolChecksum_UnknownProtocol
+ * @brief test_usGenerateProtocolChecksum_InvalidLength
  * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if prvChecksumIPv4Checks returns non-zero.
  */
 void test_usGenerateProtocolChecksum_InvalidLength( void )
@@ -1001,11 +1009,11 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 }
 
 /**
- * @brief test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum
- * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
- * it's a TCP outgoing packet. And the checksum is zero.
+ * @brief test_usGenerateProtocolChecksum_UDPLessBufferSizeOutgoingPacket
+ * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if
+ * buffer size is less than minimum requirement.
  */
-void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( void )
+void test_usGenerateProtocolChecksum_UDPLessBufferSizeOutgoingPacket( void )
 {
     uint16_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
@@ -1013,13 +1021,10 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( vo
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = 100;
-    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ucVersionHeaderLength + ipSIZE_OF_UDP_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
-
-    /* This is the checksum with zeroed out data. Fill it in to make the checksum 0. */
-    *( ( uint32_t * ) &pucEthernetBuffer[ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xAFA9 );
 
     pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
@@ -1028,17 +1033,15 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( vo
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
-    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    pxProtPack->xTCPPacket.xTCPHeader.ucTCPOffset = 0x50;
-    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0x00;
+    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0x00;
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
-    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
-    TEST_ASSERT_EQUAL( 0, pxProtPack->xTCPPacket.xTCPHeader.usChecksum );
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
 
 /**
@@ -1191,6 +1194,47 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacket( void )
 }
 
 /**
+ * @brief test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum
+ * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
+ * it's a TCP outgoing packet. And the checksum is zero.
+ */
+void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdTRUE;
+    uint8_t ucVersionHeaderLength = 20;
+    IPPacket_t * pxIPPacket;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    /* This is the checksum with zeroed out data. Fill it in to make the checksum 0. */
+    *( ( uint32_t * ) &pucEthernetBuffer[ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xAFA9 );
+
+    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+
+    pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
+
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
+
+    pxProtPack->xTCPPacket.xTCPHeader.ucTCPOffset = 0x50;
+    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0x00;
+
+    prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+    TEST_ASSERT_EQUAL( 0, pxProtPack->xTCPPacket.xTCPHeader.usChecksum );
+}
+
+/**
  * @brief test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket
  * To validate usGenerateProtocolChecksum returns ipWRONG_CRC if
  * checksum in TCP header is incorrect.
@@ -1225,6 +1269,80 @@ void test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket( void )
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_TCPLessBufferSize_OutgoingPacket
+ * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if
+ * buffer size is less than TCP minimum requirement.
+ */
+void test_usGenerateProtocolChecksum_TCPLessBufferSize_OutgoingPacket( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdTRUE;
+    uint8_t ucVersionHeaderLength = 20;
+    IPPacket_t * pxIPPacket;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ucVersionHeaderLength + ipSIZE_OF_TCP_HEADER - 1;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+
+    pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
+
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
+
+    pxProtPack->xTCPPacket.xTCPHeader.ucTCPOffset = 0x50;
+    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0x0000;
+
+    prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_TCPLessOffset_OutgoingPacket
+ * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if
+ * offset in TCP header is less than minimum requirement.
+ */
+void test_usGenerateProtocolChecksum_TCPLessOffset_OutgoingPacket( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdTRUE;
+    uint8_t ucVersionHeaderLength = 20;
+    IPPacket_t * pxIPPacket;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+
+    pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
+
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
+
+    pxProtPack->xTCPPacket.xTCPHeader.ucTCPOffset = 0x40;
+    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0x0000;
+
+    prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
 
 /**
@@ -1386,7 +1504,7 @@ void test_usGenerateProtocolChecksum_ICMPLessBufferSize( void )
     BaseType_t xOutgoingPacket = pdTRUE;
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
-    uint16_t usLength = ucVersionHeaderLength; /* + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1; */
+    uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_ICMPv4_HEADER;
     size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
@@ -1958,8 +2076,74 @@ void test_usGenerateProtocolChecksum_TCPv6OutgoingCorrectCRC( void )
 }
 
 /**
+ * @brief test_usGenerateProtocolChecksum_IPv6UnknownProtocol
+ * To validate usGenerateProtocolChecksum returns ipUNHANDLED_PROTOCOL when
+ * the protocol is unknown in IPv6 packet.
+ */
+void test_usGenerateProtocolChecksum_IPv6UnknownProtocol( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    TCPPacket_IPv6_t * pxTCPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxTCPv6Packet = ( TCPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = 0xFF;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+ 
+    TEST_ASSERT_EQUAL( ipUNHANDLED_PROTOCOL, usReturn );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_ICMPv6LessHeaderLength
+ * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if
+ * remaining bytes in packets is less than header size.
+ */
+void test_usGenerateProtocolChecksum_ICMPv6LessHeaderLength( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdTRUE;
+    IPPacket_IPv6_t * pxIPPacket;
+    ICMPPacket_IPv6_t * pxICMPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0;
+
+    prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
+    prvChecksumICMPv6Checks_Stub( prvChecksumICMPv6Checks_BigHeaderLength );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
+}
+
+/**
  * @brief test_usGenerateChecksum_UnallignedAccess
- * To toggle unalign address in usGenerateProtocolChecksum.
+ * To toggle unalign address in usGenerateChecksum.
  */
 void test_usGenerateChecksum_UnallignedAccess( void )
 {
@@ -1986,7 +2170,7 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 
 /**
  * @brief test_usGenerateChecksum_OneByteToChecksum
- * To toggle unalign address in usGenerateProtocolChecksum with one byte length.
+ * To toggle unalign address in usGenerateChecksum with one byte length.
  */
 void test_usGenerateChecksum_OneByteToChecksum( void )
 {
@@ -2013,7 +2197,7 @@ void test_usGenerateChecksum_OneByteToChecksum( void )
 
 /**
  * @brief test_usGenerateChecksum_OneByteAllignedButZeroLength
- * To validate usGenerateProtocolChecksum with one byte align but zero length.
+ * To validate usGenerateChecksum with one byte align but zero length.
  */
 void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
 {
@@ -2040,7 +2224,7 @@ void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
 
 /**
  * @brief test_usGenerateChecksum_TwoByteAlligned
- * To validate usGenerateProtocolChecksum with two byte align and 1 length.
+ * To validate usGenerateChecksum with two byte align and 1 length.
  */
 void test_usGenerateChecksum_TwoByteAlligned( void )
 {
@@ -2067,7 +2251,7 @@ void test_usGenerateChecksum_TwoByteAlligned( void )
 
 /**
  * @brief test_usGenerateChecksum_TwoByteAllignedTwoLength
- * To validate usGenerateProtocolChecksum with two byte align and 2 length.
+ * To validate usGenerateChecksum with two byte align and 2 length.
  */
 void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
 {
@@ -2094,7 +2278,7 @@ void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
 
 /**
  * @brief test_usGenerateChecksum_FourByteAlligned
- * To validate usGenerateProtocolChecksum with four byte align and 2 length.
+ * To validate usGenerateChecksum with four byte align and 2 length.
  */
 void test_usGenerateChecksum_FourByteAlligned( void )
 {
@@ -2121,7 +2305,7 @@ void test_usGenerateChecksum_FourByteAlligned( void )
 
 /**
  * @brief test_usGenerateChecksum_FourByteAllignedSumOverflow
- * To validate usGenerateProtocolChecksum with four byte align and sum overflow.
+ * To validate usGenerateChecksum with four byte align and sum overflow.
  */
 void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
 {
@@ -2148,7 +2332,7 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
 
 /**
  * @brief test_usGenerateChecksum_FourByteAllignedSumOverflow2
- * To validate usGenerateProtocolChecksum with four byte align and sum overflow.
+ * To validate usGenerateChecksum with four byte align and sum overflow.
  */
 void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
 {
