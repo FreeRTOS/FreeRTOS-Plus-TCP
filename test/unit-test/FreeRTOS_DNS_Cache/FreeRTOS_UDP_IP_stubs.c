@@ -42,6 +42,10 @@
 
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
+struct freertos_addrinfo pucAddrBuffer[ 2 ];
+
+struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
+
 void vPortEnterCritical( void )
 {
 }
@@ -56,9 +60,10 @@ BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
     return pdFALSE;
 }
 
-struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
-                                           BaseType_t xFamily,
-                                           const uint8_t * pucAddress )
+struct freertos_addrinfo * xStub_pxNew_AddrInfo( const char * pcName,
+                                                 BaseType_t xFamily,
+                                                 const uint8_t * pucAddress,
+                                                 int numCalls )
 {
     struct freertos_addrinfo * pxAddrInfo = NULL;
     void * pvBuffer;
@@ -72,7 +77,7 @@ struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
 
     /* 'xFamily' might not be used when IPv6 is disabled. */
     ( void ) xFamily;
-    pvBuffer = ( struct freertos_addrinfo * ) malloc( sizeof( *pxAddrInfo ) );
+    pvBuffer = &pucAddrBuffer[ 0 ];
 
     if( ( pvBuffer != NULL ) && ( strcmp( pcName, "helloman" ) != 0 ) )
     {
