@@ -59,7 +59,7 @@
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_TCP_Utils.h"
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_IPv4_Private.h"
 #include "mock_FreeRTOS_ND.h"
@@ -67,19 +67,316 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv4.h"
 
+#include "FreeRTOS_TCP_Transmission.h"
+#include "FreeRTOS_TCP_Transmission_IPV6_stubs.c"
 
 #include "catch_assert.h"
 
 
-#define PACKET_LENGTH 100
+#define PACKET_LENGTH    100
 
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
+
+/* ============================ Test Cases ============================ */
+
+/**
+ * @brief This function verify handling when both
+ *        'pxNetworkBuffer' or 'pxSocket' is not defined.
+ *        while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_BufferSocketNULL( void )
+{
+    FreeRTOS_Socket_t * pxSocket = NULL;
+    NetworkBufferDescriptor_t * pxDescriptor = NULL;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdFALSE;
+
+    prvTCPReturnPacket_IPV6( pxSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+}
+
+/**
+ * @brief This function verify handling case when
+ *        only pxNetworkBuffer is NULL while
+ *        returning a packet.
+ */
 void test_prvTCPReturnPacket_IPV6_BufferNULL( void )
- {
+{
     FreeRTOS_Socket_t xSocket;
     NetworkBufferDescriptor_t * pxDescriptor = NULL;
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdFALSE;
 
-   prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
- 
- }
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+
+    prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+}
+
+/**
+ * @brief This function verify handling case when
+ *        only xSocket is NULL while
+ *        returning a packet.
+ */
+/* void test_prvTCPReturnPacket_IPV6_pucEthernetBuffer_Assert( void ) */
+/*  { */
+/*     FreeRTOS_Socket_t *pxSocket=NULL; */
+/*     NetworkBufferDescriptor_t xDescriptor; */
+/*     uint32_t ulLen = PACKET_LENGTH; */
+/*     BaseType_t xReleaseAfterSend = pdFALSE; */
+/*     NetworkEndPoint_t xEndPoint; */
+
+/*     memset(&xDescriptor, 0, sizeof(NetworkBufferDescriptor_t)); */
+/*     memset(&xEndPoint, 0, sizeof(NetworkEndPoint_t)); */
+/*     xDescriptor.pxEndPoint = &xEndPoint; */
+/*     xDescriptor.pucEthernetBuffer = NULL; */
+
+/*    catch_assert(prvTCPReturnPacket_IPV6( pxSocket, &xDescriptor, ulLen, xReleaseAfterSend )); */
+/*  } */
+
+/**
+ * @brief This function verify handling case when
+ *        only xSocket is NULL while
+ *        returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_SocketNULL( void )
+{
+    FreeRTOS_Socket_t * pxSocket = NULL;
+    NetworkBufferDescriptor_t xDescriptor;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdFALSE;
+    NetworkEndPoint_t xEndPoint;
+    TCPPacket_IPv6_t xTCPPacket;
+
+    memset( &xDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+    xDescriptor.pxEndPoint = &xEndPoint;
+    xDescriptor.pucEthernetBuffer = &xTCPPacket;
+
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    prvTCPReturnPacket_IPV6( pxSocket, &xDescriptor, ulLen, xReleaseAfterSend );
+}
+
+/**
+ * @brief This function verify handling case with valid
+ *        pxNetworkBuffer and pxSocket where as network end
+ *        point is NULL while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_NoEP_NoReleaseAfterSend( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdFALSE;
+    TCPPacket_IPv6_t xTCPPacket;
+
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+
+    xDescriptor.pucEthernetBuffer = &xTCPPacket;
+    xDescriptor.pxEndPoint = NULL;
+
+    prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+}
+
+/**
+ * @brief This function verify handling case with valid
+ *        pxNetworkBuffer and pxSocket where as network end
+ *        point is NULL while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_NoEP_ReleaseAfterSend( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    TCPPacket_IPv6_t xTCPPacket;
+
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+
+    xDescriptor.pucEthernetBuffer = &xTCPPacket;
+    xDescriptor.pxEndPoint = NULL;
+
+    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+
+    prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+}
+
+/**
+ * @brief This function verify handling case with valid
+ *        pxNetworkBuffer and pxSocket where as network end
+ *        point does not have a valid NetworkInterface
+ *        while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_Assert1( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    NetworkEndPoint_t xEndPoint;
+    TCPPacket_IPv6_t xTCPPacket;
+
+
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
+
+    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    pxDescriptor->pxEndPoint = &xEndPoint;
+    pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    pxDescriptor->pxEndPoint->pxNetworkInterface = NULL;
+
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    catch_assert( prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend ) );
+}
+
+/**
+ * @brief This function verify handling case with valid
+ *        pxNetworkBuffer and pxSocket where as network end
+ *        point does not have a valid NetworkInterface
+ *        while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_Assert2( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    NetworkEndPoint_t xEndPoint;
+    TCPPacket_IPv6_t xTCPPacket;
+
+
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
+
+    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    pxDescriptor->pxEndPoint = &xEndPoint;
+    pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    pxDescriptor->pxEndPoint->pxNetworkInterface = NULL;
+
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+
+    catch_assert( prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend ) );
+}
+
+/**
+ * @brief This function verify handling case with valid
+ *        pxNetworkBuffer and pxSocket where as network end
+ *        point does not have a valid NetworkInterface output
+ *        function, while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_Assert3( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    NetworkEndPoint_t xEndPoint;
+    TCPPacket_IPv6_t xTCPPacket;
+    NetworkInterface_t xNetworkInterfaces;
+
+
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
+    memset( &xNetworkInterfaces, 0, sizeof( NetworkInterface_t ) );
+
+    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    pxDescriptor->pxEndPoint = &xEndPoint;
+    pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    pxDescriptor->pxEndPoint->pxNetworkInterface = &xNetworkInterfaces;
+    pxDescriptor->pxEndPoint->pxNetworkInterface->pfOutput = NULL;
+
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    catch_assert( prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend ) );
+}
+
+/**
+ * @brief This function verify handling case with valid
+ *        pxNetworkBuffer and pxSocket where as network end
+ *        point does not have a valid NetworkInterface,
+ *        while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_HappyPath_ReleaseAfterSend( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
+    uint32_t ulLen = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    BaseType_t xReleaseAfterSend = pdTRUE;
+    NetworkEndPoint_t xEndPoint;
+    TCPPacket_IPv6_t xTCPPacket;
+    NetworkInterface_t xNetworkInterfaces;
+
+
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
+    memset( &xNetworkInterfaces, 0, sizeof( NetworkInterface_t ) );
+
+    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    pxDescriptor->pxEndPoint = &xEndPoint;
+    pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    xEndPoint.pxNetworkInterface = &xNetworkInterfaces;
+    xEndPoint.pxNetworkInterface->pfOutput = NULL;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+}
+
+/**
+ * @brief This function verify handling case with valid
+ *        pxNetworkBuffer and pxSocket where as network end
+ *        point does not have a valid NetworkInterface,
+ *        while returning a packet.
+ */
+void test_prvTCPReturnPacket_IPV6_HappyPath_NoReleaseAfterSend( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
+    uint32_t ulLen = PACKET_LENGTH;
+    BaseType_t xReleaseAfterSend = pdFALSE;
+    NetworkEndPoint_t xEndPoint;
+    TCPPacket_IPv6_t xTCPPacket;
+    NetworkInterface_t xNetworkInterfaces;
+
+
+    memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
+    memset( &xNetworkInterfaces, 0, sizeof( NetworkInterface_t ) );
+
+    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    pxDescriptor->pxEndPoint = &xEndPoint;
+    pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    xEndPoint.pxNetworkInterface = &xNetworkInterfaces;
+    xEndPoint.pxNetworkInterface->pfOutput = NULL;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
+}

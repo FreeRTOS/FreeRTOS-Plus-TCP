@@ -1,31 +1,3 @@
-/*
- * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
- *
- * SPDX-License-Identifier: MIT
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * http://aws.amazon.com/freertos
- * http://www.FreeRTOS.org
- */
-
-
 /* Include Unity header */
 #include <unity.h>
 
@@ -40,53 +12,64 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-NetworkInterface_t xInterfaces[ 1 ];
-
-volatile BaseType_t xInsideInterrupt = pdFALSE;
-
-BaseType_t xNetworkUp;
-
-struct xNetworkInterface * pxNetworkInterfaces = NULL;
-
-/** @brief A list of all network end-points.  Each element has a next pointer. */
-struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
-
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
-const MACAddress_t xLLMNR_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
-
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
+/**
+ * @brief Called by prvTCPReturnPacket(), this function makes sure that the network buffer
+ *        has 'pxEndPoint' set properly.
+ * @param[in] pxSocket The socket on which the packet is being sent.
+ * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
+ */
+void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
+                               NetworkBufferDescriptor_t * pxNetworkBuffer,
+                               size_t uxIPHeaderSize )
 {
-    /* .ucBytes : */
+    const IPHeader_IPv6_t * pxIPHeader_IPv6 = NULL;
+
+    if( ( pxSocket != NULL ) && ( pxSocket->pxEndPoint != NULL ) )
     {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
+        pxNetworkBuffer->pxEndPoint = pxSocket->pxEndPoint;
     }
-};
-
-void vPortEnterCritical( void )
-{
-}
-void vPortExitCritical( void )
-{
+    else
+    {
+        /* Not able to find the endpoint */
+        pxNetworkBuffer->pxEndPoint = NULL;
+    }
 }
 
-void * pvPortMalloc( size_t xNeeded )
+/**
+ * Called by prvTCPReturnPacket(), this function will set the the window
+ * size on this side: 'xTCPHeader.usWindow'.
+ */
+void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
+                                  const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  size_t uxIPHeaderSize )
 {
-    return malloc( xNeeded );
 }
 
-void vPortFree( void * ptr )
+/*
+ * Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
+ * in the TCP-header.
+ */
+void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
+                                     const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                     size_t uxIPHeaderSize,
+                                     uint32_t ulLen )
 {
-    free( ptr );
+}
+
+/*
+ * Initialise the data structures which keep track of the TCP windowing system.
+ */
+void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
+{
+}
+
+/*
+ * Return or send a packet to the other party.
+ */
+void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
+                         NetworkBufferDescriptor_t * pxDescriptor,
+                         uint32_t ulLen,
+                         BaseType_t xReleaseAfterSend )
+{
 }
