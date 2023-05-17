@@ -277,6 +277,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_DiffConfig3/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP_wo_assert/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
@@ -290,12 +291,35 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Driver_Check_Checksum/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
-    DEPENDS cmock unity FreeRTOS_ARP_utest FreeRTOS_DHCP_utest FreeRTOS_DHCPv6_utest FreeRTOS_UDP_IP_utest FreeRTOS_IP_utest FreeRTOS_ICMP_utest FreeRTOS_IP_Utils_utest FreeRTOS_IP_Timers_utest FreeRTOS_Stream_Buffer_utest FreeRTOS_DNS_utest FreeRTOS_TCP_WIN_utest FreeRTOS_Tiny_TCP_utest FreeRTOS_TCP_Reception_utest FreeRTOS_TCP_State_Handling FreeRTOS_TCP_Transmission FreeRTOS_TCP_IP FreeRTOS_TCP_Utils
+    DEPENDS cmock unity
+    FreeRTOS_ARP_utest
+    FreeRTOS_DHCP_utest
+    FreeRTOS_DHCPv6_utest
+    FreeRTOS_UDP_IP_utest
+    FreeRTOS_IP_utest
+    FreeRTOS_ICMP_utest
+    FreeRTOS_IP_Utils_utest
+    FreeRTOS_IPv6_Utils_utest
+    FreeRTOS_IP_Timers_utest
+    FreeRTOS_Stream_Buffer_utest
+    FreeRTOS_DNS_utest
+    FreeRTOS_TCP_WIN_utest
+    FreeRTOS_Tiny_TCP_utest
+    FreeRTOS_TCP_Reception_utest
+    FreeRTOS_TCP_State_Handling
+    FreeRTOS_TCP_Transmission
+    FreeRTOS_TCP_IP FreeRTOS_TCP_Utils
+    FreeRTOS_Sockets_IPv6_utest
+    FreeRTOS_IPv6_utest
+    FreeRTOS_IPv6_Driver_Check_Checksum_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
