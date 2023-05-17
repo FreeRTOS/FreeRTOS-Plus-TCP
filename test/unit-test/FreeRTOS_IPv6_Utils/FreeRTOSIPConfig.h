@@ -32,18 +32,14 @@
 
 #define _static
 
-#define TEST                                1
+#define TEST                        1
 
-#define ipconfigUSE_IPv4                    ( 1 )
-#define ipconfigUSE_IPv6                    ( 0 )
-
-#define ipconfigMULTI_INTERFACE             1
-#define ipconfigIPv4_BACKWARD_COMPATIBLE    1
+#define ipconfigUSE_IPv6            ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF            1
+#define ipconfigHAS_DEBUG_PRINTF    1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -59,7 +55,9 @@
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
-#define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
+#define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
+
+#define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
 
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
@@ -339,5 +337,9 @@ extern uint32_t ulRand();
 #define portINLINE
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
+
+#define ipconfigUSE_IPV6    ( 1 )
+
+#define ipconfigUSE_RA      ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

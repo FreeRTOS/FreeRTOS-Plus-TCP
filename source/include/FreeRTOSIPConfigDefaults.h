@@ -189,7 +189,7 @@
     #define ipconfigMULTI_INTERFACE    ( 1 )
 #endif
 
-/* Disable IPv6 by default. */
+/* Disable DHCPv6 by default. */
 #ifndef ipconfigUSE_DHCPv6
     #define ipconfigUSE_DHCPv6    ( 0 )
 #endif
