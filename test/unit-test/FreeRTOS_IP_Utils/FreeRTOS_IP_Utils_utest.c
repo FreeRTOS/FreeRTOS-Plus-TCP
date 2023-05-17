@@ -63,7 +63,7 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-#define TEST_UDP_PAYLOAD_LENGTH ( 10U )
+#define TEST_UDP_PAYLOAD_LENGTH    ( 10U )
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
@@ -87,25 +87,25 @@ static BaseType_t xNetworkInterfaceInitialise_returnFalse( NetworkInterface_t * 
 }
 
 static BaseType_t prvChecksumICMPv6Checks_Valid( size_t uxBufferLength,
-                                    struct xPacketSummary * pxSet,
-                                  int NumCalls )
+                                                 struct xPacketSummary * pxSet,
+                                                 int NumCalls )
 {
     pxSet->uxProtocolHeaderLength = ipSIZE_OF_ICMPv6_HEADER;
     return 0;
 }
 
 static BaseType_t prvChecksumICMPv6Checks_BigHeaderLength( size_t uxBufferLength,
-                                    struct xPacketSummary * pxSet,
-                                  int NumCalls )
+                                                           struct xPacketSummary * pxSet,
+                                                           int NumCalls )
 {
     pxSet->uxProtocolHeaderLength = 0xFF;
     return 0;
 }
 
 static BaseType_t prvChecksumIPv6Checks_Valid( uint8_t * pucEthernetBuffer,
-                                  size_t uxBufferLength,
-                                  struct xPacketSummary * pxSet,
-                                  int NumCalls )
+                                               size_t uxBufferLength,
+                                               struct xPacketSummary * pxSet,
+                                               int NumCalls )
 {
     IPPacket_IPv6_t * pxIPPacket;
 
@@ -123,9 +123,9 @@ static BaseType_t prvChecksumIPv6Checks_Valid( uint8_t * pucEthernetBuffer,
 }
 
 static BaseType_t prvChecksumIPv4Checks_Valid( uint8_t * pucEthernetBuffer,
-                                  size_t uxBufferLength,
-                                  struct xPacketSummary * pxSet,
-                                  int NumCalls )
+                                               size_t uxBufferLength,
+                                               struct xPacketSummary * pxSet,
+                                               int NumCalls )
 {
     IPPacket_t * pxIPPacket;
 
@@ -143,9 +143,9 @@ static BaseType_t prvChecksumIPv4Checks_Valid( uint8_t * pucEthernetBuffer,
 }
 
 static BaseType_t prvChecksumIPv4Checks_UnknownProtocol( uint8_t * pucEthernetBuffer,
-                                  size_t uxBufferLength,
-                                  struct xPacketSummary * pxSet,
-                                  int NumCalls )
+                                                         size_t uxBufferLength,
+                                                         struct xPacketSummary * pxSet,
+                                                         int NumCalls )
 {
     prvChecksumIPv4Checks_Valid( pucEthernetBuffer, uxBufferLength, pxSet, NumCalls );
 
@@ -155,9 +155,9 @@ static BaseType_t prvChecksumIPv4Checks_UnknownProtocol( uint8_t * pucEthernetBu
 }
 
 static BaseType_t prvChecksumIPv4Checks_InvalidLength( uint8_t * pucEthernetBuffer,
-                                  size_t uxBufferLength,
-                                  struct xPacketSummary * pxSet,
-                                  int NumCalls )
+                                                       size_t uxBufferLength,
+                                                       struct xPacketSummary * pxSet,
+                                                       int NumCalls )
 {
     BaseType_t xReturn = 0;
 
@@ -750,7 +750,7 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
-    
+
     vIPNetworkUpCalls_Expect( &xEndPoint );
 
     prvProcessNetworkDownEvent( &xInterface );
@@ -1882,7 +1882,7 @@ void test_usGenerateProtocolChecksum_ICMPv6IncomingCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0x89FF;
@@ -1916,7 +1916,7 @@ void test_usGenerateProtocolChecksum_ICMPv6IncomingIncorrectCRC( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0;
@@ -1951,7 +1951,7 @@ void test_usGenerateProtocolChecksum_UDPv6IncomingCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
     pxUDPv6Packet->xUDPHeader.usChecksum = 0xB2FF;
@@ -1959,7 +1959,7 @@ void test_usGenerateProtocolChecksum_UDPv6IncomingCorrectCRC( void )
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
- 
+
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
 
@@ -1984,7 +1984,7 @@ void test_usGenerateProtocolChecksum_UDPv6IncomingIncorrectCRC( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1111;
@@ -2018,7 +2018,7 @@ void test_usGenerateProtocolChecksum_TCPv6IncomingCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
     pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
@@ -2027,7 +2027,7 @@ void test_usGenerateProtocolChecksum_TCPv6IncomingCorrectCRC( void )
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
- 
+
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
 
@@ -2052,7 +2052,7 @@ void test_usGenerateProtocolChecksum_TCPv6IncomingIncorrectCRC( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
     pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
@@ -2087,7 +2087,7 @@ void test_usGenerateProtocolChecksum_TCPv6OutgoingCorrectCRC( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
     pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
@@ -2095,7 +2095,7 @@ void test_usGenerateProtocolChecksum_TCPv6OutgoingCorrectCRC( void )
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
- 
+
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
 
@@ -2120,14 +2120,14 @@ void test_usGenerateProtocolChecksum_IPv6UnknownProtocol( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = 0xFF;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
- 
+
     TEST_ASSERT_EQUAL( ipUNHANDLED_PROTOCOL, usReturn );
 }
 
@@ -2152,7 +2152,7 @@ void test_usGenerateProtocolChecksum_ICMPv6LessHeaderLength( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0;
@@ -2405,7 +2405,7 @@ void test_vPrintResourceStats_BufferCountLess( void )
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
 
     vPrintResourceStats();
-    TEST_ASSERT_EQUAL( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2, uxLastMinBufferCount  );
+    TEST_ASSERT_EQUAL( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2, uxLastMinBufferCount );
 }
 
 /**

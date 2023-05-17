@@ -295,13 +295,13 @@ void test_usGenerateProtocolChecksum_UDPv6IncomingPacket( void )
 
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    
+
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
     pxUDPv6Packet->xUDPHeader.usChecksum = 0xB2FF;
 
     usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
- 
+
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
 
