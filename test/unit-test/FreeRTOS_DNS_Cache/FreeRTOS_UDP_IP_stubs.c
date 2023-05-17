@@ -42,6 +42,10 @@
 
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
+struct freertos_addrinfo pucAddrBuffer[ 2 ];
+
+struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
+
 void vPortEnterCritical( void )
 {
 }
@@ -56,10 +60,61 @@ BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
     return pdFALSE;
 }
 
-struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
-                                           BaseType_t xFamily,
-                                           const uint8_t * pucAddress )
+struct freertos_addrinfo * xStub_pxNew_AddrInfo( const char * pcName,
+                                                 BaseType_t xFamily,
+                                                 const uint8_t * pucAddress,
+                                                 int numCalls )
 {
+    struct freertos_addrinfo * pxAddrInfo = NULL;
+    void * pvBuffer;
+    /* ulChar2u32 reads from big-endian to host-endian. */
+    uint32_t ulIPAddress = ( ( ( uint32_t ) pucAddress[ 0 ] ) << 24 ) |
+                           ( ( ( uint32_t ) pucAddress[ 1 ] ) << 16 ) |
+                           ( ( ( uint32_t ) pucAddress[ 2 ] ) << 8 ) |
+                           ( ( ( uint32_t ) pucAddress[ 3 ] ) );
+
+    /* Translate to network-endian. */
+
+    /* 'xFamily' might not be used when IPv6 is disabled. */
+    ( void ) xFamily;
+    pvBuffer = &pucAddrBuffer[ 0 ];
+
+    if( ( pvBuffer != NULL ) && ( strcmp( pcName, "helloman" ) != 0 ) )
+    {
+        pxAddrInfo = ( struct freertos_addrinfo * ) pvBuffer;
+
+        ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
+        pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
+        ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+
+        pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
+
+        switch( xFamily )
+        {
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case FREERTOS_AF_INET4:
+                    pxAddrInfo->ai_addr->sin_address.ulIP_IPv4 = FreeRTOS_htonl( ulIPAddress );
+                    pxAddrInfo->ai_family = FREERTOS_AF_INET4;
+                    pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case FREERTOS_AF_INET6:
+                    pxAddrInfo->ai_family = FREERTOS_AF_INET6;
+                    pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv6_ADDRESS;
+                    ( void ) memcpy( pxAddrInfo->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes, pucAddress, ipSIZE_OF_IPv6_ADDRESS );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* MISRA 16.4 Compliance */
+                FreeRTOS_debug_printf( ( "pxNew_AddrInfo: Undefined xFamily Type \n" ) );
+                break;
+        }
+    }
+
+    return pxAddrInfo;
 }
 
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )

@@ -43,8 +43,7 @@
 #include "mock_FreeRTOS_DNS_Parser.h"
 #include "mock_FreeRTOS_DNS_Networking.h"
 #include "mock_NetworkBufferManagement.h"
-#include "FreeRTOS_DNS.h"
-
+#include "mock_FreeRTOS_DNS.h"
 
 #include "catch_assert.h"
 
@@ -71,6 +70,13 @@ static void dns_callback( const char * pcName,
     callback_called = 1;
 }
 
+extern struct freertos_addrinfo * xStub_pxNew_AddrInfo( const char * pcName,
+                                                        BaseType_t xFamily,
+                                                        const uint8_t * pucAddress,
+                                                        int numCalls );
+
+extern pucAddrBuffer[ 2 ];
+extern pucSockAddrBuffer[ 1 ];
 
 /* ============================  TEST FIXTURES  ============================= */
 
@@ -90,6 +96,11 @@ void tearDown( void )
 {
 }
 
+/*!
+ * @brief DNS cache structure instantiation
+ */
+static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
+
 
 /* =============================  TEST CASES  =============================== */
 
@@ -107,7 +118,7 @@ void test_processDNS_CACHE_CatchAssert( void )
 }
 
 /**
- * @brief Ensures that the same entry is inserted into the cache and retrieved
+ * @brief Ensures that the same entry is inserted into the cache and retrieved .
  */
 void test_processDNS_CACHE_Success( void )
 {
@@ -116,7 +127,7 @@ void test_processDNS_CACHE_Success( void )
     IPv46_Address_t pxIP;
 
     pxIP.ulIPAddress = pulIP;
-    pxIP.xIs_IPv6 = 0;
+    pxIP.xIs_IPv6 = pdFALSE;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -132,6 +143,87 @@ void test_processDNS_CACHE_Success( void )
 
     TEST_ASSERT_EQUAL( pulIP, x );
 }
+
+/**
+ * @brief Ensures that the same entry is inserted into the cache and retrieved for IPv6
+ */
+void test_processDNS_CACHE_Success2( void )
+{
+    uint32_t ulReturn = 0U;
+    uint32_t pulIP = 1234;
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
+    pxIP.xIs_IPv6 = pdTRUE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &pxIP,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    ulReturn = FreeRTOS_dnslookup6( "hello", &pxIP );
+
+    TEST_ASSERT_EQUAL( ulReturn, 1 );
+}
+
+/**
+ * @brief Ensures that failure occurs when different entry is inserted into the cache and retrieved for IPv6
+ */
+void test_processDNS_CACHE_Fail_IPv6( void )
+{
+    uint32_t ulReturn = 0U;
+    uint32_t pulIP = 1234;
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
+    pxIP.xIs_IPv6 = pdFALSE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &pxIP,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+
+    xTaskGetTickCount_ExpectAndReturn( 10000 );                /* 5 seconds */
+
+    ulReturn = FreeRTOS_dnslookup6( "helloworld", &pxIP );
+
+    TEST_ASSERT_EQUAL( ulReturn, 0 );
+}
+
+/**
+ * @brief Cannot Confirm that the record in the DNS Cache is still fresh.
+ */
+void test_processDNS_CACHE_Entry_NotFresh( void )
+{
+    BaseType_t x;
+    uint32_t pulIP = 1234;
+    IPv46_Address_t pxIP;
+
+    pxIP.ulIPAddress = pulIP;
+    pxIP.xIs_IPv6 = 0;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &pxIP,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+
+
+    xTaskGetTickCount_ExpectAndReturn( 8000 ); /* 8 seconds */
+
+    x = FreeRTOS_dnslookup( "hello" );
+
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
 
 /**
  * @brief Ensures empty cache returns zero
@@ -337,5 +429,335 @@ void test_processDNS_CACHE_exceed_dns_name_limit( void )
     xTaskGetTickCount_ExpectAndReturn( 50000 );
     x = FreeRTOS_dnslookup( long_dns_name );
 
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS Lookup success
+ */
+
+
+void test_prepare_DNSLookup( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
+    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 1 ];
+    IPv46_Address_t xAddress;
+    uint32_t ulIP = 1234U;
+
+    struct freertos_sockaddr * sockaddr = &pucSockAddrBuffer[ 0 ];
+
+    sockaddr->sin_address.ulIP_IPv4 = ulIP;
+
+    pxAddressInfo->ai_addr = sockaddr;
+    *ppxAddressInfo = pxAddressInfo;
+
+    xFamily = FREERTOS_AF_INET;
+    xAddress.xIs_IPv6 = pdFALSE;
+    xAddress.ulIPAddress = ulIP;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    xDNSCache[ 0 ].xAddresses[ 0 ] = xAddress;
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( ulIP, x );
+}
+
+
+/**
+ * @brief DNS Lookup fail : pxAddressInfo = NULL
+ */
+
+void test_prepare_DNSLookup2( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET;
+    xAddress.xIs_IPv6 = pdFALSE;
+    ppxAddressInfo = &pxAddressInfo;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "helloman",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo = NULL )
+ */
+void test_prepare_DNSLookup3( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo ** ppxAddressInfo = NULL;
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET;
+    xAddress.xIs_IPv6 = pdFALSE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "helloman",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS Lookup fail : (*ppxAddressInfo) == NULL
+ */
+void test_prepare_DNSLookup4( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo ** ppxAddressInfo = NULL;
+    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET;
+    xAddress.xIs_IPv6 = pdFALSE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS Lookup fail : Different entry lookup
+ */
+void test_prepare_DNSLookup5( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
+    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 1 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET;
+    xAddress.xIs_IPv6 = pdFALSE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+
+    x = Prepare_CacheLookup( "aws", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS Lookup fail : xFamily invalid
+ */
+void test_prepare_DNSLookup6( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo ** ppxAddressInfo = NULL;
+    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET ^ FREERTOS_AF_INET6;
+    xAddress.xIs_IPv6 = pdFALSE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
+    x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS Lookup success : IPv6
+ */
+
+void test_prepare_DNSLookup_IPv6( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
+    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 1 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET6;
+    xAddress.xIs_IPv6 = pdTRUE;
+
+    *ppxAddressInfo = pxAddressInfo;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 1, x );
+}
+
+/**
+ * @brief DNS IPv6 Lookup fail : pxAddressInfo = NULL
+ */
+
+void test_prepare_DNSLookup2_IPv6( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET6;
+    xAddress.xIs_IPv6 = pdTRUE;
+    ppxAddressInfo = &pxAddressInfo;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "helloman",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo = NULL )
+ */
+void test_prepare_DNSLookup3_IPv6( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo ** ppxAddressInfo = NULL;
+    struct freertos_addrinfo * pxAddressInfo = NULL;
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET6;
+    xAddress.xIs_IPv6 = pdTRUE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "helloman",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL
+ */
+void test_prepare_DNSLookup4_IPv6( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo ** ppxAddressInfo = NULL;
+    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET6;
+    xAddress.xIs_IPv6 = pdTRUE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
+    x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
+    TEST_ASSERT_EQUAL( 0, x );
+}
+
+/**
+ * @brief DNS IPv6 Lookup fail : Different entry lookup
+ */
+void test_prepare_DNSLookup5_IPv6( void )
+{
+    BaseType_t x = 0U;
+    BaseType_t xFamily;
+    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
+    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 1 ];
+    IPv46_Address_t xAddress;
+
+    xFamily = FREERTOS_AF_INET6;
+    xAddress.xIs_IPv6 = pdTRUE;
+
+    xTaskGetTickCount_ExpectAndReturn( 3000 );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_dns_update( "hello",
+                         &xAddress,
+                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
+    xTaskGetTickCount_ExpectAndReturn( 5000 );
+
+    x = Prepare_CacheLookup( "aws", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
 }
