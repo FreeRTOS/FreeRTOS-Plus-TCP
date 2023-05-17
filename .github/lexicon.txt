@@ -871,6 +871,7 @@ prvtcppreparesend
 prvtcpreturnpacket
 prvtcpsendchallengeack
 prvtcpsendloop
+prvtcpsendcheck
 prvtcpsendpacket
 prvtcpsendrepeated
 prvtcpsendreset
