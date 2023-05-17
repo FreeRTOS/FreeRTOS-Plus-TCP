@@ -3826,8 +3826,16 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_SEND | ( EventBits_t ) eSOCKET_CLOSED,
                                               pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
 
+                xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
+
+                if( xByteCount < 0 )
+                {
+                    /* In a meanwhile, the connection has dropped, stop iterating. */
+                    break;
+                }
+
                 xByteCount = ( BaseType_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.txStream );
-            }
+            } /* while( ipTRUE_BOOL ) */
 
             /* How much was actually sent? */
             xByteCount = ( ( BaseType_t ) uxDataLength ) - xBytesLeft;

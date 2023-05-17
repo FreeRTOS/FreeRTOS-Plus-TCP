@@ -984,6 +984,7 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_Timeout( void )
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
     xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Second Iteration. No space still. */
     uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, 0 );
@@ -1026,6 +1027,7 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_EventuallySpaceAvailable( void )
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
     xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Second Iteration. */
     uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, 20 );
@@ -1068,6 +1070,7 @@ void test_FreeRTOS_send_MultipleIterationsAndNoSuccess( void )
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
     xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Second Iteration. */
     uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, 10 );
@@ -1078,6 +1081,7 @@ void test_FreeRTOS_send_MultipleIterationsAndNoSuccess( void )
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
     xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Third iteration. No space still. */
     uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, 0 );
@@ -1087,6 +1091,46 @@ void test_FreeRTOS_send_MultipleIterationsAndNoSuccess( void )
     xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
 
     TEST_ASSERT_EQUAL( uxDataLength - 10, xReturn );
+}
+
+/*
+ * @brief While waiting for space, the socket gets disconnected.
+ */
+void test_FreeRTOS_send_DisconnectionOccursDuringWait( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    uint8_t pvBuffer[ ipconfigTCP_MSS ];
+    size_t uxDataLength;
+    BaseType_t xFlags = 0;
+    StreamBuffer_t xLocalStreamBuffer;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( pvBuffer, 0, ipconfigTCP_MSS );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
+    xSocket.u.xTCP.txStream = &xLocalStreamBuffer;
+    xSocket.xSendBlockTime = 100;
+
+    uxDataLength = 100;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength - 20, uxDataLength - 20 );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+    vTaskSetTimeOutState_ExpectAnyArgs();
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+
+    /* Let `socketSOCKET_IS_BOUND()` return false, so that prvTCPSendCheck()
+     * returns en error, so that the loop is stopped. */
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( NULL );
+
+    xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
+
+    TEST_ASSERT_EQUAL( uxDataLength - 20, xReturn );
 }
 
 /*
