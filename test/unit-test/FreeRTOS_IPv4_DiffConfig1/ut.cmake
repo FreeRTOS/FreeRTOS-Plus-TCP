@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_IP_DiffConfig1" )
+set( project_name "FreeRTOS_IPv4_DiffConfig1" )
 message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
@@ -14,17 +14,17 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ND.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Timers.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Utils.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Private.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ICMP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCPv6.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP.h"
@@ -32,7 +32,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/IP_DiffConfig1_list_macros.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/IPv4_DiffConfig1_list_macros.h"
         )
 
 set(mock_include_list "")
@@ -40,10 +40,10 @@ set(mock_include_list "")
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
 set(mock_define_list "")
@@ -58,31 +58,30 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-                ${project_name}/${project_name}_stubs.c
-                ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_IP.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_IPv4.c
 	)
 
 set(real_include_directories "")
 # list the directories the module under test includes
 list(APPEND real_include_directories
-                ${TCP_INCLUDE_DIRS}
-                ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-                ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-                ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
-                ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
-                ${CMOCK_DIR}/vendor/unity/src
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
+            .
+            ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+            ${CMOCK_DIR}/vendor/unity/src
 	)
 
 # =====================  Create UnitTest Code here (edit)  =====================
 set(test_include_directories "")
 # list the directories your test needs to include
 list(APPEND test_include_directories
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${CMOCK_DIR}/vendor/unity/src
-            ${CMAKE_BINARY_DIR}/../../../source/portable/Buffermanagement
-            ${CMAKE_BINARY_DIR}/../../../source/portable/Compiler/MSVC
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${TCP_INCLUDE_DIRS}
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources
         )
 
 # =============================  (end edit)  ===================================
