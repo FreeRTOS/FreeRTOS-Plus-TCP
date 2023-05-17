@@ -618,8 +618,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
             #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
-                if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
-                    ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
+                if( ( usPort == FreeRTOS_htons( ipLLMNR_PORT ) ) ||
+                    ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_htons( ipLLMNR_PORT ) ) )
                 {
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
@@ -628,8 +628,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
             #if ( ipconfigUSE_NBNS == 1 )
                 /* a NetBIOS request, check for the destination port */
-                if( ( usPort == FreeRTOS_ntohs( ipNBNS_PORT ) ) ||
-                    ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipNBNS_PORT ) ) )
+                if( ( usPort == FreeRTOS_htons( ipNBNS_PORT ) ) ||
+                    ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_htons( ipNBNS_PORT ) ) )
                 {
                     xReturn = ( BaseType_t ) ulNBNSHandlePacket( pxNetworkBuffer );
                 }

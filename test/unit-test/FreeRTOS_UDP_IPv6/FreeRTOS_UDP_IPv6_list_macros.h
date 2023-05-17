@@ -72,4 +72,7 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
+FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
 #endif /* ifndef LIST_MACRO_H */
