@@ -11,6 +11,7 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DNS_Networking.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DNS_Callback.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DHCP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DHCPv6.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_ICMP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_IP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Routing.c"
