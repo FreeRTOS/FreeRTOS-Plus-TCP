@@ -154,7 +154,7 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
 
 
 /**
- * @brief Converts a hex value to a readable hex character, e.g. 14 becomes 'e'.
+ * @brief Converts a 4 bit (nibble) value to a readable hex character, e.g. 14 becomes 'e'.
  * @param usValue  The value to be converted, must be between 0 and 15.
  * @return The character, between '0' and '9', or between 'a' and 'f'.
  */
@@ -303,7 +303,7 @@ static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
 
         if( ( pxSet->xIndex + pxSet->xZeroLength ) == xShortCount )
         {
-            /* Reached the last index, write a second ";". */
+            /* Reached the last index, write a second ":". */
             if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
             {
                 pcDestination[ pxSet->uxTargetIndex ] = ':';
@@ -371,14 +371,12 @@ static BaseType_t prv_ntop6_write_short( char * pcDestination,
                                         uxBytesPerShortValue + 1U,
                                         FreeRTOS_ntohs( pxSet->pusAddress[ pxSet->xIndex ] ) );
 
-            if( uxLength <= 0U )
-            {
-                xReturn = pdFAIL;
-            }
-            else
-            {
-                pxSet->uxTargetIndex += uxLength;
-            }
+            /* uxLength will be non zero and positive always. */
+            pxSet->uxTargetIndex += uxLength;
+        }
+        else
+        {
+            xReturn = pdFAIL;
         }
     }
 

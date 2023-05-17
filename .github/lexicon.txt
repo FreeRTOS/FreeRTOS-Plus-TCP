@@ -116,6 +116,7 @@ ccfg
 cchannel
 cchar
 cd
+cdef
 ce
 centralised
 ceo
@@ -346,6 +347,7 @@ fecf
 fef
 fes
 ff
+ffab
 ffee
 fffe
 ffff
@@ -1299,6 +1301,7 @@ ucprefix
 ucprefixlength
 ucprotocol
 ucprotocoladdresslength
+ucprotocolheadersize
 ucrepcount
 ucsenderprotocoladdress
 ucserverhostname
@@ -1563,6 +1566,7 @@ uxgetminimumipqueuespace
 uxhead
 uxheaderbytes
 uxheaderlength
+uxhexprintshort
 uxhostlen
 uxhosttype
 uxicmpsize
@@ -1883,6 +1887,7 @@ xnetworkinterfaceoutput
 xnetworkparams
 xnetworktimer
 xnetworkup
+xnextorder
 xntppacket
 xntptaskhandle
 xontcpconnect
