@@ -320,7 +320,6 @@ void test_vReceiveNA_bIPAddressNotInUse2( void )
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
 
     vReceiveNA( pxNetworkBuffer );
 
@@ -398,8 +397,10 @@ void test_vReceiveNA_bIPAddressInUse( void )
     memcpy( xICMPPacket.xICMPHeaderIPv6.xIPv6Address.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
+
+    vDHCP_RATimerReload_ExpectAnyArgs();
+
     FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
 
     vReceiveNA( pxNetworkBuffer );
 
@@ -723,8 +724,6 @@ void test_vReceiveRA_vRAProcesssdad( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
-    vDHCP_RATimerReload_Ignore();
-
     vReceiveRA( pxNetworkBuffer );
 }
 
@@ -763,7 +762,7 @@ void test_vReceiveRA_vRAProcess( void )
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     vReceiveRA( pxNetworkBuffer );
 
@@ -808,7 +807,7 @@ void test_vRAProcess_eRAStateApply1( void )
     memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     /* pdTRUE for vRAProcessInit */
     vRAProcess( pdTRUE, &xEndPoint );
@@ -838,12 +837,12 @@ void test_vRAProcess_eRAStateApply2( void )
     pxEndPoint->bits.bIPv6 = pdTRUE_UNSIGNED;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( raHeaderBytesRS, 0, &xNetworkBuffer );
-    vDHCP_RATimerReload_Ignore();
-
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
     vReturnEthernetFrame_ExpectAnyArgs();
+
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     /* pdFALSE for vRAProcessInit */
     vRAProcess( pdTRUE, &xEndPoint );
@@ -872,7 +871,7 @@ void test_vRAProcess_eRAStateLease( void )
     pxEndPoint->bits.bIPv6 = pdTRUE_UNSIGNED;
     pxEndPoint->xRAData.eRAState = eRAStateLease;
 
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     vRAProcess( pdFALSE, &xEndPoint );
 
@@ -902,7 +901,7 @@ void test_vRAProcess_UndefinedState( void )
     /* Unexpected state */
     pxEndPoint->xRAData.eRAState = eRAStateUnkown;
 
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     vRAProcess( pdFALSE, &xEndPoint );
 
@@ -925,7 +924,7 @@ void test_vRAProcess_eRAStateWait( void )
     pxEndPoint->xRAData.eRAState = eRAStateWait;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     /* pdFALSE Indicating vRAProcessInit is already done */
     vRAProcess( pdFALSE, &xEndPoint );
@@ -953,7 +952,7 @@ void test_vRAProcess_eRAStateWait_RetryExceed( void )
     pxEndPoint->xRAData.uxRetryCount = ( UBaseType_t ) ipconfigRA_SEARCH_COUNT;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     /* pdFALSE Indicating vRAProcessInit is already done */
     vRAProcess( pdFALSE, &xEndPoint );
@@ -982,7 +981,7 @@ void test_vRAProcess_eRAStateIPWait_AddressInUse( void )
     pxEndPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     /* pdFALSE Indicating vRAProcessInit is already done */
     vRAProcess( pdFALSE, &xEndPoint );
@@ -1009,7 +1008,7 @@ void test_vRAProcess_eRAStateIPWait_Retry( void )
     pxEndPoint->xRAData.uxRetryCount = 0;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
+    vDHCP_RATimerReload_ExpectAnyArgs();
 
     /* pdFALSE Indicating vRAProcessInit is already done */
     vRAProcess( pdFALSE, &xEndPoint );
