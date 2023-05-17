@@ -65,7 +65,7 @@ void test_vSetMultiCastIPv4MacAddress( void )
 /**
  * @brief test_prvChecksumIPv4Checks_IPLengthLessThanHeaderLength
  * To validate if prvChecksumIPv4Checks sets ipINVALID_LENGTH in checksum field when
- * length in IPv4 header is less than VersionHeaderLength.
+ * length in IPv4 header is less than ucVersionHeaderLength.
  */
 void test_prvChecksumIPv4Checks_IPLengthLessThanHeaderLength()
 {

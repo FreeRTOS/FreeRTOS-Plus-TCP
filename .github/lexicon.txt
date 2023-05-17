@@ -774,6 +774,7 @@ prvemachandlertask
 prvfillsockaddress
 prvfindcacheentry
 prvfindendpointonnetmask
+prvgetchecksumfrompacket
 prvgethostbyname
 prvgethostbynameop
 prvgetpayloadbuffer
@@ -835,6 +836,7 @@ prvsenddhcpmessage
 prvsenddhcprequest
 prvsendudppacket
 prvsetaynackoptions
+prvsetchecksuminpacket
 prvsetoptions
 prvsetsynackoptions
 prvsinglesteptcpheaderoptions
@@ -1606,6 +1608,7 @@ uxipheadersize
 uxipheadersizepacket
 uxipheadersizesocket
 uxlast
+uxlastminqueuespace
 uxleft
 uxlength
 uxlittlespace
@@ -1689,6 +1692,7 @@ vdnsinitialise
 vdnssetcallback
 vdnstimerreload
 ve
+versionheaderlength
 veventgroupdelete
 vipnetworkupcalls
 vipreloaddhcptimer
@@ -1710,6 +1714,7 @@ vnetworkinterfaceallocateramtobuffers
 vnetworktimerreload
 vperformaction
 vportfree
+vprecheckconfigs
 vprintresourcestats
 vprocessgeneratedudppacket
 vraprocess
@@ -1992,6 +1997,7 @@ xsegmentitem
 xsegmentlist
 xselectbits
 xsendblocktime
+xsenddhcpevent
 xsenderhardwareaddress
 xsendeventstructtoiptask
 xsendeventtoiptask

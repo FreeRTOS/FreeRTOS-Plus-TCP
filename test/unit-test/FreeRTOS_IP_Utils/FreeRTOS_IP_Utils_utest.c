@@ -2167,7 +2167,7 @@ void test_usGenerateProtocolChecksum_ICMPv6LessHeaderLength( void )
 
 /**
  * @brief test_usGenerateChecksum_UnallignedAccess
- * To toggle unalign address in usGenerateChecksum.
+ * To toggle address that is not aligned in usGenerateChecksum.
  */
 void test_usGenerateChecksum_UnallignedAccess( void )
 {
@@ -2194,7 +2194,7 @@ void test_usGenerateChecksum_UnallignedAccess( void )
 
 /**
  * @brief test_usGenerateChecksum_OneByteToChecksum
- * To toggle unalign address in usGenerateChecksum with one byte length.
+ * To toggle address that is not aligned in usGenerateChecksum with one byte length.
  */
 void test_usGenerateChecksum_OneByteToChecksum( void )
 {
