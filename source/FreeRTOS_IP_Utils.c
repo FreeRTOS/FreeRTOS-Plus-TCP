@@ -575,7 +575,8 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
     }
     else
     {
-        switch( pxSet->xIsIPv6 )
+        /* Default case is impossible to reach because it's checked before calling this function. */
+        switch( pxSet->xIsIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv6 != 0 )
                 case pdTRUE:
@@ -607,10 +608,11 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                    break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-            default:
+            /* Default case is impossible to reach because it's checked before calling this function. */
+            default: /* LCOV_EXCL_LINE */
                 /* Shouldn't reach here */
                 /* MISRA 16.4 Compliance */
-                break;
+                break; /* LCOV_EXCL_LINE */
         }
 
         /* Sum TCP header and data. */
@@ -747,7 +749,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
          * It must have a value of either 0x4x or 0x6x. */
         configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
 
-        switch( ucIPType )
+        switch( ucIPType ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv6 != 0 )
                 case ipTYPE_IPv6:
@@ -902,7 +904,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             #endif /* ( (ipconfigUSE_RA != 0) && ( ipconfigUSE_IPv6 != 0 )) */
 
             {
-                switch( pxEndPoint->bits.bIPv6 )
+                switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
@@ -1041,7 +1043,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        switch( xSet.pxIPPacket->xEthernetHeader.usFrameType )
+        switch( xSet.pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipIPv4_FRAME_TYPE:
@@ -1062,8 +1064,11 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             default:
-                FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined usFrameType\n" ) );
                 /* MISRA 16.4 Compliance */
+                FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum: Undefined usFrameType %d\n", xSet.pxIPPacket->xEthernetHeader.usFrameType ) );
+
+                xSet.usChecksum = ipINVALID_LENGTH;
+                xResult = 1;
                 break;
         }
 

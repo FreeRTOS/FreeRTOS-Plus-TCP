@@ -735,6 +735,38 @@ void test_prvProcessNetworkDownEvent_PassRA( void )
 }
 
 /**
+ * @brief test_prvProcessNetworkDownEvent_PassStaticIP
+ * To validate if prvProcessNetworkDownEvent sets static IP address to endpoint.
+ */
+void test_prvProcessNetworkDownEvent_PassStaticIP( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
+    IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+
+    xCallEventHook = pdFALSE;
+    xInterface.pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bWantRA = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    FreeRTOS_ClearARP_ExpectAnyArgs();
+    
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    prvProcessNetworkDownEvent( &xInterface );
+
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+}
+
+/**
  * @brief test_vPreCheckConfigs_CatchAssertTaskNotReady
  * To validate if vPreCheckConfigs triggers assertion when IP task is not ready.
  */
@@ -3022,4 +3054,75 @@ void test_usChar2u16( void )
     usResult = usChar2u16( &pucPtr[ 2 ] );
 
     TEST_ASSERT_EQUAL_UINT16( 0x12EF, usResult );
+}
+
+/**
+ * @brief test_prvGetChecksumFromPacket_UnhandledProtocol
+ * To validate prvGetChecksumFromPacket returns ipUNHANDLED_PROTOCOL when
+ * input set has unknown protocol.
+ */
+void test_prvGetChecksumFromPacket_UnhandledProtocol()
+{
+    struct xPacketSummary xSet;
+    uint16_t usReturn;
+
+    memset( &xSet, 0, sizeof( xSet ) );
+
+    xSet.ucProtocol = 0xFF;
+
+    usReturn = prvGetChecksumFromPacket( &xSet );
+    TEST_ASSERT_EQUAL( ipUNHANDLED_PROTOCOL, usReturn );
+}
+
+/**
+ * @brief test_prvGetChecksumFromPacket_IPv6UnhandledProtocol
+ * To validate prvGetChecksumFromPacket returns ipUNHANDLED_PROTOCOL when
+ * input set has unknown protocol.
+ */
+void test_prvGetChecksumFromPacket_IPv6UnhandledProtocol()
+{
+    struct xPacketSummary xSet;
+    uint16_t usReturn;
+
+    memset( &xSet, 0, sizeof( xSet ) );
+
+    xSet.xIsIPv6 = pdTRUE;
+    xSet.ucProtocol = 0xFF;
+
+    usReturn = prvGetChecksumFromPacket( &xSet );
+    TEST_ASSERT_EQUAL( ipUNHANDLED_PROTOCOL, usReturn );
+}
+
+/**
+ * @brief test_prvSetChecksumInPacket_UnhandledProtocol
+ * To validate prvSetChecksumInPacket returns ipUNHANDLED_PROTOCOL when
+ * input set has unknown protocol.
+ */
+void test_prvSetChecksumInPacket_UnhandledProtocol()
+{
+    struct xPacketSummary xSet;
+
+    memset( &xSet, 0, sizeof( xSet ) );
+
+    xSet.ucProtocol = 0xFF;
+
+    prvSetChecksumInPacket( &xSet, 0 );
+}
+
+/**
+ * @brief test_prvSetChecksumInPacket_IPv6UnhandledProtocol
+ * To validate prvSetChecksumInPacket returns ipUNHANDLED_PROTOCOL when
+ * input set has unknown protocol.
+ */
+void test_prvSetChecksumInPacket_IPv6UnhandledProtocol()
+{
+    struct xPacketSummary xSet;
+    uint16_t usReturn;
+
+    memset( &xSet, 0, sizeof( xSet ) );
+
+    xSet.xIsIPv6 = pdTRUE;
+    xSet.ucProtocol = 0xFF;
+
+    prvSetChecksumInPacket( &xSet, 0 );
 }
