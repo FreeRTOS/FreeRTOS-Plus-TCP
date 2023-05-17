@@ -342,6 +342,8 @@ void test_vReceiveNA_bIPAddressNotInUse3( void )
     xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
     xEndPoint.xRAData.eRAState = eRAStateIPWait;
 
+    memset( xEndPoint.ipv6_settings.xIPAddress.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+    memset( xICMPPacket.xICMPHeaderIPv6.xIPv6Address.ucBytes, 1, ipSIZE_OF_IPv6_ADDRESS );
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
 
