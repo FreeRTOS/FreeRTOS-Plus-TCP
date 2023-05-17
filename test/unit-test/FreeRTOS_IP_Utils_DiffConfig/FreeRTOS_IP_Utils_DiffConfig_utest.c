@@ -46,20 +46,12 @@
 #include "FreeRTOSIPConfig.h"
 
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
 #include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
 #include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_Sockets.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_NetworkBufferManagement.h"
+#include "mock_FreeRTOS_IPv4_Utils.h"
 
 #include "FreeRTOS_IP_Utils.h"
 
