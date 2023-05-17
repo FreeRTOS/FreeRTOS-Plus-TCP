@@ -339,7 +339,6 @@ void test_vReceiveNA_bIPAddressNotInUse3( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) ( uint8_t * ) &xICMPPacket;
-    xEndPoint.xRAData.eRAState = eRAStateWait;
     xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
     xEndPoint.xRAData.eRAState = eRAStateIPWait;
 
@@ -366,15 +365,8 @@ void test_vReceiveNA_bIPAddressNotInUse4( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) ( uint8_t * ) &xICMPPacket;
     xEndPoint.xRAData.eRAState = eRAStateWait;
 
-    /* Setting IPv6 address as "fe80::7009" */
-    memcpy( &xIPAddress, &xDefaultIPAddress, sizeof( IPv6_Address_t ) );
-
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( xICMPPacket.xICMPHeaderIPv6.xIPv6Address.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
-    vDHCP_RATimerReload_Ignore();
 
     vReceiveNA( pxNetworkBuffer );
 
