@@ -22,6 +22,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCPv6.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP.h"

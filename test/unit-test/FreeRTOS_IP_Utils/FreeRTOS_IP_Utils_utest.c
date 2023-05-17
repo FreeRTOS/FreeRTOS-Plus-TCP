@@ -52,6 +52,7 @@
 #include "mock_NetworkBufferManagement.h"
 #include "mock_NetworkInterface.h"
 #include "mock_FreeRTOS_DHCP.h"
+#include "mock_FreeRTOS_DHCPv6.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
@@ -86,6 +87,11 @@ extern size_t uxMinLastSize;
 static BaseType_t xNetworkInterfaceInitialise_returnTrue( NetworkInterface_t * xInterface )
 {
     return pdTRUE;
+}
+
+static BaseType_t xNetworkInterfaceInitialise_returnFalse( NetworkInterface_t * xInterface )
+{
+    return pdFALSE;
 }
 
 static BaseType_t prvChecksumICMPv6Checks_Valid( size_t uxBufferLength,
@@ -396,7 +402,7 @@ void test_prvPacketBuffer_to_NetworkBuffer_Alligned( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetBufferToReturn;
     const void * pvBuffer;
     size_t uxOffset = 20;
-    uint8_t ucEthBuf[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
     NetworkBufferDescriptor_t * pxAddrOfNetBuffer = &xNetBufferToReturn;
 
     pxAddrOfNetBuffer->pucEthernetBuffer = ucEthBuf;
@@ -420,7 +426,7 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetBufferToReturn;
     const void * pvBuffer;
     size_t uxOffset = sizeof( UDPPacket_t );
-    uint8_t ucEthBuf[ ipconfigTCP_MSS ];
+    uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
     uint8_t * pucIPType;
     NetworkBufferDescriptor_t * pxAddrOfNetBuffer = &xNetBufferToReturn;
 
@@ -449,6 +455,66 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_NullInput( void )
     pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( NULL );
 
     TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer );
+}
+
+/**
+ * @brief test_pxUDPPayloadBuffer_to_NetworkBuffer_UnknownIPType
+ * To validate if pxUDPPayloadBuffer_to_NetworkBuffer triggers assertion when IP type of buffer is unknown.
+ */
+void test_pxUDPPayloadBuffer_to_NetworkBuffer_UnknownIPType( void )
+{
+    NetworkBufferDescriptor_t * pxNetBufferToReturn, xNetBufferToReturn;
+    size_t uxOffset = sizeof( UDPPacket_t );
+    uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
+    uint8_t * pucIPType;
+
+    memset( ucEthBuf, 0, sizeof( ucEthBuf ) );
+    memset( &xNetBufferToReturn, 0, sizeof( xNetBufferToReturn ) );
+
+    pxNetBufferToReturn = &xNetBufferToReturn;
+
+    pxNetBufferToReturn->pucEthernetBuffer = ucEthBuf;
+
+    *( ( NetworkBufferDescriptor_t ** ) pxNetBufferToReturn->pucEthernetBuffer ) = pxNetBufferToReturn;
+
+    pxNetBufferToReturn->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
+
+    pucIPType = ( pxNetBufferToReturn->pucEthernetBuffer ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    *pucIPType = ( const uint8_t * ) 0xFF;
+
+    catch_assert( pxUDPPayloadBuffer_to_NetworkBuffer( pxNetBufferToReturn->pucEthernetBuffer ) );
+}
+
+/**
+ * @brief test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6
+ * To validate if pxUDPPayloadBuffer_to_NetworkBuffer returns correct pointer to the network buffer.
+ */
+void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
+{
+    NetworkBufferDescriptor_t * pxNetBufferToReturn, xNetBufferToReturn;
+    size_t uxOffset = sizeof( UDPPacket_IPv6_t );
+    uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
+    uint8_t * pucIPType;
+    uint8_t * pucPayloadBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    memset( ucEthBuf, 0, sizeof( ucEthBuf ) );
+    memset( &xNetBufferToReturn, 0, sizeof( xNetBufferToReturn ) );
+
+    pxNetBufferToReturn = &xNetBufferToReturn;
+
+    pxNetBufferToReturn->pucEthernetBuffer = ucEthBuf;
+
+    *( ( NetworkBufferDescriptor_t ** ) pxNetBufferToReturn->pucEthernetBuffer ) = pxNetBufferToReturn;
+
+    pucPayloadBuffer = &ucEthBuf[ uxOffset + ipBUFFER_PADDING ];
+
+    pucIPType = pucPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    *pucIPType = ( const uint8_t * ) ipTYPE_IPv6;
+
+    pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucPayloadBuffer );
+
+    TEST_ASSERT_EQUAL( pxNetBufferToReturn, pxNetworkBuffer );
 }
 
 /**
@@ -553,6 +619,111 @@ void test_prvProcessNetworkDownEvent_Fail( void )
     vIPNetworkUpCalls_Expect( &xEndPoint );
 
     prvProcessNetworkDownEvent( &xInterfaces );
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_NullInterface
+ * To validate if prvProcessNetworkDownEvent triggers assertion when
+ * input interface is NULL pointer.
+ */
+void test_prvProcessNetworkDownEvent_NullInterface( void )
+{
+    catch_assert( prvProcessNetworkDownEvent( NULL ) );
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_NullInitialFunction
+ * To validate if prvProcessNetworkDownEvent triggers assertion when
+ * initialize function pointer of input interface is NULL.
+ */
+void test_prvProcessNetworkDownEvent_NullInitialFunction( void )
+{
+    NetworkInterface_t xInterface;
+
+    xInterface.pfInitialise = NULL;
+
+    catch_assert( prvProcessNetworkDownEvent( &xInterface ) );
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_InterfaceInitFail
+ * To validate if prvProcessNetworkDownEvent skips the following calls
+ * after interface initialization when it returns false.
+ */
+void test_prvProcessNetworkDownEvent_InterfaceInitFail( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xCallEventHook = pdFALSE;
+    xInterface.pfInitialise = &xNetworkInterfaceInitialise_returnFalse;
+    xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    FreeRTOS_ClearARP_ExpectAnyArgs();
+
+    prvProcessNetworkDownEvent( &xInterface );
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_PassDHCPv6
+ * To validate if prvProcessNetworkDownEvent runs DHCPv6 flow when
+ * the endpoint is configured for it.
+ */
+void test_prvProcessNetworkDownEvent_PassDHCPv6( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xCallEventHook = pdFALSE;
+    xInterface.pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    FreeRTOS_ClearARP_ExpectAnyArgs();
+
+    vDHCPv6Process_Expect( pdTRUE, &xEndPoint );
+
+    prvProcessNetworkDownEvent( &xInterface );
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_PassRA
+ * To validate if prvProcessNetworkDownEvent runs RA flow when
+ * the endpoint is configured for it.
+ */
+void test_prvProcessNetworkDownEvent_PassRA( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xCallEventHook = pdFALSE;
+    xInterface.pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+    FreeRTOS_ClearARP_ExpectAnyArgs();
+
+    vRAProcess_Expect( pdTRUE, &xEndPoint );
+
+    prvProcessNetworkDownEvent( &xInterface );
 }
 
 /**
@@ -792,7 +963,7 @@ void test_usGenerateProtocolChecksum_UDPNonZeroChecksum( void )
 /**
  * @brief test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket
  * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
- * it's a outgoing packet. And set the checksum to 0xFFFF.
+ * it's a outgoing packet. And set the checksum to 0xFFFF because the calculated checksum was zero.
  */
 void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 {
@@ -827,6 +998,47 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0xFFFF, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum
+ * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
+ * it's a TCP outgoing packet. And the checksum is zero.
+ */
+void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdTRUE;
+    uint8_t ucVersionHeaderLength = 20;
+    IPPacket_t * pxIPPacket;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+    ProtocolPacket_t * pxProtPack;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    /* This is the checksum with zeroed out data. Fill it in to make the checksum 0. */
+    *( ( uint32_t * ) &pucEthernetBuffer[ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xAFA9 );
+
+    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+
+    pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
+
+    pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
+
+    pxProtPack->xTCPPacket.xTCPHeader.ucTCPOffset = 0x50;
+    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0x00;
+
+    prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
+    TEST_ASSERT_EQUAL( 0, pxProtPack->xTCPPacket.xTCPHeader.usChecksum );
 }
 
 /**
@@ -2345,6 +2557,25 @@ void test_FreeRTOS_strerror_r_ZeroLengthBuffer( void )
 
     TEST_ASSERT_EQUAL( pcBuffer, pucResult );
     TEST_ASSERT_EQUAL_STRING( "", pcBuffer );
+}
+
+/**
+ * @brief test_FreeRTOS_strerror_r_NegativeErrno
+ * To validate FreeRTOS_strerror_r with negative errno.
+ */
+void test_FreeRTOS_strerror_r_NegativeErrno( void )
+{
+    const char * pucResult;
+    BaseType_t xErrnum = -pdFREERTOS_ERRNO_EISCONN;
+    char pcBuffer[ 100 ];
+    size_t uxLength = sizeof( pcBuffer );
+
+    memset( pcBuffer, 0, sizeof( pcBuffer ) );
+
+    pucResult = FreeRTOS_strerror_r( xErrnum, pcBuffer, uxLength );
+
+    TEST_ASSERT_EQUAL( pcBuffer, pucResult );
+    TEST_ASSERT_EQUAL_STRING( "EISCONN", pcBuffer );
 }
 
 /**
