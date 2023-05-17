@@ -764,7 +764,7 @@ void test_vReceiveRA_Valid_ICMPprefix_Option5( void )
 
 /**
  * @brief This function verify ICMP prefix option with
- *        options present as defaul case.
+ *        options present as default case.
  */
 void test_vReceiveRA_Valid_ICMPprefix_Option6( void )
 {
