@@ -35,15 +35,74 @@
     #include "FreeRTOSIPConfig.h"
     #include "IPTraceMacroDefaults.h"
 
-    #define DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH    128
+/* IPv6 option numbers. */
+/** @brief IPv6 DHCP option number - Solicit */
+    #define DHCPv6_message_Type_Solicit      1U
+/** @brief IPv6 DHCP option number - Advertise */
+    #define DHCPv6_message_Type_Advertise    2U
+/** @brief IPv6 DHCP option number - Request */
+    #define DHCPv6_message_Type_Request      3U
+/** @brief IPv6 DHCP option number - Confirm */
+    #define DHCPv6_message_Type_Confirm      4U
+/** @brief IPv6 DHCP option number - Renew  */
+    #define DHCPv6_message_Type_Renew        5U
+/** @brief IPv6 DHCP option number - Reply */
+    #define DHCPv6_message_Type_Reply        7U
+/** @brief IPv6 DHCP option number - Release */
+    #define DHCPv6_message_Type_Release      8U
+/** @brief IPv6 DHCP option number - Decline */
+    #define DHCPv6_message_Type_Decline      9U
 
-    #define ipDHCP_CLIENT_PORT                    67U
-    #define ipDHCP_SERVER_PORT                    68U
+/* Note: IA stands for "Identity_Association". */
+/** @brief IPv6 DHCP option - Client Identifier */
+    #define DHCPv6_Option_Client_Identifier            1U
+/** @brief IPv6 DHCP option - Server Identifier */
+    #define DHCPv6_Option_Server_Identifier            2U
+/** @brief IPv6 DHCP option - Non Temporary Address */
+    #define DHCPv6_Option_NonTemporaryAddress          3U
+/** @brief IPv6 DHCP option - Temporary Address */
+    #define DHCPv6_Option_TemporaryAddress             4U
+/** @brief IPv6 DHCP option - Identity_Association Address */
+    #define DHCPv6_Option_IA_Address                   5U
+/** @brief IPv6 DHCP option - Option */
+    #define DHCPv6_Option_Option_List                  6U
+/** @brief IPv6 DHCP option - Preference */
+    #define DHCPv6_Option_Preference                   7U
+/** @brief IPv6 DHCP option - Elapsed time */
+    #define DHCPv6_Option_Elapsed_Time                 8U
+/** @brief IPv6 DHCP option - Status code */
+    #define DHCPv6_Option_Status_Code                  13U
+/** @brief IPv6 DHCP option - Recursive name server */
+    #define DHCPv6_Option_DNS_recursive_name_server    23U
+/** @brief IPv6 DHCP option - Search list */
+    #define DHCPv6_Option_Domain_Search_List           24U
+/** @brief IPv6 DHCP option - IA for prefix delegation */
+    #define DHCPv6_Option_IA_for_Prefix_Delegation     25U
+/** @brief IPv6 DHCP option - IA Prefix */
+    #define DHCPv6_Option_IA_Prefix                    26U
+
+/** @brief DHCPv6 option request, used in combination with 'DHCPv6_Option_Option_List' */
+    #define DHCP6_OPTION_REQUEST_DNS                   0x0017
+/** @brief DHCPv6 option request domain search list, used in combination with 'DHCPv6_Option_Option_List' */
+    #define DHCP6_OPTION_REQUEST_DOMAIN_SEARCH_LIST    0x0018
+
+    #define DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH         128
+
+/** @brief The function time() counts since 1-1-1970.  The DHCPv6 time-stamp however
+ * uses a time stamp that had zero on 1-1-2000. */
+    #define SECS_FROM_1970_TILL_2000                   946684800U
+
+/** @brief If a lease time is not received, use the default of two days.  48 hours in ticks.
+ * Do not use the macro pdMS_TO_TICKS() here as integer overflow can occur. */
+    #define dhcpv6DEFAULT_LEASE_TIME                   ( ( 48U * 60U * 60U ) * configTICK_RATE_HZ )
+
+/** @brief Don't allow the lease time to be too short. */
+    #define dhcpv6MINIMUM_LEASE_TIME                   ( pdMS_TO_TICKS( 60000U ) ) /* 60 seconds in ticks. */
 
 /** @brief Default v6 DHCP client port. */
-    #define ipDHCPv6_CLIENT_PORT                  546U
+    #define ipDHCPv6_CLIENT_PORT                       546U
     /** @brief Default v6 DHCP server port. */
-    #define ipDHCPv6_SERVER_PORT                  547U
+    #define ipDHCPv6_SERVER_PORT                       547U
 
 /** @brief The ID of a client or a server. */
     typedef struct xClientServerID

@@ -45,19 +45,8 @@
 
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IP_Utils.h"
-#include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
-#include "mock_FreeRTOS_ARP.h"
 #include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
-#include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -65,6 +54,8 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+
+/* =========================== EXTERN VARIABLES =========================== */
 
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
@@ -77,77 +68,22 @@ extern BaseType_t xNetworkDownEventPending;
 extern BaseType_t xNetworkUp;
 extern UBaseType_t uxQueueMinimumSpace;
 
-BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
-BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
 {
-    NetworkInterfaceOutputFunction_Stub_Called++;
-    return 0;
+    pxNetworkEndPoints = NULL;
+    pxNetworkInterfaces = NULL;
+    xNetworkDownEventPending = pdFALSE;
 }
 
-static uint8_t ReleaseTCPPayloadBuffer[ 1500 ];
-static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
-static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
-                                                         uint8_t ** ppucData,
-                                                         int lCounter )
+/*! called after each test case */
+void tearDown( void )
 {
-    *ppucData = &ReleaseTCPPayloadBuffer[ 150 ];
-
-    return 0xFFFFFF;
 }
 
-static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize( StreamBuffer_t * pxBuffer,
-                                                            uint8_t ** ppucData,
-                                                            int lCounter )
-{
-    *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
-
-    return( ReleaseTCPPayloadBufferxByteCount >> 1 );
-}
-
-static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuffer,
-                                                          uint8_t ** ppucData,
-                                                          int lCounter )
-{
-    *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
-
-    return ReleaseTCPPayloadBufferxByteCount;
-}
-
-static void vSetIPTaskHandle( TaskHandle_t xTaskHandleToSet )
-{
-    const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucGatewayAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
-    const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
-
-    vPreCheckConfigs_Expect();
-
-    #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-        xQueueGenericCreateStatic_ExpectAnyArgsAndReturn( ( QueueHandle_t ) 0x1234ABCD );
-    #else
-        xQueueGenericCreate_ExpectAnyArgsAndReturn( ( QueueHandle_t ) 0x1234ABCD );
-    #endif /* configSUPPORT_STATIC_ALLOCATION */
-
-    #if ( configQUEUE_REGISTRY_SIZE > 0 )
-        vQueueAddToRegistry_ExpectAnyArgs();
-    #endif
-
-    xNetworkBuffersInitialise_ExpectAndReturn( pdPASS );
-
-    vNetworkSocketsInit_Expect();
-
-    #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-        xTaskCreateStatic_ExpectAnyArgsAndReturn( xTaskHandleToSet );
-    #else
-        xTaskCreate_ReturnThruPtr_pxCreatedTask( xTaskHandleToSet );
-    #endif
-
-    FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
-}
-
+/* ======================== Stub Callback Functions ========================= */
 
 TaskHandle_t IPInItHappyPath_xTaskHandleToSet = ( TaskHandle_t ) 0xCDBA9087;
 static BaseType_t StubxTaskCreate( TaskFunction_t pxTaskCode,
@@ -161,7 +97,13 @@ static BaseType_t StubxTaskCreate( TaskFunction_t pxTaskCode,
     return pdPASS;
 }
 
-void test_FreeRTOS_IPInit_HappyPath( void )
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_FreeRTOS_IPInit_HappyPathDHCP
+ * To validate if FreeRTOS_IPInit() works with DHCP enabled.
+ */
+void test_FreeRTOS_IPInit_HappyPathDHCP( void )
 {
     const uint8_t ucIPAddress[ ipIP_ADDRESS_LENGTH_BYTES ] = { 0xC0, 0xB0, 0xAB, 0x12 };
     const uint8_t ucNetMask[ ipIP_ADDRESS_LENGTH_BYTES ] = { 0xC1, 0xB2, 0xAC, 0x13 };
@@ -171,19 +113,12 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     BaseType_t xReturn;
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
 
-    NetworkEndPoint_t xEndPoints = { 0 }, * xFirstEndPoint = &xEndPoints;
-
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
-
-    /* Clear default values. */
-    memset( &xDefaultAddressing, 0, sizeof( xDefaultAddressing ) );
-    memset( xFirstEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, xFirstEndPoint );
 
     vPreCheckConfigs_Expect();
 
@@ -202,13 +137,5 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     xReturn = FreeRTOS_IPInit( ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] ), xIPv4Addressing->ulIPAddress ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] ), xIPv4Addressing->ulNetMask ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucGatewayAddress[ 0 ], ucGatewayAddress[ 1 ], ucGatewayAddress[ 2 ], ucGatewayAddress[ 3 ] ), xIPv4Addressing->ulGatewayAddress ); */
-    /*TEST_ASSERT_EQUAL( FreeRTOS_inet_addr_quick( ucDNSServerAddress[ 0 ], ucDNSServerAddress[ 1 ], ucDNSServerAddress[ 2 ], ucDNSServerAddress[ 3 ] ), xIPv4Addressing->ulDNSServerAddresses[ 0 ] ); */
-    /*TEST_ASSERT_EQUAL( ( ( xIPv4Addressing->ulIPAddress & xIPv4Addressing->ulNetMask ) | ~xIPv4Addressing->ulNetMask ), xIPv4Addressing->ulBroadcastAddress ); */
-    /* TEST_ASSERT_EQUAL_MEMORY( &xDefaultAddressing, &xNetworkAddressing, sizeof( xDefaultAddressing ) ); TODO: verify if xNetworkAddressing is used */
-    /*TEST_ASSERT_EQUAL( 0, *ipLOCAL_IP_ADDRESS_POINTER ); */
-    /*TEST_ASSERT_EQUAL_MEMORY( ucMACAddress, ipLOCAL_MAC_ADDRESS, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES ); */
     TEST_ASSERT_EQUAL( IPInItHappyPath_xTaskHandleToSet, FreeRTOS_GetIPTaskHandle() );
 }
