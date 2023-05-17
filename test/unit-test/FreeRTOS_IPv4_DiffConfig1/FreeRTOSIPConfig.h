@@ -35,10 +35,10 @@
 #define TEST                                1
 
 #define ipconfigUSE_IPv4                    ( 1 )
-#define ipconfigUSE_IPv6                    ( 0 )
+#define ipconfigUSE_IPv6                    ( 1 )
 
 #define ipconfigMULTI_INTERFACE             1
-#define ipconfigIPv4_BACKWARD_COMPATIBLE    1
+#define ipconfigIPv4_BACKWARD_COMPATIBLE    0
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
@@ -64,7 +64,7 @@
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -272,6 +272,15 @@ extern uint32_t ulRand();
  * filtering can be removed by using a value other than 1 or 0. */
 #define ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES    1
 
+/* When ipconfigETHERNET_DRIVER_FILTERS_PACKETS is enabled, the network
+ * interface will inspect the incoming packets to see if they can be
+ * accepted.
+ * When enabled, the function 'xPortHasUDPSocket()' will become available.
+ * That function checks if there is a UDP socket listening to a
+ * given port number.
+ */
+#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS        1
+
 /* The windows simulator cannot really simulate MAC interrupts, and needs to
  * block occasionally to allow other tasks to run. */
 #define configWINDOWS_MAC_INTERRUPT_SIMULATOR_DELAY    ( 20 / portTICK_PERIOD_MS )
@@ -339,5 +348,11 @@ extern uint32_t ulRand();
 #define portINLINE
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
+
+#define ipconfigCHECK_IP_QUEUE_SPACE               ( 1 )
+#define ipconfigSELECT_USES_NOTIFY                 ( 1 )
+#define ipconfigUSE_LINKED_RX_MESSAGES             ( 1 )
+#define ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS    ( 0 )
+#define ipconfigZERO_COPY_TX_DRIVER                ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

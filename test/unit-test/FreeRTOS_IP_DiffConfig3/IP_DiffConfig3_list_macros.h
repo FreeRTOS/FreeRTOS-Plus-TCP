@@ -77,13 +77,6 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 /**
- * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
- * longer considered valid and is deleted if its age reaches zero.
- * Just before getting to zero, 3 times a neighbour solicitation will be sent.
- */
-void vNDAgeCache( void );
-
-/**
  * >>>>>>> afcedead21c747cef64f07c7fedd50df75bcbd10
  * @brief Work on the RA/SLAAC processing.
  * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
