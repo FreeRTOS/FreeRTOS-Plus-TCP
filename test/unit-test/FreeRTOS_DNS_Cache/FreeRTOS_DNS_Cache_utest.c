@@ -45,6 +45,8 @@
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_DNS.h"
 
+#include "FreeRTOS_DNS_Cache.h"
+
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
@@ -118,7 +120,7 @@ void test_processDNS_CACHE_CatchAssert( void )
 }
 
 /**
- * @brief Ensures that the same entry is inserted into the cache and retrieved .
+ * @brief Ensures that the same entry is inserted into the cache and retrieved.
  */
 void test_processDNS_CACHE_Success( void )
 {
@@ -436,7 +438,6 @@ void test_processDNS_CACHE_exceed_dns_name_limit( void )
  * @brief DNS Lookup success
  */
 
-
 void test_prepare_DNSLookup( void )
 {
     BaseType_t x = 0U;
@@ -617,7 +618,6 @@ void test_prepare_DNSLookup6( void )
 /**
  * @brief DNS Lookup success : IPv6
  */
-
 void test_prepare_DNSLookup_IPv6( void )
 {
     BaseType_t x = 0U;
@@ -649,7 +649,6 @@ void test_prepare_DNSLookup_IPv6( void )
 /**
  * @brief DNS IPv6 Lookup fail : pxAddressInfo = NULL
  */
-
 void test_prepare_DNSLookup2_IPv6( void )
 {
     BaseType_t x = 0U;

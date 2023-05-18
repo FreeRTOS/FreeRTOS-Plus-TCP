@@ -506,7 +506,7 @@
             {
                 pxAddresses = &( xDNSCache[ uxIndex ].xAddresses[ uxIPAddressIndex ] );
 
-                switch( pxAddresses->xIs_IPv6 )
+                switch( pxAddresses->xIs_IPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE:
@@ -523,10 +523,11 @@
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                    default:
+                    /* Case default is never toggled. */
+                    default: /* LCOV_EXCL_LINE */
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "prvReadDNSCache: Undefined IP Type \n" ) );
-                        break;
+                        break; /* LCOV_EXCL_LINE */
                 }
 
                 if( pxNewAddress == NULL )
