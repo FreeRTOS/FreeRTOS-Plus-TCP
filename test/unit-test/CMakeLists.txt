@@ -288,6 +288,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig1/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_RA/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Reception/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
@@ -321,6 +322,7 @@ add_custom_target( coverage
     FreeRTOS_IP_Timers_utest
     FreeRTOS_Stream_Buffer_utest
     FreeRTOS_DNS_utest
+    FreeRTOS_RA_utest
     FreeRTOS_TCP_WIN_utest
     FreeRTOS_Tiny_TCP_utest
     FreeRTOS_TCP_Reception_utest
