@@ -21,6 +21,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Utils.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ND.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_UDP_IPv6/FreeRTOS_UDP_IPv6_list_macros.h"
         )
 

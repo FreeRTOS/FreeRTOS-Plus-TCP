@@ -74,7 +74,7 @@
 /* _HT_ this is a temporary aid while testing. In case an end-0point is not found,
  * this function will return the first end-point of the required type,
  * either 'ipTYPE_IPv4' or 'ipTYPE_IPv6' */
-extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
+static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
                                           BaseType_t xIsGlobal );
 
 /**
@@ -89,7 +89,7 @@ extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
  * @returns Pointer to the first end point of the given IP type from the
  *          list of end points.
  */
-NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
+static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
                                    BaseType_t xIsGlobal )
 {
     NetworkEndPoint_t * pxEndPoint;
@@ -109,13 +109,6 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
                 {
                     break;
                 }
-            }
-        }
-        else
-        {
-            if( pxEndPoint->bits.bIPv6 == 0U )
-            {
-                break;
             }
         }
     }

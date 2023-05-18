@@ -74,5 +74,8 @@ void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket );
 
 #endif /* ifndef FREERTOS_UDP_IPV6_LIST_MACRO_H */
