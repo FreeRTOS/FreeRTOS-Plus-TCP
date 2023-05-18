@@ -124,21 +124,19 @@ void test_prvTCPReturnPacket_IPV6_BufferNULL( void )
  *        only xSocket is NULL while
  *        returning a packet.
  */
-/* void test_prvTCPReturnPacket_IPV6_pucEthernetBuffer_Assert( void ) */
-/*  { */
-/*     FreeRTOS_Socket_t *pxSocket=NULL; */
-/*     NetworkBufferDescriptor_t xDescriptor; */
-/*     uint32_t ulLen = PACKET_LENGTH; */
-/*     BaseType_t xReleaseAfterSend = pdFALSE; */
-/*     NetworkEndPoint_t xEndPoint; */
-
-/*     memset(&xDescriptor, 0, sizeof(NetworkBufferDescriptor_t)); */
-/*     memset(&xEndPoint, 0, sizeof(NetworkEndPoint_t)); */
-/*     xDescriptor.pxEndPoint = &xEndPoint; */
-/*     xDescriptor.pucEthernetBuffer = NULL; */
-
-/*    catch_assert(prvTCPReturnPacket_IPV6( pxSocket, &xDescriptor, ulLen, xReleaseAfterSend )); */
-/*  } */
+/*  void test_prvTCPReturnPacket_IPV6_pucEthernetBuffer_Assert( void ) */
+/*   { */
+/*      FreeRTOS_Socket_t *pxSocket=NULL; */
+/*      NetworkBufferDescriptor_t xDescriptor; */
+/*      uint32_t ulLen = PACKET_LENGTH; */
+/*      BaseType_t xReleaseAfterSend = pdFALSE; */
+/*      NetworkEndPoint_t xEndPoint; */
+/*      memset(&xDescriptor, 0, sizeof(NetworkBufferDescriptor_t)); */
+/*      memset(&xEndPoint, 0, sizeof(NetworkEndPoint_t)); */
+/*      xDescriptor.pxEndPoint = &xEndPoint; */
+/*      xDescriptor.pucEthernetBuffer = NULL; */
+/*     catch_assert(prvTCPReturnPacket_IPV6( pxSocket, &xDescriptor, ulLen, xReleaseAfterSend )); */
+/*   } */
 
 /**
  * @brief This function verify handling case when
@@ -153,10 +151,13 @@ void test_prvTCPReturnPacket_IPV6_SocketNULL( void )
     BaseType_t xReleaseAfterSend = pdFALSE;
     NetworkEndPoint_t xEndPoint;
     TCPPacket_IPv6_t xTCPPacket;
+    NetworkInterface_t xNetworkInterfaces;
 
     memset( &xDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
     xDescriptor.pxEndPoint = &xEndPoint;
     xDescriptor.pucEthernetBuffer = &xTCPPacket;
+    xDescriptor.xEndPoint.pxNetworkInterface = &xNetworkInterfaces;
+    xDescriptor.xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
@@ -169,7 +170,7 @@ void test_prvTCPReturnPacket_IPV6_SocketNULL( void )
  *        pxNetworkBuffer and pxSocket where as network end
  *        point is NULL while returning a packet.
  */
-void test_prvTCPReturnPacket_IPV6_NoEP_NoReleaseAfterSend( void )
+void test_prvTCPReturnPacket_IPV6_NoEP_Found( void )
 {
     FreeRTOS_Socket_t xSocket;
     NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
@@ -182,14 +183,15 @@ void test_prvTCPReturnPacket_IPV6_NoEP_NoReleaseAfterSend( void )
 
     xDescriptor.pucEthernetBuffer = &xTCPPacket;
     xDescriptor.pxEndPoint = NULL;
+    xSocket.pxEndPoint = NULL;
 
     prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
 }
 
 /**
  * @brief This function verify handling case with valid
- *        pxNetworkBuffer and pxSocket where as network end
- *        point is NULL while returning a packet.
+ *        pxNetworkBuffer and pxSocket where SetEndPoint is
+ *        not able to find an Endpoint .
  */
 void test_prvTCPReturnPacket_IPV6_NoEP_ReleaseAfterSend( void )
 {
@@ -335,9 +337,8 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_ReleaseAfterSend( void )
     pxDescriptor->pucEthernetBuffer = &xTCPPacket;
     pxDescriptor->pxEndPoint = &xEndPoint;
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
-    xEndPoint.pxNetworkInterface = &xNetworkInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = NULL;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    pxDescriptor->xEndPoint.pxNetworkInterface = &xNetworkInterfaces;
+    pxDescriptor->xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
@@ -371,9 +372,9 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_NoReleaseAfterSend( void )
     pxDescriptor->pucEthernetBuffer = &xTCPPacket;
     pxDescriptor->pxEndPoint = &xEndPoint;
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
-    xEndPoint.pxNetworkInterface = &xNetworkInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = NULL;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    pxDescriptor->xEndPoint.pxNetworkInterface = &xNetworkInterfaces;
+    pxDescriptor->xEndPoint.pxNetworkInterface->pfOutput = NULL;
+    pxDescriptor->xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
