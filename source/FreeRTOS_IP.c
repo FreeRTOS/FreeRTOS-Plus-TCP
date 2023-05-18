@@ -338,7 +338,7 @@ static void prvProcessIPEventsAndTimers( void )
             pxSocket = ( ( FreeRTOS_Socket_t * ) xReceivedEvent.pvData );
             xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
 
-            switch( pxSocket->bits.bIsIPv6 )
+            switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case pdFALSE_UNSIGNED:
@@ -635,7 +635,7 @@ void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             {
                 vApplicationIPNetworkEventHook( eNetworkUp );
             }
@@ -792,7 +792,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /**
  * @brief Obtain a buffer big enough for a UDP payload of given size.
@@ -813,7 +813,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
     {
         return FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -835,7 +835,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     void * pvReturn = NULL;
     TickType_t uxBlockTime = uxBlockTimeTicks;
-    size_t uxPayloadOffset = 0;
+    size_t uxPayloadOffset = 0U;
 
     configASSERT( ( ucIPType == ipTYPE_IPv6 ) || ( ucIPType == ipTYPE_IPv4 ) );
 
@@ -847,7 +847,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         uxBlockTime = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     }
 
-    switch( ucIPType )
+    switch( ucIPType ) /* LCOV_EXCL_BR_LINE */
     {
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipTYPE_IPv4:
@@ -907,7 +907,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
  * As that bug has been repaired, there is not an urgent reason to warn.
  * It is better though to use the advised priority scheme. */
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
 
 /* Provide backward-compatibility with the earlier FreeRTOS+TCP which only had
  * single network interface. */
@@ -931,7 +931,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         #endif /* ipconfigUSE_DHCP */
         return FreeRTOS_IPInit_Multi();
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -942,29 +942,9 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 BaseType_t FreeRTOS_IPInit_Multi( void )
 {
     BaseType_t xReturn = pdFALSE;
-    NetworkEndPoint_t * pxFirstEndPoint;
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
-
-    pxFirstEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-    #if ( ipconfigUSE_IPv6 != 0 )
-        if( ENDPOINT_IS_IPv6( pxFirstEndPoint ) )
-        {
-            for( ;
-                 pxFirstEndPoint != NULL;
-                 pxFirstEndPoint = FreeRTOS_NextEndPoint( NULL, pxFirstEndPoint ) )
-            {
-                if( ENDPOINT_IS_IPv4( pxFirstEndPoint ) )
-                {
-                    break;
-                }
-            }
-        }
-    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-        ( void ) pxFirstEndPoint;
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
     /* Check that the configuration values are correct and that the IP-task has not
      * already been initialized. */
@@ -1108,7 +1088,7 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /**
  * @brief Get the current IPv4 address configuration of the first endpoint.
@@ -1130,10 +1110,14 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 
         /* Get first end point. */
         pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-        FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask,
-                                           pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+
+        if( pxEndPoint != NULL )
+        {
+            FreeRTOS_GetEndPointConfiguration( pulIPAddress, pulNetMask,
+                                               pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+        }
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -1179,7 +1163,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /**
  * @brief Set the current IPv4 network address configuration. Only non-NULL
@@ -1201,10 +1185,14 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 
         /* Get first end point. */
         pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-        FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
-                                           pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+
+        if( pxEndPoint != NULL )
+        {
+            FreeRTOS_SetEndPointConfiguration( pulIPAddress, pulNetMask,
+                                               pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
+        }
     }
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
@@ -1453,59 +1441,66 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer )
 {
-    eFrameProcessingResult_t eReturn;
-    const EthernetHeader_t * pxEthernetHeader;
-    const NetworkEndPoint_t * pxEndPoint;
+    eFrameProcessingResult_t eReturn = eProcessBuffer;
+    const EthernetHeader_t * pxEthernetHeader = NULL;
+    const NetworkEndPoint_t * pxEndPoint = NULL;
 
-    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
-
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
-    pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
-
-    /* Examine the destination MAC from the Ethernet header to see if it matches
-     * that of an end point managed by FreeRTOS+TCP. */
-    pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
-
-    if( pxEndPoint != NULL )
+    if( pucEthernetBuffer == NULL )
     {
-        /* The packet was directed to this node - process it. */
-        eReturn = eProcessBuffer;
-    }
-    else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-    {
-        /* The packet was a broadcast - process it. */
-        eReturn = eProcessBuffer;
+        eReturn = eReleaseBuffer;
     }
     else
-    #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-        if( memcmp( xLLMNR_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+    {
+        /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
+
+        /* Examine the destination MAC from the Ethernet header to see if it matches
+         * that of an end point managed by FreeRTOS+TCP. */
+        pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
+
+        if( pxEndPoint != NULL )
+        {
+            /* The packet was directed to this node - process it. */
+            eReturn = eProcessBuffer;
+        }
+        else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet was a broadcast - process it. */
+            eReturn = eProcessBuffer;
+        }
+        else
+        #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+            if( memcmp( xLLMNR_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+            {
+                /* The packet is a request for LLMNR - process it. */
+                eReturn = eProcessBuffer;
+            }
+            else
+        #endif /* ipconfigUSE_LLMNR */
+        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+            if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+            {
+                /* The packet is a request for MDNS - process it. */
+                eReturn = eProcessBuffer;
+            }
+            else
+        #endif /* ipconfigUSE_MDNS */
+        if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
+            ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
         {
             /* The packet is a request for LLMNR - process it. */
             eReturn = eProcessBuffer;
         }
         else
-    #endif /* ipconfigUSE_LLMNR */
-    #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-        if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
         {
-            /* The packet is a request for MDNS - process it. */
-            eReturn = eProcessBuffer;
+            /* The packet was not a broadcast, or for this node, just release
+             * the buffer without taking any other action. */
+            eReturn = eReleaseBuffer;
         }
-        else
-    #endif /* ipconfigUSE_MDNS */
-    {
-        /* The packet was not a broadcast, or for this node, just release
-         * the buffer without taking any other action. */
-        eReturn = eReleaseBuffer;
-    }
-
-    if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
-        ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
-    {
-        /* The packet is a request for LLMNR - process it. */
-        eReturn = eProcessBuffer;
     }
 
     #if ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1 )
@@ -1869,7 +1864,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     if( eReturn == eProcessBuffer )
     {
         /* Are there IP-options. */
-        switch( pxIPPacket->xEthernetHeader.usFrameType )
+        /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+        switch( pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipIPv4_FRAME_TYPE:
@@ -1899,9 +1895,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            default:
+            /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+            default:   /* LCOV_EXCL_LINE */
                 /* MISRA 16.4 Compliance */
-                break;
+                break; /* LCOV_EXCL_LINE */
         }
 
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
@@ -1922,11 +1919,12 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                 else
                 {
                     /* Refresh the ARP cache with the IP/MAC-address of the received
-                     *  packet.  For UDP packets, this will be done later in
-                     *  xProcessReceivedUDPPacket(), as soon as it's know that the message
-                     *  will be handled.  This will prevent the ARP cache getting
-                     *  overwritten with the IP address of useless broadcast packets. */
-                    switch( pxIPPacket->xEthernetHeader.usFrameType )
+                     * packet.  For UDP packets, this will be done later in
+                     * xProcessReceivedUDPPacket(), as soon as it's know that the message
+                     * will be handled.  This will prevent the ARP cache getting
+                     * overwritten with the IP address of useless broadcast packets. */
+                    /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+                    switch( pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
                             case ipIPv6_FRAME_TYPE:
@@ -1948,9 +1946,10 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                        default:
+                        /* Case default is never toggled because eReturn is not eProcessBuffer in previous step. */
+                        default:   /* LCOV_EXCL_LINE */
                             /* MISRA 16.4 Compliance */
-                            break;
+                            break; /* LCOV_EXCL_LINE */
                     }
                 }
             }
@@ -2140,7 +2139,8 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             }
             else
             {
-                /* do nothing, coverity happy */
+                /* This should never reach or the packet is gone. */
+                configASSERT( pdFALSE );
             }
         }
     }
@@ -2166,7 +2166,8 @@ uint32_t FreeRTOS_GetIPAddress( void )
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                /* Break if the endpoint is IPv4. */
+                if( pxEndPoint->bits.bIPv6 == 0U )
                 {
                     break;
                 }
@@ -2192,7 +2193,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /*
  * The helper functions here below assume that there is a single
@@ -2342,7 +2343,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
         }
     }
 /*-----------------------------------------------------------*/
-#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
 /**
  * @brief Returns whether the IP task is ready.

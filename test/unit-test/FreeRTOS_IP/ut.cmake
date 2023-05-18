@@ -15,6 +15,8 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv6.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ND.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Private.h"
@@ -40,10 +42,10 @@ set(mock_include_list "")
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
 set(mock_define_list "")
@@ -59,7 +61,6 @@ set(real_source_files "")
 # list the files you would like to test here
 list(APPEND real_source_files
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}v4.c
 	)
 
 set(real_include_directories "")
