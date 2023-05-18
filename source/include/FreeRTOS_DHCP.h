@@ -131,7 +131,7 @@
     #define dhcpBROADCAST           0x0080U          /**< Little endian representation of broadcast flag. */
 #else
     #define dhcpCLIENT_PORT_IPv4    0x0044U          /**< Big endian representation of port 68. */
-    #define dhcpSERVER_PORT_IPv4    0x0043U          /**< Big endian representation of port 68. */
+    #define dhcpSERVER_PORT_IPv4    0x0043U          /**< Big endian representation of port 67. */
     #define dhcpCOOKIE              0x63825363UL     /**< Big endian representation of magic cookie. */
     #define dhcpBROADCAST           0x8000U          /**< Big endian representation of broadcast flag. */
 #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
