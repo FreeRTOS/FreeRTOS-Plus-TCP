@@ -90,7 +90,7 @@ static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
  *          list of end points.
  */
 static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
-                                   BaseType_t xIsGlobal )
+                                          BaseType_t xIsGlobal )
 {
     NetworkEndPoint_t * pxEndPoint;
 

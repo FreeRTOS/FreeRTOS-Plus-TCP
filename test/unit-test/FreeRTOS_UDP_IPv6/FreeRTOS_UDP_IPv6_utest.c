@@ -62,14 +62,14 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define TEST_IPV4_DEFAULT_ADDRESS ( 0x12345678 )
+#define TEST_IPV4_DEFAULT_ADDRESS    ( 0x12345678 )
 
 BaseType_t xIsIfOutCalled = 0;
 
 IPv6_Address_t xDefaultIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
-                                   BaseType_t xIsGlobal );
+                                          BaseType_t xIsGlobal );
 
 /* ============================  Unity Fixtures  ============================ */
 
@@ -87,10 +87,10 @@ void tearDown( void )
 /* ======================== Stub Callback Functions ========================= */
 
 static void UDPReceiveHandlerChecker( Socket_t xSocket,
-                                                  void * pData,
-                                                  size_t xLength,
-                                                  const struct freertos_sockaddr * pxFrom,
-                                                  const struct freertos_sockaddr * pxDest )
+                                      void * pData,
+                                      size_t xLength,
+                                      const struct freertos_sockaddr * pxFrom,
+                                      const struct freertos_sockaddr * pxDest )
 {
     uint8_t * pucData = ( uint8_t * ) pData;
     UDPPacket_IPv6_t * pxUDPv6Packet = ( UDPPacket_IPv6_t * ) ( pucData - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER ) );
@@ -107,28 +107,28 @@ static void UDPReceiveHandlerChecker( Socket_t xSocket,
 }
 
 static BaseType_t xStubUDPReceiveHandler_Pass( Socket_t xSocket,
-                                                  void * pData,
-                                                  size_t xLength,
-                                                  const struct freertos_sockaddr * pxFrom,
-                                                  const struct freertos_sockaddr * pxDest )
+                                               void * pData,
+                                               size_t xLength,
+                                               const struct freertos_sockaddr * pxFrom,
+                                               const struct freertos_sockaddr * pxDest )
 {
     UDPReceiveHandlerChecker( xSocket, pData, xLength, pxFrom, pxDest );
     return 0;
 }
 
 static BaseType_t xStubUDPReceiveHandler_Fail( Socket_t xSocket,
-                                                  void * pData,
-                                                  size_t xLength,
-                                                  const struct freertos_sockaddr * pxFrom,
-                                                  const struct freertos_sockaddr * pxDest )
+                                               void * pData,
+                                               size_t xLength,
+                                               const struct freertos_sockaddr * pxFrom,
+                                               const struct freertos_sockaddr * pxDest )
 {
     UDPReceiveHandlerChecker( xSocket, pData, xLength, pxFrom, pxDest );
     return -1;
 }
 
 static BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
-                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                                BaseType_t xReleaseAfterSend )
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t xReleaseAfterSend )
 {
     xIsIfOutCalled = 1;
 
@@ -169,7 +169,7 @@ static NetworkEndPoint_t * prvPrepareDefaultIPv6EndPoint()
 {
     static NetworkEndPoint_t xEndpoint;
     static NetworkInterface_t xNetworkInterface;
-    NetworkEndPoint_t *pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t * pxEndpoint = &xEndpoint;
 
     memset( &xEndpoint, 0, sizeof( xEndpoint ) );
     memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
@@ -187,7 +187,7 @@ static NetworkEndPoint_t * prvPrepareDefaultIPv4EndPoint()
 {
     static NetworkEndPoint_t xEndpoint;
     static NetworkInterface_t xNetworkInterface;
-    NetworkEndPoint_t *pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t * pxEndpoint = &xEndpoint;
 
     memset( &xEndpoint, 0, sizeof( xEndpoint ) );
     memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
@@ -210,6 +210,7 @@ static NetworkEndPoint_t * prvPrepareDefaultIPv4EndPoint()
 void test_xProcessReceivedUDPPacket_IPv6_NullInput()
 {
     BaseType_t xIsWaitingForARPResolution;
+
     catch_assert( xProcessReceivedUDPPacket_IPv6( NULL, 0, &xIsWaitingForARPResolution ) );
 }
 
@@ -745,7 +746,6 @@ void test_xProcessReceivedUDPPacket_IPv6_UDPListBufferFull()
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
     uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
-    // listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), xSocket.u.xUDP.uxMaxPackets );
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = xSocket.u.xUDP.uxMaxPackets;
@@ -806,7 +806,7 @@ void test_xProcessReceivedUDPPacket_IPv6_Pass()
 
     xSocket.xEventGroup = xEventGroup;
     xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
-    
+
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
     xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
@@ -871,7 +871,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup()
     vTaskSuspendAll_Ignore();
     vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ), &( xNetworkBuffer.xBufferListItem ) );
     xTaskResumeAll_ExpectAndReturn( pdPASS );
-    
+
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
     xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
@@ -939,7 +939,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
     xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
-    
+
     xSocket.pxSocketSet = &xSocketSet;
 
     /* xSemaphoreGive is defined as xQueueGenericSend */
@@ -1067,7 +1067,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
     xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
-    
+
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
     xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
@@ -1131,7 +1131,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
     xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
-    
+
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
     xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
@@ -1498,7 +1498,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound()
     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-    
+
     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, pxEndPoint );
     FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
@@ -1530,7 +1530,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound()
     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-    
+
     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, NULL );
     FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
