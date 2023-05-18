@@ -505,7 +505,7 @@ void test_vBitConfig_write_uc_HappyPath( void )
     xConfig.uxSize = uxSize;
     xConfig.ucContents = ucContents;
 
-    vBitConfig_write_uc( &xConfig, &ucData, uxSize );
+    vBitConfig_write_uc( &xConfig, ucData, uxSize );
 
     TEST_ASSERT_EQUAL( SIZE_OF_BINARY_STREAM, xConfig.uxIndex );
 }
@@ -607,7 +607,7 @@ void test_vBitConfig_release( void )
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
     memset( ucContent, 1, SIZE_OF_BINARY_STREAM );
     memset( &xConfigExpected, 0, sizeof( BitConfig_t ) );
-    xConfig.ucContents = &ucContent;
+    xConfig.ucContents = ucContent;
 
     vPortFree_ExpectAnyArgs();
 
