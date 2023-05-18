@@ -75,6 +75,8 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
+#define FREERTOS_MINIMUM_TCP_OFFSET         ( 5U )
+
 #if ( ipconfigHAS_PRINTF != 0 )
     /** @brief Last value of minimum buffer count. */
     static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -420,7 +422,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
             uint8_t ucLength = pxSet->pxProtocolHeaders->xTCPHeader.ucTCPOffset >> 4U;
             size_t uxOptionsLength;
 
-            if( ucLength < 5U )
+            if( ucLength < FREERTOS_MINIMUM_TCP_OFFSET )
             {
                 pxSet->usChecksum = ipINVALID_LENGTH;
                 xReturn = 9;
