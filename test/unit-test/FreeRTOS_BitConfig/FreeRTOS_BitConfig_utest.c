@@ -149,11 +149,11 @@ void test_xBitConfig_read_uc_xHasError( void )
 
 /**
  * @brief This functions verifies failure of
- *        reading from a bit-config struct with
- *        incorrect size.
+ *        reading from a bit-config struct as
+ *        an out of bound read.
  */
 
-void test_xBitConfig_read_uc_IncorrectSize( void )
+void test_xBitConfig_read_uc_OutOfBoundRead( void )
 {
     BitConfig_t xConfig, * pxConfig = &xConfig;
     uint8_t * pucData;
@@ -173,7 +173,7 @@ void test_xBitConfig_read_uc_IncorrectSize( void )
 /**
  * @brief This functions verifies failure of
  *        reading from a bit-config struct with
- *        correct size and pucData as NULL.
+ *        pucData as NULL.
  */
 
 void test_xBitConfig_read_uc_NullData( void )
@@ -193,7 +193,7 @@ void test_xBitConfig_read_uc_NullData( void )
 }
 
 /**
- * @brief This functions verifies failure of
+ * @brief This functions verifies successful
  *        reading from a bit-config struct.
  */
 
@@ -266,10 +266,10 @@ void test_pucBitConfig_peek_last_index_uc_NullpucData( void )
 /**
  * @brief This functions verifies failure to
  *        Peek the last byte from a bit-config
- *        struct as length check fails.
+ *        struct as an out of bound peak.
  */
 
-void test_pucBitConfig_peek_last_index_uc_LenIncorrect( void )
+void test_pucBitConfig_peek_OutOfBound( void )
 {
     BitConfig_t xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
@@ -287,8 +287,8 @@ void test_pucBitConfig_peek_last_index_uc_LenIncorrect( void )
 }
 
 /**
- * @brief This functions verifies failure to
- *        Peek the last byte from a bit-config
+ * @brief This functions verifies success while
+ *        Peeking the last 5 byte from a bit-config
  *        struct.
  */
 
@@ -314,7 +314,8 @@ void test_pucBitConfig_peek_last_index_uc_HappyPath( void )
 
 /**
  * @brief This functions verifies failure to
- *        returning a byte from the bit stream.
+ *        returning a byte from the bit stream
+ *         as xHasError is set.
  */
 
 void test_ucBitConfig_read_8_fail( void )
@@ -328,12 +329,11 @@ void test_ucBitConfig_read_8_fail( void )
     ucResult = ucBitConfig_read_8( pxConfig );
 
     TEST_ASSERT_EQUAL( 0xffU, ucResult );
-    TEST_ASSERT_EQUAL( pdTRUE, xConfig.xHasError );
 }
 
 /**
- * @brief This functions verifies peeking and
- *        returning a byte from the bit stream.
+ * @brief This functions verifies successfully reading
+ *        a byte from the bit stream.
  */
 
 void test_xBitConfig_read_8_HappyPath( void )
@@ -354,11 +354,13 @@ void test_xBitConfig_read_8_HappyPath( void )
     ucResult = ucBitConfig_read_8( pxConfig );
 
     TEST_ASSERT_EQUAL( ucContents[ 0 ], ucResult );
+    TEST_ASSERT_EQUAL( 1, pxConfig->uxIndex );
 }
 
 /**
  * @brief This functions verifies failure to
- *        returning 2 byte from the bit stream.
+ *        returning 2 byte from the bit stream
+ *        as xHasError is set.
  */
 
 void test_usBitConfig_read_16_fail( void )
@@ -376,7 +378,7 @@ void test_usBitConfig_read_16_fail( void )
 }
 
 /**
- * @brief This functions verifies peeking and
+ * @brief This functions verifies reading and
  *        returning 2 byte from the bit stream.
  */
 
@@ -404,7 +406,8 @@ void test_usBitConfig_read_16_HappyPath( void )
 
 /**
  * @brief This functions verifies failure to
- *        returning 4 byte from the bit stream.
+ *        returning 4 byte from the bit stream
+ *        as xHasError is set.
  */
 
 void test_ulBitConfig_read_32_fail( void )
@@ -422,7 +425,7 @@ void test_ulBitConfig_read_32_fail( void )
 }
 
 /**
- * @brief This functions verifies peeking and
+ * @brief This functions verifies reading and
  *        returning 4 byte from the bit stream.
  */
 
@@ -448,6 +451,7 @@ void test_ulBitConfig_read_32_HappyPath( void )
     ulResult = ulBitConfig_read_32( pxConfig );
 
     TEST_ASSERT_EQUAL( ulResultExpected, ulResult );
+    TEST_ASSERT_EQUAL( sizeof( uint32_t ), pxConfig->uxIndex );
 }
 
 /**
@@ -468,10 +472,11 @@ void test_vBitConfig_write_uc_xHasError( void )
 
 /**
  * @brief This functions verifies failure to
- *        writing any number of bytes from the bit stream.
+ *        writing bytes to bit stream because
+ *        of out of bound write.
  */
 
-void test_vBitConfig_write_uc_IncorrectSize( void )
+void test_vBitConfig_write_uc_OutOfBoundWrite( void )
 {
     BitConfig_t xConfig;
     uint8_t * pucData;
@@ -488,7 +493,7 @@ void test_vBitConfig_write_uc_IncorrectSize( void )
 
 /**
  * @brief This functions verifies writing SIZE_OF_BINARY_STREAM
- *        bytes from the bit stream.
+ *        bytes in the bit stream.
  */
 
 void test_vBitConfig_write_uc_HappyPath( void )
@@ -500,6 +505,7 @@ void test_vBitConfig_write_uc_HappyPath( void )
 
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
     memset( ucContents, 0, uxSize );
+    memset( ucContents, 1, uxSize );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = 0;
     xConfig.uxSize = uxSize;
@@ -508,41 +514,47 @@ void test_vBitConfig_write_uc_HappyPath( void )
     vBitConfig_write_uc( &xConfig, ucData, uxSize );
 
     TEST_ASSERT_EQUAL( SIZE_OF_BINARY_STREAM, xConfig.uxIndex );
+    TEST_ASSERT_EQUAL_MEMORY( xConfig.ucContents, ucData, uxSize );
 }
 
 /**
  * @brief This functions verifies writing a
- *        byte to the bit stream
+ *        byte to the bit stream.
  */
 void test_vBitConfig_write_8( void )
 {
     BitConfig_t xConfig;
-    size_t uxSize = SIZE_OF_BINARY_STREAM;
-    uint8_t ucValue = 0;
+    size_t uxSize = SIZE_OF_BINARY_STREAM, uxIndex = 0;
+    uint8_t ucValue = 1;
     uint8_t ucContents[ uxSize ];
 
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
     memset( ucContents, 0, uxSize );
     xConfig.xHasError = pdFALSE;
-    xConfig.uxIndex = 0;
+    xConfig.uxIndex = uxIndex;
     xConfig.uxSize = uxSize;
     xConfig.ucContents = ucContents;
 
     vBitConfig_write_8( &xConfig, ucValue );
 
     TEST_ASSERT_EQUAL( sizeof( uint8_t ), xConfig.uxIndex );
+    TEST_ASSERT_EQUAL( xConfig.ucContents[ uxIndex ], ucValue );
 }
 
 /**
  * @brief This functions verifies writing a
- *        2 byte to the bit stream
+ *        2 byte to the bit stream.
  */
 void test_vBitConfig_write_16( void )
 {
     BitConfig_t xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
-    uint16_t usValue = 0;
+    uint16_t ucValue = 0;
     uint8_t ucContents[ uxSize ];
+    uint8_t pucData[ sizeof ucValue ];
+
+    pucData[ 0 ] = ( uint8_t ) ( ( ucValue >> 8 ) & 0xFFU );
+    pucData[ 1 ] = ( uint8_t ) ( ucValue & 0xFFU );
 
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
     memset( ucContents, 0, uxSize );
@@ -551,21 +563,23 @@ void test_vBitConfig_write_16( void )
     xConfig.uxSize = uxSize;
     xConfig.ucContents = ucContents;
 
-    vBitConfig_write_16( &xConfig, usValue );
+    vBitConfig_write_16( &xConfig, ucValue );
 
     TEST_ASSERT_EQUAL( sizeof( uint16_t ), xConfig.uxIndex );
+    TEST_ASSERT_EQUAL_MEMORY( xConfig.ucContents, pucData, sizeof( ucValue ) );
 }
 
 /**
  * @brief This functions verifies writing a
- *        4 byte to the bit stream
+ *        4 byte to the bit stream.
  */
 void test_vBitConfig_write_32( void )
 {
     BitConfig_t xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
-    uint32_t usValue = 0;
+    uint32_t ucValue = 0;
     uint8_t ucContents[ uxSize ];
+    uint8_t pucData[ sizeof( ucValue ) ];
 
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
     xConfig.xHasError = pdFALSE;
@@ -573,20 +587,37 @@ void test_vBitConfig_write_32( void )
     xConfig.uxSize = uxSize;
     xConfig.ucContents = ucContents;
 
-    vBitConfig_write_32( &xConfig, usValue );
+    pucData[ 0 ] = ( uint8_t ) ( ( ucValue >> 24 ) & 0xFFU );
+    pucData[ 1 ] = ( uint8_t ) ( ( ucValue >> 16 ) & 0xFFU );
+    pucData[ 2 ] = ( uint8_t ) ( ( ucValue >> 8 ) & 0xFFU );
+    pucData[ 3 ] = ( uint8_t ) ( ucValue & 0xFFU );
+
+    vBitConfig_write_32( &xConfig, ucValue );
 
     TEST_ASSERT_EQUAL( sizeof( uint32_t ), xConfig.uxIndex );
+    TEST_ASSERT_EQUAL_MEMORY( xConfig.ucContents, pucData, sizeof( ucValue ) );
+}
+
+/**
+ * @brief This functions verifies failure in
+ *        releasing the buffer as it is NULL.
+ */
+void test_vBitConfig_NoReleaseNULL( void )
+{
+    BitConfig_t * pxConfig = NULL;
+
+    vBitConfig_release( pxConfig );
 }
 
 /**
  * @brief This functions verifies failure in
  *        release the buffer as it is NULL.
  */
-void test_vBitConfig_releaseNULL( void )
+void test_vBitConfig_ReleaseNULL( void )
 {
     BitConfig_t xConfig, xConfigExpected;
 
-    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( &xConfig, 1, sizeof( BitConfig_t ) );
     memset( &xConfigExpected, 0, sizeof( BitConfig_t ) );
     xConfig.ucContents = NULL;
 
@@ -599,12 +630,12 @@ void test_vBitConfig_releaseNULL( void )
  * @brief This functions verifies releasing
  *        the buffer and clear the bit stream structure.
  */
-void test_vBitConfig_release( void )
+void test_vBitConfig_Release( void )
 {
     BitConfig_t xConfig, xConfigExpected;
     uint8_t ucContent[ SIZE_OF_BINARY_STREAM ];
 
-    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( &xConfig, 1, sizeof( BitConfig_t ) );
     memset( ucContent, 1, SIZE_OF_BINARY_STREAM );
     memset( &xConfigExpected, 0, sizeof( BitConfig_t ) );
     xConfig.ucContents = ucContent;
