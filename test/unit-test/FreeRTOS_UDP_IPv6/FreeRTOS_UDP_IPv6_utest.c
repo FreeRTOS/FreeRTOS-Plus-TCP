@@ -1019,7 +1019,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
 
 /**
  * @brief test_xProcessReceivedUDPPacket_IPv6_PassNoSem
- * To validate the flow that all flows except for sem (list/event group/select/DHCP) are all pass.
+ * To validate the flow that all flows except for semaphore (list/event group/select/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
 {
