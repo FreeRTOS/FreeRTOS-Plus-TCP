@@ -61,6 +61,7 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ND.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_BitConfig.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Timers.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Utils.h"
@@ -260,6 +261,7 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP_DataLenLessThanMinPacket/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_BitConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
@@ -308,6 +310,7 @@ add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
     DEPENDS cmock unity
     FreeRTOS_ARP_utest
+    FreeRTOS_BitConfig_utest
     FreeRTOS_DHCP_utest
     FreeRTOS_DHCPv6_utest
     FreeRTOS_UDP_IP_utest
