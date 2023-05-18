@@ -75,6 +75,7 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
+/* @brief The minimum value of TCP offset value. */
 #define FREERTOS_MINIMUM_TCP_OFFSET         ( 5U )
 
 #if ( ipconfigHAS_PRINTF != 0 )
