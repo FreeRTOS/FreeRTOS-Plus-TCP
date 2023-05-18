@@ -61,6 +61,8 @@ void test_xBitConfig_init_Fail( void )
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     BaseType_t xResult = pdFALSE;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+
     pvPortMalloc_ExpectAnyArgsAndReturn( NULL );
 
     xResult = xBitConfig_init( pxConfig, pucData, uxSize );
@@ -83,6 +85,7 @@ void test_xBitConfig_init_pucDataNull( void )
     uint8_t ucContent[ uxSize ], ucContentReturn[ uxSize ];
     BaseType_t xResult = pdFALSE;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     memset( ucContent, 1, uxSize );
     memset( ucContentReturn, 0, uxSize );
     pxConfig->ucContents = ucContent;
@@ -111,9 +114,10 @@ void test_xBitConfig_init_HappyPath( void )
     uint8_t ucData[ uxSize ];
     BaseType_t xResult = pdFALSE;
 
-    xConfig.ucContents = ucContent;
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     memset( &ucData, 1, uxSize );
     memset( &ucContent, 0, uxSize );
+    xConfig.ucContents = ucContent;
 
     pvPortMalloc_ExpectAnyArgsAndReturn( ucContent );
 
@@ -132,10 +136,11 @@ void test_xBitConfig_init_HappyPath( void )
 void test_xBitConfig_read_uc_xHasError( void )
 {
     BitConfig_t xConfig;
-    uint8_t * pucData;
+    uint8_t * pucData = NULL;
     BaseType_t xResult = pdFALSE;
 
-    xConfig.xHasError == pdTRUE;
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    xConfig.xHasError = pdTRUE;
 
     xResult = xBitConfig_read_uc( &xConfig, pucData, SIZE_OF_BINARY_STREAM );
 
@@ -154,6 +159,7 @@ void test_xBitConfig_read_uc_IncorrectSize( void )
     uint8_t * pucData;
     BaseType_t xResult = pdFALSE;
 
+    memset( pxConfig, 0, sizeof( BitConfig_t ) );
     pxConfig->xHasError = pdFALSE;
     pxConfig->uxIndex = 1;
     pxConfig->uxSize = SIZE_OF_BINARY_STREAM;
@@ -175,6 +181,7 @@ void test_xBitConfig_read_uc_NullData( void )
     BitConfig_t xConfig, * pxConfig = &xConfig;
     BaseType_t xResult = pdFALSE;
 
+    memset( pxConfig, 0, sizeof( BitConfig_t ) );
     pxConfig->xHasError = pdFALSE;
     pxConfig->uxIndex = 0;
     pxConfig->uxSize = SIZE_OF_BINARY_STREAM;
@@ -197,11 +204,14 @@ void test_xBitConfig_read_uc_HappyPath( void )
     uint8_t ucContents[ uxSize ], ucData[ uxSize ];
     BaseType_t xResult = pdFALSE;
 
+    memset( pxConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucContents, 1, uxSize );
+    memset( ucData, 0, uxSize );
+    memset( ucContents, 1, uxSize );
     pxConfig->xHasError = pdFALSE;
     pxConfig->uxIndex = 0;
     pxConfig->uxSize = uxSize;
     pxConfig->ucContents = ucContents;
-    memset( ucContents, 1, uxSize );
 
     xResult = xBitConfig_read_uc( pxConfig, ucData, uxSize );
 
@@ -222,6 +232,7 @@ void test_pucBitConfig_peek_last_index_uc_xHasError( void )
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     BaseType_t xResult = pdFALSE;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     xConfig.xHasError = pdTRUE;
 
     xResult = pucBitConfig_peek_last_index_uc( &xConfig, NULL, uxSize );
@@ -241,7 +252,9 @@ void test_pucBitConfig_peek_last_index_uc_NullpucData( void )
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     BaseType_t xResult = pdFALSE;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     xConfig.xHasError = pdFALSE;
+    xConfig.uxIndex = uxSize;
 
     xResult = pucBitConfig_peek_last_index_uc( &xConfig, NULL, uxSize );
 
@@ -263,6 +276,7 @@ void test_pucBitConfig_peek_last_index_uc_LenIncorrect( void )
     uint8_t ucData;
     BaseType_t xResult = pdFALSE;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = 0;
 
@@ -285,10 +299,12 @@ void test_pucBitConfig_peek_last_index_uc_HappyPath( void )
     uint8_t ucData[ uxSize ], ucContents[ SIZE_OF_BINARY_STREAM ];
     BaseType_t xResult = pdFALSE;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucData, 0, uxSize );
+    memset( ucContents, 1, SIZE_OF_BINARY_STREAM );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = SIZE_OF_BINARY_STREAM;
     xConfig.ucContents = ucContents;
-    memset( ucContents, 1, SIZE_OF_BINARY_STREAM );
 
     xResult = pucBitConfig_peek_last_index_uc( &xConfig, ucData, uxSize );
 
@@ -306,6 +322,7 @@ void test_ucBitConfig_read_8_fail( void )
     BitConfig_t xConfig, * pxConfig = &xConfig;
     uint8_t ucResult;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     pxConfig->xHasError = pdTRUE;
 
     ucResult = ucBitConfig_read_8( pxConfig );
@@ -326,11 +343,13 @@ void test_xBitConfig_read_8_HappyPath( void )
     uint8_t ucContents[ uxSize ];
     uint8_t ucResult;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( &ucContents, 0, uxSize );
+    memset( ucContents, 1, uxSize );
     pxConfig->xHasError = pdFALSE;
     pxConfig->uxIndex = 0;
     pxConfig->uxSize = uxSize;
     pxConfig->ucContents = ucContents;
-    memset( ucContents, 1, uxSize );
 
     ucResult = ucBitConfig_read_8( pxConfig );
 
@@ -347,6 +366,7 @@ void test_usBitConfig_read_16_fail( void )
     BitConfig_t xConfig, * pxConfig = &xConfig;
     uint16_t ucResult;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     pxConfig->xHasError = pdTRUE;
 
     ucResult = usBitConfig_read_16( pxConfig );
@@ -367,11 +387,12 @@ void test_usBitConfig_read_16_HappyPath( void )
     uint8_t ucContents[ uxSize ];
     uint16_t ucResult, ucResultExpected;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucContents, 1, uxSize );
     pxConfig->xHasError = pdFALSE;
     pxConfig->uxIndex = 0;
     pxConfig->uxSize = uxSize;
     pxConfig->ucContents = ucContents;
-    memset( ucContents, 1, uxSize );
 
     ucResultExpected = ( ( ( uint16_t ) ucContents[ 0 ] ) << 8 ) |
                        ( ( ( uint16_t ) ucContents[ 1 ] ) );
@@ -391,6 +412,7 @@ void test_ulBitConfig_read_32_fail( void )
     BitConfig_t xConfig, * pxConfig = &xConfig;
     uint32_t ulResult;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     pxConfig->xHasError = pdTRUE;
 
     ulResult = ulBitConfig_read_32( pxConfig );
@@ -411,11 +433,12 @@ void test_ulBitConfig_read_32_HappyPath( void )
     uint8_t ucContents[ uxSize ];
     uint32_t ulResult, ulResultExpected;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucContents, 1, uxSize );
     pxConfig->xHasError = pdFALSE;
     pxConfig->uxIndex = 0;
     pxConfig->uxSize = uxSize;
     pxConfig->ucContents = ucContents;
-    memset( ucContents, 1, uxSize );
 
     ulResultExpected = ( ( ( uint32_t ) ucContents[ 0 ] ) << 24 ) |
                        ( ( ( uint32_t ) ucContents[ 1 ] ) << 16 ) |
@@ -437,6 +460,7 @@ void test_vBitConfig_write_uc_xHasError( void )
     BitConfig_t xConfig;
     uint8_t * pucData;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     xConfig.xHasError = pdTRUE;
 
     vBitConfig_write_uc( &xConfig, pucData, SIZE_OF_BINARY_STREAM );
@@ -452,6 +476,7 @@ void test_vBitConfig_write_uc_IncorrectSize( void )
     BitConfig_t xConfig;
     uint8_t * pucData;
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = SIZE_OF_BINARY_STREAM;
     xConfig.uxSize = SIZE_OF_BINARY_STREAM;
@@ -469,15 +494,18 @@ void test_vBitConfig_write_uc_IncorrectSize( void )
 void test_vBitConfig_write_uc_HappyPath( void )
 {
     BitConfig_t xConfig;
-    uint8_t * pucData;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
+    uint8_t ucContents[ uxSize ];
+    uint8_t ucData[ uxSize ];
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucContents, 0, uxSize );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = 0;
     xConfig.uxSize = uxSize;
+    xConfig.ucContents = ucContents;
 
-
-    vBitConfig_write_uc( &xConfig, pucData, uxSize );
+    vBitConfig_write_uc( &xConfig, &ucData, uxSize );
 
     TEST_ASSERT_EQUAL( SIZE_OF_BINARY_STREAM, xConfig.uxIndex );
 }
@@ -491,10 +519,14 @@ void test_vBitConfig_write_8( void )
     BitConfig_t xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     uint8_t ucValue = 0;
+    uint8_t ucContents[ uxSize ];
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucContents, 0, uxSize );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = 0;
     xConfig.uxSize = uxSize;
+    xConfig.ucContents = ucContents;
 
     vBitConfig_write_8( &xConfig, ucValue );
 
@@ -510,10 +542,14 @@ void test_vBitConfig_write_16( void )
     BitConfig_t xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     uint16_t usValue = 0;
+    uint8_t ucContents[ uxSize ];
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucContents, 0, uxSize );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = 0;
     xConfig.uxSize = uxSize;
+    xConfig.ucContents = ucContents;
 
     vBitConfig_write_16( &xConfig, usValue );
 
@@ -529,10 +565,13 @@ void test_vBitConfig_write_32( void )
     BitConfig_t xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     uint32_t usValue = 0;
+    uint8_t ucContents[ uxSize ];
 
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     xConfig.xHasError = pdFALSE;
     xConfig.uxIndex = 0;
     xConfig.uxSize = uxSize;
+    xConfig.ucContents = ucContents;
 
     vBitConfig_write_32( &xConfig, usValue );
 
@@ -547,8 +586,9 @@ void test_vBitConfig_releaseNULL( void )
 {
     BitConfig_t xConfig, xConfigExpected;
 
-    xConfig.ucContents = NULL;
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
     memset( &xConfigExpected, 0, sizeof( BitConfig_t ) );
+    xConfig.ucContents = NULL;
 
     vBitConfig_release( &xConfig );
 
@@ -564,8 +604,10 @@ void test_vBitConfig_release( void )
     BitConfig_t xConfig, xConfigExpected;
     uint8_t ucContent[ SIZE_OF_BINARY_STREAM ];
 
-    xConfig.ucContents = &ucContent;
+    memset( &xConfig, 0, sizeof( BitConfig_t ) );
+    memset( ucContent, 1, SIZE_OF_BINARY_STREAM );
     memset( &xConfigExpected, 0, sizeof( BitConfig_t ) );
+    xConfig.ucContents = &ucContent;
 
     vPortFree_ExpectAnyArgs();
 
