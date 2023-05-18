@@ -61,6 +61,7 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ND.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
+                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_BitConfig.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Timers.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Utils.h"
@@ -260,6 +261,7 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP_DataLenLessThanMinPacket/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_BitConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_WIN/ut.cmake )
@@ -299,6 +301,9 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Driver_Check_Checksum/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4Only/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4V6/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4V6CompatibleWithSingle/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.
@@ -306,6 +311,7 @@ add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
     DEPENDS cmock unity
     FreeRTOS_ARP_utest
+    FreeRTOS_BitConfig_utest
     FreeRTOS_DHCP_utest
     FreeRTOS_DHCPv6_utest
     FreeRTOS_UDP_IP_utest
@@ -336,6 +342,9 @@ add_custom_target( coverage
     FreeRTOS_IPv4_utest
     FreeRTOS_IPv4_DiffConfig_utest
     FreeRTOS_IPv4_DiffConfig1_utest
+    FreeRTOS_Routing_V4Only
+    FreeRTOS_Routing_V4V6
+    FreeRTOS_Routing_V4V6CompatibleWithSingle
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
