@@ -284,6 +284,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig1/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
@@ -339,6 +340,7 @@ add_custom_target( coverage
     FreeRTOS_IPv4_utest
     FreeRTOS_IPv4_DiffConfig_utest
     FreeRTOS_IPv4_DiffConfig1_utest
+    FreeRTOS_IPv4_Sockets_utest
     FreeRTOS_Routing_V4Only
     FreeRTOS_Routing_V4V6
     FreeRTOS_Routing_V4V6CompatibleWithSingle
