@@ -447,6 +447,27 @@ void test_prvDetermineSocketSize_TCPSocket( void )
 }
 
 /**
+ * @brief Happy path with TCPv6 socket size being determined.
+ */
+void test_prvDetermineSocketSize_TCPv6Socket( void )
+{
+    BaseType_t xReturn;
+    BaseType_t xDomain = FREERTOS_AF_INET6, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    size_t xSocketSize;
+    FreeRTOS_Socket_t const * pxSocket = NULL;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    xReturn = prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
+    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), xSocketSize );
+}
+
+/**
  * @brief Test for NULL Socket.
  */
 void test_prvMakeSureSocketIsBound_NULLSocket( void )

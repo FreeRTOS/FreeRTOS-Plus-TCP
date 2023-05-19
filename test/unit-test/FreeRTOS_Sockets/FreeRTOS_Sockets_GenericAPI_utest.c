@@ -109,7 +109,7 @@ static void vpxListFindListItemWithValue_Found( const List_t * pxList,
 {
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( &( pxList->xListEnd ), pxReturn );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * )&( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
 
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
 }
@@ -381,6 +381,61 @@ void test_FreeRTOS_socket_UDPSocket_ProtocolDependent( void )
     TEST_ASSERT_EQUAL( xSocket->ucSocketOptions, ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
     TEST_ASSERT_EQUAL( xSocket->ucProtocol, ( uint8_t ) FREERTOS_IPPROTO_UDP );
     TEST_ASSERT_EQUAL( xSocket->u.xUDP.uxMaxPackets, ( UBaseType_t ) ipconfigUDP_MAX_RX_PACKETS );
+}
+
+/**
+ * @brief Assertion when unknown domain comes.
+ */
+void test_FreeRTOS_socket_unknownDomain( void )
+{
+    BaseType_t xDomain = FREERTOS_AF_INET + 1, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_SOCK_DEPENDENT_PROTO;
+
+    catch_assert( FreeRTOS_socket( xDomain, xType, xProtocol ) );
+}
+
+/**
+ * @brief Creation of socket when the protocol is TCPv6.
+ */
+void test_FreeRTOS_socket_TCPv6Socket( void )
+{
+    Socket_t xSocket;
+    FreeRTOS_Socket_t * pxSocket;
+    BaseType_t xDomain = FREERTOS_AF_INET6, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    uint8_t ucSocket[ ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ) ];
+    uint8_t xEventGroup[ sizeof( uintptr_t ) ];
+
+    pxSocket = ( FreeRTOS_Socket_t * ) ucSocket;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
+
+    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+
+    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
+
+    vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
+
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
+
+    xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
+
+    TEST_ASSERT_EQUAL( ucSocket, xSocket );
+    TEST_ASSERT_EQUAL( xSocket->xEventGroup, xEventGroup );
+    TEST_ASSERT_EQUAL( xSocket->xReceiveBlockTime, ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->xSendBlockTime, ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->ucSocketOptions, ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
+    TEST_ASSERT_EQUAL( xSocket->ucProtocol, ( uint8_t ) xProtocol );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.usMSS, ( uint16_t ) ipconfigTCP_MSS - ( ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER ) );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.uxRxStreamSize, ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.uxTxStreamSize, 0xAABB );
+    TEST_ASSERT_EQUAL( 0x1234, pxSocket->u.xTCP.uxRxWinSize );
+    TEST_ASSERT_EQUAL( 0x3456, pxSocket->u.xTCP.uxTxWinSize );
 }
 
 /**
@@ -927,6 +982,76 @@ void test_FreeRTOS_bind_NonNullAddress( void )
     xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+}
+
+/**
+ * @brief IPv4 socket did not bind the socket.
+ */
+void test_FreeRTOS_bind_IPTaskDidNotBindTheSocketIPv4Address( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+    uint32_t ulExpectIPAddress = 0xC0A80101; /* 192.168.1.1 */
+    uint16_t usExpectPort = 0x1234;
+
+    xAddress.sin_family = FREERTOS_AF_INET4;
+    xAddress.sin_address.ulIP_IPv4 = FreeRTOS_htonl( ulExpectIPAddress );
+    xAddress.sin_port = FreeRTOS_htons( usExpectPort );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xSendEventStructToIPTask_ExpectAndReturn( NULL, portMAX_DELAY, pdPASS );
+    xSendEventStructToIPTask_IgnoreArg_pxEvent();
+
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, ( EventBits_t ) eSOCKET_BOUND, pdTRUE, pdFALSE, portMAX_DELAY, pdPASS );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    TEST_ASSERT_EQUAL( pdFALSE, xSocket.bits.bIsIPv6 );
+    TEST_ASSERT_EQUAL( ulExpectIPAddress, xSocket.xLocalAddress.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( usExpectPort, xSocket.usLocalPort );
+}
+
+/**
+ * @brief IPv6 socket did not bind the socket.
+ */
+void test_FreeRTOS_bind_IPTaskDidNotBindTheSocketIPv6Address( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+    IPv6_Address_t xExpectIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } }; /* 2001::1 */
+    uint16_t usExpectPort = 0x1234;
+
+    xAddress.sin_family = FREERTOS_AF_INET6;
+    memcpy( xAddress.sin_address.xIP_IPv6.ucBytes, xExpectIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xAddress.sin_port = FreeRTOS_htons( usExpectPort );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xSendEventStructToIPTask_ExpectAndReturn( NULL, portMAX_DELAY, pdPASS );
+    xSendEventStructToIPTask_IgnoreArg_pxEvent();
+
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, ( EventBits_t ) eSOCKET_BOUND, pdTRUE, pdFALSE, portMAX_DELAY, pdPASS );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    TEST_ASSERT_EQUAL( pdTRUE, xSocket.bits.bIsIPv6 );
+    TEST_ASSERT_EQUAL_MEMORY( xExpectIPv6Address.ucBytes, xSocket.xLocalAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( usExpectPort, xSocket.usLocalPort );
 }
 
 /**

@@ -733,7 +733,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             }
 
             #if ( ipconfigUSE_TCP == 1 )
-                else if( xProtocolCpy == FREERTOS_IPPROTO_TCP )
+                else if( xProtocolCpy == FREERTOS_IPPROTO_TCP ) /* LCOV_EXCL_BR_LINE Exclude else case because protocol is checked in prvDetermineSocketSize */
                 {
                     prvInitialiseTCPFields( pxSocket, uxSocketSize );
                 }
