@@ -5,6 +5,7 @@
 # TCP library source files.
 set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_ARP.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_BitConfig.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DNS.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DNS_Cache.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_DNS_Parser.c"

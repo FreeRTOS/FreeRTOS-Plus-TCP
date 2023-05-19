@@ -337,11 +337,18 @@ void vBitConfig_write_32( BitConfig_t * pxConfig,
  */
 void vBitConfig_release( BitConfig_t * pxConfig )
 {
-    if( pxConfig->ucContents != NULL )
+    if( pxConfig != NULL )
     {
-        vPortFree( pxConfig->ucContents );
-    }
+        if( pxConfig->ucContents != NULL )
+        {
+            vPortFree( pxConfig->ucContents );
+        }
 
-    ( void ) memset( pxConfig, 0, sizeof( BitConfig_t ) );
+        ( void ) memset( pxConfig, 0, sizeof( BitConfig_t ) );
+    }
+    else
+    {
+        /* Nothing to free */
+    }
 }
 /*-----------------------------------------------------------*/
