@@ -458,16 +458,29 @@ void test_prepare_DNSLookup( void )
     xAddress.xIs_IPv6 = pdFALSE;
     xAddress.ulIPAddress = ulIP;
 
+    struct freertos_addrinfo * pxAddrInfo = &pucAddrBuffer[ 2 ];
+
+    ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
+    pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
+    ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, "hello", sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+
+    pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
+
+    pxAddrInfo->ai_addr = sockaddr;
+    pxAddrInfo->ai_family = FREERTOS_AF_INET4;
+    pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv4_ADDRESS;
+
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+
     xTaskGetTickCount_ExpectAndReturn( 5000 );
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddrInfo );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
     xDNSCache[ 0 ].xAddresses[ 0 ] = xAddress;
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( ulIP, x );
@@ -498,8 +511,8 @@ void test_prepare_DNSLookup2( void )
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
 
     x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
@@ -528,7 +541,6 @@ void test_prepare_DNSLookup3( void )
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
 
     x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
@@ -557,7 +569,6 @@ void test_prepare_DNSLookup4( void )
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
@@ -631,6 +642,17 @@ void test_prepare_DNSLookup_IPv6( void )
 
     *ppxAddressInfo = pxAddressInfo;
 
+    struct freertos_addrinfo * pxAddrInfo = &pucAddrBuffer[ 2 ];
+
+    ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
+    pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
+    ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, "hello", sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+
+    pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
+
+    pxAddrInfo->ai_family = FREERTOS_AF_INET6;
+    pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv6_ADDRESS;
+
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
@@ -639,8 +661,8 @@ void test_prepare_DNSLookup_IPv6( void )
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddrInfo );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 1, x );
@@ -649,6 +671,7 @@ void test_prepare_DNSLookup_IPv6( void )
 /**
  * @brief DNS IPv6 Lookup fail : pxAddressInfo = NULL
  */
+
 void test_prepare_DNSLookup2_IPv6( void )
 {
     BaseType_t x = 0U;
@@ -669,8 +692,8 @@ void test_prepare_DNSLookup2_IPv6( void )
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
 
     x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
@@ -699,7 +722,6 @@ void test_prepare_DNSLookup3_IPv6( void )
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
 
     x = Prepare_CacheLookup( "helloman", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
@@ -716,6 +738,7 @@ void test_prepare_DNSLookup4_IPv6( void )
     struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
     IPv46_Address_t xAddress;
 
+
     xFamily = FREERTOS_AF_INET6;
     xAddress.xIs_IPv6 = pdTRUE;
 
@@ -728,7 +751,7 @@ void test_prepare_DNSLookup4_IPv6( void )
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    pxNew_AddrInfo_Stub( xStub_pxNew_AddrInfo );
+
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
