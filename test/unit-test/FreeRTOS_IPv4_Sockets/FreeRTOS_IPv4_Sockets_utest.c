@@ -48,7 +48,24 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 char cStubNtoaString[ 128 ];
+
+/* ============================ Unity Fixtures ============================ */
+
+/*! called before each test case */
+void setUp( void )
+{
+    memset( cStubNtoaString, 0, sizeof( cStubNtoaString ) );
+}
+
+/*! called after each test case */
+void tearDown( void )
+{
+}
+
+/* ======================== Stub Callback Functions ========================= */
 
 static void prvSetString_FreeRTOS_inet_ntoa( char * pcBuffer )
 {
@@ -63,12 +80,9 @@ static const char * pucStub_FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
     return pcBuffer;
 }
 
-void setUp()
-{
-    memset( cStubNtoaString, 0, sizeof( cStubNtoaString ) );
-}
+/* ============================== Test Cases ============================== */
 
-/*
+/**
  * @brief Test for FreeRTOS_inet_pton4 function.
  */
 void test_FreeRTOS_inet_pton4( void )
@@ -164,7 +178,7 @@ void test_FreeRTOS_inet_pton4( void )
     TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 8." );
 }
 
-/*
+/**
  * @brief Less size of the string being passed to the function.
  */
 void test_FreeRTOS_inet_ntop4_LessBufferLength( void )
@@ -179,7 +193,7 @@ void test_FreeRTOS_inet_ntop4_LessBufferLength( void )
     TEST_ASSERT_EQUAL( NULL, pucReturn );
 }
 
-/*
+/**
  * @brief Happy path.
  */
 void test_FreeRTOS_inet_ntop4_HappyCase( void )

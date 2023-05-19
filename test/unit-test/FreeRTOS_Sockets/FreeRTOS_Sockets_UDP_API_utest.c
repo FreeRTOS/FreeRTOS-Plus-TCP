@@ -63,6 +63,8 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
@@ -84,6 +86,8 @@ static BaseType_t xLocalReceiveCallback_Return;
 static uint8_t xLocalReceiveCallback_Called = 0;
 
 static FreeRTOS_Socket_t xGlobalSocket;
+
+/* ======================== Stub Callback Functions ========================= */
 
 static void vUserCallbackLocal( FreeRTOS_Socket_t * xSocket )
 {
@@ -132,7 +136,9 @@ static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
     return xLocalReceiveCallback_Return;
 }
 
-/*
+/* ============================== Test Cases ============================== */
+
+/**
  * @brief NULL socket.
  */
 void test_FreeRTOS_recvfrom_NullSocket( void )
@@ -150,7 +156,7 @@ void test_FreeRTOS_recvfrom_NullSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lReturn );
 }
 
-/*
+/**
  * @brief Receiving from a TCP socket (while a UDP socket should be called).
  */
 void test_FreeRTOS_recvfrom_TCPSocket( void )
@@ -175,7 +181,7 @@ void test_FreeRTOS_recvfrom_TCPSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lReturn );
 }
 
-/*
+/**
  * @brief Call to the function is interrupted.
  */
 void test_FreeRTOS_recvfrom_NonBlockingInterrupted( void )
@@ -204,7 +210,7 @@ void test_FreeRTOS_recvfrom_NonBlockingInterrupted( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINTR, lReturn );
 }
 
-/*
+/**
  * @brief Non blocking call which will block.
  */
 void test_FreeRTOS_recvfrom_NonBlocking( void )
@@ -233,7 +239,7 @@ void test_FreeRTOS_recvfrom_NonBlocking( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EWOULDBLOCK, lReturn );
 }
 
-/*
+/**
  * @brief Non-blocking flag set but nothing received by the socket yet.
  */
 void test_FreeRTOS_recvfrom_NonBlockingFlagSet( void )
@@ -261,7 +267,7 @@ void test_FreeRTOS_recvfrom_NonBlockingFlagSet( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EWOULDBLOCK, lReturn );
 }
 
-/*
+/**
  * @brief Blocking read times out.
  */
 void test_FreeRTOS_recvfrom_BlockingButTimeout( void )
@@ -297,7 +303,7 @@ void test_FreeRTOS_recvfrom_BlockingButTimeout( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EWOULDBLOCK, lReturn );
 }
 
-/*
+/**
  * @brief Blocking read - timeout in second iteration.
  */
 void test_FreeRTOS_recvfrom_BlockingButTimeoutSecondTime( void )
@@ -339,7 +345,7 @@ void test_FreeRTOS_recvfrom_BlockingButTimeoutSecondTime( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EWOULDBLOCK, lReturn );
 }
 
-/*
+/**
  * @brief Blocking read interrupted.
  */
 void test_FreeRTOS_recvfrom_BlockingButInterrupted( void )
@@ -370,7 +376,7 @@ void test_FreeRTOS_recvfrom_BlockingButInterrupted( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINTR, lReturn );
 }
 
-/*
+/**
  * @brief Blocking read interrupted and received.
  */
 void test_FreeRTOS_recvfrom_BlockingButInterruptedAndReceived( void )
@@ -403,7 +409,7 @@ void test_FreeRTOS_recvfrom_BlockingButInterruptedAndReceived( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINTR, lReturn );
 }
 
-/*
+/**
  * @brief Blocking read socket gets a packet while it is waiting. However, the packet
  *        is only a UDP header.
  */
@@ -463,7 +469,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, pvBuffer, ipconfigTCP_MSS );
 }
 
-/*
+/**
  * @brief Blocking read socket gets a packet while it is waiting. However, the packet
  *        is UDP header and 100 bytes.
  */
@@ -525,7 +531,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ 100 ], ipconfigTCP_MSS - 100 );
 }
 
-/*
+/**
  * @brief Blocking read socket gets a packet while it is waiting. However, the packet
  *        is UDP header and 100 bytes.
  */
@@ -587,7 +593,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ uxBufferLength ], ipconfigTCP_MSS - uxBufferLength );
 }
 
-/*
+/**
  * @brief Blocking read socket gets a packet while it is waiting. The packet
  *        is UDP header and 100 bytes. But the buffer is small and the receive
  *        call is used to peek in the list.
@@ -646,7 +652,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ uxBufferLength ], ipconfigTCP_MSS - uxBufferLength );
 }
 
-/*
+/**
  * @brief Blocking read socket gets a packet while it is waiting. The packet
  *        is UDP header and 100 bytes. But the buffer is small and the receive
  *        call is used to peek in the list. The source address param passed is NULL.
@@ -704,7 +710,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ uxBufferLength ], ipconfigTCP_MSS - uxBufferLength );
 }
 
-/*
+/**
  * @brief Blocking read socket gets a packet while it is waiting. The packet
  *        is UDP header and 100 bytes. But the buffer is small and the receive
  *        call is used to peek in the list with zero copy flag.
@@ -760,7 +766,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, 100 );
 }
 
-/*
+/**
  * @brief Blocking read socket gets a packet as soon as the function is called. The packet
  *        is UDP header and 100 bytes. But the buffer is small and the receive
  *        call is used to peek in the list.
@@ -810,7 +816,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, 100 );
 }
 
-/*
+/**
  * @brief Assert to catch sending buffer is NULL.
  */
 void test_FreeRTOS_sendto_CatchAssert( void )
@@ -826,7 +832,7 @@ void test_FreeRTOS_sendto_CatchAssert( void )
     catch_assert( FreeRTOS_sendto( xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength ) );
 }
 
-/*
+/**
  * @brief Sending more than maximum allowed data in one go.
  */
 void test_FreeRTOS_sendto_MoreDataThanUDPPayload( void )
@@ -846,7 +852,7 @@ void test_FreeRTOS_sendto_MoreDataThanUDPPayload( void )
     TEST_ASSERT_EQUAL( 0, lResult );
 }
 
-/*
+/**
  * @brief Trying to send with a TCP socket.
  */
 void test_FreeRTOS_sendto_TCPSocket( void )
@@ -867,7 +873,7 @@ void test_FreeRTOS_sendto_TCPSocket( void )
     TEST_ASSERT_EQUAL( 0, lResult );
 }
 
-/*
+/**
  * @brief Sending from IP task when a buffer cannot be allocated.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_NoNetworkBuffer( void )
@@ -896,7 +902,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NoNetworkBuffer( void )
     TEST_ASSERT_EQUAL( 0, lResult );
 }
 
-/*
+/**
  * @brief Sending from IP task without using zero copy.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
@@ -945,7 +951,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
 }
 
-/*
+/**
  * @brief Sending from IP task without using zero copy.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
@@ -994,7 +1000,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
 }
 
-/*
+/**
  * @brief Sending from IP task without using zero copy.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
@@ -1041,7 +1047,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
 }
 
-/*
+/**
  * @brief Sending from IP task without using zero copy. Checks if xIsCallingFromIPTask
  * gets called if xFlags's FREERTOS_MSG_DONTWAIT bit is unset.
  */
@@ -1091,7 +1097,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
 }
 
-/*
+/**
  * @brief Sending from IP task without using zero copy.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
@@ -1138,7 +1144,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
 }
 
-/*
+/**
  * @brief  Sending from IP task with zero copy.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy( void )
@@ -1190,7 +1196,7 @@ static void xLocalFunctionPointer( Socket_t xSocket,
     ulCalled++;
 }
 
-/*
+/**
  * @brief Sending from IP task with zero copy. A valid callback function pointer is added.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
@@ -1238,7 +1244,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
     TEST_ASSERT_EQUAL( 1, ulCalled );
 }
 
-/*
+/**
  * @brief Sending from IP task with zero copy.Sending message to IP task fails.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_SendingToIPTaskFails( void )
@@ -1286,7 +1292,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( 0, ulCalled );
 }
 
-/*
+/**
  * @brief Sending from IP task without zero copy. Sending message to IP task fails.
  */
 void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy_SendingToIPTaskFails( void )

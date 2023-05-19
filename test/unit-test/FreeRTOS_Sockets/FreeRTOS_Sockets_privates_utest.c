@@ -63,6 +63,8 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
@@ -81,6 +83,8 @@ static BaseType_t xLocalReceiveCallback_Return;
 static uint8_t xLocalReceiveCallback_Called = 0;
 
 static FreeRTOS_Socket_t xGlobalSocket;
+
+/* ======================== Stub Callback Functions ========================= */
 
 static void vUserCallbackLocal( FreeRTOS_Socket_t * xSocket )
 {
@@ -129,7 +133,9 @@ static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
     return xLocalReceiveCallback_Return;
 }
 
-/*
+/* ============================== Test Cases ============================== */
+
+/**
  * @brief Sending to IP-task fails.
  */
 void test_prvFindSelectedSocket_SendFail( void )
@@ -143,7 +149,7 @@ void test_prvFindSelectedSocket_SendFail( void )
     prvFindSelectedSocket( &xSocketSet );
 }
 
-/*
+/**
  * @brief Sending to IP-task is successful.
  */
 void test_prvFindSelectedSocket_SendSuccess( void )
@@ -159,7 +165,7 @@ void test_prvFindSelectedSocket_SendSuccess( void )
     prvFindSelectedSocket( &xSocketSet );
 }
 
-/*
+/**
  * @brief Invalid or NULL socket test.
  */
 void test_prvValidSocket_InvalidOrNULLSocket( void )
@@ -177,7 +183,7 @@ void test_prvValidSocket_InvalidOrNULLSocket( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-/*
+/**
  * @brief Socket bound variable set, but the socket is not actually bound.
  */
 void test_prvValidSocket_SocketBoundSetButNotBound( void )
@@ -195,7 +201,7 @@ void test_prvValidSocket_SocketBoundSetButNotBound( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-/*
+/**
  * @brief Socket bound variable reset, but the socket is actually bound.
  */
 void test_prvValidSocket_SocketBoundResetButBound( void )
@@ -213,7 +219,7 @@ void test_prvValidSocket_SocketBoundResetButBound( void )
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
-/*
+/**
  * @brief Invalid protocol present in the socket structure.
  */
 void test_prvValidSocket_InvalidProtocol( void )
@@ -233,7 +239,7 @@ void test_prvValidSocket_InvalidProtocol( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-/*
+/**
  * @brief This function is a wrapper expected to call only the initialisation functions for the bound sockets lists.
  */
 void test_vNetworkSocketsInit( void )
@@ -244,7 +250,7 @@ void test_vNetworkSocketsInit( void )
     vNetworkSocketsInit();
 }
 
-/*
+/**
  * @brief Test case when IP-Task is not initialised.
  */
 void test_prvDetermineSocketSize_IPTaskNotInit( void )
@@ -260,7 +266,7 @@ void test_prvDetermineSocketSize_IPTaskNotInit( void )
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
-/*
+/**
  * @brief Assertion when the domain is anything except FREERTOS_AF_INET.
  */
 void test_prvDetermineSocketSize_CatchAssert( void )
@@ -274,7 +280,7 @@ void test_prvDetermineSocketSize_CatchAssert( void )
     catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
-/*
+/**
  * @brief Assertion that the UDP socket list must be initialized.
  */
 void test_prvDetermineSocketSize_CatchAssert2( void )
@@ -293,7 +299,7 @@ void test_prvDetermineSocketSize_CatchAssert2( void )
     catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
-/*
+/**
  * @brief Assertion that the TCP socket list must be initialized.
  */
 void test_prvDetermineSocketSize_CatchAssert3( void )
@@ -317,7 +323,7 @@ void test_prvDetermineSocketSize_CatchAssert3( void )
     catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
-/*
+/**
  * @brief Assertion that the protocol must be either TCP or UDP.
  */
 void test_prvDetermineSocketSize_CatchAssert4( void )
@@ -342,7 +348,7 @@ void test_prvDetermineSocketSize_CatchAssert4( void )
     catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
-/*
+/**
  * @brief Assertion that the protocol type and the socket type must match.
  */
 void test_prvDetermineSocketSize_CatchAssert5( void )
@@ -367,7 +373,7 @@ void test_prvDetermineSocketSize_CatchAssert5( void )
     catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
-/*
+/**
  * @brief Happy path with UDP socket size being determined.
  */
 void test_prvDetermineSocketSize_UDPSocket( void )
@@ -394,7 +400,7 @@ void test_prvDetermineSocketSize_UDPSocket( void )
     TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ), xSocketSize );
 }
 
-/*
+/**
  * @brief Assertion that the protocol type and the socket type must match.
  */
 void test_prvDetermineSocketSize_CatchAssert6( void )
@@ -419,7 +425,7 @@ void test_prvDetermineSocketSize_CatchAssert6( void )
     catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
-/*
+/**
  * @brief Happy path with TCP socket size being determined.
  */
 void test_prvDetermineSocketSize_TCPSocket( void )
@@ -440,7 +446,7 @@ void test_prvDetermineSocketSize_TCPSocket( void )
     TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), xSocketSize );
 }
 
-/*
+/**
  * @brief Test for NULL Socket.
  */
 void test_prvMakeSureSocketIsBound_NULLSocket( void )
@@ -452,7 +458,7 @@ void test_prvMakeSureSocketIsBound_NULLSocket( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
-/*
+/**
  * @brief Incompatible protocol.
  */
 void test_prvMakeSureSocketIsBound_TCPProtocol( void )
@@ -467,7 +473,7 @@ void test_prvMakeSureSocketIsBound_TCPProtocol( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
-/*
+/**
  * @brief Socket is already bound.
  */
 void test_prvMakeSureSocketIsBound_SocketAlreadyBound( void )
@@ -484,7 +490,7 @@ void test_prvMakeSureSocketIsBound_SocketAlreadyBound( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
-/*
+/**
  * @brief Socket is not bound but attempt of binding fails.
  */
 void test_prvMakeSureSocketIsBound_SocketNotBound_BindingFails( void )
@@ -507,7 +513,7 @@ void test_prvMakeSureSocketIsBound_SocketNotBound_BindingFails( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
-/*
+/**
  * @brief Socket is not bound and binding is successful.
  */
 void test_prvMakeSureSocketIsBound_SocketNotBound_BindingSuccess( void )
@@ -534,7 +540,7 @@ void test_prvMakeSureSocketIsBound_SocketNotBound_BindingSuccess( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
-/*
+/**
  * @brief Trying to bind a NULL socket.
  */
 void test_vSocketBind_CatchAssert1( void )
@@ -547,7 +553,7 @@ void test_vSocketBind_CatchAssert1( void )
     catch_assert( vSocketBind( NULL, &xBindAddress, uxAddressLength, xInternal ) );
 }
 
-/*
+/**
  * @brief Trying to bind an invalid socket.
  */
 void test_vSocketBind_CatchAssert2( void )
@@ -561,7 +567,7 @@ void test_vSocketBind_CatchAssert2( void )
     catch_assert( vSocketBind( FREERTOS_INVALID_SOCKET, &xBindAddress, uxAddressLength, xInternal ) );
 }
 
-/*
+/**
  * @brief Binding successful.
  */
 void test_vSocketBind_TCP( void )
@@ -593,7 +599,7 @@ void test_vSocketBind_TCP( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Address passed is NULL.
  */
 void test_vSocketBind_TCPNULLAddress( void )
@@ -615,7 +621,7 @@ void test_vSocketBind_TCPNULLAddress( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xReturn );
 }
 
-/*
+/**
  * @brief Random number generator fails to get a random port number.
  */
 void test_vSocketBind_RNGFails( void )
@@ -640,7 +646,7 @@ void test_vSocketBind_RNGFails( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xReturn );
 }
 
-/*
+/**
  * @brief Binding the socket to a given port number.
  */
 void test_vSocketBind_NonZeroPortNumber( void )
@@ -672,7 +678,7 @@ void test_vSocketBind_NonZeroPortNumber( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief NULL item returned.
  */
 void test_vSocketBind_GotNULLItem( void )
@@ -713,7 +719,7 @@ void test_vSocketBind_GotNULLItem( void )
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
 }
 
-/*
+/**
  * @brief Got a non-NULL list.
  */
 void test_vSocketBind_GotANonNULLValue( void )
@@ -747,7 +753,7 @@ void test_vSocketBind_GotANonNULLValue( void )
     TEST_ASSERT_EQUAL( 0, xSocket.usLocalPort );
 }
 
-/*
+/**
  * @brief TCP socket bind happy path.
  */
 void test_vSocketBind_TCPGotAProperValue( void )
@@ -778,7 +784,7 @@ void test_vSocketBind_TCPGotAProperValue( void )
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
 }
 
-/*
+/**
  * @brief TCP trying to bind to port 0.
  */
 void test_vSocketBind_TCPGotAProperValuePortZero( void )
@@ -818,7 +824,7 @@ void test_vSocketBind_TCPGotAProperValuePortZero( void )
     TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
 }
 
-/*
+/**
  * @brief Closing unbound socket with unknown protocol.
  */
 void test_vSocketClose_UnknownProtocol_NotBound( void )
@@ -839,7 +845,7 @@ void test_vSocketClose_UnknownProtocol_NotBound( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Closing unbound socket having a NULL event group with unknown protocol.
  */
 void test_vSocketClose_UnknownProtocol_NotBound_EventGroupNULL( void )
@@ -860,7 +866,7 @@ void test_vSocketClose_UnknownProtocol_NotBound_EventGroupNULL( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Closing a TCP socket which has every object assigned.
  */
 void test_vSocketClose_TCP_EverythingNonNULL( void )
@@ -893,7 +899,7 @@ void test_vSocketClose_TCP_EverythingNonNULL( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief TCP socket being closed where there is still a pointer to last acknowledged packet.
  */
 void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
@@ -926,7 +932,7 @@ void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Closing a socket with streams non-NULL.
  */
 void test_vSocketClose_TCP_AllFieldsNonNULL( void )
@@ -959,7 +965,7 @@ void test_vSocketClose_TCP_AllFieldsNonNULL( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Closing a UDP socket which doesn't have any waiting packets.
  */
 void test_vSocketClose_UDP_NoWaitingPackets( void )
@@ -984,7 +990,7 @@ void test_vSocketClose_UDP_NoWaitingPackets( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Closing a UDP socket which has some waiting packets.
  */
 void test_vSocketClose_UDP_SomeWaitingPackets( void )
@@ -1021,7 +1027,7 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Set children count of a listening socket which does not have any.
  */
 void test_prvTCPSetSocketCount_ListeningSocketNoChildren( void )
@@ -1038,7 +1044,7 @@ void test_prvTCPSetSocketCount_ListeningSocketNoChildren( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Set children count of a listening socket which has non-zero children.
  */
 void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren1( void )
@@ -1063,7 +1069,7 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren1( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Set children count of a listening socket which has non-zero children.
  */
 void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren2( void )
@@ -1091,7 +1097,7 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren2( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Set children count of a listening socket which has non-zero children.
  */
 void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren3( void )
@@ -1121,7 +1127,7 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren3( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Set children count of a listening socket which has non-zero children.
  */
 void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren4( void )
@@ -1151,7 +1157,7 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren4( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Setting the socket count happy path.
  */
 void test_prvTCPSetSocketCount_ListeningSock_HappyPath1( void )
@@ -1192,7 +1198,7 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath1( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Setting the socket count happy path.
  */
 void test_prvTCPSetSocketCount_ListeningSock_HappyPath2( void )
@@ -1233,7 +1239,7 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath2( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Setting the socket count happy path.
  */
 void test_prvTCPSetSocketCount_ListeningSock_HappyPath3( void )
@@ -1274,7 +1280,7 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath3( void )
     prvTCPSetSocketCount( &xSocketToDelete );
 }
 
-/*
+/**
  * @brief Set the socket count of a non-listening socket.
  */
 void test_prvTCPSetSocketCount_NotListeningSock_1( void )
@@ -1304,7 +1310,7 @@ void test_prvTCPSetSocketCount_NotListeningSock_1( void )
     TEST_ASSERT_EQUAL( 100, xChildSocket.u.xTCP.usChildCount );
 }
 
-/*
+/**
  * @brief Set the socket count of a non-listening socket.
  */
 void test_prvTCPSetSocketCount_NotListeningSock_2( void )
@@ -1335,7 +1341,7 @@ void test_prvTCPSetSocketCount_NotListeningSock_2( void )
     TEST_ASSERT_EQUAL( 100, xChildSocket.u.xTCP.usChildCount );
 }
 
-/*
+/**
  * @brief Set the socket count of a non-listening socket.
  */
 void test_prvTCPSetSocketCount_NotListeningSock_3( void )
@@ -1366,7 +1372,7 @@ void test_prvTCPSetSocketCount_NotListeningSock_3( void )
     TEST_ASSERT_EQUAL( 0, xChildSocket.u.xTCP.usChildCount );
 }
 
-/*
+/**
  * @brief Happy path of setting socket count of a non-listening socket.
  */
 void test_prvTCPSetSocketCount_NotListeningSock_HappyPath( void )
@@ -1395,7 +1401,7 @@ void test_prvTCPSetSocketCount_NotListeningSock_HappyPath( void )
     TEST_ASSERT_EQUAL( 99, xChildSocket.u.xTCP.usChildCount );
 }
 
-/*
+/**
  * @brief Invalid protocol.
  */
 void test_prvSockopt_so_buffer_InvalidProtocol( void )
@@ -1412,7 +1418,7 @@ void test_prvSockopt_so_buffer_InvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Invalid option.
  */
 void test_prvSockopt_so_buffer_InvalidOption1( void )
@@ -1438,7 +1444,7 @@ void test_prvSockopt_so_buffer_InvalidOption1( void )
     TEST_ASSERT_EQUAL( 0xAB, xSocket.u.xTCP.uxTxStreamSize );
 }
 
-/*
+/**
  * @brief Invalid option.
  */
 void test_prvSockopt_so_buffer_InvalidOption2( void )
@@ -1461,7 +1467,7 @@ void test_prvSockopt_so_buffer_InvalidOption2( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Invalid option.
  */
 void test_prvSockopt_so_buffer_InvalidOption3( void )
@@ -1484,7 +1490,7 @@ void test_prvSockopt_so_buffer_InvalidOption3( void )
     TEST_ASSERT_EQUAL( vOptionValue, xSocket.u.xTCP.uxRxStreamSize );
 }
 
-/*
+/**
  * @brief Invalid option.
  */
 void test_prvSockopt_so_buffer_InvalidOption4( void )
@@ -1507,7 +1513,7 @@ void test_prvSockopt_so_buffer_InvalidOption4( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Getting private port number fails as RNG fails.
  */
 void test_prvGetPrivatePortNumber_TCP_RNGFails( void )
@@ -1522,7 +1528,7 @@ void test_prvGetPrivatePortNumber_TCP_RNGFails( void )
     TEST_ASSERT_EQUAL( 0, usReturn );
 }
 
-/*
+/**
  * @brief Port number not received as IP task is not ready.
  */
 void test_prvGetPrivatePortNumber_TCP_IPTaskNotReady( void )
@@ -1539,7 +1545,7 @@ void test_prvGetPrivatePortNumber_TCP_IPTaskNotReady( void )
     TEST_ASSERT_EQUAL( 4, usReturn );
 }
 
-/*
+/**
  * @brief Port number acquired success.
  */
 void test_prvGetPrivatePortNumber_TCP_Found( void )
@@ -1570,7 +1576,7 @@ void test_prvGetPrivatePortNumber_TCP_Found( void )
     TEST_ASSERT_EQUAL( xWantedItemValue, usReturn );
 }
 
-/*
+/**
  * @brief Port number for UDP fails as RNG fails.
  */
 void test_prvGetPrivatePortNumber_UDP_RNGFails( void )
@@ -1585,7 +1591,7 @@ void test_prvGetPrivatePortNumber_UDP_RNGFails( void )
     TEST_ASSERT_EQUAL( 0, usReturn );
 }
 
-/*
+/**
  * @brief Don't get a port number as IP task is not ready.
  */
 void test_prvGetPrivatePortNumber_UDP_IPTaskNotReady( void )
@@ -1602,7 +1608,7 @@ void test_prvGetPrivatePortNumber_UDP_IPTaskNotReady( void )
     TEST_ASSERT_EQUAL( 4, usReturn );
 }
 
-/*
+/**
  * @brief UDP port number found success.
  */
 void test_prvGetPrivatePortNumber_UDP_Found( void )
@@ -1633,7 +1639,7 @@ void test_prvGetPrivatePortNumber_UDP_Found( void )
     TEST_ASSERT_EQUAL( xWantedItemValue, usReturn );
 }
 
-/*
+/**
  * @brief UDP port number not found after all iterations.
  */
 void test_prvGetPrivatePortNumber_UDP_NotFoundAfterAllIterations( void )
@@ -1660,7 +1666,7 @@ void test_prvGetPrivatePortNumber_UDP_NotFoundAfterAllIterations( void )
     TEST_ASSERT_EQUAL( 0, usReturn );
 }
 
-/*
+/**
  * @brief Finding in a NULL list.
  */
 void test_pxListFindListItemWithValue_NULLList( void )
@@ -1676,7 +1682,7 @@ void test_pxListFindListItemWithValue_NULLList( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
-/*
+/**
  * @brief Finding in a list when IP task is not ready.
  */
 void test_pxListFindListItemWithValue_IPTaskNotReady( void )
@@ -1692,7 +1698,7 @@ void test_pxListFindListItemWithValue_IPTaskNotReady( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
-/*
+/**
  * @brief Finding in list when there is nothing in the list.
  */
 void test_pxListFindListItemWithValue_ListLengthZero( void )
@@ -1710,7 +1716,7 @@ void test_pxListFindListItemWithValue_ListLengthZero( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
-/*
+/**
  * @brief Value being searched for not found.
  */
 void test_pxListFindListItemWithValue_NotFound( void )
@@ -1733,7 +1739,7 @@ void test_pxListFindListItemWithValue_NotFound( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
-/*
+/**
  * @brief Value found.
  */
 void test_pxListFindListItemWithValue_Found( void )
@@ -1754,7 +1760,7 @@ void test_pxListFindListItemWithValue_Found( void )
     TEST_ASSERT_EQUAL_UINT32( &( xLocalListItem ), pxReturn );
 }
 
-/*
+/**
  * @brief Could not find UDP socket.
  */
 void test_pxUDPSocketLookup_NotFound( void )
@@ -1769,7 +1775,7 @@ void test_pxUDPSocketLookup_NotFound( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
-/*
+/**
  * @brief Found a NULL socket.
  */
 void test_pxUDPSocketLookup_FoundNULLSocket( void )
@@ -1785,7 +1791,7 @@ void test_pxUDPSocketLookup_FoundNULLSocket( void )
     catch_assert( pxUDPSocketLookup( uxLocalPort ) );
 }
 
-/*
+/**
  * @brief Found a proper UDP socket.
  */
 void test_pxUDPSocketLookup_Found( void )
@@ -1804,7 +1810,7 @@ void test_pxUDPSocketLookup_Found( void )
     TEST_ASSERT_EQUAL( &xLocalSocket, pxReturn );
 }
 
-/*
+/**
  * @brief Convert ascii values to hexadecimal values.
  */
 void test_ucASCIIToHex( void )
@@ -1856,7 +1862,7 @@ void test_ucASCIIToHex( void )
     }
 }
 
-/*
+/**
  * @brief All fields NULL of socket.
  */
 void test_vSocketWakeUpUser_AllNULL( void )
@@ -1870,7 +1876,7 @@ void test_vSocketWakeUpUser_AllNULL( void )
     TEST_ASSERT_EQUAL( 0, xSocket.xEventBits );
 }
 
-/*
+/**
  * @brief All fields are assigned of the socket.
  */
 void test_vSocketWakeUpUser_AllNonNULL( void )
@@ -1896,7 +1902,7 @@ void test_vSocketWakeUpUser_AllNonNULL( void )
     TEST_ASSERT_EQUAL( 0, xSocket.xEventBits );
 }
 
-/*
+/**
  * @brief Event bits are set for the socket.
  */
 void test_vSocketWakeUpUser_AllNonNULL_EventBitsSet( void )
@@ -1927,7 +1933,7 @@ void test_vSocketWakeUpUser_AllNonNULL_EventBitsSet( void )
     TEST_ASSERT_EQUAL( 0, xSocket.xEventBits );
 }
 
-/*
+/**
  * @brief Test all states of which may connect.
  */
 void test_bMayConnect( void )
@@ -1986,7 +1992,7 @@ void test_bMayConnect( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAGAIN, xReturn );
 }
 
-/*
+/**
  * @brief Try to connect to NULL address.
  */
 void test_prvTCPConnectStart_AddressNULL( void )
@@ -2003,7 +2009,7 @@ void test_prvTCPConnectStart_AddressNULL( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Trying to connect with a invalid socket.
  */
 void test_prvTCPConnectStart_InvalidSocket( void )
@@ -2020,7 +2026,7 @@ void test_prvTCPConnectStart_InvalidSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EBADF, xReturn );
 }
 
-/*
+/**
  * @brief Trying to connect an already connected socket.
  */
 void test_prvTCPConnectStart_SocketAlreadyConnected( void )
@@ -2040,7 +2046,7 @@ void test_prvTCPConnectStart_SocketAlreadyConnected( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EISCONN, xReturn );
 }
 
-/*
+/**
  * @brief Connecting with an unbound socket.
  */
 void test_prvTCPConnectStart_SocketNotBound_Success( void )
@@ -2075,7 +2081,7 @@ void test_prvTCPConnectStart_SocketNotBound_Success( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Connecting with an unbound socket. Sending to IP task fails.
  */
 void test_prvTCPConnectStart_SocketNotBound_Failure( void )
@@ -2110,7 +2116,7 @@ void test_prvTCPConnectStart_SocketNotBound_Failure( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ECANCELED, xReturn );
 }
 
-/*
+/**
  * @brief Connecting with an unbound socket. Connection is in progress.
  */
 void test_prvTCPConnectStart_SocketNotBound_Failure2( void )
@@ -2142,7 +2148,7 @@ void test_prvTCPConnectStart_SocketNotBound_Failure2( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINPROGRESS, xReturn );
 }
 
-/*
+/**
  * @brief Socket is already bound and is trying to connect.
  */
 void test_prvTCPConnectStart_SocketBound_Failure( void )
@@ -2164,7 +2170,7 @@ void test_prvTCPConnectStart_SocketBound_Failure( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINPROGRESS, xReturn );
 }
 
-/*
+/**
  * @brief invalid values.
  */
 void test_prvTCPSendCheck_InvalidValues( void )
@@ -2259,7 +2265,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     TEST_ASSERT_EQUAL( 1, lReturn );
 }
 
-/*
+/**
  * @brief Bound TCP socket list is empty.
  */
 void test_xTCPTimerCheck_EmptyList( void )
@@ -2276,7 +2282,7 @@ void test_xTCPTimerCheck_EmptyList( void )
     TEST_ASSERT_EQUAL( pdMS_TO_TICKS( ( TickType_t ) 1000 ), xReturn );
 }
 
-/*
+/**
  * @brief Socket checking results in an error.
  */
 void test_xTCPTimerCheck_NonEmptyList_SocketCheckError( void )
@@ -2304,7 +2310,7 @@ void test_xTCPTimerCheck_NonEmptyList_SocketCheckError( void )
     TEST_ASSERT_EQUAL( pdMS_TO_TICKS( ( TickType_t ) 1000 ), xReturn );
 }
 
-/*
+/**
  * @brief Socket checking successful.
  */
 void test_xTCPTimerCheck_NonEmptyList_NoError( void )
@@ -2333,7 +2339,7 @@ void test_xTCPTimerCheck_NonEmptyList_NoError( void )
     TEST_ASSERT_EQUAL( pdMS_TO_TICKS( ( TickType_t ) 1000 ), xReturn );
 }
 
-/*
+/**
  * @brief Delta of times is less than the timeout value.
  */
 void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout( void )
@@ -2366,7 +2372,7 @@ void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout( void )
     TEST_ASSERT_EQUAL( 9, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Delta of times is less than the timeout value.
  */
 void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout1( void )
@@ -2399,7 +2405,7 @@ void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout1( void )
     TEST_ASSERT_EQUAL( 1007, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Event bits are non-zero and will sleep flag is reset.
  */
 void test_xTCPTimerCheck_EventBitsNonZeroWontSleep( void )
@@ -2433,7 +2439,7 @@ void test_xTCPTimerCheck_EventBitsNonZeroWontSleep( void )
     TEST_ASSERT_EQUAL( 1007, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Event bits are non-zero and will sleep flag is set.
  */
 void test_xTCPTimerCheck_EventBitsNonZeroWillSleep( void )
@@ -2467,7 +2473,7 @@ void test_xTCPTimerCheck_EventBitsNonZeroWillSleep( void )
     TEST_ASSERT_EQUAL( 1007, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Found a matching socket in lookup.
  */
 void test_pxTCPSocketLookup_FoundAMatch( void )
@@ -2501,7 +2507,7 @@ void test_pxTCPSocketLookup_FoundAMatch( void )
     TEST_ASSERT_EQUAL_UINT32( &xMatchingSocket, pxReturn );
 }
 
-/*
+/**
  * @brief No match found while looking up a socket. IP doesn't match.
  */
 void test_pxTCPSocketLookup_NoMatch( void )
@@ -2538,7 +2544,7 @@ void test_pxTCPSocketLookup_NoMatch( void )
     TEST_ASSERT_EQUAL_UINT32( NULL, pxReturn );
 }
 
-/*
+/**
  * @brief No match found while looking up a socket. IP and port number doesn't match.
  */
 void test_pxTCPSocketLookup_NoMatch2( void )
@@ -2575,7 +2581,7 @@ void test_pxTCPSocketLookup_NoMatch2( void )
     TEST_ASSERT_EQUAL_UINT32( NULL, pxReturn );
 }
 
-/*
+/**
  * @brief Found a partial match based on IP.
  */
 void test_pxTCPSocketLookup_FoundAPartialMatch( void )
@@ -2613,7 +2619,7 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
     TEST_ASSERT_EQUAL_UINT32( &xMatchingSocket, pxReturn );
 }
 
-/*
+/**
  * @brief Low and high space fields zero.
  */
 void test_prvTCPCreateStream( void )
@@ -2638,7 +2644,7 @@ void test_prvTCPCreateStream( void )
     TEST_ASSERT_EQUAL( ucStream, xSocket.u.xTCP.rxStream );
 }
 
-/*
+/**
  * @brief Low and high space fields zero.
  */
 void test_prvTCPCreateStream1( void )
@@ -2663,7 +2669,7 @@ void test_prvTCPCreateStream1( void )
     TEST_ASSERT_EQUAL( ucStream, xSocket.u.xTCP.rxStream );
 }
 
-/*
+/**
  * @brief Low and high space fields non-zero.
  */
 void test_prvTCPCreateStream_LowAndHighFieldsDefined( void )
@@ -2691,7 +2697,7 @@ void test_prvTCPCreateStream_LowAndHighFieldsDefined( void )
     TEST_ASSERT_EQUAL( ucStream, xSocket.u.xTCP.rxStream );
 }
 
-/*
+/**
  * @brief Failed to allocate the stream.
  */
 void test_lTCPAddRxdata_StreamCannotBeAllocated( void )
@@ -2722,7 +2728,7 @@ void test_lTCPAddRxdata_StreamCannotBeAllocated( void )
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bMallocError );
 }
 
-/*
+/**
  * @brief Successfully added all bytes in the stream.
  */
 void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesAdded( void )
@@ -2757,7 +2763,7 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesAdded( void )
     TEST_ASSERT_EQUAL( eSOCKET_RECEIVE, xSocket.xEventBits );
 }
 
-/*
+/**
  * @brief Only able to add few bytes.
  */
 void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesNotAdded( void )
@@ -2792,7 +2798,7 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesNotAdded( void )
     TEST_ASSERT_EQUAL( eSOCKET_RECEIVE, xSocket.xEventBits );
 }
 
-/*
+/**
  * @brief Space in the front of the stream buffer is less than the low space value.
  */
 void test_lTCPAddRxdata_FrontSpaceLessThanLowMark( void )
@@ -2833,7 +2839,7 @@ void test_lTCPAddRxdata_FrontSpaceLessThanLowMark( void )
     TEST_ASSERT_EQUAL( 1U, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief the low water bit is set.
  */
 void test_lTCPAddRxdata_LowWaterTrue( void )
@@ -2865,7 +2871,7 @@ void test_lTCPAddRxdata_LowWaterTrue( void )
     TEST_ASSERT_EQUAL( eSOCKET_RECEIVE | ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
 }
 
-/*
+/**
  * @brief Receive callback is added.
  */
 void test_lTCPAddRxdata_HasValidHandler( void )
@@ -2912,7 +2918,7 @@ void test_lTCPAddRxdata_HasValidHandler( void )
     TEST_ASSERT_EQUAL( 1U, xLocalReceiveCallback_Called );
 }
 
-/*
+/**
  * @brief Call back added but the data to be added is NULL meaning peeking mode.
  */
 void test_lTCPAddRxdata_HasValidHandler_DataNULL( void )
@@ -2956,7 +2962,7 @@ void test_lTCPAddRxdata_HasValidHandler_DataNULL( void )
     TEST_ASSERT_EQUAL( 0U, xLocalReceiveCallback_Called );
 }
 
-/*
+/**
  * @brief Has a callback and the offset is non-zero unlike previous cases.
  */
 void test_lTCPAddRxdata_HasValidHandler_NonZeroOffset( void )
@@ -2999,7 +3005,7 @@ void test_lTCPAddRxdata_HasValidHandler_NonZeroOffset( void )
     TEST_ASSERT_EQUAL( 0U, xLocalReceiveCallback_Called );
 }
 
-/*
+/**
  * @brief Buffer size is non-zero.
  */
 void test_lTCPAddRxdata_HasValidHandlerWithNonZeroSize( void )
@@ -3044,7 +3050,7 @@ void test_lTCPAddRxdata_HasValidHandlerWithNonZeroSize( void )
     TEST_ASSERT_EQUAL( 0U, xLocalReceiveCallback_Called );
 }
 
-/*
+/**
  * @brief All combination of inputs. See below comments.
  */
 void test_xSocketValid( void )
@@ -3065,7 +3071,7 @@ void test_xSocketValid( void )
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
-/*
+/**
  * @brief This function just prints out some data. It is expected to make call to the
  *        below function. Nothing more.
  */
