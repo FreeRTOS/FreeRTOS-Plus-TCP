@@ -69,8 +69,8 @@
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
-#define ipMAX_UDP_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER )
-#define ipMAX_UDPv6_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER )
+#define TEST_MAX_UDPV4_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER )
+#define TEST_MAX_UDPV6_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER )
 
 
 BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
@@ -115,7 +115,7 @@ static void vpxListFindListItemWithValue_Found( const List_t * pxList,
 {
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( &( pxList->xListEnd ), pxReturn );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
 
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
 }
@@ -918,7 +918,7 @@ void test_FreeRTOS_sendto_MoreDataThanUDPPayload( void )
     int32_t lResult;
     Socket_t xSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH + 1;
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH + 1;
     BaseType_t xFlags;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
@@ -937,8 +937,8 @@ void test_FreeRTOS_sendto_TCPSocket( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
@@ -958,8 +958,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_NoNetworkBuffer( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = 0;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
@@ -987,15 +987,15 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = 0;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1023,7 +1023,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV4_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
@@ -1036,15 +1036,15 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = 0;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1072,7 +1072,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV4_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
@@ -1085,15 +1085,15 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = FREERTOS_MSG_DONTWAIT;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1119,7 +1119,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV4_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
@@ -1133,15 +1133,15 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = 0;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1169,7 +1169,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV4_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
@@ -1182,15 +1182,15 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = FREERTOS_MSG_DONTWAIT;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1216,7 +1216,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV4_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
@@ -1229,15 +1229,15 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = FREERTOS_ZERO_COPY;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1261,7 +1261,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV4_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
@@ -1281,17 +1281,17 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = FREERTOS_ZERO_COPY;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
     ulCalled = 0;
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1315,7 +1315,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDP_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV4_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
@@ -1329,17 +1329,17 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_SendingToIPTaskFails( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = FREERTOS_ZERO_COPY;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
     ulCalled = 0;
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1377,17 +1377,17 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy_SendingToIPTaskFails( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDP_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDP_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV4_PAYLOAD_LENGTH;
     BaseType_t xFlags = 0;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 ];
 
     ulCalled = 0;
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDP_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV4_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv4 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1431,15 +1431,15 @@ void test_FreeRTOS_sendto_IPTaskCalling_IPv6NonZeroCopy( void )
 {
     int32_t lResult;
     FreeRTOS_Socket_t xSocket;
-    char pvBuffer[ ipMAX_UDPv6_PAYLOAD_LENGTH ];
-    size_t uxTotalDataLength = ipMAX_UDPv6_PAYLOAD_LENGTH;
+    char pvBuffer[ TEST_MAX_UDPV6_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV6_PAYLOAD_LENGTH;
     BaseType_t xFlags = FREERTOS_MSG_DONTWAIT;
     struct freertos_sockaddr xDestinationAddress;
     socklen_t xDestinationAddressLength;
     NetworkBufferDescriptor_t xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipMAX_UDPv6_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv6 ];
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV6_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv6 ];
 
-    memset( pucEthernetBuffer, 0, ipMAX_UDPv6_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv6 );
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV6_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv6 );
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
@@ -1465,7 +1465,7 @@ void test_FreeRTOS_sendto_IPTaskCalling_IPv6NonZeroCopy( void )
 
     lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
 
-    TEST_ASSERT_EQUAL( ipMAX_UDPv6_PAYLOAD_LENGTH, lResult );
+    TEST_ASSERT_EQUAL( TEST_MAX_UDPV6_PAYLOAD_LENGTH, lResult );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_IPv6_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
