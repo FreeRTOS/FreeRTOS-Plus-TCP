@@ -53,6 +53,7 @@
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_IPv4_Sockets.h"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -2248,6 +2249,7 @@ void test_FreeRTOS_inet_pton_Octal( void )
     const char * pcSource = "00.01.2.3";
     uint32_t ulDestination = 0;
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcSource, &ulDestination, pdFAIL );
     xReturn = FreeRTOS_inet_pton( xAddressFamily, pcSource, &ulDestination );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
@@ -2263,11 +2265,14 @@ void test_FreeRTOS_inet_pton_HappyPath( void )
     BaseType_t xAddressFamily = FREERTOS_AF_INET;
     const char * pcSource = "255.255.255.255";
     uint32_t ulDestination;
+    uint32_t ulExpectDestination = 0xFFFFFFFF;
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcSource, &ulDestination, pdPASS );
+    FreeRTOS_inet_pton4_ReturnMemThruPtr_pvDestination( &ulExpectDestination, sizeof( ulExpectDestination ) );
     xReturn = FreeRTOS_inet_pton( xAddressFamily, pcSource, &ulDestination );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
-    TEST_ASSERT_EQUAL_UINT32( 0xFFFFFFFF, ulDestination );
+    TEST_ASSERT_EQUAL_UINT32( ulExpectDestination, ulDestination );
 }
 
 /*
@@ -2430,6 +2435,8 @@ void test_FreeRTOS_inet_addr_InvalidString( void )
     uint32_t ulReturn;
     char * pcIPAddress = "0..12.34.4";
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcIPAddress, NULL, pdFAIL );
+    FreeRTOS_inet_pton4_IgnoreArg_pvDestination();
     ulReturn = FreeRTOS_inet_addr( pcIPAddress );
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
@@ -2439,11 +2446,15 @@ void test_FreeRTOS_inet_addr_InvalidString( void )
  */
 void test_FreeRTOS_inet_addr_ValidString( void )
 {
+    uint32_t ulExpectAnswer = 0x04030201;
     uint32_t ulReturn;
     char * pcIPAddress = "1.2.3.4";
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcIPAddress, NULL, pdPASS );
+    FreeRTOS_inet_pton4_IgnoreArg_pvDestination();
+    FreeRTOS_inet_pton4_ReturnMemThruPtr_pvDestination( &ulExpectAnswer, sizeof( ulExpectAnswer ) );
     ulReturn = FreeRTOS_inet_addr( pcIPAddress );
-    TEST_ASSERT_EQUAL( 0x04030201, ulReturn );
+    TEST_ASSERT_EQUAL( ulExpectAnswer, ulReturn );
 }
 
 /*

@@ -53,6 +53,7 @@
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_IPv4_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.c"
 
 #include "FreeRTOS_Sockets.h"
@@ -441,8 +442,6 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-
     xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
@@ -451,13 +450,15 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xSourceAddress, ipUDP_PAYLOAD_OFFSET_IPv4 );
+
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
-    TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, pvBuffer, ipconfigTCP_MSS );
 }
@@ -493,8 +494,6 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
 
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -512,13 +511,15 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xSourceAddress, ipUDP_PAYLOAD_OFFSET_IPv4 );
+
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 100, lReturn );
-    TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, 100 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ 100 ], ipconfigTCP_MSS - 100 );
@@ -555,8 +556,6 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
 
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -574,13 +573,15 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xSourceAddress, ipUDP_PAYLOAD_OFFSET_IPv4 );
+
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 50, lReturn );
-    TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, uxBufferLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ uxBufferLength ], ipconfigTCP_MSS - uxBufferLength );
@@ -618,8 +619,6 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
 
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -635,11 +634,13 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
 
     listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xSourceAddress, ipUDP_PAYLOAD_OFFSET_IPv4 );
+
     lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 50, lReturn );
-    TEST_ASSERT_EQUAL( xSourceAddress.sin_port, xNetworkBuffer.usPort );
-    TEST_ASSERT_EQUAL_UINT32( xSourceAddress.sin_address.ulIP_IPv4, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pvBuffer, uxBufferLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, &pvBuffer[ uxBufferLength ], ipconfigTCP_MSS - uxBufferLength );
@@ -676,8 +677,6 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
 
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -692,6 +691,10 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
     listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, NULL, ipUDP_PAYLOAD_OFFSET_IPv4 );
 
     lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
 
@@ -731,8 +734,6 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
 
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
@@ -747,6 +748,10 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
     listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, NULL, ipUDP_PAYLOAD_OFFSET_IPv4 );
 
     lReturn = FreeRTOS_recvfrom( xGlobalSocket, &pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
 
@@ -785,8 +790,6 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
     xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     xGlobalSocket->xReceiveBlockTime = 0x123;
 
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-
     listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
@@ -795,6 +798,10 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
     xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
+    xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, NULL, ipUDP_PAYLOAD_OFFSET_IPv4 );
 
     lReturn = FreeRTOS_recvfrom( xGlobalSocket, &pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
 
@@ -924,6 +931,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
@@ -934,7 +943,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -972,6 +980,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
@@ -982,7 +992,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy1( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -1018,6 +1027,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
@@ -1028,7 +1039,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -1067,6 +1077,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
@@ -1077,7 +1089,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy2_xFlagZero( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -1113,6 +1124,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
@@ -1123,7 +1136,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy3( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 /*
@@ -1157,6 +1169,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy( void )
 
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pvBuffer, &xNetworkBuffer );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
@@ -1167,7 +1181,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
 }
 
 static uint32_t ulCalled = 0;
@@ -1210,6 +1223,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
 
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pvBuffer, &xNetworkBuffer );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
@@ -1220,7 +1235,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_ValidFunctionPointer( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( 1, ulCalled );
 }
 
@@ -1257,6 +1271,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_SendingToIPTaskFails( void )
 
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pvBuffer, &xNetworkBuffer );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdFAIL );
@@ -1267,7 +1283,6 @@ void test_FreeRTOS_sendto_IPTaskCalling_ZeroCopy_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( 0, ulCalled );
 }
 
@@ -1308,6 +1323,8 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy_SendingToIPTaskFails( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
+    xSend_UDP_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xDestinationAddress, NULL );
+
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0xAADF );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdFAIL );
@@ -1320,6 +1337,5 @@ void test_FreeRTOS_sendto_IPTaskCalling_NonZeroCopy_SendingToIPTaskFails( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
-    TEST_ASSERT_EQUAL( xNetworkBuffer.xIPAddress.ulIP_IPv4, xDestinationAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( 0, ulCalled );
 }
