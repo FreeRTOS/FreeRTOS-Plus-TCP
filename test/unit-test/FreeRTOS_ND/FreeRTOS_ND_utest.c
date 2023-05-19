@@ -57,7 +57,7 @@
 #include "FreeRTOS_ND_stubs.c"
 #include "FreeRTOS_ND.h"
 
-/** @brief The ND cache. */
+/*  The ND cache. */
 extern NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
 
 /* Setting IPv6 address as "fe80::7009" */
@@ -106,8 +106,11 @@ static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface 
                                                        BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
-    return 0;
+    return pdFALSE;
 }
+
+/* ============================ Test Cases ============================ */
+
 
 /*
  * ===================================================
@@ -124,7 +127,7 @@ void test_eNDGetCacheEntry_Multicast_EndPoint( void )
     eARPLookupResult_t eResult;
     MACAddress_t xMACAddress;
     IPv6_Address_t xIPAddress;
-    NetworkEndPoint_t * pxEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
 
     ( void ) memcpy( xIPAddress.ucBytes, xMultiCastIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
@@ -134,7 +137,7 @@ void test_eNDGetCacheEntry_Multicast_EndPoint( void )
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
-/* TODO result seems incorrect - Or is it is guaranteed to always  have 1 EndPoint then this is just there for coverage*/
+
     TEST_ASSERT_EQUAL( eARPCacheHit, eResult );
 }
 
@@ -326,6 +329,68 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEntry( void )
 
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( pxEndPoint );
+
+    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
+
+    TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
+}
+
+/**
+ * @brief This function find the MAC-address of an IPv6 address which is
+ *        not multi cast address & ND cache lookup fails to find a valid
+ *        Endpoint as well as no EP of type eIPv6_LinkLocal.
+ */
+void test_eNDGetCacheEntry_NDCacheLookupMiss_NoLinkLocal( void )
+{
+    NetworkEndPoint_t * pxEndPoint, xEndPoint;
+    eARPLookupResult_t eResult;
+    BaseType_t xUseEntry = 0;
+    MACAddress_t xMACAddress;
+    IPv6_Address_t xIPAddress;
+
+    xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xNDCache[ xUseEntry ].ucValid = 1; /*Valid Cache entry needs to be skipped */
+    pxEndPoint = &xEndPoint;
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Global );
+    FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
+
+    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
+
+    TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
+}
+
+/**
+ * @brief This function find the MAC-address of an IPv6 address which is
+ *        not multi cast address & ND cache lookup fails to find a valid
+ *        Endpoint as well as no EP of type eIPv6_LinkLocal.
+ */
+void test_eNDGetCacheEntry_NDCacheLookupMiss_LinkLocal( void )
+{
+    NetworkEndPoint_t * pxEndPoint, xEndPoint;
+    eARPLookupResult_t eResult;
+    BaseType_t xUseEntry = 0;
+    MACAddress_t xMACAddress;
+    IPv6_Address_t xIPAddress;
+
+    xIsIPv6AllowedMulticast_ExpectAnyArgsAndReturn( pdFALSE );
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+    ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    pxEndPoint = &xEndPoint;
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
+
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
 
     eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
 
@@ -889,8 +954,9 @@ void test_SendPingRequestIPv6_NULL_EP( void )
 }
 
 /**
- * @brief This function handles case when bIPv6
- *        is not set.
+ * @brief This function handles case when find endpoint for
+ *        pxIPAddress fails and while getting the endpoint for the
+ *        same IP type bIPv6 is not set.
  */
 
 void test_SendPingRequestIPv6_bIPv6_NotSet( void )
@@ -903,7 +969,7 @@ void test_SendPingRequestIPv6_bIPv6_NotSet( void )
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 0;
-    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Global );
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
@@ -915,8 +981,10 @@ void test_SendPingRequestIPv6_bIPv6_NotSet( void )
 }
 
 /**
- * @brief This function handles case when uxNumberOfBytesToSend
- *        is set to 0.
+ * @brief This function handles case when find endpoint for
+ *        pxIPAddress fails and found the endpoint for the
+ *        same IP type but there are no bytes to be send.
+ *        uxNumberOfBytesToSend is set to 0.
  */
 
 void test_SendPingRequestIPv6_bIPv6_NoBytesToSend( void )
@@ -929,7 +997,7 @@ void test_SendPingRequestIPv6_bIPv6_NoBytesToSend( void )
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
-    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Global );
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
@@ -956,7 +1024,7 @@ void test_SendPingRequestIPv6_bIPv6_NotEnoughSpace( void )
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
-    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( pxEndPoint );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
     xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Global );
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
@@ -984,17 +1052,13 @@ void test_SendPingRequestIPv6_IncorectBytesSend( void )
 
     pxEndPoint->bits.bIPv6 = 1;
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( pxEndPoint );
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Global );
 
-    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( pxEndPoint );
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Global );
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 0U );
 
     xReturn = FreeRTOS_SendPingRequestIPv6( &xIPAddress, uxNumberOfBytesToSend, 0 );
 
     TEST_ASSERT_EQUAL( xReturn, pdFAIL );
 }
-
 
 /**
  * @brief This function handles failure case when network

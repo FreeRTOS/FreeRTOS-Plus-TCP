@@ -234,7 +234,7 @@
 
                         if( eMyType == eIPType )
                         {
-                            eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
+                            eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, &pxEndPoint );
                             break;
                         }
                     }
@@ -676,6 +676,7 @@
             IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
             NetworkEndPoint_t * pxEndPoint = NULL;
             size_t uxPacketLength = 0U;
+            BaseType_t xEnoughSpace;
 
             pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
 
@@ -683,8 +684,7 @@
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
             /* coverity[misra_c_2012_rule_14_3_violation] */
             /* coverity[notnull] */
-            BaseType_t xEnoughSpace;
-
+            if( pxEndPoint == NULL )
             {
                 BaseType_t xWanted = ( xIPv6_GetIPType( pxIPAddress ) == eIPv6_Global ) ? 1 : 0;
 
