@@ -338,7 +338,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEntry( void )
 /**
  * @brief This function find the MAC-address of an IPv6 address which is
  *        not multi cast address & ND cache lookup fails to find a valid
- *        Endpoint as well as no EP of type eIPv6_LinkLocal.
+ *        Endpoint as well as no Endpoint of type eIPv6_LinkLocal.
  */
 void test_eNDGetCacheEntry_NDCacheLookupMiss_NoLinkLocal( void )
 {
@@ -370,7 +370,7 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoLinkLocal( void )
 /**
  * @brief This function find the MAC-address of an IPv6 address which is
  *        not multi cast address & ND cache lookup fails to find a valid
- *        Endpoint as well as no EP of type eIPv6_LinkLocal.
+ *        Endpoint but was able to find of type eIPv6_LinkLocal.
  */
 void test_eNDGetCacheEntry_NDCacheLookupMiss_LinkLocal( void )
 {
