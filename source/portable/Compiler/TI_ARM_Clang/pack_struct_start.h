@@ -32,4 +32,5 @@
 *
 *****************************************************************************/
 
+#pragma clang diagnostic ignored "-Wpragma-pack"
 #pragma pack(push,1)
