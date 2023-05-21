@@ -54,6 +54,8 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_IPv4_Sockets.h"
+#include "mock_FreeRTOS_IPv6_Sockets.h"
+#include "mock_FreeRTOS_Sockets.h"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -82,6 +84,8 @@ static BaseType_t xLocalReceiveCallback_Return;
 static uint8_t xLocalReceiveCallback_Called = 0;
 
 static FreeRTOS_Socket_t xGlobalSocket;
+/* 2001::1 */
+static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 /* ======================== Stub Callback Functions ========================= */
 
@@ -130,6 +134,11 @@ static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
 {
     xLocalReceiveCallback_Called++;
     return xLocalReceiveCallback_Return;
+}
+
+static void vStub_vTaskSetTimeOutState_socketError( TimeOut_t * const pxTimeOut, int numCalls )
+{
+    xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 }
 
 /* ============================== Test Cases ============================== */
@@ -1890,6 +1899,8 @@ void test_FreeRTOS_setsockopt_WinPropsInvalidRxStream( void )
     xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) 0x1234;
     xSocket.u.xTCP.usMSS = 0x12;
 
+    FreeRTOS_round_up_ExpectAndReturn( vOptionValue.lTxBufSize, xSocket.u.xTCP.usMSS, 0xAB );
+
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
@@ -2407,6 +2418,25 @@ void test_FreeRTOS_inet_pton_HappyPath( void )
 }
 
 /**
+ * @brief Happy path of this function for IPv6.
+ */
+void test_FreeRTOS_inet_pton_IPv6HappyPath( void )
+{
+    BaseType_t xReturn;
+    BaseType_t xAddressFamily = FREERTOS_AF_INET6;
+    const char * pcSource = "2001::1";
+    IPv6_Address_t xDestination;
+    IPv6_Address_t *pxExpectDestination = &xIPv6Address;
+
+    FreeRTOS_inet_pton6_ExpectAndReturn( pcSource, &xDestination, pdPASS );
+    FreeRTOS_inet_pton6_ReturnMemThruPtr_pvDestination( pxExpectDestination->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xReturn = FreeRTOS_inet_pton( xAddressFamily, pcSource, &xDestination );
+
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( pxExpectDestination->ucBytes, xDestination.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+}
+
+/**
  * @brief Translate array to string for MAC address.
  */
 void test_FreeRTOS_EUI48_ntop1( void )
@@ -2611,6 +2641,30 @@ void test_FreeRTOS_GetLocalAddress( void )
 }
 
 /**
+ * @brief Get local address from an IPv6 socket.
+ */
+void test_FreeRTOS_GetLocalAddress_IPv6( void )
+{
+    size_t uxReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    IPv6_Address_t xIPAddress = { { 0x20 } };
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    xSocket.usLocalPort = 0xAB12;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    uxReturn = FreeRTOS_GetLocalAddress( &xSocket, &xAddress );
+
+    TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, xAddress.sin_family );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xAddress.sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_htons( 0xAB12 ), xAddress.sin_port );
+}
+
+/**
  * @brief All fields are NULL in the socket.
  */
 void test_FreeRTOS_connect_SocketValuesNULL( void )
@@ -2764,6 +2818,9 @@ void test_FreeRTOS_connect_Connected( void )
     socklen_t xAddressLength;
 
     memset( &xGlobalSocket, 0, sizeof( xGlobalSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xAddress.sin_family = FREERTOS_AF_INET4;
 
     xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     /* Non 0 value to show blocking. */
@@ -2783,6 +2840,33 @@ void test_FreeRTOS_connect_Connected( void )
     xResult = FreeRTOS_connect( &xGlobalSocket, &xAddress, xAddressLength );
 
     TEST_ASSERT_EQUAL( 0, xResult );
+}
+
+/**
+ * @brief Connection failed due to error happening during sleep.
+ */
+void test_FreeRTOS_connect_SocketErrorDuringSleep( void )
+{
+    BaseType_t xResult;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+
+    memset( &xGlobalSocket, 0, sizeof( xGlobalSocket ) );
+
+    xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    /* Non 0 value to show blocking. */
+    xGlobalSocket.xReceiveBlockTime = 0x123;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+
+    vTCPStateChange_Expect( &xGlobalSocket, eCONNECT_SYN );
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+
+    /* Set the global socket handler to error during sleep. */
+    vTaskSetTimeOutState_Stub( vStub_vTaskSetTimeOutState_socketError );
+
+    xResult = FreeRTOS_connect( &xGlobalSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xResult );
 }
 
 /**
@@ -3335,4 +3419,150 @@ void test_FreeRTOS_SignalSocketFromISR_HappyPath( void )
 
     xReturn = FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken );
     TEST_ASSERT_EQUAL( 0xABC, xReturn );
+}
+
+/**
+ * @brief Get TCPv4 packets property string.
+ */
+void test_prvSocketProps_TCPv4()
+{
+    FreeRTOS_Socket_t xSocket;
+    uint32_t ulExpectSrcIP = 0xC0A80101;
+    uint32_t ulExpectRemoteIP = 0xC0A80102;
+    uint16_t usSrcPort = 1024U;
+    uint16_t usRemotePort = 2048U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = pdFALSE;
+    xSocket.xLocalAddress.ulIP_IPv4 = ulExpectSrcIP;
+    xSocket.usLocalPort = usSrcPort;
+    xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = ulExpectRemoteIP;
+    xSocket.u.xTCP.usRemotePort = usRemotePort;
+
+    pcReturn = prvSocketProps( &xSocket );
+    TEST_ASSERT_EQUAL_STRING( "c0a80101ip port 1024 to c0a80102ip port 2048", pcReturn );
+}
+
+/**
+ * @brief Get UDPv4 packets property string.
+ */
+void test_prvSocketProps_UDPv4()
+{
+    FreeRTOS_Socket_t xSocket;
+    uint32_t ulExpectSrcIP = 0xC0A80101;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket.bits.bIsIPv6 = pdFALSE;
+    xSocket.xLocalAddress.ulIP_IPv4 = ulExpectSrcIP;
+    xSocket.usLocalPort = 1024U;
+
+    pcReturn = prvSocketProps( &xSocket );
+    TEST_ASSERT_EQUAL_STRING( "c0a80101ip port 1024", pcReturn );
+}
+
+/**
+ * @brief Get TCPv6 packets property string.
+ */
+void test_prvSocketProps_TCPv6()
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    IPv6_Address_t xIPv6RemoteAddress = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 } }; /* 2001::2 */
+    uint16_t usSrcPort = 1024U;
+    uint16_t usRemotePort = 2048U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.usLocalPort = usSrcPort;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6RemoteAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.u.xTCP.usRemotePort = usRemotePort;
+
+    pcReturn = prvSocketProps( &xSocket );
+}
+
+/**
+ * @brief Get UDPv6 packets property string.
+ */
+void test_prvSocketProps_UDPv6()
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    uint16_t usSrcPort = 1024U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.usLocalPort = usSrcPort;
+
+    pcReturn = prvSocketProps( &xSocket );
+}
+
+/**
+ * @brief Happy path of this function for IPv4.
+ */
+void test_FreeRTOS_inet_ntop_IPv4( void )
+{
+    const char * pcReturn;
+    uint32_t ulIPAddress = 0x10101010; /* 16.16.16.16 */
+    char * pcExpectResult = "16.16.16.16";
+    const size_t xSize = 16;
+    char cDestination[ xSize ];
+    BaseType_t xAddressFamily = FREERTOS_AF_INET4;
+
+    memset( cDestination, 0, sizeof( cDestination ) );
+
+    FreeRTOS_inet_ntop4_ExpectAndReturn( &ulIPAddress, cDestination, xSize, cDestination );
+    FreeRTOS_inet_ntop4_ReturnMemThruPtr_pcDestination( pcExpectResult, strlen( pcExpectResult ) );
+    pcReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulIPAddress, cDestination, xSize );
+
+    TEST_ASSERT_EQUAL_STRING( pcExpectResult, pcReturn );
+}
+
+/**
+ * @brief Happy path of this function for IPv4.
+ */
+void test_FreeRTOS_inet_ntop_IPv6( void )
+{
+    const char * pcReturn;
+    IPv6_Address_t * pxIPAddress = &xIPv6Address;
+    char * pcExpectResult = "2001::1";
+    const size_t xSize = 16;
+    char cDestination[ xSize ];
+    BaseType_t xAddressFamily = FREERTOS_AF_INET6;
+
+    memset( cDestination, 0, sizeof( cDestination ) );
+
+    FreeRTOS_inet_ntop6_ExpectAndReturn( pxIPAddress, cDestination, xSize, cDestination );
+    FreeRTOS_inet_ntop6_ReturnMemThruPtr_pcDestination( pcExpectResult, strlen( pcExpectResult ) );
+    pcReturn = FreeRTOS_inet_ntop( xAddressFamily, pxIPAddress, cDestination, xSize );
+
+    TEST_ASSERT_EQUAL_STRING( pcExpectResult, pcReturn );
+}
+
+/**
+ * @brief Happy path of this function for unknown family.
+ */
+void test_FreeRTOS_inet_ntop_Unknown( void )
+{
+    const char * pcReturn;
+    uint32_t ulIPAddress = 0x10101010; /* 16.16.16.16 */
+    char * pcExpectResult = "16.16.16.16";
+    const size_t xSize = 16;
+    char cDestination[ xSize ];
+    BaseType_t xAddressFamily = FREERTOS_AF_INET6 + 1;
+
+    memset( cDestination, 0, sizeof( cDestination ) );
+
+    pcReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulIPAddress, cDestination, xSize );
+
+    TEST_ASSERT_EQUAL( NULL, pcReturn );
 }

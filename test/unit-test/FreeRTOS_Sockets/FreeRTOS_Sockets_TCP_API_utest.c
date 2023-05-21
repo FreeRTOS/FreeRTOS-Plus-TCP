@@ -66,6 +66,11 @@
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
+extern BaseType_t prvTCPSendLoop( FreeRTOS_Socket_t * pxSocket,
+                                      const void * pvBuffer,
+                                      size_t uxDataLength,
+                                      BaseType_t xFlags );
+
 BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                            BaseType_t xProtocol,
                            BaseType_t xIsBound );
@@ -81,6 +86,8 @@ static BaseType_t xLocalReceiveCallback_Return;
 static uint8_t xLocalReceiveCallback_Called = 0;
 
 static FreeRTOS_Socket_t xGlobalSocket;
+/* 2001::1 */
+static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 /* ======================== Stub Callback Functions ========================= */
 
@@ -360,6 +367,40 @@ void test_FreeRTOS_accept_ReuseSocket_Timeout( void )
     pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
     TEST_ASSERT_EQUAL( NULL, pxReturn );
     TEST_ASSERT_EQUAL( pdFALSE, xServerSocket.u.xTCP.bits.bPassAccept );
+}
+
+/**
+ * @brief Can reuse IPv6 socket.
+ */
+void test_FreeRTOS_accept_ReuseIPv6Socket( void )
+{
+    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength = 0;
+
+    memset( &xServerSocket, 0, sizeof( xServerSocket ) );
+    memset( &xPeerSocket, 0, sizeof( xPeerSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    xServerSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xServerSocket.u.xTCP.eTCPState = eTCP_LISTEN;
+    xServerSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+    xServerSocket.u.xTCP.pxPeerSocket = &xPeerSocket;
+    xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+    xServerSocket.u.xTCP.usRemotePort = 0x1234;
+    xServerSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+
+    pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
+    TEST_ASSERT_EQUAL( &xServerSocket, pxReturn );
+    TEST_ASSERT_EQUAL( pdFALSE, xServerSocket.u.xTCP.bits.bPassAccept );
+    TEST_ASSERT_EQUAL_MEMORY( xAddress.sin_address.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xServerSocket.u.xTCP.usRemotePort ), xAddress.sin_port );
+    TEST_ASSERT_EQUAL( sizeof( xAddress ), xAddressLength );
 }
 
 /**
@@ -722,6 +763,32 @@ void test_FreeRTOS_recv_12BytesArriveLater_Timeout( void )
     xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief Socket is closing in receive procedure.
+ */
+void test_FreeRTOS_recv_SocketClosing( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    uint8_t pvBuffer[ 1500 ];
+    size_t uxBufferLength = 1500;
+    BaseType_t xFlags = FREERTOS_ZERO_COPY;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.eTCPState = eCLOSING;
+    xSocket.xReceiveBlockTime = 0xAA;
+    xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) pvBuffer;
+
+    uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.rxStream, 0 );
+
+    xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xReturn );
 }
 
 /**
@@ -1163,6 +1230,42 @@ void test_FreeRTOS_send_DontWaitFlag( void )
 }
 
 /**
+ * @brief FreeRTOS_send is called from IP task.
+ */
+void test_FreeRTOS_send_ExactSpaceInStreamBufferInIPTask( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    uint8_t pvBuffer[ ipconfigTCP_MSS ];
+    size_t uxDataLength;
+    BaseType_t xFlags;
+    StreamBuffer_t xLocalStreamBuffer;
+
+    /* 1. Last set of bytes. */
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( pvBuffer, 0, ipconfigTCP_MSS );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
+    xSocket.u.xTCP.txStream = &xLocalStreamBuffer;
+    xSocket.u.xTCP.bits.bCloseAfterSend = pdTRUE_UNSIGNED;
+
+    uxDataLength = 100;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength );
+    vTaskSuspendAll_Expect();
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength, uxDataLength );
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
+    
+    TEST_ASSERT_EQUAL( uxDataLength, xReturn );
+}
+
+/**
  * @brief Invalid values passed to listen.
  */
 void test_FreeRTOS_listen_InvalidValues( void )
@@ -1580,4 +1683,44 @@ void test_FreeRTOS_rx_size( void )
     uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xAB );
     xReturn = FreeRTOS_rx_size( &xSocket );
     TEST_ASSERT_EQUAL( 0xAB, xReturn );
+}
+
+/**
+ * @brief Send zero byte via prvTCPSendLoop.
+ */
+void test_prvTCPSendLoop_ZeroByte()
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    uint8_t pvBuffer[ 10 ];
+    BaseType_t xFlags = 0;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    uxStreamBufferGetSpace_IgnoreAndReturn( 0 );
+
+    xReturn = prvTCPSendLoop( &xSocket, pvBuffer, 0, xFlags );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief Send NULL buffer via prvTCPSendLoop.
+ */
+void test_prvTCPSendLoop_NullBuffer()
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xFlags = 0;
+    size_t uxDataLength = 100;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    uxStreamBufferGetSpace_IgnoreAndReturn( 100 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, NULL, uxDataLength, uxDataLength );
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    xReturn = prvTCPSendLoop( &xSocket, NULL, uxDataLength, xFlags );
+
+    TEST_ASSERT_EQUAL( uxDataLength, xReturn );
 }

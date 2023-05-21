@@ -866,6 +866,80 @@ void test_vSocketBind_TCPGotAProperValuePortZero( void )
 }
 
 /**
+ * @brief TCPv6 socket bind happy path.
+ */
+void test_vSocketBind_TCPv6GotAProperValue( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xBindAddress;
+    size_t uxAddressLength;
+    BaseType_t xInternal = pdTRUE;
+    ListItem_t xLocalList;
+    ListItem_t * xListStart = &xLocalList;
+    IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } }; /* 2001::1 */
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xBindAddress.sin_family = FREERTOS_AF_INET6;
+    memcpy( xBindAddress.sin_address.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+
+    vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
+    vListInsertEnd_IgnoreArg_pxList();
+
+    xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xSocket.xLocalAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+}
+
+/**
+ * @brief TCP socket bind with FREERTOS_INADDR_ANY.
+ */
+void test_vSocketBind_TCPBindAnyAddress( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xBindAddress;
+    size_t uxAddressLength;
+    BaseType_t xInternal = pdTRUE;
+    ListItem_t xLocalList;
+    ListItem_t * xListStart = &xLocalList;
+    IPv6_Address_t xIPv6Address;
+
+    memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xIPv6Address, 0, sizeof( xIPv6Address ) );
+
+    xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+
+    xBindAddress.sin_family = FREERTOS_AF_INET4;
+    xBindAddress.sin_address.ulIP_IPv4 = FREERTOS_INADDR_ANY;
+
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+
+    vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
+    vListInsertEnd_IgnoreArg_pxList();
+
+    xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xSocket.xLocalAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+}
+
+/**
  * @brief Closing unbound socket with unknown protocol.
  */
 void test_vSocketClose_UnknownProtocol_NotBound( void )
@@ -2120,6 +2194,43 @@ void test_prvTCPConnectStart_SocketNotBound_Success( void )
     xReturn = prvTCPConnectStart( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief Connecting with an unbound IPv6 socket.
+ */
+void test_prvTCPConnectStart_IPv6SocketNotBound_Success( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xAddress.sin_family = FREERTOS_AF_INET6;
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
+
+    xEventGroupWaitBits_ExpectAnyArgsAndReturn( pdPASS );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), &xBoundTCPSocketsList );
+
+    vTCPStateChange_Expect( &xSocket, eCONNECT_SYN );
+
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+
+    xReturn = prvTCPConnectStart( &xSocket, &xAddress );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( pdTRUE, xSocket.bits.bIsIPv6 );
 }
 
 /**

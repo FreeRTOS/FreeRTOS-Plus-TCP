@@ -880,6 +880,62 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_IPv6Packet100( void )
 }
 
 /**
+ * @brief Blocking read socket gets a packet while it is waiting. However, the packet
+ *        is UDPv6 header and 100 bytes.
+ */
+void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_UnknownIPHeaderSize( void )
+{
+    int32_t lReturn;
+    uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
+    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    char pvBuffer[ ipconfigTCP_MSS ];
+    size_t uxBufferLength = ipconfigTCP_MSS;
+    BaseType_t xFlags = 0;
+    struct freertos_sockaddr xSourceAddress;
+    ListItem_t xListItem;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
+    xNetworkBuffer.xDataLength = sizeof( UDPPacket_IPv6_t ) + 100;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
+    xNetworkBuffer.usPort = 0xABCD;
+
+    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( &xListItem, 0, sizeof( ListItem_t ) );
+    memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
+    memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
+
+    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xGlobalSocket->xReceiveBlockTime = 0x123;
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+
+    xListItem.pvOwner = &xNetworkBuffer;
+    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+
+    vTaskSetTimeOutState_ExpectAnyArgs();
+
+    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+
+    uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( 0xFF );
+
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+
+    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, NULL );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lReturn );
+}
+
+/**
  * @brief Assert to catch sending buffer is NULL.
  */
 void test_FreeRTOS_sendto_CatchAssert( void )
@@ -1469,4 +1525,34 @@ void test_FreeRTOS_sendto_IPTaskCalling_IPv6NonZeroCopy( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, uxTotalDataLength + sizeof( UDPPacket_IPv6_t ) );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usPort, xDestinationAddress.sin_port );
     TEST_ASSERT_EQUAL( xNetworkBuffer.usBoundPort, 0xAADF );
+}
+
+/**
+ * @brief Sending an packet with unknown family.
+ */
+void test_FreeRTOS_sendto_UnknownDestinationFamily( void )
+{
+    int32_t lResult;
+    FreeRTOS_Socket_t xSocket;
+    char pvBuffer[ TEST_MAX_UDPV6_PAYLOAD_LENGTH ];
+    size_t uxTotalDataLength = TEST_MAX_UDPV6_PAYLOAD_LENGTH;
+    BaseType_t xFlags = FREERTOS_MSG_DONTWAIT;
+    struct freertos_sockaddr xDestinationAddress;
+    socklen_t xDestinationAddressLength;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthernetBuffer[ TEST_MAX_UDPV6_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv6 ];
+
+    memset( pucEthernetBuffer, 0, TEST_MAX_UDPV6_PAYLOAD_LENGTH + ipUDP_PAYLOAD_OFFSET_IPv6 );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
+
+    xDestinationAddress.sin_family = 0xFF;
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket.u.xUDP.pxHandleSent = NULL;
+
+    lResult = FreeRTOS_sendto( &xSocket, pvBuffer, uxTotalDataLength, xFlags, &xDestinationAddress, xDestinationAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lResult );
 }
