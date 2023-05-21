@@ -75,6 +75,7 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 /* ENET config macros */
 
 #define ENET_SYSCFG_NETIF_COUNT                     (1U)
+#define ETH_MAX_PACKET_SIZE        ( ( uint32_t ) 1536U ) 
 
 /*-----------------------------------------------------------*/
 
@@ -96,6 +97,23 @@ BaseType_t xEnetDriver_Opened = pdFALSE;
 #endif
 /*-----------------------------------------------------------*/
 
+/* Uncomment this in case BufferAllocation_1.c is used. */
+
+void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    // TODO: check alignment and section where this memory block should be placed. Also,
+    // check if ETH_MAX_PACKET_SIZE appropriate.
+    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETH_MAX_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
+    uint8_t * ucRAMBuffer = ucNetworkPackets;
+    uint32_t ul;
+
+    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+    {
+        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+        ucRAMBuffer += ETH_MAX_PACKET_SIZE;
+    }
+}
 
 NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                           NetworkInterface_t * pxInterface )
@@ -165,4 +183,16 @@ BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterf
 
     return xRetVal;
 
+}
+
+static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxDescriptor,
+                                                     BaseType_t xReleaseAfterSend )
+{
+    return pdFALSE;
+}
+
+static BaseType_t xAM243x_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
+{
+    return pdFALSE;
 }
