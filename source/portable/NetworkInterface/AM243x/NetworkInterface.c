@@ -44,6 +44,41 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
+#include <drivers/udma/udma_priv.h>
+#include <drivers/udma.h>
+#include <enet.h>
+#include <networking/enet/core/include/per/cpsw.h>
+#include <networking/enet/utils/include/enet_appmemutils_cfg.h>
+#include <networking/enet/utils/include/enet_apputils.h>
+#include <networking/enet/utils/include/enet_appmemutils.h>
+#include <networking/enet/utils/include/enet_appboardutils.h>
+#include <networking/enet/utils/include/enet_appsoc.h>
+#include <networking/enet/utils/include/enet_apprm.h>
+
+#include "Enet_NetIF.h"
+
+/*-----------------------------------------------------------*/
+
+BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxDescriptor,
+                                                     BaseType_t xReleaseAfterSend );
+
+static BaseType_t xAM243x_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
+/* ENET config macros */
+
+#define ENET_SYSCFG_NETIF_COUNT                     (1U)
+
+/*-----------------------------------------------------------*/
+
+BaseType_t xEnetDriver_Opened = pdFALSE;
 
 /*-----------------------------------------------------------*/
 
@@ -66,7 +101,68 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
                                                           NetworkInterface_t * pxInterface )
 {
 
-    return NULL;
+    NetworkInterface_t * pxRetInterface = NULL;
+    static char pcName[ 8 ];
+
+    if(xEMACIndex < ENET_SYSCFG_NETIF_COUNT)
+    {
+// TODO: Handle ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+// #if ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+//         const uint32_t checksum_offload_flags = (NETIF_CHECKSUM_GEN_UDP | NETIF_CHECKSUM_GEN_TCP | NETIF_CHECKSUM_CHECK_TCP | NETIF_CHECKSUM_CHECK_UDP);
+//         const uint32_t checksum_flags = (NETIF_CHECKSUM_ENABLE_ALL & ~checksum_offload_flags);
+// #endif     
+
+        snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+        memset( pxInterface, '\0', sizeof( *pxInterface ) );
+        pxInterface->pcName = pcName;                    /* Interface name */
+        pxInterface->pvArgument = ( void * ) xEMACIndex; 
+        pxInterface->pfInitialise = xAM243x_Eth_NetworkInterfaceInitialise;
+        pxInterface->pfOutput = xAM243x_Eth_NetworkInterfaceOutput;
+        pxInterface->pfGetPhyLinkStatus = xAM243x_Eth_GetPhyLinkStatus;
+
+        FreeRTOS_AddNetworkInterface( pxInterface );
+
+        pxRetInterface = pxInterface;
+
+        // TODO: Check if its required to set a default netif wrt. +TCP stack
+        // if(xEMACIndex == ENET_SYSCFG_DEFAULT_NETIF_IDX)
+        // {
+        //     netif_set_default(&gNetif[xEMACIndex]);
+        // }
+
+// TODO: Handle ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+// #if ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+//        NETIF_SET_CHECKSUM_CTRL(&gNetif[xEMACIndex], checksum_flags);
+// #endif
+
+    }
+    else
+    {
+        FreeRTOS_printf(("ERROR: xEMACIndex is out of valid range!\r\n"));
+        configASSERT(FALSE);
+    }
+
+    return pxRetInterface;
 }
 /*-----------------------------------------------------------*/
 
+BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+{
+    BaseType_t xRetVal = pdFALSE;
+
+    if(xEnetDriver_Opened == pdFALSE)
+    {
+        xEnetDriverHandle xIFHandle;
+        xIFHandle = FreeRTOSTCPEnet_open(pxInterface);
+
+        if(xIFHandle != NULL)
+        {
+            xEnetDriver_Opened = pdTRUE;
+            xRetVal = pdTRUE;
+        }
+    }
+
+    return xRetVal;
+
+}
