@@ -724,7 +724,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
     Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
     char * pvBuffer;
     size_t uxBufferLength = 50;
-    BaseType_t xFlags = FREERTOS_MSG_PEEK | FREERTOS_ZERO_COPY;
+    BaseType_t xFlags = FREERTOS_ZERO_COPY;
     socklen_t xSourceAddressLength;
     ListItem_t xListItem;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -756,6 +756,8 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
     listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+
+    uxListRemove_ExpectAndReturn( &xNetworkBuffer.xBufferListItem, 0U );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -890,7 +892,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_UnknownIPHeaderSize( voi
     Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = ipconfigTCP_MSS;
-    BaseType_t xFlags = 0;
+    BaseType_t xFlags = FREERTOS_ZERO_COPY;
     struct freertos_sockaddr xSourceAddress;
     ListItem_t xListItem;
     NetworkBufferDescriptor_t xNetworkBuffer;

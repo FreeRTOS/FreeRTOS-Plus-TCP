@@ -2177,7 +2177,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
         #if ipconfigUSE_TCP == 1
             if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_TCP )
             {
-                switch( pxSocket->bits.bIsIPv6 )
+                switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
                 {
                     /* The use of snprintf() is discouraged by the MISRA rules.
                      * This code however, is only active when logging is used. */
@@ -2216,7 +2216,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
         if( pxSocket->ucProtocol == ( uint8_t ) FREERTOS_IPPROTO_UDP )
         {
-            switch( pxSocket->bits.bIsIPv6 )
+            switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case pdFALSE_UNSIGNED:
@@ -3475,7 +3475,7 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
 {
     const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
 
-    switch( pxSocket->bits.bIsIPv6 )
+    switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
     {
         #if ( ipconfigUSE_IPv4 != 0 )
             case pdFALSE_UNSIGNED:
@@ -3910,7 +3910,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 *pxAddressLength = sizeof( struct freertos_sockaddr );
             }
 
-            switch( pxClientSocket->bits.bIsIPv6 )
+            switch( pxClientSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case pdFALSE_UNSIGNED:
@@ -5288,7 +5288,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* BSD style sockets communicate IP and port addresses in network
              * byte order.
              * IP address of remote machine. */
-            switch( pxSocket->bits.bIsIPv6 )
+            switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case pdFALSE_UNSIGNED:
@@ -5345,9 +5345,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
-        BaseType_t xResult;
+        BaseType_t xResult = ipTYPE_IPv4;
 
-        switch( pxSocket->bits.bIsIPv6 )
+        switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE_UNSIGNED:
@@ -5784,7 +5784,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
             age = 999999U;
         }
 
-        switch( pxSocket->bits.bIsIPv6 )
+        switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE_UNSIGNED:

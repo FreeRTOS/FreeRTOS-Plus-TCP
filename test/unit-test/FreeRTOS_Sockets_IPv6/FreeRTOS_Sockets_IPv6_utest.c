@@ -143,9 +143,9 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_IPv6Address( void )
 }
 
 /**
- * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a matching IPv4 address is passed
+ * @brief IPv4 address pointer passed and socket is not an IPv6 socket, but a matching IPv4 address is passed
  */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_MatchingIPv4Address( void )
+void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NotIPv6Address_MatchingIPv4Address( void )
 {
     FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
     IPv46_Address_t xAddress;
@@ -164,9 +164,9 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_MatchingIPv4Addre
 }
 
 /**
- * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a non matching IPv4 address is passed
+ * @brief IPv4 address pointer passed and socket is not an IPv6 socket, but a non matching IPv4 address is passed
  */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Address( void )
+void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NotIPv6Address_NonMatchingIPv4Address( void )
 {
     FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
     IPv46_Address_t xAddress;
@@ -179,7 +179,7 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Ad
     xAddress.xIs_IPv6 = pdFALSE;
     xAddress.xIPAddress.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }

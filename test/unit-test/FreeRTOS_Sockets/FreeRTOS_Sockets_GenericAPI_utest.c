@@ -2910,6 +2910,30 @@ void test_FreeRTOS_GetRemoteAddress_HappyPath( void )
 }
 
 /**
+ * @brief IPv6 happy path.
+ */
+void test_FreeRTOS_GetRemoteAddress_IPv6HappyPath( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.u.xTCP.usRemotePort = 0x1234;
+
+    xReturn = FreeRTOS_GetRemoteAddress( &xSocket, &xAddress );
+
+    TEST_ASSERT_EQUAL( sizeof( xAddress ), xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xAddress.sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_htons( 0x1234 ), xAddress.sin_port );
+}
+
+/**
  * @brief Invalid values.
  */
 void test_FreeRTOS_maywrite_InvalidValues( void )
@@ -3106,6 +3130,101 @@ void test_vTCPNetStat_IPStackInit( void )
     /* TCP last iteration. */
     listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalTCPItem );
 
+
+    /* UDP */
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundUDPSocketsList, &xIterator );
+
+    /* Second Iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalUDPItem );
+
+    vTCPNetStat();
+}
+
+/**
+ * @brief This function just prints out some data. It is expected to change the age ( current tick - last alive )
+ * if it's greater than 999999.
+ */
+void test_vTCPNetStat_LongTimeSinceLastAlive( void )
+{
+    ListItem_t xLocalTCPItem, xLocalUDPItem, xIterator;
+    FreeRTOS_Socket_t xSocket, xSocket2;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xSocket2, 0, sizeof( xSocket2 ) );
+
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( 0 );
+    uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 0 );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    listGET_END_MARKER_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalTCPItem );
+    listGET_END_MARKER_ExpectAndReturn( &xBoundUDPSocketsList, &xLocalUDPItem );
+
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xIterator );
+
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket );
+
+    xTaskGetTickCount_ExpectAndReturn( 1000000U );
+
+    /* Second Iteration. */
+    xSocket2.u.xTCP.eTCPState = eTCP_LISTEN;
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket2 );
+
+    xTaskGetTickCount_ExpectAndReturn( 0x20 );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalTCPItem );
+
+
+    /* UDP */
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundUDPSocketsList, &xIterator );
+
+    /* Second Iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalUDPItem );
+
+    vTCPNetStat();
+}
+
+/**
+ * @brief This function just prints out some data. It is able to print IPv6
+ * socket as well.
+ */
+void test_vTCPNetStat_IPv6Socket( void )
+{
+    ListItem_t xLocalTCPItem, xLocalUDPItem, xIterator;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( 0 );
+    uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 0 );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    listGET_END_MARKER_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalTCPItem );
+    listGET_END_MARKER_ExpectAndReturn( &xBoundUDPSocketsList, &xLocalUDPItem );
+
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xIterator );
+
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket );
+
+    xTaskGetTickCount_ExpectAndReturn( 0x10 );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalTCPItem );
 
     /* UDP */
     /* First Iteration. */
@@ -3507,6 +3626,25 @@ void test_prvSocketProps_UDPv6()
 }
 
 /**
+ * @brief Get packets property string with unknown protocol.
+ */
+void test_prvSocketProps_UnknownProtocol()
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    uint16_t usSrcPort = 1024U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP + 1;
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.usLocalPort = usSrcPort;
+
+    pcReturn = prvSocketProps( &xSocket );
+}
+
+/**
  * @brief Happy path of this function for IPv4.
  */
 void test_FreeRTOS_inet_ntop_IPv4( void )
@@ -3565,4 +3703,38 @@ void test_FreeRTOS_inet_ntop_Unknown( void )
     pcReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulIPAddress, cDestination, xSize );
 
     TEST_ASSERT_EQUAL( NULL, pcReturn );
+}
+
+/**
+ * @brief Query socket type of IPv4 socket.
+ */
+void test_FreeRTOS_GetIPType_IPv4HappyPath( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
+
+    xReturn = FreeRTOS_GetIPType( &xSocket );
+
+    TEST_ASSERT_EQUAL( ipTYPE_IPv4, xReturn );
+}
+
+/**
+ * @brief Query socket type of IPv6 socket.
+ */
+void test_FreeRTOS_GetIPType_IPv6HappyPath( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+
+    xReturn = FreeRTOS_GetIPType( &xSocket );
+
+    TEST_ASSERT_EQUAL( ipTYPE_IPv6, xReturn );
 }

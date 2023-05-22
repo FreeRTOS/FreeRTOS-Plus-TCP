@@ -404,6 +404,35 @@ void test_FreeRTOS_accept_ReuseIPv6Socket( void )
 }
 
 /**
+ * @brief Can reuse IPv6 socket.
+ */
+void test_FreeRTOS_accept_ReuseIPv6Socket_NullAddress( void )
+{
+    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    socklen_t xAddressLength = 0;
+
+    memset( &xServerSocket, 0, sizeof( xServerSocket ) );
+    memset( &xPeerSocket, 0, sizeof( xPeerSocket ) );
+
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    xServerSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xServerSocket.u.xTCP.eTCPState = eTCP_LISTEN;
+    xServerSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+    xServerSocket.u.xTCP.pxPeerSocket = &xPeerSocket;
+    xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+    xServerSocket.u.xTCP.usRemotePort = 0x1234;
+    xServerSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+
+    pxReturn = FreeRTOS_accept( &xServerSocket, NULL, &xAddressLength );
+    TEST_ASSERT_EQUAL( &xServerSocket, pxReturn );
+    TEST_ASSERT_EQUAL( pdFALSE, xServerSocket.u.xTCP.bits.bPassAccept );
+}
+
+/**
  * @brief Invalid values.
  */
 void test_FreeRTOS_recv_InvalidValues( void )

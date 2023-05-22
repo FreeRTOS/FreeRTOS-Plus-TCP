@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_Sockets_DiffConfig1" )
+set( project_name "FreeRTOS_Sockets_DiffConfig2" )
 message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
@@ -24,19 +24,20 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_DiffConfig1_list_macros.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_Sockets_DiffConfig2_list_macros.h"
         )
 
 set(mock_include_list "")
 # list the directories your mocks need
 list(APPEND mock_include_list
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
@@ -52,33 +53,31 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_Sockets.c
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}/${project_name}_stubs.c
+        ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_Sockets.c
 	)
 
 set(real_include_directories "")
 # list the directories the module under test includes
 list(APPEND real_include_directories
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${CMOCK_DIR}/vendor/unity/src
-            ${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_Sockets
 	)
 
 # =====================  Create UnitTest Code here (edit)  =====================
 set(test_include_directories "")
 # list the directories your test needs to include
 list(APPEND test_include_directories
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
 # =============================  (end edit)  ===================================
@@ -109,16 +108,6 @@ list(APPEND utest_dep_list
             ${real_name}
         )
 
-set(utest_name "${project_name}_privates_utest")
-set(utest_source "${project_name}/${project_name}_privates_utest.c" )
-
-create_test(${utest_name}
-            ${utest_source}
-            "${utest_link_list}"
-            "${utest_dep_list}"
-            "${test_include_directories}"
-        )
-
 set(utest_name "${project_name}_GenericAPI_utest")
 set(utest_source "${project_name}/${project_name}_GenericAPI_utest.c" )
 
@@ -128,3 +117,33 @@ create_test(${utest_name}
             "${utest_dep_list}"
             "${test_include_directories}"
         )
+
+set(utest_name "${project_name}_TCP_API_utest")
+set(utest_source "${project_name}/${project_name}_TCP_API_utest.c" )
+
+create_test(${utest_name}
+            ${utest_source}
+            "${utest_link_list}"
+            "${utest_dep_list}"
+            "${test_include_directories}"
+        )
+
+set(utest_name "${project_name}_UDP_API_utest")
+set(utest_source "${project_name}/${project_name}_UDP_API_utest.c" )
+
+create_test(${utest_name}
+            ${utest_source}
+            "${utest_link_list}"
+            "${utest_dep_list}"
+            "${test_include_directories}"
+        )
+
+set(utest_name "${project_name}_privates_utest")
+set(utest_source "${project_name}/${project_name}_privates_utest.c" )
+
+create_test(${utest_name}
+            ${utest_source}
+            "${utest_link_list}"
+            "${utest_dep_list}"
+            "${test_include_directories}"
+)

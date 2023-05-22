@@ -47,6 +47,7 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+#include "FreeRTOS_IPv4_Sockets.h"
 
 /* =========================== EXTERN VARIABLES =========================== */
 
@@ -73,7 +74,8 @@ static void prvSetString_FreeRTOS_inet_ntoa( char * pcBuffer )
 }
 
 static const char * pucStub_FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
-                                                char * pcBuffer )
+                                                char * pcBuffer,
+                                                int numCall )
 {
     strcpy( pcBuffer, cStubNtoaString );
 
@@ -188,7 +190,7 @@ void test_FreeRTOS_inet_ntop4_LessBufferLength( void )
     const socklen_t uxSize = 15;
     char pcDestination[ uxSize ];
 
-    pucReturn = FreeRTOS_inet_ntop4( &ulSource, pcDestination, uxSize );
+    pucReturn = ( char * ) FreeRTOS_inet_ntop4( &ulSource, pcDestination, uxSize );
 
     TEST_ASSERT_EQUAL( NULL, pucReturn );
 }
@@ -198,7 +200,7 @@ void test_FreeRTOS_inet_ntop4_LessBufferLength( void )
  */
 void test_FreeRTOS_inet_ntop4_HappyCase( void )
 {
-    char * pucReturn;
+    const char * pucReturn;
     uint32_t ulSource;
     const socklen_t uxSize = 16;
     char pcDestination[ uxSize ];
@@ -223,4 +225,166 @@ void test_FreeRTOS_inet_ntop4_HappyCase( void )
     pucReturn = FreeRTOS_inet_ntop4( &ulSource, pcDestination, uxSize );
 
     TEST_ASSERT_EQUAL_STRING( "18.239.205.171", pcDestination );
+}
+
+/**
+ * @brief Happy path.
+ */
+void test_xSend_UDP_Update_IPv4_HappyCase( void )
+{
+    void * pxReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthBuffer[ ipconfigTCP_MSS ];
+    struct freertos_sockaddr xDestinationAddress;
+    uint32_t ulExpectIP = 0x12345678;
+    UDPPacket_t * pxUDPPacket;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthBuffer, 0, sizeof( pucEthBuffer ) );
+    memset( &xDestinationAddress, 0, sizeof( xDestinationAddress ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthBuffer;
+
+    pxUDPPacket = ( UDPPacket_t * ) xNetworkBuffer.pucEthernetBuffer;
+
+    xDestinationAddress.sin_address.ulIP_IPv4 = ulExpectIP;
+
+    pxReturn = xSend_UDP_Update_IPv4( &xNetworkBuffer, &xDestinationAddress );
+
+    TEST_ASSERT_EQUAL( ulExpectIP, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxUDPPacket->xEthernetHeader.usFrameType );
+}
+
+/**
+ * @brief NULL network buffer pointer.
+ */
+void test_xSend_UDP_Update_IPv4_NullNetworkBuffer( void )
+{
+    void * pxReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthBuffer[ ipconfigTCP_MSS ];
+    struct freertos_sockaddr xDestinationAddress;
+    uint32_t ulExpectIP = 0x12345678;
+    UDPPacket_t * pxUDPPacket;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthBuffer, 0, sizeof( pucEthBuffer ) );
+    memset( &xDestinationAddress, 0, sizeof( xDestinationAddress ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthBuffer;
+
+    pxUDPPacket = ( UDPPacket_t * ) xNetworkBuffer.pucEthernetBuffer;
+
+    xDestinationAddress.sin_address.ulIP_IPv4 = ulExpectIP;
+
+    pxReturn = xSend_UDP_Update_IPv4( NULL, &xDestinationAddress );
+
+    TEST_ASSERT_EQUAL( 0, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( 0, pxUDPPacket->xEthernetHeader.usFrameType );
+}
+
+/**
+ * @brief NULL destination address pointer.
+ */
+void test_xSend_UDP_Update_IPv4_NullDestinationAddress( void )
+{
+    void * pxReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthBuffer[ ipconfigTCP_MSS ];
+    struct freertos_sockaddr xDestinationAddress;
+    uint32_t ulExpectIP = 0x12345678;
+    UDPPacket_t * pxUDPPacket;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthBuffer, 0, sizeof( pucEthBuffer ) );
+    memset( &xDestinationAddress, 0, sizeof( xDestinationAddress ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthBuffer;
+
+    pxUDPPacket = ( UDPPacket_t * ) xNetworkBuffer.pucEthernetBuffer;
+
+    xDestinationAddress.sin_address.ulIP_IPv4 = ulExpectIP;
+
+    pxReturn = xSend_UDP_Update_IPv4( &xNetworkBuffer, NULL );
+
+    TEST_ASSERT_EQUAL( 0, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( 0, pxUDPPacket->xEthernetHeader.usFrameType );
+}
+
+/**
+ * @brief Happy path.
+ */
+void test_xRecv_Update_IPv4_HappyCase( void )
+{
+    size_t xReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthBuffer[ ipconfigTCP_MSS ];
+    struct freertos_sockaddr xSrcAddress;
+    uint32_t ulExpectIP = 0x12345678;
+    uint16_t usExpectPort = 0xABCD;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthBuffer, 0, sizeof( pucEthBuffer ) );
+    memset( &xSrcAddress, 0, sizeof( xSrcAddress ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthBuffer;
+    xNetworkBuffer.usPort = usExpectPort;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = ulExpectIP;
+
+    xReturn = xRecv_Update_IPv4( &xNetworkBuffer, &xSrcAddress );
+    
+    TEST_ASSERT_EQUAL( ipUDP_PAYLOAD_OFFSET_IPv4, xReturn );
+    TEST_ASSERT_EQUAL( FREERTOS_AF_INET, xSrcAddress.sin_family );
+    TEST_ASSERT_EQUAL( ulExpectIP, xSrcAddress.sin_address.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( usExpectPort, xSrcAddress.sin_port );
+}
+
+/**
+ * @brief NULL network buffer pointer.
+ */
+void test_xRecv_Update_IPv4_NullNetworkBuffer( void )
+{
+    size_t xReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthBuffer[ ipconfigTCP_MSS ];
+    struct freertos_sockaddr xSrcAddress;
+    uint32_t ulExpectIP = 0x12345678;
+    uint16_t usExpectPort = 0xABCD;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthBuffer, 0, sizeof( pucEthBuffer ) );
+    memset( &xSrcAddress, 0, sizeof( xSrcAddress ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthBuffer;
+    xNetworkBuffer.usPort = usExpectPort;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = ulExpectIP;
+
+    xReturn = xRecv_Update_IPv4( NULL, &xSrcAddress );
+
+    TEST_ASSERT_EQUAL( ipUDP_PAYLOAD_OFFSET_IPv4, xReturn );
+}
+
+/**
+ * @brief NULL destination address pointer.
+ */
+void test_xRecv_Update_IPv4_NullDestinationAddress( void )
+{
+    size_t xReturn;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthBuffer[ ipconfigTCP_MSS ];
+    struct freertos_sockaddr xSrcAddress;
+    uint32_t ulExpectIP = 0x12345678;
+    uint16_t usExpectPort = 0xABCD;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthBuffer, 0, sizeof( pucEthBuffer ) );
+    memset( &xSrcAddress, 0, sizeof( xSrcAddress ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthBuffer;
+    xNetworkBuffer.usPort = usExpectPort;
+    xNetworkBuffer.xIPAddress.ulIP_IPv4 = ulExpectIP;
+
+    xReturn = xRecv_Update_IPv4( &xNetworkBuffer, NULL );
+
+    TEST_ASSERT_EQUAL( ipUDP_PAYLOAD_OFFSET_IPv4, xReturn );
 }
