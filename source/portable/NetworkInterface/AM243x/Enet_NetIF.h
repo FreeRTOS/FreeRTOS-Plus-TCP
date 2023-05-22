@@ -103,7 +103,16 @@ typedef struct Enet_Netif_Stats_s
     uint32_t hwiLoad[HISTORY_CNT];
 } Enet_Netif_Stats;
 
-typedef struct Enet_Netif_AppIf_GetEnetLwipIfInstInfo_s
+typedef struct Enet_Netif_AppIf_GetHandleNetifInfo_s
+{
+    uint32_t numRxChannels;
+    uint32_t numTxChannels;
+    uint32_t rxChMask;
+    uint32_t txChMask;
+    bool isDirected;
+} Enet_Netif_AppIf_GetHandleNetifInfo;
+
+typedef struct Enet_Netif_AppIf_GetEnetIFInstInfo_s
 {
     Enet_Handle hEnet;
     uint32_t txMtu[ENET_PRI_NUM];
@@ -117,9 +126,33 @@ typedef struct Enet_Netif_AppIf_GetEnetLwipIfInstInfo_s
 
     /** Timer interval for timer based RX pacing */
     uint32_t timerPeriodUs;
-    NetBufQueue *pFreeTx;
+    NetBufNode *pFreeTx;
 	uint32_t   pFreeTxSize;
-} Enet_Netif_AppIf_GetEnetLwipIfInstInfo;
+} Enet_Netif_AppIf_GetEnetIFInstInfo;
+
+typedef struct EnetNetIFAppIf_GetTxHandleInArgs_s
+{
+    void *cbArg;
+    EnetDma_PktNotifyCb notifyCb;
+    uint32_t chId;
+    EnetDma_PktQ *pktInfoQ;
+} EnetNetIFAppIf_GetTxHandleInArgs;
+
+typedef struct EnetNetIFAppIf_TxHandleInfo_s
+{
+    /** DMA transmit channel */
+    EnetDma_TxChHandle hTxChannel;
+
+    /*! Tx Channel Peer Id */
+    uint32_t txChNum;
+
+    /*! Whether to use TX event or not. When disabled, it uses "lazy" recycle mechanism
+     *  to defer packet desc retrieval */
+    bool disableEvent;
+
+    /** Number of packets*/
+    uint32_t numPackets;
+} EnetNetIFAppIf_TxHandleInfo;
 
 /*!
  * \brief RX object which groups variables related to a particular RX channel/flow.
@@ -228,7 +261,7 @@ typedef struct xEnetDriverObj
 	/*! Total number of allocated PktInfo elements */
     uint32_t allocPktInfo;
 
-    Enet_Netif_AppIf_GetEnetLwipIfInstInfo appInfo;
+    Enet_Netif_AppIf_GetEnetIFInstInfo appInfo;
     /** Initialization flag.*/
     uint32_t initDone;
     /** Index of currently connect physical port.*/
@@ -272,7 +305,7 @@ typedef struct xEnetDriverObj
 
     Enet_Netif_RxHandle mapNetif2Rx[ENET_CFG_NETIF_MAX];
 
-    Enet_Netif_RxHandle mapNetif2Tx[ENET_CFG_NETIF_MAX];
+    Enet_Netif_TxHandle mapNetif2Tx[ENET_CFG_NETIF_MAX];
 
     struct netif *mapRxPort2Netif[CPSW_STATS_MACPORT_MAX];
 
