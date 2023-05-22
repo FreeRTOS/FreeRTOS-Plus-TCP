@@ -39,23 +39,11 @@
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "mock_Sockets_list_macros.h"
-#include "mock_queue.h"
+#include "mock_Sockets_DiffConfig1_list_macros.h"
 #include "mock_event_groups.h"
 #include "mock_portable.h"
 
 #include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
-#include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_IPv4_Sockets.h"
-#include "mock_FreeRTOS_IPv6_Sockets.h"
-#include "mock_FreeRTOS_Sockets.h"
 
 #include "FreeRTOS_Sockets.h"
 

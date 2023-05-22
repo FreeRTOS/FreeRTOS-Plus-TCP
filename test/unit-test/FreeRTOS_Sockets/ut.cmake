@@ -19,14 +19,10 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv6_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_list_macros.h"
         )
 

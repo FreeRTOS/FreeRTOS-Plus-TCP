@@ -34,14 +34,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "mock_task.h"
-#include "mock_list.h"
-
-/* This must come after list.h is included (in this case, indirectly
- * by mock_list.h). */
-#include "mock_queue.h"
-#include "mock_event_groups.h"
-#include "mock_portable.h"
 #include "mock_FreeRTOS_Sockets.h"
 
 #include "catch_assert.h"
@@ -219,7 +211,7 @@ void test_FreeRTOS_inet_ntop4_HappyCase( void )
 
     TEST_ASSERT_EQUAL_STRING( "0.0.0.0", pcDestination );
 
-    // ulSource = 0xABCDEF12;
+    ulSource = 0xABCDEF12;
     prvSetString_FreeRTOS_inet_ntoa( "18.239.205.171" );
     FreeRTOS_inet_ntoa_Stub( pucStub_FreeRTOS_inet_ntoa );
     pucReturn = FreeRTOS_inet_ntop4( &ulSource, pcDestination, uxSize );
@@ -332,7 +324,7 @@ void test_xRecv_Update_IPv4_HappyCase( void )
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = ulExpectIP;
 
     xReturn = xRecv_Update_IPv4( &xNetworkBuffer, &xSrcAddress );
-    
+
     TEST_ASSERT_EQUAL( ipUDP_PAYLOAD_OFFSET_IPv4, xReturn );
     TEST_ASSERT_EQUAL( FREERTOS_AF_INET, xSrcAddress.sin_family );
     TEST_ASSERT_EQUAL( ulExpectIP, xSrcAddress.sin_address.ulIP_IPv4 );
