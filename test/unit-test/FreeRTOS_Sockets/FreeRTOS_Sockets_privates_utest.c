@@ -54,6 +54,7 @@
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_IPv6_Sockets.h"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -103,6 +104,7 @@ static BaseType_t xLocalReceiveCallback_Return;
 static uint8_t xLocalReceiveCallback_Called = 0;
 
 static FreeRTOS_Socket_t xGlobalSocket;
+static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 /* ======================== Stub Callback Functions ========================= */
 
@@ -2769,6 +2771,44 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
 
     /* Third iteration. */
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+
+    pxReturn = pxTCPSocketLookup( ulLocalIP, uxLocalPort, xRemoteIP, uxRemotePort );
+
+    TEST_ASSERT_EQUAL_PTR( &xMatchingSocket, pxReturn );
+}
+
+/**
+ * @brief Found a match socket based on IPv6.
+ */
+void test_pxTCPSocketLookup_IPv6Match( void )
+{
+    FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
+    uint32_t ulLocalIP = 0xAABBCCDD;
+    UBaseType_t uxLocalPort = 0x1234;
+    IPv46_Address_t xRemoteIP;
+    UBaseType_t uxRemotePort = 0x4567;
+    ListItem_t xLocalListItem;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xRemoteIP, 0, sizeof( xRemoteIP ) );
+    memset( &xMatchingSocket, 0, sizeof( xMatchingSocket ) );
+
+    xRemoteIP.xIs_IPv6 = pdTRUE;
+    memcpy( xRemoteIP.xIPAddress.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xMatchingSocket.usLocalPort = uxLocalPort;
+    xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort;
+    memcpy( xMatchingSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    /* First iteration, no match. */
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
+
+    /* Second iteration and we have a match. */
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xMatchingSocket );
+    pxTCPSocketLookup_IPv6_ExpectAndReturn( &xMatchingSocket, NULL, &xMatchingSocket );
+    pxTCPSocketLookup_IPv6_IgnoreArg_pxAddress();
 
     pxReturn = pxTCPSocketLookup( ulLocalIP, uxLocalPort, xRemoteIP, uxRemotePort );
 
