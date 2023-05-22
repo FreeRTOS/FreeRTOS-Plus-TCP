@@ -672,7 +672,7 @@
                             #if ( ipconfigUSE_IPv4 != 0 )
                                 case pdFALSE:
                                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                                 ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
+                                                                 ( const void * ) &( pxRow->xAddresses[ xSubEntry ].xIPAddress.ulIP_IPv4 ),
                                                                  pcAddress,
                                                                  sizeof( pcAddress ) );
                                     break;
@@ -681,7 +681,7 @@
                             #if ( ipconfigUSE_IPv6 != 0 )
                                 case pdTRUE:
                                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                                 ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
+                                                                 ( const void * ) pxRow->xAddresses[ xSubEntry ].xIPAddress.xIP_IPv6.ucBytes,
                                                                  pcAddress,
                                                                  sizeof( pcAddress ) );
                                     break;
