@@ -102,9 +102,10 @@
 
 
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
-    /**
-     * @brief A buffer for prvSocketProps to return socket property in string.
-     */
+
+/**
+ * @brief A buffer for prvSocketProps to return socket property in string.
+ */
     static char pucSocketProps[ 92 ];
 #endif
 
@@ -1326,9 +1327,9 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                 }
 
                 /* The returned value is the length of the payload data, which is
-                * calculated at the total packet size minus the headers.
-                * The validity of `xDataLength` prvProcessIPPacket has been confirmed
-                * in 'prvProcessIPPacket()'. */
+                 * calculated at the total packet size minus the headers.
+                 * The validity of `xDataLength` prvProcessIPPacket has been confirmed
+                 * in 'prvProcessIPPacket()'. */
                 uxPayloadLength = pxNetworkBuffer->xDataLength - uxPayloadOffset;
                 lReturn = ( int32_t ) uxPayloadLength;
 
@@ -1423,7 +1424,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
                 break;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-        default: /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
+        default:   /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
             /* MISRA 16.4 Compliance */
             break; /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
     }
@@ -1852,8 +1853,8 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
         /* Add the socket to the list of bound ports. */
         {
             /* If the network driver can iterate through 'xBoundUDPSocketsList',
-            * by calling xPortHasUDPSocket() then the IP-task must temporarily
-            * suspend the scheduler to keep the list in a consistent state. */
+             * by calling xPortHasUDPSocket() then the IP-task must temporarily
+             * suspend the scheduler to keep the list in a consistent state. */
             #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
                 {
                     vTaskSuspendAll();
@@ -2456,9 +2457,9 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     pxSocket->u.xUDP.pxHandleSent = ( ( const F_TCP_UDP_Handler_t * ) pvOptionValue )->pxOnUDPSent;
                     break;
 
-                default: /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
+                default:                                /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
                     xReturn = -pdFREERTOS_ERRNO_EINVAL; /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
-                    break; /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
+                    break;                              /* LCOV_EXCL_LINE Exclude this line because default case is checked before calling. */
             }
         }
 

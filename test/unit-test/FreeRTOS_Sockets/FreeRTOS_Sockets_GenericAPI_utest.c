@@ -113,17 +113,17 @@ static void vpxListFindListItemWithValue_Found( const List_t * pxList,
 {
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * )&( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
 
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
 }
 
 static EventBits_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
-                                              const EventBits_t uxBitsToWaitFor,
-                                              const BaseType_t xClearOnExit,
-                                              const BaseType_t xWaitForAllBits,
-                                              TickType_t xTicksToWait,
-                                              int CallbackCount )
+                                               const EventBits_t uxBitsToWaitFor,
+                                               const BaseType_t xClearOnExit,
+                                               const BaseType_t xWaitForAllBits,
+                                               TickType_t xTicksToWait,
+                                               int CallbackCount )
 {
     xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
 }
@@ -136,7 +136,8 @@ static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
     return xLocalReceiveCallback_Return;
 }
 
-static void vStub_vTaskSetTimeOutState_socketError( TimeOut_t * const pxTimeOut, int numCalls )
+static void vStub_vTaskSetTimeOutState_socketError( TimeOut_t * const pxTimeOut,
+                                                    int numCalls )
 {
     xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 }
@@ -2426,7 +2427,7 @@ void test_FreeRTOS_inet_pton_IPv6HappyPath( void )
     BaseType_t xAddressFamily = FREERTOS_AF_INET6;
     const char * pcSource = "2001::1";
     IPv6_Address_t xDestination;
-    IPv6_Address_t *pxExpectDestination = &xIPv6Address;
+    IPv6_Address_t * pxExpectDestination = &xIPv6Address;
 
     FreeRTOS_inet_pton6_ExpectAndReturn( pcSource, &xDestination, pdPASS );
     FreeRTOS_inet_pton6_ReturnMemThruPtr_pvDestination( pxExpectDestination->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
@@ -3373,7 +3374,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[ 6 ] );
     uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xAB );
-    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * )ucStream, 0xABCD );
+    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xABCD );
 
     /* Round 6. */
     xSocket[ 7 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
@@ -3589,7 +3590,7 @@ void test_prvSocketProps_UDPv4()
 void test_prvSocketProps_TCPv6()
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address;                                                                                          /* 2001::1 */
     IPv6_Address_t xIPv6RemoteAddress = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 } }; /* 2001::2 */
     uint16_t usSrcPort = 1024U;
     uint16_t usRemotePort = 2048U;

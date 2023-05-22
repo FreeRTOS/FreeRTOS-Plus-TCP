@@ -267,7 +267,7 @@ void test_prvSocketProps_UDPv6()
 void test_prvSocketProps_TCPv6()
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address;                                                                                          /* 2001::1 */
     IPv6_Address_t xIPv6RemoteAddress = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 } }; /* 2001::2 */
     uint16_t usSrcPort = 1024U;
     uint16_t usRemotePort = 2048U;

@@ -71,7 +71,7 @@
                     if( memcmp( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
                     {
                         /* For sockets not in listening mode, find a match with
-                        * uxLocalPort, ulRemoteIP AND uxRemotePort. */
+                         * uxLocalPort, ulRemoteIP AND uxRemotePort. */
                         pxResult = pxSocket;
                     }
                 }
@@ -83,7 +83,7 @@
                     if( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 == pxAddress->xIPAddress.ulIP_IPv4 )
                     {
                         /* For sockets not in listening mode, find a match with
-                        * uxLocalPort, ulRemoteIP AND uxRemotePort. */
+                         * uxLocalPort, ulRemoteIP AND uxRemotePort. */
                         pxResult = pxSocket;
                     }
                 }

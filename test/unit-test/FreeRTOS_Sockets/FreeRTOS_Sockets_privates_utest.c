@@ -74,17 +74,17 @@ extern BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 extern BaseType_t prvMakeSureSocketIsBound( FreeRTOS_Socket_t * pxSocket );
 extern void prvTCPSetSocketCount( FreeRTOS_Socket_t const * pxSocketToDelete );
 extern BaseType_t prvSockopt_so_buffer( FreeRTOS_Socket_t * pxSocket,
-                                            int32_t lOptionName,
-                                            const void * pvOptionValue );
+                                        int32_t lOptionName,
+                                        const void * pvOptionValue );
 extern uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol );
 extern const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
                                                        TickType_t xWantedItemValue );
 extern BaseType_t prvTCPConnectStart( FreeRTOS_Socket_t * pxSocket,
-                                          struct freertos_sockaddr const * pxAddress );
+                                      struct freertos_sockaddr const * pxAddress );
 extern int32_t prvTCPSendCheck( FreeRTOS_Socket_t * pxSocket,
-                                    size_t uxDataLength );
+                                size_t uxDataLength );
 extern StreamBuffer_t * prvTCPCreateStream( FreeRTOS_Socket_t * pxSocket,
-                                                BaseType_t xIsInputStream );
+                                            BaseType_t xIsInputStream );
 
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;

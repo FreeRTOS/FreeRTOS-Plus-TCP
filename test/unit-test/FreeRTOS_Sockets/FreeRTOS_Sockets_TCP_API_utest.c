@@ -67,9 +67,9 @@ extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
 extern BaseType_t prvTCPSendLoop( FreeRTOS_Socket_t * pxSocket,
-                                      const void * pvBuffer,
-                                      size_t uxDataLength,
-                                      BaseType_t xFlags );
+                                  const void * pvBuffer,
+                                  size_t uxDataLength,
+                                  BaseType_t xFlags );
 
 BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
                            BaseType_t xProtocol,
@@ -1316,7 +1316,7 @@ void test_FreeRTOS_send_ExactSpaceInStreamBufferInIPTask( void )
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
     xReturn = FreeRTOS_send( &xSocket, pvBuffer, uxDataLength, xFlags );
-    
+
     TEST_ASSERT_EQUAL( uxDataLength, xReturn );
 }
 
