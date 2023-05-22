@@ -55,7 +55,7 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
 /* Abstraction of pxTCPSocketLookup */
 FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        UBaseType_t uxLocalPort,
-                                       uint32_t ulRemoteIP,
+                                       IPv46_Address_t xRemoteIP,
                                        UBaseType_t uxRemotePort )
 {
     FreeRTOS_Socket_t * xRetSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );

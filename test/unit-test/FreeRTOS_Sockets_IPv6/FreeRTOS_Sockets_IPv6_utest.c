@@ -90,35 +90,54 @@ static const IPv6_Address_t xSampleAddress_IPv6_6 = { { 0xfe, 0x80, 0, 0, 0, 0, 
 
 /* ============================== Test Cases ============================== */
 
-
 /**
- * @brief IPv6 address pointer passed but socket is not an IPv6 socket
+ * @brief Test with NULL socket handler
  */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NonNULLIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_NULLSocket( void )
 {
-    FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
+    pxRetSocket = pxTCPSocketLookup_IPv6( NULL, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
 
 /**
- * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket
+ * @brief Test with NULL IP address pointer
  */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_NULLIPPointer( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
     FreeRTOS_Socket_t * pxRetSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pxRetSocket );
+}
+
+/**
+ * @brief Address is IPv6 but socket is not an IPv6 socket
+ */
+void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_IPv6Address( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv46_Address_t xAddress;
+    FreeRTOS_Socket_t * pxRetSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    xAddress.xIs_IPv6 = pdTRUE;
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
@@ -129,14 +148,17 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address( void )
 void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_MatchingIPv4Address( void )
 {
     FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
     xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
+    xAddress.xIs_IPv6 = pdFALSE;
+    xAddress.xIPAddress.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( &xSocket, pxRetSocket );
 }
@@ -147,14 +169,17 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_MatchingIPv4Addre
 void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Address( void )
 {
     FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
     xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xDBCD1235;
+    xAddress.xIs_IPv6 = pdFALSE;
+    xAddress.xIPAddress.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
@@ -162,15 +187,19 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Ad
 /**
  * @brief NULL IPv6 address pointer passed and socket is an IPv6 socket
  */
-void test_pxTCPSocketLookup_IPv6_IPv6Socket_NULLIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    xAddress.xIs_IPv6 = pdFALSE;
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
@@ -178,17 +207,21 @@ void test_pxTCPSocketLookup_IPv6_IPv6Socket_NULLIPv6Address( void )
 /**
  * @brief Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses match
  */
-void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__MatchingIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address_MatchingIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
-    memcpy( &xAddress_IPv6, &xSampleAddress_IPv6_1, sizeof( IPv6_Address_t ) );
-    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, &xSampleAddress_IPv6_1, sizeof( IPv6_Address_t ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xSampleAddress_IPv6_1.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, xSampleAddress_IPv6_1.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( &xSocket, pxRetSocket );
 }
@@ -196,17 +229,21 @@ void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__MatchingIPv6Addr
 /**
  * @brief Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses doesn't match
  */
-void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__NonMatchingIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address_NonMatchingIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
-    memcpy( &xAddress_IPv6, &xSampleAddress_IPv6_1, sizeof( IPv6_Address_t ) );
-    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, &xSampleAddress_IPv6_2, sizeof( IPv6_Address_t ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xSampleAddress_IPv6_2.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, xSampleAddress_IPv6_1.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }

@@ -4853,14 +4853,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  *
  * @param[in] ulLocalIP Local IP address. Ignored for now.
  * @param[in] uxLocalPort Local port number.
- * @param[in] ulRemoteIP Remote (peer) IP address.
+ * @param[in] xRemoteIP Remote (peer) IP address.
  * @param[in] uxRemotePort Remote (peer) port.
  *
  * @return The socket which was found.
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                            UBaseType_t uxLocalPort,
-                                           IP_Address_t ulRemoteIP,
+                                           IPv46_Address_t xRemoteIP,
                                            UBaseType_t uxRemotePort )
     {
         const ListItem_t * pxIterator;
@@ -4890,15 +4890,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
                 else if( pxSocket->u.xTCP.usRemotePort == ( uint16_t ) uxRemotePort )
                 {
-                    if( ulRemoteIP.ulIP_IPv4 == 0U )
+                    if( xRemoteIP.xIs_IPv6 != pdFALSE )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            pxResult = pxTCPSocketLookup_IPv6( pxSocket, &ulRemoteIP.xIP_IPv6, ulRemoteIP.ulIP_IPv4 );
+                            pxResult = pxTCPSocketLookup_IPv6( pxSocket, &xRemoteIP );
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
                     }
                     else
                     {
-                        if( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 == ulRemoteIP.ulIP_IPv4 )
+                        if( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 == xRemoteIP.xIPAddress.ulIP_IPv4 )
                         {
                             /* For sockets not in listening mode, find a match with
                              * xLocalPort, ulRemoteIP AND xRemotePort. */
