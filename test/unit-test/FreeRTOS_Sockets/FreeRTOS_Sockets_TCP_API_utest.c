@@ -792,6 +792,32 @@ void test_FreeRTOS_recv_SocketClosing( void )
 }
 
 /**
+ * @brief Socket is in eClise_Wait in receive procedure.
+ */
+void test_FreeRTOS_recv_SocketCloseWait( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    uint8_t pvBuffer[ 1500 ];
+    size_t uxBufferLength = 1500;
+    BaseType_t xFlags = FREERTOS_ZERO_COPY;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.eTCPState = eCLOSE_WAIT;
+    xSocket.xReceiveBlockTime = 0xAA;
+    xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) pvBuffer;
+
+    uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.rxStream, 0 );
+
+    xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xReturn );
+}
+
+/**
  * @brief Invalid parameters passed to the function.
  */
 void test_FreeRTOS_get_tx_head_InvalidParams( void )
