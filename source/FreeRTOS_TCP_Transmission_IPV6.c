@@ -147,6 +147,8 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
+        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -274,9 +276,6 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             /* Send! */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
-            /* _HT_ added some asserts that are useful while testing. */
-            configASSERT( pxNetworkBuffer != NULL );
-            configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput != NULL );
 

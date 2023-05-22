@@ -12,6 +12,16 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
+
 /**
  * @brief Called by prvTCPReturnPacket(), this function makes sure that the network buffer
  *        has 'pxEndPoint' set properly.
