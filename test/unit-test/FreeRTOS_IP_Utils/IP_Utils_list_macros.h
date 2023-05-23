@@ -82,6 +82,4 @@ size_t xPortGetMinimumEverFreeHeapSize( void );
 void vRAProcess( BaseType_t xDoReset,
                  NetworkEndPoint_t * pxEndPoint );
 
-BaseType_t xNetworkInterfaceInitialise( struct xNetworkInterface * pxInterface );
-
 #endif /* ifndef LIST_MACRO_H */

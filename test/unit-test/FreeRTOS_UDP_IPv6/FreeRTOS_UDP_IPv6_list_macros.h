@@ -25,8 +25,8 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef LIST_MACRO_H
-#define LIST_MACRO_H
+#ifndef FREERTOS_UDP_IPV6_LIST_MACRO_H
+#define FREERTOS_UDP_IPV6_LIST_MACRO_H
 
 #include <FreeRTOS.h>
 #include <portmacro.h>
@@ -72,10 +72,10 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-size_t xPortGetMinimumEverFreeHeapSize( void );
+FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket );
 
-UBaseType_t uxGetMinimumIPQueueSpace( void );
-
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
-
-#endif /* ifndef LIST_MACRO_H */
+#endif /* ifndef FREERTOS_UDP_IPV6_LIST_MACRO_H */
