@@ -39,4 +39,7 @@
 FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
                                           NetworkBufferDescriptor_t * pxNetworkBuffer );
 
+FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
+                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+
 #endif /* ifndef LIST_MACRO_H */

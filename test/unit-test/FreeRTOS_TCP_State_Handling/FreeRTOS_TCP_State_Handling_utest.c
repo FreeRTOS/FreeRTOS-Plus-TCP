@@ -56,6 +56,7 @@
 #include "mock_FreeRTOS_TCP_Transmission.h"
 #include "mock_FreeRTOS_TCP_Reception.h"
 #include "mock_FreeRTOS_TCP_Utils.h"
+#include "mock_TCP_State_Handling_list_macros.h"
 
 #include "FreeRTOS_TCP_IP.h"
 
@@ -1634,24 +1635,12 @@ void test_prvTCPHandleState_State_Unknown( void )
 }
 
 /**
- * @brief Test for prvHandleListen function.
+ * @brief Call prvHandleListen with IPv4 packet.
  */
-void test_prvHandleListen_Not_For_Me( void )
+void test_prvHandleListen_IPv4Packet( void )
 {
-    FreeRTOS_Socket_t * pxReturn = NULL;
-    struct xNetworkEndPoint xEndPoint = { 0 };
-
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0700a8c0;
-
-    pxSocket = &xSocket;
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    prvHandleListen_IPV4_ExpectAndReturn( pxSocket, pxNetworkBuffer, NULL );
 
     pxSocket = prvHandleListen( pxSocket, pxNetworkBuffer );
 
@@ -1659,209 +1648,28 @@ void test_prvHandleListen_Not_For_Me( void )
 }
 
 /**
- * @brief Test for prvHandleListen function.
+ * @brief Call prvHandleListen with IPv6 packet.
  */
-void test_prvHandleListen_Reuse_Socket( void )
+void test_prvHandleListen_IPv6Packet( void )
 {
-    FreeRTOS_Socket_t * pxReturn = NULL;
-    NetworkEndPoint_t xEndPoint = { 0 };
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
+    prvHandleListen_IPV6_ExpectAndReturn( pxSocket, pxNetworkBuffer, NULL );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    pxSocket = prvHandleListen( pxSocket, pxNetworkBuffer );
 
-    pxSocket = &xSocket;
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
-
-    pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
-
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-    prvSocketSetMSS_ExpectAnyArgs();
-    prvTCPCreateWindow_ExpectAnyArgs();
-    vTCPStateChange_ExpectAnyArgs();
-
-    pxReturn = prvHandleListen( pxSocket, pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( pxSocket, pxReturn );
-    TEST_ASSERT_EQUAL( 1000, pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber );
+    TEST_ASSERT_EQUAL( NULL, pxSocket );
 }
 
 /**
- * @brief Test for prvHandleListen function.
+ * @brief Call prvHandleListen with unknown IP type packet.
  */
-void test_prvHandleListen_New_Socket_Exceed_Limit( void )
+void test_prvHandleListen_UnknownIPType( void )
 {
-    FreeRTOS_Socket_t * pxReturn = NULL;
-    NetworkEndPoint_t xEndPoint = { 0 };
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER + 1 );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    pxSocket = prvHandleListen( pxSocket, pxNetworkBuffer );
 
-    pxSocket = &xSocket;
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
-
-    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
-    pxSocket->u.xTCP.usChildCount = 10;
-    pxSocket->u.xTCP.usBacklog = 9;
-
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-    prvTCPSendReset_ExpectAnyArgsAndReturn( pdTRUE );
-
-    pxReturn = prvHandleListen( pxSocket, pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( NULL, pxReturn );
-}
-
-/**
- * @brief Test for prvHandleListen function.
- */
-void test_prvHandleListen_New_Socket_Good( void )
-{
-    FreeRTOS_Socket_t * pxReturn = NULL;
-    FreeRTOS_Socket_t MockReturnSocket;
-    NetworkEndPoint_t xEndPoint = { 0 };
-
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
-
-    pxSocket = &xSocket;
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
-
-    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
-    pxSocket->u.xTCP.usChildCount = 1;
-    pxSocket->u.xTCP.usBacklog = 9;
-
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-    FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
-    vSocketBind_ExpectAnyArgsAndReturn( 0 );
-    prvSocketSetMSS_ExpectAnyArgs();
-    prvTCPCreateWindow_ExpectAnyArgs();
-    vTCPStateChange_ExpectAnyArgs();
-
-    pxReturn = prvHandleListen( pxSocket, pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( &MockReturnSocket, pxReturn );
-    TEST_ASSERT_EQUAL( 1000, pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber );
-}
-
-/**
- * @brief Test for prvHandleListen function.
- */
-void test_prvHandleListen_New_Socket_NULL_Socket( void )
-{
-    FreeRTOS_Socket_t * pxReturn = NULL;
-    FreeRTOS_Socket_t MockReturnSocket;
-    NetworkEndPoint_t xEndPoint = { 0 };
-
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
-
-    pxSocket = &xSocket;
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
-
-    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
-    pxSocket->u.xTCP.usChildCount = 1;
-    pxSocket->u.xTCP.usBacklog = 9;
-
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-    FreeRTOS_socket_ExpectAnyArgsAndReturn( NULL );
-    prvTCPSendReset_ExpectAnyArgsAndReturn( pdTRUE );
-
-    pxReturn = prvHandleListen( pxSocket, pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( NULL, pxReturn );
-}
-
-/**
- * @brief Test for prvHandleListen function.
- */
-void test_prvHandleListen_New_Socket_Invalid_Socket( void )
-{
-    FreeRTOS_Socket_t * pxReturn = NULL;
-    FreeRTOS_Socket_t MockReturnSocket;
-    NetworkEndPoint_t xEndPoint = { 0 };
-
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
-
-    pxSocket = &xSocket;
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
-
-    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
-    pxSocket->u.xTCP.usChildCount = 1;
-    pxSocket->u.xTCP.usBacklog = 9;
-
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-    FreeRTOS_socket_ExpectAnyArgsAndReturn( FREERTOS_INVALID_SOCKET );
-    prvTCPSendReset_ExpectAnyArgsAndReturn( pdTRUE );
-
-    pxReturn = prvHandleListen( pxSocket, pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( NULL, pxReturn );
-}
-
-/**
- * @brief Test for prvHandleListen function.
- */
-void test_prvHandleListen_New_Socket_Socket_Copy_Failure( void )
-{
-    FreeRTOS_Socket_t * pxReturn = NULL;
-    FreeRTOS_Socket_t MockReturnSocket;
-    NetworkEndPoint_t xEndPoint = { 0 };
-
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
-
-    pxSocket = &xSocket;
-
-    pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
-
-    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
-    pxSocket->u.xTCP.usChildCount = 1;
-    pxSocket->u.xTCP.usBacklog = 9;
-
-    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
-    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-    FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
-    vSocketBind_ExpectAnyArgsAndReturn( 1 );
-    vSocketClose_ExpectAnyArgsAndReturn( NULL );
-
-    pxReturn = prvHandleListen( pxSocket, pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( NULL, pxReturn );
+    TEST_ASSERT_EQUAL( NULL, pxSocket );
 }
 
 /**
