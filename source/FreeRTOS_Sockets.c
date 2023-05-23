@@ -100,6 +100,14 @@
 #define sock80_PERCENT     80U         /**< 80% of the defined limit. */
 #define sock100_PERCENT    100U        /**< 100% of the defined limit. */
 
+#if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
+
+/**
+ * @brief A buffer for prvSocketProps to return socket property in string.
+ */
+    static char pucSocketProps[ 92 ];
+#endif
+
 /*-----------------------------------------------------------*/
 
 /*
@@ -2164,8 +2172,6 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 #if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
     const char * prvSocketProps( FreeRTOS_Socket_t * pxSocket )
     {
-        static char pucReturn[ 92 ];
-
         /* For debugging purposes only: show some properties of a socket:
          * IP-addresses and port numbers. */
         #if ipconfigUSE_TCP == 1
@@ -2182,7 +2188,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
-                            ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%xip port %u to %xip port %u",
+                            ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ), "%xip port %u to %xip port %u",
                                                ( unsigned ) pxSocket->xLocalAddress.ulIP_IPv4,
                                                pxSocket->usLocalPort,
                                                ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
@@ -2192,7 +2198,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE_UNSIGNED:
-                            ( void ) snprintf( pucReturn, sizeof( pucReturn ), "%pip port %u to %pip port %u",
+                            ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ), "%pip port %u to %pip port %u",
                                                pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
                                                pxSocket->usLocalPort,
                                                pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
@@ -2214,7 +2220,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case pdFALSE_UNSIGNED:
-                        ( void ) snprintf( pucReturn, sizeof( pucReturn ),
+                        ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ),
                                            "%xip port %u",
                                            ( unsigned ) pxSocket->xLocalAddress.ulIP_IPv4,
                                            pxSocket->usLocalPort );
@@ -2223,7 +2229,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case pdTRUE_UNSIGNED:
-                        ( void ) snprintf( pucReturn, sizeof( pucReturn ),
+                        ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ),
                                            "%pip port %u",
                                            pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
                                            pxSocket->usLocalPort );
@@ -2240,7 +2246,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
             /* Protocol not handled. */
         }
 
-        return pucReturn;
+        return pucSocketProps;
     }
 #endif /* ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) ) */
 /*-----------------------------------------------------------*/
@@ -4368,7 +4374,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
                                     BaseType_t * pxLength )
     {
-        uint8_t * pucReturn = NULL;
+        uint8_t * pucSocketProps = NULL;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         StreamBuffer_t * pxBuffer = NULL;
 
@@ -4394,11 +4400,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     *pxLength = ( BaseType_t ) uxSpace;
                 }
 
-                pucReturn = &( pxBuffer->ucArray[ pxBuffer->uxHead ] );
+                pucSocketProps = &( pxBuffer->ucArray[ pxBuffer->uxHead ] );
             }
         }
 
-        return pucReturn;
+        return pucSocketProps;
     }
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/
