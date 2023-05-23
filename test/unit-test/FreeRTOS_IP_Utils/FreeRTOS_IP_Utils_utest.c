@@ -74,103 +74,11 @@ extern NetworkInterface_t xInterfaces[ 1 ];
 extern UBaseType_t uxLastMinBufferCount;
 extern size_t uxMinLastSize;
 
-/* ============================ Stubs Functions =========================== */
-
-static BaseType_t xNetworkInterfaceInitialise_returnTrue( NetworkInterface_t * xInterface )
-{
-    return pdTRUE;
-}
-
-static BaseType_t xNetworkInterfaceInitialise_returnFalse( NetworkInterface_t * xInterface )
-{
-    return pdFALSE;
-}
-
-static BaseType_t prvChecksumICMPv6Checks_Valid( size_t uxBufferLength,
-                                                 struct xPacketSummary * pxSet,
-                                                 int NumCalls )
-{
-    pxSet->uxProtocolHeaderLength = ipSIZE_OF_ICMPv6_HEADER;
-    return 0;
-}
-
-static BaseType_t prvChecksumICMPv6Checks_BigHeaderLength( size_t uxBufferLength,
-                                                           struct xPacketSummary * pxSet,
-                                                           int NumCalls )
-{
-    pxSet->uxProtocolHeaderLength = 0xFF;
-    return 0;
-}
-
-static BaseType_t prvChecksumIPv6Checks_Valid( uint8_t * pucEthernetBuffer,
-                                               size_t uxBufferLength,
-                                               struct xPacketSummary * pxSet,
-                                               int NumCalls )
-{
-    IPPacket_IPv6_t * pxIPPacket;
-
-    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
-
-    pxSet->xIsIPv6 = pdTRUE;
-
-    pxSet->uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
-    pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
-    pxSet->ucProtocol = pxIPPacket->xIPHeader.ucNextHeader;
-    pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
-    pxSet->usProtocolBytes = pxSet->usPayloadLength;
-
-    return 0;
-}
-
-static BaseType_t prvChecksumIPv4Checks_Valid( uint8_t * pucEthernetBuffer,
-                                               size_t uxBufferLength,
-                                               struct xPacketSummary * pxSet,
-                                               int NumCalls )
-{
-    IPPacket_t * pxIPPacket;
-
-    pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-
-    pxSet->xIsIPv6 = pdFALSE;
-
-    pxSet->uxIPHeaderLength = ( pxIPPacket->xIPHeader.ucVersionHeaderLength & 0x0F ) * 4;
-    pxSet->usPayloadLength = FreeRTOS_ntohs( pxIPPacket->xIPHeader.usLength );
-    pxSet->ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-    pxSet->pxProtocolHeaders = &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] );
-    pxSet->usProtocolBytes = pxSet->usPayloadLength - ipSIZE_OF_IPv4_HEADER;
-
-    return 0;
-}
-
-static BaseType_t prvChecksumIPv4Checks_UnknownProtocol( uint8_t * pucEthernetBuffer,
-                                                         size_t uxBufferLength,
-                                                         struct xPacketSummary * pxSet,
-                                                         int NumCalls )
-{
-    prvChecksumIPv4Checks_Valid( pucEthernetBuffer, uxBufferLength, pxSet, NumCalls );
-
-    pxSet->ucProtocol = 0xFF;
-
-    return 0;
-}
-
-static BaseType_t prvChecksumIPv4Checks_InvalidLength( uint8_t * pucEthernetBuffer,
-                                                       size_t uxBufferLength,
-                                                       struct xPacketSummary * pxSet,
-                                                       int NumCalls )
-{
-    BaseType_t xReturn = 0;
-
-    prvChecksumIPv4Checks_Valid( pucEthernetBuffer, uxBufferLength, pxSet, NumCalls );
-
-    if( uxBufferLength < sizeof( IPPacket_t ) )
-    {
-        pxSet->usChecksum = ipINVALID_LENGTH;
-        xReturn = 4;
-    }
-
-    return xReturn;
-}
+extern NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
+                                                                     size_t uxOffset );
+extern uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
+extern void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
+                                    uint16_t usChecksum );
 
 /* ============================== Test Cases ============================== */
 
@@ -383,10 +291,10 @@ void test_prvPacketBuffer_to_NetworkBuffer_Unalligned( void )
     const void * pvBuffer;
     size_t uxOffset = 12;
     uint8_t ucEthBuf[ ipconfigTCP_MSS ];
-    uintptr_t uxAddrOfNetBuffer = &xNetBufferToReturn;
+    uintptr_t uxAddrOfNetBuffer = ( uintptr_t ) &xNetBufferToReturn;
 
     memcpy( ucEthBuf, &uxAddrOfNetBuffer, sizeof( uintptr_t ) );
-    pvBuffer = ucEthBuf[ uxOffset + ipBUFFER_PADDING ];
+    pvBuffer = ( const void * ) ( uxAddrOfNetBuffer + uxOffset + ipBUFFER_PADDING + 1 );
 
     pxNetworkBuffer = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
 
@@ -413,7 +321,7 @@ void test_prvPacketBuffer_to_NetworkBuffer_Alligned( void )
 
     pxNetworkBuffer = prvPacketBuffer_to_NetworkBuffer( pxAddrOfNetBuffer->pucEthernetBuffer, uxOffset );
 
-    TEST_ASSERT_EQUAL( ( uint32_t ) pxAddrOfNetBuffer, ( uint32_t ) pxNetworkBuffer );
+    TEST_ASSERT_EQUAL_PTR( pxAddrOfNetBuffer, pxNetworkBuffer );
 }
 
 /**
@@ -437,11 +345,11 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
     pxAddrOfNetBuffer->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
 
     pucIPType = ( pxAddrOfNetBuffer->pucEthernetBuffer ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-    *pucIPType = ( const uint8_t * ) ipTYPE_IPv4;
+    *pucIPType = ( uint8_t ) ipTYPE_IPv4;
 
     pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pxAddrOfNetBuffer->pucEthernetBuffer );
 
-    TEST_ASSERT_EQUAL( ( uint32_t ) pxAddrOfNetBuffer, ( uint32_t ) pxNetworkBuffer );
+    TEST_ASSERT_EQUAL_PTR( pxAddrOfNetBuffer, pxNetworkBuffer );
 }
 
 /**
@@ -480,7 +388,7 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_UnknownIPType( void )
     pxNetBufferToReturn->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
 
     pucIPType = ( pxNetBufferToReturn->pucEthernetBuffer ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-    *pucIPType = ( const uint8_t * ) 0xFF;
+    *pucIPType = 0xFF;
 
     catch_assert( pxUDPPayloadBuffer_to_NetworkBuffer( pxNetBufferToReturn->pucEthernetBuffer ) );
 }
@@ -510,7 +418,7 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
     pucPayloadBuffer = &ucEthBuf[ uxOffset + ipBUFFER_PADDING ];
 
     pucIPType = pucPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-    *pucIPType = ( const uint8_t * ) ipTYPE_IPv6;
+    *pucIPType = ipTYPE_IPv6;
 
     pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucPayloadBuffer );
 
@@ -524,7 +432,7 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
 void test_xIsCallingFromIPTask_NotCallingFromIPTask( void )
 {
     BaseType_t xReturn;
-    TaskHandle_t xHandleOfIPTask = 0xAABBCCDD, xHandleOfNotIPTask = 0xAABBCCDE;
+    TaskHandle_t xHandleOfIPTask = ( TaskHandle_t ) 0xAABBCCDD, xHandleOfNotIPTask = ( TaskHandle_t ) 0xAABBCCDE;
 
     xTaskGetCurrentTaskHandle_ExpectAndReturn( xHandleOfNotIPTask );
     FreeRTOS_GetIPTaskHandle_ExpectAndReturn( xHandleOfIPTask );
@@ -541,7 +449,7 @@ void test_xIsCallingFromIPTask_NotCallingFromIPTask( void )
 void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
 {
     BaseType_t xReturn;
-    TaskHandle_t xHandleOfIPTask = 0xAABBCCDD;
+    TaskHandle_t xHandleOfIPTask = ( TaskHandle_t ) 0xAABBCCDD;
 
     xTaskGetCurrentTaskHandle_ExpectAndReturn( xHandleOfIPTask );
     FreeRTOS_GetIPTaskHandle_ExpectAndReturn( xHandleOfIPTask );
@@ -576,7 +484,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vDHCPProcess_Expect( pdTRUE, &xEndPoint );
 
-    prvProcessNetworkDownEvent( &xInterfaces );
+    prvProcessNetworkDownEvent( &xInterfaces[ 0 ] );
 
     /* Run again to trigger a different path in the code. */
 
@@ -591,7 +499,7 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     vDHCPProcess_Expect( pdTRUE, &xEndPoint );
 
-    prvProcessNetworkDownEvent( &xInterfaces );
+    prvProcessNetworkDownEvent( &xInterfaces[ 0 ] );
 }
 
 /**
@@ -618,7 +526,7 @@ void test_prvProcessNetworkDownEvent_Fail( void )
 
     vIPNetworkUpCalls_Expect( &xEndPoint );
 
-    prvProcessNetworkDownEvent( &xInterfaces );
+    prvProcessNetworkDownEvent( &xInterfaces[ 0 ] );
 }
 
 /**
@@ -776,7 +684,7 @@ void test_vPreCheckConfigs_CatchAssertTaskNotReady( void )
 void test_vPreCheckConfigs_CatchAssertNonEmptyEventQueue( void )
 {
     xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
-    xNetworkEventQueue = 0xAABBCCDD;
+    xNetworkEventQueue = ( QueueHandle_t ) 0xAABBCCDD;
 
     catch_assert( vPreCheckConfigs() );
 }
