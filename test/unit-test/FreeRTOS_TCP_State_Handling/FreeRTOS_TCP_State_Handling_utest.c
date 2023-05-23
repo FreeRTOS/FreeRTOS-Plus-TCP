@@ -300,6 +300,8 @@ void test_prvTCPHandleFin_FIN_BitsAllFalse( void )
     pxTCPWindow->tx.ulCurrentSequenceNumber = 2000;
     pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
     pxSocket->u.xTCP.bits.bFinAcked = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinRecv = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinLast = pdFALSE;
     pxTCPHeader->ulAckNr = 2000;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
@@ -337,6 +339,7 @@ void test_prvTCPHandleFin_FIN_FINSentFINACKNoFINRecv( void )
     pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
     pxSocket->u.xTCP.bits.bFinAcked = pdTRUE;
     pxSocket->u.xTCP.bits.bFinRecv = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinLast = pdFALSE;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -989,6 +992,47 @@ void test_prvHandleEstablished_FINNotSentDataLeft( void )
 }
 
 /**
+ * @brief Fin sent bit was set before receiving an ACK packet.
+ */
+void test_prvHandleEstablished_FINSentACKPacket( void )
+{
+    BaseType_t xSendLength = 0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_Fin;
+
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
+    pxTCPHeader->usWindow = 1000;
+    pxSocket->u.xTCP.txStream = NULL;
+    pxSocket->u.xTCP.pxHandleSent = NULL;
+    pxSocket->u.xTCP.bits.bFinSent = pdTRUE;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 2200;
+    pxTCPWindow->tx.ulCurrentSequenceNumber = 1999;
+    pxTCPWindow->tx.ulFINSequenceNumber = 2000;
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
+    prvTCPPrepareSend_ExpectAnyArgsAndReturn( 40 );
+
+    xSendLength = prvHandleEstablished( pxSocket,
+                                        &pxNetworkBuffer,
+                                        1000,
+                                        0 );
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+    TEST_ASSERT_EQUAL( 2000, pxTCPWindow->tx.ulCurrentSequenceNumber );
+}
+
+/**
  * @brief Need to release resources when receiving TCP packet with FIN/ACK.
  */
 void test_prvHandleEstablished_FINSent( void )
@@ -1024,6 +1068,48 @@ void test_prvHandleEstablished_FINSent( void )
     xSendLength = prvHandleEstablished( pxSocket,
                                         &pxNetworkBuffer,
                                         0,
+                                        0 );
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+/**
+ * @brief FIN was accepcted before receiving an ACK packet.
+ */
+void test_prvHandleEstablished_FINAccept( void )
+{
+    BaseType_t xSendLength = 0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_Fin;
+
+    /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    ulCalled = 0;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = FreeRTOS_htonl( 1500 );
+    pxTCPHeader->usWindow = 1000;
+    pxSocket->u.xTCP.bits.bFinSent = pdFALSE;
+    pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE;
+    pxSocket->u.xTCP.txStream = NULL;
+    pxSocket->u.xTCP.pxHandleSent = NULL;
+    pxTCPWindow->rx.ulCurrentSequenceNumber = 2501;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 0 );
+    xTCPWindowRxEmpty_ExpectAnyArgsAndReturn( pdFALSE );
+    xTCPWindowTxDone_ExpectAnyArgsAndReturn( pdFALSE );
+    prvTCPPrepareSend_ExpectAnyArgsAndReturn( 40 );
+
+    xSendLength = prvHandleEstablished( pxSocket,
+                                        &pxNetworkBuffer,
+                                        1000,
                                         0 );
     TEST_ASSERT_EQUAL( 40, xSendLength );
 }
