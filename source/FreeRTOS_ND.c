@@ -234,7 +234,7 @@
 
                         if( eMyType == eIPType )
                         {
-                            eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
+                            eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, &pxEndPoint );
                             break;
                         }
                     }
@@ -525,9 +525,6 @@
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-        configASSERT( pxEndPoint != NULL );
-        configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
-
         ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         ( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( uxICMPSize );
@@ -679,6 +676,7 @@
             IPStackEvent_t xStackTxEvent = { eStackTxEvent, NULL };
             NetworkEndPoint_t * pxEndPoint = NULL;
             size_t uxPacketLength = 0U;
+            BaseType_t xEnoughSpace;
 
             pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( pxIPAddress );
 
@@ -686,8 +684,7 @@
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
             /* coverity[misra_c_2012_rule_14_3_violation] */
             /* coverity[notnull] */
-            BaseType_t xEnoughSpace;
-
+            if( pxEndPoint == NULL )
             {
                 BaseType_t xWanted = ( xIPv6_GetIPType( pxIPAddress ) == eIPv6_Global ) ? 1 : 0;
 
@@ -748,9 +745,6 @@
                     usSequenceNumber++;
 
                     pxICMPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-
-                    configASSERT( pxEndPoint != NULL );
-                    configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
 
                     pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPEcho_IPv6_t ) + uxNumberOfBytesToSend );
                     ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );

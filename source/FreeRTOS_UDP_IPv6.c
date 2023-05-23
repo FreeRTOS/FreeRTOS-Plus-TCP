@@ -74,7 +74,7 @@
 /* _HT_ this is a temporary aid while testing. In case an end-0point is not found,
  * this function will return the first end-point of the required type,
  * either 'ipTYPE_IPv4' or 'ipTYPE_IPv6' */
-extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
+static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
                                           BaseType_t xIsGlobal );
 
 /**
@@ -89,8 +89,8 @@ extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
  * @returns Pointer to the first end point of the given IP type from the
  *          list of end points.
  */
-NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
-                                   BaseType_t xIsGlobal )
+static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
+                                          BaseType_t xIsGlobal )
 {
     NetworkEndPoint_t * pxEndPoint;
 
@@ -109,13 +109,6 @@ NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
                 {
                     break;
                 }
-            }
-        }
-        else
-        {
-            if( pxEndPoint->bits.bIPv6 == 0U )
-            {
-                break;
             }
         }
     }
@@ -618,8 +611,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
             #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
-                if( ( usPort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) ||
-                    ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipLLMNR_PORT ) ) )
+                if( ( usPort == FreeRTOS_htons( ipLLMNR_PORT ) ) ||
+                    ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_htons( ipLLMNR_PORT ) ) )
                 {
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
@@ -628,8 +621,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
             #if ( ipconfigUSE_NBNS == 1 )
                 /* a NetBIOS request, check for the destination port */
-                if( ( usPort == FreeRTOS_ntohs( ipNBNS_PORT ) ) ||
-                    ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipNBNS_PORT ) ) )
+                if( ( usPort == FreeRTOS_htons( ipNBNS_PORT ) ) ||
+                    ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_htons( ipNBNS_PORT ) ) )
                 {
                     xReturn = ( BaseType_t ) ulNBNSHandlePacket( pxNetworkBuffer );
                 }
