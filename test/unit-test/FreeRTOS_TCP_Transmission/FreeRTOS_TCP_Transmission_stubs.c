@@ -46,27 +46,32 @@ uint16_t usPacketIdentifier;
 BaseType_t xTCPWindowLoggingLevel;
 BaseType_t xBufferAllocFixedSize = pdFALSE;
 
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
+/*
+ * Return or send a packet to the other party.
+ */
+void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t * pxDescriptor,
+                              uint32_t ulLen,
+                              BaseType_t xReleaseAfterSend )
 {
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
-
-void vPortEnterCritical( void )
-{
+    /* Do Nothing */
 }
-void vPortExitCritical( void )
+
+/*
+ * Let ARP look-up the MAC-address of the peer and initialise the first SYN
+ * packet.
+ */
+BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
 {
+    return pdTRUE;
+}
+
+/*
+ * Common code for sending a TCP protocol control packet (i.e. no options, no
+ * payload, just flags).
+ */
+BaseType_t prvTCPSendSpecialPktHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                            uint8_t ucTCPFlags )
+{
+    return pdTRUE;
 }

@@ -447,9 +447,9 @@ void test_prvTCPReturnPacket_Null_Buffer_IPv6( void )
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
-    memset(&xEndPoint, 0, sizeof(struct xNetworkEndPoint));
+    memset( &xEndPoint, 0, sizeof( struct xNetworkEndPoint ) );
     xEndPoint.pxNetworkInterface = &xInterface;
-    
+
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
@@ -462,9 +462,9 @@ void test_prvTCPReturnPacket_Null_Socket_IPv6( void )
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
-    memset(&xEndPoint, 0, sizeof(struct xNetworkEndPoint));
+    memset( &xEndPoint, 0, sizeof( struct xNetworkEndPoint ) );
     xEndPoint.pxNetworkInterface = &xInterface;
-    
+
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
 
     prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE );
@@ -1157,6 +1157,49 @@ void test_prvTCPBufferResize_With_Buffer_GT_Needed( void )
     TEST_ASSERT_EQUAL( 64, pReturn->xDataLength );
 }
 
+void test_prvTCPReturn_SetEndPoint_IPv6_NULL_EP( void )
+{
+    FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    size_t uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
+
+    pxSocket->pxEndPoint = NULL;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
+
+    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+    TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
+}
+
+void test_prvTCPReturn_SetEndPoint_IPv6_Return_Valid_EP( void )
+{
+    FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    size_t uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
+    NetworkEndPoint_t xEndPoint;
+
+    pxSocket->pxEndPoint = NULL;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
+
+    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+    TEST_ASSERT_EQUAL_PTR( &xEndPoint, pxNetworkBuffer->pxEndPoint );
+}
+
+void test_prvTCPReturn_SetEndPoint_IPv6_IncorrectHeaderSize( void )
+{
+    FreeRTOS_Socket_t * pxSocket = NULL;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    size_t uxIPHeaderSize = 0;
+    NetworkEndPoint_t xEndPoint;
+
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+    TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
+}
 
 /* test for prvTCPPrepareSend function */
 void test_prvTCPPrepareSend_State_Syn_Zero_Data( void )
@@ -2128,7 +2171,7 @@ void test_prvTCPSendSpecialPacketHelper_Incorrect_HeaderSize( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    
+
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
 
     Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
@@ -2144,7 +2187,7 @@ void test_prvTCPSendSpecialPacketHelper_IPv6_HeaderSize( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    
+
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
 
     Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
