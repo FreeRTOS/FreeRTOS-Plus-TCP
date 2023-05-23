@@ -310,3 +310,50 @@ void test_prvHandleListen_IPV4_NewSocketSocketCopyFailure( void )
 
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
+
+/**
+ * @brief The socket handler is NULL.
+ */
+void test_prvHandleListen_IPV4_NullSocket( void )
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+
+    pxReturn = prvHandleListen_IPV4( NULL, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+}
+
+/**
+ * @brief The network buffer pointer is NULL.
+ */
+void test_prvHandleListen_IPV4_NullNetworkBuffer( void )
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+
+    pxSocket = &xSocket;
+
+    pxReturn = prvHandleListen_IPV4( pxSocket, NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+}
+
+/**
+ * @brief The endpoint in network buffer is NULL.
+ */
+void test_prvHandleListen_IPV4_NullEndpoint( void )
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = NULL;
+
+    pxReturn = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
+}
