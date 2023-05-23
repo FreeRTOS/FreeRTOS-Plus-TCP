@@ -440,6 +440,55 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
     TEST_ASSERT_EQUAL( 1000, pxSocket->u.xTCP.ulHighestRxAllowed );
 }
 
+/* test for prvTCPReturnPacket function FreeRTOS_FindEndPointOnNetMask failed to find an endpoint*/
+void test_prvTCPReturnPacket_Null_EP_WithoutRelease( void )
+{
+    pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    xNetworkBuffer.pxEndPoint = NULL;
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket->pxEndPoint = NULL;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+
+    prvTCPReturnPacket( pxSocket, &xNetworkBuffer, 40, pdFALSE );
+}
+
+/* test for prvTCPReturnPacket function FreeRTOS_FindEndPointOnNetMask failed to find an endpoint*/
+void test_prvTCPReturnPacket_Null_EP_WithRelease( void )
+{
+    pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    xNetworkBuffer.pxEndPoint = NULL;
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket->pxEndPoint = NULL;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+
+    prvTCPReturnPacket( pxSocket, &xNetworkBuffer, 40, pdTRUE );
+}
+
 void test_prvTCPReturnPacket_Null_Buffer_IPv6( void )
 {
     pxSocket = &xSocket;
@@ -506,6 +555,69 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     TEST_ASSERT_EQUAL( OldSourceAddress, pxIPHeader->ulSourceIPAddress );
     TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
+
+/* test for prvTCPReturnPacket function */
+void test_prvTCPReturnPacket_Assert_Interface_NULL( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = NULL;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    uint32_t OldSourceAddress = pxIPHeader->ulSourceIPAddress;
+    uint32_t OldDestinationAddress = pxIPHeader->ulDestinationIPAddress;
+    uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
+    uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    catch_assert( prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE ) );
+}
+
+/* test for prvTCPReturnPacket function */
+void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
+{
+    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.pxNetworkInterface->pfOutput = NULL;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    uint32_t OldSourceAddress = pxIPHeader->ulSourceIPAddress;
+    uint32_t OldDestinationAddress = pxIPHeader->ulDestinationIPAddress;
+    uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
+    uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    catch_assert( prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE ) );
+}
+
 
 /* test for prvTCPReturnPacket function */
 void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
