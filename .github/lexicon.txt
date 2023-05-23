@@ -2012,6 +2012,7 @@ xrxsegments
 xsegmentitem
 xsegmentlist
 xselectbits
+xsemaphoregive
 xsendblocktime
 xsenderhardwareaddress
 xsendeventstructtoiptask
