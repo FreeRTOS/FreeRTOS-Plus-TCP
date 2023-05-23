@@ -51,8 +51,8 @@ typedef union IP_Address
 typedef struct xxIPv46_Address
 {
     /* A struct that can hold either an IPv4 or an IPv6 address. */
-    IP_Address_t xIPAddress; /**< The IPv6-address. */
-    BaseType_t xIs_IPv6;     /**< pdTRUE if the IPv6 member is used. */
+    IP_Address_t xIPAddress; /**< IP address contains either IPv4 or IPv6. */
+    BaseType_t xIs_IPv6;     /**< pdTRUE if IPv6 address. */
 } IPv46_Address_t;
 
 struct xNetworkEndPoint;
