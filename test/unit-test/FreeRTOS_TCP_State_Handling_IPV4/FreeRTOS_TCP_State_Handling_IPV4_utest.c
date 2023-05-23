@@ -79,7 +79,7 @@ uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
 };
 
 extern FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                                 NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /* ==============================  Test Cases  ============================== */
 

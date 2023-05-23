@@ -83,17 +83,17 @@ uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
 };
 
 extern BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
-                                       const NetworkBufferDescriptor_t * pxNetworkBuffer );
+                                   const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 extern BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
-                                            const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength );
+                                        const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                        uint32_t ulReceiveLength,
+                                        UBaseType_t uxOptionsLength );
 
 extern BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
-                                            NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                            uint32_t ulReceiveLength,
-                                            UBaseType_t uxOptionsLength );
+                                        NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                        uint32_t ulReceiveLength,
+                                        UBaseType_t uxOptionsLength );
 
 /* ============================  Unity Fixtures  ============================ */
 
@@ -178,9 +178,10 @@ void test_prvTCPSocketIsActive( void )
 }
 
 #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-    /**
-     * @brief No need to check timeout in some states.
-     */
+
+/**
+ * @brief No need to check timeout in some states.
+ */
     void test_prvTCPStatusAgeCheck_NoChecksNeeded( void )
     {
         BaseType_t xResult = pdTRUE;
@@ -204,9 +205,9 @@ void test_prvTCPSocketIsActive( void )
         TEST_ASSERT_EQUAL( pdFALSE, xResult );
     }
 
-    /**
-     * @brief Keep waiting when timeout is not triggered.
-     */
+/**
+ * @brief Keep waiting when timeout is not triggered.
+ */
     void test_prvTCPStatusAgeCheck_ChecksDoneAgeLEProtectiontime( void )
     {
         BaseType_t xResult = pdTRUE;
@@ -221,9 +222,9 @@ void test_prvTCPSocketIsActive( void )
         TEST_ASSERT_EQUAL( pdTRUE, xResult );
     }
 
-    /**
-     * @brief Start close procedure when waiting SYN/ACK timeout.
-     */
+/**
+ * @brief Start close procedure when waiting SYN/ACK timeout.
+ */
     void test_prvTCPStatusAgeCheck_ChecksDoneAgeGTProtectiontime( void )
     {
         BaseType_t xResult = pdTRUE;
@@ -239,10 +240,10 @@ void test_prvTCPSocketIsActive( void )
         TEST_ASSERT_EQUAL( pdTRUE, xResult );
     }
 
-    /**
-     * @brief Start close procedure when waiting SYN/ACK timeout.
-     * And the pass queue is true.
-     */
+/**
+ * @brief Start close procedure when waiting SYN/ACK timeout.
+ * And the pass queue is true.
+ */
     void test_prvTCPStatusAgeCheck_ChecksDonePassQueueBitTrue( void )
     {
         BaseType_t xResult = pdTRUE;
