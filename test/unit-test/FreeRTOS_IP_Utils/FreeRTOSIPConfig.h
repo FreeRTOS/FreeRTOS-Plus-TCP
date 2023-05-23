@@ -32,14 +32,18 @@
 
 #define _static
 
-#define TEST                        1
+#define TEST                                1
 
-#define ipconfigUSE_IPv4            ( 1 )
+#define ipconfigMULTI_INTERFACE             1
+#define ipconfigIPv4_BACKWARD_COMPATIBLE    0
+
+#define ipconfigUSE_IPv4                    ( 1 )
+#define ipconfigUSE_IPv6                    ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    1
+#define ipconfigHAS_DEBUG_PRINTF            1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -139,6 +143,7 @@ extern uint32_t ulRand();
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
 #define ipconfigUSE_DHCP                         1
+#define ipconfigUSE_DHCPv6                       1
 #define ipconfigDHCP_REGISTER_HOSTNAME           1
 #define ipconfigDHCP_USES_UNICAST                1
 
@@ -230,7 +235,7 @@ extern uint32_t ulRand();
 #define ipconfigUSE_TCP                                ( 1 )
 
 /* USE_WIN: Let TCP use windowing mechanism. */
-#define ipconfigUSE_TCP_WIN                            ( 1 )
+#define ipconfigUSE_TCP_WIN                            1
 
 /* The MTU is the maximum number of bytes the payload of a network frame can
  * contain.  For normal Ethernet V2 frames the maximum MTU is 1500.  Setting a
@@ -337,9 +342,5 @@ extern uint32_t ulRand();
 #define portINLINE
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
-
-#define ipconfigUSE_IPV6    ( 1 )
-
-#define ipconfigUSE_RA      ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

@@ -279,8 +279,9 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_DiffConfig3/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ICMP_wo_assert/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Utils_DiffConfig/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_Utils/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig1/ut.cmake )
@@ -326,6 +327,8 @@ add_custom_target( coverage
     FreeRTOS_IP_DiffConfig3_utest
     FreeRTOS_ICMP_utest
     FreeRTOS_IP_Utils_utest
+    FreeRTOS_IP_Utils_DiffConfig_utest
+    FreeRTOS_IPv4_Utils_utest
     FreeRTOS_IPv6_Utils_utest
     FreeRTOS_IP_Timers_utest
     FreeRTOS_Stream_Buffer_utest
