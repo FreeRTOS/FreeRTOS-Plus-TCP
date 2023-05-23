@@ -192,7 +192,7 @@ void test_processDNS_CACHE_Fail_IPv6( void )
                          &pxIP,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 10000 );                /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 10000 );                /* 10 seconds */
 
     ulReturn = FreeRTOS_dnslookup6( "helloworld", &pxIP );
 
@@ -510,7 +510,7 @@ void test_prepare_DNSLookup2( void )
                          &xAddress,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
@@ -660,7 +660,7 @@ void test_prepare_DNSLookup_IPv6( void )
                          &xAddress,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddrInfo );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
@@ -691,7 +691,7 @@ void test_prepare_DNSLookup2_IPv6( void )
                          &xAddress,
                          FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 3 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
