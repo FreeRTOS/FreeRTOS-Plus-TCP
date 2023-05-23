@@ -51,7 +51,7 @@
 
 #include "catch_assert.h"
 
-#define PACKET_LENGTH   50
+#define PACKET_LENGTH    50
 
 /* ============================ Test Cases ============================ */
 
@@ -91,20 +91,20 @@ void test_prvTCPReturnPacket_IPV6_BufferNULL( void )
  * @brief This function verify asserting when
  *        ethernet buffer is not initialized.
  */
-void test_prvTCPReturnPacket_IPV6_pucEthernetBuffer_Assert( void ) 
- {
-    FreeRTOS_Socket_t *pxSocket=NULL;
+void test_prvTCPReturnPacket_IPV6_pucEthernetBuffer_Assert( void )
+{
+    FreeRTOS_Socket_t * pxSocket = NULL;
     NetworkBufferDescriptor_t xDescriptor;
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdFALSE;
     NetworkEndPoint_t xEndPoint;
 
-    memset(&xDescriptor, 0, sizeof(NetworkBufferDescriptor_t));
-    memset(&xEndPoint, 0, sizeof(NetworkEndPoint_t));
+    memset( &xDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
     xDescriptor.pxEndPoint = &xEndPoint;
     xDescriptor.pucEthernetBuffer = NULL;
 
-    catch_assert(prvTCPReturnPacket_IPV6( pxSocket, &xDescriptor, ulLen, xReleaseAfterSend ));
+    catch_assert( prvTCPReturnPacket_IPV6( pxSocket, &xDescriptor, ulLen, xReleaseAfterSend ) );
 }
 
 /**
@@ -119,7 +119,7 @@ void test_prvTCPReturnPacket_IPV6_SocketNULL( void )
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdFALSE;
     NetworkEndPoint_t xEndPoint;
-    uint8_t ucEthernetBuffer[ipconfigETHERNET_MINIMUM_PACKET_BYTES];
+    uint8_t ucEthernetBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
     NetworkInterface_t xNetworkInterfaces;
 
     memset( &xDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -159,7 +159,7 @@ void test_prvTCPReturnPacket_IPV6_NoEP_Found( void )
 
 /**
  * @brief This function verify handling case with valid
- *        pxNetworkBuffer and pxSocket & SetEndPoint is
+ *        pxNetworkBuffer and pxSocket & set EndPoint is
  *        not able to find an Endpoint .
  */
 void test_prvTCPReturnPacket_IPV6_NoEP_ReleaseAfterSend( void )
@@ -331,8 +331,8 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_NoReleaseAfterSend( void )
     NetworkEndPoint_t xEndPoint;
     TCPPacket_IPv6_t xTCPPacket;
     NetworkInterface_t xNetworkInterfaces;
-    uint8_t ucEthernetBuffer[ipconfigETHERNET_MINIMUM_PACKET_BYTES];
-    
+    uint8_t ucEthernetBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
+
 
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -354,244 +354,234 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_NoReleaseAfterSend( void )
 }
 
 /**
- * @brief This function validates failure in creating a packet 
+ * @brief This function validates failure in creating a packet
  *        as failed to get ND Cache Entry and the End point
  *        was found to be NULL.
- *        
-*/
-void test_prvTCPPrepareConnect_IPV6_CacheMiss_NULLEP(void)
+ *
+ */
+void test_prvTCPPrepareConnect_IPV6_CacheMiss_NULLEP( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
     BaseType_t xReturn = pdFALSE;
 
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
-    
+
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**
- * @brief This function validates failure in creating a packet 
+ * @brief This function validates failure in creating a packet
  *        as after getting the ND Cache Entry, the
  *        End point was found to be NULL.
- *        
-*/
-void test_prvTCPPrepareConnect_IPV6_CacheHit_NULLEP(void)
+ *
+ */
+void test_prvTCPPrepareConnect_IPV6_CacheHit_NULLEP( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
     BaseType_t xReturn = pdFALSE;
 
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    
+
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0 );
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**
- * @brief This function validates failure in creating a packet 
+ * @brief This function validates failure in creating a packet
  *        as after getting the ND Cache Entry, but there
  *        was random number generation error.
- *        
-*/
-void test_prvTCPPrepareConnect_IPV6_CacheHit_RandNumFail(void)
+ *
+ */
+void test_prvTCPPrepareConnect_IPV6_CacheHit_RandNumFail( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
     BaseType_t xReturn = pdFALSE;
 
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    
+
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 10 );
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 
 /**
- * @brief This function validates failure in creating a packet 
+ * @brief This function validates failure in creating a packet
  *        as there is no IP address, or an ARP is still in progress.
-*/
-void test_prvTCPPrepareConnect_IPV6_CantSendPacket_NULLEP(void)
+ */
+void test_prvTCPPrepareConnect_IPV6_CantSendPacket_NULLEP( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
     BaseType_t xReturn = pdFALSE;
 
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eCantSendPacket );
-    
+
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**
- * @brief This function validates failure in creating a packet 
+ * @brief This function validates failure in creating a packet
  *        as there is a cache miss but a valid Endpoint is found.
-*/
-void test_prvTCPPrepareConnect_IPV6_CacheMiss_ValidEP(void)
+ */
+void test_prvTCPPrepareConnect_IPV6_CacheMiss_ValidEP( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
-    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     BaseType_t xReturn = pdFALSE;
 
-    memset(pxEndPoint, 0 , sizeof(NetworkEndPoint_t));
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
-    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint(&pxEndPoint );
+    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(NULL);
-        
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+
     prvSocketSetMSS_ExpectAnyArgs();
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-    TEST_ASSERT_EQUAL_MEMORY(pxSocket->pxEndPoint, pxEndPoint, sizeof(NetworkEndPoint_t));
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( pxSocket->pxEndPoint, pxEndPoint, sizeof( NetworkEndPoint_t ) );
 }
 
 /**
- * @brief This function validates failure in creating a packet 
+ * @brief This function validates failure in creating a packet
  *        as cache get entry returns an unknown return value.
-*/
-void test_prvTCPPrepareConnect_IPV6_DefaultCase_ValidEP(void)
+ */
+void test_prvTCPPrepareConnect_IPV6_DefaultCase_ValidEP( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
-    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer;
     BaseType_t xReturn = pdFALSE;
 
-    memset(pxEndPoint, 0 , sizeof(NetworkEndPoint_t));
-    memset(&xNetworkBuffer, 0 , sizeof(NetworkBufferDescriptor_t));
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eCantSendPacket +1 ); /* Default case */
-    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint(&pxEndPoint );
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eCantSendPacket + 1 ); /* Default case */
+    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&xNetworkBuffer);
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     vNDSendNeighbourSolicitation_ExpectAnyArgs();
-        
+
     prvSocketSetMSS_ExpectAnyArgs();
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-    TEST_ASSERT_EQUAL_MEMORY(pxSocket->pxEndPoint, pxEndPoint, sizeof(NetworkEndPoint_t));
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( pxSocket->pxEndPoint, pxEndPoint, sizeof( NetworkEndPoint_t ) );
 }
 
 /**
  * @brief This function validates successfully created a
  *        packet and sending the first SYN with IPv4 frame type.
-*/
-void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv4(void)
+ */
+void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv4( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
-    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer;
     BaseType_t xReturn = pdFALSE;
 
-    memset(pxEndPoint, 0 , sizeof(NetworkEndPoint_t));
-    memset(&xNetworkBuffer, 0 , sizeof(NetworkBufferDescriptor_t));
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
     pxSocket->bits.bIsIPv6 = 0;
 
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit ); 
-    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint(&pxEndPoint );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 10 );
-        
+
     prvSocketSetMSS_ExpectAnyArgs();
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdPASS, xReturn);
-    TEST_ASSERT_EQUAL_MEMORY(pxSocket->pxEndPoint, pxEndPoint, sizeof(NetworkEndPoint_t));
-
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( pxSocket->pxEndPoint, pxEndPoint, sizeof( NetworkEndPoint_t ) );
 }
 
 /**
  * @brief This function validates successfully created a
  *        packet and sending the first SYN with IPv6 frame type.
-*/
-void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv6(void)
+ */
+void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv6( void )
 {
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
-    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer;
     BaseType_t xReturn = pdFALSE;
 
-    memset(pxEndPoint, 0 , sizeof(NetworkEndPoint_t));
-    memset(&xNetworkBuffer, 0 , sizeof(NetworkBufferDescriptor_t));
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
     pxSocket->bits.bIsIPv6 = 1;
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint(&pxEndPoint );
+    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 10 );
-        
+
     prvSocketSetMSS_ExpectAnyArgs();
 
-    xReturn = prvTCPPrepareConnect_IPV6(pxSocket );
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
-    TEST_ASSERT_EQUAL(pdPASS, xReturn);
-    TEST_ASSERT_EQUAL_MEMORY(pxSocket->pxEndPoint, pxEndPoint, sizeof(NetworkEndPoint_t));
-
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( pxSocket->pxEndPoint, pxEndPoint, sizeof( NetworkEndPoint_t ) );
 }
 
 /**
  * @brief This function validates sending a TCP protocol control packet,
- *        when an unsynchronize packet is received.
-*/
-void test_prvTCPSendSpecialPktHelper_IPV6(void)
+ *        when an un synchronised packet is received.
+ */
+void test_prvTCPSendSpecialPktHelper_IPV6( void )
 {
-    NetworkBufferDescriptor_t xNetworkBuffer,* pxNetworkBuffer = &xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     TCPPacket_IPv6_t xTCPPacket;
     uint8_t ucTCPFlags = tcpTCP_FLAG_RST;
     BaseType_t xReturn;
-    
+
     pxNetworkBuffer->pucEthernetBuffer = &xTCPPacket;
     xTCPPacket.xTCPHeader.ucTCPFlags = 0;
 
-    xReturn = prvTCPSendSpecialPktHelper_IPV6(pxNetworkBuffer,ucTCPFlags );
+    xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-    TEST_ASSERT_EQUAL(ucTCPFlags, xTCPPacket.xTCPHeader.ucTCPFlags);
-    TEST_ASSERT_EQUAL(( ipSIZE_OF_TCP_HEADER ) << 2, xTCPPacket.xTCPHeader.ucTCPOffset);
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+    TEST_ASSERT_EQUAL( ucTCPFlags, xTCPPacket.xTCPHeader.ucTCPFlags );
+    TEST_ASSERT_EQUAL( ( ipSIZE_OF_TCP_HEADER ) << 2, xTCPPacket.xTCPHeader.ucTCPOffset );
 }
 
 /**
  * @brief This function validates sending a TCP protocol control packet,
  *        when an synchronize packet is received.
-*/
-void test_prvTCPSendSpecialPktHelper_IPV6_Syn(void)
+ */
+void test_prvTCPSendSpecialPktHelper_IPV6_Syn( void )
 {
-    NetworkBufferDescriptor_t xNetworkBuffer,* pxNetworkBuffer = &xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     TCPPacket_IPv6_t xTCPPacket;
     uint8_t ucTCPFlags = tcpTCP_FLAG_RST;
     BaseType_t xReturn;
-    
+
     pxNetworkBuffer->pucEthernetBuffer = &xTCPPacket;
     xTCPPacket.xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
-    xReturn = prvTCPSendSpecialPktHelper_IPV6(pxNetworkBuffer,ucTCPFlags );
+    xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
 
-    TEST_ASSERT_EQUAL(pdFAIL, xReturn);
-    TEST_ASSERT_EQUAL(ucTCPFlags, xTCPPacket.xTCPHeader.ucTCPFlags);
-    TEST_ASSERT_EQUAL(( ipSIZE_OF_TCP_HEADER ) << 2, xTCPPacket.xTCPHeader.ucTCPOffset);
-
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+    TEST_ASSERT_EQUAL( ucTCPFlags, xTCPPacket.xTCPHeader.ucTCPFlags );
+    TEST_ASSERT_EQUAL( ( ipSIZE_OF_TCP_HEADER ) << 2, xTCPPacket.xTCPHeader.ucTCPOffset );
 }
