@@ -111,6 +111,18 @@ extern BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
                                             uint32_t ulReceiveLength,
                                             UBaseType_t uxOptionsLength );
 
+/* ============================  Unity Fixtures  ============================ */
+
+/*! called before each test case */
+void setUp( void )
+{
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+
+    pxSocket = NULL;
+    pxNetworkBuffer = NULL;
+}
+
 /* ======================== Stub Callback Functions ========================= */
 
 static uint32_t ulCalled = 0;
@@ -423,6 +435,40 @@ void test_prvHandleSynReceived_ExpSYNStateConnectSyn( void )
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
+    pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_SYN | tcpTCP_FLAG_ACK;
+    pxTCPHeader->ulSequenceNumber = 0;
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    vTCPWindowInit_ExpectAnyArgs();
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( ( void * ) 0x1234 );
+    vTCPStateChange_ExpectAnyArgs();
+
+    xSendLength = prvHandleSynReceived( pxSocket,
+                                        ( const NetworkBufferDescriptor_t * ) pxNetworkBuffer,
+                                        0,
+                                        0 );
+    TEST_ASSERT_EQUAL( 40, xSendLength );
+}
+
+/**
+ * @brief Receive SYN IPv6 packet when waiting for it.
+ */
+void test_prvHandleSynReceived_ExpSYNStateConnectSynIPv6( void )
+{
+    BaseType_t xSendLength = 0;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
     pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
     pxTCPHeader->ucTCPFlags = tcpTCP_FLAG_SYN | tcpTCP_FLAG_ACK;
     pxTCPHeader->ulSequenceNumber = 0;
@@ -816,7 +862,7 @@ void test_prvHandleEstablished_FINNotSentRXComplete( void )
                                         &pxNetworkBuffer,
                                         0,
                                         0 );
-    TEST_ASSERT_EQUAL( 0, xSendLength );
+    TEST_ASSERT_EQUAL( 40, xSendLength );
 }
 
 /**
@@ -979,7 +1025,7 @@ void test_prvHandleEstablished_FINSent( void )
                                         &pxNetworkBuffer,
                                         0,
                                         0 );
-    TEST_ASSERT_EQUAL( 0, xSendLength );
+    TEST_ASSERT_EQUAL( 40, xSendLength );
 }
 
 /**
@@ -1417,7 +1463,6 @@ void test_prvTCPHandleState_LastAck( void )
 
     TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
     TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
-    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
     TEST_ASSERT_EQUAL( 0, xSendLength );
 }
 
@@ -1508,7 +1553,7 @@ void test_prvTCPHandleState_CloseWait( void )
 
     TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
     TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
-    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, pxTCPWindow->rx.ulFINSequenceNumber );
     TEST_ASSERT_EQUAL( 0, xSendLength );
 }
 
@@ -1550,7 +1595,7 @@ void test_prvTCPHandleState_ClosingKeepAlive( void )
 
     TEST_ASSERT_EQUAL( pdFALSE, pxSocket->u.xTCP.bits.bWinChange );
     TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
-    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, pxTCPWindow->rx.ulFINSequenceNumber );
     TEST_ASSERT_EQUAL( 0, xSendLength );
 }
 
@@ -1591,7 +1636,7 @@ void test_prvTCPHandleState_TimeWait( void )
 
     TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
     TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
-    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, pxTCPWindow->rx.ulFINSequenceNumber );
     TEST_ASSERT_EQUAL( 0, xSendLength );
 }
 
@@ -1632,7 +1677,7 @@ void test_prvTCPHandleState_StateUnknown( void )
 
     TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bWinChange );
     TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulHighestSequenceNumber );
-    TEST_ASSERT_EQUAL( 1000, pxTCPWindow->rx.ulFINSequenceNumber );
+    TEST_ASSERT_EQUAL( 0, pxTCPWindow->rx.ulFINSequenceNumber );
     TEST_ASSERT_EQUAL( 0, xSendLength );
 }
 
