@@ -54,6 +54,7 @@
 #include "mock_FreeRTOS_IPv4_Utils.h"
 
 #include "FreeRTOS_IP_Utils.h"
+#include "FreeRTOS_IP_Utils_DiffConfig_stubs.c"
 
 #include "catch_assert.h"
 
@@ -68,13 +69,6 @@ extern size_t uxMinLastSize;
 extern UBaseType_t uxLastMinQueueSpace;
 
 extern NetworkInterface_t xInterfaces[ 1 ];
-
-/* ============================ Stubs Functions =========================== */
-
-static BaseType_t xNetworkInterfaceInitialise_test( struct xNetworkInterface * pxDescriptor )
-{
-    return pdPASS;
-}
 
 /* ============================== Test Cases ============================== */
 
@@ -331,7 +325,7 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
     pucPayloadBuffer = &ucEthBuf[ uxOffset + ipBUFFER_PADDING ];
 
     pucIPType = pucPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-    *pucIPType = ( const uint8_t * ) ipTYPE_IPv6;
+    *pucIPType = ipTYPE_IPv6;
 
     pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucPayloadBuffer );
 
