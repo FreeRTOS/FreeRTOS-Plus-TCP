@@ -489,7 +489,7 @@
     {
         BaseType_t xReturn = pdTRUE;
 
-        switch( pxSocket->bits.bIsIPv6 )
+        switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE_UNSIGNED:
@@ -503,9 +503,9 @@
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            default:
+            default:  /* LCOV_EXCL_LINE */
                 /* MISRA 16.4 Compliance */
-                break;
+                break;  /* LCOV_EXCL_LINE */
         }
 
         return xReturn;

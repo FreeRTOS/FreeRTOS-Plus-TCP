@@ -392,6 +392,15 @@ void test_prvTCPSendRepeated_Repeat_8( void )
 }
 
 /* test for prvTCPReturnPacket function */
+void test_prvTCPReturnPacket_Null_Buffer_Null_Socket( void )
+{
+    FreeRTOS_Socket_t * pxSocket = NULL;
+    NetworkBufferDescriptor_t * pxDescriptor = NULL;
+
+    catch_assert( prvTCPReturnPacket( pxSocket, pxDescriptor, 40, pdFALSE ) );
+}
+
+/* test for prvTCPReturnPacket function */
 void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
 {
     pxSocket = &xSocket;
@@ -429,6 +438,36 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( 1000, pxSocket->u.xTCP.ulHighestRxAllowed );
+}
+
+void test_prvTCPReturnPacket_Null_Buffer_IPv6( void )
+{
+    pxSocket = &xSocket;
+    pxNetworkBuffer = NULL;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    memset(&xEndPoint, 0, sizeof(struct xNetworkEndPoint));
+    xEndPoint.pxNetworkInterface = &xInterface;
+    
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
+}
+
+
+void test_prvTCPReturnPacket_Null_Socket_IPv6( void )
+{
+    pxNetworkBuffer = &xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    memset(&xEndPoint, 0, sizeof(struct xNetworkEndPoint));
+    xEndPoint.pxNetworkInterface = &xInterface;
+    
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE );
 }
 
 /* test for prvTCPReturnPacket function */
@@ -853,6 +892,23 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
 }
 
 /* test for prvTCPPrepareConnect function */
+void test_prvTCPPrepareConnect_IPv6( void )
+{
+    BaseType_t Return = pdFALSE;
+
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucRepCount = 0;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->bits.bIsIPv6 = pdTRUE;
+
+
+    Return = prvTCPPrepareConnect( pxSocket );
+
+    TEST_ASSERT_EQUAL( pdTRUE, Return );
+}
+
+/* test for prvTCPPrepareConnect function */
 void test_prvTCPPrepareConnect_Ready( void )
 {
     BaseType_t Return = pdFALSE;
@@ -861,6 +917,7 @@ void test_prvTCPPrepareConnect_Ready( void )
 
     pxSocket->u.xTCP.ucRepCount = 0;
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->bits.bIsIPv6 = pdFALSE;
 
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0x11111111 );
@@ -2061,6 +2118,38 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
     TEST_ASSERT_EQUAL( 50, BytesSent );
     TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxAckMessage );
+}
+
+/* test prvTCPSendSpecialPacketHelper function with incorrect header size */
+void test_prvTCPSendSpecialPacketHelper_Incorrect_HeaderSize( void )
+{
+    BaseType_t Return = pdTRUE;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
+
+    Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
+
+    TEST_ASSERT_EQUAL( pdFALSE, Return );
+}
+
+/* test prvTCPSendSpecialPacketHelper function with incorrect header size */
+void test_prvTCPSendSpecialPacketHelper_IPv6_HeaderSize( void )
+{
+    BaseType_t Return = pdTRUE;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
+
+    TEST_ASSERT_EQUAL( pdTRUE, Return );
 }
 
 /* test prvTCPSendSpecialPacketHelper function */
