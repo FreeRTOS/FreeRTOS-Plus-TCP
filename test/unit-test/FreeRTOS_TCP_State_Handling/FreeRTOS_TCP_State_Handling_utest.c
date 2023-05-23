@@ -123,7 +123,7 @@ static void xLocalFunctionPointer( Socket_t xSocket,
 /* ==============================  Test Cases  ============================== */
 
 /**
- * @brief Test for prvTCPSocketIsActive function.
+ * @brief Check if socket is active in different states.
  */
 void test_prvTCPSocketIsActive( void )
 {
@@ -183,9 +183,9 @@ void test_prvTCPSocketIsActive( void )
 
 #if ( ipconfigTCP_HANG_PROTECTION == 1 )
     /**
-     * @brief Test for prvTCPStatusAgeCheck function.
+     * @brief No need to check timeout in some states.
      */
-    void test_prvTCPStatusAgeCheck_No_Checks_Needed( void )
+    void test_prvTCPStatusAgeCheck_NoChecksNeeded( void )
     {
         BaseType_t xResult = pdTRUE;
 
@@ -209,9 +209,9 @@ void test_prvTCPSocketIsActive( void )
     }
 
     /**
-     * @brief Test for prvTCPStatusAgeCheck function.
+     * @brief Keep waiting when timeout is not triggered.
      */
-    void test_prvTCPStatusAgeCheck_Checks_Done_Age_LE_Protectiontime( void )
+    void test_prvTCPStatusAgeCheck_ChecksDoneAgeLEProtectiontime( void )
     {
         BaseType_t xResult = pdTRUE;
 
@@ -226,9 +226,9 @@ void test_prvTCPSocketIsActive( void )
     }
 
     /**
-     * @brief Test for prvTCPStatusAgeCheck function.
+     * @brief Start close procedure when waiting SYN/ACK timeout.
      */
-    void test_prvTCPStatusAgeCheck_Checks_Done_Age_GT_Protectiontime( void )
+    void test_prvTCPStatusAgeCheck_ChecksDoneAgeGTProtectiontime( void )
     {
         BaseType_t xResult = pdTRUE;
 
@@ -244,9 +244,10 @@ void test_prvTCPSocketIsActive( void )
     }
 
     /**
-     * @brief Test for prvTCPStatusAgeCheck function.
+     * @brief Start close procedure when waiting SYN/ACK timeout.
+     * And the pass queue is true.
      */
-    void test_prvTCPStatusAgeCheck_Checks_Done_PassQueueBit_True( void )
+    void test_prvTCPStatusAgeCheck_ChecksDonePassQueueBitTrue( void )
     {
         BaseType_t xResult = pdTRUE;
 
@@ -265,9 +266,9 @@ void test_prvTCPSocketIsActive( void )
 #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
 /**
- * @brief Test for prvTCPHandleFin function.
+ * @brief Receive FIN packet when FIN sent/ack/recv/last are all not true.
  */
-void test_prvTCPHandleFin_Recv_No_FIN_Not_Sent_FINACK_Not_Sent( void )
+void test_prvTCPHandleFin_FIN_BitsAllFalse( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -299,9 +300,9 @@ void test_prvTCPHandleFin_Recv_No_FIN_Not_Sent_FINACK_Not_Sent( void )
 }
 
 /**
- * @brief Test for prvTCPHandleFin function.
+ * @brief Receive FIN packet when FIN recv is not true.
  */
-void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_No_FIN( void )
+void test_prvTCPHandleFin_FIN_FINSentFINACKNoFINRecv( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -333,9 +334,9 @@ void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_No_FIN( void )
 }
 
 /**
- * @brief Test for prvTCPHandleFin function.
+ * @brief Receive FIN packet when FIN last is not true.
  */
-void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Not_Last( void )
+void test_prvTCPHandleFin_FIN_FINRecvFINSentFINACKFINNotLast( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -370,9 +371,9 @@ void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Not_Last( void 
 }
 
 /**
- * @brief Test for prvTCPHandleFin function.
+ * @brief Receive FIN packet when FIN sent/ack/recv/last are all true.
  */
-void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Last( void )
+void test_prvTCPHandleFin_FIN_FINRecvFINSentFINACKFINLast( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -406,9 +407,9 @@ void test_prvTCPHandleFin_Recv_FIN_FIN_Sent_FINACK_Sent_Recv_FIN_Last( void )
 }
 
 /**
- * @brief Test for prvHandleSynReceived function.
+ * @brief Receive SYN packet when waiting for it.
  */
-void test_prvHandleSynReceived_Exp_SYN_State_ConnectSyn( void )
+void test_prvHandleSynReceived_ExpSYNStateConnectSyn( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -439,9 +440,9 @@ void test_prvHandleSynReceived_Exp_SYN_State_ConnectSyn( void )
 }
 
 /**
- * @brief Test for prvHandleSynReceived function.
+ * @brief Trigger close procedure when expect SYN packet but receive packet without SYN.
  */
-void test_prvHandleSynReceived_Not_Exp_SYN_State_ConnectSyn( void )
+void test_prvHandleSynReceived_NotSYNStateConnectSyn( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -471,9 +472,9 @@ void test_prvHandleSynReceived_Not_Exp_SYN_State_ConnectSyn( void )
 }
 
 /**
- * @brief Test for prvHandleSynReceived function.
+ * @brief Trigger close procedure when not expect SYN packet but receive one.
  */
-void test_prvHandleSynReceived_Not_Exp_SYN_State_Synreceived( void )
+void test_prvHandleSynReceived_NotExpSYNStateSynreceived( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -503,9 +504,9 @@ void test_prvHandleSynReceived_Not_Exp_SYN_State_Synreceived( void )
 }
 
 /**
- * @brief Test for prvHandleSynReceived function.
+ * @brief Handle an ACK packet.
  */
-void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Zero_Data( void )
+void test_prvHandleSynReceived_ExpACKStateSynreceivedZeroData( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -535,9 +536,9 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Zero_Data( void )
 }
 
 /**
- * @brief Test for prvHandleSynReceived function.
+ * @brief Handle an ACK packet with window scaling enabled.
  */
-void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Non_Zero_Data_WinScaling( void )
+void test_prvHandleSynReceived_ExpACKStateSynreceivedNonZeroDataWinScaling( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -568,9 +569,9 @@ void test_prvHandleSynReceived_Exp_ACK_State_Synreceived_Non_Zero_Data_WinScalin
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Handle a packet without ACK flag.
  */
-void test_prvHandleEstablished_No_ACK( void )
+void test_prvHandleEstablished_NoACK( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -595,9 +596,9 @@ void test_prvHandleEstablished_No_ACK( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Happy path to handle ACK packet.
  */
-void test_prvHandleEstablished_ACK_Happy( void )
+void test_prvHandleEstablished_ACKHappy( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -632,9 +633,9 @@ void test_prvHandleEstablished_ACK_Happy( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Receive packet with NULL TX stream.
  */
-void test_prvHandleEstablished_ACK_Null_TX_Recv_Zero( void )
+void test_prvHandleEstablished_ACKNullTXRecvZero( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -667,9 +668,9 @@ void test_prvHandleEstablished_ACK_Null_TX_Recv_Zero( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Return basic header size and option length to send ACK back when option length is not zero.
  */
-void test_prvHandleEstablished_ACK_Win_Zero_Recv_Zero_Has_Option( void )
+void test_prvHandleEstablished_ACKWinZeroRecvZero_HasOption( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -702,9 +703,9 @@ void test_prvHandleEstablished_ACK_Win_Zero_Recv_Zero_Has_Option( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief No buffer available to send, return basic header size to send ACK back.
  */
-void test_prvHandleEstablished_ACK_Buffer_Zero_Prep_False( void )
+void test_prvHandleEstablished_ACKBufferZeroPrepFalse( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -739,9 +740,10 @@ void test_prvHandleEstablished_ACK_Buffer_Zero_Prep_False( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Happy path to send packet back with select bit when receiving TCP packet with ACK.
+ * But no callback registered.
  */
-void test_prvHandleEstablished_ACK_Happy_Select_Write_No_Handler( void )
+void test_prvHandleEstablished_ACKHappySelectNoHandler( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -762,7 +764,6 @@ void test_prvHandleEstablished_ACK_Happy_Select_Write_No_Handler( void )
     pxSocket->u.xTCP.pxHandleSent = NULL;
     pxSocket->xSelectBits = eSELECT_WRITE;
 
-
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     ulTCPWindowTxAck_ExpectAnyArgsAndReturn( 1000 );
     uxStreamBufferGet_ExpectAnyArgsAndReturn( 1000 );
@@ -777,9 +778,9 @@ void test_prvHandleEstablished_ACK_Happy_Select_Write_No_Handler( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Trigger closing flow when first receiving TCP packet with FIN/ACK.
  */
-void test_prvHandleEstablished_FIN_NotSent_RX_Complete( void )
+void test_prvHandleEstablished_FINNotSentRXComplete( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -819,9 +820,9 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Complete( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Data left for receiving when receiving TCP packet with FIN/ACK.
  */
-void test_prvHandleEstablished_FIN_NotSent_RX_Not_Complete( void )
+void test_prvHandleEstablished_FINNotSentRXNotComplete( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -860,9 +861,9 @@ void test_prvHandleEstablished_FIN_NotSent_RX_Not_Complete( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Data left for sending when receiving TCP packet with FIN/ACK.
  */
-void test_prvHandleEstablished_FIN_NotSent_TX_Win_Not_Complete( void )
+void test_prvHandleEstablished_FINNotSentTXWinNotComplete( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -901,9 +902,9 @@ void test_prvHandleEstablished_FIN_NotSent_TX_Win_Not_Complete( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief RX sequence doesn't match when receiving TCP packet with FIN/ACK.
  */
-void test_prvHandleEstablished_FIN_NotSent_Data_Left( void )
+void test_prvHandleEstablished_FINNotSentDataLeft( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -942,9 +943,9 @@ void test_prvHandleEstablished_FIN_NotSent_Data_Left( void )
 }
 
 /**
- * @brief Test for prvHandleEstablished function.
+ * @brief Need to release resources when receiving TCP packet with FIN/ACK.
  */
-void test_prvHandleEstablished_FIN_Sent( void )
+void test_prvHandleEstablished_FINSent( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -982,9 +983,10 @@ void test_prvHandleEstablished_FIN_Sent( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with ACK when the state of socket is eCLOSED.
+ * To simulate malloc fail case.
  */
-void test_prvTCPHandleState_Closed_malloc_failure( void )
+void test_prvTCPHandleState_ClosedMallocFailure( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1020,7 +1022,7 @@ void test_prvTCPHandleState_Closed_malloc_failure( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with ACK when the state of socket is eCLOSED.
  */
 void test_prvTCPHandleState_Closed( void )
 {
@@ -1060,9 +1062,9 @@ void test_prvTCPHandleState_Closed( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with ACK when the state of socket is eTCP_LISTEN.
  */
-void test_prvTCPHandleState_TCP_Listen( void )
+void test_prvTCPHandleState_TCPListen( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1100,9 +1102,9 @@ void test_prvTCPHandleState_TCP_Listen( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with no flag when the state of socket is eSYN_FIRST.
  */
-void test_prvTCPHandleState_SYN_First( void )
+void test_prvTCPHandleState_SYNFirst( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1146,9 +1148,9 @@ void test_prvTCPHandleState_SYN_First( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with ACK when the state of socket is eCONNECT_SYN.
  */
-void test_prvTCPHandleState_Connect_Syn( void )
+void test_prvTCPHandleState_ConnectSyn( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1189,9 +1191,9 @@ void test_prvTCPHandleState_Connect_Syn( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with SYN when the state of socket is eSYN_RECEIVED.
  */
-void test_prvTCPHandleState_Syn_Received( void )
+void test_prvTCPHandleState_SynReceived( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1233,9 +1235,9 @@ void test_prvTCPHandleState_Syn_Received( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with ACK when the state of socket is eSYN_RECEIVED.
  */
-void test_prvTCPHandleState_Syn_Received_Flag_Not_Syn( void )
+void test_prvTCPHandleState_SynReceivedFlagNotSyn( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1277,9 +1279,9 @@ void test_prvTCPHandleState_Syn_Received_Flag_Not_Syn( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with ACK when the state of socket is eESTABLISHED.
  */
-void test_prvTCPHandleState_Established_Data_Ack( void )
+void test_prvTCPHandleState_Established_DataAck( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1321,9 +1323,9 @@ void test_prvTCPHandleState_Established_Data_Ack( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with FIN when the state of socket is eESTABLISHED.
  */
-void test_prvTCPHandleState_Established_First_Fin_From_Peer( void )
+void test_prvTCPHandleState_Established_FirstFinFromPeer( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1375,9 +1377,9 @@ void test_prvTCPHandleState_Established_First_Fin_From_Peer( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet when the state of socket is eLAST_ACK.
  */
-void test_prvTCPHandleState_Last_Ack( void )
+void test_prvTCPHandleState_LastAck( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1420,9 +1422,9 @@ void test_prvTCPHandleState_Last_Ack( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet with FIN flag when the state of socket is eFIN_WAIT_1.
  */
-void test_prvTCPHandleState_Fin_Wait_1_Fin_From_Peer( void )
+void test_prvTCPHandleState_FinWait1_FinFromPeer( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1469,9 +1471,9 @@ void test_prvTCPHandleState_Fin_Wait_1_Fin_From_Peer( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet when the state of socket is eCLOSE_WAIT.
  */
-void test_prvTCPHandleState_Close_Wait( void )
+void test_prvTCPHandleState_CloseWait( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1511,9 +1513,9 @@ void test_prvTCPHandleState_Close_Wait( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet when the state of socket is eCLOSING.
  */
-void test_prvTCPHandleState_Closing_Keep_Alive( void )
+void test_prvTCPHandleState_ClosingKeepAlive( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1553,9 +1555,9 @@ void test_prvTCPHandleState_Closing_Keep_Alive( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet when the state of socket is eTIME_WAIT.
  */
-void test_prvTCPHandleState_Time_Wait( void )
+void test_prvTCPHandleState_TimeWait( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1594,9 +1596,9 @@ void test_prvTCPHandleState_Time_Wait( void )
 }
 
 /**
- * @brief Test for prvTCPHandleState function.
+ * @brief Get TCP packet when the state of socket is unknown.
  */
-void test_prvTCPHandleState_State_Unknown( void )
+void test_prvTCPHandleState_StateUnknown( void )
 {
     BaseType_t xSendLength = 0;
 
@@ -1673,9 +1675,9 @@ void test_prvHandleListen_UnknownIPType( void )
 }
 
 /**
- * @brief Test for prvTCPSocketCopy function.
+ * @brief Socket handler has NULL socket set pointer.
  */
-void test_prvTCPSocketCopy_NULL_SocketSet( void )
+void test_prvTCPSocketCopy_NullSocketSet( void )
 {
     BaseType_t Result = pdFALSE;
 
@@ -1698,9 +1700,9 @@ void test_prvTCPSocketCopy_NULL_SocketSet( void )
 }
 
 /**
- * @brief Test for prvTCPSocketCopy function.
+ * @brief Get fail return in bind function.
  */
-void test_prvTCPSocketCopy_Bind_Error( void )
+void test_prvTCPSocketCopy_BindError( void )
 {
     BaseType_t Result = pdFALSE;
 
@@ -1736,9 +1738,9 @@ void test_FreeRTOS_GetTCPStateName( void )
 }
 
 /**
- * @brief Test for FreeRTOS_GetTCPStateName function.
+ * @brief Negative index as input.
  */
-void test_FreeRTOS_GetTCPStateName_Invalid_Index( void )
+void test_FreeRTOS_GetTCPStateName_NegativeIndex( void )
 {
     const char * ReturnStateName;
 
@@ -1748,9 +1750,9 @@ void test_FreeRTOS_GetTCPStateName_Invalid_Index( void )
 }
 
 /**
- * @brief Test for FreeRTOS_GetTCPStateName function.
+ * @brief Input with index greater than maximum.
  */
-void test_FreeRTOS_GetTCPStateName_Wrong_Index( void )
+void test_FreeRTOS_GetTCPStateName_GreaterIndex( void )
 {
     const char * ReturnStateName;
 
