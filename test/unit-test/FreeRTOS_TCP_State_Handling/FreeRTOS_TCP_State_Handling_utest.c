@@ -1058,7 +1058,7 @@ void test_prvHandleEstablished_FINSent( void )
 }
 
 /**
- * @brief FIN was accepcted before receiving an ACK packet.
+ * @brief FIN was accepted before receiving an ACK packet.
  */
 void test_prvHandleEstablished_FINAccept( void )
 {
