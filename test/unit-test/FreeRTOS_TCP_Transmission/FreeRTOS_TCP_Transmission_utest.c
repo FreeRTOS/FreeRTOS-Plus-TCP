@@ -70,7 +70,7 @@
 #include "FreeRTOS_TCP_Transmission_stubs.c"
 #include "FreeRTOS_TCP_Transmission.h"
 
-
+/* =========================== EXTERN VARIABLES =========================== */
 
 BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
                             const NetworkBufferDescriptor_t * pxNetworkBuffer );
@@ -87,9 +87,14 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
     0xc3, 0x17
 };
 
+/* ============================== Test Cases ============================== */
 
-/* test for prvTCPMakeSurePrepared function */
-void test_prvTCPMakeSurePrepared_Not_Ready( void )
+/**
+ * @brief This function validates case when connection preparation
+ *        needs to be done by creating a packet and sending the first SYN
+ *        as bConnPrepared bit is set to false.
+ */
+void test_prvTCPMakeSurePrepared_NotPrepared( void )
 {
     BaseType_t xResult = 0;
 
@@ -108,7 +113,11 @@ void test_prvTCPMakeSurePrepared_Not_Ready( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
-/* test for prvTCPMakeSurePrepared function */
+/**
+ * @brief This function validates case when connection preparation
+ *        needs to be done but fails as a cache miss and not able to
+ *        get the MAC address.
+ */
 void test_prvTCPMakeSurePrepared_Not_Ready_Error_Connect( void )
 {
     BaseType_t xResult = 0;
@@ -126,7 +135,10 @@ void test_prvTCPMakeSurePrepared_Not_Ready_Error_Connect( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
-/* test for prvTCPMakeSurePrepared function */
+/**
+ * @brief This function validates case when connection preparation
+ *        was already done as bConnPrepared is set to true.
+ */
 void test_prvTCPMakeSurePrepared_Ready( void )
 {
     BaseType_t xResult = 0;
@@ -141,18 +153,12 @@ void test_prvTCPMakeSurePrepared_Ready( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
-
-BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
-
-BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
-{
-    NetworkInterfaceOutputFunction_Stub_Called++;
-    return 0;
-}
-
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates that Connection has been prepared, or can be prepared
+ * now, proceed to send the packet with the SYN flag.
+ * prvTCPPrepareConnect() prepares 'xPacket' and returns pdTRUE if
+ * the Ethernet address of the peer or the gateway is found.
+ */
 void test_prvTCPSendPacket_Syn_State( void )
 {
     int32_t BytesSent = 0;

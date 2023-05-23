@@ -46,6 +46,17 @@ uint16_t usPacketIdentifier;
 BaseType_t xTCPWindowLoggingLevel;
 BaseType_t xBufferAllocFixedSize = pdFALSE;
 
+
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
+}
+
 /*
  * Return or send a packet to the other party.
  */
