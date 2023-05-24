@@ -712,14 +712,14 @@ void test_prvCheckRxData_IPv6( void )
     px_ethHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     px_ethHeader->usFrameType = ipIPv6_FRAME_TYPE;
     pxIPHeader = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-    pxIPHeader->usPayloadLength = pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) );
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
 
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
-    TEST_ASSERT_EQUAL( 26, result );
+    TEST_ASSERT_EQUAL( ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) ), result );
 }
 
 /**
