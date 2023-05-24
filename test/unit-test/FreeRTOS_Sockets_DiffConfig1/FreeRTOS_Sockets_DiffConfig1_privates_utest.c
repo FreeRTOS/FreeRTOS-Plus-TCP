@@ -44,6 +44,8 @@
 
 #include "catch_assert.h"
 
+/* ============================== Test Cases ============================== */
+
 /*
  * @brief Binding successful.
  */
