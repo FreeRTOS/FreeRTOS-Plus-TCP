@@ -138,6 +138,14 @@ typedef struct EnetNetIFAppIf_GetTxHandleInArgs_s
     EnetDma_PktQ *pktInfoQ;
 } EnetNetIFAppIf_GetTxHandleInArgs;
 
+typedef struct EnetNetIFAppIf_GetRxHandleInArgs_s
+{
+    void *cbArg;
+    EnetDma_PktNotifyCb notifyCb;
+    uint32_t chId;
+    EnetDma_PktQ *pktInfoQ;
+} EnetNetIFAppIf_GetRxHandleInArgs;
+
 typedef struct EnetNetIFAppIf_TxHandleInfo_s
 {
     /** DMA transmit channel */
@@ -153,6 +161,23 @@ typedef struct EnetNetIFAppIf_TxHandleInfo_s
     /** Number of packets*/
     uint32_t numPackets;
 } EnetNetIFAppIf_TxHandleInfo;
+
+typedef struct EnetNetIFAppIf_RxHandleInfo_s
+{
+    /** ENET DMA receive channel */
+    EnetDma_RxChHandle hRxFlow;
+    /** Flow index for flow used  */
+    uint32_t rxFlowStartIdx;
+    /** Flow index for flow used  */
+    uint32_t rxFlowIdx;
+    /** Number of packets*/
+    uint32_t numPackets;
+    /*! Whether to use RX event or not. When disabled, it uses pacing timer to
+     * retrieve packets periodically from driver */
+    bool disableEvent;
+        /** Mac Address allocated for the flow */
+    uint8_t macAddr[ENET_CFG_NETIF_MAX][ENET_MAC_ADDR_LEN];
+} EnetNetIFAppIf_RxHandleInfo;
 
 /*!
  * \brief RX object which groups variables related to a particular RX channel/flow.
@@ -307,7 +332,7 @@ typedef struct xEnetDriverObj
 
     Enet_Netif_TxHandle mapNetif2Tx[ENET_CFG_NETIF_MAX];
 
-    struct netif *mapRxPort2Netif[CPSW_STATS_MACPORT_MAX];
+    NetworkInterface_t *mapRxPort2Netif[CPSW_STATS_MACPORT_MAX];
 
     Enet_MacPort mapNetif2TxPortNum[ENET_CFG_NETIF_MAX];
 

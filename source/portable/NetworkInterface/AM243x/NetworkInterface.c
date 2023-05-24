@@ -120,7 +120,8 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 {
 
     NetworkInterface_t * pxRetInterface = NULL;
-    static char pcName[ 8 ];
+    static char pcName[ENET_SYSCFG_NETIF_COUNT][ 8 ];
+    static uint32_t uxNetIFArgs[ENET_SYSCFG_NETIF_COUNT];
 
     if(xEMACIndex < ENET_SYSCFG_NETIF_COUNT)
     {
@@ -130,11 +131,12 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 //         const uint32_t checksum_flags = (NETIF_CHECKSUM_ENABLE_ALL & ~checksum_offload_flags);
 // #endif     
 
-        snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+        snprintf( pcName[xEMACIndex], sizeof( pcName[xEMACIndex] ), "eth%ld", xEMACIndex );
+        uxNetIFArgs[xEMACIndex] = xEMACIndex;
 
         memset( pxInterface, '\0', sizeof( *pxInterface ) );
-        pxInterface->pcName = pcName;                    /* Interface name */
-        pxInterface->pvArgument = ( void * ) xEMACIndex; 
+        pxInterface->pcName = pcName[xEMACIndex];                    /* Interface name */
+        pxInterface->pvArgument = ( void * ) &uxNetIFArgs[xEMACIndex]; 
         pxInterface->pfInitialise = xAM243x_Eth_NetworkInterfaceInitialise;
         pxInterface->pfOutput = xAM243x_Eth_NetworkInterfaceOutput;
         pxInterface->pfGetPhyLinkStatus = xAM243x_Eth_GetPhyLinkStatus;
