@@ -40,14 +40,17 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* =========================  EXTERN VARIABLES  ========================= */
+
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 uint16_t usPacketIdentifier;
 BaseType_t xTCPWindowLoggingLevel;
 BaseType_t xBufferAllocFixedSize = pdFALSE;
 
-
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+/* ======================== Stub Callback Functions ========================= */
 
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer,
