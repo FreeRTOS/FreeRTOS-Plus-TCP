@@ -154,10 +154,8 @@ void test_prvTCPMakeSurePrepared_Ready( void )
 }
 
 /**
- * @brief This function validates that Connection has been prepared, or can be prepared
- * now, proceed to send the packet with the SYN flag.
- * prvTCPPrepareConnect() prepares 'xPacket' and returns pdTRUE if
- * the Ethernet address of the peer or the gateway is found.
+ * @brief This function validates the case of preparing Connection
+ *        and send the packet with the SYN flag.
  */
 void test_prvTCPSendPacket_Syn_State( void )
 {
@@ -190,7 +188,11 @@ void test_prvTCPSendPacket_Syn_State( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates the connection being is in the SYN status.
+ *        And the packet is repeated more than 3 times.  When there is no response,
+ *        the socket get the status 'eCLOSE_WAIT'.
+ */
 void test_prvTCPSendPacket_Syn_State_Rep_Count_GT_3( void )
 {
     int32_t BytesSent = 0;
@@ -209,7 +211,10 @@ void test_prvTCPSendPacket_Syn_State_Rep_Count_GT_3( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates that the preparation of a connection ( ARP resolution )
+ *      is not yet ready by setting bConnPrepared bit to pdFALSE.
+ */
 void test_prvTCPSendPacket_Syn_State_Not_Prepared( void )
 {
     int32_t BytesSent = 0;
@@ -229,7 +234,12 @@ void test_prvTCPSendPacket_Syn_State_Not_Prepared( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendPacket function */
+
+/**
+ * @brief This function validates that the case when the
+ *        connection is in a state other than SYN and there
+ *        is no data to send.
+ */
 void test_prvTCPSendPacket_Other_State_Zero_To_Send( void )
 {
     int32_t BytesSent = 0;
@@ -250,7 +260,11 @@ void test_prvTCPSendPacket_Other_State_Zero_To_Send( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates that the case when the
+ *        connection is in a state other than SYN and there
+ *        is some data to send.
+ */
 void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
 {
     int32_t BytesSent = 0;
@@ -324,7 +338,11 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     TEST_ASSERT_EQUAL( SEND_REPEATED_COUNT, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-/* test for prvTCPSendRepeated function */
+/**
+ * @brief This function validates that the case when the
+ *        TCP connection is in a state SYN but there is no
+ *        data to send.
+ */
 void test_prvTCPSendRepeated_Zero_To_Send( void )
 {
     int32_t BytesSent = 0;
@@ -348,7 +366,11 @@ void test_prvTCPSendRepeated_Zero_To_Send( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendRepeated function */
+/**
+ * @brief This function validates sending series of messages, as
+ *        long as there is data to be sent and as long as the transmit
+ *        window isn't full.
+ */
 void test_prvTCPSendRepeated_Repeat_8( void )
 {
     int32_t BytesSent = 0;
@@ -397,7 +419,10 @@ void test_prvTCPSendRepeated_Repeat_8( void )
     TEST_ASSERT_EQUAL( 480, BytesSent );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates failure in sending packet back to
+ *        peer when both Buffer as well as socket is NULL.
+ */
 void test_prvTCPReturnPacket_Null_Buffer_Null_Socket( void )
 {
     FreeRTOS_Socket_t * pxSocket = NULL;
@@ -406,7 +431,10 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Socket( void )
     catch_assert( prvTCPReturnPacket( pxSocket, pxDescriptor, 40, pdFALSE ) );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet back to
+ *        peer when Buffer as rx stream is NULL.
+ */
 void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
 {
     pxSocket = &xSocket;
@@ -446,7 +474,10 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
     TEST_ASSERT_EQUAL( 1000, pxSocket->u.xTCP.ulHighestRxAllowed );
 }
 
-/* test for prvTCPReturnPacket function FreeRTOS_FindEndPointOnNetMask failed to find an endpoint*/
+/**
+ * @brief This function validates failure in sending packet back to
+ *        peer when it fails to find a valid endpoint.
+ */
 void test_prvTCPReturnPacket_Null_EP_WithoutRelease( void )
 {
     pxSocket = &xSocket;
@@ -470,7 +501,10 @@ void test_prvTCPReturnPacket_Null_EP_WithoutRelease( void )
     prvTCPReturnPacket( pxSocket, &xNetworkBuffer, 40, pdFALSE );
 }
 
-/* test for prvTCPReturnPacket function FreeRTOS_FindEndPointOnNetMask failed to find an endpoint*/
+/**
+ * @brief This function validates failure in sending packet back to
+ *        peer when it fails to find a valid endpoint.
+ */
 void test_prvTCPReturnPacket_Null_EP_WithRelease( void )
 {
     pxSocket = &xSocket;
@@ -495,11 +529,15 @@ void test_prvTCPReturnPacket_Null_EP_WithRelease( void )
     prvTCPReturnPacket( pxSocket, &xNetworkBuffer, 40, pdTRUE );
 }
 
+/**
+ * @brief This function validates sending packet back to
+ *        peer with IPv6 type and buffer being NULL.
+ */
 void test_prvTCPReturnPacket_Null_Buffer_IPv6( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = NULL;
-    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkEndPoint xEndPoint;
     struct xNetworkInterface xInterface;
 
     memset( &xEndPoint, 0, sizeof( struct xNetworkEndPoint ) );
@@ -510,7 +548,10 @@ void test_prvTCPReturnPacket_Null_Buffer_IPv6( void )
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
 }
 
-
+/**
+ * @brief This function validates sending packet back to
+ *        peer with IPv6 type and socket being NULL.
+ */
 void test_prvTCPReturnPacket_Null_Socket_IPv6( void )
 {
     pxNetworkBuffer = &xNetworkBuffer;
@@ -525,7 +566,10 @@ void test_prvTCPReturnPacket_Null_Socket_IPv6( void )
     prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet back to
+ *        peer with IPv4 type and buffer being NULL.
+ */
 void test_prvTCPReturnPacket_Null_Socket( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -562,7 +606,10 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates catching an assert when
+ *        pxNetworkInterface is NULL.
+ */
 void test_prvTCPReturnPacket_Assert_Interface_NULL( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -592,7 +639,10 @@ void test_prvTCPReturnPacket_Assert_Interface_NULL( void )
     catch_assert( prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE ) );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates catching an assert when
+ *        InterfaceOutput is NULL.
+ */
 void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
 {
     struct xNetworkEndPoint xEndPoint;
@@ -625,7 +675,10 @@ void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
 }
 
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet back to
+ *        peer socket is set to NULL and release is set to true.
+ */
 void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -662,7 +715,10 @@ void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
     TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet when
+ *        bSendKeepAlive is set to false.
+ */
 void test_prvTCPReturnPacket_No_KL( void )
 {
     pxSocket = &xSocket;
@@ -706,7 +762,11 @@ void test_prvTCPReturnPacket_No_KL( void )
     TEST_ASSERT_EQUAL( FreeRTOS_htonl( 50 ), pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet when
+ *        bSendKeepAlive is set to false and mac address
+ *        being updated to the endpoint mac adddress.
+ */
 void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 {
     pxSocket = &xSocket;
@@ -759,7 +819,11 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 }
 
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet when
+ *        bSendKeepAlive is set to false and mac address
+ *        being updated to the endpoint mac adddress.
+ */
 void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
 {
     pxSocket = &xSocket;
