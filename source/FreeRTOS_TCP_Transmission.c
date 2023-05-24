@@ -503,9 +503,9 @@
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            default:  /* LCOV_EXCL_LINE */
+            default:   /* LCOV_EXCL_LINE */
                 /* MISRA 16.4 Compliance */
-                break;  /* LCOV_EXCL_LINE */
+                break; /* LCOV_EXCL_LINE */
         }
 
         return xReturn;
