@@ -5345,7 +5345,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
     {
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
-        BaseType_t xResult = ipTYPE_IPv4;
+        BaseType_t xResult = ( BaseType_t ) ipTYPE_IPv4;
 
         switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
         {
