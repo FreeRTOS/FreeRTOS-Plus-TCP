@@ -56,7 +56,9 @@
 
 #include "catch_assert.h"
 
-/*
+/* ============================== Test Cases ============================== */
+
+/**
  * @brief Binding successful.
  */
 void test_vSocketBind_TCP( void )
@@ -77,7 +79,7 @@ void test_vSocketBind_TCP( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xReturn );
 }
 
-/*
+/**
  * @brief Binding successful.
  */
 void test_vSocketBind_TCP1( void )
