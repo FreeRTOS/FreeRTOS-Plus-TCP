@@ -704,6 +704,7 @@ void test_prvCheckRxData_IPv6( void )
     IPHeader_IPv6_t * pxIPHeader;
 
     /* Setup TCP option for tests */
+    memset( EthernetBuffer, 0, sizeof( EthernetBuffer ) );
     pxNetworkBuffer = &xNetworkBuffer;
 
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
@@ -733,6 +734,7 @@ void test_prvCheckRxData_IncorrectFrameType( void )
     uint8_t * pData;
 
     /* Setup TCP option for tests */
+    memset( EthernetBuffer, 0, sizeof( EthernetBuffer ) );
     pxNetworkBuffer = &xNetworkBuffer;
 
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
