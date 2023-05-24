@@ -49,11 +49,26 @@
 #include "FreeRTOSIPConfig.h"
 
 #include "FreeRTOS_TCP_State_Handling.h"
+#include "FreeRTOS_TCP_State_Handling_stubs.c"
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
+BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
+                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
+                                 const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                 uint32_t ulReceiveLength,
+                                 UBaseType_t uxOptionsLength );
+
+BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
+                                 NetworkBufferDescriptor_t ** ppxNetworkBuffer,
+                                 uint32_t ulReceiveLength,
+                                 UBaseType_t uxOptionsLength );
+
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 {
     0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
@@ -82,19 +97,6 @@ uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
     0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
 };
 
-extern BaseType_t prvTCPHandleFin( FreeRTOS_Socket_t * pxSocket,
-                                   const NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-extern BaseType_t prvHandleSynReceived( FreeRTOS_Socket_t * pxSocket,
-                                        const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                        uint32_t ulReceiveLength,
-                                        UBaseType_t uxOptionsLength );
-
-extern BaseType_t prvHandleEstablished( FreeRTOS_Socket_t * pxSocket,
-                                        NetworkBufferDescriptor_t ** ppxNetworkBuffer,
-                                        uint32_t ulReceiveLength,
-                                        UBaseType_t uxOptionsLength );
-
 /* ============================  Unity Fixtures  ============================ */
 
 /*! called before each test case */
@@ -105,15 +107,6 @@ void setUp( void )
 
     pxSocket = NULL;
     pxNetworkBuffer = NULL;
-}
-
-/* ======================== Stub Callback Functions ========================= */
-
-static uint32_t ulCalled = 0;
-static void xLocalFunctionPointer( Socket_t xSocket,
-                                   size_t xLength )
-{
-    ulCalled++;
 }
 
 /* ==============================  Test Cases  ============================== */

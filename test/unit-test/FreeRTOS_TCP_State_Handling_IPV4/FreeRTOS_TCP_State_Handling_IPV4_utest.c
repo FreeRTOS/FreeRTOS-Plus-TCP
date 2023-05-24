@@ -48,8 +48,12 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
+FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
+                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 {
     0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
@@ -77,9 +81,6 @@ uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
     0x97, 0xdf, 0x26, 0xf5, 0x70, 0x9c, 0x09, 0xe0, 0x0d, 0xda, 0xf5, 0xf9, 0xd5, 0x37, 0x92, 0x4f,
     0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
 };
-
-extern FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
-                                                 NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /* ==============================  Test Cases  ============================== */
 
