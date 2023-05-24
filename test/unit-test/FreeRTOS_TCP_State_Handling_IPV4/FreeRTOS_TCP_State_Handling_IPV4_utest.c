@@ -54,33 +54,20 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
 
-uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
-{
-    0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
-    0x00, 0x34, 0x15, 0xc2, 0x40, 0x00, 0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9,
-    0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
-    0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
-    0xc3, 0x17
-};
+uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
 
-uint8_t EthernetBuffer_Fin[ ipconfigNETWORK_MTU ] =
-{
-    0x8c, 0xdc, 0xd4, 0x4a, 0xea, 0x02, 0xa0, 0x40, 0xa0, 0x3a, 0x21, 0xea, 0x08, 0x00, 0x45, 0x20,
-    0x00, 0x28, 0x51, 0x4a, 0x40, 0x00, 0xcf, 0x06, 0x14, 0x7b, 0xd1, 0x36, 0xb4, 0x03, 0xc0, 0xa8,
-    0x00, 0x08, 0x01, 0xbb, 0xe9, 0xcc, 0xce, 0x19, 0x42, 0xb1, 0x6c, 0x98, 0x52, 0xe7, 0x50, 0x11,
-    0x01, 0xb8, 0xac, 0x5e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-};
+/* ============================  Unity Fixtures  ============================ */
 
-uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
+/*! called before each test case */
+void setUp( void )
 {
-    0x8c, 0xdc, 0xd4, 0x4a, 0xea, 0x02, 0xa0, 0x40, 0xa0, 0x3a, 0x21, 0xea, 0x08, 0x00, 0x45, 0x20,
-    0x00, 0x5b, 0xd2, 0xe9, 0x00, 0x00, 0x39, 0x06, 0x32, 0x47, 0xac, 0xd9, 0x0e, 0xc3, 0xc0, 0xa8,
-    0x00, 0x08, 0x01, 0xbb, 0xdc, 0x44, 0xe2, 0x34, 0xd4, 0x84, 0xa7, 0xa9, 0xc1, 0xd8, 0x80, 0x18,
-    0x01, 0x15, 0x2c, 0xed, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0x7c, 0x17, 0x05, 0xb6, 0x9e, 0x62,
-    0x6f, 0x27, 0x17, 0x03, 0x03, 0x00, 0x22, 0x1c, 0xeb, 0x68, 0x29, 0xea, 0x20, 0x2d, 0xb2, 0x6f,
-    0x97, 0xdf, 0x26, 0xf5, 0x70, 0x9c, 0x09, 0xe0, 0x0d, 0xda, 0xf5, 0xf9, 0xd5, 0x37, 0x92, 0x4f,
-    0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
-};
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( &ucEthernetBuffer, 0, sizeof( ucEthernetBuffer ) );
+
+    pxSocket = NULL;
+    pxNetworkBuffer = NULL;
+}
 
 /* ==============================  Test Cases  ============================== */
 
@@ -98,7 +85,7 @@ void test_prvHandleListen_IPV4_NotForMe( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
@@ -124,7 +111,7 @@ void test_prvHandleListen_IPV4_ReuseSocket( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -157,7 +144,7 @@ void test_prvHandleListen_IPV4_NewSocketExceedLimit( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -189,7 +176,7 @@ void test_prvHandleListen_IPV4_NewSocketGood( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -227,7 +214,7 @@ void test_prvHandleListen_IPV4_NewSocketNULLSocket( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -260,7 +247,7 @@ void test_prvHandleListen_IPV4_NewSocketInvalidSocket( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -293,7 +280,7 @@ void test_prvHandleListen_IPV4_NewSocketSocketCopyFailure( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
@@ -351,7 +338,7 @@ void test_prvHandleListen_IPV4_NullEndpoint( void )
     pxSocket = &xSocket;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = NULL;
 
     pxReturn = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
