@@ -80,27 +80,32 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    const TCPPacket_IPv6_t * pxTCPPacket = ( ( const TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_IPv6_t * pxTCPPacket = NULL;
     FreeRTOS_Socket_t * pxReturn = NULL;
     uint32_t ulInitialSequenceNumber = 0;
     BaseType_t xHasSequence = pdFALSE;
 
-    configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
-
-    /* Silently discard a SYN packet which was not specifically sent for this node. */
-    if( memcmp( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+    if( ( pxSocket != NULL ) && ( pxNetworkBuffer != NULL ) )
     {
-        /* Assume that a new Initial Sequence Number will be required. Request
-         * it now in order to fail out if necessary. */
-        if( xApplicationGetRandomNumber( &ulInitialSequenceNumber ) == pdPASS )
+        pxTCPPacket = ( ( const TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+        configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
+
+        /* Silently discard a SYN packet which was not specifically sent for this node. */
+        if( memcmp( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
         {
-            xHasSequence = pdTRUE;
+            /* Assume that a new Initial Sequence Number will be required. Request
+            * it now in order to fail out if necessary. */
+            if( xApplicationGetRandomNumber( &ulInitialSequenceNumber ) == pdPASS )
+            {
+                xHasSequence = pdTRUE;
+            }
         }
     }
 
     /* A pure SYN (without ACK) has come in, create a new socket to answer
      * it. */
-    if( xHasSequence == pdTRUE )
+    if( xHasSequence != pdFALSE )
     {
         if( pxSocket->u.xTCP.bits.bReuseSocket != pdFALSE_UNSIGNED )
         {
