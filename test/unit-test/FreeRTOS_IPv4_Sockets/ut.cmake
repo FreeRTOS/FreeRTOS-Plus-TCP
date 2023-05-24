@@ -92,7 +92,7 @@ list(APPEND utest_dep_list
         )
 
 set(utest_name "${project_name}_utest")
-set(utest_source "${project_name}/${project_name}_utest.c" )
+set(utest_source "${project_name}/${project_name}_utest.c")
 
 create_test(${utest_name}
             ${utest_source}

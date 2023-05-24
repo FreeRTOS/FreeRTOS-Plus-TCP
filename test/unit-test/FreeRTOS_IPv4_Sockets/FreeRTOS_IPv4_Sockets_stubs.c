@@ -37,9 +37,6 @@
 #include "task.h"
 #include "list.h"
 
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
-
 /* =========================== EXTERN VARIABLES =========================== */
 
 char cStubNtoaString[ 128 ];
