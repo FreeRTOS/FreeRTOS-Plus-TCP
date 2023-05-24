@@ -46,8 +46,6 @@
 
 #define TEST_MAX_UDPV4_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER )
 
-/* ======================== Stub Callback Functions ========================= */
-
 /* =============================== Test Cases =============================== */
 
 /**

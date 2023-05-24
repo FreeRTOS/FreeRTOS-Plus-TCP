@@ -49,12 +49,10 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-extern BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
-                                          BaseType_t xType,
-                                          BaseType_t xProtocol,
-                                          size_t * pxSocketSize );
-
-/* ======================== Stub Callback Functions ========================= */
+BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
+                                   BaseType_t xType,
+                                   BaseType_t xProtocol,
+                                   size_t * pxSocketSize );
 
 /* ============================== Test Cases ============================== */
 
