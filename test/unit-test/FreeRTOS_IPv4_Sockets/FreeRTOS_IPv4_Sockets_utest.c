@@ -40,38 +40,13 @@
 
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOS_IPv4_Sockets.h"
-
-/* =========================== EXTERN VARIABLES =========================== */
-
-char cStubNtoaString[ 128 ];
+#include "FreeRTOS_IPv4_Sockets_stubs.c"
 
 /* ============================ Unity Fixtures ============================ */
 
-/*! called before each test case */
 void setUp( void )
 {
-    memset( cStubNtoaString, 0, sizeof( cStubNtoaString ) );
-}
-
-/*! called after each test case */
-void tearDown( void )
-{
-}
-
-/* ======================== Stub Callback Functions ========================= */
-
-static void prvSetString_FreeRTOS_inet_ntoa( char * pcBuffer )
-{
-    strcpy( cStubNtoaString, pcBuffer );
-}
-
-static const char * pucStub_FreeRTOS_inet_ntoa( uint32_t ulIPAddress,
-                                                char * pcBuffer,
-                                                int numCall )
-{
-    strcpy( pcBuffer, cStubNtoaString );
-
-    return pcBuffer;
+    setUpStub();
 }
 
 /* ============================== Test Cases ============================== */
