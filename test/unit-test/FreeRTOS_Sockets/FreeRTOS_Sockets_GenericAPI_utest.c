@@ -64,78 +64,8 @@
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
-BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
-                           BaseType_t xProtocol,
-                           BaseType_t xIsBound );
-
-uint8_t ucASCIIToHex( char cChar );
-
-BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket );
-
-static uint32_t xRandomNumberToReturn;
-static BaseType_t xRNGStatus;
-static UBaseType_t uxGlobalCallbackCount;
-static BaseType_t xLocalReceiveCallback_Return;
-static uint8_t xLocalReceiveCallback_Called = 0;
-
-static FreeRTOS_Socket_t xGlobalSocket;
 /* 2001::1 */
 static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
-
-/* ======================== Stub Callback Functions ========================= */
-
-static void vUserCallbackLocal( FreeRTOS_Socket_t * xSocket )
-{
-    uxGlobalCallbackCount++;
-}
-
-static BaseType_t xStubApplicationGetRandomNumber( uint32_t * xRndNumber,
-                                                   int count )
-{
-    ( void ) count;
-    *xRndNumber = xRandomNumberToReturn;
-    return xRNGStatus;
-}
-
-static void vpxListFindListItemWithValue_NotFound( void )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
-}
-
-static void vpxListFindListItemWithValue_Found( const List_t * pxList,
-                                                TickType_t xWantedItemValue,
-                                                const ListItem_t * pxReturn )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
-
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
-
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
-}
-
-static EventBits_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
-                                               const EventBits_t uxBitsToWaitFor,
-                                               const BaseType_t xClearOnExit,
-                                               const BaseType_t xWaitForAllBits,
-                                               TickType_t xTicksToWait,
-                                               int CallbackCount )
-{
-    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
-}
-
-static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
-                                         void * pvData,
-                                         size_t xLength )
-{
-    xLocalReceiveCallback_Called++;
-    return xLocalReceiveCallback_Return;
-}
-
-static void vStub_vTaskSetTimeOutState_socketError( TimeOut_t * const pxTimeOut,
-                                                    int numCalls )
-{
-    xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
-}
 
 /* ============================== Test Cases ============================== */
 

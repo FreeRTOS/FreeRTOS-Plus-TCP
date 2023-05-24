@@ -61,77 +61,8 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-extern List_t xBoundUDPSocketsList;
-extern List_t xBoundTCPSocketsList;
-
 #define TEST_MAX_UDPV4_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER )
 #define TEST_MAX_UDPV6_PAYLOAD_LENGTH    ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER )
-
-
-BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
-                           BaseType_t xProtocol,
-                           BaseType_t xIsBound );
-
-uint8_t ucASCIIToHex( char cChar );
-
-BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket );
-
-static uint32_t xRandomNumberToReturn;
-static BaseType_t xRNGStatus;
-static UBaseType_t uxGlobalCallbackCount;
-static BaseType_t xLocalReceiveCallback_Return;
-static uint8_t xLocalReceiveCallback_Called = 0;
-
-static FreeRTOS_Socket_t xGlobalSocket;
-
-/* ======================== Stub Callback Functions ========================= */
-
-static void vUserCallbackLocal( FreeRTOS_Socket_t * xSocket )
-{
-    uxGlobalCallbackCount++;
-}
-
-static BaseType_t xStubApplicationGetRandomNumber( uint32_t * xRndNumber,
-                                                   int count )
-{
-    ( void ) count;
-    *xRndNumber = xRandomNumberToReturn;
-    return xRNGStatus;
-}
-
-static void vpxListFindListItemWithValue_NotFound( void )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
-}
-
-static void vpxListFindListItemWithValue_Found( const List_t * pxList,
-                                                TickType_t xWantedItemValue,
-                                                const ListItem_t * pxReturn )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
-
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
-
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
-}
-
-static BaseType_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
-                                              const EventBits_t uxBitsToWaitFor,
-                                              const BaseType_t xClearOnExit,
-                                              const BaseType_t xWaitForAllBits,
-                                              TickType_t xTicksToWait,
-                                              int CallbackCount )
-{
-    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
-}
-
-static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
-                                         void * pvData,
-                                         size_t xLength )
-{
-    xLocalReceiveCallback_Called++;
-    return xLocalReceiveCallback_Return;
-}
 
 /* ============================== Test Cases ============================== */
 
@@ -414,7 +345,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = ipconfigTCP_MSS;
     BaseType_t xFlags = 0;
@@ -429,27 +360,27 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
     memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
@@ -459,7 +390,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
+    lReturn = FreeRTOS_recvfrom( xSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -474,7 +405,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = ipconfigTCP_MSS;
     BaseType_t xFlags = 0;
@@ -489,28 +420,28 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
     memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
@@ -520,7 +451,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
 
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
+    lReturn = FreeRTOS_recvfrom( xSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 100, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -536,7 +467,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = 50;
     BaseType_t xFlags = 0;
@@ -551,28 +482,28 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
     memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
@@ -582,7 +513,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
 
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
+    lReturn = FreeRTOS_recvfrom( xSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 50, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -599,7 +530,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = 50;
     BaseType_t xFlags = FREERTOS_MSG_PEEK;
@@ -614,34 +545,34 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
     memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, &xSourceAddress, ipUDP_PAYLOAD_OFFSET_IPv4 );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
+    lReturn = FreeRTOS_recvfrom( xSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 50, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -658,7 +589,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = 50;
     BaseType_t xFlags = FREERTOS_MSG_PEEK;
@@ -672,34 +603,34 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
     memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, NULL, ipUDP_PAYLOAD_OFFSET_IPv4 );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
+    lReturn = FreeRTOS_recvfrom( xSocket, pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 50, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -716,7 +647,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char * pvBuffer;
     size_t uxBufferLength = 50;
     BaseType_t xFlags = FREERTOS_ZERO_COPY;
@@ -730,27 +661,27 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxListRemove_ExpectAndReturn( &xNetworkBuffer.xBufferListItem, 0U );
 
@@ -758,7 +689,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
 
     xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, NULL, ipUDP_PAYLOAD_OFFSET_IPv4 );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, &pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
+    lReturn = FreeRTOS_recvfrom( xSocket, &pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 100, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -774,7 +705,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char * pvBuffer;
     size_t uxBufferLength = 50;
     BaseType_t xFlags = FREERTOS_MSG_PEEK | FREERTOS_ZERO_COPY;
@@ -788,27 +719,27 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xRecv_Update_IPv4_ExpectAndReturn( &xNetworkBuffer, NULL, ipUDP_PAYLOAD_OFFSET_IPv4 );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, &pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
+    lReturn = FreeRTOS_recvfrom( xSocket, &pvBuffer, uxBufferLength, xFlags, NULL, &xSourceAddressLength );
 
     TEST_ASSERT_EQUAL( 100, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -823,7 +754,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_IPv6Packet100( void )
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = ipconfigTCP_MSS;
     BaseType_t xFlags = 0;
@@ -837,28 +768,28 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_IPv6Packet100( void )
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
     memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
@@ -868,7 +799,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_IPv6Packet100( void )
 
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, NULL );
+    lReturn = FreeRTOS_recvfrom( xSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, NULL );
 
     TEST_ASSERT_EQUAL( 100, lReturn );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x12, pucEthernetBuffer, ipconfigTCP_MSS );
@@ -884,7 +815,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_UnknownIPHeaderSize( voi
 {
     int32_t lReturn;
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xGlobalSocket = ( Socket_t ) ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     char pvBuffer[ ipconfigTCP_MSS ];
     size_t uxBufferLength = ipconfigTCP_MSS;
     BaseType_t xFlags = FREERTOS_ZERO_COPY;
@@ -898,28 +829,28 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_UnknownIPHeaderSize( voi
     xNetworkBuffer.xIPAddress.ulIP_IPv4 = 0x1234ABCD;
     xNetworkBuffer.usPort = 0xABCD;
 
-    memset( xGlobalSocket, 0, sizeof( FreeRTOS_Socket_t ) );
+    memset( xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( &xListItem, 0, sizeof( ListItem_t ) );
     memset( pucEthernetBuffer, 0x12, ipconfigTCP_MSS );
     memset( pvBuffer, 0xAB, ipconfigTCP_MSS );
 
-    xGlobalSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
-    xGlobalSocket->xReceiveBlockTime = 0x123;
+    xSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket->xReceiveBlockTime = 0x123;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xGlobalSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket->xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0 );
 
     xListItem.pvOwner = &xNetworkBuffer;
-    xGlobalSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
+    xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    xEventGroupWaitBits_ExpectAndReturn( xGlobalSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xGlobalSocket->xReceiveBlockTime, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket->xEventGroup, ( ( EventBits_t ) eSOCKET_RECEIVE ) | ( ( EventBits_t ) eSOCKET_INTR ), pdTRUE, pdFALSE, xSocket->xReceiveBlockTime, 0 );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xGlobalSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
     uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
 
@@ -927,7 +858,7 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_UnknownIPHeaderSize( voi
 
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
-    lReturn = FreeRTOS_recvfrom( xGlobalSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, NULL );
+    lReturn = FreeRTOS_recvfrom( xSocket, pvBuffer, uxBufferLength, xFlags, &xSourceAddress, NULL );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lReturn );
 }
