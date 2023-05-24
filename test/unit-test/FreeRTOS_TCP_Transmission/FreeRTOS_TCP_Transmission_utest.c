@@ -641,7 +641,7 @@ void test_prvTCPReturnPacket_Assert_Interface_NULL( void )
 
 /**
  * @brief This function validates catching an assert when
- *        InterfaceOutput is NULL.
+ *        Interface Output is NULL.
  */
 void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
 {
@@ -765,7 +765,7 @@ void test_prvTCPReturnPacket_No_KL( void )
 /**
  * @brief This function validates sending packet when
  *        bSendKeepAlive is set to false and mac address
- *        being updated to the endpoint mac adddress.
+ *        being updated to the endpoint mac address.
  */
 void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 {
@@ -822,7 +822,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 /**
  * @brief This function validates sending packet when
  *        bSendKeepAlive is set to false and mac address
- *        being updated to the endpoint mac adddress.
+ *        being updated to the endpoint mac address.
  */
 void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
 {
