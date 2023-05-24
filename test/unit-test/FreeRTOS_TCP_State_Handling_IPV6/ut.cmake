@@ -14,6 +14,11 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Transmission.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Utils.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/TCP_State_Handling_IPV6_list_macros.h"
         )
 
@@ -40,7 +45,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_TCP_State_Handling_IPV6.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
 	)
 
 set(real_include_directories "")
@@ -94,7 +99,7 @@ list(APPEND utest_dep_list
             ${real_name}
         )
 
-set(utest_name "FreeRTOS_TCP_State_Handling_IPV6_utest")
+set(utest_name "${project_name}_utest")
 set(utest_source "${project_name}/${project_name}_utest.c")
 
 create_test(${utest_name}

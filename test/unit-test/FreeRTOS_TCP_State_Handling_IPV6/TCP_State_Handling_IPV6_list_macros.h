@@ -32,4 +32,7 @@
 #include <portmacro.h>
 #include <list.h>
 
+BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
+                             FreeRTOS_Socket_t * pxSocket );
+
 #endif /* ifndef LIST_MACRO_H */

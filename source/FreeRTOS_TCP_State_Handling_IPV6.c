@@ -75,11 +75,6 @@
 FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
                                           NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    /* Map the ethernet buffer onto a TCPPacket_IPv6_t struct for easy access to the fields. */
-
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
     const TCPPacket_IPv6_t * pxTCPPacket = NULL;
     FreeRTOS_Socket_t * pxReturn = NULL;
     uint32_t ulInitialSequenceNumber = 0;
@@ -87,6 +82,11 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
 
     if( ( pxSocket != NULL ) && ( pxNetworkBuffer != NULL ) )
     {
+        /* Map the ethernet buffer onto a TCPPacket_IPv6_t struct for easy access to the fields. */
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTCPPacket = ( ( const TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
         configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
@@ -95,7 +95,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
         if( memcmp( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
         {
             /* Assume that a new Initial Sequence Number will be required. Request
-            * it now in order to fail out if necessary. */
+             * it now in order to fail out if necessary. */
             if( xApplicationGetRandomNumber( &ulInitialSequenceNumber ) == pdPASS )
             {
                 xHasSequence = pdTRUE;
@@ -133,7 +133,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
             else
             {
                 FreeRTOS_Socket_t * pxNewSocket = ( FreeRTOS_Socket_t * )
-                                                  FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP );
+                                                  FreeRTOS_socket( FREERTOS_AF_INET6, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP );
 
                 /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
@@ -169,13 +169,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
 
-        if( pxNetworkBuffer->pxEndPoint != NULL )
-        {
-            pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
-        }
-
-        configASSERT( pxReturn->pxEndPoint != NULL );
-
+        pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         pxReturn->bits.bIsIPv6 = pdTRUE_UNSIGNED;
 
         const IPHeader_IPv6_t * pxIPHeader_IPv6;
@@ -183,7 +177,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-        pxReturn->u.xTCP.usRemotePort = FreeRTOS_htons( pxTCPPacket->xTCPHeader.usSourcePort );
+        pxReturn->u.xTCP.usRemotePort = FreeRTOS_ntohs( pxTCPPacket->xTCPHeader.usSourcePort );
         ( void ) memcpy( pxReturn->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
         pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber = ulInitialSequenceNumber;
 
