@@ -669,8 +669,11 @@ uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
     0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
 };
 
-/* Test for prvCheckRxData function. */
-void test_prvCheckRxData( void )
+/**
+ * @brief This function validates getting the TCP payload data
+ *        and check the length of this data when frame type is IPv4.
+ */
+void test_prvCheckRxData_IPv4( void )
 {
     int32_t result;
 
@@ -687,6 +690,63 @@ void test_prvCheckRxData( void )
 
     TEST_ASSERT_EQUAL( 14, result );
 }
+
+/**
+ * @brief This function validates getting the TCP payload data
+ *        and check the length of this data when frame type is IPv6.
+ */
+void test_prvCheckRxData_IPv6( void )
+{
+    int32_t result;
+    uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * px_ethHeader;
+    uint8_t * pData;
+    IPHeader_IPv6_t * pxIPHeader;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->xDataLength = 0x50;
+    px_ethHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    px_ethHeader->usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPHeader = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    pxIPHeader->usPayloadLength = pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    result = prvCheckRxData( pxNetworkBuffer, &pData );
+
+    TEST_ASSERT_EQUAL( 26, result );
+}
+
+/**
+ * @brief This function validates getting the TCP payload data
+ *        and check the length of this data when frame type is incorrect.
+ */
+void test_prvCheckRxData_IncorrectFrameType( void )
+{
+    int32_t result;
+    uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * px_ethHeader;
+    uint8_t * pData;
+
+    /* Setup TCP option for tests */
+    pxNetworkBuffer = &xNetworkBuffer;
+
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    px_ethHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    px_ethHeader->usFrameType = 0;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
+
+    result = prvCheckRxData( pxNetworkBuffer, &pData );
+
+    TEST_ASSERT_EQUAL( 0, result );
+}
+
 
 /* Test for prvCheckRxData function. */
 void test_prvCheckRxData_URG_On( void )
