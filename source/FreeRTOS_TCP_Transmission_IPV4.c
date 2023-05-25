@@ -102,13 +102,6 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
 
     do
     {
-        /* Use do/while to be able to break out of the flow */
-        if( ( pxNetworkBuffer == NULL ) && ( pxSocket == NULL ) )
-        {
-            /* Either 'pxNetworkBuffer' or 'pxSocket' should be defined. */
-            break;
-        }
-
         /* For sending, a pseudo network buffer will be used, as explained above. */
 
         if( pxNetworkBuffer == NULL )
@@ -287,9 +280,6 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             /* Send! */
             iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
-            /* _HT_ added some asserts that are useful while testing. */
-            configASSERT( pxNetworkBuffer != NULL );
-            configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput != NULL );
 
