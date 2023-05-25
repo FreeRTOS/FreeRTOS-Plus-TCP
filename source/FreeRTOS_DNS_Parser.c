@@ -1036,7 +1036,6 @@
             uint16_t usLength;
             DNSMessage_t * pxMessage;
             NBNSAnswer_t * pxAnswer;
-            NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
             /* Introduce a do {} while (0) loop to allow the use of breaks. */
             do
@@ -1231,12 +1230,14 @@
                 /* This function will fill in the eth addresses and send the packet */
                 vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
 
-                /*rahul.kar*/
+/*pxNewBuffer and pxNetworkBuffer are now the same pointers.pxNewBuffer is always NULL after re-allocation*/
 
-                /*if( pxNewBuffer != NULL )
-                 * {
-                 *  vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
-                 * }*/
+/*
+ *              if( pxNewBuffer != NULL )
+ *              {
+ *                vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
+ *              }
+ */
             }  while( ipFALSE_BOOL );
         }
     #endif /* ( ipconfigUSE_NBNS == 1 ) */
