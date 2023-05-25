@@ -192,11 +192,12 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 pxIPHeader->usLength = ( uint16_t ) ( uxPayloadSize + sizeof( IPHeader_t ) + sizeof( UDPHeader_t ) );
             }
 
+            pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
+            pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+
             if( pxNetworkBuffer->pxEndPoint != NULL )
             {
-                pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
                 pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
-                pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
             }
 
             /* The stack doesn't support fragments, so the fragment offset field must always be zero.
