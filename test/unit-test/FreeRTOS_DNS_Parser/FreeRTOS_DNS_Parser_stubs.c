@@ -54,6 +54,13 @@ void vPortExitCritical( void )
 
 uint16_t usPacketIdentifier;
 
+
+/**
+ * Global buffers to allocate memory for sockaddr
+ */
+struct freertos_addrinfo pucAddrBuffer[ 2 ];
+struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
+
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
@@ -72,17 +79,3 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
         0x00, 0x00, 0x00, 0x00               /* Source IP address. */
     }
 };
-
-struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
-                                           BaseType_t xFamily,
-                                           const uint8_t * pucAddress )
-{
-    struct freertos_addrinfo * pxAddrInfo = NULL;
-    void * pvBuffer;
-
-    /* 'xFamily' might not be used when IPv6 is disabled. */
-    ( void ) xFamily;
-    pvBuffer = malloc( sizeof( *pxAddrInfo ) );
-
-    return pxAddrInfo;
-}
