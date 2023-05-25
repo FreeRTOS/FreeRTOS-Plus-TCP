@@ -56,12 +56,9 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define TEST_IPV4_DEFAULT_ADDRESS    ( 0x12345678 )
-#define TEST_PROTOCOL_CHECKSUM       ( 0xABCD )
-
+const uint32_t ulDefaultIPv4Address = 0x12345678;
+const uint16_t ulDefaultProtoChecksum = 0xABCD;
 BaseType_t xIsIfOutCalled = 0;
-
-IPv6_Address_t xDefaultIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 /* ============================  Unity Fixtures  ============================ */
 
@@ -69,110 +66,6 @@ IPv6_Address_t xDefaultIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x0
 void setUp( void )
 {
     xIsIfOutCalled = 0;
-}
-
-/*! called after each test case */
-void tearDown( void )
-{
-}
-
-/* ======================== Stub Callback Functions ========================= */
-
-static void UDPReceiveHandlerChecker( Socket_t xSocket,
-                                      void * pData,
-                                      size_t xLength,
-                                      const struct freertos_sockaddr * pxFrom,
-                                      const struct freertos_sockaddr * pxDest )
-{
-    uint8_t * pucData = ( uint8_t * ) pData;
-    UDPPacket_t * pxUDPPacket = ( UDPPacket_t * ) ( pucData - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER ) );
-
-    TEST_ASSERT_EQUAL( pxUDPPacket->xIPHeader.ulSourceIPAddress, pxFrom->sin_address.ulIP_IPv4 );
-    TEST_ASSERT_EQUAL( pxUDPPacket->xIPHeader.ulDestinationIPAddress, pxDest->sin_address.ulIP_IPv4 );
-    TEST_ASSERT_EQUAL( pxUDPPacket->xUDPHeader.usSourcePort, pxFrom->sin_port );
-    TEST_ASSERT_EQUAL( pxUDPPacket->xUDPHeader.usDestinationPort, pxDest->sin_port );
-    TEST_ASSERT_EQUAL( FREERTOS_AF_INET4, pxFrom->sin_family );
-    TEST_ASSERT_EQUAL( FREERTOS_AF_INET4, pxDest->sin_family );
-    TEST_ASSERT_EQUAL( sizeof( struct freertos_sockaddr ), pxFrom->sin_len );
-    TEST_ASSERT_EQUAL( sizeof( struct freertos_sockaddr ), pxDest->sin_len );
-    TEST_ASSERT_EQUAL( pxUDPPacket->xIPHeader.usLength - ipSIZE_OF_IPv4_HEADER - ipSIZE_OF_UDP_HEADER, xLength );
-}
-
-static BaseType_t xStubUDPReceiveHandler_Pass( Socket_t xSocket,
-                                               void * pData,
-                                               size_t xLength,
-                                               const struct freertos_sockaddr * pxFrom,
-                                               const struct freertos_sockaddr * pxDest )
-{
-    UDPReceiveHandlerChecker( xSocket, pData, xLength, pxFrom, pxDest );
-    return 0;
-}
-
-static BaseType_t xStubUDPReceiveHandler_Fail( Socket_t xSocket,
-                                               void * pData,
-                                               size_t xLength,
-                                               const struct freertos_sockaddr * pxFrom,
-                                               const struct freertos_sockaddr * pxDest )
-{
-    UDPReceiveHandlerChecker( xSocket, pData, xLength, pxFrom, pxDest );
-    return -1;
-}
-
-static BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
-                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           BaseType_t xReleaseAfterSend )
-{
-    xIsIfOutCalled = 1;
-
-    return pdPASS;
-}
-
-static NetworkBufferDescriptor_t * prvPrepareDefaultNetworkbuffer( uint8_t ucProtocol )
-{
-    static NetworkBufferDescriptor_t xNetworkBuffer;
-    static uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
-    uint16_t usSrcPort = 2048U;
-    uint16_t usDestPort = 1024U;
-    UDPPacket_t * pxUDPPacket;
-    ICMPPacket_t * pxICMPPacket;
-
-    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
-    memset( pucEthernetBuffer, 0, sizeof( pucEthernetBuffer ) );
-
-    xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
-    xNetworkBuffer.usBoundPort = FreeRTOS_htons( usSrcPort );
-    xNetworkBuffer.usPort = FreeRTOS_htons( usDestPort );
-    xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
-
-    if( ucProtocol == ipPROTOCOL_UDP )
-    {
-        pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
-        pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    }
-    else if( ucProtocol == ipPROTOCOL_ICMP )
-    {
-        pxICMPPacket = ( ICMPPacket_t * ) pucEthernetBuffer;
-    }
-
-    return &xNetworkBuffer;
-}
-
-static NetworkEndPoint_t * prvPrepareDefaultIPv6EndPoint()
-{
-    static NetworkEndPoint_t xEndpoint;
-    static NetworkInterface_t xNetworkInterface;
-    NetworkEndPoint_t * pxEndpoint = &xEndpoint;
-
-    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
-    memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
-
-    xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
-
-    xEndpoint.pxNetworkInterface = &xNetworkInterface;
-    xEndpoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
-    xEndpoint.bits.bIPv6 = pdFALSE;
-
-    return pxEndpoint;
 }
 
 /* ==============================  Test Cases  ============================== */
@@ -832,7 +725,7 @@ void test_xProcessReceivedUDPPacket_IPv4_SocketNeedARP()
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
@@ -874,7 +767,7 @@ void test_xProcessReceivedUDPPacket_IPv4_SocketRecvHandlerFail()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -920,7 +813,7 @@ void test_xProcessReceivedUDPPacket_IPv4_UDPListBufferFull()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -972,7 +865,7 @@ void test_xProcessReceivedUDPPacket_IPv4_Pass()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1042,7 +935,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoEventGroup()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1110,7 +1003,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSelectBit()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1178,7 +1071,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSelectSet()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1244,7 +1137,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSem()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1311,7 +1204,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoDHCP()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1363,7 +1256,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_ICMPPingCantSend()
     ICMPPacket_t * pxICMPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
 
@@ -1389,7 +1282,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_ICMPPingCacheUnknown()
     ICMPPacket_t * pxICMPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
 
@@ -1415,7 +1308,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_ICMPPingCacheHit()
     ICMPPacket_t * pxICMPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     /* To trigger checksum generation. */
     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
@@ -1429,7 +1322,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_ICMPPingCacheHit()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1450,7 +1343,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHit()
     UDPPacket_t * pxUDPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     /* To trigger checksum generation. */
     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
@@ -1462,7 +1355,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHit()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1472,7 +1365,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHit()
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ulDefaultIPv4Address, pxUDPPacket->xIPHeader.ulSourceIPAddress );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
 }
 
@@ -1489,7 +1382,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLessBufferLength()
     size_t xBufferLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 1;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     /* To trigger checksum generation. */
     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
@@ -1502,7 +1395,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLessBufferLength()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1513,7 +1406,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLessBufferLength()
     TEST_ASSERT_EQUAL( xBufferLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ulDefaultIPv4Address, pxUDPPacket->xIPHeader.ulSourceIPAddress );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
 }
 
@@ -1530,7 +1423,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitDiffEndPoint()
     memset( &xDifferentEndPoint, 0, sizeof( xDifferentEndPoint ) );
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
 
@@ -1541,7 +1434,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitDiffEndPoint()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxDifferentEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
 
@@ -1550,7 +1443,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitDiffEndPoint()
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ulDefaultIPv4Address, pxUDPPacket->xIPHeader.ulSourceIPAddress );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
 }
 
@@ -1565,7 +1458,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLLMNR()
     UDPPacket_t * pxUDPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     /* To trigger checksum generation. */
     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
@@ -1578,7 +1471,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLLMNR()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1588,7 +1481,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLLMNR()
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ulDefaultIPv4Address, pxUDPPacket->xIPHeader.ulSourceIPAddress );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
     TEST_ASSERT_EQUAL( 0x01, pxUDPPacket->xIPHeader.ucTimeToLive );
 }
@@ -1604,7 +1497,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitMDNS()
     UDPPacket_t * pxUDPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     /* To trigger checksum generation. */
     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
@@ -1617,7 +1510,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitMDNS()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1627,7 +1520,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitMDNS()
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ulDefaultIPv4Address, pxUDPPacket->xIPHeader.ulSourceIPAddress );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
     TEST_ASSERT_EQUAL( 0xFF, pxUDPPacket->xIPHeader.ucTimeToLive );
 }
@@ -1644,7 +1537,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitNoInterface()
     UDPPacket_t * pxUDPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
     pxEndPoint->pxNetworkInterface = NULL;
 
     /* To trigger checksum generation. */
@@ -1657,7 +1550,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitNoInterface()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1667,7 +1560,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitNoInterface()
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ulDefaultIPv4Address, pxUDPPacket->xIPHeader.ulSourceIPAddress );
     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
 }
 
@@ -1683,7 +1576,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitInterfaceNoOutput()
     UDPPacket_t * pxUDPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
     pxEndPoint->pxNetworkInterface->pfOutput = NULL;
 
     /* To trigger checksum generation. */
@@ -1696,7 +1589,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitInterfaceNoOutput()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1706,7 +1599,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitInterfaceNoOutput()
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ulDefaultIPv4Address, pxUDPPacket->xIPHeader.ulSourceIPAddress );
     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
 }
 
@@ -1730,7 +1623,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitNoEndPoint()
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     eARPGetCacheEntry_IgnoreArg_pulIPAddress();
     uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
-    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( ulDefaultProtoChecksum );
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
@@ -1755,7 +1648,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointFound()
     UDPPacket_t * pxUDPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
@@ -1788,7 +1681,7 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointNotFound()
     UDPPacket_t * pxUDPPacket;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
 
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 

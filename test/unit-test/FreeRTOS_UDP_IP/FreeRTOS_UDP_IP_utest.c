@@ -56,6 +56,8 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
 /* The maximum segment size used by TCP, it is the maximum size of
  * the TCP payload per packet.
  * For IPv4: when MTU equals 1500, the MSS equals 1460.
@@ -74,6 +76,8 @@ void vProcessGeneratedUDPPacket( NetworkBufferDescriptor_t * const pxNetworkBuff
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint16_t usPort,
                                       BaseType_t * pxIsWaitingForARPResolution );
+
+/* ==============================  Test Cases  ============================== */
 
 /**
  * @brief Input with null network buffer pointer.
