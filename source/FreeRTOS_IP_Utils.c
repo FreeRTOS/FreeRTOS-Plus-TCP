@@ -75,6 +75,9 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
+/** @brief The minimum value of TCP offset value. */
+#define FREERTOS_MINIMUM_TCP_OFFSET    ( 5U )
+
 #if ( ipconfigHAS_PRINTF != 0 )
     /** @brief Last value of minimum buffer count. */
     static UBaseType_t uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -417,14 +420,25 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
 
         if( xReturn == 0 )
         {
-            uint8_t ucLength = ( ( ( pxSet->pxProtocolHeaders->xTCPHeader.ucTCPOffset >> 4U ) - 5U ) << 2U );
-            size_t uxOptionsLength = ( size_t ) ucLength;
-            pxSet->uxProtocolHeaderLength = ipSIZE_OF_TCP_HEADER + uxOptionsLength;
-            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                {
-                    pxSet->pcType = "TCP";
-                }
-            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+            uint8_t ucLength = pxSet->pxProtocolHeaders->xTCPHeader.ucTCPOffset >> 4U;
+            size_t uxOptionsLength;
+
+            if( ucLength < FREERTOS_MINIMUM_TCP_OFFSET )
+            {
+                pxSet->usChecksum = ipINVALID_LENGTH;
+                xReturn = 9;
+            }
+            else
+            {
+                uxOptionsLength = ( size_t ) ( ( ucLength - 5U ) << 2U );
+
+                pxSet->uxProtocolHeaderLength = ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+                #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                    {
+                        pxSet->pcType = "TCP";
+                    }
+                #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+            }
         }
     }
     else if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
@@ -434,7 +448,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
             ( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + ipSIZE_OF_ICMPv4_HEADER ) ) )
         {
             pxSet->usChecksum = ipINVALID_LENGTH;
-            xReturn = 9;
+            xReturn = 10;
         }
 
         if( xReturn == 0 )
@@ -564,7 +578,8 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
     }
     else
     {
-        switch( pxSet->xIsIPv6 )
+        /* Default case is impossible to reach because it's checked before calling this function. */
+        switch( pxSet->xIsIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv6 != 0 )
                 case pdTRUE:
@@ -596,10 +611,11 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
                    break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-            default:
+            /* Default case is impossible to reach because it's checked before calling this function. */
+            default: /* LCOV_EXCL_LINE */
                 /* Shouldn't reach here */
                 /* MISRA 16.4 Compliance */
-                break;
+                break; /* LCOV_EXCL_LINE */
         }
 
         /* Sum TCP header and data. */
@@ -649,7 +665,7 @@ static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
     }
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        else if( ( xOutgoingPacket == pdFALSE ) && ( pxSet->usChecksum != ipCORRECT_CRC ) )
+        else if( pxSet->usChecksum != ipCORRECT_CRC )
         {
             uint16_t usGot;
             usGot = prvGetChecksumFromPacket( pxSet );
@@ -736,7 +752,7 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
          * It must have a value of either 0x4x or 0x6x. */
         configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
 
-        switch( ucIPType )
+        switch( ucIPType ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv6 != 0 )
                 case ipTYPE_IPv6:
@@ -891,7 +907,7 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
             #endif /* ( (ipconfigUSE_RA != 0) && ( ipconfigUSE_IPv6 != 0 )) */
 
             {
-                switch( pxEndPoint->bits.bIPv6 )
+                switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
@@ -968,13 +984,14 @@ void vPreCheckConfigs( void )
 
             uxSize = sizeof( UDPHeader_t );
             configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
-            /* LCOV_EXCL_BR_STOP */
+
             #if ipconfigUSE_TCP == 1
                 {
                     uxSize = sizeof( TCPHeader_t );
                     configASSERT( uxSize == ( ipEXPECTED_TCPHeader_t_SIZE + ipSIZE_TCP_OPTIONS ) );
                 }
             #endif
+            /* LCOV_EXCL_BR_STOP */
         }
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
@@ -1029,7 +1046,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         /* coverity[misra_c_2012_rule_11_3_violation] */
         xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        switch( xSet.pxIPPacket->xEthernetHeader.usFrameType )
+        switch( xSet.pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case ipIPv4_FRAME_TYPE:
@@ -1050,8 +1067,11 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             default:
-                FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined usFrameType\n" ) );
                 /* MISRA 16.4 Compliance */
+                FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum: Undefined usFrameType %d\n", xSet.pxIPPacket->xEthernetHeader.usFrameType ) );
+
+                xSet.usChecksum = ipINVALID_LENGTH;
+                xResult = 1;
                 break;
         }
 
