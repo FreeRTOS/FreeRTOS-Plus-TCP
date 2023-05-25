@@ -70,7 +70,7 @@
 #include "FreeRTOS_TCP_Transmission_stubs.c"
 #include "FreeRTOS_TCP_Transmission.h"
 
-
+/* =========================== EXTERN VARIABLES =========================== */
 
 BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
                             const NetworkBufferDescriptor_t * pxNetworkBuffer );
@@ -87,9 +87,14 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
     0xc3, 0x17
 };
 
+/* ============================== Test Cases ============================== */
 
-/* test for prvTCPMakeSurePrepared function */
-void test_prvTCPMakeSurePrepared_Not_Ready( void )
+/**
+ * @brief This function validates case when connection preparation
+ *        needs to be done by creating a packet and sending the first SYN
+ *        as bConnPrepared bit is set to false.
+ */
+void test_prvTCPMakeSurePrepared_NotPrepared( void )
 {
     BaseType_t xResult = 0;
 
@@ -108,7 +113,11 @@ void test_prvTCPMakeSurePrepared_Not_Ready( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
-/* test for prvTCPMakeSurePrepared function */
+/**
+ * @brief This function validates case when connection preparation
+ *        needs to be done but fails as a cache miss and not able to
+ *        get the MAC address.
+ */
 void test_prvTCPMakeSurePrepared_Not_Ready_Error_Connect( void )
 {
     BaseType_t xResult = 0;
@@ -126,7 +135,10 @@ void test_prvTCPMakeSurePrepared_Not_Ready_Error_Connect( void )
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }
 
-/* test for prvTCPMakeSurePrepared function */
+/**
+ * @brief This function validates case when connection preparation
+ *        was already done as bConnPrepared is set to true.
+ */
 void test_prvTCPMakeSurePrepared_Ready( void )
 {
     BaseType_t xResult = 0;
@@ -141,18 +153,10 @@ void test_prvTCPMakeSurePrepared_Ready( void )
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
 }
 
-
-BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
-
-BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
-{
-    NetworkInterfaceOutputFunction_Stub_Called++;
-    return 0;
-}
-
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates the case of preparing Connection
+ *        and send the packet with the SYN flag.
+ */
 void test_prvTCPSendPacket_Syn_State( void )
 {
     int32_t BytesSent = 0;
@@ -184,7 +188,11 @@ void test_prvTCPSendPacket_Syn_State( void )
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates the connection being is in the SYN status.
+ *        And the packet is repeated more than 3 times.  When there is no response,
+ *        the socket get the status 'eCLOSE_WAIT'.
+ */
 void test_prvTCPSendPacket_Syn_State_Rep_Count_GT_3( void )
 {
     int32_t BytesSent = 0;
@@ -203,7 +211,10 @@ void test_prvTCPSendPacket_Syn_State_Rep_Count_GT_3( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates that the preparation of a connection ( ARP resolution )
+ *      is not yet ready by setting bConnPrepared bit to pdFALSE.
+ */
 void test_prvTCPSendPacket_Syn_State_Not_Prepared( void )
 {
     int32_t BytesSent = 0;
@@ -223,7 +234,12 @@ void test_prvTCPSendPacket_Syn_State_Not_Prepared( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendPacket function */
+
+/**
+ * @brief This function validates that the case when the
+ *        connection is in a state other than SYN and there
+ *        is no data to send.
+ */
 void test_prvTCPSendPacket_Other_State_Zero_To_Send( void )
 {
     int32_t BytesSent = 0;
@@ -244,7 +260,11 @@ void test_prvTCPSendPacket_Other_State_Zero_To_Send( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendPacket function */
+/**
+ * @brief This function validates that the case when the
+ *        connection is in a state other than SYN and there
+ *        is some data to send.
+ */
 void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
 {
     int32_t BytesSent = 0;
@@ -318,7 +338,11 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     TEST_ASSERT_EQUAL( SEND_REPEATED_COUNT, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
-/* test for prvTCPSendRepeated function */
+/**
+ * @brief This function validates that the case when the
+ *        TCP connection is in a state SYN but there is no
+ *        data to send.
+ */
 void test_prvTCPSendRepeated_Zero_To_Send( void )
 {
     int32_t BytesSent = 0;
@@ -342,7 +366,11 @@ void test_prvTCPSendRepeated_Zero_To_Send( void )
     TEST_ASSERT_EQUAL( 0, BytesSent );
 }
 
-/* test for prvTCPSendRepeated function */
+/**
+ * @brief This function validates sending series of messages, as
+ *        long as there is data to be sent and as long as the transmit
+ *        window isn't full.
+ */
 void test_prvTCPSendRepeated_Repeat_8( void )
 {
     int32_t BytesSent = 0;
@@ -391,7 +419,22 @@ void test_prvTCPSendRepeated_Repeat_8( void )
     TEST_ASSERT_EQUAL( 480, BytesSent );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates failure in sending packet back to
+ *        peer when both Buffer as well as socket is NULL.
+ */
+void test_prvTCPReturnPacket_Null_Buffer_Null_Socket( void )
+{
+    FreeRTOS_Socket_t * pxSocket = NULL;
+    NetworkBufferDescriptor_t * pxDescriptor = NULL;
+
+    catch_assert( prvTCPReturnPacket( pxSocket, pxDescriptor, 40, pdFALSE ) );
+}
+
+/**
+ * @brief This function validates sending packet back to
+ *        peer when Buffer as rx stream is NULL.
+ */
 void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
 {
     pxSocket = &xSocket;
@@ -431,7 +474,102 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
     TEST_ASSERT_EQUAL( 1000, pxSocket->u.xTCP.ulHighestRxAllowed );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates failure in sending packet back to
+ *        peer when it fails to find a valid endpoint.
+ */
+void test_prvTCPReturnPacket_Null_EP_WithoutRelease( void )
+{
+    pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    xNetworkBuffer.pxEndPoint = NULL;
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket->pxEndPoint = NULL;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+
+    prvTCPReturnPacket( pxSocket, &xNetworkBuffer, 40, pdFALSE );
+}
+
+/**
+ * @brief This function validates failure in sending packet back to
+ *        peer when it fails to find a valid endpoint.
+ */
+void test_prvTCPReturnPacket_Null_EP_WithRelease( void )
+{
+    pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    xNetworkBuffer.pxEndPoint = NULL;
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    pxSocket->pxEndPoint = NULL;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
+    vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
+
+    prvTCPReturnPacket( pxSocket, &xNetworkBuffer, 40, pdTRUE );
+}
+
+/**
+ * @brief This function validates sending packet back to
+ *        peer with IPv6 type and buffer being NULL.
+ */
+void test_prvTCPReturnPacket_Null_Buffer_IPv6( void )
+{
+    pxSocket = &xSocket;
+    pxNetworkBuffer = NULL;
+    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkInterface xInterface;
+
+    memset( &xEndPoint, 0, sizeof( struct xNetworkEndPoint ) );
+    xEndPoint.pxNetworkInterface = &xInterface;
+
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
+}
+
+/**
+ * @brief This function validates sending packet back to
+ *        peer with IPv6 type and socket being NULL.
+ */
+void test_prvTCPReturnPacket_Null_Socket_IPv6( void )
+{
+    pxNetworkBuffer = &xNetworkBuffer;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    memset( &xEndPoint, 0, sizeof( struct xNetworkEndPoint ) );
+    xEndPoint.pxNetworkInterface = &xInterface;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE );
+}
+
+/**
+ * @brief This function validates sending packet back to
+ *        peer with IPv4 type and buffer being NULL.
+ */
 void test_prvTCPReturnPacket_Null_Socket( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -445,7 +583,7 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -468,7 +606,79 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates catching an assert when
+ *        pxNetworkInterface is NULL.
+ */
+void test_prvTCPReturnPacket_Assert_Interface_NULL( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = NULL;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    uint32_t OldSourceAddress = pxIPHeader->ulSourceIPAddress;
+    uint32_t OldDestinationAddress = pxIPHeader->ulDestinationIPAddress;
+    uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
+    uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    catch_assert( prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE ) );
+}
+
+/**
+ * @brief This function validates catching an assert when
+ *        Interface Output is NULL.
+ */
+void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
+{
+    struct xNetworkEndPoint xEndPoint;
+    struct xNetworkInterface xInterface;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.pxNetworkInterface->pfOutput = NULL;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;
+
+    TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
+
+    uint32_t OldSourceAddress = pxIPHeader->ulSourceIPAddress;
+    uint32_t OldDestinationAddress = pxIPHeader->ulDestinationIPAddress;
+    uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
+    uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+
+    catch_assert( prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE ) );
+}
+
+
+/**
+ * @brief This function validates sending packet back to
+ *        peer socket is set to NULL and release is set to true.
+ */
 void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -483,7 +693,7 @@ void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &pxTCPPacket->xIPHeader;
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -505,13 +715,16 @@ void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
     TEST_ASSERT_EQUAL( RxSequenceNumber, pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet when
+ *        bSendKeepAlive is set to false.
+ */
 void test_prvTCPReturnPacket_No_KL( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -549,13 +762,17 @@ void test_prvTCPReturnPacket_No_KL( void )
     TEST_ASSERT_EQUAL( FreeRTOS_htonl( 50 ), pxTCPPacket->xTCPHeader.ulAckNr );
 }
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet when
+ *        bSendKeepAlive is set to false and mac address
+ *        being updated to the endpoint mac address.
+ */
 void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
@@ -602,13 +819,17 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
 }
 
 
-/* test for prvTCPReturnPacket function */
+/**
+ * @brief This function validates sending packet when
+ *        bSendKeepAlive is set to false and mac address
+ *        being updated to the endpoint mac address.
+ */
 void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
 {
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     MACAddress_t NewSourceMacAddr = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
@@ -660,7 +881,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     MACAddress_t NewDestMacAddr = { { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC } };
@@ -715,7 +936,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -762,7 +983,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -810,7 +1031,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
 
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
@@ -853,6 +1074,23 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
 }
 
 /* test for prvTCPPrepareConnect function */
+void test_prvTCPPrepareConnect_IPv6( void )
+{
+    BaseType_t Return = pdFALSE;
+
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucRepCount = 0;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->bits.bIsIPv6 = pdTRUE;
+
+
+    Return = prvTCPPrepareConnect( pxSocket );
+
+    TEST_ASSERT_EQUAL( pdTRUE, Return );
+}
+
+/* test for prvTCPPrepareConnect function */
 void test_prvTCPPrepareConnect_Ready( void )
 {
     BaseType_t Return = pdFALSE;
@@ -861,6 +1099,7 @@ void test_prvTCPPrepareConnect_Ready( void )
 
     pxSocket->u.xTCP.ucRepCount = 0;
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->bits.bIsIPv6 = pdFALSE;
 
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0x11111111 );
@@ -1100,6 +1339,49 @@ void test_prvTCPBufferResize_With_Buffer_GT_Needed( void )
     TEST_ASSERT_EQUAL( 64, pReturn->xDataLength );
 }
 
+void test_prvTCPReturn_SetEndPoint_IPv6_NULL_EP( void )
+{
+    FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    size_t uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
+
+    pxSocket->pxEndPoint = NULL;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
+
+    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+    TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
+}
+
+void test_prvTCPReturn_SetEndPoint_IPv6_Return_Valid_EP( void )
+{
+    FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    size_t uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
+    NetworkEndPoint_t xEndPoint;
+
+    pxSocket->pxEndPoint = NULL;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
+
+    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+    TEST_ASSERT_EQUAL_PTR( &xEndPoint, pxNetworkBuffer->pxEndPoint );
+}
+
+void test_prvTCPReturn_SetEndPoint_IPv6_IncorrectHeaderSize( void )
+{
+    FreeRTOS_Socket_t * pxSocket = NULL;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    size_t uxIPHeaderSize = 0;
+    NetworkEndPoint_t xEndPoint;
+
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    prvTCPReturn_SetEndPoint( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
+    TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
+}
 
 /* test for prvTCPPrepareSend function */
 void test_prvTCPPrepareSend_State_Syn_Zero_Data( void )
@@ -1756,7 +2038,7 @@ void test_prvSendData_AckMsg_Not_Null_Small_Length( void )
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     NetworkBufferDescriptor_t AckMessage;
     struct xNetworkEndPoint xEndPoint = { 0 };
@@ -1811,7 +2093,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State( void )
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -1864,7 +2146,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -1916,7 +2198,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send( void )
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -1968,7 +2250,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Log( void )
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -2021,7 +2303,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeader->xTCPHeader;
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -2063,6 +2345,38 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxAckMessage );
 }
 
+/* test prvTCPSendSpecialPacketHelper function with incorrect header size */
+void test_prvTCPSendSpecialPacketHelper_Incorrect_HeaderSize( void )
+{
+    BaseType_t Return = pdTRUE;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
+
+    Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
+
+    TEST_ASSERT_EQUAL( pdFALSE, Return );
+}
+
+/* test prvTCPSendSpecialPacketHelper function with incorrect header size */
+void test_prvTCPSendSpecialPacketHelper_IPv6_HeaderSize( void )
+{
+    BaseType_t Return = pdTRUE;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
+
+    TEST_ASSERT_EQUAL( pdTRUE, Return );
+}
+
 /* test prvTCPSendSpecialPacketHelper function */
 void test_prvTCPSendSpecialPacketHelper( void )
 {
@@ -2071,7 +2385,7 @@ void test_prvTCPSendSpecialPacketHelper( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -2104,7 +2418,7 @@ void test_prvTCPSendSpecialPacketHelper_flagSYN( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -2138,7 +2452,7 @@ void test_prvTCPSendChallengeAck( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -2170,7 +2484,7 @@ void test_prvTCPSendReset( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
