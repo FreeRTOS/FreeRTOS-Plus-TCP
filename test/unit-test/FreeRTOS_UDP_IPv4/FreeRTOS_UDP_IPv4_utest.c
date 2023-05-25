@@ -147,7 +147,7 @@ static NetworkBufferDescriptor_t * prvPrepareDefaultNetworkbuffer( uint8_t ucPro
     if( ucProtocol == ipPROTOCOL_UDP )
     {
         pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
-        pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+        pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     }
     else if( ucProtocol == ipPROTOCOL_ICMP )
     {
@@ -174,24 +174,6 @@ static NetworkEndPoint_t * prvPrepareDefaultIPv6EndPoint()
 
     return pxEndpoint;
 }
-
-// static NetworkEndPoint_t * prvPrepareDefaultIPv4EndPoint()
-// {
-//     static NetworkEndPoint_t xEndpoint;
-//     static NetworkInterface_t xNetworkInterface;
-//     NetworkEndPoint_t * pxEndpoint = &xEndpoint;
-
-//     memset( &xEndpoint, 0, sizeof( xEndpoint ) );
-//     memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
-
-//     xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
-
-//     xEndpoint.pxNetworkInterface = &xNetworkInterface;
-//     xEndpoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
-//     xEndpoint.bits.bIPv6 = pdFALSE;
-
-//     return pxEndpoint;
-// }
 
 /* ==============================  Test Cases  ============================== */
 
@@ -436,6 +418,8 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSRequestPass()
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
 
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
     pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
     pxUDPPacket->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
@@ -468,6 +452,8 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSRequestFail()
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
+
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -502,6 +488,8 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSReplyPass()
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
 
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
     pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
     pxUDPPacket->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
@@ -535,6 +523,8 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSReplyFail()
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
 
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+
     pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
     pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
     pxUDPPacket->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
@@ -546,6 +536,41 @@ void test_xProcessReceivedUDPPacket_IPv4_MDNSReplyFail()
     xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+/**
+ * @brief To validate the scenario that receives MDNS request packet and pass
+ * with IPv6 frame type in ethernet header.
+ */
+void test_xProcessReceivedUDPPacket_IPv4_MDNSRequestPassWithIPv6FrameType()
+{
+    BaseType_t xReturn;
+    uint16_t usSrcPort = 1024U;
+    uint16_t usDestPort = ipMDNS_PORT;
+    uint16_t usDestPortNetworkEndian = FreeRTOS_htons( usDestPort );
+    BaseType_t xIsWaitingForARPResolution;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    UDPPacket_t * pxUDPPacket;
+
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthernetBuffer, 0, sizeof( pucEthernetBuffer ) );
+
+    xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
+    pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
+
+    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+
+    pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
+    pxUDPPacket->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
+    pxUDPPacket->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
+
+    pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
+    ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
+
+    xReturn = xProcessReceivedUDPPacket_IPv4( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
 
 /**
@@ -768,7 +793,7 @@ void test_xProcessReceivedUDPPacket_IPv4_SocketEndPointZeroIP()
 
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
-    
+
     xEndPoint.ipv4_settings.ulIPAddress = 0U;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
@@ -1486,6 +1511,43 @@ void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLessBufferLength()
     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
     TEST_ASSERT_EQUAL( xBufferLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache hit with different endpoint.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitDiffEndPoint()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint, xDifferentEndPoint, * pxDifferentEndPoint = &xDifferentEndPoint;
+    UDPPacket_t * pxUDPPacket;
+
+    memset( &xDifferentEndPoint, 0, sizeof( xDifferentEndPoint ) );
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxDifferentEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
     TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
