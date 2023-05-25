@@ -400,10 +400,15 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                         struct freertos_sockaddr xSourceAddress, destinationAddress;
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
+
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
                         xSourceAddress.sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+                        xSourceAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET4;
+                        xSourceAddress.sin_len = ( uint8_t ) sizeof( xSourceAddress );
                         destinationAddress.sin_port = usPort;
                         destinationAddress.sin_address.ulIP_IPv4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
+                        destinationAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET4;
+                        destinationAddress.sin_len = ( uint8_t ) sizeof( destinationAddress );
 
                         /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
                         if( xHandler( ( Socket_t ) pxSocket,

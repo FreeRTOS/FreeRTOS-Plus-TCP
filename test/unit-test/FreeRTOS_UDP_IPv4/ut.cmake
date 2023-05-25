@@ -14,23 +14,26 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Utils.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_UDP_IPv4_list_macros.h"
         )
 
-#set(mock_include_list "")
-
+set(mock_include_list "")
 # list the directories your mocks need
 list(APPEND mock_include_list
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
-#set(mock_define_list "")
-
+set(mock_define_list "")
 #list the definitions of your mocks to control what to be included
 list(APPEND mock_define_list
             ""
@@ -45,12 +48,12 @@ list(APPEND real_source_files
         ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
 	)
 
-#set(real_include_directories "")
+set(real_include_directories "")
 # list the directories the module under test includes
 list(APPEND real_include_directories
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${TCP_INCLUDE_DIRS}
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
@@ -61,10 +64,10 @@ list(APPEND real_include_directories
 #set(test_include_directories "")
 # list the directories your test needs to include
 list(APPEND test_include_directories
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
-            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
 # =============================  (end edit)  ===================================
@@ -103,8 +106,4 @@ create_test(${utest_name}
             "${utest_link_list}"
             "${utest_dep_list}"
             "${test_include_directories}"
-        )
-
-target_compile_options(${real_name} PUBLIC
-            -include list_macros.h
         )
