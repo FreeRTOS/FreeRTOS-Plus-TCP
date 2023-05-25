@@ -90,7 +90,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
     /* Map the UDP packet onto the start of the frame. */
 
     /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -192,9 +192,12 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 pxIPHeader->usLength = ( uint16_t ) ( uxPayloadSize + sizeof( IPHeader_t ) + sizeof( UDPHeader_t ) );
             }
 
-            pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
-            pxIPHeader->ulSourceIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
-            pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+            if( pxNetworkBuffer->pxEndPoint != NULL )
+            {
+                pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
+                pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
+                pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+            }
 
             /* The stack doesn't support fragments, so the fragment offset field must always be zero.
              * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.

@@ -49,6 +49,7 @@
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_NetworkBufferManagement.h"
 
 #include "FreeRTOS_UDP_IPv4_stubs.c"
 #include "catch_assert.h"
@@ -56,6 +57,7 @@
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 #define TEST_IPV4_DEFAULT_ADDRESS    ( 0x12345678 )
+#define TEST_PROTOCOL_CHECKSUM       ( 0xABCD )
 
 BaseType_t xIsIfOutCalled = 0;
 
@@ -116,62 +118,62 @@ static BaseType_t xStubUDPReceiveHandler_Fail( Socket_t xSocket,
     return -1;
 }
 
-// static BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
-//                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
-//                                            BaseType_t xReleaseAfterSend )
-// {
-//     xIsIfOutCalled = 1;
+static BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t xReleaseAfterSend )
+{
+    xIsIfOutCalled = 1;
 
-//     return pdPASS;
-// }
+    return pdPASS;
+}
 
-// static NetworkBufferDescriptor_t * prvPrepareDefaultNetworkbuffer( uint8_t ucProtocol )
-// {
-//     static NetworkBufferDescriptor_t xNetworkBuffer;
-//     static uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
-//     uint16_t usSrcPort = 2048U;
-//     uint16_t usDestPort = 1024U;
-//     UDPPacket_t * pxUDPPacket;
-//     ICMPPacket_IPv6_t * pxICMPv6Packet;
+static NetworkBufferDescriptor_t * prvPrepareDefaultNetworkbuffer( uint8_t ucProtocol )
+{
+    static NetworkBufferDescriptor_t xNetworkBuffer;
+    static uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    uint16_t usSrcPort = 2048U;
+    uint16_t usDestPort = 1024U;
+    UDPPacket_t * pxUDPPacket;
+    ICMPPacket_t * pxICMPPacket;
 
-//     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
-//     memset( pucEthernetBuffer, 0, sizeof( pucEthernetBuffer ) );
+    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
+    memset( pucEthernetBuffer, 0, sizeof( pucEthernetBuffer ) );
 
-//     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
-//     xNetworkBuffer.usBoundPort = FreeRTOS_htons( usSrcPort );
-//     xNetworkBuffer.usPort = FreeRTOS_htons( usDestPort );
-//     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
+    xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
+    xNetworkBuffer.usBoundPort = FreeRTOS_htons( usSrcPort );
+    xNetworkBuffer.usPort = FreeRTOS_htons( usDestPort );
+    xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-//     if( ucProtocol == ipPROTOCOL_UDP )
-//     {
-//         pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
-//         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-//     }
-//     else if( ucProtocol == ipPROTOCOL_ICMP_IPv6 )
-//     {
-//         pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pucEthernetBuffer;
-//     }
+    if( ucProtocol == ipPROTOCOL_UDP )
+    {
+        pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
+        pxUDPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    }
+    else if( ucProtocol == ipPROTOCOL_ICMP )
+    {
+        pxICMPPacket = ( ICMPPacket_t * ) pucEthernetBuffer;
+    }
 
-//     return &xNetworkBuffer;
-// }
+    return &xNetworkBuffer;
+}
 
-// static NetworkEndPoint_t * prvPrepareDefaultIPv6EndPoint()
-// {
-//     static NetworkEndPoint_t xEndpoint;
-//     static NetworkInterface_t xNetworkInterface;
-//     NetworkEndPoint_t * pxEndpoint = &xEndpoint;
+static NetworkEndPoint_t * prvPrepareDefaultIPv6EndPoint()
+{
+    static NetworkEndPoint_t xEndpoint;
+    static NetworkInterface_t xNetworkInterface;
+    NetworkEndPoint_t * pxEndpoint = &xEndpoint;
 
-//     memset( &xEndpoint, 0, sizeof( xEndpoint ) );
-//     memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
+    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
+    memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
 
-//     xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
+    xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
 
-//     xEndpoint.pxNetworkInterface = &xNetworkInterface;
-//     memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-//     xEndpoint.bits.bIPv6 = pdTRUE;
+    xEndpoint.pxNetworkInterface = &xNetworkInterface;
+    xEndpoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndpoint.bits.bIPv6 = pdFALSE;
 
-//     return pxEndpoint;
-// }
+    return pxEndpoint;
+}
 
 // static NetworkEndPoint_t * prvPrepareDefaultIPv4EndPoint()
 // {
@@ -1325,385 +1327,421 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoDHCP()
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
-// /**
-//  * @brief To validate the flow to send ping message but get failure on neighbor discovery.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCantSend()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint;
-//     ICMPPacket_IPv6_t * pxICMPv6Packet;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP_IPv6 );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
-
-//     pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxICMPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eCantSendPacket );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-//     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-// }
-
-// /**
-//  * @brief To validate the flow to send ping message but get an unknown ND return.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheUnknown()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint;
-//     ICMPPacket_IPv6_t * pxICMPv6Packet;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP_IPv6 );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
-
-//     pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxICMPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, 0xFF );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-//     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-// }
-
-// /**
-//  * @brief To validate the flow to send ping message and get a cache hit.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheHit()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint;
-//     ICMPPacket_IPv6_t * pxICMPv6Packet;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP_IPv6 );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     /* To trigger checksum generation. */
-//     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
-
-//     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
-
-//     pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxICMPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-//     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0x60, pxICMPv6Packet->xIPHeader.ucVersionTrafficClass );
-//     TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP_IPv6, pxICMPv6Packet->xIPHeader.ucNextHeader );
-//     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDP and get a cache hit.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHit()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     /* To trigger checksum generation. */
-//     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-//     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0x60, pxUDPPacket->xIPHeader.ucVersionTrafficClass );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xIPHeader.ucTrafficClassFlow );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xIPHeader.usFlowLabel );
-//     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucNextHeader );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-//     TEST_ASSERT_EQUAL_MEMORY( xDefaultIPv6Address.ucBytes, pxUDPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-//     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDP and get a cache hit. But the buffer length is
-//  * less than minimum requirement.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitLessBufferLength()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint;
-//     UDPPacket_t * pxUDPPacket;
-//     size_t xBufferLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 1;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     /* To trigger checksum generation. */
-//     pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
-//     pxNetworkBuffer->xDataLength = xBufferLength;
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-//     usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
-//     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0x60, pxUDPPacket->xIPHeader.ucVersionTrafficClass );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xIPHeader.ucTrafficClassFlow );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xIPHeader.usFlowLabel );
-//     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucNextHeader );
-//     TEST_ASSERT_EQUAL( xBufferLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-//     TEST_ASSERT_EQUAL_MEMORY( xDefaultIPv6Address.ucBytes, pxUDPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-//     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDP and get a cache hit but no matching endpoint.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitNoEndPoint()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = NULL;
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-//     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0x60, pxUDPPacket->xIPHeader.ucVersionTrafficClass );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xIPHeader.ucTrafficClassFlow );
-//     TEST_ASSERT_EQUAL( 0, pxUDPPacket->xIPHeader.usFlowLabel );
-//     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucNextHeader );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
-//     TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
-//     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDP and get a cache miss and
-//  * the IP type of network buffer/endpoint are both global.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissBothGlobal()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-//     xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_Global );
-
-//     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-//     xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
-
-//     vNDSendNeighbourSolicitation_Expect( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDP and get a cache miss but
-//  * matching endpoint is found.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissButEndPointFound()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-
-//     vNDSendNeighbourSolicitation_Expect( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDP and get a cache miss and
-//  * the IP type of network buffer is not global but endpoint is global.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-//     xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_LinkLocal );
-
-//     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-//     xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
-//     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxEndPoint, NULL );
-
-//     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDP and get a cache miss and
-//  * the IP type of network buffer is global but endpoint is not global.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-//     xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_Global );
-
-//     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-//     xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_LinkLocal );
-//     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxEndPoint, NULL );
-
-//     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDPv4 and get a cache miss.
-//  * Then found an endpoint in same subnet.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-//     pxEndPoint = prvPrepareDefaultIPv4EndPoint();
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-//     pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-
-//     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-//     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, pxEndPoint );
-//     FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
-//     vARPGenerateRequestPacket_Expect( pxNetworkBuffer );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
-// }
-
-// /**
-//  * @brief To validate the flow to send UDPv4 and get a cache miss.
-//  * Then can't find an endpoint in same subnet.
-//  */
-// void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound()
-// {
-//     BaseType_t xReturn;
-//     NetworkBufferDescriptor_t * pxNetworkBuffer;
-//     NetworkEndPoint_t * pxEndPointNull = NULL;
-//     UDPPacket_t * pxUDPPacket;
-
-//     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-
-//     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
-//     pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-
-//     eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-//     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-//     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-
-//     vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-//     FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, NULL );
-//     FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
-//     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
-
-//     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-//     TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
-//     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
-// }
+/**
+ * @brief To validate the flow to send ping message but get failure on ARP get entry.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_ICMPPingCantSend()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    ICMPPacket_t * pxICMPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+
+    pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxICMPPacket->xEthernetHeader.xDestinationAddress ), NULL, eCantSendPacket );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+}
+
+/**
+ * @brief To validate the flow to send ping message but get an unknown ND return.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_ICMPPingCacheUnknown()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    ICMPPacket_t * pxICMPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+
+    pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxICMPPacket->xEthernetHeader.xDestinationAddress ), NULL, 0xFF );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+}
+
+/**
+ * @brief To validate the flow to send ping message and get a cache hit.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_ICMPPingCacheHit()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    ICMPPacket_t * pxICMPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_ICMP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    /* To trigger checksum generation. */
+    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+
+    pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+
+    pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxICMPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP, pxICMPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache hit.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHit()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    /* To trigger checksum generation. */
+    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache hit. But the buffer length is
+ * less than minimum requirement.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLessBufferLength()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    UDPPacket_t * pxUDPPacket;
+    size_t xBufferLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 1;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    /* To trigger checksum generation. */
+    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+    pxNetworkBuffer->xDataLength = xBufferLength;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( xBufferLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send LLMNR UDP and get a cache hit.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitLLMNR()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    /* To trigger checksum generation. */
+    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ipLLMNR_IP_ADDR;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
+    TEST_ASSERT_EQUAL( 0x01, pxUDPPacket->xIPHeader.ucTimeToLive );
+}
+
+/**
+ * @brief To validate the flow to send MDNS UDP and get a cache hit.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitMDNS()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    /* To trigger checksum generation. */
+    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ipMDNS_IP_ADDRESS;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
+    TEST_ASSERT_EQUAL( 0xFF, pxUDPPacket->xIPHeader.ucTimeToLive );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache hit
+ * but there is no network interface in endpoint.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitNoInterface()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint->pxNetworkInterface = NULL;
+
+    /* To trigger checksum generation. */
+    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache hit
+ * but there is no output function in network interface.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitInterfaceNoOutput()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+    pxEndPoint->pxNetworkInterface->pfOutput = NULL;
+
+    /* To trigger checksum generation. */
+    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( TEST_IPV4_DEFAULT_ADDRESS, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache hit but no matching endpoint.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheHitNoEndPoint()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = NULL;
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( TEST_PROTOCOL_CHECKSUM );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPPacket->xIPHeader.ucProtocol );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ), FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache miss but
+ * matching endpoint is found.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointFound()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+
+    vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 0, pxEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
+
+    vARPGenerateRequestPacket_Expect( pxNetworkBuffer );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
+}
+
+/**
+ * @brief To validate the flow to send UDP and get a cache miss and
+ * matching endpoint is not found.
+ */
+void test_vProcessGeneratedUDPPacket_IPv4_UDPCacheMissEndPointNotFound()
+{
+    BaseType_t xReturn;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
+    UDPPacket_t * pxUDPPacket;
+
+    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
+    pxEndPoint = prvPrepareDefaultIPv6EndPoint();
+
+    pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    eARPGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ), &( pxUDPPacket->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eARPGetCacheEntry_IgnoreArg_ppxEndPoint();
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
+    eARPGetCacheEntry_IgnoreArg_pulIPAddress();
+
+    vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 0, NULL );
+    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    vProcessGeneratedUDPPacket_IPv4( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
+    TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
+}
