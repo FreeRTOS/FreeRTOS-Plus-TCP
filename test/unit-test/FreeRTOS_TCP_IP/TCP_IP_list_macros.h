@@ -85,7 +85,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
  */
 FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        UBaseType_t uxLocalPort,
-                                       IP_Address_t ulRemoteIP,
+                                       IPv46_Address_t xRemoteIP,
                                        UBaseType_t uxRemotePort );
 
 /* Get the size of the IP-header.
