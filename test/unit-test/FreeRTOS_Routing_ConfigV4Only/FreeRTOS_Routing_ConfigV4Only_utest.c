@@ -91,7 +91,7 @@ void setUp( void )
  *     - Frame type in ethernet header 0xFF.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_match_custom_frametype()
+void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -184,7 +184,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6Disabled()
  *  - Call pcEndpointName with enough buffer size.
  *  - Check if return buffer string is NULL.
  */
-void test_pcEndpointName_IPv6_happy_path()
+void test_pcEndpointName_IPv6HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -215,7 +215,7 @@ void test_pcEndpointName_IPv6_happy_path()
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
+void test_FreeRTOS_FindGateWay_IPv4HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -241,7 +241,7 @@ void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindGateWay_IPv4_not_found( void )
+void test_FreeRTOS_FindGateWay_IPv4NotFound( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
