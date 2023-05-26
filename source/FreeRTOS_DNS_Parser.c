@@ -1230,14 +1230,9 @@
                 /* This function will fill in the eth addresses and send the packet */
                 vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
 
-/*pxNewBuffer and pxNetworkBuffer are now the same pointers.pxNewBuffer is always NULL after re-allocation*/
+                /*pxNewBuffer and pxNetworkBuffer are now the same pointers.pxNetworkBuffer will be released elsewhere.
+                * so pxNewBuffer does not need to released, since they share a single memory location*/
 
-/*
- *              if( pxNewBuffer != NULL )
- *              {
- *                vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
- *              }
- */
             }  while( ipFALSE_BOOL );
         }
     #endif /* ( ipconfigUSE_NBNS == 1 ) */
