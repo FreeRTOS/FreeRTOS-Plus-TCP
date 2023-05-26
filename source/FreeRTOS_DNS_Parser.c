@@ -723,13 +723,13 @@
                 {
                     if( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) /*No check needed for pxSet->usType as uxAddressLength is set based on usType*/
                     {
-                        ( void ) memcpy( xIP_Address.xAddress_IPv6.ucBytes,
+                        ( void ) memcpy( xIP_Address.xIPAddress.xIP_IPv6.ucBytes,
                                          &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
                                          ipSIZE_OF_IPv6_ADDRESS );
 
                         if( ppxAddressInfo != NULL )
                         {
-                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xAddress_IPv6.ucBytes );
+                            pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET6, xIP_Address.xIPAddress.xIP_IPv6.ucBytes );
                         }
 
                         xIP_Address.xIs_IPv6 = pdTRUE;
@@ -762,7 +762,7 @@
                             pxNewAddress = pxNew_AddrInfo( pxSet->pcName, FREERTOS_AF_INET4, ucBytes );
                         }
 
-                        xIP_Address.ulIPAddress = pxSet->ulIPAddress;
+                        xIP_Address.xIPAddress.ulIP_IPv4 = pxSet->ulIPAddress;
                         xIP_Address.xIs_IPv6 = pdFALSE;
                     }
 
@@ -824,7 +824,7 @@
 
                             if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )
                             {
-                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xAddress_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
+                                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) xIP_Address.xIPAddress.xIP_IPv6.ucBytes, cBuffer, sizeof( cBuffer ) );
                                 FreeRTOS_printf( ( "DNS[0x%04X]: The answer to '%s' (%s) will%s be stored\n",
                                                    ( unsigned ) pxSet->pxDNSMessageHeader->usIdentifier,
                                                    pxSet->pcName,
@@ -1118,7 +1118,7 @@
                              * add the name to the DNS cache */
                             IPv46_Address_t xIPAddress;
 
-                            xIPAddress.ulIPAddress = ulIPAddress;
+                            xIPAddress.xIPAddress.ulIP_IPv4 = ulIPAddress;
                             #if ( ipconfigUSE_IPv6 != 0 )
                                 {
                                     xIPAddress.xIs_IPv6 = pdFALSE;
