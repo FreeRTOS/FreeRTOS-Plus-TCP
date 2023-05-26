@@ -80,10 +80,17 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    const TCPPacket_t * pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const TCPPacket_t * pxTCPPacket = NULL;
     FreeRTOS_Socket_t * pxReturn = NULL;
-    uint32_t ulInitialSequenceNumber;
-    const NetworkEndPoint_t * pxEndpoint = pxNetworkBuffer->pxEndPoint;
+    uint32_t ulInitialSequenceNumber = 0U;
+    const NetworkEndPoint_t * pxEndpoint = NULL;
+
+    if( ( pxSocket != NULL ) && ( pxNetworkBuffer != NULL ) )
+    {
+        /* Initialize pointers if inputs are valid. */
+        pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        pxEndpoint = pxNetworkBuffer->pxEndPoint;
+    }
 
     /* Silently discard a SYN packet which was not specifically sent for this node. */
     if( ( pxEndpoint != NULL ) && ( pxTCPPacket->xIPHeader.ulDestinationIPAddress == pxEndpoint->ipv4_settings.ulIPAddress ) )
@@ -167,13 +174,8 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
 
-        if( pxNetworkBuffer->pxEndPoint != NULL )
-        {
-            pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
-        }
-
-        configASSERT( pxReturn->pxEndPoint != NULL );
-
+        /* The endpoint in network buffer must be valid in this condition. */
+        pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         pxReturn->bits.bIsIPv6 = pdFALSE_UNSIGNED;
         pxReturn->u.xTCP.usRemotePort = FreeRTOS_htons( pxTCPPacket->xTCPHeader.usSourcePort );
         pxReturn->u.xTCP.xRemoteIP.ulIP_IPv4 = FreeRTOS_htonl( pxTCPPacket->xIPHeader.ulSourceIPAddress );
