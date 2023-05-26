@@ -307,7 +307,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_ConfigDriverCheckChecksum/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4Only/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_ConfigV4Only/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4V6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4V6CompatibleWithSingle/ut.cmake )
 
@@ -364,7 +364,7 @@ add_custom_target( coverage
     FreeRTOS_IPv4_DiffConfig_utest
     FreeRTOS_IPv4_DiffConfig1_utest
     FreeRTOS_IPv4_Sockets_utest
-    FreeRTOS_Routing_V4Only
+    FreeRTOS_Routing_ConfigV4Only
     FreeRTOS_Routing_V4V6
     FreeRTOS_Routing_V4V6CompatibleWithSingle
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
