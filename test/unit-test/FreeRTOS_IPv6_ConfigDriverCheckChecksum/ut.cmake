@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_IPv6_Driver_Check_Checksum" )
+set( project_name "FreeRTOS_IPv6_ConfigDriverCheckChecksum" )
 message( STATUS "${project_name}" )
 set( file_name "FreeRTOS_IPv6" )
 
@@ -16,7 +16,6 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_IPv6_Driver_Check_Checksum_list_macros.h"
         )
 
 set(mock_include_list "")
@@ -26,8 +25,8 @@ list(APPEND mock_include_list
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
-            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
+            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
 set(mock_define_list "")
