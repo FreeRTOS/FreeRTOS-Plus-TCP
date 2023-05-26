@@ -84,13 +84,18 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
 
 /* ============================== Test Cases ============================== */
 
-/* test vSocketCloseNextTime function */
+/**
+ * @brief Test the functionality when socket is NULL.
+ */
 void test_vSocketCloseNextTime_Null_Socket( void )
 {
     vSocketCloseNextTime( NULL );
 }
 
-/* test vSocketCloseNextTime function */
+/**
+ * @brief Test the functionality to not close the
+ *        socket.
+ */
 void test_vSocketCloseNextTime_Not_Close_Socket( void )
 {
     memset( &xSocket, 0, sizeof( xSocket ) );
@@ -98,7 +103,10 @@ void test_vSocketCloseNextTime_Not_Close_Socket( void )
     vSocketCloseNextTime( &xSocket );
 }
 
-/* test vSocketCloseNextTime function */
+/**
+ * @brief Test the functionality to not close the
+ *        same socket.
+ */
 void test_vSocketCloseNextTime_Not_Close_Same_Socket( void )
 {
     memset( &xSocket, 0, sizeof( xSocket ) );
@@ -106,7 +114,10 @@ void test_vSocketCloseNextTime_Not_Close_Same_Socket( void )
     vSocketCloseNextTime( &xSocket );
 }
 
-
+/**
+ * @brief Test the functionality to close the
+ *        same socket.
+ */
 /* test vSocketCloseNextTime function */
 void test_vSocketCloseNextTime_Close_Previous_Socket( void )
 {
@@ -116,6 +127,10 @@ void test_vSocketCloseNextTime_Close_Previous_Socket( void )
     vSocketCloseNextTime( &NewSocket );
 }
 
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls.
+ */
 void test_vSocketListenNextTime( void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
@@ -127,6 +142,10 @@ void test_vSocketListenNextTime( void )
     TEST_ASSERT_EQUAL( &xSocket, xSocketToListen );
 }
 
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls.
+ */
 void test_vSocketListenNextTime1( void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
@@ -139,6 +158,10 @@ void test_vSocketListenNextTime1( void )
     TEST_ASSERT_EQUAL( NULL, xSocketToListen );
 }
 
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls.
+ */
 void test_vSocketListenNextTime2( void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
@@ -150,7 +173,11 @@ void test_vSocketListenNextTime2( void )
     TEST_ASSERT_EQUAL( &xSocket, xSocketToListen );
 }
 
-/* test xTCPSocketCheck function */
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls
+ *        when all inputes are set to zero.
+ */
 void test_xTCPSocketCheck_AllInputsZero1( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
@@ -168,7 +195,11 @@ void test_xTCPSocketCheck_AllInputsZero1( void )
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
 }
 
-/* test xTCPSocketCheck function */
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls
+ *        when the tcp state is set to eESTABLISHED.
+ */
 void test_xTCPSocketCheck_StateEstablished( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
@@ -191,7 +222,12 @@ void test_xTCPSocketCheck_StateEstablished( void )
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
 }
 
-/* test xTCPSocketCheck function */
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls
+ *        when the tcp state is set to eESTABLISHED
+ *        and tcp stream is NULL.
+ */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
@@ -217,7 +253,12 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull( void )
     TEST_ASSERT_EQUAL( xToReturn, xReturn );
 }
 
-/* test xTCPSocketCheck function */
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls
+ *        when the tcp state is set to eESTABLISHED
+ *        and a valid TCP stream.
+ */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
@@ -252,7 +293,11 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
     TEST_ASSERT_EQUAL( 1U, xSocket.u.xTCP.usTimeout );
 }
 
-/* test xTCPSocketCheck function */
+/**
+ * @brief Test the functionality to Postpone a call
+ *        to FreeRTOS_listen() to avoid recursive calls
+ *        when the tcp state is set to eESTABLISHED.
+ */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull_BufferFreed( void )
 {
     BaseType_t xReturn, xToReturn = 0xAABBCCDD;
@@ -286,8 +331,9 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull_BufferFreed( void )
 }
 
 /**
- * @brief Test xTCPSocketCheck function when the stream is non-NULL and the
- *        time out is non-zero. */
+ * @brief Test functionality when the stream is non-NULL and the
+ *        time out is non-zero.
+ */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void )
 {
     BaseType_t xReturn, xToReturn = 0;
@@ -317,9 +363,10 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void
 }
 
 /**
- * @brief Test xTCPSocketCheck function when the stream is non-NULL and the
+ * @brief Test functionality when the stream is non-NULL and the
  *        time out is non-zero. The port number cannot be allowed to issue log
- *        messages. */
+ *        messages.
+ */
 void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout_NoLogPort( void )
 {
     BaseType_t xReturn, xToReturn = 0, xBackup;
@@ -355,7 +402,7 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout_NoLog
 }
 
 /**
- * @brief Test xTCPSocketCheck function when the stream is non-NULL and the
+ * @brief Test functionality when the stream is non-NULL and the
  *        time out is non-zero. The port number cannot be allowed to issue log
  *        messages.
  */
@@ -387,7 +434,7 @@ void test_xTCPSocketCheck_StateCLOSED_TxStreamNonNull1_NonZeroTimeout( void )
 }
 
 /**
- * @brief Test xTCPSocketCheck function when the stream is non-NULL and the
+ * @brief Test functionality when the stream is non-NULL and the
  *        time out is non-zero. Additionally, the user has requested to shutdown
  *        the socket.
  */
@@ -419,7 +466,8 @@ void test_xTCPSocketCheck_StateeCONNECT_SYN_TxStreamNonNull_UserShutdown( void )
 }
 
 /**
- * @brief Test prvTCPTouchSocket function.
+ * @brief Test to validate 'Touching' the socket
+ *        to keep it alive/updated.
  */
 void test_prvTCPTouchSocket( void )
 {
@@ -441,7 +489,11 @@ void test_prvTCPTouchSocket( void )
     TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eCONNECT_SYN.
+ */
 void test_prvTCPNextTimeout_ConnSyn_State_Not_Active( void )
 {
     TickType_t Return = 0;
@@ -456,7 +508,12 @@ void test_prvTCPNextTimeout_ConnSyn_State_Not_Active( void )
     TEST_ASSERT_EQUAL( 500, Return );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eCONNECT_SYN and connection
+ *        is prepared.
+ */
 void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep0( void )
 {
     TickType_t Return = 0;
@@ -471,7 +528,12 @@ void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep0( void )
     TEST_ASSERT_EQUAL( 1, Return );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eCONNECT_SYN and rep count
+ *        is less than 3.
+ */
 void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep1( void )
 {
     TickType_t Return = 0;
@@ -486,7 +548,12 @@ void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep1( void )
     TEST_ASSERT_EQUAL( 3000, Return );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eCONNECT_SYN and rep count
+ *        is 3.
+ */
 void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep3( void )
 {
     TickType_t Return = 0;
@@ -501,7 +568,12 @@ void test_prvTCPNextTimeout_ConnSyn_State_Active_Rep3( void )
     TEST_ASSERT_EQUAL( 11000, Return );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eESTABLISHED and an active
+ *        time out being set.
+ */
 void test_prvTCPNextTimeout_Established_State_Active_Timeout_Set( void )
 {
     TickType_t Return = 0;
@@ -516,7 +588,12 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Set( void )
     TEST_ASSERT_EQUAL( 5000, Return );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eESTABLISHED and an active
+ *        time out is not set but has timeout delay.
+ */
 void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_With_Delay( void )
 {
     TickType_t Return = 0;
@@ -535,7 +612,12 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Wi
     TEST_ASSERT_EQUAL( 1000, Return );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eESTABLISHED valid with TX data
+ *        and no timeout delay.
+ */
 void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Without_Delay( void )
 {
     TickType_t Return = 0;
@@ -554,7 +636,12 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Wi
     TEST_ASSERT_EQUAL( 1, Return );
 }
 
-/* test prvTCPNextTimeout function */
+/**
+ * @brief Test to validate Calculate after how much
+ *        time this socket needs to be checked again
+ *        when tcp state is eESTABLISHED valid with no
+ *        TX data and no timeout delay.
+ */
 void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_No_Data_Without_Delay( void )
 {
     TickType_t Return = 0;
@@ -574,8 +661,9 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_No_Data_Wit
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached and the
- *        current state equal to closed state. */
+ * @brief Test functionality when the state to be reached and the
+ *        current state equal to closed state.
+ */
 void test_vTCPStateChange_ClosedState( void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
@@ -605,7 +693,7 @@ void test_vTCPStateChange_ClosedState( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is closed wait
+ * @brief Test functionality when the state to be reached is closed wait
  *        and current state is equal to connect syn.
  */
 void test_vTCPStateChange_ClosedWaitState_PrvStateSyn( void )
@@ -640,7 +728,7 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSyn( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is closed wait
+ * @brief Test functionality when the state to be reached is closed wait
  *        and current state is equal to syn first.
  */
 void test_vTCPStateChange_ClosedWaitState_PrvStateSynFirst( void )
@@ -675,7 +763,7 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSynFirst( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is closed wait
+ * @brief Test functionality when the state to be reached is closed wait
  *        and current state is equal to syn first.
  */
 void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait( void )
@@ -714,7 +802,7 @@ void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is closed wait
+ * @brief Test functionality when the state to be reached is closed wait
  *        and current state is equal to syn received.
  */
 void test_vTCPStateChange_ClosedWaitState_PrvStateSynRecvd( void )
@@ -749,7 +837,7 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSynRecvd( void )
 }
 
 /**
- *  @brief Test vTCPStateChange function when the state to be reached and the
+ *  @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state.
  */
 void test_vTCPStateChange_ClosedWaitState( void )
@@ -781,7 +869,7 @@ void test_vTCPStateChange_ClosedWaitState( void )
 }
 
 /**
- *  @brief Test vTCPStateChange function when the state to be reached and the
+ *  @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state. Socket bIsIPv6 bit is set
  *        indicating IPv6 socket.
  */
@@ -815,9 +903,9 @@ void test_vTCPStateChange_ClosedWaitState_bIsIPv6( void )
 }
 
 /**
- *  @brief Test vTCPStateChange function when the state to be reached and the
+ *  @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state. Socket bIsIPv6 bit is set
- *        indicating IPv6 socke and port set as 23 as ipconfigTCP_MAY_LOG_PORT
+ *        indicating IPv6 socket and port set as 23 as ipconfigTCP_MAY_LOG_PORT
  *        definition will not generate log messages for ports 23.
  */
 void test_vTCPStateChange_ClosedWaitState_IncorrectPort( void )
@@ -850,7 +938,7 @@ void test_vTCPStateChange_ClosedWaitState_IncorrectPort( void )
 }
 
 /**
- *  @brief Test vTCPStateChange function when the state to be reached and the
+ *  @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state. Additionally, the pass queued
  *        bit is set and the function is being called from IP task.
  */
@@ -888,7 +976,7 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached and the
+ * @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state. Additionally, the pass queued
  *        bit is set and the function is not being called from IP task.
  */
@@ -912,7 +1000,7 @@ void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached and the
+ * @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state. Additionally, the pass accept
  *        bit is set and the function is being called from IP task.
  */
@@ -949,7 +1037,7 @@ void test_vTCPStateChange_ClosedWaitState_CallingFromIPTask1( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached and the
+ * @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state. Additionally, the pass accept
  *        bit is set and the function is not being called from IP task.
  */
@@ -971,7 +1059,7 @@ void test_vTCPStateChange_ClosedWaitState_NotCallingFromIPTask1( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached and the
+ * @brief Test functionality when the state to be reached and the
  *        current state equal to close wait state. Additionally, the pass accept
  *        and reuse socket bits are set.
  */
@@ -1007,7 +1095,7 @@ void test_vTCPStateChange_ClosedWaitState_ReuseSocket( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached and the
+ * @brief Test functionality when the state to be reached and the
  *        current state equal to established state. Additionally, the pass accept
  *        and reuse socket bits are set.
  */
@@ -1047,7 +1135,7 @@ void test_vTCPStateChange_EstablishedState_ReuseSocket( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is closed and the
+ * @brief Test functionality when the state to be reached is closed and the
  *        current state is established state. Additionally, the pass accept
  *        and reuse socket bits are set.
  */
@@ -1092,7 +1180,7 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketInactive( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is closed and the
+ * @brief Test functionality when the state to be reached is closed and the
  *        current state is established state.
  */
 void test_vTCPStateChange_EstablishedToClosedState_SocketActive( void )
@@ -1140,7 +1228,7 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive( void )
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is closed and the
+ * @brief Test functionality when the state to be reached is closed and the
  *        current state is established state. Socket select bit is set to select except.
  */
 void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( void )
@@ -1189,7 +1277,7 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( vo
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is established and the
+ * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select except.
  */
 void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept( void )
@@ -1233,7 +1321,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept( vo
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is established and the
+ * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select write.
  */
 void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite( void )
@@ -1277,7 +1365,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite( voi
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is established and the
+ * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select write. Also, this socket
  *        is an orphan. Since parent socket is NULL and reuse bit is not set, it will hit an
  *        assertion.
@@ -1303,7 +1391,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( voi
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is established and the
+ * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select write. Also, this socket
  *        is an orphan. Parent socket is non-NULL and reuse bit is not set.
  */
@@ -1356,7 +1444,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_Pare
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is established and the
+ * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select write. Also, this socket
  *        is an orphan. Parent socket is non-NULL and reuse bit is not set. Additionally, the
  *        parent socket has a connected handler.
@@ -1409,7 +1497,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is established and the
+ * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select write. Also, this socket
  *        is an orphan. Parent socket is non-NULL and reuse bit is not set. Additionally, the
  *        parent socket has a connected handler.
@@ -1464,7 +1552,7 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
 }
 
 /**
- * @brief Test vTCPStateChange function when the state to be reached is established and the
+ * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select read. Also, this socket
  *        is an orphan. Parent socket is NULL and reuse bit is set.
  */
@@ -1515,7 +1603,10 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_Paren
     TEST_ASSERT_EQUAL( eSOCKET_ACCEPT | ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function catch assert when  received a TCP packet
+ *        with NULL descriptor.
+ */
 void test_xProcessReceivedTCPPacket_Null_Descriptor( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1528,7 +1619,10 @@ void test_xProcessReceivedTCPPacket_Null_Descriptor( void )
     catch_assert( xProcessReceivedTCPPacket( NULL ) );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function catch assert when  received a TCP packet
+ *        with NULL buffer.
+ */
 void test_xProcessReceivedTCPPacket_Null_Buffer( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1563,8 +1657,8 @@ void test_xProcessReceivedTCPPacket_IPv6_FrameType( void )
 }
 
 /**
- * @brief This function validates received a TCP packet of
- *        frame type IPv6 and process the packet.
+ * @brief This function validates handling of a TCP packet of
+ *        invalid frame type.
  */
 void test_xProcessReceivedTCPPacket_Incorrect_FrameType( void )
 {
@@ -1583,7 +1677,10 @@ void test_xProcessReceivedTCPPacket_Incorrect_FrameType( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet as data length check fails.
+ */
 void test_xProcessReceivedTCPPacket_Minimal_Data_Length( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1600,7 +1697,10 @@ void test_xProcessReceivedTCPPacket_Minimal_Data_Length( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet as socket is NULL.
+ */
 void test_xProcessReceivedTCPPacket_No_Socket( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1620,7 +1720,10 @@ void test_xProcessReceivedTCPPacket_No_Socket( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet where there is no active socket.
+ */
 void test_xProcessReceivedTCPPacket_No_Active_Socket( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1643,7 +1746,10 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when there is no active socket and there is a send reset.
+ */
 void test_xProcessReceivedTCPPacket_No_Active_Socket_Send_Reset( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1667,7 +1773,10 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket_Send_Reset( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eTCP_LISTEN.
+ */
 void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_No_Rst( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1690,7 +1799,10 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_No_Rst( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eTCP_LISTEN.
+ */
 void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_Rst( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1714,7 +1826,10 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_Rst( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eTCP_LISTEN and socket is NULL socket.
+ */
 void test_xProcessReceivedTCPPacket_Listen_State_Syn_Null_Socket( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1738,7 +1853,10 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_Null_Socket( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates success in processing received TCP
+ *        packet when tcp state is eTCP_LISTEN.
+ */
 void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_Something( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1769,7 +1887,10 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_Something( void )
     TEST_ASSERT_EQUAL( pdTRUE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates success in processing received TCP
+ *        packet when tcp state is eTCP_LISTEN.
+ */
 void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_None( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1799,7 +1920,10 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_None( void )
     TEST_ASSERT_EQUAL( pdTRUE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eTCP_LISTEN.
+ */
 void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1830,7 +1954,10 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void 
 }
 
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates success in processing received TCP
+ *        packet when tcp state is eTCP_LISTEN.
+ */
 void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buffer_Gone( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1863,7 +1990,10 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buff
     TEST_ASSERT_EQUAL( pdTRUE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1886,7 +2016,10 @@ void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1919,7 +2052,10 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
     TEST_ASSERT_EQUAL( eCLOSED, pxSocket->u.xTCP.eTCPState );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_SeqNo_Wrong( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1944,7 +2080,10 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_SeqNo_Wrong( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates success in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
 {
     BaseType_t Return = pdFALSE;
@@ -1978,7 +2117,10 @@ void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
 }
 
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2013,7 +2155,10 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     TEST_ASSERT_EQUAL( eCLOSED, pxSocket->u.xTCP.eTCPState );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_InRange( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2042,7 +2187,10 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_InRange( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange1( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2070,7 +2218,10 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange1( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates failure in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2098,7 +2249,10 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
 }
 
 
-/* test xProcessReceivedTCPPacket function */
+/**
+ * @brief This function validates success in processing received TCP
+ *        packet when tcp state is eESTABLISHED.
+ */
 void test_xProcessReceivedTCPPacket_Establish_State_Ack( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2183,7 +2337,10 @@ static void test_Helper_ListInsertEnd( List_t * const pxList,
     ( pxList->uxNumberOfItems )++;
 }
 
-/* test xTCPCheckNewClient function */
+/**
+ * @brief This function validates not finding a new client
+ *        in case the list to iterate through is empty.
+ */
 void test_xTCPCheckNewClient_Empty_List( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2200,7 +2357,10 @@ void test_xTCPCheckNewClient_Empty_List( void )
     TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxPeerSocket );
 }
 
-/* test xTCPCheckNewClient function */
+/**
+ * @brief This function validates not finding a new client
+ *        with a given port.
+ */
 void test_xTCPCheckNewClient_Not_Found_No_Port( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2220,7 +2380,10 @@ void test_xTCPCheckNewClient_Not_Found_No_Port( void )
     TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxPeerSocket );
 }
 
-/* test xTCPCheckNewClient function */
+/**
+ * @brief This function validates not finding a new client
+ *        in of UDP protocol.
+ */
 void test_xTCPCheckNewClient_Not_Found_Not_TCP( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2244,7 +2407,10 @@ void test_xTCPCheckNewClient_Not_Found_Not_TCP( void )
     TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxPeerSocket );
 }
 
-/* test xTCPCheckNewClient function */
+/**
+ * @brief This function validates not finding a new client
+ *        in case bPassAccept is not set.
+ */
 void test_xTCPCheckNewClient_Not_Found_Not_Aceept( void )
 {
     BaseType_t Return = pdFALSE;
@@ -2268,7 +2434,10 @@ void test_xTCPCheckNewClient_Not_Found_Not_Aceept( void )
     TEST_ASSERT_EQUAL( NULL, pxSocket->u.xTCP.pxPeerSocket );
 }
 
-/* test xTCPCheckNewClient function */
+/**
+ * @brief This function validates the case of finding
+ *        a new client.
+ */
 void test_xTCPCheckNewClient_Found( void )
 {
     BaseType_t Return = pdFALSE;
