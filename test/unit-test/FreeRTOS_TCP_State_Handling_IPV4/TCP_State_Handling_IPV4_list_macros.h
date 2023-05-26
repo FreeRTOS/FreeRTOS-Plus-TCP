@@ -29,17 +29,8 @@
 #define LIST_MACRO_H
 
 #include <FreeRTOS.h>
-#include <portmacro.h>
-#include <list.h>
 
-/*
- * Return either a newly created socket, or the current socket in a connected
- * state (depends on the 'bReuseSocket' flag).
- */
-FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
+                             FreeRTOS_Socket_t * pxSocket );
 
 #endif /* ifndef LIST_MACRO_H */
