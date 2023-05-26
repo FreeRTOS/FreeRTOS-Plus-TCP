@@ -293,15 +293,6 @@
         size_t uxPayloadLength;     /**< Payload size */
     } DNSBuffer_t;
 
-/** @brief A struct that can hold either an IPv4 or an IPv6 address. */
-    typedef struct xxIPv46_Address
-    {
-        /* A struct that can hold either an IPv4 or an IPv6 address. */
-        uint32_t ulIPAddress;         /**< The IPv4-address. */
-        IPv6_Address_t xAddress_IPv6; /**< The IPv6-address. */
-        BaseType_t xIs_IPv6;          /**< pdTRUE if the IPv6 member is used. */
-    } IPv46_Address_t;
-
     #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_NBNS == 1 )
 
 /*
