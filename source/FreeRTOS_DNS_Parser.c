@@ -1231,8 +1231,7 @@
                 vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
 
                 /*pxNewBuffer and pxNetworkBuffer are now the same pointers.pxNetworkBuffer will be released elsewhere.
-                * so pxNewBuffer does not need to released, since they share a single memory location*/
-
+                 * so pxNewBuffer does not need to released, since they share a single memory location*/
             }  while( ipFALSE_BOOL );
         }
     #endif /* ( ipconfigUSE_NBNS == 1 ) */
