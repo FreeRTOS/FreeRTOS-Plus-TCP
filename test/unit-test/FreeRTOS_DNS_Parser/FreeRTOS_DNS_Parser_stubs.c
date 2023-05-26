@@ -40,24 +40,12 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
 
 BaseType_t xBufferAllocFixedSize = pdFALSE;
 
-
-void vPortEnterCritical( void )
-{
-}
-
-void vPortExitCritical( void )
-{
-}
-
 uint16_t usPacketIdentifier;
 
-
-/**
- * Global buffers to allocate memory for sockaddr
- */
 struct freertos_addrinfo pucAddrBuffer[ 2 ];
 struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
 
@@ -79,3 +67,12 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
         0x00, 0x00, 0x00, 0x00               /* Source IP address. */
     }
 };
+
+/* ======================== Stub Callback Functions ========================= */
+void vPortEnterCritical( void )
+{
+}
+
+void vPortExitCritical( void )
+{
+}

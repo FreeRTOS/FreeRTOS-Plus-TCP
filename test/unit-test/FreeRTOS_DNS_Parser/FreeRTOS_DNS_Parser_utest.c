@@ -76,12 +76,14 @@ static void dns_callback( const char * pcName,
     callback_called = 1;
 }
 
-/* ============================  TEST FIXTURES  ============================= */
+/* ===========================  EXTERN VARIABLES  =========================== */
 
 extern BaseType_t xBufferAllocFixedSize;
 
 extern pucAddrBuffer[ 2 ];
 extern pucSockAddrBuffer[ 1 ];
+
+/* ============================  TEST FIXTURES  ============================= */
 
 /**
  * @brief calls at the beginning of each test case
