@@ -115,7 +115,7 @@ void test_processDNS_CACHE_Success( void )
     uint32_t pulIP = 1234;
     IPv46_Address_t pxIP;
 
-    pxIP.ulIPAddress = pulIP;
+    pxIP.xIPAddress.ulIP_IPv4 = pulIP;
     pxIP.xIs_IPv6 = 0;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
@@ -156,7 +156,7 @@ void test_processDNS_CACHE_entry_not_found( void )
     uint32_t pulIP = 1234;
     IPv46_Address_t pxIP;
 
-    pxIP.ulIPAddress = pulIP;
+    pxIP.xIPAddress.ulIP_IPv4 = pulIP;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -181,7 +181,7 @@ void test_processDNS_CACHE_update_entry( void )
     uint32_t pulIP = 1234;
     IPv46_Address_t pxIP;
 
-    pxIP.ulIPAddress = pulIP;
+    pxIP.xIPAddress.ulIP_IPv4 = pulIP;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -212,7 +212,7 @@ void test_processDNS_CACHE_expired_entry( void )
     uint32_t pulIP = 1234;
     IPv46_Address_t pxIP;
 
-    pxIP.ulIPAddress = pulIP;
+    pxIP.xIPAddress.ulIP_IPv4 = pulIP;
 
     xTaskGetTickCount_ExpectAndReturn( 3000 ); /* 3 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -238,13 +238,13 @@ void test_processDNS_CACHE_exceed_IP_entry_limit( void )
     IPv46_Address_t pxIP[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ], pxIP_2;
 
     pxIP_2.xIs_IPv6 = 0;
-    pxIP_2.ulIPAddress = pulIP;
+    pxIP_2.xIPAddress.ulIP_IPv4 = pulIP;
 
     memset( pulIP_arr, 123, ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY );
 
     for( int i = 0; i < ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
     {
-        pxIP[ i ].ulIPAddress = pulIP_arr[ i ];
+        pxIP[ i ].xIPAddress.ulIP_IPv4 = pulIP_arr[ i ];
         pxIP[ i ].xIs_IPv6 = 0;
         xTaskGetTickCount_ExpectAndReturn( 3000 );
         FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -281,11 +281,11 @@ void test_processDNS_CACHE_exceed_host_entry_limit( void )
     IPv46_Address_t pxIP[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1 ], pxIP_2;
 
     pxIP_2.xIs_IPv6 = 0;
-    pxIP_2.ulIPAddress = pulIP;
+    pxIP_2.xIPAddress.ulIP_IPv4 = pulIP;
 
     for( int i = 0; i < ipconfigDNS_CACHE_ENTRIES; i++ )
     {
-        pxIP[ i ].ulIPAddress = pulIP_arr[ i ];
+        pxIP[ i ].xIPAddress.ulIP_IPv4 = pulIP_arr[ i ];
         pxIP[ i ].xIs_IPv6 = 0;
         memcpy( template, "helloXXXXXX", strlen( template ) );
         char * name = mktemp( template );
@@ -322,7 +322,7 @@ void test_processDNS_CACHE_exceed_dns_name_limit( void )
     char long_dns_name[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ];
     IPv46_Address_t pxIP;
 
-    pxIP.ulIPAddress = pulIP;
+    pxIP.xIPAddress.ulIP_IPv4 = pulIP;
 
     memset( long_dns_name, 'a', ipconfigDNS_CACHE_NAME_LENGTH + 3 );
     long_dns_name[ ipconfigDNS_CACHE_NAME_LENGTH + 2 ] = '\0';

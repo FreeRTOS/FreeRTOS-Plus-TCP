@@ -47,11 +47,7 @@
 #include "FreeRTOSIPConfig.h"
 
 #include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_ARP.h"
 #include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
-#include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_Routing.h"
@@ -60,7 +56,9 @@
 
 #include "catch_assert.h"
 
-/*
+/* ============================== Test Cases ============================== */
+
+/**
  * @brief Binding successful.
  */
 void test_vSocketBind_TCP( void )
@@ -81,7 +79,7 @@ void test_vSocketBind_TCP( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xReturn );
 }
 
-/*
+/**
  * @brief Binding successful.
  */
 void test_vSocketBind_TCP1( void )

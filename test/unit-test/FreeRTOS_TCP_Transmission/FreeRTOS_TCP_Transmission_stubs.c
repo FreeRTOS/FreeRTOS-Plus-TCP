@@ -40,33 +40,52 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* =========================  EXTERN VARIABLES  ========================= */
+
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 uint16_t usPacketIdentifier;
 BaseType_t xTCPWindowLoggingLevel;
 BaseType_t xBufferAllocFixedSize = pdFALSE;
 
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
-void vPortEnterCritical( void )
+/* ======================== Stub Callback Functions ========================= */
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return 0;
 }
-void vPortExitCritical( void )
+
+/*
+ * Return or send a packet to the other party.
+ */
+void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t * pxDescriptor,
+                              uint32_t ulLen,
+                              BaseType_t xReleaseAfterSend )
 {
+    /* Do Nothing */
+}
+
+/*
+ * Let ARP look-up the MAC-address of the peer and initialise the first SYN
+ * packet.
+ */
+BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
+{
+    return pdTRUE;
+}
+
+/*
+ * Common code for sending a TCP protocol control packet (i.e. no options, no
+ * payload, just flags).
+ */
+BaseType_t prvTCPSendSpecialPktHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                            uint8_t ucTCPFlags )
+{
+    return pdTRUE;
 }

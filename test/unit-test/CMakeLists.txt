@@ -285,11 +285,13 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_DiffConfig1/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv4_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ND/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig1/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig2/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_RA/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
@@ -300,6 +302,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling_IPV4/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission_IPV6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Driver_Check_Checksum/ut.cmake )
@@ -340,14 +343,27 @@ add_custom_target( coverage
     FreeRTOS_TCP_State_Handling
     FreeRTOS_TCP_State_Handling_IPV4
     FreeRTOS_TCP_Transmission
+    FreeRTOS_TCP_Transmission_IPV6
     FreeRTOS_TCP_IP
     FreeRTOS_TCP_Utils
+    FreeRTOS_Sockets_GenericAPI_utest
+    FreeRTOS_Sockets_privates_utest
+    FreeRTOS_Sockets_TCP_API_utest
+    FreeRTOS_Sockets_UDP_API_utest
+    FreeRTOS_Sockets_DiffConfig_privates_utest
+    FreeRTOS_Sockets_DiffConfig1_GenericAPI_utest
+    FreeRTOS_Sockets_DiffConfig1_privates_utest
+    FreeRTOS_Sockets_DiffConfig2_GenericAPI_utest
+    FreeRTOS_Sockets_DiffConfig2_privates_utest
+    FreeRTOS_Sockets_DiffConfig2_TCP_API_utest
+    FreeRTOS_Sockets_DiffConfig2_UDP_API_utest
     FreeRTOS_Sockets_IPv6_utest
     FreeRTOS_IPv6_utest
     FreeRTOS_IPv6_Driver_Check_Checksum_utest
     FreeRTOS_IPv4_utest
     FreeRTOS_IPv4_DiffConfig_utest
     FreeRTOS_IPv4_DiffConfig1_utest
+    FreeRTOS_IPv4_Sockets_utest
     FreeRTOS_Routing_V4Only
     FreeRTOS_Routing_V4V6
     FreeRTOS_Routing_V4V6CompatibleWithSingle
