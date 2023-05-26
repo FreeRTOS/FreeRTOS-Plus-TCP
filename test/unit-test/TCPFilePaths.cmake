@@ -39,6 +39,7 @@ set( TCP_SOURCES
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_State_Handling_IPV6.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Utils.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Utils_IPV4.c"
+     "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_Utils_IPV6.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_TCP_WIN.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_Tiny_TCP.c"
      "${CMAKE_CURRENT_LIST_DIR}/../../source/FreeRTOS_UDP_IP.c"
