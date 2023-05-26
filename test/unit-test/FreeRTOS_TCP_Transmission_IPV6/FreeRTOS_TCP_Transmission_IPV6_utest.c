@@ -51,9 +51,11 @@
 
 #include "catch_assert.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
 #define PACKET_LENGTH    50
 
-/* ============================ Test Cases ============================ */
+/* =============================== Test Cases =============================== */
 
 /**
  * @brief This function verify handling when both

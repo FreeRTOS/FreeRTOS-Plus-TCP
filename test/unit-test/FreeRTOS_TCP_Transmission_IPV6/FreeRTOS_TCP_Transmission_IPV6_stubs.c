@@ -12,7 +12,11 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+/* ======================== Stub Callback Functions ========================= */
 
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer,
