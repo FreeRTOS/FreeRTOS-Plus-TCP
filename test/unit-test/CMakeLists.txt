@@ -301,6 +301,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_IP_DiffConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_State_Handling/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission_IPV6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Driver_Check_Checksum/ut.cmake )
@@ -340,6 +341,7 @@ add_custom_target( coverage
     FreeRTOS_TCP_Reception_utest
     FreeRTOS_TCP_State_Handling
     FreeRTOS_TCP_Transmission
+    FreeRTOS_TCP_Transmission_IPV6
     FreeRTOS_TCP_IP
     FreeRTOS_TCP_Utils
     FreeRTOS_Sockets_GenericAPI_utest
