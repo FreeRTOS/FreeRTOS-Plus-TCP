@@ -750,7 +750,7 @@ struct xSOCKET
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                            UBaseType_t uxLocalPort,
-                                           IP_Address_t ulRemoteIP,
+                                           IPv46_Address_t xRemoteIP,
                                            UBaseType_t uxRemotePort );
 
 #endif /* ipconfigUSE_TCP */

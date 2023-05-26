@@ -229,14 +229,19 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
 void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
                               const struct freertos_sockaddr * pxDestinationAddress )
 {
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
-    UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_t * pxUDPPacket;
 
-    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = pxDestinationAddress->sin_address.ulIP_IPv4;
-    /* Map the UDP packet onto the start of the frame. */
-    pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    if( ( pxNetworkBuffer != NULL ) && ( pxDestinationAddress != NULL ) )
+    {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+        pxNetworkBuffer->xIPAddress.ulIP_IPv4 = pxDestinationAddress->sin_address.ulIP_IPv4;
+        /* Map the UDP packet onto the start of the frame. */
+        pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    }
 
     return NULL;
 }
@@ -253,7 +258,7 @@ size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
 {
     size_t uxPayloadOffset = 0;
 
-    if( pxSourceAddress != NULL )
+    if( ( pxNetworkBuffer != NULL ) && ( pxSourceAddress != NULL ) )
     {
         pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
         pxSourceAddress->sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
