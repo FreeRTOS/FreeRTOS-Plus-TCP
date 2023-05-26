@@ -117,7 +117,7 @@ void tearDown( void )
     hook_called = pdFALSE;
 }
 
-/* =============================  TEST MACROS  ============================== */
+/* =============================  TEST MACROS  =============================== */
 #define ASSERT_DNS_QUERY_HOOK_CALLED()            \
     do {                                          \
         TEST_ASSERT_EQUAL( pdTRUE, hook_called ); \
