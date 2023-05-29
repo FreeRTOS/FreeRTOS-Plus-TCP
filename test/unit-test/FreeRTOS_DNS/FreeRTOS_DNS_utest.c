@@ -52,30 +52,24 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+#include "FreeRTOS_DNS_stubs.c"
+
+/* ===========================  EXTERN VARIABLES  =========================== */
 
 #define LLMNR_ADDRESS     "freertos"
 #define GOOD_ADDRESS      "www.freertos.org"
 #define BAD_ADDRESS       "this is a bad address"
-#define DOTTED_ADDRESS    "192.268.0.1"
+#define DOTTED_IPV4_ADDRESS    "192.168.0.1"
+#define DOTTED_IPV4_ADDRESS_UINT32    ( 0x0100A8C0 )
+#define DOTTED_IPv6_ADDRESS    "2001::1"
+
+IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                 void * /* pvSearchID */,
                                 struct freertos_addrinfo * /* pxAddressInfo */ );
 
-/* ===========================   GLOBAL VARIABLES =========================== */
-static int callback_called = 0;
-
-
-/* ===========================  STATIC FUNCTIONS  =========================== */
-static void dns_callback( const char * pcName,
-                          void * pvSearchID,
-                          uint32_t ulIPAddress )
-{
-    callback_called = 1;
-}
-
-
-/* ============================  TEST FIXTURES  ============================= */
+/* ============================  Unity Fixtures  ============================ */
 
 /**
  * @brief calls at the beginning of each test case
@@ -85,14 +79,7 @@ void setUp( void )
     callback_called = 0;
 }
 
-/**
- * @brief calls at the end of each test case
- */
-void tearDown( void )
-{
-}
-
-/* =============================  TEST CASES  =============================== */
+/* ============================== Test Cases ============================== */
 
 /**
  * @brief Ensures all corresponding initialisation modules are called
@@ -175,11 +162,11 @@ void test_FreeRTOS_gethostbyname_success_dot_address( void )
 {
     uint32_t ret;
 
-    FreeRTOS_inet_addr_ExpectAndReturn( DOTTED_ADDRESS, 12345 );
+    FreeRTOS_inet_addr_ExpectAndReturn( DOTTED_IPV4_ADDRESS, 12345 );
 
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
     ulChar2u32_IgnoreAndReturn( 12345 );
-    ret = FreeRTOS_gethostbyname( DOTTED_ADDRESS );
+    ret = FreeRTOS_gethostbyname( DOTTED_IPV4_ADDRESS );
     TEST_ASSERT_EQUAL( 12345, ret );
 }
 
@@ -715,4 +702,217 @@ void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
 
     free( xNetworkBuffer.pucEthernetBuffer - ipBUFFER_PADDING );
     free( xReceiveBuffer.pucPayloadBuffer );
+}
+
+/**
+ * @brief NULL input
+ */
+void test_FreeRTOS_getaddrinfo_NullInput( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = FreeRTOS_getaddrinfo( "Domain", "Service", NULL, NULL );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+}
+
+/**
+ * @brief Unknown family in preferences
+ */
+void test_FreeRTOS_getaddrinfo_a_UnknownHintFamily( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+
+    xHint.ai_family = FREERTOS_AF_INET6 + 1;
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    TEST_ASSERT_EQUAL( NULL, pxAddress );
+}
+
+/**
+ * @brief IP address found with IPv4 address input
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv4AddressFound( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+
+    xHint.ai_family = FREERTOS_AF_INET4;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( DOTTED_IPV4_ADDRESS, DOTTED_IPV4_ADDRESS_UINT32 );
+    ulChar2u32_IgnoreAndReturn( DOTTED_IPV4_ADDRESS_UINT32 );
+
+    xReturn = FreeRTOS_getaddrinfo_a( DOTTED_IPV4_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL( FREERTOS_AF_INET4, pxAddress->ai_family );
+    TEST_ASSERT_EQUAL( DOTTED_IPV4_ADDRESS_UINT32, FreeRTOS_htonl( pxAddress->ai_addr->sin_address.ulIP_IPv4 ) );
+    TEST_ASSERT_EQUAL( ipSIZE_OF_IPv4_ADDRESS, pxAddress->ai_addrlen );
+}
+
+/**
+ * @brief IP address found with IPv6 address input
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv6AddressFound( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+
+    xHint.ai_family = FREERTOS_AF_INET6;
+
+    FreeRTOS_inet_pton6_ExpectAndReturn( DOTTED_IPv6_ADDRESS, NULL, 1 );
+    FreeRTOS_inet_pton6_IgnoreArg_pvDestination();
+    FreeRTOS_inet_pton6_ReturnMemThruPtr_pvDestination( &xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xReturn = FreeRTOS_getaddrinfo_a( DOTTED_IPv6_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, pxAddress->ai_family );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, pxAddress->ai_addr->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( ipSIZE_OF_IPv6_ADDRESS, pxAddress->ai_addrlen );
+}
+
+/**
+ * @brief IP address found with IPv4 domain input
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv4DomainCacheFound( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xExpectedAddress, * pxExpectedAddress = &xExpectedAddress;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
+
+    xExpectedAddress.ai_family = FREERTOS_AF_INET4;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, DOTTED_IPV4_ADDRESS_UINT32 );
+    Prepare_CacheLookup_ReturnMemThruPtr_ppxAddressInfo( &pxExpectedAddress, sizeof( struct freertos_addrinfo ) );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", NULL, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL( FREERTOS_AF_INET4, pxAddress->ai_family );
+}
+
+/**
+ * @brief IP address found with IPv6 domain input
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv6DomainCacheFound( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xExpectedAddress, * pxExpectedAddress = &xExpectedAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
+
+    xHint.ai_family = FREERTOS_AF_INET6;
+
+    xExpectedAddress.ai_family = FREERTOS_AF_INET6;
+
+    FreeRTOS_inet_pton6_ExpectAndReturn( GOOD_ADDRESS, NULL, 0 );
+    FreeRTOS_inet_pton6_IgnoreArg_pvDestination();
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 1 );
+    Prepare_CacheLookup_ReturnMemThruPtr_ppxAddressInfo( &pxExpectedAddress, sizeof( struct freertos_addrinfo ) );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( 0, xReturn );
+    TEST_ASSERT_EQUAL( 1, callback_called );
+    TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, pxAddress->ai_family );
+}
+
+/**
+ * @brief IP address not found with IPv4 domain input. But we get unique identifier from random.
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv4DomainCacheMiss_Random( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    uint32_t ulRandom = 0x1234U;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
+    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    DNS_CreateSocket_ExpectAndReturn( 0U, NULL );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", NULL, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
+}
+
+/**
+ * @brief IP address not found with IPv6 domain input. But we get unique identifier from random.
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv6DomainCacheMiss_Random( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+    uint32_t ulRandom = 0x1234U;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+
+    xHint.ai_family = FREERTOS_AF_INET6;
+
+    FreeRTOS_inet_pton6_ExpectAndReturn( GOOD_ADDRESS, NULL, 0 );
+    FreeRTOS_inet_pton6_IgnoreArg_pvDestination();
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
+    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    DNS_CreateSocket_ExpectAndReturn( 0U, NULL );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
+}
+
+/**
+ * @brief IP address found with IPv4 domain input but the address returned is NULL.
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv4DomainCacheFoundButNull( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xExpectedAddress, * pxExpectedAddress = &xExpectedAddress;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
+
+    xExpectedAddress.ai_family = FREERTOS_AF_INET4;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, DOTTED_IPV4_ADDRESS_UINT32 );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", NULL, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOMEM, xReturn );
 }
