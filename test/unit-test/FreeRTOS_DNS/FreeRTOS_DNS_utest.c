@@ -836,7 +836,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6DomainCacheFound( void )
     FreeRTOS_inet_pton6_ExpectAndReturn( GOOD_ADDRESS, NULL, 0 );
     FreeRTOS_inet_pton6_IgnoreArg_pvDestination();
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 1 );
-    Prepare_CacheLookup_ReturnMemThruPtr_ppxAddressInfo( &pxExpectedAddress, sizeof( struct freertos_addrinfo ) );
+    Prepare_CacheLookup_ReturnThruPtr_ppxAddressInfo( &pxExpectedAddress );
 
     xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
 

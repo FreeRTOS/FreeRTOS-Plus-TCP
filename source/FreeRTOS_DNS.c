@@ -523,10 +523,11 @@
                     case FREERTOS_AF_INET:
                         ulIPAddress = FreeRTOS_inet_addr( pcHostName );
 
-                        if( ( ulIPAddress != 0U ) && ( ppxAddressInfo != NULL ) )
+                        if( ulIPAddress != 0U )
                         {
                             const uint8_t * ucBytes = ( uint8_t * ) &( ulIPAddress );
 
+                            /* Since ppxAddressInfo is checked before entering this function, we don't need to check it again. */
                             *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET4, ucBytes );
                         }
                         break;
@@ -556,10 +557,10 @@
                        break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                default:
+                default: /* LCOV_EXCL_BR_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "prvPrepare_ReadIPAddress: Undefined xFamily Type \n" ) );
-                    break;
+                    break; /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
             }
 
             return ulIPAddress;
@@ -656,7 +657,7 @@
                     if( ulIPAddress != 0UL )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            if( ( ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
+                            if( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
                                                    pcHostName, ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
@@ -698,7 +699,7 @@
                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                             }
                         }
-                        else if( ppxAddressInfo != NULL )
+                        else
                         {
                             /* The IP address is known, do the call-back now. */
                             pCallbackFunction( pcHostName, pvSearchID, *( ppxAddressInfo ) );
