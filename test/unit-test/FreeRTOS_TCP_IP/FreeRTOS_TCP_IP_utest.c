@@ -176,7 +176,7 @@ void test_vSocketListenNextTime2( void )
 /**
  * @brief Test the functionality to Postpone a call
  *        to FreeRTOS_listen() to avoid recursive calls
- *        when all inputes are set to zero.
+ *        when all inputs are set to zero.
  */
 void test_xTCPSocketCheck_AllInputsZero1( void )
 {
