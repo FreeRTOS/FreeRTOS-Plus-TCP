@@ -77,6 +77,7 @@ typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
 void setUp( void )
 {
     callback_called = 0;
+    isMallocFail = false;
 }
 
 /* ============================== Test Cases ============================== */
@@ -915,4 +916,30 @@ void test_FreeRTOS_getaddrinfo_a_IPv4DomainCacheFoundButNull( void )
     xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", NULL, &pxAddress, dns_callback, NULL, 0U );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOMEM, xReturn );
+}
+
+/**
+ * @brief No memory available for malloc.
+ */
+void test_pxNew_AddrInfo_MallocFail( void )
+{
+    struct freertos_addrinfo * pxAddress;
+
+    isMallocFail = true;
+
+    pxAddress = pxNew_AddrInfo( GOOD_ADDRESS, FREERTOS_AF_INET4, NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pxAddress );
+}
+
+/**
+ * @brief Unknown family input.
+ */
+void test_pxNew_AddrInfo_UnknownFamily( void )
+{
+    struct freertos_addrinfo * pxAddress;
+
+    pxAddress = pxNew_AddrInfo( GOOD_ADDRESS, FREERTOS_AF_INET4 + 1, NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pxAddress );
 }

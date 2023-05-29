@@ -312,6 +312,10 @@
                 default:
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "pxNew_AddrInfo: Undefined xFamily Type \n" ) );
+                    
+                    vPortFree( pvBuffer );
+                    pxAddrInfo = NULL;
+
                     break;
             }
         }

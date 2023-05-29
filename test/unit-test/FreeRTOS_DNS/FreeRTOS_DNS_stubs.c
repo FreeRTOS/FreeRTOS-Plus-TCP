@@ -43,6 +43,7 @@
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 int callback_called = 0;
+bool isMallocFail = false;
 
 /* ======================== Stub Callback Functions ========================= */
 
@@ -55,7 +56,14 @@ void dns_callback( const char * pcName,
 
 void * pvPortMalloc( size_t xNeeded )
 {
-    return malloc( xNeeded );
+    void * pvReturn = NULL;
+
+    if( isMallocFail != true )
+    {
+        pvReturn = malloc( xNeeded );
+    }
+
+    return pvReturn;
 }
 
 void vPortFree( void * ptr )
