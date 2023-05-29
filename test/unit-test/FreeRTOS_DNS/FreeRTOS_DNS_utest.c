@@ -943,3 +943,11 @@ void test_pxNew_AddrInfo_UnknownFamily( void )
 
     TEST_ASSERT_EQUAL( NULL, pxAddress );
 }
+
+/**
+ * @brief Input with NULL pointer.
+ */
+void test_FreeRTOS_freeaddrinfo_NullInput( void )
+{
+    FreeRTOS_freeaddrinfo( NULL );
+}
