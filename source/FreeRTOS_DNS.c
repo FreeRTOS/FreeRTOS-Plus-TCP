@@ -517,7 +517,7 @@
             ( void ) xFamily;
 
             /* Check if the hostname given is actually an IP-address. */
-            switch( xFamily )
+            switch( xFamily ) /* LCOV_EXCL_BR_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
             {
                 #if ( ipconfigUSE_IPv4 != 0 )
                     case FREERTOS_AF_INET:
@@ -548,16 +548,14 @@
                                 * in case of an IPv6 lookup, it will return a non-zero */
                                ulIPAddress = 1U;
 
-                               if( ppxAddressInfo != NULL )
-                               {
-                                   *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET6, xAddress_IPv6.ucBytes );
-                               }
+                                /* Since ppxAddressInfo is checked before entering this function, we don't need to check it again. */
+                                *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET6, xAddress_IPv6.ucBytes );
                            }
                        }
                        break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                default: /* LCOV_EXCL_BR_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
+                default: /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "prvPrepare_ReadIPAddress: Undefined xFamily Type \n" ) );
                     break; /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
@@ -896,7 +894,7 @@
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
 
-                        switch( xDNS_IP_Preference )
+                        switch( xDNS_IP_Preference ) /* LCOV_EXCL_BR_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
                         {
                             #if ( ipconfigUSE_IPv4 != 0 )
                                 case xPreferenceIPv4:
@@ -914,10 +912,10 @@
                                     break;
                             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                            default:
+                            default: /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
                                 /* MISRA 16.4 Compliance */
                                 FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference \n" ) );
-                                break;
+                                break; /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
                         }
                     }
                 }
@@ -969,7 +967,7 @@
                         #if ( ipconfigUSE_IPv6 != 0 )
                             if( xDNS_IP_Preference == xPreferenceIPv6 )
                             {
-                                if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                                if( pxEndPoint->bits.bIPv6 != 0U )
                                 {
                                     break;
                                 }
@@ -977,7 +975,7 @@
                             else
                             {
                                 #if ( ipconfigUSE_IPv4 != 0 )
-                                    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                                    if( pxEndPoint->bits.bIPv6 == 0U )
                                     {
                                         break;
                                     }
@@ -1005,7 +1003,7 @@
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case xPreferenceIPv4:
 
-                            if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                            if( pxEndPoint->bits.bIPv6 == 0U )
                             {
                                 uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
@@ -1025,7 +1023,7 @@
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case xPreferenceIPv6:
 
-                            if( ENDPOINT_IS_IPv6( pxEndPoint ) )
+                            if( pxEndPoint->bits.bIPv6 != 0U )
                             {
                                 uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
