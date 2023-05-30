@@ -894,7 +894,7 @@
                         pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
                         xNeed_Endpoint = pdTRUE;
 
-                        switch( xDNS_IP_Preference ) /* LCOV_EXCL_BR_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
+                        switch( xDNS_IP_Preference )
                         {
                             #if ( ipconfigUSE_IPv4 != 0 )
                                 case xPreferenceIPv4:
@@ -912,10 +912,11 @@
                                     break;
                             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                            default: /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
+                            default:
                                 /* MISRA 16.4 Compliance */
+                                xNeed_Endpoint = pdFALSE;
                                 FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference \n" ) );
-                                break; /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
+                                break;
                         }
                     }
                 }
@@ -950,6 +951,7 @@
 
                             default:
                                 /* MISRA 16.4 Compliance */
+                                xNeed_Endpoint = pdFALSE;
                                 FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference (LLMNR) \n" ) );
                                 break;
                         }
