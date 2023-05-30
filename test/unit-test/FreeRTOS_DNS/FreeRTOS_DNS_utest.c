@@ -512,6 +512,35 @@ void test_ulDNSHandlePacket_fail_small_buffer2( void )
 }
 
 /**
+ * @brief Make sure function release the allocated buffer from DNS_ParseDNSReply
+ */
+void test_ulDNSHandlePacket_FreeBuffer( void )
+{
+    uint32_t ret;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    uint8_t ucEtherBuffer[ ipconfigNETWORK_MTU + ipBUFFER_PADDING ];
+    struct freertos_addrinfo * pxAddress;
+
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &ucEtherBuffer, 0, sizeof( ucEtherBuffer ) );
+
+    xNetworkBuffer.xDataLength = ipconfigNETWORK_MTU;
+
+    xNetworkBuffer.pucEthernetBuffer = ucEtherBuffer;
+    xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
+
+    pxAddress = ( struct freertos_addrinfo * ) pvPortMalloc( sizeof( struct freertos_addrinfo ) );
+    memset( pxAddress, 0, sizeof( struct freertos_addrinfo ) );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    DNS_ParseDNSReply_ExpectAnyArgsAndReturn( 0 );
+    DNS_ParseDNSReply_ReturnThruPtr_ppxAddressInfo( &pxAddress );
+
+    ret = ulDNSHandlePacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( pdFAIL, ret );
+}
+
+/**
  * @brief Functions always returns pdFAIL
  * @warning Function not really tested besides code coverage
  */
