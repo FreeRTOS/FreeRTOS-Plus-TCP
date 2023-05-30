@@ -134,7 +134,7 @@ void test_FreeRTOS_gethostbyname_FailAllocateNetworkBuffer( void )
 /**
  * @brief ensure that when a NULL address is received a zero is returned
  */
-void test_FreeRTOS_gethostbyname_fail_NULL_address( void )
+void test_FreeRTOS_gethostbyname_FailNullAddress( void )
 {
     uint32_t ret;
 
@@ -146,7 +146,7 @@ void test_FreeRTOS_gethostbyname_fail_NULL_address( void )
  * @brief ensure that when the function receives a long (longer than
  *        ipconfigDNS_CACHE_NAME_LENGTH ) hostname, a zero is returned
  */
-void test_FreeRTOS_gethostbyname_fail_long_address( void )
+void test_FreeRTOS_gethostbyname_FailLongAddress( void )
 {
     uint32_t ret;
     char address[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ];
@@ -163,7 +163,7 @@ void test_FreeRTOS_gethostbyname_fail_long_address( void )
  * @brief Ensures that when the supplied address is in the dotted format, it is
  *        translated to the numerical form and no lookup is performed
  */
-void test_FreeRTOS_gethostbyname_success_dot_address( void )
+void test_FreeRTOS_gethostbyname_SuccessDotAddress( void )
 {
     uint32_t ret;
 
@@ -177,9 +177,9 @@ void test_FreeRTOS_gethostbyname_success_dot_address( void )
 
 /**
  * @brief Ensures that if the address is not in the dotted form and found in the cache,
- * it is returned to the caller
+ *        it is returned to the caller
  */
-void test_FreeRTOS_gethostbyname_success_address_in_cache( void )
+void test_FreeRTOS_gethostbyname_SuccessAddressInCache( void )
 {
     uint32_t ret;
 
@@ -194,7 +194,7 @@ void test_FreeRTOS_gethostbyname_success_address_in_cache( void )
 /**
  * @brief Ensures that the code can handle when the client can't create a socket
  */
-void test_FreeRTOS_gethostbyname_fail_NULL_socket( void )
+void test_FreeRTOS_gethostbyname_FailNullSocket( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -215,7 +215,7 @@ void test_FreeRTOS_gethostbyname_fail_NULL_socket( void )
  * @brief Ensures that when the dns request fails the function returns zero to
  *        the caller
  */
-void test_FreeRTOS_gethostbyname_fail_send_dns_request( void )
+void test_FreeRTOS_gethostbyname_FailSendDNSRequest( void )
 {
     int i;
     uint32_t ret;
@@ -271,7 +271,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_request( void )
  * @brief Ensures when reading the dns reply fails, the test would try the set
  *        number of times, and return zero to the caller
  */
-void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
+void test_FreeRTOS_gethostbyname_FailReadDNSReplyNull( void )
 {
     uint32_t ret;
     int i;
@@ -326,7 +326,7 @@ void test_FreeRTOS_gethostbyname_fail_read_dns_reply_null( void )
 /**
  * @brief Ensure that a bad parse of a DNS packet causes the return to be zero
  */
-void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
+void test_FreeRTOS_gethostbyname_FailSendDNSReplyZero( void )
 {
     int i;
     uint32_t ret;
@@ -390,7 +390,7 @@ void test_FreeRTOS_gethostbyname_fail_send_dns_reply_zero( void )
  * @brief Successful case, Ensures that the parsed DNS packet's IP address is
  *        returned to the caller
  */
-void test_FreeRTOS_gethostbyname_succes( void )
+void test_FreeRTOS_gethostbyname_Success( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -455,7 +455,7 @@ void test_FreeRTOS_gethostbyname_succes( void )
  *        pdFAIL
  * @warning Function not really tested besides code coverage
  */
-void test_ulDNSHandlePacket_success( void )
+void test_ulDNSHandlePacket_Success( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -476,7 +476,7 @@ void test_ulDNSHandlePacket_success( void )
  * @brief This function always returns pdFAIL
  * @warning Function not really tested besides code coverage
  */
-void test_ulDNSHandlePacket_fail_small_buffer( void )
+void test_ulDNSHandlePacket_FailSmallBuffer( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -496,7 +496,7 @@ void test_ulDNSHandlePacket_fail_small_buffer( void )
  *        coverage
  * @warning Function not really tested besides code coverage
  */
-void test_ulDNSHandlePacket_fail_small_buffer2( void )
+void test_ulDNSHandlePacket_FailSmallBuffer2( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -544,7 +544,7 @@ void test_ulDNSHandlePacket_FreeBuffer( void )
  * @brief Functions always returns pdFAIL
  * @warning Function not really tested besides code coverage
  */
-void test_ulNBNSHandlePacket_success( void )
+void test_ulNBNSHandlePacket_Success( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -565,7 +565,7 @@ void test_ulNBNSHandlePacket_success( void )
  * @brief Functions always returns pdFAIL
  * @warning Function not really tested besides code coverage
  */
-void test_ulNBNSHandlePacket_fail_small_buffer( void )
+void test_ulNBNSHandlePacket_FailSmallBuffer( void )
 {
     uint32_t ret;
     NetworkBufferDescriptor_t xNetworkBuffer;
@@ -585,7 +585,7 @@ void test_ulNBNSHandlePacket_fail_small_buffer( void )
 /**
  * @brief Ensures that vDNSCheckCallback is called
  */
-void test_FreeRTOS_gethostbyname_cancel_success( void )
+void test_FreeRTOS_gethostbyname_CancelSuccess( void )
 {
     void * pvSearchID = NULL;
 
@@ -599,7 +599,7 @@ void test_FreeRTOS_gethostbyname_cancel_success( void )
  *        cache, the application support random number generation,
  *        the callback function is set
  */
-void test_FreeRTOS_gethostbyname_a_set_callback( void )
+void test_FreeRTOS_gethostbyname_a_SetCallback( void )
 {
     uint32_t ret;
     int pvSearchID = 32;
@@ -624,7 +624,7 @@ void test_FreeRTOS_gethostbyname_a_set_callback( void )
  * @brief Ensures that if the application has no random number generation
  *        support, and ip is zero, no action is performed
  */
-void test_FreeRTOS_gethostbyname_a_no_set_callback( void )
+void test_FreeRTOS_gethostbyname_a_NoSetCallback( void )
 {
     uint32_t ret;
     int pvSearchID = 32;
@@ -647,7 +647,7 @@ void test_FreeRTOS_gethostbyname_a_no_set_callback( void )
  * @brief Ensures that if the function receives a callback, and ip address is
  *        not zero, the callback is called
  */
-void test_FreeRTOS_gethostbyname_a_callback( void )
+void test_FreeRTOS_gethostbyname_a_Callback( void )
 {
     uint32_t ret;
     int pvSearchID = 32;
@@ -669,7 +669,7 @@ void test_FreeRTOS_gethostbyname_a_callback( void )
  *        asynchronous mode, and only one retry is performed by calling
  *        prvGetHostByNameOp instead of prvGetHostByNameOp_WithRetry
  */
-void test_FreeRTOS_gethostbyname_a_no_callback_retry_once( void )
+void test_FreeRTOS_gethostbyname_a_NoCallbackRetryOnce( void )
 {
     uint32_t ret;
     uint32_t ulNumber = 34;
@@ -971,6 +971,64 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_EndPointNotFound( void )
 }
 
 /**
+ * @brief IPv4 socket bind fail with domain name containing dot
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWithDot( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+    uint32_t ulRandom = 0x1234U;
+    struct xSOCKET xDNSSocket;
+    NetworkEndPoint_t xEndPoint[4];
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
+    memset( &xEndPoint[0], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[1], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[2], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[3], 0, sizeof( NetworkEndPoint_t ) );
+
+    xEndPoint[0].bits.bIPv6 = pdTRUE;
+
+    xEndPoint[1].bits.bIPv6 = pdFALSE;
+    xEndPoint[1].ipv4_settings.ucDNSIndex = 0;
+    xEndPoint[1].ipv4_settings.ulDNSServerAddresses[0] = 0U;
+
+    xEndPoint[2].bits.bIPv6 = pdFALSE;
+    xEndPoint[2].ipv4_settings.ucDNSIndex = 0;
+    xEndPoint[2].ipv4_settings.ulDNSServerAddresses[0] = ipBROADCAST_IP_ADDRESS;
+
+    xEndPoint[3].bits.bIPv6 = pdFALSE;
+    xEndPoint[3].ipv4_settings.ucDNSIndex = 0;
+    xEndPoint[3].ipv4_settings.ulDNSServerAddresses[0] = DOTTED_IPV4_ADDRESS_UINT32;
+
+    xHint.ai_family = FREERTOS_AF_INET4;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
+    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+
+    /* In prvGetHostByName */
+    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
+    /* In prvGetHostByNameOp */
+    /* In prvFillSockAddress */
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[0] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[0], &xEndPoint[1] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[1], &xEndPoint[2] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[2], &xEndPoint[3] );
+    DNS_BindSocket_ExpectAndReturn( &xDNSSocket, 0U, -1 );
+    DNS_CloseSocket_Expect( &xDNSSocket );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
+}
+
+/**
  * @brief IPv6 socket bind fail with domain name containing dot
  */
 void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWithDot( void )
@@ -1031,182 +1089,6 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWithDot( void )
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[2], &xEndPoint[3] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[3], &xEndPoint[4] );
     DNS_BindSocket_ExpectAndReturn( &xDNSSocket, 0U, -1 );
-    DNS_CloseSocket_Expect( &xDNSSocket );
-
-    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
-
-    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
-}
-
-/**
- * @brief IPv4 socket bind fail with domain name containing dot
- */
-void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWithDot( void )
-{
-    BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
-    struct freertos_addrinfo xHint, * pxHint = &xHint;
-    uint32_t ulRandom = 0x1234U;
-    struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint[4];
-
-    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint[0], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[1], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[2], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[3], 0, sizeof( NetworkEndPoint_t ) );
-
-    xEndPoint[0].bits.bIPv6 = pdTRUE;
-
-    xEndPoint[1].bits.bIPv6 = pdFALSE;
-    xEndPoint[1].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[1].ipv4_settings.ulDNSServerAddresses[0] = 0U;
-
-    xEndPoint[2].bits.bIPv6 = pdFALSE;
-    xEndPoint[2].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[2].ipv4_settings.ulDNSServerAddresses[0] = ipBROADCAST_IP_ADDRESS;
-
-    xEndPoint[3].bits.bIPv6 = pdFALSE;
-    xEndPoint[3].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[3].ipv4_settings.ulDNSServerAddresses[0] = DOTTED_IPV4_ADDRESS_UINT32;
-
-    xHint.ai_family = FREERTOS_AF_INET4;
-
-    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
-    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
-
-    /* In prvGetHostByName */
-    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
-    /* In prvGetHostByNameOp */
-    /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[0] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[0], &xEndPoint[1] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[1], &xEndPoint[2] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[2], &xEndPoint[3] );
-    DNS_BindSocket_ExpectAndReturn( &xDNSSocket, 0U, -1 );
-    DNS_CloseSocket_Expect( &xDNSSocket );
-
-    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
-
-    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
-}
-
-/**
- * @brief Assertion happens when DNS server index is equal to or greater than maximum.
- */
-void test_FreeRTOS_getaddrinfo_a_IPv4Random_InvalidDNSServerIndex( void )
-{
-    BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
-    struct freertos_addrinfo xHint, * pxHint = &xHint;
-    uint32_t ulRandom = 0x1234U;
-    struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint;
-
-    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-
-    xEndPoint.bits.bIPv6 = pdFALSE;
-    xEndPoint.ipv4_settings.ucDNSIndex = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
-
-    xHint.ai_family = FREERTOS_AF_INET4;
-
-    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
-    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
-
-    /* In prvGetHostByName */
-    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
-    /* In prvGetHostByNameOp */
-    /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
-
-    catch_assert( FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U ) );
-}
-
-/**
- * @brief Assertion happens when DNS server index is equal to or greater than maximum.
- */
-void test_FreeRTOS_getaddrinfo_a_IPv6Random_InvalidDNSServerIndex( void )
-{
-    BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
-    struct freertos_addrinfo xHint, * pxHint = &xHint;
-    uint32_t ulRandom = 0x1234U;
-    struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint;
-
-    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-
-    xEndPoint.bits.bIPv6 = pdTRUE;
-    xEndPoint.ipv6_settings.ucDNSIndex = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
-
-    xHint.ai_family = FREERTOS_AF_INET6;
-
-    FreeRTOS_inet_pton6_ExpectAndReturn( GOOD_ADDRESS, NULL, 0 );
-    FreeRTOS_inet_pton6_IgnoreArg_pvDestination();
-    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
-    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
-
-    /* In prvGetHostByName */
-    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
-    /* In prvGetHostByNameOp */
-    /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
-
-    catch_assert( FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U ) );
-}
-
-/**
- * @brief Run DNS query with unknown DNS preference
- */
-void test_FreeRTOS_getaddrinfo_a_IPv4Random_UnknownPreference( void )
-{
-    BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
-    struct freertos_addrinfo xHint, * pxHint = &xHint;
-    uint32_t ulRandom = 0x1234U;
-    struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint;
-
-    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
-    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-
-    xEndPoint.bits.bIPv6 = pdFALSE;
-    xEndPoint.ipv6_settings.ucDNSIndex = 0;
-
-    xHint.ai_family = FREERTOS_AF_INET4;
-
-    xDNS_IP_Preference = xPreferenceNone;
-
-    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
-    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
-    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
-    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
-
-    /* In prvGetHostByName */
-    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
-    /* In prvGetHostByNameOp */
-    /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
     DNS_CloseSocket_Expect( &xDNSSocket );
 
     xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
@@ -1302,6 +1184,124 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWODot( void )
     DNS_CloseSocket_Expect( &xDNSSocket );
 
     xReturn = FreeRTOS_getaddrinfo_a( LLMNR_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
+}
+
+/**
+ * @brief Assertion happens when DNS server index is equal to or greater than maximum in IPv4 endpoint.
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv4Random_InvalidDNSServerIndex( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+    uint32_t ulRandom = 0x1234U;
+    struct xSOCKET xDNSSocket;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    xEndPoint.bits.bIPv6 = pdFALSE;
+    xEndPoint.ipv4_settings.ucDNSIndex = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
+
+    xHint.ai_family = FREERTOS_AF_INET4;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
+    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+
+    /* In prvGetHostByName */
+    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
+    /* In prvGetHostByNameOp */
+    /* In prvFillSockAddress */
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+
+    catch_assert( FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U ) );
+}
+
+/**
+ * @brief Assertion happens when DNS server index is equal to or greater than maximum in IPv6 endpoint.
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv6Random_InvalidDNSServerIndex( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+    uint32_t ulRandom = 0x1234U;
+    struct xSOCKET xDNSSocket;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.ipv6_settings.ucDNSIndex = ipconfigENDPOINT_DNS_ADDRESS_COUNT;
+
+    xHint.ai_family = FREERTOS_AF_INET6;
+
+    FreeRTOS_inet_pton6_ExpectAndReturn( GOOD_ADDRESS, NULL, 0 );
+    FreeRTOS_inet_pton6_IgnoreArg_pvDestination();
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
+    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+
+    /* In prvGetHostByName */
+    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
+    /* In prvGetHostByNameOp */
+    /* In prvFillSockAddress */
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+
+    catch_assert( FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U ) );
+}
+
+/**
+ * @brief Run DNS query with unknown DNS preference
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv4Random_UnknownPreference( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+    uint32_t ulRandom = 0x1234U;
+    struct xSOCKET xDNSSocket;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    xEndPoint.bits.bIPv6 = pdFALSE;
+    xEndPoint.ipv6_settings.ucDNSIndex = 0;
+
+    xHint.ai_family = FREERTOS_AF_INET4;
+
+    xDNS_IP_Preference = xPreferenceNone;
+
+    FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
+    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+
+    /* In prvGetHostByName */
+    DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
+    /* In prvGetHostByNameOp */
+    /* In prvFillSockAddress */
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+    DNS_CloseSocket_Expect( &xDNSSocket );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
 }
