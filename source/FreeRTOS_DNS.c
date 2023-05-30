@@ -1314,7 +1314,7 @@
                       ( xBytes == 0 ) ) )
                 {
                     /* This search timed out, next time try with a different DNS. */
-                    switch( xAddress.sin_family )
+                    switch( xAddress.sin_family ) /* LCOV_EXCL_BR_LINE - This is filled by static function, default case is impossible to reach. */
                     {
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case FREERTOS_AF_INET:
@@ -1328,10 +1328,10 @@
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                        default:
+                        default: /* LCOV_EXCL_LINE - This is filled by static function, default case is impossible to reach. */
                             /* MISRA 16.4 Compliance */
                             FreeRTOS_debug_printf( ( "prvGetHostByNameOp: Undefined sin_family \n" ) );
-                            break;
+                            break; /* LCOV_EXCL_LINE - This is filled by static function, default case is impossible to reach. */
                     }
                 }
 
