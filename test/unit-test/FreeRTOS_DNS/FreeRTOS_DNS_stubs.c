@@ -48,8 +48,8 @@ bool isMallocFail = false;
 /* ======================== Stub Callback Functions ========================= */
 
 void dns_callback( const char * pcName,
-                          void * pvSearchID,
-                          struct freertos_addrinfo * pxAddress )
+                   void * pvSearchID,
+                   struct freertos_addrinfo * pxAddress )
 {
     callback_called = 1;
 }

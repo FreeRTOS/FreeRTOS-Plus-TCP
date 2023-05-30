@@ -312,7 +312,7 @@
                 default:
                     /* MISRA 16.4 Compliance */
                     FreeRTOS_debug_printf( ( "pxNew_AddrInfo: Undefined xFamily Type \n" ) );
-                    
+
                     vPortFree( pvBuffer );
                     pxAddrInfo = NULL;
 
@@ -548,8 +548,8 @@
                                 * in case of an IPv6 lookup, it will return a non-zero */
                                ulIPAddress = 1U;
 
-                                /* Since ppxAddressInfo is checked before entering this function, we don't need to check it again. */
-                                *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET6, xAddress_IPv6.ucBytes );
+                               /* Since ppxAddressInfo is checked before entering this function, we don't need to check it again. */
+                               *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET6, xAddress_IPv6.ucBytes );
                            }
                        }
                        break;

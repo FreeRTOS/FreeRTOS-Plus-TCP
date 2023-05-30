@@ -56,20 +56,20 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define LLMNR_ADDRESS     "freertos"
-#define LOCAL_ADDRESS      "freertos.local"
-#define GOOD_ADDRESS      "www.freertos.org"
-#define BAD_ADDRESS       "this is a bad address"
-#define DOTTED_IPV4_ADDRESS    "192.168.0.1"
+#define LLMNR_ADDRESS                 "freertos"
+#define LOCAL_ADDRESS                 "freertos.local"
+#define GOOD_ADDRESS                  "www.freertos.org"
+#define BAD_ADDRESS                   "this is a bad address"
+#define DOTTED_IPV4_ADDRESS           "192.168.0.1"
 #define DOTTED_IPV4_ADDRESS_UINT32    ( 0x0100A8C0 )
-#define DOTTED_IPv6_ADDRESS    "2001::1"
+#define DOTTED_IPv6_ADDRESS           "2001::1"
 
 IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
 typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                 void * /* pvSearchID */,
                                 struct freertos_addrinfo * /* pxAddressInfo */ );
-                            
+
 extern IPPreference_t xDNS_IP_Preference;
 
 /* ============================  Unity Fixtures  ============================ */
@@ -980,29 +980,29 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWithDot( void )
     struct freertos_addrinfo xHint, * pxHint = &xHint;
     uint32_t ulRandom = 0x1234U;
     struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint[4];
+    NetworkEndPoint_t xEndPoint[ 4 ];
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint[0], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[1], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[2], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[3], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 2 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 3 ], 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndPoint[0].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 0 ].bits.bIPv6 = pdTRUE;
 
-    xEndPoint[1].bits.bIPv6 = pdFALSE;
-    xEndPoint[1].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[1].ipv4_settings.ulDNSServerAddresses[0] = 0U;
+    xEndPoint[ 1 ].bits.bIPv6 = pdFALSE;
+    xEndPoint[ 1 ].ipv4_settings.ucDNSIndex = 0;
+    xEndPoint[ 1 ].ipv4_settings.ulDNSServerAddresses[ 0 ] = 0U;
 
-    xEndPoint[2].bits.bIPv6 = pdFALSE;
-    xEndPoint[2].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[2].ipv4_settings.ulDNSServerAddresses[0] = ipBROADCAST_IP_ADDRESS;
+    xEndPoint[ 2 ].bits.bIPv6 = pdFALSE;
+    xEndPoint[ 2 ].ipv4_settings.ucDNSIndex = 0;
+    xEndPoint[ 2 ].ipv4_settings.ulDNSServerAddresses[ 0 ] = ipBROADCAST_IP_ADDRESS;
 
-    xEndPoint[3].bits.bIPv6 = pdFALSE;
-    xEndPoint[3].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[3].ipv4_settings.ulDNSServerAddresses[0] = DOTTED_IPV4_ADDRESS_UINT32;
+    xEndPoint[ 3 ].bits.bIPv6 = pdFALSE;
+    xEndPoint[ 3 ].ipv4_settings.ucDNSIndex = 0;
+    xEndPoint[ 3 ].ipv4_settings.ulDNSServerAddresses[ 0 ] = DOTTED_IPV4_ADDRESS_UINT32;
 
     xHint.ai_family = FREERTOS_AF_INET4;
 
@@ -1016,10 +1016,10 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWithDot( void )
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
     /* In prvGetHostByNameOp */
     /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[0] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[0], &xEndPoint[1] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[1], &xEndPoint[2] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[2], &xEndPoint[3] );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ], &xEndPoint[ 1 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 1 ], &xEndPoint[ 2 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 2 ], &xEndPoint[ 3 ] );
     DNS_BindSocket_ExpectAndReturn( &xDNSSocket, 0U, -1 );
     DNS_CloseSocket_Expect( &xDNSSocket );
 
@@ -1038,37 +1038,37 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWithDot( void )
     struct freertos_addrinfo xHint, * pxHint = &xHint;
     uint32_t ulRandom = 0x1234U;
     struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint[5];
+    NetworkEndPoint_t xEndPoint[ 5 ];
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint[0], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[1], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[2], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[3], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[4], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 2 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 3 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 4 ], 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndPoint[0].bits.bIPv6 = pdFALSE;
+    xEndPoint[ 0 ].bits.bIPv6 = pdFALSE;
 
-    xEndPoint[1].bits.bIPv6 = pdTRUE;
-    xEndPoint[1].ipv6_settings.ucDNSIndex = 0;
-    xEndPoint[1].ipv6_settings.xDNSServerAddresses[0].ucBytes[0] = 0U;
-    xEndPoint[1].ipv6_settings.xDNSServerAddresses[0].ucBytes[1] = 1U;
+    xEndPoint[ 1 ].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 1 ].ipv6_settings.ucDNSIndex = 0;
+    xEndPoint[ 1 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes[ 0 ] = 0U;
+    xEndPoint[ 1 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes[ 1 ] = 1U;
 
-    xEndPoint[2].bits.bIPv6 = pdTRUE;
-    xEndPoint[2].ipv6_settings.ucDNSIndex = 0;
-    xEndPoint[2].ipv6_settings.xDNSServerAddresses[0].ucBytes[0] = 1U;
-    xEndPoint[2].ipv6_settings.xDNSServerAddresses[0].ucBytes[1] = 0U;
+    xEndPoint[ 2 ].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 2 ].ipv6_settings.ucDNSIndex = 0;
+    xEndPoint[ 2 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes[ 0 ] = 1U;
+    xEndPoint[ 2 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes[ 1 ] = 0U;
 
-    xEndPoint[3].bits.bIPv6 = pdTRUE;
-    xEndPoint[3].ipv6_settings.ucDNSIndex = 0;
-    xEndPoint[3].ipv6_settings.xDNSServerAddresses[0].ucBytes[0] = 0U;
-    xEndPoint[3].ipv6_settings.xDNSServerAddresses[0].ucBytes[1] = 0U;
+    xEndPoint[ 3 ].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 3 ].ipv6_settings.ucDNSIndex = 0;
+    xEndPoint[ 3 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes[ 0 ] = 0U;
+    xEndPoint[ 3 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes[ 1 ] = 0U;
 
-    xEndPoint[4].bits.bIPv6 = pdTRUE;
-    xEndPoint[4].ipv6_settings.ucDNSIndex = 0;
-    memcpy( xEndPoint[4].ipv6_settings.xDNSServerAddresses[0].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xEndPoint[ 4 ].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 4 ].ipv6_settings.ucDNSIndex = 0;
+    memcpy( xEndPoint[ 4 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xHint.ai_family = FREERTOS_AF_INET6;
 
@@ -1083,11 +1083,11 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWithDot( void )
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
     /* In prvGetHostByNameOp */
     /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[0] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[0], &xEndPoint[1] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[1], &xEndPoint[2] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[2], &xEndPoint[3] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[3], &xEndPoint[4] );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ], &xEndPoint[ 1 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 1 ], &xEndPoint[ 2 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 2 ], &xEndPoint[ 3 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 3 ], &xEndPoint[ 4 ] );
     DNS_BindSocket_ExpectAndReturn( &xDNSSocket, 0U, -1 );
     DNS_CloseSocket_Expect( &xDNSSocket );
 
@@ -1106,19 +1106,19 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWODot( void )
     struct freertos_addrinfo xHint, * pxHint = &xHint;
     uint32_t ulRandom = 0x1234U;
     struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint[2];
+    NetworkEndPoint_t xEndPoint[ 2 ];
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint[0], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[1], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndPoint[0].bits.bIPv6 = pdTRUE;
+    xEndPoint[ 0 ].bits.bIPv6 = pdTRUE;
 
-    xEndPoint[1].bits.bIPv6 = pdFALSE;
-    xEndPoint[1].ipv4_settings.ucDNSIndex = 0;
-    xEndPoint[1].ipv4_settings.ulDNSServerAddresses[0] = DOTTED_IPV4_ADDRESS_UINT32;
+    xEndPoint[ 1 ].bits.bIPv6 = pdFALSE;
+    xEndPoint[ 1 ].ipv4_settings.ucDNSIndex = 0;
+    xEndPoint[ 1 ].ipv4_settings.ulDNSServerAddresses[ 0 ] = DOTTED_IPV4_ADDRESS_UINT32;
 
     xHint.ai_family = FREERTOS_AF_INET4;
 
@@ -1132,8 +1132,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWODot( void )
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
     /* In prvGetHostByNameOp */
     /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[0] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[0], &xEndPoint[1] );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ], &xEndPoint[ 1 ] );
     DNS_BindSocket_ExpectAndReturn( &xDNSSocket, 0U, -1 );
     DNS_CloseSocket_Expect( &xDNSSocket );
 
@@ -1152,18 +1152,18 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWODot( void )
     struct freertos_addrinfo xHint, * pxHint = &xHint;
     uint32_t ulRandom = 0x1234U;
     struct xSOCKET xDNSSocket;
-    NetworkEndPoint_t xEndPoint[2];
+    NetworkEndPoint_t xEndPoint[ 2 ];
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
-    memset( &xEndPoint[0], 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xEndPoint[1], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xEndPoint[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndPoint[0].bits.bIPv6 = pdFALSE;
+    xEndPoint[ 0 ].bits.bIPv6 = pdFALSE;
 
-    xEndPoint[1].bits.bIPv6 = pdTRUE;
-    memcpy( xEndPoint[1].ipv6_settings.xDNSServerAddresses[0].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xEndPoint[ 1 ].bits.bIPv6 = pdTRUE;
+    memcpy( xEndPoint[ 1 ].ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xHint.ai_family = FREERTOS_AF_INET6;
 
@@ -1178,8 +1178,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWODot( void )
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
     /* In prvGetHostByNameOp */
     /* In prvFillSockAddress */
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[0] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[0], &xEndPoint[1] );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint[ 0 ], &xEndPoint[ 1 ] );
     DNS_BindSocket_ExpectAndReturn( &xDNSSocket, 0U, -1 );
     DNS_CloseSocket_Expect( &xDNSSocket );
 
@@ -1339,7 +1339,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_DNSReplySuccess( void )
 
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.ipv6_settings.ucDNSIndex = 0;
-    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[0].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xHint.ai_family = FREERTOS_AF_INET6;
     xExpectedAddress.ai_family = FREERTOS_AF_INET6;
@@ -1423,7 +1423,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_RetryExhaust( void )
 
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.ipv6_settings.ucDNSIndex = 0;
-    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[0].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xHint.ai_family = FREERTOS_AF_INET6;
     xExpectedAddress.ai_family = FREERTOS_AF_INET6;
@@ -1505,12 +1505,12 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSSuccess( void )
 
     xEndPoint.bits.bIPv6 = pdFALSE;
     xEndPoint.ipv4_settings.ucDNSIndex = 0;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = DOTTED_IPV4_ADDRESS_UINT32;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = DOTTED_IPV4_ADDRESS_UINT32;
 
     xHint.ai_family = FREERTOS_AF_INET4;
     xExpectedAddress.ai_family = FREERTOS_AF_INET4;
 
-    xExpectedSockAddress.sin_port = FreeRTOS_htons( ipMDNS_PORT  );
+    xExpectedSockAddress.sin_port = FreeRTOS_htons( ipMDNS_PORT );
 
     xReceiveBuffer.pucPayloadBuffer = ucEtherBuffer;
     xReceiveBuffer.pucPayloadBuffer += ipBUFFER_PADDING + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
@@ -1592,7 +1592,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LocalDNSSuccess( void )
 
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.ipv6_settings.ucDNSIndex = 0;
-    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[0].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xHint.ai_family = FREERTOS_AF_INET6;
     xExpectedAddress.ai_family = FREERTOS_AF_INET6;
@@ -1677,7 +1677,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSUnknownPreference( void )
 
     xEndPoint.bits.bIPv6 = pdFALSE;
     xEndPoint.ipv4_settings.ucDNSIndex = 0;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[0] = DOTTED_IPV4_ADDRESS_UINT32;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = DOTTED_IPV4_ADDRESS_UINT32;
 
     xHint.ai_family = FREERTOS_AF_INET4;
     xExpectedAddress.ai_family = FREERTOS_AF_INET4;
@@ -1742,7 +1742,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LLMNRDNSSuccess( void )
 
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.ipv6_settings.ucDNSIndex = 0;
-    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[0].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xHint.ai_family = FREERTOS_AF_INET6;
     xExpectedAddress.ai_family = FREERTOS_AF_INET6;
@@ -2132,7 +2132,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_PortSpecified( void )
 
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.ipv6_settings.ucDNSIndex = 0;
-    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[0].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xDNSServerAddresses[ 0 ].ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xHint.ai_family = FREERTOS_AF_INET6;
     xExpectedAddress.ai_family = FREERTOS_AF_INET6;
