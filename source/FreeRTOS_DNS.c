@@ -523,11 +523,10 @@
                     case FREERTOS_AF_INET:
                         ulIPAddress = FreeRTOS_inet_addr( pcHostName );
 
-                        if( ulIPAddress != 0U )
+                        if( ( ulIPAddress != 0U ) && ( ppxAddressInfo != NULL ) )
                         {
                             const uint8_t * ucBytes = ( uint8_t * ) &( ulIPAddress );
 
-                            /* Since ppxAddressInfo is checked before entering this function, we don't need to check it again. */
                             *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET4, ucBytes );
                         }
                         break;
@@ -548,7 +547,7 @@
                                 * in case of an IPv6 lookup, it will return a non-zero */
                                ulIPAddress = 1U;
 
-                               /* Since ppxAddressInfo is checked before entering this function, we don't need to check it again. */
+                               /* ppxAddressInfo is always non-NULL in IPv6 case. */
                                *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET6, xAddress_IPv6.ucBytes );
                            }
                        }
@@ -655,7 +654,7 @@
                     if( ulIPAddress != 0UL )
                     {
                         #if ( ipconfigUSE_IPv6 != 0 )
-                            if( ( *ppxAddressInfo != NULL ) && ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 )
+                            if( ( ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
                                                    pcHostName, ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
@@ -697,14 +696,10 @@
                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                             }
                         }
-                        else if( *( ppxAddressInfo ) )
+                        else /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
                         {
                             /* The IP address is known, do the call-back now. */
                             pCallbackFunction( pcHostName, pvSearchID, *( ppxAddressInfo ) );
-                        }
-                        else
-                        {
-                            /* The IP address is unknown, no need to call-back. */
                         }
                     }
                 }
