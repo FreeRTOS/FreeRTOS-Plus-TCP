@@ -2140,7 +2140,6 @@ void test_vARPAgeCache( void )
     /* =================================================== */
 
     xEndPoint.bits.bEndPointUp = pdFALSE_UNSIGNED;
-
     /* Make second entry invalid but with age > 1. */
     xARPCache[ ucEntryToCheck ].ucAge = 100;
     xARPCache[ ucEntryToCheck ].ucValid = pdTRUE;
@@ -2155,12 +2154,12 @@ void test_vARPAgeCache( void )
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xEndPoint.ipv4_settings.ulIPAddress = 0;
     /* Make second entry invalid but with age > 1. */
-    xARPCache[ ucEntryToCheck ].ucAge = 100;
+    xARPCache[ ucEntryToCheck ].ucAge = 0;
     xARPCache[ ucEntryToCheck ].ucValid = pdTRUE;
     /* Set an IP address */
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
 
-    xTaskGetTickCount_ExpectAndReturn( 100 );
+    xTaskGetTickCount_ExpectAndReturn( 100000 );
 
     vARPAgeCache();
     /* =================================================== */

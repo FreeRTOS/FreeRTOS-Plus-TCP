@@ -353,35 +353,17 @@ static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
     /* Generate a reply payload in the same buffer. */
     pxARPHeader->usOperation = ( uint16_t ) ipARP_REPLY;
 
-    if( ulTargetProtocolAddress == ulSenderProtocolAddress )
-    {
-        /* A double IP address is detected! */
-        /* Give the sources MAC address the value of the broadcast address, will be swapped later */
+    /* A double IP address cannot be detected here, it is taken care in the Process ARP Packets path */
 
-        /*
-         * Use helper variables for memcpy() to remain
-         * compliant with MISRA Rule 21.15.  These should be
-         * optimized away.
-         */
-        pvCopySource = xBroadcastMACAddress.ucBytes;
-        pvCopyDest = pxARPFrame->xEthernetHeader.xSourceAddress.ucBytes;
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xBroadcastMACAddress ) );
-
-        ( void ) memset( pxARPHeader->xTargetHardwareAddress.ucBytes, 0, sizeof( MACAddress_t ) );
-        pxARPHeader->ulTargetProtocolAddress = 0U;
-    }
-    else
-    {
-        /*
-         * Use helper variables for memcpy() to remain
-         * compliant with MISRA Rule 21.15.  These should be
-         * optimized away.
-         */
-        pvCopySource = pxARPHeader->xSenderHardwareAddress.ucBytes;
-        pvCopyDest = pxARPHeader->xTargetHardwareAddress.ucBytes;
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
-        pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
-    }
+    /*
+     * Use helper variables for memcpy() to remain
+     * compliant with MISRA Rule 21.15.  These should be
+     * optimized away.
+     */
+    pvCopySource = pxARPHeader->xSenderHardwareAddress.ucBytes;
+    pvCopyDest = pxARPHeader->xTargetHardwareAddress.ucBytes;
+    ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
+    pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
 
     /*
      * Use helper variables for memcpy() to remain
@@ -925,7 +907,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                if( ( pxEndPoint )->bits.bIPv6 == 0U ) /*NULL End Point is checked in the for loop, no need for an extra check */
+                if( pxEndPoint->bits.bIPv6 == 0U ) /*NULL End Point is checked in the for loop, no need for an extra check */
                 {
                     /* For multi-cast, use the first IPv4 end-point. */
                     *( ppxEndPoint ) = pxEndPoint;
