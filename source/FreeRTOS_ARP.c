@@ -290,7 +290,7 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                 {
                     case ipARP_REQUEST:
 
-                        if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) && /* This check seems unnecessary which makes the first if condition in vARPProcessPacketRequest obsolete. */
+                        if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) && /* This check seems unnecessary which makes the first if condition in Line 356 obsolete. */
                             ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
                                       ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
                                       ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
