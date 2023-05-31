@@ -51,6 +51,8 @@
 
 #include "catch_assert.h"
 
+/* ============================= VARIABLES ============================= */
+
 #define PACKET_LENGTH    50
 
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
