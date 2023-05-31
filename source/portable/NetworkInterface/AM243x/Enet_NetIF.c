@@ -47,6 +47,8 @@
 #include <networking/enet/utils/include/enet_apprm.h>
 #include <networking/enet/core/include/core/enet_utils.h>
 
+#include "FreeRTOS.h"
+
 #include "Enet_NetIF.h"
 #include "Enet_NetIFQueue.h"
 
@@ -763,9 +765,15 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
         hEnet->initDone = TRUE;
     }
 
-
     // TODO: Wait till link is up before returing, because if the open() returns,
-    // the IP-task will start and send packets immediately
+    // the IP-task will start and send packets immediately,
+    
+    // FIX ME: NOTE: This is a temporary hack for minimal testing
+    while(hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet) == 0)
+    {
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+
     return hEnet;
 
 }
