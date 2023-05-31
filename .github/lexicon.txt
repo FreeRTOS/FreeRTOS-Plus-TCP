@@ -1691,6 +1691,7 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+varprocesspacketrequest
 varprefreshcacheentry
 varpsendgratuitous
 varptimerreload
