@@ -27,47 +27,59 @@
 
 
 /* Include Unity header */
-#include <unity.h>
+#include "unity.h"
 
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
 
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOSIPConfig.h"
 
-volatile BaseType_t xInsideInterrupt = pdFALSE;
+#include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_Sockets.h"
+#include "mock_FreeRTOS_Routing.h"
 
-QueueHandle_t xNetworkEventQueue = NULL;
+#include "catch_assert.h"
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+#include "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_TCP_Utils.h"
 
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
+/* =========================== EXTERN VARIABLES =========================== */
+
+FreeRTOS_Socket_t xSocket, * pxSocket;
+NetworkEndPoint_t xEndPoint, * pxEndPoint;
+
+/* ===========================  Unity Fixtures  =========================== */
+
+/*! called before each test case */
+void setUp( void )
 {
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-void vPortEnterCritical( void )
-{
+    pxSocket = NULL;
+    pxEndPoint = NULL;
 }
-void vPortExitCritical( void )
+
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief Due to low TCP MSS configuration, the MSS is set to minimum segment length.
+ */
+void test_prvSocketSetMSS_IPV6_LowMSS( void )
 {
+    uint32_t ulDiffSizeIPHeader = ( ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER );
+
+    pxSocket = &xSocket;
+    pxEndPoint = &xEndPoint;
+    pxSocket->pxEndPoint = pxEndPoint;
+
+    xIPv6_GetIPType_ExpectAndReturn( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ), eIPv6_Global + 1 );
+
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
+
+    prvSocketSetMSS_IPV6( pxSocket );
+
+    TEST_ASSERT_EQUAL( tcpMINIMUM_SEGMENT_LENGTH - ulDiffSizeIPHeader, pxSocket->u.xTCP.usMSS );
 }

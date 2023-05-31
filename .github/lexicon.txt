@@ -850,6 +850,7 @@ prvsetoptions
 prvsetsynackoptions
 prvsinglesteptcpheaderoptions
 prvskipnamefield
+prvsocketprops
 prvsocketsetmss
 prvstatename
 prvstorerxdata
@@ -953,6 +954,7 @@ pvsource
 pxackmessage
 pxaddr
 pxaddress
+pxaddresses
 pxaddressinfo
 pxaddresslength
 pxaddresstolookup
@@ -963,6 +965,7 @@ pxarpwaitingnetworkbuffer
 pxbindaddress
 pxbuffer
 pxbufferdescriptor
+pxclientsocket
 pxconfig
 pxdescriptor
 pxdest
@@ -1398,6 +1401,7 @@ uldnsserver
 uldnsserveraddress
 uldnsserveraddresses
 uldonemask
+ulexpectipaddress
 ulfifolength
 ulfinsequencenumber
 ulfirst
@@ -1733,8 +1737,8 @@ vprintresourcestats
 vprocessgeneratedudppacket
 vraprocess
 vraprocessinit
-vreceivera
 vreceivena
+vreceivera
 vreleasenetworkbufferanddescriptor
 vreturnethernetframe
 vrxfaultinjection

@@ -48,21 +48,6 @@
 
 #if ( ( ipconfigUSE_DNS != 0 ) && ( ipconfigUSE_DNS_CACHE == 1 ) )
 
-/**
- * @brief cache entry format structure
- */
-    typedef struct xDNS_CACHE_TABLE_ROW
-    {
-        IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
-        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
-        uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
-        uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */
-        #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-            uint8_t ucNumIPAddresses;                                        /*!< number of ip addresses for the same entry */
-            uint8_t ucCurrentIPAddress;                                      /*!< current ip address index */
-        #endif
-    } DNSCacheRow_t;
-
 /*!
  * @brief DNS cache structure instantiation
  */
@@ -126,7 +111,7 @@
                                                pdTRUE,
                                                NULL );
 
-            return xIPv46_Address.ulIPAddress;
+            return xIPv46_Address.xIPAddress.ulIP_IPv4;
         }
 /*-----------------------------------------------------------*/
     #endif /* if ( ipconfigUSE_IPv4 != 0 ) */
@@ -156,7 +141,7 @@
 
             if( xResult != pdFALSE )
             {
-                ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( pxAddress_IPv6->ucBytes, xIPv46_Address.xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 ulReturn = 1U;
             }
 
@@ -234,7 +219,7 @@
 
         if( xLookUp != pdFALSE )
         {
-            pxIP->ulIPAddress = 0U;
+            pxIP->xIPAddress.ulIP_IPv4 = 0U;
         }
 
         ulCurrentTimeSeconds = ( uint32_t ) ( ( xCurrentTickCount / portTICK_PERIOD_MS ) / 1000U );
@@ -266,7 +251,7 @@
         {
             if( xLookUp == pdTRUE )
             {
-                pxIP->ulIPAddress = 0U;
+                pxIP->xIPAddress.ulIP_IPv4 = 0U;
             }
             else
             {
@@ -278,7 +263,7 @@
         }
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            if( ( xLookUp == pdFALSE ) || ( pxIP->ulIPAddress != 0U ) )
+            if( ( xLookUp == pdFALSE ) || ( pxIP->xIPAddress.ulIP_IPv4 != 0U ) )
             {
                 char pcAddress[ 40 ];
                 IP_Address_t xAddress;
@@ -288,14 +273,14 @@
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE:
-                            ( void ) memcpy( xAddress.xIP_IPv6.ucBytes, pxIP->xAddress_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                            ( void ) memcpy( xAddress.xIP_IPv6.ucBytes, pxIP->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                             xFamily = FREERTOS_AF_INET6;
                             break;
                     #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE:
-                            xAddress.ulIP_IPv4 = pxIP->ulIPAddress;
+                            xAddress.ulIP_IPv4 = pxIP->xIPAddress.ulIP_IPv4;
                             break;
                     #endif /* if ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -521,12 +506,12 @@
             {
                 pxAddresses = &( xDNSCache[ uxIndex ].xAddresses[ uxIPAddressIndex ] );
 
-                switch( pxAddresses->xIs_IPv6 )
+                switch( pxAddresses->xIs_IPv6 ) /* LCOV_EXCL_BR_LINE - xIs_IPv6 is always either pdFALSE or pdTRUE. */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE:
                            {
-                               const uint8_t * ucBytes = ( const uint8_t * ) &( pxAddresses->ulIPAddress );
+                               const uint8_t * ucBytes = ( const uint8_t * ) &( pxAddresses->xIPAddress.ulIP_IPv4 );
                                pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET4, ucBytes );
                            }
                            break;
@@ -534,14 +519,14 @@
 
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE:
-                            pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET6, pxAddresses->xAddress_IPv6.ucBytes );
+                            pxNewAddress = pxNew_AddrInfo( xDNSCache[ uxIndex ].pcName, FREERTOS_AF_INET6, pxAddresses->xIPAddress.xIP_IPv6.ucBytes );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                    default:
+                    default: /* LCOV_EXCL_LINE - xIs_IPv6 is always either pdFALSE or FREERTOS_AF_INET6. */
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "prvReadDNSCache: Undefined IP Type \n" ) );
-                        break;
+                        break; /* LCOV_EXCL_LINE - xIs_IPv6 is always either pdFALSE or FREERTOS_AF_INET6. */
                 }
 
                 if( pxNewAddress == NULL )
@@ -672,7 +657,7 @@
                             #if ( ipconfigUSE_IPv4 != 0 )
                                 case pdFALSE:
                                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                                 ( const void * ) &( pxRow->xAddresses[ xSubEntry ].ulIPAddress ),
+                                                                 ( const void * ) &( pxRow->xAddresses[ xSubEntry ].xIPAddress.ulIP_IPv4 ),
                                                                  pcAddress,
                                                                  sizeof( pcAddress ) );
                                     break;
@@ -681,7 +666,7 @@
                             #if ( ipconfigUSE_IPv6 != 0 )
                                 case pdTRUE:
                                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                                 ( const void * ) pxRow->xAddresses[ xSubEntry ].xAddress_IPv6.ucBytes,
+                                                                 ( const void * ) pxRow->xAddresses[ xSubEntry ].xIPAddress.xIP_IPv6.ucBytes,
                                                                  pcAddress,
                                                                  sizeof( pcAddress ) );
                                     break;
