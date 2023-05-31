@@ -283,7 +283,7 @@ void test_prvTCPReturnPacket_IPV6_Assert3( void )
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     pxDescriptor->pxEndPoint->pxNetworkInterface = &xNetworkInterfaces;
     pxDescriptor->pxEndPoint->pxNetworkInterface->pfOutput = NULL;
-    pxTCPPacket = ( ( TCPPacket_t * ) pxDescriptor->pucEthernetBuffer );
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
     pxIPHeader = &pxTCPPacket->xIPHeader;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
