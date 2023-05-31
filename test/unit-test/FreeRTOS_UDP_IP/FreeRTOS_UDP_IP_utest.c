@@ -88,7 +88,7 @@ void test_vProcessGeneratedUDPPacket_NullNetworkBuffer( void )
 }
 
 /**
- * @brief Pass IPv6 packet to IPv4 API to handle.
+ * @brief Pass IPv4 packet to IPv4 API to handle.
  */
 void test_vProcessGeneratedUDPPacket_IPv4Packet( void )
 {
@@ -175,7 +175,7 @@ void test_xProcessReceivedUDPPacket_NullBuffer( void )
 }
 
 /**
- * @brief Pass IPv6 packet to IPv4 API to handle.
+ * @brief Pass IPv4 packet to IPv4 API to handle.
  */
 void test_xProcessReceivedUDPPacket_IPv4Packet( void )
 {
