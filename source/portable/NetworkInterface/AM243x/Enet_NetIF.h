@@ -52,7 +52,15 @@ typedef bool (*Enet_NetIF_AppIf_IsPhyLinkedCbFxn)(Enet_Handle hEnet);
 /* Multicast Address List Size */
 #define CONFG_PKT_MAX_MCAST                   ((uint32_t)31U)
 
-typedef struct Enet_Netif_PktTaskStats_s
+#if defined(LWIPIF_INSTRUMENTATION_ENABLED)
+#define LWIP2ENETSTATS_ADDONE(statsCntPtr)           Lwip2EnetStats_addOne((statsCntPtr))
+#define LWIP2ENETSTATS_ADDNUM(statsCntPtr, addCnt)   Lwip2EnetStats_addNum((statsCntPtr), (addCnt))
+#else
+#define LWIP2ENETSTATS_ADDONE(statsCntPtr)           do {} while (0)
+#define LWIP2ENETSTATS_ADDNUM(statsCntPtr, addCnt)   do {} while (0)
+#endif
+
+typedef struct EnetNetIF_PktTaskStats_s
 {
     uint32_t rawNotifyCnt;
     uint32_t dataNotifyCnt;
@@ -67,14 +75,14 @@ typedef struct Enet_Netif_PktTaskStats_s
     uint32_t cycleCntPerPktMax;
     uint32_t cycleCntPerPkt[HISTORY_CNT];
     uint32_t taskLoad[HISTORY_CNT];
-} Enet_Netif_PktTaskStats;
+} EnetNetIF_PktTaskStats;
 
 /*!
  * \brief lwIP interface layer's RX statistics.
  */
-typedef struct Enet_Netif_RxStats_s
+typedef struct EnetNetIF_RxStats_s
 {
-    Enet_Netif_PktTaskStats pktStats;
+    EnetNetIF_PktTaskStats pktStats;
     uint32_t freePbufPktEnq;
     uint32_t freePbufPktDeq;
     uint32_t freeAppPktEnq;
@@ -83,36 +91,36 @@ typedef struct Enet_Netif_RxStats_s
     uint32_t stackNotifyCnt;
 	uint32_t pbufAllocFailCnt;
 	uint32_t rxLwipInputFail;
-} Enet_Netif_RxStats;
+} EnetNetIF_RxStats;
 
 /*!
  * \brief lwIP interface layer's TX statistics.
  */
-typedef struct Enet_Netif_TxStats_s
+typedef struct EnetNetIF_TxStats_s
 {
-    Enet_Netif_PktTaskStats pktStats;
+    EnetNetIF_PktTaskStats pktStats;
     uint32_t readyPbufPktEnq;
     uint32_t readyPbufPktDeq;
     uint32_t freeAppPktEnq;
     uint32_t freeAppPktDeq;
-} Enet_Netif_TxStats;
+} EnetNetIF_TxStats;
 
-typedef struct Enet_Netif_Stats_s
+typedef struct EnetNetIF_Stats_s
 {
     uint32_t cpuLoad[HISTORY_CNT];
     uint32_t hwiLoad[HISTORY_CNT];
-} Enet_Netif_Stats;
+} EnetNetIF_Stats;
 
-typedef struct Enet_Netif_AppIf_GetHandleNetifInfo_s
+typedef struct EnetNetIF_AppIf_GetHandleNetifInfo_s
 {
     uint32_t numRxChannels;
     uint32_t numTxChannels;
     uint32_t rxChMask;
     uint32_t txChMask;
     bool isDirected;
-} Enet_Netif_AppIf_GetHandleNetifInfo;
+} EnetNetIF_AppIf_GetHandleNetifInfo;
 
-typedef struct Enet_Netif_AppIf_GetEnetIFInstInfo_s
+typedef struct EnetNetIF_AppIf_GetEnetIFInstInfo_s
 {
     Enet_Handle hEnet;
     uint32_t txMtu[ENET_PRI_NUM];
@@ -128,7 +136,7 @@ typedef struct Enet_Netif_AppIf_GetEnetIFInstInfo_s
     uint32_t timerPeriodUs;
     NetBufNode *pFreeTx;
 	uint32_t   pFreeTxSize;
-} Enet_Netif_AppIf_GetEnetIFInstInfo;
+} EnetNetIF_AppIf_GetEnetIFInstInfo;
 
 typedef struct EnetNetIFAppIf_GetTxHandleInArgs_s
 {
@@ -182,10 +190,10 @@ typedef struct EnetNetIFAppIf_RxHandleInfo_s
 /*!
  * \brief RX object which groups variables related to a particular RX channel/flow.
  */
-typedef struct Enet_Netif_RxObj_s
+typedef struct EnetNetIF_RxObj_s
 {
-    /*! Pointer to parent Enet_Netif object */
-    struct xEnetDriverObj *hEnet_Netif;
+    /*! Pointer to parent EnetNetIF object */
+    struct xEnetDriverObj *hEnetNetIF;
 
     /*! Enet DMA receive channel (flow) */
     EnetDma_RxChHandle hFlow;
@@ -209,20 +217,20 @@ typedef struct Enet_Netif_RxObj_s
     uint32_t numPackets;
 
     /*! lwIP interface statistics */
-    Enet_Netif_RxStats stats;
+    EnetNetIF_RxStats stats;
 
     /*! Whether RX event should be disabled or not. When disabled, it relies on pacing timer
      *  to retrieve packets from RX channel/flow */
     bool disableEvent;
-} Enet_Netif_RxObj, *Enet_Netif_RxHandle;
+} EnetNetIF_RxObj, *EnetNetIF_RxHandle;
 
 /*!
  * \brief TX object which groups variables related to a particular RX channel/flow.
  */
-typedef struct Enet_Netif_TxObj_s
+typedef struct EnetNetIF_TxObj_s
 {
-    /*! Pointer to parent Enet_Netif object */
-    struct xEnetDriverObj *hEnet_Netif;
+    /*! Pointer to parent EnetNetIF object */
+    struct xEnetDriverObj *hEnetNetIF;
 
     /*! Enet DMA transmit channel */
     EnetDma_TxChHandle hCh;
@@ -249,14 +257,14 @@ typedef struct Enet_Netif_TxObj_s
     NetBufQueue unusedPbufQ;
 
     /*! lwIP interface statistics */
-    Enet_Netif_TxStats stats;
+    EnetNetIF_TxStats stats;
 
     Enet_notify_t txPktNotify;
 
     /*! Whether TX event should be disabled or not. When disabled, "lazy" descriptor recycle
      *  is used instead, which defers retrieval till none is available */
     bool disableEvent;
-} Enet_Netif_TxObj, *Enet_Netif_TxHandle;
+} EnetNetIF_TxObj, *EnetNetIF_TxHandle;
 
 /**
  * \brief
@@ -268,25 +276,25 @@ typedef struct Enet_Netif_TxObj_s
 typedef struct xEnetDriverObj
 {
     /*! RX object */
-    Enet_Netif_RxObj rx[CONFIG_MAX_RX_CHANNELS];
+    EnetNetIF_RxObj rx[CONFIG_MAX_RX_CHANNELS];
 
     /*! Number of RX channels allocated by Application */
     uint32_t numRxChannels;
 
 	/*! TX object */
-    Enet_Netif_TxObj tx[CONFIG_MAX_TX_CHANNELS];
+    EnetNetIF_TxObj tx[CONFIG_MAX_TX_CHANNELS];
 
     /*! Number of TX channels allocated by Application */
     uint32_t numTxChannels;
 
     /*! lwIP network interface */
-    struct netif *netif[ENET_CFG_NETIF_MAX];
+    NetworkInterface_t * pxInterface[ENET_CFG_NETIF_MAX];
 
     uint8_t macAddr[ENET_CFG_NETIF_MAX][ENET_MAC_ADDR_LEN];
 	/*! Total number of allocated PktInfo elements */
     uint32_t allocPktInfo;
 
-    Enet_Netif_AppIf_GetEnetIFInstInfo appInfo;
+    EnetNetIF_AppIf_GetEnetIFInstInfo appInfo;
     /** Initialization flag.*/
     uint32_t initDone;
     /** Index of currently connect physical port.*/
@@ -326,11 +334,11 @@ typedef struct xEnetDriverObj
     Enet_Print print;
 
     /*! CPU load stats */
-    Enet_Netif_Stats stats;
+    EnetNetIF_Stats stats;
 
-    Enet_Netif_RxHandle mapNetif2Rx[ENET_CFG_NETIF_MAX];
+    EnetNetIF_RxHandle mapNetif2Rx[ENET_CFG_NETIF_MAX];
 
-    Enet_Netif_TxHandle mapNetif2Tx[ENET_CFG_NETIF_MAX];
+    EnetNetIF_TxHandle mapNetif2Tx[ENET_CFG_NETIF_MAX];
 
     NetworkInterface_t *mapRxPort2Netif[CPSW_STATS_MACPORT_MAX];
 
