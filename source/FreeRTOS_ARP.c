@@ -290,7 +290,7 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                 {
                     case ipARP_REQUEST:
 
-                        if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) &&
+                        if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) && /* This check seems unnecesary which makes the first if condition in vARPProcessPacketRequest() obsolete. */
                             ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
                                       ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
                                       ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
@@ -925,7 +925,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                if( ( pxEndPoint )->bits.bIPv6 == 0U ) /*NULL End Point is checked in the for loop, no need for an extra check */
                 {
                     /* For multi-cast, use the first IPv4 end-point. */
                     *( ppxEndPoint ) = pxEndPoint;
@@ -1158,7 +1158,8 @@ void vARPAgeCache( void )
         {
             if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
             {
-                switch( pxEndPoint->bits.bIPv6 )
+                /* Case default is never toggled because IPv6 flag can be TRUE or FALSE */
+                switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
@@ -1172,10 +1173,10 @@ void vARPAgeCache( void )
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                    default:
+                    default: /* LCOV_EXCL_LINE */
                         /* Shouldn't reach here */
                         /* MISRA 16.4 Compliance */
-                        break;
+                        break; /* LCOV_EXCL_LINE */
                 }
             }
 

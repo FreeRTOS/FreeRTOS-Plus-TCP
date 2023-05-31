@@ -54,6 +54,8 @@ NetworkAddressingParameters_t xNetworkAddressing =
     0xC0C0C0FF
 };              /* 192.192.192.255 - Broadcast address. */
 
+/* ======================== Stub Callback Functions ========================= */
+
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
     return 0;
