@@ -52,14 +52,6 @@ typedef bool (*Enet_NetIF_AppIf_IsPhyLinkedCbFxn)(Enet_Handle hEnet);
 /* Multicast Address List Size */
 #define CONFG_PKT_MAX_MCAST                   ((uint32_t)31U)
 
-#if defined(LWIPIF_INSTRUMENTATION_ENABLED)
-#define LWIP2ENETSTATS_ADDONE(statsCntPtr)           Lwip2EnetStats_addOne((statsCntPtr))
-#define LWIP2ENETSTATS_ADDNUM(statsCntPtr, addCnt)   Lwip2EnetStats_addNum((statsCntPtr), (addCnt))
-#else
-#define LWIP2ENETSTATS_ADDONE(statsCntPtr)           do {} while (0)
-#define LWIP2ENETSTATS_ADDNUM(statsCntPtr, addCnt)   do {} while (0)
-#endif
-
 typedef struct EnetNetIF_PktTaskStats_s
 {
     uint32_t rawNotifyCnt;

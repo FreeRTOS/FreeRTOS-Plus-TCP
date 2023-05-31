@@ -638,6 +638,113 @@ static int32_t EnetNetIF_startRxTx(xEnetDriverHandle hEnet)
     return status;
 }
 
+static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
+                                     EnetDma_PktQ *pPktQ)
+{
+    uint32_t packetCount;
+    EnetDma_Pkt *pCurrDmaPacket;
+    struct pbuf* hPbufPacket;
+
+    packetCount = EnetQueue_getQCount(pPktQ);
+
+    pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+    while (pCurrDmaPacket)
+    {
+        hPbufPacket = (struct pbuf *)pCurrDmaPacket->appPriv;
+
+        configASSERT(hPbufPacket != NULL);
+        /* Free PBUF buffer as it is transmitted by DMA now */
+        pbuf_free(hPbufPacket);
+        /* Return packet info to free pool */
+        EnetQueue_enq(&tx->freePktInfoQ, &pCurrDmaPacket->node);
+        pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+    }
+
+    // TODO: take care of stats LWIP2ENETSTATS_ADDNUM(&tx->stats.freeAppPktEnq, packetCount);
+
+    return packetCount;
+}
+
+
+void EnetNetIF_retrieveTxPkts(EnetNetIF_TxObj *tx)
+{
+    EnetDma_PktQ tempQueue;
+    uint32_t packetCount = 0U;
+    int32_t retVal;
+
+    // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&tx->stats.pktStats.rawNotifyCnt);
+    packetCount = 0U;
+
+    /* Retrieve the used (sent/empty) packets from the channel */
+    {
+        EnetQueue_initQ(&tempQueue);
+        /* Retrieve all TX packets and keep them locally */
+        retVal = EnetDma_retrieveTxPktQ(tx->hCh, &tempQueue);
+        if (ENET_SOK != retVal)
+        {
+            FreeRTOS_printf(("EnetNetIF_retrieveTxPkts: Failed to retrieve TX pkts: %d\n",
+                            retVal));
+        }
+    }
+
+    if (tempQueue.count != 0U)
+    {
+        /*
+         * Get all used Tx DMA packets from the hardware, then return those
+         * buffers to the txFreePktQ so they can be used later to send with.
+         */
+        packetCount = EnetNetIF_prepTxPktQ(tx, &tempQueue);
+    }
+    else
+    {
+        // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&tx->stats.pktStats.zeroNotifyCnt);
+    }
+
+    if (packetCount != 0U)
+    {
+        // TODO: take care of stats Lwip2Enet_updateTxNotifyStats(&tx->stats.pktStats, packetCount, 0U);
+    }
+}
+
+static void EnetNetIF_timerCb(ClockP_Object *hClk, void * arg)
+{
+#if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
+    /* Post semaphore to rx handling task */
+    xEnetDriverHandle hEnet = (xEnetDriverHandle)arg;
+
+    if (hEnet->initDone)
+    {
+        for (uint32_t i = 0U; i < hEnet->numTxChannels; i++)
+        {
+            if (hEnet->tx[i].enabled)
+            {
+                EnetNetIF_retrieveTxPkts(&hEnet->tx[i]);
+            }
+        }
+
+        if (hEnet->rxPktNotify.cbFxn != NULL)
+        {
+            hEnet->rxPktNotify.cbFxn(hEnet->rxPktNotify.cbArg);
+        }
+    }
+#endif
+}
+
+static void EnetNetIF_createTimer(xEnetDriverHandle hEnet)
+{
+    ClockP_Params clkPrms;
+    int32_t status;
+
+    ClockP_Params_init(&clkPrms);
+    clkPrms.start  = true;
+    clkPrms.timeout = ClockP_usecToTicks(hEnet->appInfo.timerPeriodUs);
+    clkPrms.period = ClockP_usecToTicks(hEnet->appInfo.timerPeriodUs);
+    clkPrms.callback = &EnetNetIF_timerCb;
+    clkPrms.args = hEnet;
+
+    status =  ClockP_construct(&hEnet->pacingClkObj, &clkPrms);
+    configASSERT(status == SystemP_SUCCESS);
+}
 
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
 {
@@ -739,28 +846,28 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
             FreeRTOS_printf(("Failed to start the tasks: %d\n", status));
         }
 
-    //     /* Get initial link/interface status from the driver */
-    //     hEnet->linkIsUp = hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet);
+        /* Get initial link/interface status from the driver */
+        hEnet->linkIsUp = hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet);
 
-    //     for (i = 0U; i < hEnet->numTxChannels; i++)
-    //     {
-    //         if (hEnet->tx[i].disableEvent)
-    //         {
-    //             EnetDma_disableTxEvent(hEnet->tx[i].hCh);
-    //         }
-    //     }
+        for (i = 0U; i < hEnet->numTxChannels; i++)
+        {
+            if (hEnet->tx[i].disableEvent)
+            {
+                EnetDma_disableTxEvent(hEnet->tx[i].hCh);
+            }
+        }
 
-    //     for (i = 0U; i < hEnet->numRxChannels; i++)
-    //     {
-    //         if ((hEnet->rx[i].enabled) &&  (hEnet->rx[i].disableEvent))
-    //         {
-    //             EnetDma_disableRxEvent(hEnet->rx[i].hFlow);
-    //         }
-    //     }
-    //     /* assert if clk period is not valid  */
-    //     configASSERT(0U != hEnet->appInfo.timerPeriodUs);
-    //     Lwip2Enet_createTimer(hEnet);
-    //     // ClockP_start(&hEnet->pacingClkObj);
+        for (i = 0U; i < hEnet->numRxChannels; i++)
+        {
+            if ((hEnet->rx[i].enabled) &&  (hEnet->rx[i].disableEvent))
+            {
+                EnetDma_disableRxEvent(hEnet->rx[i].hFlow);
+            }
+        }
+        /* assert if clk period is not valid  */
+        configASSERT(0U != hEnet->appInfo.timerPeriodUs);
+        EnetNetIF_createTimer(hEnet);
+        // ClockP_start(&hEnet->pacingClkObj);
 
         hEnet->initDone = TRUE;
     }
@@ -768,7 +875,7 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
     // TODO: Wait till link is up before returing, because if the open() returns,
     // the IP-task will start and send packets immediately,
     
-    // FIX ME: NOTE: This is a temporary hack for minimal testing
+    // FIXME: NOTE: This is a temporary hack for minimal testing
     while(hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet) == 0)
     {
         vTaskDelay(pdMS_TO_TICKS(100));
