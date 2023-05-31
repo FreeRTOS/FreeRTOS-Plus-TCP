@@ -38,6 +38,21 @@
 
 #if ( ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
+/**
+ * @brief cache entry format structure
+ */
+    typedef struct xDNS_CACHE_TABLE_ROW
+    {
+        IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
+        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
+        uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
+        uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */
+        #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
+            uint8_t ucNumIPAddresses;                                        /*!< number of ip addresses for the same entry */
+            uint8_t ucCurrentIPAddress;                                      /*!< current ip address index */
+        #endif
+    } DNSCacheRow_t;
+
 /* Look for the indicated host name in the DNS cache. Returns the IPv4
  * address if present, or 0x0 otherwise. */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName );
