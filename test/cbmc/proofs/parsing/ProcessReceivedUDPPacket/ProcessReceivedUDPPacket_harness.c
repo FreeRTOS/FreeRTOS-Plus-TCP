@@ -61,7 +61,7 @@ void harness()
 
     if( pxNetworkBuffer )
     {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_IPv6_t ) );
         pxNetworkBuffer->pxEndPoint = &xEndpoint;
     }
 

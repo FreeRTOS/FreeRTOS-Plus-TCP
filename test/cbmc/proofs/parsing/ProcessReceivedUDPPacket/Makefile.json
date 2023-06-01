@@ -3,6 +3,8 @@
   "MAX_RX_PACKETS":1,
   "USE_LLMNR":1,
   "USE_NBNS":1,
+  "USE_IPv4":1,
+  "USE_IPv6":1,
   "CBMCFLAGS":
   [
     "--unwind 1",
@@ -13,12 +15,15 @@
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IPv4.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IPv6.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto"
   ],
   "DEF":
   [
     "ipconfigUDP_MAX_RX_PACKETS={MAX_RX_PACKETS}",
     "ipconfigUSE_LLMNR={USE_LLMNR}",
-    "ipconfigUSE_NBNS={USE_NBNS}"
+    "ipconfigUSE_NBNS={USE_NBNS}",
+    "ipconfigUSE_IPv4={USE_IPv4}",
+    "ipconfigUSE_IPv6={USE_IPv6}"
   ]
 }
