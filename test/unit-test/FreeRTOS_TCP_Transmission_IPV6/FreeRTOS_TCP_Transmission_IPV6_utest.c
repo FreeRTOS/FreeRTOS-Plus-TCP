@@ -55,6 +55,8 @@
 
 #define PACKET_LENGTH    50
 
+uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+
 /* =============================== Test Cases =============================== */
 
 /**
@@ -121,12 +123,11 @@ void test_prvTCPReturnPacket_IPV6_SocketNULL( void )
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdFALSE;
     NetworkEndPoint_t xEndPoint;
-    uint8_t ucEthernetBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
     NetworkInterface_t xNetworkInterfaces;
 
     memset( &xDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
     xDescriptor.pxEndPoint = &xEndPoint;
-    xDescriptor.pucEthernetBuffer = &ucEthernetBuffer;
+    xDescriptor.pucEthernetBuffer = ucEthernetBuffer;
     xDescriptor.pxEndPoint->pxNetworkInterface = &xNetworkInterfaces;
     xDescriptor.pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
@@ -147,12 +148,13 @@ void test_prvTCPReturnPacket_IPV6_NoEP_Found( void )
     NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdFALSE;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
 
-    xDescriptor.pucEthernetBuffer = &xTCPPacket;
+    xDescriptor.pucEthernetBuffer = ucEthernetBuffer;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) xDescriptor.pucEthernetBuffer );
     xDescriptor.pxEndPoint = NULL;
     xSocket.pxEndPoint = NULL;
 
@@ -170,12 +172,13 @@ void test_prvTCPReturnPacket_IPV6_NoEP_ReleaseAfterSend( void )
     NetworkBufferDescriptor_t xDescriptor, * pxDescriptor = &xDescriptor;
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdTRUE;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
 
-    xDescriptor.pucEthernetBuffer = &xTCPPacket;
+    xDescriptor.pucEthernetBuffer = ucEthernetBuffer;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) xDescriptor.pucEthernetBuffer );
     xDescriptor.pxEndPoint = NULL;
 
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
@@ -196,15 +199,15 @@ void test_prvTCPReturnPacket_IPV6_Assert1( void )
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdTRUE;
     NetworkEndPoint_t xEndPoint;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
 
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
 
-    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    xDescriptor.pucEthernetBuffer = ucEthernetBuffer;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) xDescriptor.pucEthernetBuffer );
     pxDescriptor->pxEndPoint = NULL;
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     xSocket.pxEndPoint = &xEndPoint;
@@ -215,6 +218,7 @@ void test_prvTCPReturnPacket_IPV6_Assert1( void )
 
     catch_assert( prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend ) );
 }
+
 
 /**
  * @brief This function verify handling case with valid
@@ -229,18 +233,21 @@ void test_prvTCPReturnPacket_IPV6_Assert2( void )
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdTRUE;
     NetworkEndPoint_t xEndPoint;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
+    IPHeader_IPv6_t * pxIPHeader;
+    TCPWindow_t * pxTCPWindow = &( xSocket.u.xTCP.xTCPWindow );
 
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
 
-    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    pxDescriptor->pucEthernetBuffer = ucEthernetBuffer;
     pxDescriptor->pxEndPoint = &xEndPoint;
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     pxDescriptor->pxEndPoint->pxNetworkInterface = NULL;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
+    pxIPHeader = &pxTCPPacket->xIPHeader;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
@@ -261,21 +268,23 @@ void test_prvTCPReturnPacket_IPV6_Assert3( void )
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdTRUE;
     NetworkEndPoint_t xEndPoint;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
+    IPHeader_IPv6_t * pxIPHeader;
+    TCPWindow_t * pxTCPWindow = &( xSocket.u.xTCP.xTCPWindow );
     NetworkInterface_t xNetworkInterfaces;
 
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
-    memset( &xNetworkInterfaces, 0, sizeof( NetworkInterface_t ) );
 
-    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    pxDescriptor->pucEthernetBuffer = ucEthernetBuffer;
     pxDescriptor->pxEndPoint = &xEndPoint;
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     pxDescriptor->pxEndPoint->pxNetworkInterface = &xNetworkInterfaces;
     pxDescriptor->pxEndPoint->pxNetworkInterface->pfOutput = NULL;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
+    pxIPHeader = &pxTCPPacket->xIPHeader;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
     eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
@@ -296,17 +305,17 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_ReleaseAfterSend( void )
     uint32_t ulLen = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     BaseType_t xReleaseAfterSend = pdTRUE;
     NetworkEndPoint_t xEndPoint;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
     NetworkInterface_t xNetworkInterfaces;
 
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
     memset( &xNetworkInterfaces, 0, sizeof( NetworkInterface_t ) );
 
-    pxDescriptor->pucEthernetBuffer = &xTCPPacket;
+    xDescriptor.pucEthernetBuffer = ucEthernetBuffer;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) xDescriptor.pucEthernetBuffer );
     pxDescriptor->pxEndPoint = &xEndPoint;
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     pxDescriptor->pxEndPoint->pxNetworkInterface = &xNetworkInterfaces;
@@ -331,19 +340,17 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_NoReleaseAfterSend( void )
     uint32_t ulLen = PACKET_LENGTH;
     BaseType_t xReleaseAfterSend = pdFALSE;
     NetworkEndPoint_t xEndPoint;
-    TCPPacket_IPv6_t xTCPPacket;
     NetworkInterface_t xNetworkInterfaces;
-    uint8_t ucEthernetBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
 
 
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
     memset( pxDescriptor, 0, sizeof( NetworkBufferDescriptor_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    memset( &xTCPPacket, 0, sizeof( TCPPacket_IPv6_t ) );
     memset( &xNetworkInterfaces, 0, sizeof( NetworkInterface_t ) );
 
-    pxDescriptor->pucEthernetBuffer = &ucEthernetBuffer;
+    pxDescriptor->pucEthernetBuffer = ucEthernetBuffer;
     pxDescriptor->pxEndPoint = &xEndPoint;
     pxDescriptor->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     pxDescriptor->pxEndPoint->pxNetworkInterface = &xNetworkInterfaces;
@@ -553,18 +560,19 @@ void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv6( void )
 void test_prvTCPSendSpecialPktHelper_IPV6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
     uint8_t ucTCPFlags = tcpTCP_FLAG_RST;
     BaseType_t xReturn;
 
-    pxNetworkBuffer->pucEthernetBuffer = &xTCPPacket;
-    xTCPPacket.xTCPHeader.ucTCPFlags = 0;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xTCPHeader.ucTCPFlags = 0;
 
     xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
-    TEST_ASSERT_EQUAL( ucTCPFlags, xTCPPacket.xTCPHeader.ucTCPFlags );
-    TEST_ASSERT_EQUAL( ( ipSIZE_OF_TCP_HEADER ) << 2, xTCPPacket.xTCPHeader.ucTCPOffset );
+    TEST_ASSERT_EQUAL( ucTCPFlags, pxTCPPacket->xTCPHeader.ucTCPFlags );
+    TEST_ASSERT_EQUAL( ( ipSIZE_OF_TCP_HEADER ) << 2, pxTCPPacket->xTCPHeader.ucTCPOffset );
 }
 
 /**
@@ -574,16 +582,17 @@ void test_prvTCPSendSpecialPktHelper_IPV6( void )
 void test_prvTCPSendSpecialPktHelper_IPV6_Syn( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
-    TCPPacket_IPv6_t xTCPPacket;
+    TCPPacket_IPv6_t * pxTCPPacket;
     uint8_t ucTCPFlags = tcpTCP_FLAG_RST;
     BaseType_t xReturn;
 
-    pxNetworkBuffer->pucEthernetBuffer = &xTCPPacket;
-    xTCPPacket.xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    pxTCPPacket = ( ( TCPPacket_IPv6_t * ) xNetworkBuffer.pucEthernetBuffer );
+    pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
     xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
-    TEST_ASSERT_EQUAL( ucTCPFlags, xTCPPacket.xTCPHeader.ucTCPFlags );
-    TEST_ASSERT_EQUAL( ( ipSIZE_OF_TCP_HEADER ) << 2, xTCPPacket.xTCPHeader.ucTCPOffset );
+    TEST_ASSERT_EQUAL( ucTCPFlags, pxTCPPacket->xTCPHeader.ucTCPFlags );
+    TEST_ASSERT_EQUAL( ( ipSIZE_OF_TCP_HEADER ) << 2, pxTCPPacket->xTCPHeader.ucTCPOffset );
 }

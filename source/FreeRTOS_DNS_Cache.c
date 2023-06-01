@@ -48,21 +48,6 @@
 
 #if ( ( ipconfigUSE_DNS != 0 ) && ( ipconfigUSE_DNS_CACHE == 1 ) )
 
-/**
- * @brief cache entry format structure
- */
-    typedef struct xDNS_CACHE_TABLE_ROW
-    {
-        IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
-        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
-        uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
-        uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */
-        #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
-            uint8_t ucNumIPAddresses;                                        /*!< number of ip addresses for the same entry */
-            uint8_t ucCurrentIPAddress;                                      /*!< current ip address index */
-        #endif
-    } DNSCacheRow_t;
-
 /*!
  * @brief DNS cache structure instantiation
  */
@@ -521,7 +506,7 @@
             {
                 pxAddresses = &( xDNSCache[ uxIndex ].xAddresses[ uxIPAddressIndex ] );
 
-                switch( pxAddresses->xIs_IPv6 )
+                switch( pxAddresses->xIs_IPv6 ) /* LCOV_EXCL_BR_LINE - xIs_IPv6 is always either pdFALSE or pdTRUE. */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE:
@@ -538,10 +523,10 @@
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                    default:
+                    default: /* LCOV_EXCL_LINE - xIs_IPv6 is always either pdFALSE or FREERTOS_AF_INET6. */
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "prvReadDNSCache: Undefined IP Type \n" ) );
-                        break;
+                        break; /* LCOV_EXCL_LINE - xIs_IPv6 is always either pdFALSE or FREERTOS_AF_INET6. */
                 }
 
                 if( pxNewAddress == NULL )
