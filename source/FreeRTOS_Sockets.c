@@ -4374,7 +4374,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
                                     BaseType_t * pxLength )
     {
-        uint8_t * pucSocketProps = NULL;
+        uint8_t * pucReturn = NULL;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
         StreamBuffer_t * pxBuffer = NULL;
 
@@ -4400,11 +4400,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                     *pxLength = ( BaseType_t ) uxSpace;
                 }
 
-                pucSocketProps = &( pxBuffer->ucArray[ pxBuffer->uxHead ] );
+                pucReturn = &( pxBuffer->ucArray[ pxBuffer->uxHead ] );
             }
         }
 
-        return pucSocketProps;
+        return pucReturn;
     }
 #endif /* ipconfigUSE_TCP */
 /*-----------------------------------------------------------*/

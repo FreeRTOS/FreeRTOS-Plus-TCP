@@ -90,7 +90,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
     /* Map the UDP packet onto the start of the frame. */
 
     /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
@@ -193,8 +193,12 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             }
 
             pxIPHeader->usLength = FreeRTOS_htons( pxIPHeader->usLength );
-            pxIPHeader->ulSourceIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
             pxIPHeader->ulDestinationIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+
+            if( pxNetworkBuffer->pxEndPoint != NULL )
+            {
+                pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
+            }
 
             /* The stack doesn't support fragments, so the fragment offset field must always be zero.
              * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
@@ -400,10 +404,15 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                         struct freertos_sockaddr xSourceAddress, destinationAddress;
                         void * pcData = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                         FOnUDPReceive_t xHandler = ( FOnUDPReceive_t ) pxSocket->u.xUDP.pxHandleReceive;
+
                         xSourceAddress.sin_port = pxNetworkBuffer->usPort;
                         xSourceAddress.sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+                        xSourceAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET4;
+                        xSourceAddress.sin_len = ( uint8_t ) sizeof( xSourceAddress );
                         destinationAddress.sin_port = usPort;
                         destinationAddress.sin_address.ulIP_IPv4 = pxUDPPacket->xIPHeader.ulDestinationIPAddress;
+                        destinationAddress.sin_family = ( uint8_t ) FREERTOS_AF_INET4;
+                        destinationAddress.sin_len = ( uint8_t ) sizeof( destinationAddress );
 
                         /* The value of 'xDataLength' was proven to be at least the size of a UDP packet in prvProcessIPPacket(). */
                         if( xHandler( ( Socket_t ) pxSocket,

@@ -40,58 +40,25 @@
 #include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
 
-const BaseType_t xBufferAllocFixedSize = pdTRUE;
+bool isMallocFail = false;
 
-
-void vPortEnterCritical( void )
-{
-}
-
-void vPortExitCritical( void )
-{
-}
-
-BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                           const char * pcName )
-{
-    return pdFALSE;
-}
-
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
+/* ======================== Stub Callback Functions ========================= */
 
 void * pvPortMalloc( size_t xNeeded )
 {
-    return malloc( xNeeded );
+    void * pvReturn = NULL;
+
+    if( isMallocFail != true )
+    {
+        pvReturn = malloc( xNeeded );
+    }
+
+    return pvReturn;
 }
 
 void vPortFree( void * ptr )
 {
     free( ptr );
-}
-
-/*
- * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
- * to a 16-byte IPv6 address
- */
-BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                void * pvDestination )
-{
 }

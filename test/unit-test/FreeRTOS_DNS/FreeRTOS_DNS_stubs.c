@@ -25,7 +25,6 @@
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include <unity.h>
 
@@ -38,18 +37,36 @@
 #include "list.h"
 
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_IP_Private.h"
 
-/* =========================== EXTERN Functions =========================== */
+/* ===========================  EXTERN VARIABLES  =========================== */
 
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+int callback_called = 0;
+bool isMallocFail = false;
 
-/*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
- */
-void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
+/* ======================== Stub Callback Functions ========================= */
+
+void dns_callback( const char * pcName,
+                   void * pvSearchID,
+                   struct freertos_addrinfo * pxAddress )
 {
-    /* Do Nothing */
+    callback_called = 1;
+}
+
+void * pvPortMalloc( size_t xNeeded )
+{
+    void * pvReturn = NULL;
+
+    if( isMallocFail != true )
+    {
+        pvReturn = malloc( xNeeded );
+    }
+
+    return pvReturn;
+}
+
+void vPortFree( void * ptr )
+{
+    free( ptr );
 }
