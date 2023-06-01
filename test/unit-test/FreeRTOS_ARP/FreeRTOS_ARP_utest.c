@@ -2159,7 +2159,7 @@ void test_vARPAgeCache( void )
     /* Set an IP address */
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
 
-    xTaskGetTickCount_ExpectAndReturn( 100000 );
+    xTaskGetTickCount_ExpectAndReturn( 50000 );
 
     vARPAgeCache();
     /* =================================================== */
