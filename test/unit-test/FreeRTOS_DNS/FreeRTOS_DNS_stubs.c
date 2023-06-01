@@ -25,7 +25,6 @@
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include <unity.h>
 
@@ -38,49 +37,36 @@
 #include "list.h"
 
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_IP_Private.h"
 
-/* =========================  EXTERN VARIABLES  ========================= */
+/* ===========================  EXTERN VARIABLES  =========================== */
 
-BaseType_t xTCPWindowLoggingLevel = 0;
-
-static Socket_t xHandleConnectedSocket;
-static size_t xHandleConnectedLength;
-
-/* Defined in FreeRTOS_Sockets.c */
-#if ( ipconfigUSE_TCP == 1 )
-    List_t xBoundTCPSocketsList;
-#endif
+int callback_called = 0;
+bool isMallocFail = false;
 
 /* ======================== Stub Callback Functions ========================= */
 
-/**
- * @brief Process the received TCP packet.
- */
-BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor )
+void dns_callback( const char * pcName,
+                   void * pvSearchID,
+                   struct freertos_addrinfo * pxAddress )
 {
-    return pdTRUE;
+    callback_called = 1;
 }
 
-static void HandleConnected( Socket_t xSocket,
-                             size_t xLength )
+void * pvPortMalloc( size_t xNeeded )
 {
-    TEST_ASSERT_EQUAL( xHandleConnectedSocket, xSocket );
-    TEST_ASSERT_EQUAL( xHandleConnectedLength, xLength );
+    void * pvReturn = NULL;
+
+    if( isMallocFail != true )
+    {
+        pvReturn = malloc( xNeeded );
+    }
+
+    return pvReturn;
 }
 
-/**
- * @brief Set the ACK message to NULL.
- */
-static void prvTCPReturnPacket_StubReturnNULL( FreeRTOS_Socket_t * pxSocket,
-                                               NetworkBufferDescriptor_t * pxDescriptor,
-                                               uint32_t ulLen,
-                                               BaseType_t xReleaseAfterSend,
-                                               int timesCalled )
+void vPortFree( void * ptr )
 {
-    ( void ) pxDescriptor;
-    ( void ) ulLen;
-    ( void ) xReleaseAfterSend;
-    ( void ) timesCalled;
-    pxSocket->u.xTCP.pxAckMessage = NULL;
+    free( ptr );
 }
