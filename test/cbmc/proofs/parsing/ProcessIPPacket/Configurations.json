@@ -4,12 +4,18 @@
   [
     "--unwind 1",
     "--unwindset memcmp.0:7",
+    "--unwindset FreeRTOS_AllEndPointsUp.0:2",
     "--nondet-static"
+  ],
+  "OPT":
+  [
+    "--export-file-local-symbols"
   ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IPv4.goto"
   ],
   "DEF":
   [
