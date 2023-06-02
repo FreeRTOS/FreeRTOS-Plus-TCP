@@ -343,4 +343,11 @@ typedef struct xEnetDriverObj
 }
 xEnetDriverObj, *xEnetDriverHandle;
 
+typedef struct _xNetIFArgs
+{
+    uint32_t xNetIFID;
+    xEnetDriverHandle hEnet;
+} xNetIFArgs;
+
+
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface);

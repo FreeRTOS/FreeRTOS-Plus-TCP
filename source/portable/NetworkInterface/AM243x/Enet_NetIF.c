@@ -101,6 +101,19 @@ static void EnetNetIF_processRxUnusedQ(EnetNetIF_RxObj *rx,
 static void EnetNetIF_submitRxPackets(EnetNetIF_RxObj *rx,
                                       EnetDma_PktQ *pSubmitQ);
 
+uint8_t gPktRxTaskStack[LWIPIF_RX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
+uint8_t gPktTxTaskStack[LWIPIF_TX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
+uint8_t gPollTaskStack[LWIPIF_POLL_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
+
+/*!* Handle to Rx semaphore, on which the rxTask awaits for notification
+* of used packets available.
+*/
+SemaphoreP_Object rxPktSem;
+/*!* Handle to Tx semaphore, on which the txTask awaits for notification
+* of used packets available.
+*/
+SemaphoreP_Object txPktSem;
+
 static xEnetDriverHandle EnetNetif_getObj(void)
 {
     uintptr_t key = EnetOsal_disableAllIntr();
@@ -326,7 +339,11 @@ static void EnetNetIF_mapNetif2Tx(NetworkInterface_t * pxInterface,
                         EnetNetIF_TxHandle hTxEnet,
                         xEnetDriverHandle hEnet)
 {
-    BaseType_t xNetIFNum = *( (uint32_t *) pxInterface->pvArgument);
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    BaseType_t xNetIFNum;
+
+    configASSERT(pxNetIFArgs != NULL);
+    xNetIFNum = pxNetIFArgs->xNetIFID;
 
     configASSERT(xNetIFNum < ENET_SYSCFG_NETIF_COUNT);
 
@@ -484,7 +501,12 @@ static void EnetNetIF_mapNetif2Rx(NetworkInterface_t * pxInterface,
                         EnetNetIF_RxHandle hRxEnet,
                         xEnetDriverHandle hEnet)
 {
-    BaseType_t xNetIFNum = *( (uint32_t *) pxInterface->pvArgument);
+
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    BaseType_t xNetIFNum;
+
+    configASSERT(pxNetIFArgs != NULL);
+    xNetIFNum = pxNetIFArgs->xNetIFID;
 
     configASSERT(xNetIFNum < ENET_SYSCFG_NETIF_COUNT);
 
@@ -746,6 +768,83 @@ static void EnetNetIF_createTimer(xEnetDriverHandle hEnet)
     configASSERT(status == SystemP_SUCCESS);
 }
 
+void EnetNetIF_setRxNotifyCallback(xEnetDriverHandle hEnet, Enet_notify_t *pRxPktNotify)
+{
+    hEnet->rxPktNotify = *pRxPktNotify;
+}
+
+void EnetNetIF_setTxNotifyCallback(xEnetDriverHandle hEnet, Enet_notify_t *pTxPktNotify)
+{
+    hEnet->txPktNotify = *pTxPktNotify;
+}
+
+void EnetNetIF_setNotifyCallbacks(NetworkInterface_t * pxInterface, Enet_notify_t *pRxNotify, Enet_notify_t *pTxNotify)
+{
+
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
+    EnetNetIF_setRxNotifyCallback(hEnet, pRxNotify);
+    EnetNetIF_setRxNotifyCallback(hEnet, pTxNotify);
+}
+
+/*
+* create a function called postEvent[i]. each event, each postfxn.
+*/
+static void EnetNetIFApp_postSemaphore(void *pArg)
+{
+    SemaphoreP_Object *pSem = (SemaphoreP_Object *) pArg;
+    SemaphoreP_post(pSem);
+}
+
+// void LwipifEnetApp_createTxPktHandlerTask(struct netif *netif)
+// {
+//     TaskP_Params params;
+//     int32_t status;
+
+//     /* Create TX packet task */
+//     TaskP_Params_init(&params);
+//     params.name = "LwipifEnetApp_TxPacketTask";
+//     params.priority       = LWIPIF_TX_PACKET_TASK_PRI;
+//     params.stack          = &gPktTxTaskStack[0U];
+//     params.stackSize      = sizeof(gPktTxTaskStack);
+//     params.args           = netif;
+//     params.taskMain       = &LwipifEnetApp_txPacketTask;
+
+//     status = TaskP_construct(&txTask , &params);
+//     EnetAppUtils_assert(status == SystemP_SUCCESS);
+// }
+
+void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
+{
+    uint32_t status;
+    status = SemaphoreP_constructBinary(&txPktSem, 0U);
+    EnetAppUtils_assert(status == SystemP_SUCCESS);
+
+    status = SemaphoreP_constructBinary(&rxPktSem, 0U);
+    EnetAppUtils_assert(status == SystemP_SUCCESS);
+
+    Enet_notify_t rxNotify =
+        {
+           .cbFxn = &EnetNetIFApp_postSemaphore, //gives different cb fxn for different events.
+           .cbArg = &rxPktSem //
+        };
+    Enet_notify_t txNotify =
+        {
+                .cbFxn = &EnetNetIFApp_postSemaphore,
+                .cbArg = &txPktSem
+        };
+
+    EnetNetIF_setNotifyCallbacks(pxInterface, &rxNotify, &txNotify);
+    // /* Initialize Tx task*/
+    // LwipifEnetApp_createTxPktHandlerTask(netif);
+
+    // /* Initialize Rx Task*/
+    // LwipifEnetApp_createRxPktHandlerTask(netif);
+
+    // /* Initialize Polling task*/
+    // LwipifEnetApp_createPollTask(netif);
+}
+
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
 {
  
@@ -757,6 +856,7 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
     uint32_t i;
     BaseType_t xNetIFNum;
     NetworkEndPoint_t * pxEndPoint;
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
 
     hEnet = EnetNetif_getObj();
     if (hEnet->initDone == false)
@@ -822,7 +922,9 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
     // netif->hwaddr_len = ENET_MAC_ADDR_LEN;
     // netif->state = (void *)hEnet;
 
-    xNetIFNum = *( (uint32_t *) pxInterface->pvArgument);
+    configASSERT(pxNetIFArgs != NULL);
+    xNetIFNum = pxNetIFArgs->xNetIFID;
+
     configASSERT(xNetIFNum < ENET_SYSCFG_NETIF_COUNT);
     
     pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
@@ -870,6 +972,7 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
         // ClockP_start(&hEnet->pacingClkObj);
 
         hEnet->initDone = TRUE;
+        pxNetIFArgs->hEnet = hEnet;
     }
 
     // TODO: Wait till link is up before returing, because if the open() returns,
@@ -879,6 +982,11 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
     while(hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet) == 0)
     {
         vTaskDelay(pdMS_TO_TICKS(100));
+    }
+
+    if((hEnet->initDone == TRUE) && xNetIFNum == 0)
+    {
+        EnetNetIFApp_startSchedule(pxInterface);
     }
 
     return hEnet;

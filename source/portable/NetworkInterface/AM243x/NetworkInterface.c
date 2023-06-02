@@ -121,7 +121,7 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 
     NetworkInterface_t * pxRetInterface = NULL;
     static char pcName[ENET_SYSCFG_NETIF_COUNT][ 8 ];
-    static uint32_t uxNetIFArgs[ENET_SYSCFG_NETIF_COUNT];
+    static xNetIFArgs uxNetIFArgs[ENET_SYSCFG_NETIF_COUNT];
 
     if(xEMACIndex < ENET_SYSCFG_NETIF_COUNT)
     {
@@ -132,7 +132,7 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 // #endif     
 
         snprintf( pcName[xEMACIndex], sizeof( pcName[xEMACIndex] ), "eth%ld", xEMACIndex );
-        uxNetIFArgs[xEMACIndex] = xEMACIndex;
+        uxNetIFArgs[xEMACIndex].xNetIFID = xEMACIndex;
 
         memset( pxInterface, '\0', sizeof( *pxInterface ) );
         pxInterface->pcName = pcName[xEMACIndex];                    /* Interface name */
