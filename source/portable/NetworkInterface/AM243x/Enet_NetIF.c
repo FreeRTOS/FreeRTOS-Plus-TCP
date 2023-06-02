@@ -77,7 +77,7 @@
 
 #define LWIPIF_RX_PACKET_TASK_PRI      (OS_TASKPRIHIGH)
 
-#define LWIPIF_TX_PACKET_TASK_PRI      (OS_TASKPRIHIGH)
+#define ENETNETIF_TX_PACKET_TASK_PRI      (OS_TASKPRIHIGH)
 
 #define LWIP_POLL_TASK_PRI             (OS_TASKPRIHIGH - 1U)
 
@@ -101,6 +101,9 @@ static void EnetNetIF_processRxUnusedQ(EnetNetIF_RxObj *rx,
 static void EnetNetIF_submitRxPackets(EnetNetIF_RxObj *rx,
                                       EnetDma_PktQ *pSubmitQ);
 
+static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
+                                     EnetDma_PktQ *pPktQ);
+
 uint8_t gPktRxTaskStack[LWIPIF_RX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
 uint8_t gPktTxTaskStack[LWIPIF_TX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
 uint8_t gPollTaskStack[LWIPIF_POLL_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
@@ -113,6 +116,26 @@ SemaphoreP_Object rxPktSem;
 * of used packets available.
 */
 SemaphoreP_Object txPktSem;
+
+/*
+ * Handle to counting shutdown semaphore, which all subtasks created in the
+ * open function must post before the close operation can complete.
+ */
+SemaphoreP_Object shutDownSemObj;
+/** Boolean to indicate shutDownFlag status of translation layer.*/
+volatile bool shutDownFlag;
+
+/*!
+* Handle to Rx task, whose job it is to receive packets used by the hardware
+* and give them to the stack, and return freed packets back to the hardware.
+*/
+    TaskP_Object rxTask;
+/*! Handle to Tx task whose job is to retrieve packets consumed by the hardware and
+*  give them to the stack */
+    TaskP_Object txTask;
+/*! Handle to polling task whose job is to retrieve packets consumed by the hardware and
+*  give them to the stack */
+    TaskP_Object pollTask;
 
 static xEnetDriverHandle EnetNetif_getObj(void)
 {
@@ -660,34 +683,6 @@ static int32_t EnetNetIF_startRxTx(xEnetDriverHandle hEnet)
     return status;
 }
 
-static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
-                                     EnetDma_PktQ *pPktQ)
-{
-    uint32_t packetCount;
-    EnetDma_Pkt *pCurrDmaPacket;
-    struct pbuf* hPbufPacket;
-
-    packetCount = EnetQueue_getQCount(pPktQ);
-
-    pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
-    while (pCurrDmaPacket)
-    {
-        hPbufPacket = (struct pbuf *)pCurrDmaPacket->appPriv;
-
-        configASSERT(hPbufPacket != NULL);
-        /* Free PBUF buffer as it is transmitted by DMA now */
-        pbuf_free(hPbufPacket);
-        /* Return packet info to free pool */
-        EnetQueue_enq(&tx->freePktInfoQ, &pCurrDmaPacket->node);
-        pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
-    }
-
-    // TODO: take care of stats LWIP2ENETSTATS_ADDNUM(&tx->stats.freeAppPktEnq, packetCount);
-
-    return packetCount;
-}
-
-
 void EnetNetIF_retrieveTxPkts(EnetNetIF_TxObj *tx)
 {
     EnetDma_PktQ tempQueue;
@@ -796,23 +791,121 @@ static void EnetNetIFApp_postSemaphore(void *pArg)
     SemaphoreP_post(pSem);
 }
 
-// void LwipifEnetApp_createTxPktHandlerTask(struct netif *netif)
+// static void Lwip2Enet_updateTxNotifyStats(Lwip2Enet_PktTaskStats *pktStats,
+//                                           uint32_t packetCount,
+//                                           uint32_t timeDiff)
 // {
-//     TaskP_Params params;
-//     int32_t status;
+// #if defined(LWIPIF_INSTRUMENTATION_ENABLED)
+//     uint32_t notificationCount;
+//     uint32_t timePerPacket = timeDiff / packetCount;
 
-//     /* Create TX packet task */
-//     TaskP_Params_init(&params);
-//     params.name = "LwipifEnetApp_TxPacketTask";
-//     params.priority       = LWIPIF_TX_PACKET_TASK_PRI;
-//     params.stack          = &gPktTxTaskStack[0U];
-//     params.stackSize      = sizeof(gPktTxTaskStack);
-//     params.args           = netif;
-//     params.taskMain       = &LwipifEnetApp_txPacketTask;
+//     notificationCount = pktStats->dataNotifyCnt & (HISTORY_CNT - 1U);
+//     pktStats->dataNotifyCnt++;
 
-//     status = TaskP_construct(&txTask , &params);
-//     EnetAppUtils_assert(status == SystemP_SUCCESS);
+//     pktStats->totalPktCnt   += packetCount;
+//     pktStats->totalCycleCnt += timeDiff;
+
+//     pktStats->cycleCntPerNotify[notificationCount] = timeDiff;
+//     if (timeDiff > pktStats->cycleCntPerNotifyMax)
+//     {
+//         pktStats->cycleCntPerNotifyMax = timeDiff;
+//     }
+
+//     pktStats->pktsPerNotify[notificationCount] = packetCount;
+//     if (packetCount > pktStats->pktsPerNotifyMax)
+//     {
+//         pktStats->pktsPerNotifyMax = packetCount;
+//     }
+
+//     pktStats->cycleCntPerPkt[notificationCount] = timePerPacket;
+//     if (timePerPacket > pktStats->cycleCntPerPktMax)
+//     {
+//         pktStats->cycleCntPerPktMax = timePerPacket;
+//     }
+// #endif
 // }
+
+static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
+                                     EnetDma_PktQ *pPktQ)
+{
+    uint32_t packetCount;
+    EnetDma_Pkt *pCurrDmaPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    packetCount = EnetQueue_getQCount(pPktQ);
+
+    pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+    while (pCurrDmaPacket)
+    {
+        pxNetworkBuffer = (NetworkBufferDescriptor_t *)pCurrDmaPacket->appPriv;
+
+        configASSERT(pxNetworkBuffer != NULL);
+        /* Free PBUF buffer as it is transmitted by DMA now */
+        vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
+        /* Return packet info to free pool */
+        EnetQueue_enq(&tx->freePktInfoQ, &pCurrDmaPacket->node);
+        pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+    }
+
+    // TODO: take care of stats LWIP2ENETSTATS_ADDNUM(&tx->stats.freeAppPktEnq, packetCount);
+
+    return packetCount;
+}
+
+void EnetNetIF_Enet_txPktHandler(xEnetDriverHandle hEnet)
+{
+    uint32_t txChNum;
+
+    for (txChNum = 0U; txChNum < hEnet->numTxChannels; txChNum++)
+    {
+        EnetNetIF_retrieveTxPkts(&hEnet->tx[txChNum]);
+    }
+
+
+}
+
+void EnetNetIF_txPktHandler(NetworkInterface_t * pxInterface)
+{
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
+    EnetNetIF_Enet_txPktHandler(hEnet);
+}
+
+
+static void EnetNetIF_txPacketTask(void *arg)
+{
+    NetworkInterface_t * pxInterface = (NetworkInterface_t *) arg;
+    while (!shutDownFlag)
+    {
+        /*
+         * Wait for the Tx ISR to notify us that empty packets are available
+         * that were used to send data
+         */
+        SemaphoreP_pend(&txPktSem, SystemP_WAIT_FOREVER);
+        EnetNetIF_txPktHandler(pxInterface);
+    }
+
+    /* We are shutting down, notify that we are done */
+    SemaphoreP_post(&shutDownSemObj);
+}
+
+void EnetNetIFApp_createTxPktHandlerTask(NetworkInterface_t * pxInterface)
+{
+    TaskP_Params params;
+    int32_t status;
+
+    /* Create TX packet task */
+    TaskP_Params_init(&params);
+    params.name = "EnetNetIF_txPacketTask";
+    params.priority       = ENETNETIF_TX_PACKET_TASK_PRI;
+    params.stack          = &gPktTxTaskStack[0U];
+    params.stackSize      = sizeof(gPktTxTaskStack);
+    params.args           = pxInterface;
+    params.taskMain       = &EnetNetIF_txPacketTask;
+
+    status = TaskP_construct(&txTask , &params);
+    configASSERT(status == SystemP_SUCCESS);
+}
 
 void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
 {
@@ -836,7 +929,7 @@ void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
 
     EnetNetIF_setNotifyCallbacks(pxInterface, &rxNotify, &txNotify);
     // /* Initialize Tx task*/
-    // LwipifEnetApp_createTxPktHandlerTask(netif);
+    EnetNetIFApp_createTxPktHandlerTask(pxInterface);
 
     // /* Initialize Rx Task*/
     // LwipifEnetApp_createRxPktHandlerTask(netif);
