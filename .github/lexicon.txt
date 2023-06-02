@@ -1595,6 +1595,7 @@ uxbufferlength
 uxbuffersize
 uxbytecount
 uxbytesread
+uxbytesneeded
 uxclockticks
 uxcontents
 uxcount
@@ -1683,6 +1684,7 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
+uxudpoffset
 uxunrollcount
 uxupper
 uxwinsize
