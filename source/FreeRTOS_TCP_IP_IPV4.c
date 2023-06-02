@@ -113,9 +113,6 @@ BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescrip
 
     const IPHeader_t * pxIPHeader;
 
-    configASSERT( pxNetworkBuffer != NULL );
-    configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */

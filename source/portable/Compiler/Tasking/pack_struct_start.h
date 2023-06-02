@@ -25,31 +25,11 @@
  * http://www.FreeRTOS.org
  */
 
+/*****************************************************************************
+*
+* See the following URL for an explanation of this file:
+* http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Compiler_Porting.html
+*
+*****************************************************************************/
 
-/* Include Unity header */
-#include <unity.h>
-
-/* Include standard libraries */
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
-
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
-
-/* =========================== EXTERN Functions =========================== */
-
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
-
-/*
- * Set the initial value for MSS (Maximum Segment Size) to be used.
- */
-void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
-{
-    /* Do Nothing */
-}
+/* Nothing to do here. */
