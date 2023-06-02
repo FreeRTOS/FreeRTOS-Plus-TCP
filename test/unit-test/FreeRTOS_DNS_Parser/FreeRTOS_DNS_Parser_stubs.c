@@ -40,19 +40,14 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
 
 BaseType_t xBufferAllocFixedSize = pdFALSE;
 
-
-void vPortEnterCritical( void )
-{
-}
-
-void vPortExitCritical( void )
-{
-}
-
 uint16_t usPacketIdentifier;
+
+struct freertos_addrinfo pucAddrBuffer[ 2 ];
+struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
 
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
@@ -73,16 +68,11 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
-struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
-                                           BaseType_t xFamily,
-                                           const uint8_t * pucAddress )
+/* ======================== Stub Callback Functions ========================= */
+void vPortEnterCritical( void )
 {
-    struct freertos_addrinfo * pxAddrInfo = NULL;
-    void * pvBuffer;
+}
 
-    /* 'xFamily' might not be used when IPv6 is disabled. */
-    ( void ) xFamily;
-    pvBuffer = malloc( sizeof( *pxAddrInfo ) );
-
-    return pxAddrInfo;
+void vPortExitCritical( void )
+{
 }
