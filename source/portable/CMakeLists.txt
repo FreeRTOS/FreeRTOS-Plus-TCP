@@ -12,6 +12,7 @@ target_include_directories( freertos_plus_tcp_port
     $<$<STREQUAL:${FREERTOS_PLUS_TCP_COMPILER},CCS>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/CCS>
     $<$<C_COMPILER_ID:CCS>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/CCS>
     $<$<C_COMPILER_ID:GNU,Clang,ARMClang>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/GCC>
+    $<$<C_COMPILER_ID:Tasking>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Tasking>
     $<$<C_COMPILER_ID:IAR>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/IAR>
     $<$<C_COMPILER_ID:ARMCC>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/Keil>
     $<$<C_COMPILER_ID:MSVC>:${CMAKE_CURRENT_SOURCE_DIR}/Compiler/MSVC>
