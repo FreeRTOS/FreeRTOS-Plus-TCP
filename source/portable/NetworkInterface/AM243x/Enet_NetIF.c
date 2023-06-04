@@ -52,6 +52,7 @@
 #include "Enet_NetIF.h"
 #include "Enet_NetIFQueue.h"
 
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 
 /* ========================================================================== */
@@ -59,7 +60,7 @@
 /* ========================================================================== */
 #define ENETLWIP_PACKET_POLL_PERIOD_US (1000U)
 
-#define ENETLWIP_APP_POLL_PERIOD       (500U)
+#define ENETNETIF_APP_POLL_PERIOD       (500U)
 /*! \brief RX packet task stack size */
 #define LWIPIF_RX_PACKET_TASK_STACK    (1024U)
 
@@ -79,7 +80,7 @@
 
 #define ENETNETIF_TX_PACKET_TASK_PRI      (OS_TASKPRIHIGH)
 
-#define LWIP_POLL_TASK_PRI             (OS_TASKPRIHIGH - 1U)
+#define ENETNETIF_POLL_TASK_PRI           (OS_TASKPRIHIGH - 1U)
 
 #define ENET_SYSCFG_NETIF_COUNT                     (1U)
 
@@ -120,6 +121,9 @@ SemaphoreP_Object rxPktSem;
 * of used packets available.
 */
 SemaphoreP_Object txPktSem;
+/*! Handle to polling task whose job is to retrieve packets consumed by the hardware and
+*  give them to the stack */
+TaskP_Object pollTask;
 
 /*
  * Handle to counting shutdown semaphore, which all subtasks created in the
@@ -1090,6 +1094,284 @@ void EnetNetIFApp_createRxPktHandlerTask(NetworkInterface_t * pxInterface)
 
     status = TaskP_construct(&rxTask , &params);
     EnetAppUtils_assert(status == SystemP_SUCCESS);
+}
+
+void Lwip2Enet_sendTxPackets(Lwip2Enet_TxObj *tx,
+                             Enet_MacPort macPort)
+{
+    xEnetDriverHandle hEnet;
+    EnetDma_Pkt *pCurrDmaPacket;
+    struct pbuf *hPbufPkt;
+
+    hEnet = tx->hEnetNetIF;
+
+    /* If link is not up, simply return */
+    if (hEnet->linkIsUp)
+    {
+        EnetDma_PktQ txSubmitQ;
+
+        EnetQueue_initQ(&txSubmitQ);
+
+        if (pbufQ_count(&tx->unusedPbufQ))
+        {
+            /* send any pending TX Q's */
+            Lwip2Enet_pbufQ2PktInfoQ(tx, &tx->unusedPbufQ, &txSubmitQ, macPort);
+        }
+
+        /* Check if there is anything to transmit, else simply return */
+        while (pbufQ_count(&tx->readyPbufQ) != 0U)
+        {
+            /* Dequeue one free TX Eth packet */
+            pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(&tx->freePktInfoQ);
+
+            if (pCurrDmaPacket == NULL)
+            {
+                /* If we run out of packet info Q, retrieve packets from HW
+                * and try to dequeue free packet again */
+                Lwip2Enet_retrieveTxPkts(tx);
+                pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(&tx->freePktInfoQ);
+            }
+
+            if (NULL != pCurrDmaPacket)
+            {
+                hPbufPkt = pbufQ_deQ(&tx->readyPbufQ);
+                EnetDma_initPktInfo(pCurrDmaPacket);
+
+                Lwip2Enet_setSGList(pCurrDmaPacket, hPbufPkt, false);
+                pCurrDmaPacket->appPriv    = hPbufPkt;
+                pCurrDmaPacket->txPortNum  = macPort;
+                pCurrDmaPacket->node.next  = NULL;
+                pCurrDmaPacket->chkSumInfo = 0U;
+
+#if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
+                pCurrDmaPacket->chkSumInfo = LWIPIF_LWIP_getChkSumInfo(hPbufPkt);
+#endif
+
+                ENET_UTILS_COMPILETIME_ASSERT(offsetof(EnetDma_Pkt, node) == 0U);
+                EnetQueue_enq(&txSubmitQ, &(pCurrDmaPacket->node));
+
+                LWIP2ENETSTATS_ADDONE(&tx->stats.freeAppPktDeq);
+                LWIP2ENETSTATS_ADDONE(&tx->stats.readyPbufPktDeq);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        /* Submit the accumulated packets to the hardware for transmission */
+        Lwip2Enet_submitTxPackets(tx, &txSubmitQ);
+    }
+}
+
+ void Lwip2Enet_periodicFxn(NetworkInterface_t * pxInterface)
+{
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
+
+    uint32_t prevLinkState     = hEnet->linkIsUp;
+    uint32_t prevLinkInterface = hEnet->currLinkedIf;
+
+#if (1U == ENET_CFG_DEV_ERROR)
+#if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
+    int32_t status;
+#endif
+
+    for(uint32_t i = 0U; i < hEnet->numTxChannels; i++)
+    {
+        EnetQueue_verifyQCount(&hEnet->tx[i].freePktInfoQ);
+
+#if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
+        status = EnetUdma_checkTxChSanity(hEnet->tx[i].hCh, 5U);
+        if (status != ENET_SOK)
+        {
+            FreeRTOS_printf(("EnetUdma_checkTxChSanity Failed\n"));
+        }
+#endif
+    }
+
+    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+    {
+        EnetQueue_verifyQCount(&hEnet->rx[i].freePktInfoQ);
+
+#if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
+        status = EnetUdma_checkRxFlowSanity(hEnet->rx[i].hFlow, 5U);
+        if (status != ENET_SOK)
+        {
+            FreeRTOS_printf(("EnetUdma_checkRxFlowSanity Failed\n"));
+        }
+#endif
+    }
+
+
+#endif
+
+    /*
+     * Return the same DMA packets back to the DMA channel (but now
+     * associated with a new PBUF Packet and buffer)
+     */
+    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+    {
+        if (EnetQueue_getQCount(&hEnet->rx[i].freePktInfoQ) != 0U)
+        {
+            EnetNetIF_submitRxPktQ(&hEnet->rx[i]);
+        }
+    }
+#if 0 //The below CPU load profilling logic has to be re-worked for all OS variants
+#if defined(LWIPIF_INSTRUMENTATION_ENABLED)
+    static uint32_t loadCount = 0U;
+    TaskP_Load stat;
+
+    hEnet->stats.cpuLoad[loadCount] = TaskP_loadGetTotalCpuLoad();
+
+    TaskP_loadGet(&hEnet->rxPacketTaskObj, &stat);
+    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+    {
+        hEnet->rx[i].stats.pktStats.taskLoad[loadCount] = stat.cpuLoad;
+    }
+
+    TaskP_loadGet(&hEnet->txPacketTaskObj, &stat);
+    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+    {
+        hEnet->tx[i].stats.pktStats.taskLoad[loadCount] = stat.cpuLoad;
+    }
+
+    loadCount = (loadCount + 1U) & (HISTORY_CNT - 1U);
+#endif
+#endif
+    /* Get current link status as reported by the hardware driver */
+    hEnet->linkIsUp = hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet);
+
+    /* If the interface changed, discard any queue packets (since the MAC would now be wrong) */
+    if (prevLinkInterface != hEnet->currLinkedIf)
+    {
+        /* ToDo: Discard all queued packets */
+    }
+
+    for(uint32_t i = 0U; i < hEnet->numTxChannels; i++)
+    {
+        /* If link status changed from down->up, then send any queued packets */
+        if ((prevLinkState == 0U) && (hEnet->linkIsUp))
+        {
+            EnetNetIF_TxHandle hTxHandle;
+            Enet_MacPort macPort;
+
+            hTxHandle  = hEnet->mapNetif2Tx[netif->num];
+            macPort    = hEnet->mapNetif2TxPortNum[netif->num];
+            Lwip2Enet_sendTxPackets(hTxHandle, macPort);
+        }
+    }
+
+}
+
+void EnetNetIF_periodic_polling(NetworkInterface_t * pxFirstInterface)
+{
+    NetworkInterface_t * pxInterface = pxFirstInterface;
+    do // loop along all the netifs (reverse linked list)
+    {
+        xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+        xEnetDriverHandle hEnet = (xEnetDriverHandle) pxNetIFArgs->hEnet;
+
+        /* Periodic Function to update Link status */
+        Lwip2Enet_periodicFxn(netif);
+
+        if (!(hEnet->linkIsUp == pxNetIFArgs->xLinkUp))
+        {
+            if (hEnet->linkIsUp)
+            {
+                pxNetIFArgs->xLinkUp = pdTRUE;
+            }
+            else
+            {
+                pxNetIFArgs->xLinkUp = pdFALSE;
+            }
+        }
+        pxInterface = FreeRTOS_NextNetworkInterface(pxInterface);
+    } while ( pxInterface != NULL );
+    
+}
+
+static void EnetNetIF_EnetApp_poll(void *arg)
+{
+    /* Call the driver's periodic polling function */
+    volatile bool flag = 1;
+    NetworkInterface_t * pxInterface = (NetworkInterface_t *) arg;
+
+    while (flag)
+    {
+        SemaphoreP_pend(&pollSem, SystemP_WAIT_FOREVER);
+        //sys_lock_tcpip_core();
+        EnetNetIF_periodic_polling(pxInterface);
+        //sys_unlock_tcpip_core();
+    }
+}
+
+static void EnetNetIF_EnetApp_postPollLink(ClockP_Object *clkObj, void *arg)
+{
+    if(arg != NULL)
+    {
+        SemaphoreP_Object *hpollSem = (SemaphoreP_Object *) arg;
+        SemaphoreP_post(hpollSem);
+    }
+}
+
+static err_t LwipifEnetApp_createPollTask(NetworkInterface_t * pxInterface)
+{
+    TaskP_Params params;
+    int32_t status;
+    ClockP_Params clkPrms;
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+
+    if (NULL != pxNetIFArgs->hEnet)
+    {
+        /*Initialize semaphore to call synchronize the poll function with a timer*/
+        status = SemaphoreP_constructBinary(&pollSem, 0U);
+        configASSERT(status == SystemP_SUCCESS);
+
+        /* Initialize the poll function as a thread */
+        TaskP_Params_init(&params);
+        params.name = "EnetNetIF_EnetApp_poll";
+        params.priority       = ENETNETIF_POLL_TASK_PRI;
+        params.stack          = &gPollTaskStack[0U];
+        params.stackSize      = sizeof(gPollTaskStack);
+        params.args           = pxInterface; //&(gNetif[ENET_SYSCFG_NETIF_COUNT - 1]);
+        params.taskMain       = &EnetNetIF_EnetApp_poll;
+
+        status = TaskP_construct(&pollTask, &params);
+        configASSERT(status == SystemP_SUCCESS);
+
+        ClockP_Params_init(&clkPrms);
+        clkPrms.start     = 0;
+        clkPrms.period    = ENETNETIF_APP_POLL_PERIOD;
+        clkPrms.args      = &pollSem;
+        clkPrms.callback  = &EnetNetIF_EnetApp_postPollLink;
+        clkPrms.timeout   = ENETNETIF_APP_POLL_PERIOD;
+
+        /* Creating timer and setting timer callback function*/
+        status = ClockP_construct(&pollLinkClkObj,
+                                  &clkPrms);
+        if (status == SystemP_SUCCESS)
+        {
+            /* Set timer expiry time in OS ticks */
+            ClockP_setTimeout(&pollLinkClkObj, ENETNETIF_APP_POLL_PERIOD);
+            ClockP_start(&pollLinkClkObj);
+        }
+        else
+        {
+            configASSERT (status == SystemP_SUCCESS);
+        }
+
+        /* Filter not defined */
+        /* Inform the world that we are operational. */
+        FreeRTOS_printf(("[EnetNetIF] Enet has been started successfully\r\n"));
+
+        return ERR_OK;
+    }
+    else
+    {
+        configASSERT(pdFALSE);
+        return ERR_BUF;
+    }
 }
 
 void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)

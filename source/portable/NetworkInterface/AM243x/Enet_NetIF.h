@@ -347,6 +347,7 @@ typedef struct _xNetIFArgs
 {
     uint32_t xNetIFID;
     xEnetDriverHandle hEnet;
+    uint32_t xLinkUp;
 } xNetIFArgs;
 
 

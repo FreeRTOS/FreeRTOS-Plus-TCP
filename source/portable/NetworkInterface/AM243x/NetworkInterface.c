@@ -250,5 +250,7 @@ static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInt
 
 static BaseType_t xAM243x_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
-    return pdFALSE;
+    configASSERT(pxInterface != NULL);
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    return pxNetIFArgs->xLinkUp;
 }
