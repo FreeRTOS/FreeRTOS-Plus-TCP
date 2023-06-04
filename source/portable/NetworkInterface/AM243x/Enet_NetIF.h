@@ -351,3 +351,5 @@ typedef struct _xNetIFArgs
 
 
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface);
+
+#define ENETNETIF_RXFLOW_2_PORTIDX(num) (num - 1U)

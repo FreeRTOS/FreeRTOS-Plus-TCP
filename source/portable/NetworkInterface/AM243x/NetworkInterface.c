@@ -187,6 +187,60 @@ BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterf
 
 }
 
+static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
+{
+    IPStackEvent_t xRxEvent;
+
+    xRxEvent.eEventType = eNetworkRxEvent;
+    xRxEvent.pvData = ( void * ) pxDescriptor;
+
+    if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 1000 ) != pdPASS )
+    {
+        /* The buffer could not be sent to the stack so must be released again.
+         * This is a deferred handler task, not a real interrupt, so it is ok to
+         * use the task level function here. */
+        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            {
+                do
+                {
+                    NetworkBufferDescriptor_t * pxNext = pxDescriptor->pxNextBuffer;
+                    vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+                    pxDescriptor = pxNext;
+                } while( pxDescriptor != NULL );
+            }
+        #else
+            {
+                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+            }
+        #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
+        iptraceETHERNET_RX_EVENT_LOST();
+        FreeRTOS_printf( ( "prvPassEthMessages: Can not queue return packet!\n" ) );
+    }
+    else
+    {
+        iptraceNETWORK_INTERFACE_RECEIVE();
+    }
+}
+
+void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
+                       Enet_MacPort rxPortNum,
+                       NetworkBufferDescriptor_t * pxDescriptor)
+{
+    xEnetDriverHandle hLwip2Enet = rx->hEnetNetIF;
+    NetworkInterface_t * pxInterface;
+
+#if (ENET_ENABLE_PER_CPSW == 1)
+    pxInterface = hLwip2Enet->mapRxPort2Netif[ENET_MACPORT_NORM(rxPortNum)];
+#else
+    /* ToDo: ICSSG doesnot fill rxPortNum correctly, so using the rx->flowIdx to map to netif*/
+    pxInterface = hLwip2Enet->mapRxPort2Netif[ENETNETIF_RXFLOW_2_PORTIDX(rx->flowIdx)];
+#endif
+    configASSERT(pxInterface != NULL);
+    pxDescriptor->pxInterface = pxInterface;
+    pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxInterface, pxDescriptor->pucEthernetBuffer );
+    prvPassEthMessages(pxDescriptor);
+}
+
 static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                                      NetworkBufferDescriptor_t * const pxDescriptor,
                                                      BaseType_t xReleaseAfterSend )

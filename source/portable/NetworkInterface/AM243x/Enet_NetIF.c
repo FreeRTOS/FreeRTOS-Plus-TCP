@@ -75,7 +75,7 @@
 
 #define OS_TASKPRIHIGH              8U
 
-#define LWIPIF_RX_PACKET_TASK_PRI      (OS_TASKPRIHIGH)
+#define ENETNETIF_RX_PACKET_TASK_PRI      (OS_TASKPRIHIGH)
 
 #define ENETNETIF_TX_PACKET_TASK_PRI      (OS_TASKPRIHIGH)
 
@@ -103,6 +103,10 @@ static void EnetNetIF_submitRxPackets(EnetNetIF_RxObj *rx,
 
 static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
                                      EnetDma_PktQ *pPktQ);
+
+void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
+                       Enet_MacPort rxPortNum,
+                       NetworkBufferDescriptor_t * pxDescriptor);
 
 uint8_t gPktRxTaskStack[LWIPIF_RX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
 uint8_t gPktTxTaskStack[LWIPIF_TX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
@@ -907,6 +911,187 @@ void EnetNetIFApp_createTxPktHandlerTask(NetworkInterface_t * pxInterface)
     configASSERT(status == SystemP_SUCCESS);
 }
 
+static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
+                                     EnetDma_PktQ *pPktQ)
+{
+    uint32_t packetCount = 0U;
+    EnetDma_Pkt *pCurrDmaPacket;
+    bool isChksumError = false;
+    uint32_t validLen = 0U;
+
+    pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+    while (pCurrDmaPacket)
+    {
+        /* Get the full PBUF packet that needs to be returned to the LwIP stack */
+        NetworkBufferDescriptor_t * pxDescriptor = (NetworkBufferDescriptor_t *)pCurrDmaPacket->appPriv;
+        isChksumError = false;
+        if (pxDescriptor)
+        {
+            validLen = pCurrDmaPacket->sgList.list[0].segmentFilledLen;
+
+            /* Fill in PBUF packet length field */
+            pxDescriptor->xDataLength = validLen;
+            // pxDescriptor->tot_len = validLen;
+            configASSERT(pxDescriptor->pucEthernetBuffer != NULL);
+
+// TODO: Handle ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+// #if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
+//             {
+//                 struct ip_hdr* pIpPkt = (struct ip_hdr* ) LWIPIF_LWIP_getIpPktStart((uint8_t*) pxDescriptor->payload);
+//                 if (IPH_PROTO(pIpPkt) == IP_PROTO_UDPLITE)
+//                 {
+//                     isChksumError = LWIPIF_LWIP_UdpLiteValidateChkSum(pxDescriptor);
+//                 }
+//                 else
+//                 {
+//                     /* We don't check if HW checksum offload is enabled while checking for checksum error
+//                      * as default value of this field when offload not enabled is false */
+//                     const uint32_t csumInfo =  pCurrDmaPacket->chkSumInfo;
+
+//                     if ( ENETDMA_RXCSUMINFO_GET_IPV4_FLAG(csumInfo) ||
+//                             ENETDMA_RXCSUMINFO_GET_IPV6_FLAG(csumInfo))
+//                     {
+//                         isChksumError = ENETDMA_RXCSUMINFO_GET_CHKSUM_ERR_FLAG(csumInfo);
+//                     }
+//                 }
+//             }
+// #endif
+            if (!isChksumError)
+            {
+                /* Pass the received packet to the LwIP stack */
+                AM243x_Eth_NetworkInterfaceInput(rx, pCurrDmaPacket->rxPortNum, pxDescriptor);
+                packetCount++;
+            }
+            else
+            {
+                /* Put PBUF buffer in free Q as we are not passing to stack */
+                EnetQueue_enq(&rx->freePktInfoQ, &pCurrDmaPacket->node);
+                // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&rx->stats.freeAppPktEnq);
+                // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&rx->stats.chkSumErr);
+            }
+
+            /* Put packet info into free Q as we have removed the PBUF buffers
+             * from the it */
+            pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+        }
+        else
+        {
+            /* Should never happen as this is received from HW */
+            configASSERT(FALSE);
+        }
+    }
+
+    /* return as many packets to driver as we can */
+    EnetNetIF_submitRxPktQ(rx);
+
+    return packetCount;
+}
+
+void EnetNetIF_rxPktHandler(xEnetDriverHandle hEnet)
+{
+    EnetDma_PktQ tempQueue;
+    int32_t retVal;
+    uint32_t pktCnt, rxChNum;
+
+    for(rxChNum = 0U; rxChNum < hEnet->numRxChannels; rxChNum++)
+    {
+        pktCnt = 0U;
+        // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hEnet->rx[rxChNum].stats.pktStats.rawNotifyCnt);
+
+        /* Retrieve the used (filled) packets from the channel */
+        {
+            EnetQueue_initQ(&tempQueue);
+            retVal = EnetDma_retrieveRxPktQ(hEnet->rx[rxChNum].hFlow, &tempQueue);
+            if (ENET_SOK != retVal)
+            {
+                FreeRTOS_printf(("Lwip2Enet_rxPacketTask: failed to retrieve RX pkts: %d\n",
+                                retVal));
+            }
+        }
+        if (tempQueue.count == 0U)
+        {
+            // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hEnet->rx[rxChNum].stats.pktStats.zeroNotifyCnt);
+        }
+
+        /*
+         * Call Lwip2Enet_prepRxPktQ() even if no packets were received.
+         * This allows new packets to be submitted if PBUF buffers became
+         * newly available and there were outstanding free packets.
+         */
+        {
+            /*
+             * Get all used Rx DMA packets from the hardware, then send the buffers
+             * of those packets on to the LwIP stack to be parsed/processed.
+             */
+            pktCnt = EnetNetIF_prepRxPktQ(&hEnet->rx[rxChNum], &tempQueue);
+        }
+
+        /*
+         * We don't want to time the semaphore post used to notify the LwIP stack as that may cause a
+         * task transition. We don't want to time the semaphore pend, since that would time us doing
+         * nothing but waiting.
+         */
+        if (pktCnt != 0U)
+        {
+            // TODO: take care of stats Lwip2Enet_updateRxNotifyStats(&hEnet->rx[rxChNum].stats.pktStats, pktCnt, 0U);
+        }
+
+        // ClockP_start(&hEnet->pacingClkObj);
+
+        if (!hEnet->rx[rxChNum].disableEvent)
+        {
+            EnetDma_enableRxEvent(hEnet->rx[rxChNum].hFlow);
+        }
+    }
+
+
+}
+
+void EnetNetIF_Enet_rxPktHandler(NetworkInterface_t * pxInterface)
+{
+    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
+    EnetNetIF_rxPktHandler(hEnet);
+}
+
+static void EnetNetIFApp_rxPacketTask(void *arg)
+{
+    NetworkInterface_t * pxInterface = (NetworkInterface_t *) arg;
+    while (!shutDownFlag)
+    {
+        /* Wait for the Rx ISR to notify us that packets are available with data */
+        SemaphoreP_pend(&rxPktSem, SystemP_WAIT_FOREVER);
+        if (shutDownFlag)
+        {
+            /* This translation layer is shutting down, don't give anything else to the stack */
+            break;
+        }
+
+        EnetNetIF_Enet_rxPktHandler(pxInterface);
+    }
+
+    /* We are shutting down, notify that we are done */
+    SemaphoreP_post(&shutDownSemObj);
+}
+
+void EnetNetIFApp_createRxPktHandlerTask(NetworkInterface_t * pxInterface)
+{
+    TaskP_Params params;
+    int32_t status;
+
+    /* Create RX packet task */
+    TaskP_Params_init(&params);
+    params.name = "EnetNetIFApp_rxPacketTask";
+    params.priority       = ENETNETIF_RX_PACKET_TASK_PRI;
+    params.stack          = &gPktRxTaskStack[0U];
+    params.stackSize      = sizeof(gPktRxTaskStack);
+    params.args           = pxInterface;
+    params.taskMain       = &EnetNetIFApp_rxPacketTask;
+
+    status = TaskP_construct(&rxTask , &params);
+    EnetAppUtils_assert(status == SystemP_SUCCESS);
+}
+
 void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
 {
     uint32_t status;
@@ -932,7 +1117,7 @@ void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
     EnetNetIFApp_createTxPktHandlerTask(pxInterface);
 
     // /* Initialize Rx Task*/
-    // LwipifEnetApp_createRxPktHandlerTask(netif);
+    EnetNetIFApp_createRxPktHandlerTask(pxInterface);
 
     // /* Initialize Polling task*/
     // LwipifEnetApp_createPollTask(netif);
