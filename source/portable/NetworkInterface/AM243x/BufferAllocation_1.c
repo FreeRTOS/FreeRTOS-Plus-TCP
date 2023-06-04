@@ -48,12 +48,17 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 
+#include "Enet_NetIF.h"
+
+void vNetworkInterfaceAllocateRAMToBuffers_RX( NetworkBufferDescriptor_t pxNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] );
+
 /* For an Ethernet interrupt to be able to obtain a network buffer there must
  * be at least this number of buffers available. */
 #define baINTERRUPT_BUFFER_GET_THRESHOLD    ( 3 )
 
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
 static List_t xFreeBuffersList;
+static List_t xFreeBuffersList_RX;
 
 /* Some statistics about the use of buffers. */
 static UBaseType_t uxMinimumFreeNetworkBuffers = 0U;
@@ -64,7 +69,7 @@ static UBaseType_t uxMinimumFreeNetworkBuffers = 0U;
  * when the xFreeBuffersList is filled (as all the buffers are free when the system
  * is booted). */
 static NetworkBufferDescriptor_t xNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ];
-static NetworkBufferDescriptor_t xNetworkBuffers_RX[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ];
+static NetworkBufferDescriptor_t xNetworkBuffers_RX[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ];
 
 /* This constant is defined as true to let FreeRTOS_TCP_IP.c know that the
  * network buffers have constant size, large enough to hold the biggest Ethernet
@@ -117,6 +122,8 @@ static void prvShowWarnings( void );
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigTCP_IP_SANITY != 0 )
+
+    #error "TODO: Work in progress"
 
     BaseType_t prvIsFreeBuffer( const NetworkBufferDescriptor_t * pxDescr )
     {
@@ -198,11 +205,13 @@ BaseType_t xNetworkBuffersInitialise( void )
         if( xNetworkBufferSemaphore != NULL )
         {
             vListInitialise( &xFreeBuffersList );
+            vListInitialise( &xFreeBuffersList_RX );
 
             /* Initialise all the network buffers.  The buffer storage comes
              * from the network interface, and different hardware has different
              * requirements. */
             vNetworkInterfaceAllocateRAMToBuffers( xNetworkBuffers );
+            vNetworkInterfaceAllocateRAMToBuffers_RX( xNetworkBuffers_RX );
 
             for( x = 0U; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
             {
@@ -212,6 +221,16 @@ BaseType_t xNetworkBuffersInitialise( void )
 
                 /* Currently, all buffers are available for use. */
                 vListInsert( &xFreeBuffersList, &( xNetworkBuffers[ x ].xBufferListItem ) );
+            }
+
+            for( x = 0U; x < NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS; x++ )
+            {
+                /* Initialise and set the owner of the buffer list items. */
+                vListInitialiseItem( &( xNetworkBuffers_RX[ x ].xBufferListItem ) );
+                listSET_LIST_ITEM_OWNER( &( xNetworkBuffers_RX[ x ].xBufferListItem ), &xNetworkBuffers_RX[ x ] );
+
+                /* Currently, all buffers are available for use. */
+                vListInsert( &xFreeBuffersList_RX, &( xNetworkBuffers_RX[ x ].xBufferListItem ) );
             }
 
             uxMinimumFreeNetworkBuffers = ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -319,6 +338,96 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     return pxReturn;
 }
+
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor_RX( size_t xRequestedSizeBytes,
+                                                              TickType_t xBlockTimeTicks )
+{
+    NetworkBufferDescriptor_t * pxReturn = NULL;
+    BaseType_t xInvalid = pdFALSE;
+    UBaseType_t uxCount;
+
+    /* The current implementation only has a single size memory block, so
+     * the requested size parameter is not used (yet). */
+    ( void ) xRequestedSizeBytes;
+    ( void ) xBlockTimeTicks;
+
+    // if( xNetworkBufferSemaphore != NULL )
+    // {
+    //     /* If there is a semaphore available, there is a network buffer
+    //      * available. */
+    //     if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
+    //     {
+            /* Protect the structure as it is accessed from tasks and
+             * interrupts. */
+            ipconfigBUFFER_ALLOC_LOCK();
+            {
+                pxReturn = ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &xFreeBuffersList_RX );
+
+                if( ( bIsValidNetworkDescriptor( pxReturn ) != pdFALSE_UNSIGNED ) &&
+                    listIS_CONTAINED_WITHIN( &xFreeBuffersList_RX, &( pxReturn->xBufferListItem ) ) )
+                {
+                    ( void ) uxListRemove( &( pxReturn->xBufferListItem ) );
+                }
+                else
+                {
+                    xInvalid = pdTRUE;
+                }
+            }
+            ipconfigBUFFER_ALLOC_UNLOCK();
+
+            if( xInvalid == pdTRUE )
+            {
+                /* _RB_ Can printf() be called from an interrupt?  (comment
+                 * above says this can be called from an interrupt too) */
+
+                /* _HT_ The function shall not be called from an ISR. Comment
+                 * was indeed misleading. Hopefully clear now?
+                 * So the printf()is OK here. */
+                FreeRTOS_debug_printf( ( "pxGetNetworkBufferWithDescriptor: INVALID BUFFER: %p (valid %lu)\n",
+                                         pxReturn, bIsValidNetworkDescriptor( pxReturn ) ) );
+                pxReturn = NULL;
+            }
+            else
+            {
+                // /* Reading UBaseType_t, no critical section needed. */
+                // uxCount = listCURRENT_LIST_LENGTH( &xFreeBuffersList );
+
+                // /* For stats, latch the lowest number of network buffers since
+                //  * booting. */
+                // if( uxMinimumFreeNetworkBuffers > uxCount )
+                // {
+                //     uxMinimumFreeNetworkBuffers = uxCount;
+                // }
+
+                pxReturn->xDataLength = xRequestedSizeBytes;
+                pxReturn->pxInterface = NULL;
+                pxReturn->pxEndPoint = NULL;
+
+                #if ( ipconfigTCP_IP_SANITY != 0 )
+                    {
+                        prvShowWarnings();
+                    }
+                #endif /* ipconfigTCP_IP_SANITY */
+
+                #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+                    {
+                        /* make sure the buffer is not linked */
+                        pxReturn->pxNextBuffer = NULL;
+                    }
+                #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
+            }
+
+            iptraceNETWORK_BUFFER_OBTAINED( pxReturn );
+    //     }
+    //     else
+    //     {
+    //         /* lint wants to see at least a comment. */
+    //         iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+    //     }
+    // }
+
+    return pxReturn;
+}
 /*-----------------------------------------------------------*/
 
 NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes )
@@ -388,33 +497,41 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
     }
     else
     {
-        /* Ensure the buffer is returned to the list of free buffers before the
-         * counting semaphore is 'given' to say a buffer is available. */
-        ipconfigBUFFER_ALLOC_LOCK();
+        /* check if its RX buffer or TX buffer */
+        if (pxNetworkBuffer >= &xNetworkBuffers_RX[0] && pxNetworkBuffer <= &xNetworkBuffers_RX[NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS - 1])
         {
-            {
-                xListItemAlreadyInFreeList = listIS_CONTAINED_WITHIN( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
-
-                if( xListItemAlreadyInFreeList == pdFALSE )
-                {
-                    vListInsertEnd( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
-                }
-            }
-        }
-        ipconfigBUFFER_ALLOC_UNLOCK();
-
-        if( xListItemAlreadyInFreeList )
-        {
-            FreeRTOS_debug_printf( ( "vReleaseNetworkBufferAndDescriptor: %p ALREADY RELEASED (now %lu)\n",
-                                     pxNetworkBuffer, uxGetNumberOfFreeNetworkBuffers() ) );
+            EnetNetIF_AppCb_ReleaseNetDescriptor(pxNetworkBuffer);
         }
         else
         {
-            ( void ) xSemaphoreGive( xNetworkBufferSemaphore );
-            prvShowWarnings();
-        }
+            /* Ensure the buffer is returned to the list of free buffers before the
+            * counting semaphore is 'given' to say a buffer is available. */
+            ipconfigBUFFER_ALLOC_LOCK();
+            {
+                {
+                    xListItemAlreadyInFreeList = listIS_CONTAINED_WITHIN( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
 
-        iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
+                    if( xListItemAlreadyInFreeList == pdFALSE )
+                    {
+                        vListInsertEnd( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
+                    }
+                }
+            }
+            ipconfigBUFFER_ALLOC_UNLOCK();
+
+            if( xListItemAlreadyInFreeList )
+            {
+                FreeRTOS_debug_printf( ( "vReleaseNetworkBufferAndDescriptor: %p ALREADY RELEASED (now %lu)\n",
+                                        pxNetworkBuffer, uxGetNumberOfFreeNetworkBuffers() ) );
+            }
+            else
+            {
+                ( void ) xSemaphoreGive( xNetworkBufferSemaphore );
+                prvShowWarnings();
+            }
+
+            iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
+        }
     }
 }
 /*-----------------------------------------------------------*/

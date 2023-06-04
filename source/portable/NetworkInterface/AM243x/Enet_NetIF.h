@@ -42,12 +42,16 @@
 #include <enet_cfg.h>
 #include "Enet_NetIFQueue.h"
 
+#define NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS      (32U)
+
 #define CONFIG_MAX_RX_CHANNELS      2
 #define CONFIG_MAX_TX_CHANNELS      2
 
 #define HISTORY_CNT ((uint32_t)2U)
 
 typedef bool (*Enet_NetIF_AppIf_IsPhyLinkedCbFxn)(Enet_Handle hEnet);
+
+void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNetworkBuffer);
 
 /* Multicast Address List Size */
 #define CONFG_PKT_MAX_MCAST                   ((uint32_t)31U)
@@ -350,6 +354,12 @@ typedef struct _xNetIFArgs
     uint32_t xLinkUp;
 } xNetIFArgs;
 
+typedef struct EnetNetIF_AppIf_CustomNetBuf_t
+{
+   NetworkBufferDescriptor_t * pxNetworkBuffer;
+   EnetDma_Pkt *pktInfoMem;
+   EnetDma_PktQ *freePktInfoQ;
+} EnetNetIF_AppIf_CustomNetBuf;
 
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface);
 

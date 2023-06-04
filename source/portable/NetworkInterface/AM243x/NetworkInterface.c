@@ -75,7 +75,7 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 /* ENET config macros */
 
 #define ENET_SYSCFG_NETIF_COUNT                     (1U)
-#define ETH_MAX_PACKET_SIZE        ( ( uint32_t ) 1536U ) 
+#define ETH_MAX_PACKET_SIZE        ( ( uint32_t ) 1536U ) // TODO Make sure this is 32 bit aligned #define ENET_MEM_LARGE_POOL_PKT_SIZE        ENET_UTILS_ALIGN(1536U, ENET_UTILS_CACHELINE_SIZE)
 
 /*-----------------------------------------------------------*/
 
@@ -103,11 +103,27 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 {
     // TODO: check alignment and section where this memory block should be placed. Also,
     // check if ETH_MAX_PACKET_SIZE appropriate.
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETH_MAX_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
+    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETH_MAX_PACKET_SIZE ] __attribute__( ( aligned( 32 ), section(".bss:ENET_DMA_PKT_MEMPOOL") ) );
     uint8_t * ucRAMBuffer = ucNetworkPackets;
     uint32_t ul;
 
     for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+    {
+        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+        ucRAMBuffer += ETH_MAX_PACKET_SIZE;
+    }
+}
+
+void vNetworkInterfaceAllocateRAMToBuffers_RX( NetworkBufferDescriptor_t pxNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    // TODO: check alignment and section where this memory block should be placed. Also,
+    // check if ETH_MAX_PACKET_SIZE appropriate.
+    static uint8_t ucNetworkPackets[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS * ETH_MAX_PACKET_SIZE ] __attribute__( ( aligned( 32 ), section(".bss:ENET_DMA_PKT_MEMPOOL") ) );
+    uint8_t * ucRAMBuffer = ucNetworkPackets;
+    uint32_t ul;
+
+    for( ul = 0; ul < NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
         pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
         *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );

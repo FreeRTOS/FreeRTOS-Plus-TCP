@@ -395,6 +395,16 @@ static void EnetNetIF_mapNetif2Tx(NetworkInterface_t * pxInterface,
     }
 }
 
+void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNetworkBuffer)
+{
+    // LwipifEnetAppIf_custom_rx_pbuf* cPbuf = (LwipifEnetAppIf_custom_rx_pbuf*)p;
+    // uint32_t key = HwiP_disable();
+
+    // EnetQueue_enq(cPbuf->freePktInfoQ, &cPbuf->pktInfoMem->node);
+
+    // HwiP_restore(key);
+}
+
 void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
                                      EnetNetIFAppIf_RxHandleInfo *outArgs)
 {
