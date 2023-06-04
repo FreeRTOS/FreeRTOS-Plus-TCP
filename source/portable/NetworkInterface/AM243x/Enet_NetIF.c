@@ -28,7 +28,7 @@
 /**
  * Enet device specific header files
  */
-
+#include <kernel/dpl/DebugP.h>
 #include <kernel/nortos/dpl/common/printf.h>
 
 #include "ti_enet_config.h"
@@ -121,9 +121,19 @@ SemaphoreP_Object rxPktSem;
 * of used packets available.
 */
 SemaphoreP_Object txPktSem;
+
+/*!* Handle to Polling task semaphore, on which the pollTask awaits for notification
+* of used packets available.
+*/
+SemaphoreP_Object pollSem;
+
 /*! Handle to polling task whose job is to retrieve packets consumed by the hardware and
 *  give them to the stack */
 TaskP_Object pollTask;
+/*
+ * Clock handle for triggering the packet Rx notify
+ */
+ClockP_Object pollLinkClkObj;
 
 /*
  * Handle to counting shutdown semaphore, which all subtasks created in the
@@ -569,8 +579,8 @@ static void EnetNetIF_processRxUnusedQ(EnetNetIF_RxObj *rx,
     while (pDmaPacket != NULL)
     {
         /* Get the full PBUF packet that needs to be returned to the rx.freePktInfoQ */
-        struct pbuf* hPbufPacket = (struct pbuf *)pDmaPacket->appPriv;
-        if (hPbufPacket)
+        NetworkBufferDescriptor_t * pxNetworkBuffer = (NetworkBufferDescriptor_t *)pDmaPacket->appPriv;
+        if (pxNetworkBuffer)
         {
             /* Put packet info into free Q as we have removed the Pbuf buffers
              * from the it */
@@ -1096,12 +1106,143 @@ void EnetNetIFApp_createRxPktHandlerTask(NetworkInterface_t * pxInterface)
     EnetAppUtils_assert(status == SystemP_SUCCESS);
 }
 
-void Lwip2Enet_sendTxPackets(Lwip2Enet_TxObj *tx,
+static void EnetNetIF_setSGList(EnetDma_Pkt *pCurrDmaPacket, NetworkBufferDescriptor_t *netBufPkt, bool isRx)
+{
+    NetworkBufferDescriptor_t * curNetBuf = netBufPkt;
+    uint32_t totalPacketFilledLen = 0U;
+
+    pCurrDmaPacket->sgList.numScatterSegments = 0;
+    while (curNetBuf != NULL)
+    {
+        EnetDma_SGListEntry *list;
+
+        configASSERT(pCurrDmaPacket->sgList.numScatterSegments < ENET_ARRAYSIZE(pCurrDmaPacket->sgList.list));
+        list = &pCurrDmaPacket->sgList.list[pCurrDmaPacket->sgList.numScatterSegments];
+        list->bufPtr = (uint8_t*) curNetBuf->pucEthernetBuffer;
+        list->segmentFilledLen = (isRx == true) ? 0U : curNetBuf->xDataLength;
+        list->segmentAllocLen = curNetBuf->xDataLength;
+        // TODO: check use of curNetBuf->type_internal == PBUF_ROM
+        // if ((curNetBuf->type_internal == PBUF_ROM) || (curNetBuf->type_internal == PBUF_REF))
+        // {
+        //     list->disableCacheOps = true;
+        // }
+        // else
+        // {
+        //     list->disableCacheOps = false;
+        // }
+        list->disableCacheOps = true; // TODO: check use of curNetBuf->type_internal == PBUF_ROM
+
+        totalPacketFilledLen += curNetBuf->xDataLength;
+        pCurrDmaPacket->sgList.numScatterSegments++;
+
+        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            curNetBuf = curNetBuf->pxNextBuffer;
+        #else
+            break;
+        #endif
+    }
+    configASSERT(totalPacketFilledLen == netBufPkt->xDataLength);
+}
+
+/* May lead to infinite loop if no free memory
+ * available*/
+static void EnetNetIF_pbufQ2PktInfoQ(EnetNetIF_TxObj *tx,
+                                     NetBufQueue *netBufPktQ,
+                                     EnetDma_PktQ *pDmaPktInfoQ,
+                                     Enet_MacPort macPort)
+{
+    EnetDma_Pkt *pCurrDmaPacket;
+    NetworkBufferDescriptor_t * netBufPkt = NULL;
+
+    while(uNetworkBufferDescriptorQueue_count(netBufPktQ) != 0U)
+    {
+
+        /* Dequeue one free TX Eth packet */
+        pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(&tx->freePktInfoQ);
+
+        if (pCurrDmaPacket == NULL)
+        {
+        /* If we run out of packet info Q, retrieve packets from HW
+            * and try to dequeue free packet again */
+        EnetNetIF_retrieveTxPkts(tx);
+        pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(&tx->freePktInfoQ);
+        }
+
+        if (NULL != pCurrDmaPacket)
+        {
+            netBufPkt = NetBufQueue_deQ(netBufPktQ);
+            EnetDma_initPktInfo(pCurrDmaPacket);
+
+            EnetNetIF_setSGList(pCurrDmaPacket, netBufPkt, false);
+            pCurrDmaPacket->appPriv    = netBufPkt;
+
+            pCurrDmaPacket->node.next = NULL;
+            pCurrDmaPacket->chkSumInfo = 0U;
+            pCurrDmaPacket->txPortNum  = macPort;
+
+// TODO: Handle ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+// #if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
+//             pCurrDmaPacket->chkSumInfo = LWIPIF_LWIP_getChkSumInfo(netBufPkt);
+// #endif
+
+            ENET_UTILS_COMPILETIME_ASSERT(offsetof(EnetDma_Pkt, node) == 0U);
+            EnetQueue_enq(pDmaPktInfoQ, &(pCurrDmaPacket->node));
+
+            // TODO update stats macro LWIP2ENETSTATS_ADDONE(&tx->stats.freeAppPktDeq);
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
+static void EnetNetIF_pktInfoQ2PbufQ(EnetDma_PktQ *pDmaPktInfoQ,
+                                     NetBufQueue *netBufPktQ)
+{
+    EnetDma_Pkt *pDmaPacket;
+    NetworkBufferDescriptor_t * netBufPkt;
+
+    while (EnetQueue_getQCount(pDmaPktInfoQ) != 0U)
+    {
+        pDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pDmaPktInfoQ);
+        netBufPkt = (NetworkBufferDescriptor_t *)(pDmaPacket->appPriv);
+
+        configASSERT(netBufPkt != NULL);
+        /*Don't want to make a copy, since it would cause waste memory*/
+        NetBufQueue_enQ(netBufPktQ, netBufPkt);
+    }
+}
+
+static void EnetNetIF_submitTxPackets(EnetNetIF_TxObj *tx,
+                                      EnetDma_PktQ *pSubmitQ)
+{
+    int32_t retVal;
+
+    retVal = EnetDma_submitTxPktQ(tx->hCh, pSubmitQ);
+    if (ENET_SOK != retVal)
+    {
+        FreeRTOS_printf(("EnetDma_submitTxPktQ: failed to submit pkts: %d\n",
+                        retVal));
+    }
+
+    if (EnetQueue_getQCount(pSubmitQ))
+    {
+        /* TODO: txUnUsedPBMPktQ is needed for packets that were not able to be
+         *       submitted to driver.  It can be removed if stack supported any
+         *       mechanism to enqueue them to the head of the queue. */
+        EnetNetIF_pktInfoQ2PbufQ(pSubmitQ, &tx->unusedPbufQ);
+        EnetQueue_append(&tx->freePktInfoQ, pSubmitQ);
+        // TODO update stats macro LWIP2ENETSTATS_ADDNUM(&tx->stats.freeAppPktEnq, EnetQueue_getQCount(pSubmitQ));
+    }
+}
+
+void EnetNetIF_sendTxPackets(EnetNetIF_TxObj *tx,
                              Enet_MacPort macPort)
 {
     xEnetDriverHandle hEnet;
     EnetDma_Pkt *pCurrDmaPacket;
-    struct pbuf *hPbufPkt;
+    NetworkBufferDescriptor_t * netBufPkt;
 
     hEnet = tx->hEnetNetIF;
 
@@ -1112,14 +1253,14 @@ void Lwip2Enet_sendTxPackets(Lwip2Enet_TxObj *tx,
 
         EnetQueue_initQ(&txSubmitQ);
 
-        if (pbufQ_count(&tx->unusedPbufQ))
+        if (uNetworkBufferDescriptorQueue_count(&tx->unusedPbufQ))
         {
             /* send any pending TX Q's */
-            Lwip2Enet_pbufQ2PktInfoQ(tx, &tx->unusedPbufQ, &txSubmitQ, macPort);
+            EnetNetIF_pbufQ2PktInfoQ(tx, &tx->unusedPbufQ, &txSubmitQ, macPort);
         }
 
         /* Check if there is anything to transmit, else simply return */
-        while (pbufQ_count(&tx->readyPbufQ) != 0U)
+        while (uNetworkBufferDescriptorQueue_count(&tx->readyPbufQ) != 0U)
         {
             /* Dequeue one free TX Eth packet */
             pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(&tx->freePktInfoQ);
@@ -1128,30 +1269,30 @@ void Lwip2Enet_sendTxPackets(Lwip2Enet_TxObj *tx,
             {
                 /* If we run out of packet info Q, retrieve packets from HW
                 * and try to dequeue free packet again */
-                Lwip2Enet_retrieveTxPkts(tx);
+                EnetNetIF_retrieveTxPkts(tx);
                 pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(&tx->freePktInfoQ);
             }
 
             if (NULL != pCurrDmaPacket)
             {
-                hPbufPkt = pbufQ_deQ(&tx->readyPbufQ);
+                netBufPkt = NetBufQueue_deQ(&tx->readyPbufQ);
                 EnetDma_initPktInfo(pCurrDmaPacket);
 
-                Lwip2Enet_setSGList(pCurrDmaPacket, hPbufPkt, false);
-                pCurrDmaPacket->appPriv    = hPbufPkt;
+                EnetNetIF_setSGList(pCurrDmaPacket, netBufPkt, false);
+                pCurrDmaPacket->appPriv    = netBufPkt;
                 pCurrDmaPacket->txPortNum  = macPort;
                 pCurrDmaPacket->node.next  = NULL;
                 pCurrDmaPacket->chkSumInfo = 0U;
-
-#if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
-                pCurrDmaPacket->chkSumInfo = LWIPIF_LWIP_getChkSumInfo(hPbufPkt);
-#endif
+// TODO: Handle ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+// #if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
+//                 pCurrDmaPacket->chkSumInfo = LWIPIF_LWIP_getChkSumInfo(netBufPkt);
+// #endif
 
                 ENET_UTILS_COMPILETIME_ASSERT(offsetof(EnetDma_Pkt, node) == 0U);
                 EnetQueue_enq(&txSubmitQ, &(pCurrDmaPacket->node));
 
-                LWIP2ENETSTATS_ADDONE(&tx->stats.freeAppPktDeq);
-                LWIP2ENETSTATS_ADDONE(&tx->stats.readyPbufPktDeq);
+                // TODO update stats macro LWIP2ENETSTATS_ADDONE(&tx->stats.freeAppPktDeq);
+                // TODO update stats macro LWIP2ENETSTATS_ADDONE(&tx->stats.readyPbufPktDeq);
             }
             else
             {
@@ -1160,11 +1301,11 @@ void Lwip2Enet_sendTxPackets(Lwip2Enet_TxObj *tx,
         }
 
         /* Submit the accumulated packets to the hardware for transmission */
-        Lwip2Enet_submitTxPackets(tx, &txSubmitQ);
+        EnetNetIF_submitTxPackets(tx, &txSubmitQ);
     }
 }
 
- void Lwip2Enet_periodicFxn(NetworkInterface_t * pxInterface)
+ void EnetNetIF_periodicFxn(NetworkInterface_t * pxInterface)
 {
     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
     xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
@@ -1256,9 +1397,9 @@ void Lwip2Enet_sendTxPackets(Lwip2Enet_TxObj *tx,
             EnetNetIF_TxHandle hTxHandle;
             Enet_MacPort macPort;
 
-            hTxHandle  = hEnet->mapNetif2Tx[netif->num];
-            macPort    = hEnet->mapNetif2TxPortNum[netif->num];
-            Lwip2Enet_sendTxPackets(hTxHandle, macPort);
+            hTxHandle  = hEnet->mapNetif2Tx[pxNetIFArgs->xNetIFID];
+            macPort    = hEnet->mapNetif2TxPortNum[pxNetIFArgs->xNetIFID];
+            EnetNetIF_sendTxPackets(hTxHandle, macPort);
         }
     }
 
@@ -1273,7 +1414,7 @@ void EnetNetIF_periodic_polling(NetworkInterface_t * pxFirstInterface)
         xEnetDriverHandle hEnet = (xEnetDriverHandle) pxNetIFArgs->hEnet;
 
         /* Periodic Function to update Link status */
-        Lwip2Enet_periodicFxn(netif);
+        EnetNetIF_periodicFxn(pxInterface);
 
         if (!(hEnet->linkIsUp == pxNetIFArgs->xLinkUp))
         {
@@ -1315,7 +1456,7 @@ static void EnetNetIF_EnetApp_postPollLink(ClockP_Object *clkObj, void *arg)
     }
 }
 
-static err_t LwipifEnetApp_createPollTask(NetworkInterface_t * pxInterface)
+static int8_t EnetNetIF_EnetApp_createPollTask(NetworkInterface_t * pxInterface)
 {
     TaskP_Params params;
     int32_t status;
@@ -1363,14 +1504,14 @@ static err_t LwipifEnetApp_createPollTask(NetworkInterface_t * pxInterface)
 
         /* Filter not defined */
         /* Inform the world that we are operational. */
-        FreeRTOS_printf(("[EnetNetIF] Enet has been started successfully\r\n"));
+        FreeRTOS_debug_printf(("[EnetNetIF] Enet has been started successfully\r\n"));
 
-        return ERR_OK;
+        return 0;
     }
     else
     {
         configASSERT(pdFALSE);
-        return ERR_BUF;
+        return -2;
     }
 }
 
@@ -1402,7 +1543,7 @@ void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
     EnetNetIFApp_createRxPktHandlerTask(pxInterface);
 
     // /* Initialize Polling task*/
-    // LwipifEnetApp_createPollTask(netif);
+    EnetNetIF_EnetApp_createPollTask(pxInterface);
 }
 
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
