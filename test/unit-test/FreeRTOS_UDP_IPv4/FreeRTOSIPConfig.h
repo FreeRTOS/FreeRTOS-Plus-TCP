@@ -34,28 +34,21 @@
 
 #define TEST                                      1
 
-#define ipconfigMULTI_INTERFACE                   1
-
 #define ipconfigUSE_IPv4                          ( 1 )
-
 #define ipconfigUSE_IPv6                          ( 1 )
 
-#define ipconfigUSE_RA                            ( 1 )
+#define ipconfigMULTI_INTERFACE                   1
 
-#define ipconfigUSE_DHCPv6                        ( 1 )
-
-#define ipconfigCOMPATIBLE_WITH_SINGLE            ( 0 )
-
-#define ipconfigHAS_ROUTING_STATISTICS            ( 1 )
-
-#define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    ( 0 )
+#define ipconfigIPv4_BACKWARD_COMPATIBLE          0
+#define ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM    0
+#define ipconfigUSE_MDNS                          1
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
 #define ipconfigHAS_DEBUG_PRINTF                  1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    #define FreeRTOS_debug_printf( X )    printf X
+    #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
 
 /* Set to 1 to print out non debugging messages, for example the output of the
@@ -64,19 +57,17 @@
  * messages. */
 #define ipconfigHAS_PRINTF    1
 #if ( ipconfigHAS_PRINTF == 1 )
-    #define FreeRTOS_printf( X )    printf X
+    #define FreeRTOS_printf( X )    configPRINTF( X )
 #endif
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
-#define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
-
-#define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
+#define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
 
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
-#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
+#define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
 
 /* Several API's will block until the result is known, or the action has been
  * performed, for example FreeRTOS_send() and FreeRTOS_recv().  The timeouts can be
@@ -93,7 +84,7 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
 #define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
@@ -129,7 +120,7 @@ extern uint32_t ulRand();
  * is not set to 1 then the network event hook will never be called. See:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/vApplicationIPNetworkEventHook.shtml.
  */
-#define ipconfigUSE_NETWORK_EVENT_HOOK           1
+#define ipconfigUSE_NETWORK_EVENT_HOOK            1
 
 /* Sockets have a send block time attribute.  If FreeRTOS_sendto() is called but
  * a network buffer cannot be obtained then the calling task is held in the Blocked
@@ -143,7 +134,7 @@ extern uint32_t ulRand();
  * ipconfigMAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks.  A time in
  * milliseconds can be converted to a time in ticks by dividing the time in
  * milliseconds by portTICK_PERIOD_MS. */
-#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS    ( 5000U / portTICK_PERIOD_MS )
+#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS     ( 5000U / portTICK_PERIOD_MS )
 
 /* If ipconfigUSE_DHCP is 1 then FreeRTOS+TCP will attempt to retrieve an IP
  * address, netmask, DNS server address and gateway address from a DHCP server.  If
@@ -152,16 +143,16 @@ extern uint32_t ulRand();
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                         1
-#define ipconfigDHCP_REGISTER_HOSTNAME           1
-#define ipconfigDHCP_USES_UNICAST                1
+#define ipconfigUSE_DHCP                          1
+#define ipconfigDHCP_REGISTER_HOSTNAME            1
+#define ipconfigDHCP_USES_UNICAST                 1
 
-#define ipconfigENDPOINT_DNS_ADDRESS_COUNT       5
+#define ipconfigENDPOINT_DNS_ADDRESS_COUNT        2
 
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,
  * xApplicationDHCPUserHook(). */
-#define ipconfigUSE_DHCP_HOOK                    1
+#define ipconfigUSE_DHCP_HOOK                     1
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -170,8 +161,7 @@ extern uint32_t ulRand();
  * static IP address passed as a parameter to FreeRTOS_IPInit() if the
  * re-transmission time interval reaches ipconfigMAXIMUM_DISCOVER_TX_PERIOD without
  * a DHCP reply being received. */
-#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD \
-    ( 120000U / portTICK_PERIOD_MS )
+#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD        ( 30000U / portTICK_PERIOD_MS )
 
 /* The ARP cache is a table that maps IP addresses to MAC addresses.  The IP
  * stack can only send a UDP message to a remove IP address if it knowns the MAC
@@ -351,5 +341,11 @@ extern uint32_t ulRand();
 #define portINLINE
 
 #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
+
+#define ipconfigCHECK_IP_QUEUE_SPACE               ( 1 )
+#define ipconfigSELECT_USES_NOTIFY                 ( 1 )
+#define ipconfigUSE_LINKED_RX_MESSAGES             ( 1 )
+#define ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS    ( 0 )
+#define ipconfigZERO_COPY_TX_DRIVER                ( 1 )
 
 #endif /* FREERTOS_IP_CONFIG_H */

@@ -138,13 +138,10 @@
                  * separator in the output. */
                 if( ( uxNameLen > 0U ) )
                 {
-                    if( uxNameLen >= uxDestLen )
-                    {
-                        uxIndex = 0U;
-                        /* coverity[break_stmt] : Break statement terminating the loop */
-                        break;
-                    }
-
+                    /*
+                     * uxNameLen can never be greater than uxDestLen, since there are checks
+                     * outside this condition, so the check is removed.
+                     */
                     pxSet->pcName[ uxNameLen ] = '.';
                     uxNameLen++;
                 }
@@ -170,15 +167,10 @@
 
                 while( uxCount-- != 0U )
                 {
-                    if( uxNameLen >= uxDestLen )
-                    {
-                        uxIndex = 0U;
-                        break;
-
-                        /* break out of inner loop here
-                         * break out of outer loop at the test uxNameLen >= uxDestLen. */
-                    }
-
+                    /*
+                     * uxNameLen can never be greater than uxDestLen, since there are checks
+                     * outside this condition, so the check is removed.
+                     */
                     pxSet->pcName[ uxNameLen ] = ( char ) pucByte[ uxIndex ];
                     uxNameLen++;
                     uxIndex++;
@@ -195,7 +187,7 @@
                  * uxIndex >= uxSourceLen (which makes sure that we do not go in the 'if'
                  * case).
                  */
-                if( ( uxNameLen < uxDestLen ) && ( uxIndex < uxSourceLen ) )
+                if( uxIndex < uxSourceLen )
                 {
                     pxSet->pcName[ uxNameLen ] = '\0';
                     uxIndex++;
@@ -441,8 +433,8 @@
                     /* No need to check that pcRequestedName != NULL since sQuestions != 0, then
                      * pcRequestedName is assigned with this statement
                      * "pcRequestedName = ( char * ) pucByte;" */
-                    else if( ( xSet.usQuestions != ( uint16_t ) 0U ) &&
-                             ( ( xSet.usType == dnsTYPE_A_HOST ) || ( xSet.usType == dnsTYPE_AAAA_HOST ) ) &&
+                    /* No need to check that usQuestions != 0, since the check is done before */
+                    else if( ( ( xSet.usType == dnsTYPE_A_HOST ) || ( xSet.usType == dnsTYPE_AAAA_HOST ) ) &&
                              ( xSet.usClass == dnsCLASS_IN ) )
                     {
                         NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -499,62 +491,59 @@
                             uint8_t * pucNewBuffer = NULL;
                             size_t uxExtraLength;
 
-                            if( pxNetworkBuffer != NULL )
+                            if( xBufferAllocFixedSize == pdFALSE )
                             {
-                                if( xBufferAllocFixedSize == pdFALSE )
-                                {
-                                    size_t uxDataLength = uxBufferLength +
-                                                          sizeof( UDPHeader_t ) +
-                                                          sizeof( EthernetHeader_t ) +
-                                                          uxIPHeaderSizePacket( pxNetworkBuffer );
+                                size_t uxDataLength = uxBufferLength +
+                                                      sizeof( UDPHeader_t ) +
+                                                      sizeof( EthernetHeader_t ) +
+                                                      uxIPHeaderSizePacket( pxNetworkBuffer );
 
-                                    #if ( ipconfigUSE_IPv6 != 0 )
-                                        if( xSet.usType == dnsTYPE_AAAA_HOST )
-                                        {
-                                            uxExtraLength = sizeof( LLMNRAnswer_t ) + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
-                                        }
-                                        else
-                                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-                                    #if ( ipconfigUSE_IPv4 != 0 )
-                                        {
-                                            uxExtraLength = sizeof( LLMNRAnswer_t );
-                                        }
-                                    #else /* ( ipconfigUSE_IPv4 != 0 ) */
-                                        {
-                                            /* do nothing, coverity happy */
-                                        }
-                                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-                                    /* Set the size of the outgoing packet. */
-                                    pxNetworkBuffer->xDataLength = uxDataLength;
-                                    pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
-                                                                                          uxDataLength +
-                                                                                          uxExtraLength );
-
-                                    if( pxNewBuffer != NULL )
+                                #if ( ipconfigUSE_IPv6 != 0 )
+                                    if( xSet.usType == dnsTYPE_AAAA_HOST )
                                     {
-                                        BaseType_t xOffset1, xOffset2;
-
-                                        xOffset1 = ( BaseType_t ) ( xSet.pucByte - pucUDPPayloadBuffer );
-                                        xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) xSet.pcRequestedName ) - pucUDPPayloadBuffer );
-
-                                        pxNetworkBuffer = pxNewBuffer;
-                                        pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
-
-                                        xSet.pucByte = &( pucNewBuffer[ xOffset1 ] );
-                                        xSet.pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
-                                        xSet.pxDNSMessageHeader = ( ( DNSMessage_t * ) pucNewBuffer );
+                                        uxExtraLength = sizeof( LLMNRAnswer_t ) + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
                                     }
                                     else
+                                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                                #if ( ipconfigUSE_IPv4 != 0 )
                                     {
-                                        /* Just to indicate that the message may not be answered. */
-                                        pxNetworkBuffer = NULL;
+                                        uxExtraLength = sizeof( LLMNRAnswer_t );
                                     }
+                                #else /* ( ipconfigUSE_IPv4 != 0 ) */
+                                    {
+                                        /* do nothing, coverity happy */
+                                    }
+                                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                                /* Set the size of the outgoing packet. */
+                                pxNetworkBuffer->xDataLength = uxDataLength;
+                                pxNewBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                                                      uxDataLength +
+                                                                                      uxExtraLength );
+
+                                if( pxNewBuffer != NULL )
+                                {
+                                    BaseType_t xOffset1, xOffset2;
+
+                                    xOffset1 = ( BaseType_t ) ( xSet.pucByte - pucUDPPayloadBuffer );
+                                    xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) xSet.pcRequestedName ) - pucUDPPayloadBuffer );
+
+                                    pxNetworkBuffer = pxNewBuffer;
+                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
+
+                                    xSet.pucByte = &( pucNewBuffer[ xOffset1 ] );
+                                    xSet.pcRequestedName = ( char * ) &( pucNewBuffer[ xOffset2 ] );
+                                    xSet.pxDNSMessageHeader = ( ( DNSMessage_t * ) pucNewBuffer );
                                 }
                                 else
                                 {
-                                    pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
+                                    /* Just to indicate that the message may not be answered. */
+                                    pxNetworkBuffer = NULL;
                                 }
+                            }
+                            else
+                            {
+                                pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
                             }
 
                             if( ( pxNetworkBuffer != NULL ) )
@@ -732,7 +721,7 @@
                 if( FreeRTOS_ntohs( pxDNSAnswerRecord->usDataLength ) ==
                     ( uint16_t ) pxSet->uxAddressLength )
                 {
-                    if( ( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) && ( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST ) )
+                    if( pxSet->uxAddressLength == ipSIZE_OF_IPv6_ADDRESS ) /*No check needed for pxSet->usType as uxAddressLength is set based on usType*/
                     {
                         ( void ) memcpy( xIP_Address.xIPAddress.xIP_IPv6.ucBytes,
                                          &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] ),
@@ -970,7 +959,6 @@
                 /* HT:endian: should not be translated, copying from packet to packet */
                 if( pxIPHeader->ulDestinationIPAddress == ipMDNS_IP_ADDRESS )
                 {
-                    pxIPHeader->ulDestinationIPAddress = ipMDNS_IP_ADDRESS;
                     pxIPHeader->ucTimeToLive = ipMDNS_TIME_TO_LIVE;
                 }
                 else
@@ -1048,7 +1036,6 @@
             uint16_t usLength;
             DNSMessage_t * pxMessage;
             NBNSAnswer_t * pxAnswer;
-            NetworkBufferDescriptor_t * pxNewBuffer = NULL;
 
             /* Introduce a do {} while (0) loop to allow the use of breaks. */
             do
@@ -1243,10 +1230,8 @@
                 /* This function will fill in the eth addresses and send the packet */
                 vReturnEthernetFrame( pxNetworkBuffer, pdFALSE );
 
-                if( pxNewBuffer != NULL )
-                {
-                    vReleaseNetworkBufferAndDescriptor( pxNewBuffer );
-                }
+                /*pxNewBuffer and pxNetworkBuffer are now the same pointers.pxNetworkBuffer will be released elsewhere.
+                 * so pxNewBuffer does not need to released, since they share a single memory location*/
             }  while( ipFALSE_BOOL );
         }
     #endif /* ( ipconfigUSE_NBNS == 1 ) */

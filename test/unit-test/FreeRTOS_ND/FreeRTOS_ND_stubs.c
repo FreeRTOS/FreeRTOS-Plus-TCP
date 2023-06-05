@@ -12,10 +12,24 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
 /** @brief The pointer to buffer with packet waiting for ARP resolution. This variable
  *  is defined in FreeRTOS_IP.c.
  *  This pointer is for internal use only. */
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
+
+BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+/* ======================== Stub Callback Functions ========================= */
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    NetworkInterfaceOutputFunction_Stub_Called++;
+    return pdFALSE;
+}
 
 /**
  * @brief Receive and analyse a RA ( Router Advertisement ) message.

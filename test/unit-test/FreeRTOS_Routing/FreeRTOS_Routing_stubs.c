@@ -25,54 +25,40 @@
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
-#include <unity.h>
+#include "unity.h"
 
 /* Include standard libraries */
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
-
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-BaseType_t xBufferAllocFixedSize = pdFALSE;
-
-uint16_t usPacketIdentifier;
-
-struct freertos_addrinfo pucAddrBuffer[ 2 ];
-struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
-
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
+BaseType_t xStubFreeRTOS_inet_ntop_TargetFamily;
+const void * pvStubFreeRTOS_inet_ntop_TargetSource;
+char * pcStubFreeRTOS_inet_ntop_TargetDestination;
+uint32_t ulStubFreeRTOS_inet_ntop_TargetSize;
+const char * pcStubFreeRTOS_inet_ntop_TargetCopySource;
+uint32_t ulStubFreeRTOS_inet_ntop_CopySize;
 
 /* ======================== Stub Callback Functions ========================= */
-void vPortEnterCritical( void )
-{
-}
 
-void vPortExitCritical( void )
+const char * pcStubFreeRTOS_inet_ntop( BaseType_t xAddressFamily,
+                                       const void * pvSource,
+                                       char * pcDestination,
+                                       uint32_t ulSize,
+                                       int NumCalls )
 {
+    ( void ) NumCalls;
+
+    TEST_ASSERT_EQUAL( xStubFreeRTOS_inet_ntop_TargetFamily, xAddressFamily );
+    TEST_ASSERT_EQUAL( pvStubFreeRTOS_inet_ntop_TargetSource, pvSource );
+    TEST_ASSERT_EQUAL( pcStubFreeRTOS_inet_ntop_TargetDestination, pcDestination );
+    TEST_ASSERT_EQUAL( ulStubFreeRTOS_inet_ntop_TargetSize, ulSize );
+
+    if( ( pcDestination != NULL ) && ( pcStubFreeRTOS_inet_ntop_TargetCopySource != NULL ) )
+    {
+        memcpy( pcDestination, pcStubFreeRTOS_inet_ntop_TargetCopySource, ulStubFreeRTOS_inet_ntop_CopySize );
+    }
 }
