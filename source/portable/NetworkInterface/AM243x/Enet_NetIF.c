@@ -470,7 +470,7 @@ void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
 
         ENET_UTILS_SET_PKT_APP_STATE(&pPktInfo->pktState, ENET_PKTSTATE_APP_WITH_FREEQ);
 
-        pxNetDesc = (NetworkBufferDescriptor_t *) (pPktInfo->sgList.list[0].bufPtr - ipBUFFER_PADDING);
+        pxNetDesc = *((NetworkBufferDescriptor_t **) (pPktInfo->sgList.list[0].bufPtr - ipBUFFER_PADDING));
         EnetNetIF_AppIf_CustomNetBuf * pxCustomNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxNetDesc;
 
         pxCustomNetDesc->pktInfoMem = pPktInfo;

@@ -173,6 +173,25 @@ static void prvShowWarnings( void );
 
 #endif /* ipconfigTCP_IP_SANITY */
 
+BaseType_t xNetworkBuffersInitialise_RX( void )
+{
+    uint32_t x;
+    vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( xCustomNetworkBuffers_RX_POOL );
+    
+    for( x = 0U; x < NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS; x++ )
+    {
+        /* Initialise and set the owner of the buffer list items. */
+        vListInitialiseItem( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
+        listSET_LIST_ITEM_OWNER( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ), &xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer );
+
+        /* Currently, all buffers are available for use. */
+        vListInsert( &xFreeBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
+    }
+
+    return pdTRUE;
+
+}
+
 BaseType_t xNetworkBuffersInitialise( void )
 {
     BaseType_t xReturn;
@@ -211,7 +230,6 @@ BaseType_t xNetworkBuffersInitialise( void )
              * from the network interface, and different hardware has different
              * requirements. */
             vNetworkInterfaceAllocateRAMToBuffers( xNetworkBuffers );
-            vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( xCustomNetworkBuffers_RX_POOL );
 
             for( x = 0U; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
             {
@@ -221,16 +239,6 @@ BaseType_t xNetworkBuffersInitialise( void )
 
                 /* Currently, all buffers are available for use. */
                 vListInsert( &xFreeBuffersList, &( xNetworkBuffers[ x ].xBufferListItem ) );
-            }
-
-            for( x = 0U; x < NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS; x++ )
-            {
-                /* Initialise and set the owner of the buffer list items. */
-                vListInitialiseItem( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
-                listSET_LIST_ITEM_OWNER( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ), &xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer );
-
-                /* Currently, all buffers are available for use. */
-                vListInsert( &xFreeBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
             }
 
             uxMinimumFreeNetworkBuffers = ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;

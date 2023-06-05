@@ -97,6 +97,8 @@ BaseType_t xEnetDriver_Opened = pdFALSE;
 #endif
 /*-----------------------------------------------------------*/
 
+static const uint8_t BROADCAST_MAC_ADDRESS[ENET_MAC_ADDR_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+
 /* Uncomment this in case BufferAllocation_1.c is used. */
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
@@ -190,7 +192,33 @@ BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterf
 
     if(xEnetDriver_Opened == pdFALSE)
     {
+        Enet_Type enetType;
+        uint32_t instId;
         xEnetDriverHandle xIFHandle;
+    
+        EnetApp_getEnetInstInfo(&enetType, &instId);
+
+        EnetAppUtils_enableClocks(enetType, instId);
+
+        extern BaseType_t xNetworkBuffersInitialise_RX( void );
+        xNetworkBuffersInitialise_RX();
+
+        const int32_t status = EnetApp_driverOpen(enetType, instId); // TODO: should be moved to interface init?
+        if (ENET_SOK != status)
+        {
+            EnetAppUtils_print("Failed to open ENET: %d\r\n", status);
+            EnetAppUtils_assert(false);
+            return -1;
+        }
+
+        EnetApp_addMCastEntry(enetType,
+                            instId,
+                            EnetSoc_getCoreId(),
+                            BROADCAST_MAC_ADDRESS,
+                            CPSW_ALE_ALL_PORTS_MASK);
+
+
+
         xIFHandle = FreeRTOSTCPEnet_open(pxInterface);
 
         if(xIFHandle != NULL)
