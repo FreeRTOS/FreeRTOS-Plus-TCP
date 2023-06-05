@@ -1797,6 +1797,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
     {
         #if ( ipconfigUSE_IPv6 != 0 )
             case ipIPv6_FRAME_TYPE:
+
                 if( pxNetworkBuffer->xDataLength < sizeof( IPPacket_IPv6_t ) )
                 {
                     /* The packet size is less than minimum IPv6 packet. */
@@ -1817,8 +1818,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     eReturn = prvAllowIPPacketIPv6( ( ( const IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
 
                     /* The IP-header type is copied to a location 6 bytes before the messages
-                    * starts.  It might be needed later on when a UDP-payload buffer is being
-                    * used. */
+                     * starts.  It might be needed later on when a UDP-payload buffer is being
+                     * used. */
                     pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader_IPv6->ucVersionTrafficClass;
                 }
                 break;

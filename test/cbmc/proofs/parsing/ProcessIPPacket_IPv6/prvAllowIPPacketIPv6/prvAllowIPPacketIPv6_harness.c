@@ -18,6 +18,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
 {
     NetworkEndPoint_t * pxReturn = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+
     return pxReturn;
 }
 
@@ -25,6 +26,7 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPA
 BaseType_t FreeRTOS_IsNetworkUp( void )
 {
     BaseType_t xReturn;
+
     __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
 
     return xReturn;
@@ -32,17 +34,18 @@ BaseType_t FreeRTOS_IsNetworkUp( void )
 
 /* Create an endpoint and return, real endpoint doesn't matter in this test. */
 NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddress,
-                                                    const NetworkInterface_t * pxInterface )
+                                                const NetworkInterface_t * pxInterface )
 {
     NetworkEndPoint_t * pxReturn = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+
     return pxReturn;
 }
 
 /* The checksum generation is stubbed out since the actual checksum
  * does not matter. The stub will return an indeterminate value each time. */
 uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
-                                        size_t uxBufferLength,
-                                        BaseType_t xOutgoingPacket )
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket )
 {
     uint16_t usReturn;
 
@@ -64,12 +67,12 @@ void harness()
 
     /* Points to ethernet buffer offset by ipIP_TYPE_OFFSET, this make sure the buffer allocation is similar
      * to the pxGetNetworkBufferWithDescriptor */
-    pxNetworkBuffer->pucEthernetBuffer = &( pucEthernetBuffer[ipIP_TYPE_OFFSET] );
+    pxNetworkBuffer->pucEthernetBuffer = &( pucEthernetBuffer[ ipIP_TYPE_OFFSET ] );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_IPv6_t. */
     __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_IPv6_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
-    
+
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );

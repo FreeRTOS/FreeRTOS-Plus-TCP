@@ -7,7 +7,7 @@
 #include "FreeRTOS_IP_Private.h"
 
 eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( const IPPacket_t * pxIPPacket,
-                                                    NetworkBufferDescriptor_t * const pxNetworkBuffer );
+                                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /* proof is done separately */
 BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -63,17 +63,18 @@ eFrameProcessingResult_t publicProcessIPPacket( IPPacket_t * const pxIPPacket,
 void harness()
 {
     NetworkBufferDescriptor_t * const pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) );
+    uint8_t * pucEthernetBuffer = ( uint8_t * ) malloc( ipTOTAL_ETHERNET_FRAME_SIZE + ipIP_TYPE_OFFSET );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     /* Points to ethernet buffer offset by ipIP_TYPE_OFFSET, this make sure the buffer allocation is similar
      * to the pxGetNetworkBufferWithDescriptor */
-    pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) malloc( ipTOTAL_ETHERNET_FRAME_SIZE ) ) + ipIP_TYPE_OFFSET );
+    pxNetworkBuffer->pucEthernetBuffer = &( pucEthernetBuffer[ ipIP_TYPE_OFFSET ] );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t. */
-    __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE - ipIP_TYPE_OFFSET );
-    
+    __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
+
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
