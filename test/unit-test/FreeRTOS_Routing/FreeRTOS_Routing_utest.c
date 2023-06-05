@@ -52,6 +52,10 @@
 
 #include "FreeRTOSIPConfig.h"
 
+#include "FreeRTOS_Routing_stubs.c"
+
+/* ===========================  EXTERN VARIABLES  =========================== */
+
 /* Default IPv4 address is 192.168.123.223, which is 0xDF7BA8C0. */
 #define IPV4_DEFAULT_ADDRESS       ( 0xDF7BA8C0 )
 /* Default IPv4 netmask is 255.255.255.0, which is 0x00FFFFFF. */
@@ -60,8 +64,6 @@
 #define IPV4_DEFAULT_GATEWAY       ( 0xFE7BA8C0 )
 /* Default IPv4 netmask is 192.168.123.1, which is 0x017BA8C0. */
 #define IPV4_DEFAULT_DNS_SERVER    ( 0x017BA8C0 )
-
-/* ===========================  EXTERN VARIABLES  =========================== */
 
 extern RoutingStats_t xRoutingStatistics;
 const struct xIPv6_Address FreeRTOS_in6addr_any;
@@ -82,6 +84,7 @@ const size_t xDefaultPrefixLength = 64U;
 const IPv6_Address_t xDefaultGatewayAddress_IPv6 = { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xfe };
 /* Default IPv6 address is set to 2001::ffee */
 const IPv6_Address_t xDefaultDNSServerAddress_IPv6 = { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xee };
+
 const uint8_t ucDefaultMACAddress_IPv6[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x11, 0x22, 0x33, 0xab, 0xcd, 0xef };
 
 /* ============================  Unity Fixtures  ============================ */
@@ -93,45 +96,10 @@ void setUp( void )
     pxNetworkInterfaces = NULL;
 }
 
-/*! called after each test case */
-void tearDown( void )
-{
-}
-
-/* ============================  Stub Callback Functions  ============================ */
-
-BaseType_t xStubFreeRTOS_inet_ntop_TargetFamily;
-const void * pvStubFreeRTOS_inet_ntop_TargetSource;
-char * pcStubFreeRTOS_inet_ntop_TargetDestination;
-uint32_t ulStubFreeRTOS_inet_ntop_TargetSize;
-const char * pcStubFreeRTOS_inet_ntop_TargetCopySource;
-uint32_t ulStubFreeRTOS_inet_ntop_CopySize;
-
-const char * pcStubFreeRTOS_inet_ntop( BaseType_t xAddressFamily,
-                                       const void * pvSource,
-                                       char * pcDestination,
-                                       uint32_t ulSize,
-                                       int NumCalls )
-{
-    ( void ) NumCalls;
-
-    TEST_ASSERT_EQUAL( xStubFreeRTOS_inet_ntop_TargetFamily, xAddressFamily );
-    TEST_ASSERT_EQUAL( pvStubFreeRTOS_inet_ntop_TargetSource, pvSource );
-    TEST_ASSERT_EQUAL( pcStubFreeRTOS_inet_ntop_TargetDestination, pcDestination );
-    TEST_ASSERT_EQUAL( ulStubFreeRTOS_inet_ntop_TargetSize, ulSize );
-
-    if( ( pcDestination != NULL ) && ( pcStubFreeRTOS_inet_ntop_TargetCopySource != NULL ) )
-    {
-        memcpy( pcDestination, pcStubFreeRTOS_inet_ntop_TargetCopySource, ulStubFreeRTOS_inet_ntop_CopySize );
-    }
-}
-
-
 /* ==============================  Test Cases  ============================== */
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_happy_path
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
  * are valid IPv4 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -142,7 +110,7 @@ const char * pcStubFreeRTOS_inet_ntop( BaseType_t xAddressFamily,
  *  - Check if pxNetworkEndPoints is same as input endpoint.
  *  - Check if all setting are correctly stored in endpoint.
  */
-void test_FreeRTOS_FillEndPoint_happy_path( void )
+void test_FreeRTOS_FillEndPoint_HappyPath( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint;
@@ -171,8 +139,7 @@ void test_FreeRTOS_FillEndPoint_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_null_interface
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when network interface is NULL.
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint when network interface is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -181,7 +148,7 @@ void test_FreeRTOS_FillEndPoint_happy_path( void )
  *    DNS server address, and MAC address into endpoint with NULL network interface.
  *  - Check if pxNetworkEndPoints is NULL.
  */
-void test_FreeRTOS_FillEndPoint_null_interface( void )
+void test_FreeRTOS_FillEndPoint_NullInterface( void )
 {
     NetworkEndPoint_t xEndPoint;
 
@@ -199,8 +166,7 @@ void test_FreeRTOS_FillEndPoint_null_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_null_endpoint
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when endpoint is NULL.
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint when endpoint is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -209,7 +175,7 @@ void test_FreeRTOS_FillEndPoint_null_interface( void )
  *    DNS server address, and MAC address into endpoint with NULL endpoint.
  *  - Check if pxNetworkEndPoints is NULL.
  */
-void test_FreeRTOS_FillEndPoint_null_endpoint( void )
+void test_FreeRTOS_FillEndPoint_NullEndpoint( void )
 {
     NetworkInterface_t xInterfaces;
 
@@ -227,8 +193,7 @@ void test_FreeRTOS_FillEndPoint_null_endpoint( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_multiple_endpoints
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
  * are valid IPv4 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -240,7 +205,7 @@ void test_FreeRTOS_FillEndPoint_null_endpoint( void )
  *  - Check if all setting are correctly stored in endpoint.
  *  - Loop steps up here three times.
  */
-void test_FreeRTOS_FillEndPoint_multiple_endpoints( void )
+void test_FreeRTOS_FillEndPoint_MultipleEndpoints( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint[ 3 ];
@@ -304,8 +269,7 @@ void test_FreeRTOS_FillEndPoint_multiple_endpoints( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_same_endpoint
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint when all input parameters
  * are valid IPv6 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -318,7 +282,7 @@ void test_FreeRTOS_FillEndPoint_multiple_endpoints( void )
  *  - Call FreeRTOS_FillEndPoint to fill with same endpoint.
  *  - Check if endpoint is not attached.
  */
-void test_FreeRTOS_FillEndPoint_same_endpoint( void )
+void test_FreeRTOS_FillEndPoint_SameEndpoint( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint;
@@ -355,8 +319,7 @@ void test_FreeRTOS_FillEndPoint_same_endpoint( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_happy_path
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters
  * are valid IPv6 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -367,7 +330,7 @@ void test_FreeRTOS_FillEndPoint_same_endpoint( void )
  *  - Check if pxNetworkEndPoints is same as input endpoint.
  *  - Check if all setting are correctly stored in endpoint.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_happy_path( void )
+void test_FreeRTOS_FillEndPoint_IPv6_HappyPath( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint;
@@ -396,8 +359,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_null_interface
- * The purpose of this test is to verify FreeRTOS_FillEndPoint when network interface is NULL.
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint when network interface is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -406,7 +368,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_happy_path( void )
  *    DNS server address, and MAC address into endpoint with NULL network interface.
  *  - Check if pxNetworkEndPoints is NULL.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_null_interface( void )
+void test_FreeRTOS_FillEndPoint_IPv6_NullInterface( void )
 {
     NetworkEndPoint_t xEndPoint;
 
@@ -425,8 +387,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_null_endpoint
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when endpoint is NULL.
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when endpoint is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -435,7 +396,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_interface( void )
  *    DNS server address, and MAC address into endpoint with NULL endpoint.
  *  - Check if pxNetworkEndPoints is NULL.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_null_endpoint( void )
+void test_FreeRTOS_FillEndPoint_IPv6_NullEndpoint( void )
 {
     NetworkInterface_t xInterfaces;
 
@@ -454,15 +415,14 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_endpoint( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_null_ip
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when input IP address is NULL.
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when input IP address is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
  * Test step:
  *  - Call FreeRTOS_FillEndPoint_IPv6 with NULL IP address pointer.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_null_ip( void )
+void test_FreeRTOS_FillEndPoint_IPv6_NullIP( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint;
@@ -481,15 +441,14 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_ip( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_null_mac
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when input MAC address is NULL.
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when input MAC address is NULL.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
  * Test step:
  *  - Call FreeRTOS_FillEndPoint_IPv6 with NULL MAC address pointer.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_null_mac( void )
+void test_FreeRTOS_FillEndPoint_IPv6_NullMAC( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint;
@@ -508,8 +467,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_mac( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_null_gateway_dns_prefix
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when some input parameters
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when some input parameters
  * are NULL (gateway, DNS and prefix).
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -520,7 +478,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_mac( void )
  *  - Check if pxNetworkEndPoints is same as input endpoint.
  *  - Check if all setting are correctly stored in endpoint.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_null_gateway_dns_prefix( void )
+void test_FreeRTOS_FillEndPoint_IPv6_NullGatewayDNSPrefix( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint;
@@ -546,8 +504,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_gateway_dns_prefix( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_multiple_endpoints
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters
  * are valid IPv6 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -559,7 +516,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_null_gateway_dns_prefix( void )
  *  - Check if all setting are correctly stored in endpoint.
  *  - Loop steps up here three times.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_multiple_endpoints( void )
+void test_FreeRTOS_FillEndPoint_IPv6_MultipleEndpoints( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint[ 3 ];
@@ -628,8 +585,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_multiple_endpoints( void )
 }
 
 /**
- * @brief test_FreeRTOS_FillEndPoint_IPv6_same_endpoint
- * The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters
+ * @brief The purpose of this test is to verify FreeRTOS_FillEndPoint_IPv6 when all input parameters
  * are valid IPv6 default setting.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -642,7 +598,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_multiple_endpoints( void )
  *  - Call FreeRTOS_FillEndPoint_IPv6 to fill with same endpoint.
  *  - Check if endpoint is not attached.
  */
-void test_FreeRTOS_FillEndPoint_IPv6_same_endpoint( void )
+void test_FreeRTOS_FillEndPoint_IPv6_SameEndpoint( void )
 {
     NetworkInterface_t xInterfaces;
     NetworkEndPoint_t xEndPoint;
@@ -682,8 +638,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_same_endpoint( void )
 }
 
 /**
- * @brief test_FreeRTOS_AddNetworkInterface_happy_path
- * The purpose of this test is to verify FreeRTOS_AddNetworkInterface when input parameter
+ * @brief The purpose of this test is to verify FreeRTOS_AddNetworkInterface when input parameter
  * is not NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
@@ -692,7 +647,7 @@ void test_FreeRTOS_FillEndPoint_IPv6_same_endpoint( void )
  *  - Call FreeRTOS_AddNetworkInterface with one valid network interface.
  *  - Check if the input network interface is stored into pxNetworkInterfaces.
  */
-void test_FreeRTOS_AddNetworkInterface_happy_path( void )
+void test_FreeRTOS_AddNetworkInterface_HappyPath( void )
 {
     NetworkInterface_t xNetworkInterface;
 
@@ -705,8 +660,7 @@ void test_FreeRTOS_AddNetworkInterface_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_AddNetworkInterface_three_in_a_row
- * The purpose of this test is to verify FreeRTOS_AddNetworkInterface three times with
+ * @brief The purpose of this test is to verify FreeRTOS_AddNetworkInterface three times with
  * different valid input parameters.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
@@ -715,7 +669,7 @@ void test_FreeRTOS_AddNetworkInterface_happy_path( void )
  *  - Call FreeRTOS_AddNetworkInterface three times with three different network interfaces.
  *  - Check if all input network interfaces are stored into pxNetworkInterfaces.
  */
-void test_FreeRTOS_AddNetworkInterface_three_in_a_row( void )
+void test_FreeRTOS_AddNetworkInterface_ThreeInARow( void )
 {
     NetworkInterface_t xNetworkInterface[ 3 ];
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -740,8 +694,7 @@ void test_FreeRTOS_AddNetworkInterface_three_in_a_row( void )
 }
 
 /**
- * @brief test_FreeRTOS_AddNetworkInterface_null
- * The purpose of this test is to verify FreeRTOS_AddNetworkInterface when input parameter
+ * @brief The purpose of this test is to verify FreeRTOS_AddNetworkInterface when input parameter
  * is NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
@@ -750,15 +703,14 @@ void test_FreeRTOS_AddNetworkInterface_three_in_a_row( void )
  *  - Call FreeRTOS_AddNetworkInterface with input NULL.
  *  - Check if pxNetworkInterfaces is still NULL.
  */
-void test_FreeRTOS_AddNetworkInterface_null( void )
+void test_FreeRTOS_AddNetworkInterface_Null( void )
 {
     ( void ) FreeRTOS_AddNetworkInterface( NULL );
     TEST_ASSERT_EQUAL( NULL, pxNetworkInterfaces );
 }
 
 /**
- * @brief test_FreeRTOS_AddNetworkInterface_duplicate_interface
- * FreeRTOS_AddNetworkInterface should only add same interface once into
+ * @brief FreeRTOS_AddNetworkInterface should only add same interface once into
  * the pxNetworkInterfaces.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
@@ -768,7 +720,7 @@ void test_FreeRTOS_AddNetworkInterface_null( void )
  *  - Check if pxNetworkInterfaces is same as input.
  *  - Check if pxNetworkInterfaces->pxNext is NULL.
  */
-void test_FreeRTOS_AddNetworkInterface_duplicate_interface( void )
+void test_FreeRTOS_AddNetworkInterface_DuplicateInterface( void )
 {
     NetworkInterface_t xNetworkInterface;
 
@@ -782,8 +734,7 @@ void test_FreeRTOS_AddNetworkInterface_duplicate_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstNetworkInterface_happy_path
- * FreeRTOS_FirstNetworkInterface should be able to find the first network interface.
+ * @brief FreeRTOS_FirstNetworkInterface should be able to find the first network interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  *
@@ -792,7 +743,7 @@ void test_FreeRTOS_AddNetworkInterface_duplicate_interface( void )
  *  - Call FreeRTOS_FirstNetworkInterface to get first network interface.
  *  - Check if the return is same as the input.
  */
-void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
+void test_FreeRTOS_FirstNetworkInterface_HappyPath( void )
 {
     NetworkInterface_t xNetworkInterface;
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -806,8 +757,7 @@ void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstNetworkInterface_null
- * FreeRTOS_FirstNetworkInterface should be able to return NULL if there is no network interface available.
+ * @brief FreeRTOS_FirstNetworkInterface should be able to return NULL if there is no network interface available.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  *
@@ -815,7 +765,7 @@ void test_FreeRTOS_FirstNetworkInterface_happy_path( void )
  *  - Call FreeRTOS_FirstNetworkInterface to get first network interface.
  *  - Check if the return is NULL.
  */
-void test_FreeRTOS_FirstNetworkInterface_null( void )
+void test_FreeRTOS_FirstNetworkInterface_Null( void )
 {
     NetworkInterface_t * pxNetworkInterface = NULL;
 
@@ -825,8 +775,7 @@ void test_FreeRTOS_FirstNetworkInterface_null( void )
 }
 
 /**
- * @brief test_FreeRTOS_NextNetworkInterface_happy_path
- * FreeRTOS_NextNetworkInterface returns next network interface correctly.
+ * @brief FreeRTOS_NextNetworkInterface returns next network interface correctly.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  *
@@ -835,7 +784,7 @@ void test_FreeRTOS_FirstNetworkInterface_null( void )
  *  - Check if pxNetworkInterfaces is same as first input.
  *  - Check if we can query next two network interfaces correctly by calling FreeRTOS_NextNetworkInterface.
  */
-void test_FreeRTOS_NextNetworkInterface_happy_path( void )
+void test_FreeRTOS_NextNetworkInterface_HappyPath( void )
 {
     NetworkInterface_t xNetworkInterface[ 3 ];
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -869,8 +818,7 @@ void test_FreeRTOS_NextNetworkInterface_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_NextNetworkInterface_null
- * FreeRTOS_NextNetworkInterface returns NULL if the input is NULL.
+ * @brief FreeRTOS_NextNetworkInterface returns NULL if the input is NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  *
@@ -878,7 +826,7 @@ void test_FreeRTOS_NextNetworkInterface_happy_path( void )
  *  - Call FreeRTOS_NextNetworkInterface with NULL input.
  *  - Check if return is NULL.
  */
-void test_FreeRTOS_NextNetworkInterface_null( void )
+void test_FreeRTOS_NextNetworkInterface_Null( void )
 {
     NetworkInterface_t * pxNetworkInterface = NULL;
 
@@ -888,8 +836,7 @@ void test_FreeRTOS_NextNetworkInterface_null( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_happy_path
- * FreeRTOS_FirstEndPoint should return endpoint attached on the input network interface.
+ * @brief FreeRTOS_FirstEndPoint should return endpoint attached on the input network interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -900,7 +847,7 @@ void test_FreeRTOS_NextNetworkInterface_null( void )
  *  - Call FreeRTOS_FirstEndPoint to get attached endpoint.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_happy_path( void )
+void test_FreeRTOS_FirstEndPoint_HappyPath( void )
 {
     NetworkInterface_t xNetworkInterface;
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -920,8 +867,7 @@ void test_FreeRTOS_FirstEndPoint_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_null
- * FreeRTOS_FirstEndPoint should return first endpoint in the list if input is NULL.
+ * @brief FreeRTOS_FirstEndPoint should return first endpoint in the list if input is NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -932,7 +878,7 @@ void test_FreeRTOS_FirstEndPoint_happy_path( void )
  *  - Call FreeRTOS_FirstEndPoint to get attached endpoint with NULL input.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_null( void )
+void test_FreeRTOS_FirstEndPoint_Null( void )
 {
     NetworkInterface_t xNetworkInterface;
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -952,8 +898,7 @@ void test_FreeRTOS_FirstEndPoint_null( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_no_endpoints
- * FreeRTOS_FirstEndPoint should return NULL if no endpoint available in the list.
+ * @brief FreeRTOS_FirstEndPoint should return NULL if no endpoint available in the list.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -964,7 +909,7 @@ void test_FreeRTOS_FirstEndPoint_null( void )
  *  - Call FreeRTOS_FirstEndPoint to get attached endpoint with NULL input.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_no_endpoints( void )
+void test_FreeRTOS_FirstEndPoint_NoEndpoints( void )
 {
     NetworkInterface_t xNetworkInterface;
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -983,8 +928,7 @@ void test_FreeRTOS_FirstEndPoint_no_endpoints( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_another_interface
- * FreeRTOS_FirstEndPoint should return first endpoint with specified interface.
+ * @brief FreeRTOS_FirstEndPoint should return first endpoint with specified interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -996,7 +940,7 @@ void test_FreeRTOS_FirstEndPoint_no_endpoints( void )
  *  - Loop to call FreeRTOS_FirstEndPoint to get attached endpoint with each network interface.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_another_interface( void )
+void test_FreeRTOS_FirstEndPoint_AnotherInterface( void )
 {
     /* Attach one endpoint to one network interface. Check if we can get correct endpoint by API. */
     NetworkInterface_t xNetworkInterface[ 3 ];
@@ -1038,8 +982,7 @@ void test_FreeRTOS_FirstEndPoint_another_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_IPv6_happy_path
- * FreeRTOS_FirstEndPoint_IPv6 should return an IPv6 endpoint attached on the input network interface.
+ * @brief FreeRTOS_FirstEndPoint_IPv6 should return an IPv6 endpoint attached on the input network interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1051,7 +994,7 @@ void test_FreeRTOS_FirstEndPoint_another_interface( void )
  *  - Call FreeRTOS_FirstEndPoint to get attached endpoint.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_IPv6_happy_path( void )
+void test_FreeRTOS_FirstEndPoint_IPv6_HappyPath( void )
 {
     NetworkInterface_t xNetworkInterface;
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -1072,8 +1015,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_IPv6_null
- * FreeRTOS_FirstEndPoint_IPv6 should return first endpoint in the list if input is NULL.
+ * @brief FreeRTOS_FirstEndPoint_IPv6 should return first endpoint in the list if input is NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1085,7 +1027,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_happy_path( void )
  *  - Call FreeRTOS_FirstEndPoint_IPv6 to get attached endpoint with NULL input.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_IPv6_null( void )
+void test_FreeRTOS_FirstEndPoint_IPv6_Null( void )
 {
     NetworkInterface_t xNetworkInterface;
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -1106,8 +1048,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_null( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_IPv6_not_found
- * FreeRTOS_FirstEndPoint_IPv6 should return NULL if no IPv6 endpoint in the list.
+ * @brief FreeRTOS_FirstEndPoint_IPv6 should return NULL if no IPv6 endpoint in the list.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1118,7 +1059,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_null( void )
  *  - Call FreeRTOS_FirstEndPoint_IPv6 to get attached endpoint with NULL input.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_IPv6_not_found( void )
+void test_FreeRTOS_FirstEndPoint_IPv6_NotFound( void )
 {
     NetworkInterface_t xNetworkInterface;
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -1138,8 +1079,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_FirstEndPoint_IPv6_another_interface
- * FreeRTOS_FirstEndPoint_IPv6 should return first endpoint with specified interface.
+ * @brief FreeRTOS_FirstEndPoint_IPv6 should return first endpoint with specified interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1157,7 +1097,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_not_found( void )
  *  - Loop to call FreeRTOS_FirstEndPoint_IPv6 to get attached IPv6 endpoint with each network interface.
  *  - Check if returned endpoint is same as attached one.
  */
-void test_FreeRTOS_FirstEndPoint_IPv6_another_interface( void )
+void test_FreeRTOS_FirstEndPoint_IPv6_AnotherInterface( void )
 {
     /* Attach one endpoint to one network interface. Check if we can get correct endpoint by API. */
     NetworkInterface_t xNetworkInterface[ 3 ];
@@ -1218,8 +1158,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_another_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_NextEndPoint_happy_path
- * FreeRTOS_NextEndPoint should return next endpoint with specified endpoint.
+ * @brief FreeRTOS_NextEndPoint should return next endpoint with specified endpoint.
  *
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
  *
@@ -1228,7 +1167,7 @@ void test_FreeRTOS_FirstEndPoint_IPv6_another_interface( void )
  *  - Loop to call FreeRTOS_NextEndPoint to get endpoints.
  *  - Check if endpoints are returned in correct order.
  */
-void test_FreeRTOS_NextEndPoint_happy_path( void )
+void test_FreeRTOS_NextEndPoint_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint[ 3 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1262,8 +1201,7 @@ void test_FreeRTOS_NextEndPoint_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_NextEndPoint_another_interface
- * FreeRTOS_NextEndPoint should return next endpoint with specified interface.
+ * @brief FreeRTOS_NextEndPoint should return next endpoint with specified interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1284,7 +1222,7 @@ void test_FreeRTOS_NextEndPoint_happy_path( void )
  *  - Loop to call FreeRTOS_NextEndPoint to get endpoints for interface 2.
  *  - Check if returned endpoints are e6 -> e7 -> e8.
  */
-void test_FreeRTOS_NextEndPoint_another_interface( void )
+void test_FreeRTOS_NextEndPoint_AnotherInterface( void )
 {
     NetworkInterface_t xNetworkInterface[ 3 ];
     NetworkInterface_t * pxNetworkInterface = NULL;
@@ -1373,8 +1311,7 @@ void test_FreeRTOS_NextEndPoint_another_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv4_happy_path
- * FreeRTOS_FindEndPointOnIP_IPv4 should return the endpoint with specified IPv4 address.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv4 should return the endpoint with specified IPv4 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1384,7 +1321,7 @@ void test_FreeRTOS_NextEndPoint_another_interface( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with same IP address stored in endpoint.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv4_happy_path( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv4_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1399,8 +1336,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv4_not_found
- * FreeRTOS_FindEndPointOnIP_IPv4 should return NULL if no matched endpoint found.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv4 should return NULL if no matched endpoint found.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1412,7 +1348,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_happy_path( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query different IP address.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv4_not_found( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv4_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1436,8 +1372,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv4_multiple_endpoints
- * FreeRTOS_FindEndPointOnIP_IPv4 should return the endpoint with specified IPv4 address.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv4 should return the endpoint with specified IPv4 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1451,7 +1386,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_not_found( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with xDefaultDNSServerAddress_IPv4 address stored in endpoint.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv4_multiple_endpoints( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv4_MultipleEndpoints( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1475,8 +1410,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_multiple_endpoints( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv4_any_endpoint
- * FreeRTOS_FindEndPointOnIP_IPv4 should return first endpoint in the list when query IP address is 0.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv4 should return first endpoint in the list when query IP address is 0.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1486,7 +1420,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_multiple_endpoints( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with 0 address.
  *  - Check if returned endpoint is the first endpoint.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv4_any_endpoint( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv4_AnyEndpoint( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1504,8 +1438,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_any_endpoint( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv4_zero_address_endpoint
- * FreeRTOS_FindEndPointOnIP_IPv4 should return first endpoint in the list when query IP address is 0.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv4 should return first endpoint in the list when query IP address is 0.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1517,7 +1450,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_any_endpoint( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv4 to query with IPV4_DEFAULT_GATEWAY.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv4_zero_address_endpoint( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv4_ZeroAddressEndpoint( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1533,8 +1466,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_zero_address_endpoint( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path
- * FreeRTOS_FindEndPointOnIP_IPv6 should return the endpoint with specified IPv6 address.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv6 should return the endpoint with specified IPv6 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1544,7 +1476,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_zero_address_endpoint( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv6 to query with same IP address stored in endpoint.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv6_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1563,8 +1495,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv6_multiple_endpoints
- * FreeRTOS_FindEndPointOnIP_IPv6 should return the endpoint with specified IPv6 address.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv6 should return the endpoint with specified IPv6 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1578,7 +1509,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_happy_path( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv6 to query with xDefaultDNSServerAddress_IPv6 address stored in endpoint.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv6_multiple_endpoints( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv6_MultipleEndpoints( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1611,8 +1542,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_multiple_endpoints( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnIP_IPv6_not_found
- * FreeRTOS_FindEndPointOnIP_IPv6 should return NULL if no matched endpoint found.
+ * @brief FreeRTOS_FindEndPointOnIP_IPv6 should return NULL if no matched endpoint found.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1624,7 +1554,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_multiple_endpoints( void )
  *  - Call FreeRTOS_FindEndPointOnIP_IPv6 to query with xDefaultIPAddress_IPv6.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnIP_IPv6_not_found( void )
+void test_FreeRTOS_FindEndPointOnIP_IPv6_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1646,8 +1576,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnMAC_happy_path
- * FreeRTOS_FindEndPointOnMAC should return the endpoint with specified MAC address & network interface.
+ * @brief FreeRTOS_FindEndPointOnMAC should return the endpoint with specified MAC address & network interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1658,7 +1587,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_not_found( void )
  *  - Call FreeRTOS_FindEndPointOnMAC to query with same MAC address stored in endpoint.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindEndPointOnMAC_happy_path( void )
+void test_FreeRTOS_FindEndPointOnMAC_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1681,8 +1610,7 @@ void test_FreeRTOS_FindEndPointOnMAC_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnMAC_null_interface
- * FreeRTOS_FindEndPointOnMAC should return the endpoint with specified MAC address.
+ * @brief FreeRTOS_FindEndPointOnMAC should return the endpoint with specified MAC address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1692,7 +1620,7 @@ void test_FreeRTOS_FindEndPointOnMAC_happy_path( void )
  *  - Call FreeRTOS_FindEndPointOnMAC to query with same MAC address stored in endpoint.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindEndPointOnMAC_null_interface( void )
+void test_FreeRTOS_FindEndPointOnMAC_NullInterface( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1709,8 +1637,7 @@ void test_FreeRTOS_FindEndPointOnMAC_null_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnMAC_null_mac
- * FreeRTOS_FindEndPointOnMAC should return the endpoint with NULL pointer as MAC address.
+ * @brief FreeRTOS_FindEndPointOnMAC should return the endpoint with NULL pointer as MAC address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1720,7 +1647,7 @@ void test_FreeRTOS_FindEndPointOnMAC_null_interface( void )
  *  - Call FreeRTOS_FindEndPointOnMAC to query with NULL pointer as MAC address.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnMAC_null_mac( void )
+void test_FreeRTOS_FindEndPointOnMAC_NullMAC( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1737,8 +1664,7 @@ void test_FreeRTOS_FindEndPointOnMAC_null_mac( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnMAC_multiple_interface
- * FreeRTOS_FindEndPointOnMAC should return the endpoint attached to the specified interface.
+ * @brief FreeRTOS_FindEndPointOnMAC should return the endpoint attached to the specified interface.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1751,7 +1677,7 @@ void test_FreeRTOS_FindEndPointOnMAC_null_mac( void )
  *  - Call FreeRTOS_FindEndPointOnMAC to query attached in second interface.
  *  - Check if returned endpoint is same as second endpoint.
  */
-void test_FreeRTOS_FindEndPointOnMAC_multiple_interface( void )
+void test_FreeRTOS_FindEndPointOnMAC_MultipleInterface( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1807,8 +1733,7 @@ void test_FreeRTOS_FindEndPointOnMAC_multiple_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnMAC_not_found
- * FreeRTOS_FindEndPointOnMAC should return NULL if no endpoint matches.
+ * @brief FreeRTOS_FindEndPointOnMAC should return NULL if no endpoint matches.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1820,7 +1745,7 @@ void test_FreeRTOS_FindEndPointOnMAC_multiple_interface( void )
  *  - Call FreeRTOS_FindEndPointOnMAC to query with different MAC address.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnMAC_not_found( void )
+void test_FreeRTOS_FindEndPointOnMAC_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1845,8 +1770,7 @@ void test_FreeRTOS_FindEndPointOnMAC_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnNetMask_happy_path
- * FreeRTOS_FindEndPointOnNetMask should be able to find the endpoint within same network region.
+ * @brief FreeRTOS_FindEndPointOnNetMask should be able to find the endpoint within same network region.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1858,7 +1782,7 @@ void test_FreeRTOS_FindEndPointOnMAC_not_found( void )
  *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 192.168.123.1.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindEndPointOnNetMask_happy_path( void )
+void test_FreeRTOS_FindEndPointOnNetMask_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1875,8 +1799,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnNetMask_not_found
- * FreeRTOS_FindEndPointOnNetMask should be able to return NULL if no endpoint is in same network region.
+ * @brief FreeRTOS_FindEndPointOnNetMask should be able to return NULL if no endpoint is in same network region.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1888,7 +1811,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_happy_path( void )
  *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 192.168.1.1.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnNetMask_not_found( void )
+void test_FreeRTOS_FindEndPointOnNetMask_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1905,8 +1828,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path
- * FreeRTOS_FindEndPointOnNetMask_IPv6 should be able to find the endpoint within same network region.
+ * @brief FreeRTOS_FindEndPointOnNetMask_IPv6 should be able to find the endpoint within same network region.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1919,7 +1841,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_not_found( void )
  *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 2001::fffe.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path( void )
+void test_FreeRTOS_FindEndPointOnNetMask_IPv6_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1940,8 +1862,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindEndPointOnNetMask_IPv6_not_found
- * FreeRTOS_FindEndPointOnNetMask_IPv6 should be able to return NULL if no endpoint is in same network region.
+ * @brief FreeRTOS_FindEndPointOnNetMask_IPv6 should be able to return NULL if no endpoint is in same network region.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1956,7 +1877,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_happy_path( void )
  *  - Call FreeRTOS_FindEndPointOnNetMask to query for IP address 2002::fffe.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindEndPointOnNetMask_IPv6_not_found( void )
+void test_FreeRTOS_FindEndPointOnNetMask_IPv6_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -1983,8 +1904,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_InterfaceEndPointOnNetMask_happy_path
- * FreeRTOS_InterfaceEndPointOnNetMask should be able to find the endpoint within same network region.
+ * @brief FreeRTOS_InterfaceEndPointOnNetMask should be able to find the endpoint within same network region.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -1996,7 +1916,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_not_found( void )
  *  - Call FreeRTOS_InterfaceEndPointOnNetMask to query for IP address 192.168.123.1.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_InterfaceEndPointOnNetMask_happy_path( void )
+void test_FreeRTOS_InterfaceEndPointOnNetMask_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2022,8 +1942,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_InterfaceEndPointOnNetMask_different_interface
- * FreeRTOS_InterfaceEndPointOnNetMask should be able to find the endpoint within same network region.
+ * @brief FreeRTOS_InterfaceEndPointOnNetMask should be able to find the endpoint within same network region.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2040,7 +1959,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_happy_path( void )
  *  - Call FreeRTOS_InterfaceEndPointOnNetMask to query for IP address 192.168.124.1.
  *  - Check if returned endpoint is e1.
  */
-void test_FreeRTOS_InterfaceEndPointOnNetMask_different_interface( void )
+void test_FreeRTOS_InterfaceEndPointOnNetMask_DifferentInterface( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2079,8 +1998,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_different_interface( void )
 }
 
 /**
- * @brief test_FreeRTOS_InterfaceEndPointOnNetMask_not_found
- * FreeRTOS_InterfaceEndPointOnNetMask returns NULL when there is no endpoint matches.
+ * @brief FreeRTOS_InterfaceEndPointOnNetMask returns NULL when there is no endpoint matches.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2093,7 +2011,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_different_interface( void )
  *  - Call FreeRTOS_InterfaceEndPointOnNetMask to query for IP address 192.168.123.1.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_InterfaceEndPointOnNetMask_not_found( void )
+void test_FreeRTOS_InterfaceEndPointOnNetMask_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2118,8 +2036,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_InterfaceEndPointOnNetMask_broadcast
- * FreeRTOS_InterfaceEndPointOnNetMask returns first IPv4 endpoint when querying with IP address 0xFFFFFFFF.
+ * @brief FreeRTOS_InterfaceEndPointOnNetMask returns first IPv4 endpoint when querying with IP address 0xFFFFFFFF.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2134,7 +2051,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_not_found( void )
  *  - Call FreeRTOS_InterfaceEndPointOnNetMask to query for IP address 0xFFFFFFFF.
  *  - Check if returned endpoint is e1.
  */
-void test_FreeRTOS_InterfaceEndPointOnNetMask_broadcast( void )
+void test_FreeRTOS_InterfaceEndPointOnNetMask_Broadcast( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2166,8 +2083,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_broadcast( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv4_happy_path
- * FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv4 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv4 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2178,7 +2094,7 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_broadcast( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
+void test_FreeRTOS_FindGateWay_IPv4_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2193,8 +2109,7 @@ void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv4_not_found
- * FreeRTOS_FindGateWay should be able to return NULL if no valid IPv4 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to return NULL if no valid IPv4 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2207,7 +2122,7 @@ void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindGateWay_IPv4_not_found( void )
+void test_FreeRTOS_FindGateWay_IPv4_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2227,8 +2142,7 @@ void test_FreeRTOS_FindGateWay_IPv4_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv4_multiple_endpoints
- * FreeRTOS_FindGateWay should be able to return the endpoint with valid IPv4 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to return the endpoint with valid IPv4 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2241,7 +2155,7 @@ void test_FreeRTOS_FindGateWay_IPv4_not_found( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is same as second endpoint.
  */
-void test_FreeRTOS_FindGateWay_IPv4_multiple_endpoints( void )
+void test_FreeRTOS_FindGateWay_IPv4_MultipleEndpoints( void )
 {
     NetworkEndPoint_t xEndPointV4;
     NetworkEndPoint_t xEndPointV6;
@@ -2263,8 +2177,7 @@ void test_FreeRTOS_FindGateWay_IPv4_multiple_endpoints( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv6_happy_path
- * FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv6 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv6 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2275,7 +2188,7 @@ void test_FreeRTOS_FindGateWay_IPv4_multiple_endpoints( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv6.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindGateWay_IPv6_happy_path( void )
+void test_FreeRTOS_FindGateWay_IPv6_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2291,8 +2204,7 @@ void test_FreeRTOS_FindGateWay_IPv6_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv6_not_found
- * FreeRTOS_FindGateWay should be able to return NULL if no valid IPv6 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to return NULL if no valid IPv6 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2305,7 +2217,7 @@ void test_FreeRTOS_FindGateWay_IPv6_happy_path( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv6.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindGateWay_IPv6_not_found( void )
+void test_FreeRTOS_FindGateWay_IPv6_NotFound( void )
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2325,8 +2237,7 @@ void test_FreeRTOS_FindGateWay_IPv6_not_found( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv6_multiple_endpoints
- * FreeRTOS_FindGateWay should be able to return the endpoint with valid IPv6 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to return the endpoint with valid IPv6 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2339,7 +2250,7 @@ void test_FreeRTOS_FindGateWay_IPv6_not_found( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is same as second endpoint.
  */
-void test_FreeRTOS_FindGateWay_IPv6_multiple_endpoints( void )
+void test_FreeRTOS_FindGateWay_IPv6_MultipleEndpoints( void )
 {
     NetworkEndPoint_t xEndPointV4;
     NetworkEndPoint_t xEndPointV6;
@@ -2361,8 +2272,7 @@ void test_FreeRTOS_FindGateWay_IPv6_multiple_endpoints( void )
 }
 
 /**
- * @brief test_pxGetSocketEndpoint_happy_path
- * pxGetSocketEndpoint should be able to return the endpoint attached in socket handler.
+ * @brief pxGetSocketEndpoint should be able to return the endpoint attached in socket handler.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2374,7 +2284,7 @@ void test_FreeRTOS_FindGateWay_IPv6_multiple_endpoints( void )
  *  - Call pxGetSocketEndpoint with socket handler.
  *  - Check if returned endpoint is same.
  */
-void test_pxGetSocketEndpoint_happy_path()
+void test_pxGetSocketEndpoint_HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -2393,8 +2303,7 @@ void test_pxGetSocketEndpoint_happy_path()
 }
 
 /**
- * @brief test_pxGetSocketEndpoint_null
- * pxGetSocketEndpoint should be able to return NULL if socket handler is also NULL.
+ * @brief pxGetSocketEndpoint should be able to return NULL if socket handler is also NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2403,7 +2312,7 @@ void test_pxGetSocketEndpoint_happy_path()
  *  - Call pxGetSocketEndpoint with NULL.
  *  - Check if returned endpoint is NULL.
  */
-void test_pxGetSocketEndpoint_null()
+void test_pxGetSocketEndpoint_Null()
 {
     NetworkEndPoint_t * pxEndPoint = NULL;
 
@@ -2412,8 +2321,7 @@ void test_pxGetSocketEndpoint_null()
 }
 
 /**
- * @brief test_vSetSocketEndpoint_happy_path
- * vSetSocketEndpoint can set endpoint to socket handler successfully.
+ * @brief vSetSocketEndpoint can set endpoint to socket handler successfully.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2424,7 +2332,7 @@ void test_pxGetSocketEndpoint_null()
  *  - Call vSetSocketEndpoint to attach previous endpoint to this socket handler.
  *  - Check if the endpoint in socket handler is same.
  */
-void test_vSetSocketEndpoint_happy_path()
+void test_vSetSocketEndpoint_HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -2442,8 +2350,7 @@ void test_vSetSocketEndpoint_happy_path()
 }
 
 /**
- * @brief test_vSetSocketEndpoint_null_socket
- * vSetSocketEndpoint can return normally when socket handler is NULL.
+ * @brief vSetSocketEndpoint can return normally when socket handler is NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2451,14 +2358,13 @@ void test_vSetSocketEndpoint_happy_path()
  * Test step:
  *  - Call vSetSocketEndpoint with NULL socket handler.
  */
-void test_vSetSocketEndpoint_null_socket()
+void test_vSetSocketEndpoint_NullSocket()
 {
     vSetSocketEndpoint( NULL, NULL );
 }
 
 /**
- * @brief test_pcEndpointName_IPv4_happy_path
- * pcEndpointName can get IPv4 address in string from endpoint.
+ * @brief pcEndpointName can get IPv4 address in string from endpoint.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2469,7 +2375,7 @@ void test_vSetSocketEndpoint_null_socket()
  *  - Call pcEndpointName with enough buffer size.
  *  - Check if return buffer string is "192.168.123.223".
  */
-void test_pcEndpointName_IPv4_happy_path()
+void test_pcEndpointName_IPv4_HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -2497,8 +2403,7 @@ void test_pcEndpointName_IPv4_happy_path()
 }
 
 /**
- * @brief test_pcEndpointName_IPv4_null_buffer_pointer
- * pcEndpointName can return normally without accessing null pointer.
+ * @brief pcEndpointName can return normally without accessing null pointer.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2506,7 +2411,7 @@ void test_pcEndpointName_IPv4_happy_path()
  * Test step:
  *  - Call pcEndpointName with null buffer pointer.
  */
-void test_pcEndpointName_IPv4_null_buffer_pointer()
+void test_pcEndpointName_IPv4_NullBufferPointer()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -2531,8 +2436,7 @@ void test_pcEndpointName_IPv4_null_buffer_pointer()
 }
 
 /**
- * @brief test_pcEndpointName_IPv4_truncate_buffer
- * pcEndpointName can get partial IPv4 address in string from endpoint when the buffer size is less than necessary size.
+ * @brief pcEndpointName can get partial IPv4 address in string from endpoint when the buffer size is less than necessary size.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2543,7 +2447,7 @@ void test_pcEndpointName_IPv4_null_buffer_pointer()
  *  - Call pcEndpointName with ( enough buffer size - 3 ).
  *  - Check if return buffer string is "192.168.123.".
  */
-void test_pcEndpointName_IPv4_truncate_buffer()
+void test_pcEndpointName_IPv4_TruncateBuffer()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -2571,14 +2475,13 @@ void test_pcEndpointName_IPv4_truncate_buffer()
 }
 
 /**
- * @brief test_pcEndpointName_null_endpoint
- * pcEndpointName can get string "NULL" when the endpoint is NULL pointer.
+ * @brief pcEndpointName can get string "NULL" when the endpoint is NULL pointer.
  *
  * Test step:
  *  - Call pcEndpointName with NULL endpoint.
  *  - Check if return buffer string is "NULL".
  */
-void test_pcEndpointName_null_endpoint()
+void test_pcEndpointName_NullEndpoint()
 {
     int lNameSize = 5;
     char cName[ lNameSize ];
@@ -2589,8 +2492,7 @@ void test_pcEndpointName_null_endpoint()
 }
 
 /**
- * @brief test_pcEndpointName_IPv6_happy_path
- * pcEndpointName can get IPv6 address in string from endpoint.
+ * @brief pcEndpointName can get IPv6 address in string from endpoint.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2601,7 +2503,7 @@ void test_pcEndpointName_null_endpoint()
  *  - Call pcEndpointName with enough buffer size.
  *  - Check if return buffer string is "2001::1".
  */
-void test_pcEndpointName_IPv6_happy_path()
+void test_pcEndpointName_IPv6_HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -2630,8 +2532,7 @@ void test_pcEndpointName_IPv6_happy_path()
 }
 
 /**
- * @brief test_pcEndpointName_IPv6_truncate_buffer
- * pcEndpointName can get partial IPv6 address in string from endpoint when the buffer size is less than necessary size.
+ * @brief pcEndpointName can get partial IPv6 address in string from endpoint when the buffer size is less than necessary size.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2642,7 +2543,7 @@ void test_pcEndpointName_IPv6_happy_path()
  *  - Call pcEndpointName with ( enough buffer size - 3 ).
  *  - Check if return buffer string is "2001".
  */
-void test_pcEndpointName_IPv6_truncate_buffer()
+void test_pcEndpointName_IPv6_TruncateBuffer()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -2671,8 +2572,7 @@ void test_pcEndpointName_IPv6_truncate_buffer()
 }
 
 /**
- * @brief test_xIPv6_GetIPType_global
- * xIPv6_GetIPType returns eIPv6_Global if input address matches 2000::/3.
+ * @brief xIPv6_GetIPType returns eIPv6_Global if input address matches 2000::/3.
  *
  * Test step:
  *  - Create 1 IPv6 address.
@@ -2680,7 +2580,7 @@ void test_pcEndpointName_IPv6_truncate_buffer()
  *  - Call xIPv6_GetIPType to check IP type.
  *  - Check if it returns eIPv6_Global.
  */
-void test_xIPv6_GetIPType_global()
+void test_xIPv6_GetIPType_Global()
 {
     IPv6_Type_t xReturn;
 
@@ -2689,8 +2589,7 @@ void test_xIPv6_GetIPType_global()
 }
 
 /**
- * @brief test_xIPv6_GetIPType_link_local
- * xIPv6_GetIPType returns eIPv6_LinkLocal if input address matches FE80::/10.
+ * @brief xIPv6_GetIPType returns eIPv6_LinkLocal if input address matches FE80::/10.
  *
  * Test step:
  *  - Create 1 IPv6 address.
@@ -2698,7 +2597,7 @@ void test_xIPv6_GetIPType_global()
  *  - Call xIPv6_GetIPType to check IP type.
  *  - Check if it returns eIPv6_LinkLocal.
  */
-void test_xIPv6_GetIPType_link_local()
+void test_xIPv6_GetIPType_LinkLocal()
 {
     const IPv6_Address_t xIPv6Address = { 0xFE, 0x8F, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
     IPv6_Type_t xReturn;
@@ -2708,8 +2607,7 @@ void test_xIPv6_GetIPType_link_local()
 }
 
 /**
- * @brief test_xIPv6_GetIPType_site_local
- * xIPv6_GetIPType returns eIPv6_SiteLocal if input address matches FEC0::/10.
+ * @brief xIPv6_GetIPType returns eIPv6_SiteLocal if input address matches FEC0::/10.
  *
  * Test step:
  *  - Create 1 IPv6 address.
@@ -2717,7 +2615,7 @@ void test_xIPv6_GetIPType_link_local()
  *  - Call xIPv6_GetIPType to check IP type.
  *  - Check if it returns eIPv6_SiteLocal.
  */
-void test_xIPv6_GetIPType_site_local()
+void test_xIPv6_GetIPType_SiteLocal()
 {
     const IPv6_Address_t xIPv6Address = { 0xFE, 0xCF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
     IPv6_Type_t xReturn;
@@ -2727,8 +2625,7 @@ void test_xIPv6_GetIPType_site_local()
 }
 
 /**
- * @brief test_xIPv6_GetIPType_multicast
- * xIPv6_GetIPType returns eIPv6_Multicast if input address matches FF00::/8.
+ * @brief xIPv6_GetIPType returns eIPv6_Multicast if input address matches FF00::/8.
  *
  * Test step:
  *  - Create 1 IPv6 address.
@@ -2736,7 +2633,7 @@ void test_xIPv6_GetIPType_site_local()
  *  - Call xIPv6_GetIPType to check IP type.
  *  - Check if it returns eIPv6_Multicast.
  */
-void test_xIPv6_GetIPType_multicast()
+void test_xIPv6_GetIPType_Multicast()
 {
     const IPv6_Address_t xIPv6Address = { 0xFF, 0xFF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
     IPv6_Type_t xReturn;
@@ -2746,8 +2643,7 @@ void test_xIPv6_GetIPType_multicast()
 }
 
 /**
- * @brief test_xIPv6_GetIPType_unknown
- * xIPv6_GetIPType returns eIPv6_Unknown if input address doesn't match any rule.
+ * @brief xIPv6_GetIPType returns eIPv6_Unknown if input address doesn't match any rule.
  *
  * Test step:
  *  - Create 1 IPv6 address.
@@ -2755,7 +2651,7 @@ void test_xIPv6_GetIPType_multicast()
  *  - Call xIPv6_GetIPType to check IP type.
  *  - Check if it returns eIPv6_Unknown.
  */
-void test_xIPv6_GetIPType_unknown()
+void test_xIPv6_GetIPType_Unknown()
 {
     const IPv6_Address_t xIPv6Address = { 0x12, 0x34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
     IPv6_Type_t xReturn;
@@ -2765,14 +2661,13 @@ void test_xIPv6_GetIPType_unknown()
 }
 
 /**
- * @brief test_xIPv6_GetIPType_null
- * xIPv6_GetIPType returns eIPv6_Unknown if input address is NULL.
+ * @brief xIPv6_GetIPType returns eIPv6_Unknown if input address is NULL.
  *
  * Test step:
  *  - Call xIPv6_GetIPType with NULL input.
  *  - Check if it returns eIPv6_Unknown.
  */
-void test_xIPv6_GetIPType_null()
+void test_xIPv6_GetIPType_Null()
 {
     IPv6_Type_t xReturn;
 
@@ -2781,8 +2676,7 @@ void test_xIPv6_GetIPType_null()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_match_IPv4_address
- * FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2797,7 +2691,7 @@ void test_xIPv6_GetIPType_null()
  *    but different MAC address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_match_IPv4_address()
+void test_FreeRTOS_MatchingEndpoint_MatchIPv4Address()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -2832,8 +2726,7 @@ void test_FreeRTOS_MatchingEndpoint_match_IPv4_address()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_match_MAC_address
- * FreeRTOS_MatchingEndpoint returns the endpoint with same MAC address.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same MAC address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2848,7 +2741,7 @@ void test_FreeRTOS_MatchingEndpoint_match_IPv4_address()
  *    but different IP address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_match_MAC_address()
+void test_FreeRTOS_MatchingEndpoint_MatchMACAddress()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -2882,8 +2775,7 @@ void test_FreeRTOS_MatchingEndpoint_match_MAC_address()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_IPv4_address
- * FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address in ARP request packet.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address in ARP request packet.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2898,7 +2790,7 @@ void test_FreeRTOS_MatchingEndpoint_match_MAC_address()
  *    but different MAC address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_IPv4_address()
+void test_FreeRTOS_MatchingEndpoint_ARPReqMatchIPv4Address()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -2935,8 +2827,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_IPv4_address()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_MAC_address
- * FreeRTOS_MatchingEndpoint returns the endpoint with same MAC address in ARP request packet.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same MAC address in ARP request packet.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -2951,7 +2842,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_IPv4_address()
  *    but different IP address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_MAC_address()
+void test_FreeRTOS_MatchingEndpoint_ARPReqMatchMACAddress()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -2987,8 +2878,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_MAC_address()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_IPv4_address
- * FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address in ARP reply packet.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address in ARP reply packet.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3003,7 +2893,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REQ_match_MAC_address()
  *    but different MAC address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_IPv4_address()
+void test_FreeRTOS_MatchingEndpoint_ARPReplyMatchIPv4Address()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3040,8 +2930,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_IPv4_address()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_MAC_address
- * FreeRTOS_MatchingEndpoint returns the endpoint with same MAC address in ARP reply packet.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same MAC address in ARP reply packet.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3056,7 +2945,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_IPv4_address()
  *    but different IP address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_MAC_address()
+void test_FreeRTOS_MatchingEndpoint_ARPReplyMatchMACAddress()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3092,8 +2981,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_MAC_address()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_ARP_wrong_option
- * FreeRTOS_MatchingEndpoint returns the IPv4 endpoint while receiving in ARP packet with invalid option code.
+ * @brief FreeRTOS_MatchingEndpoint returns the IPv4 endpoint while receiving in ARP packet with invalid option code.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3108,7 +2996,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_REPLY_match_MAC_address()
  *    destination IP address (IPV4_DEFAULT_ADDRESS), but different MAC address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_ARP_wrong_option()
+void test_FreeRTOS_MatchingEndpoint_ARPWrongOption()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3145,8 +3033,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_wrong_option()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv4
- * FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same IPv4 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3164,7 +3051,7 @@ void test_FreeRTOS_MatchingEndpoint_ARP_wrong_option()
  *  - Create a network buffer and IPv4 packet with destination IPv4 address (IPV4_DEFAULT_GATEWAY).
  *  - Call FreeRTOS_MatchingEndpoint with check if returned endpoint is e1.
  */
-void test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv4()
+void test_FreeRTOS_MatchingEndpoint_OneMACOneIPv4()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint[ 2 ];
@@ -3221,8 +3108,7 @@ void test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv4()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_null_interface
- * FreeRTOS_MatchingEndpoint returns NULL when input interface is NULL.
+ * @brief FreeRTOS_MatchingEndpoint returns NULL when input interface is NULL.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3236,7 +3122,7 @@ void test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv4()
  *  - Create a network buffer and set IPv4 packet with destination IP address (IPV4_DEFAULT_ADDRESS).
  *  - Call FreeRTOS_MatchingEndpoint with check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_null_interface()
+void test_FreeRTOS_MatchingEndpoint_NullInterface()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3271,8 +3157,7 @@ void test_FreeRTOS_MatchingEndpoint_null_interface()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_IPv4_not_found
- * FreeRTOS_MatchingEndpoint returns NULL when there is no matching IPv4 endpoint.
+ * @brief FreeRTOS_MatchingEndpoint returns NULL when there is no matching IPv4 endpoint.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3286,7 +3171,7 @@ void test_FreeRTOS_MatchingEndpoint_null_interface()
  *  - Create a network buffer and set IPv4 packet with different destination IPv4/MAC address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is NULL.
  */
-void test_FreeRTOS_MatchingEndpoint_IPv4_not_found()
+void test_FreeRTOS_MatchingEndpoint_IPv4NotFound()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3326,8 +3211,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv4_not_found()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_match_IPv6_address
- * FreeRTOS_MatchingEndpoint returns the endpoint with same IPv6 address.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same IPv6 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3342,7 +3226,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv4_not_found()
  *    but different MAC address.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_match_IPv6_address()
+void test_FreeRTOS_MatchingEndpoint_MatchIPv6Address()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3378,8 +3262,7 @@ void test_FreeRTOS_MatchingEndpoint_match_IPv6_address()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_IPv6_not_found
- * FreeRTOS_MatchingEndpoint returns NULL when there is no matching IPv6 endpoint.
+ * @brief FreeRTOS_MatchingEndpoint returns NULL when there is no matching IPv6 endpoint.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3393,7 +3276,7 @@ void test_FreeRTOS_MatchingEndpoint_match_IPv6_address()
  *  - Create a network buffer and IPv6 packet with destination IPv6/MAC address (xDefaultIPAddress_IPv6).
  *  - Call FreeRTOS_MatchingEndpoint with check if returned endpoint is NULL.
  */
-void test_FreeRTOS_MatchingEndpoint_IPv6_not_found()
+void test_FreeRTOS_MatchingEndpoint_IPv6NotFound()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3432,8 +3315,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6_not_found()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv6
- * FreeRTOS_MatchingEndpoint returns the endpoint with same IPv6 address.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with same IPv6 address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3451,7 +3333,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6_not_found()
  *  - Create a network buffer and IPv4 packet with destination IPv4 address (xDefaultGatewayAddress_IPv6).
  *  - Call FreeRTOS_MatchingEndpoint with check if returned endpoint is e1.
  */
-void test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv6()
+void test_FreeRTOS_MatchingEndpoint_OneMACOneIPv6()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint[ 2 ];
@@ -3511,8 +3393,7 @@ void test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv6()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_type
- * FreeRTOS_MatchingEndpoint returns the endpoint with type.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with type.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3530,7 +3411,7 @@ void test_FreeRTOS_MatchingEndpoint_one_MAC_one_IPv6()
  *  - Create a network buffer and IPv4 packet with different destination IPv4 address (ucDefaultGatewayAddress_IPv4).
  *  - Call FreeRTOS_MatchingEndpoint with check if returned endpoint is e0. (Match by IP type.)
  */
-void test_FreeRTOS_MatchingEndpoint_type()
+void test_FreeRTOS_MatchingEndpoint_Type()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint[ 2 ];
@@ -3592,8 +3473,7 @@ void test_FreeRTOS_MatchingEndpoint_type()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_IPv6_default_gateway_not_found
- * FreeRTOS_MatchingEndpoint returns the endpoint with default gateway address (FE80::1).
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with default gateway address (FE80::1).
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3607,7 +3487,7 @@ void test_FreeRTOS_MatchingEndpoint_type()
  *  - Create a network buffer and set IPv6 packet with destination address FE80::1 (default gateway address).
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same (matched by IP type).
  */
-void test_FreeRTOS_MatchingEndpoint_IPv6_default_gateway_not_found()
+void test_FreeRTOS_MatchingEndpoint_IPv6DefaultGatewayNotFound()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3645,8 +3525,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6_default_gateway_not_found()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_IPv6_non_global
- * FreeRTOS_MatchingEndpoint returns the endpoint with non-global address (FE80::123).
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint with non-global address (FE80::123).
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -3660,7 +3539,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6_default_gateway_not_found()
  *  - Create a network buffer and set IPv6 packet with destination address FE80::1 (default gateway address).
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same (matched by IP type).
  */
-void test_FreeRTOS_MatchingEndpoint_IPv6_non_global()
+void test_FreeRTOS_MatchingEndpoint_IPv6NonGlobal()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -3698,25 +3577,23 @@ void test_FreeRTOS_MatchingEndpoint_IPv6_non_global()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_null_buffer
- * FreeRTOS_MatchingEndpoint triggers assertion if buffer pointer is NULL.
+ * @brief FreeRTOS_MatchingEndpoint triggers assertion if buffer pointer is NULL.
  *
  * Test step:
  *  - Call FreeRTOS_MatchingEndpoint with NULL buffer pointer.
  */
-void test_FreeRTOS_MatchingEndpoint_null_buffer()
+void test_FreeRTOS_MatchingEndpoint_NullBuffer()
 {
     catch_assert( FreeRTOS_MatchingEndpoint( NULL, NULL ) );
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_buffer_address_not_aligned
- * FreeRTOS_MatchingEndpoint triggers assertion if buffer pointer is NULL.
+ * @brief FreeRTOS_MatchingEndpoint triggers assertion if buffer pointer is NULL.
  *
  * Test step:
  *  - Call FreeRTOS_MatchingEndpoint with buffer pointer with not aligned address.
  */
-void test_FreeRTOS_MatchingEndpoint_buffer_address_not_aligned()
+void test_FreeRTOS_MatchingEndpoint_BufferAddressNotAligned()
 {
     uint8_t * pcNetworkBuffer[ sizeof( TCPPacket_IPv6_t ) ] __attribute__( ( aligned( 32 ) ) );
 
@@ -3724,8 +3601,7 @@ void test_FreeRTOS_MatchingEndpoint_buffer_address_not_aligned()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_match_custom_frametype
- * FreeRTOS_MatchingEndpoint returns NULL when receiving custom frame type
+ * @brief FreeRTOS_MatchingEndpoint returns NULL when receiving custom frame type
  * but ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES is off.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
@@ -3740,7 +3616,7 @@ void test_FreeRTOS_MatchingEndpoint_buffer_address_not_aligned()
  *     - Attach endpoint to interface.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is NULL.
  */
-void test_FreeRTOS_MatchingEndpoint_match_custom_frametype()
+void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;

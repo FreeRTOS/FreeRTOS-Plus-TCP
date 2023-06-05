@@ -45,10 +45,12 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
 /* The length of the binary data stream used for validating test cases. */
 #define SIZE_OF_BINARY_STREAM    10
 
-/* ============================ Test Cases ============================ */
+/* ==============================  Test Cases  ============================== */
 
 /**
  * @brief This functions verifies failure in initialising
