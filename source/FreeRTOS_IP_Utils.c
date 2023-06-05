@@ -960,8 +960,12 @@ void vPreCheckConfigs( void )
             if( uxSize == 8U )
             {
                 /* This is a 64-bit platform, make sure there is enough space in
-                 * pucEthernetBuffer to store a pointer and it must have this strange alignment. */
-                configASSERT( ( ipconfigBUFFER_PADDING >= 14 ) && ( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 ) );
+                 * pucEthernetBuffer to store a pointer and also make sure that the value of
+                 * ipconfigBUFFER_PADDING is such that (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) is a
+                 * 32 bit (4 byte) aligned value, so that when incrementing the ethernet buffer with
+                 * (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) bytes it lands in a 32 bit aligned address
+                 * which lets us efficiently access 32 bit values later in the packet. */
+                configASSERT( ( ipconfigBUFFER_PADDING >= 14 ) && ( ( ( ( ipconfigBUFFER_PADDING ) + ( ipSIZE_OF_ETH_HEADER ) ) % 4 ) == 0 ) );
             }
 
             /* LCOV_EXCL_BR_START */
