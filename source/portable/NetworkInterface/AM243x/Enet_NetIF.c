@@ -155,6 +155,15 @@ volatile bool shutDownFlag;
 *  give them to the stack */
     TaskP_Object pollTask;
 
+uint8_t * getEnetAppBuffMem(uint32_t req_Size)
+{
+    (void) req_Size;
+
+    NetworkBufferDescriptor_t * pxReturn = pxGetNetworkBufferWithDescriptor_RX(1536U); 
+    return pxReturn->pucEthernetBuffer;
+
+}
+
 static xEnetDriverHandle EnetNetif_getObj(void)
 {
     uintptr_t key = EnetOsal_disableAllIntr();
@@ -413,7 +422,7 @@ void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
     EnetDma_Pkt *pPktInfo;
     // TODO: remove
     // LwipifEnetAppIf_custom_rx_pbuf* cPbuf;
-    struct pbuf* hPbufPacket;
+    NetworkBufferDescriptor_t * pxNetDesc;
     int32_t status;
     bool useRingMon = false;
     EnetApp_HandleInfo handleInfo;
@@ -454,12 +463,19 @@ void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
     {
         // TODO: Enqueue network buffers to the free queue
 
-        // pPktInfo = EnetMem_allocEthPkt(&inArgs->cbArg,
-        //                    ENET_MEM_LARGE_POOL_PKT_SIZE,
-        //                    ENETDMA_CACHELINE_ALIGNMENT);
-        // EnetAppUtils_assert(pPktInfo != NULL);
+        pPktInfo = EnetMem_allocEthPkt(&inArgs->cbArg,
+                           ENET_MEM_LARGE_POOL_PKT_SIZE,
+                           ENETDMA_CACHELINE_ALIGNMENT);
+        EnetAppUtils_assert(pPktInfo != NULL);
 
-        // ENET_UTILS_SET_PKT_APP_STATE(&pPktInfo->pktState, ENET_PKTSTATE_APP_WITH_FREEQ);
+        ENET_UTILS_SET_PKT_APP_STATE(&pPktInfo->pktState, ENET_PKTSTATE_APP_WITH_FREEQ);
+
+        pxNetDesc = (NetworkBufferDescriptor_t *) (pPktInfo->sgList.list[0].bufPtr - ipBUFFER_PADDING);
+        EnetNetIF_AppIf_CustomNetBuf * pxCustomNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxNetDesc;
+
+        pxCustomNetDesc->pktInfoMem = pPktInfo;
+        pxCustomNetDesc->freePktInfoQ = inArgs->pktInfoQ;
+        pxNetDesc->xDataLength = ENET_MEM_LARGE_POOL_PKT_SIZE; //FIXME: less than ENET_MEM_LARGE_POOL_PKT_SIZE because of padding
 
         // cPbuf = (LwipifEnetAppIf_custom_rx_pbuf*)LWIP_MEMPOOL_ALLOC(RX_POOL);
 
@@ -468,23 +484,23 @@ void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
         // cPbuf->freePktInfoQ         = inArgs->pktInfoQ;
         // cPbuf->p.pbuf.flags |= PBUF_FLAG_IS_CUSTOM;
 
-        // hPbufPacket = pbuf_alloced_custom(PBUF_RAW, ENET_MEM_LARGE_POOL_PKT_SIZE, PBUF_POOL, &cPbuf->p, pPktInfo->sgList.list[0].bufPtr, pPktInfo->sgList.list[0].segmentAllocLen);
+        // pxNetDesc = pbuf_alloced_custom(PBUF_RAW, ENET_MEM_LARGE_POOL_PKT_SIZE, PBUF_POOL, &cPbuf->p, pPktInfo->sgList.list[0].bufPtr, pPktInfo->sgList.list[0].segmentAllocLen);
 
-        // pPktInfo->appPriv = (void *)hPbufPacket;
+        pPktInfo->appPriv = (void *)pxNetDesc;
 
-        // if (hPbufPacket != NULL)
-        // {
-        //     EnetAppUtils_assert(hPbufPacket->payload != NULL);
-        //     EnetAppUtils_assert(ENET_UTILS_IS_ALIGNED(hPbufPacket->payload, ENETDMA_CACHELINE_ALIGNMENT));
+        if (pxNetDesc != NULL)
+        {
+            EnetAppUtils_assert(pxNetDesc->pucEthernetBuffer != NULL);
+            EnetAppUtils_assert(ENET_UTILS_IS_ALIGNED(pxNetDesc->pucEthernetBuffer, ENETDMA_CACHELINE_ALIGNMENT));
 
-        //     /* Enqueue to the free queue */
-		// 	EnetQueue_enq(inArgs->pktInfoQ, &pPktInfo->node);
-        // }
-        // else
-        // {
-        //     DebugP_log("ERROR: Pbuf_alloc() failure...exiting!\r\n");
-        //     EnetAppUtils_assert(FALSE);
-        // }
+            /* Enqueue to the free queue */
+			EnetQueue_enq(inArgs->pktInfoQ, &pPktInfo->node);
+        }
+        else
+        {
+            DebugP_log("ERROR: Pbuf_alloc() failure...exiting!\r\n");
+            EnetAppUtils_assert(FALSE);
+        }
     }
 
     if(ENET_SYSCFG_NETIF_COUNT > 1U)
@@ -633,7 +649,7 @@ static void EnetNetIF_submitRxPackets(EnetNetIF_RxObj *rx,
 static void EnetNetIF_submitRxPktQ(EnetNetIF_RxObj *rx)
 {
     EnetDma_PktQ resubmitPktQ;
-    struct pbuf* hPbufPacket;
+    NetworkBufferDescriptor_t * pxNetDesc;
     EnetDma_Pkt *pCurrDmaPacket;
     uint32_t bufSize;
     xEnetDriverHandle hEnet = rx->hEnetNetIF;
@@ -648,11 +664,19 @@ static void EnetNetIF_submitRxPktQ(EnetNetIF_RxObj *rx)
 
     while (NULL != pCurrDmaPacket)
     {
-        hPbufPacket = (struct pbuf*)pCurrDmaPacket->appPriv;
-        if (hPbufPacket)
+        pxNetDesc = (NetworkBufferDescriptor_t *)pCurrDmaPacket->appPriv;
+        if (pxNetDesc)
         {
             // TODO: deal with planned RX buffer allocation scheme for FR+TCP
-            // LwipifEnetAppIf_custom_rx_pbuf* my_pbuf  = (LwipifEnetAppIf_custom_rx_pbuf*)hPbufPacket;
+
+            EnetNetIF_AppIf_CustomNetBuf * pxCustomNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxNetDesc;
+            
+            pxCustomNetDesc->pktInfoMem = pCurrDmaPacket;
+            pxCustomNetDesc->freePktInfoQ = &rx->freePktInfoQ;
+            pxNetDesc->xDataLength = ENET_MEM_LARGE_POOL_PKT_SIZE; //FIXME: less than ENET_MEM_LARGE_POOL_PKT_SIZE because of padding
+            configASSERT(ENET_UTILS_ALIGN(hEnet->appInfo.hostPortRxMtu, ENETDMA_CACHELINE_ALIGNMENT) == ENET_MEM_LARGE_POOL_PKT_SIZE); //TODO check!
+
+            // LwipifEnetAppIf_custom_rx_pbuf* my_pbuf  = (LwipifEnetAppIf_custom_rx_pbuf*)pxNetDesc;
 
             // my_pbuf->p.custom_free_function = LwipifEnetAppCb_pbuf_free_custom;
             // my_pbuf->pktInfoMem         = pCurrDmaPacket;
@@ -660,10 +684,10 @@ static void EnetNetIF_submitRxPktQ(EnetNetIF_RxObj *rx)
             // my_pbuf->p.pbuf.flags |= PBUF_FLAG_IS_CUSTOM;
 
             // bufSize = ENET_UTILS_ALIGN(hEnet->appInfo.hostPortRxMtu, ENETDMA_CACHELINE_ALIGNMENT);
-            // hPbufPacket = pbuf_alloced_custom(PBUF_RAW, bufSize, PBUF_POOL, &my_pbuf->p, pCurrDmaPacket->sgList.list[0].bufPtr, pCurrDmaPacket->sgList.list[0].segmentAllocLen);
+            // pxNetDesc = pbuf_alloced_custom(PBUF_RAW, bufSize, PBUF_POOL, &my_pbuf->p, pCurrDmaPacket->sgList.list[0].bufPtr, pCurrDmaPacket->sgList.list[0].segmentAllocLen);
 
-            // LWIP2ENETSTATS_ADDONE(&rx->stats.freePbufPktDeq);
-            // LWIP2ENETSTATS_ADDONE(&rx->stats.freeAppPktDeq);
+            // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&rx->stats.freePbufPktDeq);
+            // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&rx->stats.freeAppPktDeq);
 
             EnetQueue_enq(&resubmitPktQ, &pCurrDmaPacket->node);
 

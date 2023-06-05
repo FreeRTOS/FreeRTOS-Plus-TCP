@@ -50,7 +50,7 @@
 
 #include "Enet_NetIF.h"
 
-void vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( NetworkBufferDescriptor_t pxNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] );
+void vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( EnetNetIF_AppIf_CustomNetBuf pxCustomNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] );
 
 /* For an Ethernet interrupt to be able to obtain a network buffer there must
  * be at least this number of buffers available. */

@@ -34,6 +34,9 @@
 #include <kernel/dpl/SemaphoreP.h>
 #include <kernel/dpl/ClockP.h>
 
+/* Sys config */
+#include "ti_enet_config.h"
+
 /* FreeRTOS+TCP Header files */
 
 #include "FreeRTOS_IP.h"
@@ -42,7 +45,7 @@
 #include <enet_cfg.h>
 #include "Enet_NetIFQueue.h"
 
-#define NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS      (32U)
+#define NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS      (ENET_SYSCFG_TOTAL_NUM_RX_PKT)
 
 #define CONFIG_MAX_RX_CHANNELS      2
 #define CONFIG_MAX_TX_CHANNELS      2
@@ -55,6 +58,9 @@ void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNe
 
 /* Multicast Address List Size */
 #define CONFG_PKT_MAX_MCAST                   ((uint32_t)31U)
+
+/* Callback used by ENET to allocate RX payload buffers */
+uint8_t * getEnetAppBuffMem(uint32_t req_Size);
 
 typedef struct EnetNetIF_PktTaskStats_s
 {

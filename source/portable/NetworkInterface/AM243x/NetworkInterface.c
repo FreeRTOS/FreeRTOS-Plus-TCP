@@ -75,7 +75,7 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 /* ENET config macros */
 
 #define ENET_SYSCFG_NETIF_COUNT                     (1U)
-#define ETH_MAX_PACKET_SIZE        ( ( uint32_t ) 1536U ) // TODO Make sure this is 32 bit aligned #define ENET_MEM_LARGE_POOL_PKT_SIZE        ENET_UTILS_ALIGN(1536U, ENET_UTILS_CACHELINE_SIZE)
+#define ETH_MAX_PACKET_SIZE        ( ( uint32_t ) 1536U ) // TODO Make sure this is 32 byte aligned #define ENET_MEM_LARGE_POOL_PKT_SIZE        ENET_UTILS_ALIGN(1536U, ENET_UTILS_CACHELINE_SIZE)
 
 /*-----------------------------------------------------------*/
 
