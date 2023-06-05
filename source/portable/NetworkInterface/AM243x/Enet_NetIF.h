@@ -356,7 +356,7 @@ typedef struct _xNetIFArgs
 
 typedef struct EnetNetIF_AppIf_CustomNetBuf_t
 {
-   NetworkBufferDescriptor_t * pxNetworkBuffer;
+   NetworkBufferDescriptor_t xNetworkBuffer;
    EnetDma_Pkt *pktInfoMem;
    EnetDma_PktQ *freePktInfoQ;
 } EnetNetIF_AppIf_CustomNetBuf;

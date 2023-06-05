@@ -115,7 +115,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
     }
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers_RX( NetworkBufferDescriptor_t pxNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] )
+void vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( EnetNetIF_AppIf_CustomNetBuf pxCustomNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     // TODO: check alignment and section where this memory block should be placed. Also,
     // check if ETH_MAX_PACKET_SIZE appropriate.
@@ -125,8 +125,9 @@ void vNetworkInterfaceAllocateRAMToBuffers_RX( NetworkBufferDescriptor_t pxNetwo
 
     for( ul = 0; ul < NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+        //pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+        pxCustomNetworkBuffers[ ul ].xNetworkBuffer.pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxCustomNetworkBuffers[ ul ].xNetworkBuffer ) );
         ucRAMBuffer += ETH_MAX_PACKET_SIZE;
     }
 }

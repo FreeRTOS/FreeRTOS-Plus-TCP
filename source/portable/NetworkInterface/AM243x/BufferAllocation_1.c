@@ -50,7 +50,7 @@
 
 #include "Enet_NetIF.h"
 
-void vNetworkInterfaceAllocateRAMToBuffers_RX( NetworkBufferDescriptor_t pxNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] );
+void vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( NetworkBufferDescriptor_t pxNetworkBuffers[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ] );
 
 /* For an Ethernet interrupt to be able to obtain a network buffer there must
  * be at least this number of buffers available. */
@@ -69,7 +69,7 @@ static UBaseType_t uxMinimumFreeNetworkBuffers = 0U;
  * when the xFreeBuffersList is filled (as all the buffers are free when the system
  * is booted). */
 static NetworkBufferDescriptor_t xNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ];
-static NetworkBufferDescriptor_t xNetworkBuffers_RX[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ];
+static EnetNetIF_AppIf_CustomNetBuf xCustomNetworkBuffers_RX_POOL[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS ];
 
 /* This constant is defined as true to let FreeRTOS_TCP_IP.c know that the
  * network buffers have constant size, large enough to hold the biggest Ethernet
@@ -211,7 +211,7 @@ BaseType_t xNetworkBuffersInitialise( void )
              * from the network interface, and different hardware has different
              * requirements. */
             vNetworkInterfaceAllocateRAMToBuffers( xNetworkBuffers );
-            vNetworkInterfaceAllocateRAMToBuffers_RX( xNetworkBuffers_RX );
+            vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( xCustomNetworkBuffers_RX_POOL );
 
             for( x = 0U; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
             {
@@ -226,11 +226,11 @@ BaseType_t xNetworkBuffersInitialise( void )
             for( x = 0U; x < NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS; x++ )
             {
                 /* Initialise and set the owner of the buffer list items. */
-                vListInitialiseItem( &( xNetworkBuffers_RX[ x ].xBufferListItem ) );
-                listSET_LIST_ITEM_OWNER( &( xNetworkBuffers_RX[ x ].xBufferListItem ), &xNetworkBuffers_RX[ x ] );
+                vListInitialiseItem( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
+                listSET_LIST_ITEM_OWNER( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ), &xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer );
 
                 /* Currently, all buffers are available for use. */
-                vListInsert( &xFreeBuffersList_RX, &( xNetworkBuffers_RX[ x ].xBufferListItem ) );
+                vListInsert( &xFreeBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
             }
 
             uxMinimumFreeNetworkBuffers = ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -498,7 +498,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
     else
     {
         /* check if its RX buffer or TX buffer */
-        if (pxNetworkBuffer >= &xNetworkBuffers_RX[0] && pxNetworkBuffer <= &xNetworkBuffers_RX[NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS - 1])
+        if (pxNetworkBuffer >= &xCustomNetworkBuffers_RX_POOL[0] && pxNetworkBuffer <= &xCustomNetworkBuffers_RX_POOL[NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS - 1])
         {
             EnetNetIF_AppCb_ReleaseNetDescriptor(pxNetworkBuffer);
         }
