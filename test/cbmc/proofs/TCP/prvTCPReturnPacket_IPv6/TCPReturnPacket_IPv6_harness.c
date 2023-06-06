@@ -39,13 +39,6 @@
 
 #include "cbmc.h"
 
-/* This proof assumes that pxDuplicateNetworkBufferWithDescriptor is implemented correctly. */
-void publicTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                            NetworkBufferDescriptor_t * pxNetworkBuffer,
-                            uint32_t ulLen,
-                            BaseType_t xReleaseAfterSend );
-
-
 /*
  * This function is implemented by a third party.
  * After looking through a couple of samples in the demos folder, it seems
@@ -181,5 +174,5 @@ void harness()
                           ( ulLen <= ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER + 40 /* Maximum option bytes. */ ) );
     }
 
-    publicTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, xReleaseAfterSend );
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, xReleaseAfterSend );
 }
