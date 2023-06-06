@@ -34,6 +34,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_TCP_Transmission.h"
 
 #include "../../utility/memory_assignments.c"
 
