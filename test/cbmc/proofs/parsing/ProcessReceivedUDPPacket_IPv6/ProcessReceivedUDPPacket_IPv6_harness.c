@@ -81,6 +81,7 @@ void harness()
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
     BaseType_t * pxIsWaitingForARPResolution;
     NetworkEndPoint_t xEndpoint;
+    uint16_t usPort;
 
     pxIsWaitingForARPResolution = safeMalloc( sizeof( BaseType_t ) );
 
@@ -89,16 +90,14 @@ void harness()
      * Thus, it cannot ever be NULL. */
     __CPROVER_assume( pxIsWaitingForARPResolution != NULL );
 
-    if( pxNetworkBuffer )
-    {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_IPv6_t ) );
-        pxNetworkBuffer->pxEndPoint = &xEndpoint;
-    }
+    /* The network buffer must not be NULL, checked in prvProcessEthernetPacket. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    uint16_t usPort;
+    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_IPv6_t ) );
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
 
-    if( pxNetworkBuffer && pxNetworkBuffer->pucEthernetBuffer )
-    {
-        xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
-    }
+    /* The ehternet buffer must be valid. */
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
 }
