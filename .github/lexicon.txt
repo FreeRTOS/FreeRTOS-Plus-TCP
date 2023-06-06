@@ -1596,6 +1596,7 @@ uxborn
 uxbufferlength
 uxbuffersize
 uxbytecount
+uxbytesneeded
 uxbytesread
 uxclockticks
 uxcontents
@@ -1685,6 +1686,7 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
+uxudpoffset
 uxunrollcount
 uxupper
 uxwinsize
@@ -1695,6 +1697,7 @@ var
 varpagecache
 varpgeneraterequestpacket
 varprefreshcacheentry
+varprocesspacketrequest
 varpsendgratuitous
 varptimerreload
 vcastconstpointerto
