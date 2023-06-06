@@ -1,5 +1,5 @@
 {
-  "ENTRY": "Sockets_IPv6",
+  "ENTRY": "xRecv_Update_IPv6",
   "CBMCFLAGS":
   [
     "--unwind 1"
