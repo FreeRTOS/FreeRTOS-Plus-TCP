@@ -310,11 +310,11 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils_IPV6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_Driver_Check_Checksum/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_ConfigDriverCheckChecksum/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4Only/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4V6/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_V4V6CompatibleWithSingle/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Routing/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_ConfigV4Only/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_ConfigCompatibleWithSingle/ut.cmake )
 
 #  ==================================== Coverage Analysis configuration ========================================
 # Add a target for running coverage on tests.
@@ -369,14 +369,14 @@ add_custom_target( coverage
     FreeRTOS_Sockets_DiffConfig2_UDP_API_utest
     FreeRTOS_Sockets_IPv6_utest
     FreeRTOS_IPv6_utest
-    FreeRTOS_IPv6_Driver_Check_Checksum_utest
+    FreeRTOS_IPv6_ConfigDriverCheckChecksum_utest
     FreeRTOS_IPv4_utest
     FreeRTOS_IPv4_DiffConfig_utest
     FreeRTOS_IPv4_DiffConfig1_utest
     FreeRTOS_IPv4_Sockets_utest
-    FreeRTOS_Routing_V4Only
-    FreeRTOS_Routing_V4V6
-    FreeRTOS_Routing_V4V6CompatibleWithSingle
+    FreeRTOS_Routing_utest
+    FreeRTOS_Routing_ConfigV4Only_utest
+    FreeRTOS_Routing_ConfigCompatibleWithSingle_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
