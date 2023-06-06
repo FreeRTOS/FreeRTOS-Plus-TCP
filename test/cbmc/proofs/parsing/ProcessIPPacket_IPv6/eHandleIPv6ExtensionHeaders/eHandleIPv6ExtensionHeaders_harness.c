@@ -10,7 +10,7 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
-/* In this test case, we decude ipconfigNETWORK_MTU to fasten the execution. */
+/* In this test case, we configure ipconfigNETWORK_MTU to fasten the execution. */
 
 void harness()
 {

@@ -2,8 +2,8 @@
   "ENTRY": "prvAllowIPPacketIPv6",
   "CBMCFLAGS":
   [
-    "--unwind 200",
-    "--unwindset memcmp.0:200",
+    "--unwind 28",
+    "--unwindset memcmp.0:28",
     "--nondet-static"
   ],
   "OPT":
@@ -22,8 +22,10 @@
       "ChecksumIncluded":
       [
         "ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM=1",
-        "ipconfigETHERNET_DRIVER_FILTERS_PACKETS=1",
-        "FREERTOS_TCP_ENABLE_VERIFICATION"
+        "ipconfigETHERNET_DRIVER_FILTERS_PACKE,TS=1",
+        "FREERTOS_TCP_ENABLE_VERIFICATION",
+        "ipconfigNETWORK_MTU=200",
+        "ipconfigUSE_DHCP=0"
       ]
     },
     {
@@ -31,7 +33,9 @@
       [
         "ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM=0",
         "ipconfigETHERNET_DRIVER_FILTERS_PACKETS=0",
-        "FREERTOS_TCP_ENABLE_VERIFICATION"
+        "FREERTOS_TCP_ENABLE_VERIFICATION",
+        "ipconfigNETWORK_MTU=200",
+        "ipconfigUSE_DHCP=0"
       ]
     }
   ],
