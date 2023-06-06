@@ -1397,6 +1397,7 @@ uldestinationaddress
 uldestinationipaddress
 uldhcpcookie
 uldhcpserveraddress
+uldnshandlepacket
 uldnsserver
 uldnsserveraddress
 uldnsserveraddresses
@@ -1442,6 +1443,7 @@ ulmatching
 ulmsec
 ulmss
 ulmtu
+ulnbnshandlepacket
 ulnetmask
 ulnextfreetxdescriptor
 ulnextsequencenumber
@@ -1595,7 +1597,6 @@ uxbufferlength
 uxbuffersize
 uxbytecount
 uxbytesread
-uxbytesneeded
 uxclockticks
 uxcontents
 uxcount
@@ -1684,7 +1685,6 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
-uxudpoffset
 uxunrollcount
 uxupper
 uxwinsize
@@ -1694,7 +1694,6 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
-varprocesspacketrequest
 varprefreshcacheentry
 varpsendgratuitous
 varptimerreload
@@ -1726,6 +1725,7 @@ vlantagcomparison
 vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
+vlistinsertend
 vmyconnecthandler
 vndagecache
 vndrefreshcacheentry
@@ -1734,6 +1734,8 @@ vndsendroutersolicitation
 vnetworkinterfaceallocateramtobuffers
 vnetworktimerreload
 vperformaction
+vportentercritical
+vportexitcritical
 vportfree
 vprecheckconfigs
 vprintresourcestats
@@ -1758,6 +1760,7 @@ vstartntptask
 vtaskdelay
 vtasklist
 vtasknotifygivefromisr
+vtasksuspendall
 vtcpnetstat
 vtcpstatechange
 vtcptimergetage
@@ -1869,6 +1872,7 @@ xerrnum
 xethernetheader
 xeventbits
 xeventgroup
+xeventgroupsetbits
 xeventgroupwaitbits
 xexpected
 xexpectedmessagetype

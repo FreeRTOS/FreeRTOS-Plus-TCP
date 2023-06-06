@@ -60,6 +60,7 @@ void vPortExitCritical( void )
 BaseType_t xTaskResumeAll( void )
 {
     BaseType_t xReturn;
+
     __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
 
     return xReturn;
@@ -79,5 +80,3 @@ EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
 }
 
 /****************************************************************/
-
-
