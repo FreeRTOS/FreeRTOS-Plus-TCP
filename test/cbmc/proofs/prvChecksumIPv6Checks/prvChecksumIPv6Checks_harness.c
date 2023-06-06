@@ -26,7 +26,7 @@ void harness()
     uint8_t * pucEthernetBuffer;
     struct xPacketSummary xSet;
 
-    /* We must have ethernet header to get frametype. */
+    /* We must have ethernet header to get frame type. */
     __CPROVER_assume( uxBufferSize >= sizeof( IPPacket_IPv6_t ) && uxBufferSize <= ipconfigNETWORK_MTU );
 
     /* Ethernet buffer is not possible to be NULL. */
