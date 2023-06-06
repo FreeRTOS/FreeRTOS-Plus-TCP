@@ -96,7 +96,7 @@ void harness()
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_IPv6_t ) );
     pxNetworkBuffer->pxEndPoint = &xEndpoint;
 
-    /* The ehternet buffer must be valid. */
+    /* The ethernet buffer must be valid. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
