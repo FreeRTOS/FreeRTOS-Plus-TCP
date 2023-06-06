@@ -45,7 +45,10 @@
 #include "mock_FreeRTOS_IP.h"
 
 #include "FreeRTOS_IPv6_Utils.h"
+
 #include "FreeRTOSIPConfig.h"
+
+/* ===========================  EXTERN VARIABLES  =========================== */
 
 #ifndef ipconfigTCPv6_MSS
     #define ipconfigTCPv6_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
@@ -69,12 +72,7 @@ const IPv6_Address_t xDefaultIPAddress =
 #define ipFAIL_PACKET_CHECK           2
 #define ipPASS_IPv6Checks             0
 
-/*
- * ===================================================
- *        Test for vSetMultiCastIPv6MacAddress
- * ===================================================
- */
-
+/* =============================== Test Cases =============================== */
 
 /**
  * @brief This function verify correctly setting
@@ -96,13 +94,6 @@ void test_vSetMultiCastIPv6MacAddress( void )
     TEST_ASSERT_EQUAL( xIPAddress.ucBytes[ 14 ], xMACAddress.ucBytes[ 4 ] );
     TEST_ASSERT_EQUAL( xIPAddress.ucBytes[ 15 ], xMACAddress.ucBytes[ 5 ] );
 }
-
-/*
- * ===================================================
- *          Test for prvChecksumIPv6Checks
- * ===================================================
- */
-
 
 /**
  * @brief This function validate handling of buffer length
@@ -173,13 +164,6 @@ void test_prvChecksumIPv6Checks_Success( void )
     TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
 }
 
-/*
- * ===================================================
- *        Test for prvChecksumICMPv6Checks
- * ===================================================
- */
-
-
 /**
  * @brief This function verify sending an invalid length.
  */
@@ -239,8 +223,8 @@ void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REQUEST_IPv6;
+    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 
@@ -263,8 +247,8 @@ void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REQUEST_IPv6;
+    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 
@@ -287,8 +271,8 @@ void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
+    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 
@@ -311,8 +295,8 @@ void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
+    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 
@@ -335,8 +319,8 @@ void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
+    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 
@@ -359,8 +343,8 @@ void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
     ProtocolHeaders_t xProtocolHeaders;
 
     memset( &xSet, 0, sizeof( struct xPacketSummary ) );
-    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
+    xProtocolHeaders.xICMPHeaderIPv6 = xICMPHeaderIPv6;
     xSet.uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
     xSet.pxProtocolHeaders = &xProtocolHeaders;
 

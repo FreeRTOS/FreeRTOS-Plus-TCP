@@ -51,13 +51,13 @@
 
 #include "catch_assert.h"
 
-/* ============================= VARIABLES ============================= */
+/* ===========================  EXTERN VARIABLES  =========================== */
 
 #define PACKET_LENGTH    50
 
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
 
-/* ============================ Test Cases ============================ */
+/* =============================== Test Cases =============================== */
 
 /**
  * @brief This function verify handling when both

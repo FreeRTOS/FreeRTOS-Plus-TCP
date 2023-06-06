@@ -74,18 +74,10 @@ void setUp( void )
     pxNetworkInterfaces = NULL;
 }
 
-/*! called after each test case */
-void tearDown( void )
-{
-}
-
-/* ============================  Stub Callback Functions  ============================ */
-
 /* ==============================  Test Cases  ============================== */
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_match_custom_frametype
- * FreeRTOS_MatchingEndpoint returns the endpoint matched for custom frame type.
+ * @brief FreeRTOS_MatchingEndpoint returns the endpoint matched for custom frame type.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -99,7 +91,7 @@ void tearDown( void )
  *     - Frame type in ethernet header 0xFF.
  *  - Call FreeRTOS_MatchingEndpoint and check if returned endpoint is same.
  */
-void test_FreeRTOS_MatchingEndpoint_match_custom_frametype()
+void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -133,8 +125,7 @@ void test_FreeRTOS_MatchingEndpoint_match_custom_frametype()
 }
 
 /**
- * @brief test_FreeRTOS_MatchingEndpoint_IPv6Disabled
- * FreeRTOS_MatchingEndpoint returns NULL when receiving IPv6 packet but no IPv6 endpoint in the list.
+ * @brief FreeRTOS_MatchingEndpoint returns NULL when receiving IPv6 packet but no IPv6 endpoint in the list.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -182,8 +173,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6Disabled()
 }
 
 /**
- * @brief test_pcEndpointName_IPv6_happy_path
- * pcEndpointName can't get IPv6 address in string from endpoint due to IPv6 is disabled.
+ * @brief pcEndpointName can't get IPv6 address in string from endpoint due to IPv6 is disabled.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -194,7 +184,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6Disabled()
  *  - Call pcEndpointName with enough buffer size.
  *  - Check if return buffer string is NULL.
  */
-void test_pcEndpointName_IPv6_happy_path()
+void test_pcEndpointName_IPv6HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     FreeRTOS_Socket_t xSocket;
@@ -214,8 +204,7 @@ void test_pcEndpointName_IPv6_happy_path()
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv4_happy_path
- * FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv4 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to find the endpoint with valid IPv4 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -226,7 +215,7 @@ void test_pcEndpointName_IPv6_happy_path()
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is same.
  */
-void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
+void test_FreeRTOS_FindGateWay_IPv4HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -241,8 +230,7 @@ void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
 }
 
 /**
- * @brief test_FreeRTOS_FindGateWay_IPv4_not_found
- * FreeRTOS_FindGateWay should be able to return NULL if no valid IPv4 gateway address.
+ * @brief FreeRTOS_FindGateWay should be able to return NULL if no valid IPv4 gateway address.
  *
  * pxNetworkInterfaces is a global variable using in FreeRTOS_Routing as link list head of all interfaces.
  * pxNetworkEndPoints is a global variable using in FreeRTOS_Routing as link list head of all endpoints.
@@ -253,7 +241,7 @@ void test_FreeRTOS_FindGateWay_IPv4_happy_path( void )
  *  - Call FreeRTOS_FindGateWay with ipTYPE_IPv4.
  *  - Check if returned endpoint is NULL.
  */
-void test_FreeRTOS_FindGateWay_IPv4_not_found( void )
+void test_FreeRTOS_FindGateWay_IPv4NotFound( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;

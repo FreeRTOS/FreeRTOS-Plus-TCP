@@ -29,9 +29,10 @@
 #define LIST_MACRO_H
 
 #include <FreeRTOS.h>
+#include <FreeRTOS_IP.h>
+#include <FreeRTOS_Routing.h>
 #include <portmacro.h>
 #include <list.h>
-#include "FreeRTOS_IPv6_Private.h"
 
 #undef listSET_LIST_ITEM_OWNER
 void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
@@ -72,5 +73,17 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
+
+FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort );
+
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+uint16_t usGenerateChecksum( uint16_t usSum,
+                             const uint8_t * pucNextData,
+                             size_t uxByteCount );
+
+uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
+                                     size_t uxBufferLength,
+                                     BaseType_t xOutgoingPacket );
 
 #endif /* ifndef LIST_MACRO_H */

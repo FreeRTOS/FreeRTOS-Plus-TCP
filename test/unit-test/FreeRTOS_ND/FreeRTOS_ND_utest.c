@@ -57,6 +57,10 @@
 #include "FreeRTOS_ND_stubs.c"
 #include "FreeRTOS_ND.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
+extern const char * pcMessageType( BaseType_t xType );
+
 /*  The ND cache. */
 extern NDCacheRow_t xNDCache[ ipconfigND_CACHE_ENTRIES ];
 
@@ -98,31 +102,13 @@ static const MACAddress_t xDefaultMACAddress = { 0x22, 0x22, 0x22, 0x22, 0x22, 0
  */
 #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
-
-static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
-
-static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                       NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                       BaseType_t xReleaseAfterSend )
-{
-    NetworkInterfaceOutputFunction_Stub_Called++;
-    return pdFALSE;
-}
-
-/* ============================ Test Cases ============================ */
-
-
-/*
- * ===================================================
- *             Test for eNDGetCacheEntry
- * ===================================================
- */
+/* =============================== Test Cases =============================== */
 
 /**
  * @brief This function find the MAC-address of a multicast IPv6 address
  *        with a valid endpoint.
  */
-void test_eNDGetCacheEntry_Multicast_EndPoint( void )
+void test_eNDGetCacheEntry_MulticastEndPoint( void )
 {
     eARPLookupResult_t eResult;
     MACAddress_t xMACAddress;
@@ -491,19 +477,12 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
     TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
 }
 
-/*
- * ===================================================
- *           Test for vNDRefreshCacheEntry
- * ===================================================
- */
-
 /**
  * @brief This function verified that the ip address was not found on ND cache
  *        and there was no free space to store the New Entry, hence the
  *        IP-address, MAC-address and an end-point combination was not stored.
  */
-
-void test_vNDRefreshCacheEntry_NoMatchingEntry_CacheFull( void )
+void test_vNDRefreshCacheEntry_NoMatchingEntryCacheFull( void )
 {
     MACAddress_t xMACAddress;
     IPv6_Address_t xIPAddress;
@@ -525,14 +504,12 @@ void test_vNDRefreshCacheEntry_NoMatchingEntry_CacheFull( void )
     vNDRefreshCacheEntry( &xMACAddress, &xIPAddress, &xEndPoint );
 }
 
-
 /**
  * @brief This function verified that the ip address was not found on ND cache
  *        and there was space to store the New Entry, hence the IP-address,
  *        MAC-address and an end-point combination was stored in that location.
  */
-
-void test_vNDRefreshCacheEntry_NoMatchingEntry_Add( void )
+void test_vNDRefreshCacheEntry_NoMatchingEntryAdd( void )
 {
     MACAddress_t xMACAddress;
     IPv6_Address_t xIPAddress;
@@ -557,8 +534,7 @@ void test_vNDRefreshCacheEntry_NoMatchingEntry_Add( void )
  * @brief This function verified that the ip address was found on ND cache
  *        and the entry was refreshed at the same location.
  */
-
-void test_vNDRefreshCacheEntry_MatchingEntry_Refresh( void )
+void test_vNDRefreshCacheEntry_MatchingEntryRefresh( void )
 {
     MACAddress_t xMACAddress;
     IPv6_Address_t xIPAddress;
@@ -578,12 +554,6 @@ void test_vNDRefreshCacheEntry_MatchingEntry_Refresh( void )
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].xMACAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
     TEST_ASSERT_EQUAL_MEMORY( xNDCache[ xUseEntry ].pxEndPoint, &xEndPoint, sizeof( NetworkEndPoint_t ) );
 }
-
-/*
- * ===================================================
- *           Test for vNDAgeCache
- * ===================================================
- */
 
 /**
  * @brief This function verifies all invalid cache entry condition.
@@ -642,7 +612,6 @@ void test_vNDAgeCache_AgeZero( void )
  * @brief This function checks the case when the entry is not yet valid,
  *        then it is waiting an ND advertisement.
  */
-
 void test_vNDAgeCache_InvalidEntry( void )
 {
     BaseType_t xUseEntry = 1;
@@ -663,7 +632,6 @@ void test_vNDAgeCache_InvalidEntry( void )
  *        less than ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION.
  *        This entry will get removed soon.
  */
-
 void test_vNDAgeCache_ValidEntry( void )
 {
     BaseType_t xUseEntry = 1;
@@ -683,7 +651,6 @@ void test_vNDAgeCache_ValidEntry( void )
  * @brief This function checks the case when The age has just ticked down,
  *        with nothing to do.
  */
-
 void test_vNDAgeCache_ValidEntryDecrement( void )
 {
     MACAddress_t xMACAddress;
@@ -707,7 +674,7 @@ void test_vNDAgeCache_ValidEntryDecrement( void )
  *        for the IPv6 address, and fails as Endpoint is NULL.
  */
 
-void test_vNDAgeCache_NS_NULL_EP( void )
+void test_vNDAgeCache_NSNullEP( void )
 {
     MACAddress_t xMACAddress;
     IPv6_Address_t xIPAddress;
@@ -734,7 +701,7 @@ void test_vNDAgeCache_NS_NULL_EP( void )
  *        for the IPv6 address, and fails as pxDescriptor is NULL.
  */
 
-void test_vNDAgeCache_NS_Incorrect_DataLen( void )
+void test_vNDAgeCache_NSIncorrectDataLen( void )
 {
     MACAddress_t xMACAddress;
     IPv6_Address_t xIPAddress;
@@ -768,7 +735,7 @@ void test_vNDAgeCache_NS_Incorrect_DataLen( void )
  *        outstanding so re-transmissions can be generated.
  */
 
-void test_vNDAgeCache_NS_HappyPath( void )
+void test_vNDAgeCache_NSHappyPath( void )
 {
     MACAddress_t xMACAddress;
     IPv6_Address_t xIPAddress;
@@ -805,12 +772,6 @@ void test_vNDAgeCache_NS_HappyPath( void )
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionLength, 1U ); /* times 8 bytes. */
 }
 
-/*
- * ===================================================
- *           Test for FreeRTOS_ClearND
- * ===================================================
- */
-
 /**
  * @brief Clear the Neighbour Discovery cache.
  */
@@ -826,13 +787,9 @@ void test_FreeRTOS_ClearND( void )
     TEST_ASSERT_EQUAL_MEMORY( xNDCache, xTempNDCache, sizeof( xNDCache ) );
 }
 
-/*
- * ===================================================
- *           Test for FreeRTOS_PrintNDCache
- * ===================================================
+/**
+ * @brief Toggle happy path.
  */
-
-
 void test_FreeRTOS_PrintNDCache( void )
 {
     BaseType_t xUseEntry = 0;
@@ -844,17 +801,10 @@ void test_FreeRTOS_PrintNDCache( void )
     FreeRTOS_PrintNDCache();
 }
 
-/*
- * ===================================================
- *       Test for vNDSendNeighbourSolicitation
- * ===================================================
- */
-
 /**
  * @brief This function handles the case when vNDSendNeighbourSolicitation
  *        fails as endpoint is NULL.
  */
-
 void test_vNDSendNeighbourSolicitation_NULL_EP( void )
 {
     IPv6_Address_t xIPAddress;
@@ -869,7 +819,6 @@ void test_vNDSendNeighbourSolicitation_NULL_EP( void )
  * @brief This function handles the case when vNDSendNeighbourSolicitation
  *        fails as bIPv6 is not set.
  */
-
 void test_vNDSendNeighbourSolicitation_bIPv6_NotSet( void )
 {
     IPv6_Address_t xIPAddress;
@@ -888,7 +837,6 @@ void test_vNDSendNeighbourSolicitation_bIPv6_NotSet( void )
  *        add an entry into the ND table that indicates that an ND reply is
  *        outstanding so re-transmissions can be generated.
  */
-
 void test_vNDSendNeighbourSolicitation_HappyPath( void )
 {
     IPv6_Address_t xIPAddress;
@@ -918,18 +866,11 @@ void test_vNDSendNeighbourSolicitation_HappyPath( void )
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->ucOptionLength, 1U ); /* times 8 bytes. */
 }
 
-/*
- * ===================================================
- *       Test for FreeRTOS_SendPingRequestIPv6
- * ===================================================
- */
-
 /**
  * @brief This function handles NULL Endpoint case
  *        while sending a PING request which means
  *        No endpoint found for the target IP-address.
  */
-
 void test_SendPingRequestIPv6_NULL_EP( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -958,7 +899,6 @@ void test_SendPingRequestIPv6_NULL_EP( void )
  *        pxIPAddress fails and while getting the endpoint for the
  *        same IP type bIPv6 is not set.
  */
-
 void test_SendPingRequestIPv6_bIPv6_NotSet( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -986,7 +926,6 @@ void test_SendPingRequestIPv6_bIPv6_NotSet( void )
  *        same IP type but there are no bytes to be send.
  *        uxNumberOfBytesToSend is set to 0.
  */
-
 void test_SendPingRequestIPv6_bIPv6_NoBytesToSend( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1013,7 +952,6 @@ void test_SendPingRequestIPv6_bIPv6_NoBytesToSend( void )
  * @brief This function handles case when uxNumberOfBytesToSend
  *        is set to proper but there is not enough space.
  */
-
 void test_SendPingRequestIPv6_bIPv6_NotEnoughSpace( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1040,7 +978,6 @@ void test_SendPingRequestIPv6_bIPv6_NotEnoughSpace( void )
  * @brief This function handles case when we do not
  *        have enough space for the Number of bytes to be send.
  */
-
 void test_SendPingRequestIPv6_IncorectBytesSend( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1064,7 +1001,6 @@ void test_SendPingRequestIPv6_IncorectBytesSend( void )
  * @brief This function handles failure case when network
  *        buffer returned is NULL.
  */
-
 void test_SendPingRequestIPv6_NULL_Buffer( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1095,7 +1031,6 @@ void test_SendPingRequestIPv6_NULL_Buffer( void )
  * @brief This function handles sending and IPv6 ping request
  *        assert as pxEndPoint->bits.bIPv6 is not set.
  */
-
 void test_SendPingRequestIPv6_Assert( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1129,7 +1064,6 @@ void test_SendPingRequestIPv6_Assert( void )
  * @brief This function handles sending and IPv6 ping request
  *        and returning the sequence number in case of success.
  */
-
 void test_SendPingRequestIPv6_SendToIP_Pass( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1163,7 +1097,6 @@ void test_SendPingRequestIPv6_SendToIP_Pass( void )
  * @brief This function handles failure case while sending
  *        IPv6 ping request when sending an event to IP task fails.
  */
-
 void test_SendPingRequestIPv6_SendToIP_Fail( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
@@ -1193,17 +1126,9 @@ void test_SendPingRequestIPv6_SendToIP_Fail( void )
     TEST_ASSERT_EQUAL( xReturn, pdFAIL );
 }
 
-
-/*
- * ===================================================
- *       Test for prvProcessICMPMessage_IPv6
- * ===================================================
- */
-
 /**
  * @brief This function process ICMP message when endpoint is NULL.
  */
-
 void test_prvProcessICMPMessage_IPv6_NULL_EP( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1222,7 +1147,6 @@ void test_prvProcessICMPMessage_IPv6_NULL_EP( void )
  * @brief This function process ICMP message when endpoint is valid
  *        but the bIPv6 bit is false indicating IPv4 message.
  */
-
 void test_prvProcessICMPMessage_IPv6_EP( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1243,7 +1167,6 @@ void test_prvProcessICMPMessage_IPv6_EP( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_DEST_UNREACHABLE_IPv6.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_DEST_UNREACHABLE_IPv6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1265,7 +1188,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_DEST_UNREACHABLE_IPv6( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_PACKET_TOO_BIG_IPv6.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_PACKET_TOO_BIG_IPv6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1287,7 +1209,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PACKET_TOO_BIG_IPv6( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_TIME_EXEEDED_IPv6.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_TIME_EXEEDED_IPv6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1309,7 +1230,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_TIME_EXEEDED_IPv6( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_PARAMETER_PROBLEM_IPv6.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_PARAMETER_PROBLEM_IPv6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1331,7 +1251,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PARAMETER_PROBLEM_IPv6( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_ROUTER_SOLICITATION_IPv6.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_ROUTER_SOLICITATION_IPv6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1353,7 +1272,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_ROUTER_SOLICITATION_IPv6( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_ROUTER_ADVERTISEMENT_IPv6.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_ROUTER_ADVERTISEMENT_IPv6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1375,7 +1293,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_ROUTER_ADVERTISEMENT_IPv6( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_PING_REQUEST_IPv6 but the data size is incorrect.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_IncorrectSize( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1405,8 +1322,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_IncorrectSize( voi
  * @brief This function process ICMP message when message type is
  *        ipICMP_PING_REQUEST_IPv6.
  */
-
-void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_CorrectSize_Assert1( void )
+void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_CorrectSizeAssert1( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1438,7 +1354,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_CorrectSize_Assert
  * @brief This function process ICMP message when message type is
  *        ipICMP_PING_REQUEST_IPv6.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_CorrectSize( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1473,7 +1388,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REQUEST_IPv6_CorrectSize( void 
  *        It handles case where A reply was received to an outgoing
  *        ping but the payload of the reply was not correct.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eInvalidData( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1509,7 +1423,6 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eInvalidData( void )
  *        It handles case where A reply was received to an outgoing
  *        ping but the payload of the reply was not correct.
  */
-
 void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eSuccess( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
@@ -1549,8 +1462,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eSuccess( void )
  *        ipICMP_NEIGHBOR_SOLICITATION_IPv6.
  *        It handles case where endpoint was not found on the network.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_NULL_EP( void )
+void test_prvProcessICMPMessage_IPv6_NeighborSolicitationNullEP( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1575,8 +1487,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_NULL_EP( void )
  *        It handles case where when data length is less than
  *        expected.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_InorrectLen( void )
+void test_prvProcessICMPMessage_IPv6_NeighborSolicitationInorrectLen( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1604,8 +1515,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_InorrectLen( void )
  *        match which means the message is not for us,
  *        ignore it.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_CorrectLen( void )
+void test_prvProcessICMPMessage_IPv6_NeighborSolicitationCorrectLen( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1629,8 +1539,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION_CorrectLen( void )
  * @brief This function process ICMP message when message type is
  *        ipICMP_NEIGHBOR_SOLICITATION_IPv6.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION( void )
+void test_prvProcessICMPMessage_IPv6_NeighborSolicitation( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1668,8 +1577,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_SOLICITATION( void )
  *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
  *        It handles case when pxARPWaitingNetworkBuffer is NULL.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT1( void )
+void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement1( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1694,8 +1602,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT1( void )
  *        ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6.
  *        It handles case header is of ipSIZE_OF_IPv4_HEADER type.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT2( void )
+void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement2( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1723,8 +1630,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT2( void )
  *        This verifies a case 'pxARPWaitingNetworkBuffer' was
  *        not waiting for this new address look-up.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT3( void )
+void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement3( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1757,8 +1663,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT3( void )
  *        incoming IP packet when a neighbour advertisement has been received,
  *        and 'pxARPWaitingNetworkBuffer' was waiting for this new address look-up.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT4( void )
+void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement4( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1798,8 +1703,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT4( void )
  *        incoming IP packet when a neighbour advertisement has been received,
  *        and 'pxARPWaitingNetworkBuffer' was waiting for this new address look-up.
  */
-
-void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT5( void )
+void test_prvProcessICMPMessage_IPv6_NeighborAdvertisement5( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1834,8 +1738,7 @@ void test_prvProcessICMPMessage_IPv6_NEIGHBOR_ADVERTISEMENT5( void )
 /**
  * @brief This function process ICMP message when message type is incorrect.
  */
-
-void test_prvProcessICMPMessage_IPv6_default( void )
+void test_prvProcessICMPMessage_IPv6_Default( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1852,18 +1755,12 @@ void test_prvProcessICMPMessage_IPv6_default( void )
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
 }
 
-/*
- * ===================================================
- *       Test for FreeRTOS_OutputAdvertiseIPv6
- * ===================================================
- */
-
 /**
  * @brief This case validates failure in sending
  *        Neighbour Advertisement message because of
  *        failure in getting network buffer.
  */
-void test_FreeRTOS_OutputAdvertiseIPv6_default( void )
+void test_FreeRTOS_OutputAdvertiseIPv6_Default( void )
 {
     NetworkEndPoint_t xEndPoint;
 
@@ -1924,18 +1821,12 @@ void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
     TEST_ASSERT_EQUAL( pxICMPHeader_IPv6->usChecksum, 0 );
 }
 
-/*
- * ===================================================
- *       Test for FreeRTOS_CreateIPv6Address
- * ===================================================
- */
-
 /**
  * @brief Create an IPv6 address, based on a prefix.
  *        with the bits after the prefix having random value.
  *        But fails to get the random number.
  */
-void test_FreeRTOS_CreateIPv6Address_( void )
+void test_FreeRTOS_CreateIPv6Address_RandomFail( void )
 {
     IPv6_Address_t * pxIPAddress, * pxPrefix;
     size_t uxPrefixLength;
@@ -2038,18 +1929,11 @@ void test_FreeRTOS_CreateIPv6Address_Pass3( void ) /*CHECK if needed */
     TEST_ASSERT_EQUAL( xReturn, pdPASS );
 }
 
-/*
- * ===================================================
- *            Test for pcMessageType
- * ===================================================
- */
-
 /**
  * @brief Cover all the pcMessageType print
  *        scenario.
  */
-
-void test_pcMessageType_all( void )
+void test_pcMessageType_All( void )
 {
     BaseType_t xType;
 
