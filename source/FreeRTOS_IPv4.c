@@ -176,7 +176,7 @@
         if( xResult != pdPASS )
         {
             /* NOP if ipconfigHAS_PRINTF != 1 */
-            FreeRTOS_printf( ( "xCheckIPv4SizeFields: location %ld\n", xLocation ) );
+            FreeRTOS_printf( ( "xCheckIPv4SizeFields: location %ld Protocol: %d\n", xLocation, ucProtocol ) );
         }
 
         return xResult;

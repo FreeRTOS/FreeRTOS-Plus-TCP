@@ -55,6 +55,8 @@
 #include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 
+static uint32_t rxISRCnt, txISRCnt, totalISRCnt;
+
 /* ========================================================================== */
 /*                           Macros & Typedefs                                */
 /* ========================================================================== */
@@ -62,7 +64,7 @@
 
 #define ENETNETIF_APP_POLL_PERIOD       (500U)
 /*! \brief RX packet task stack size */
-#define LWIPIF_RX_PACKET_TASK_STACK    (1024U)
+#define LWIPIF_RX_PACKET_TASK_STACK    (3072U)
 
 /*! \brief TX packet task stack size */
 #define LWIPIF_TX_PACKET_TASK_STACK    (1024U)
@@ -831,7 +833,7 @@ void EnetNetIF_setNotifyCallbacks(NetworkInterface_t * pxInterface, Enet_notify_
     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
     xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
     EnetNetIF_setRxNotifyCallback(hEnet, pRxNotify);
-    EnetNetIF_setRxNotifyCallback(hEnet, pTxNotify);
+    EnetNetIF_setTxNotifyCallback(hEnet, pTxNotify);
 }
 
 /*
@@ -841,6 +843,11 @@ static void EnetNetIFApp_postSemaphore(void *pArg)
 {
     SemaphoreP_Object *pSem = (SemaphoreP_Object *) pArg;
     SemaphoreP_post(pSem);
+    if(pSem == &rxPktSem)   
+        rxISRCnt++;
+    else if (pSem == &txPktSem)
+        txISRCnt++;
+    totalISRCnt++;
 }
 
 // static void Lwip2Enet_updateTxNotifyStats(Lwip2Enet_PktTaskStats *pktStats,
@@ -934,6 +941,7 @@ static void EnetNetIF_txPacketTask(void *arg)
          * that were used to send data
          */
         SemaphoreP_pend(&txPktSem, SystemP_WAIT_FOREVER);
+        FreeRTOS_debug_printf(("===> TX CMPLT DSR: %d, TOT: %d\n", txISRCnt, totalISRCnt));
         EnetNetIF_txPktHandler(pxInterface);
     }
 
@@ -1109,6 +1117,7 @@ static void EnetNetIFApp_rxPacketTask(void *arg)
     {
         /* Wait for the Rx ISR to notify us that packets are available with data */
         SemaphoreP_pend(&rxPktSem, SystemP_WAIT_FOREVER);
+        //FreeRTOS_debug_printf(("===> RX CMPLT DSR: %d, TOT: %d\n", rxISRCnt, totalISRCnt));
         if (shutDownFlag)
         {
             /* This translation layer is shutting down, don't give anything else to the stack */
@@ -1164,7 +1173,7 @@ static void EnetNetIF_setSGList(EnetDma_Pkt *pCurrDmaPacket, NetworkBufferDescri
         // {
         //     list->disableCacheOps = false;
         // }
-        list->disableCacheOps = true; // TODO: check use of curNetBuf->type_internal == PBUF_ROM
+        list->disableCacheOps = false; // TODO: check use of curNetBuf->type_internal == PBUF_ROM
 
         totalPacketFilledLen += curNetBuf->xDataLength;
         pCurrDmaPacket->sgList.numScatterSegments++;
@@ -1714,7 +1723,7 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
     // the IP-task will start and send packets immediately,
     
     // FIXME: NOTE: This is a temporary hack for minimal testing
-    while(hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet) == 0)
+    while((hEnet->linkIsUp = hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet)) == 0)
     {
         vTaskDelay(pdMS_TO_TICKS(100));
     }
