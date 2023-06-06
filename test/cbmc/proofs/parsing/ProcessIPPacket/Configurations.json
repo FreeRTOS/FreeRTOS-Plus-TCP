@@ -23,14 +23,16 @@
       "ChecksumIncluded":
       [
         "ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM=1",
-        "FREERTOS_TCP_ENABLE_VERIFICATION"
+        "FREERTOS_TCP_ENABLE_VERIFICATION",
+        "ipconfigNETWORK_MTU=586"
       ]
     },
     {
       "ChecksumNotIncluded":
       [
         "ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM=0",
-        "FREERTOS_TCP_ENABLE_VERIFICATION"
+        "FREERTOS_TCP_ENABLE_VERIFICATION",
+        "ipconfigNETWORK_MTU=586"
       ]
     }
   ],
