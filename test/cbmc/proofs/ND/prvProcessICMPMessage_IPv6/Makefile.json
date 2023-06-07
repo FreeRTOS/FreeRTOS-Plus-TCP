@@ -1,5 +1,5 @@
 {
-  "ENTRY": "ReturnICMP_IPv6",
+  "ENTRY": "ProcessICMPMessage_IPv6",
   "CBMCFLAGS":
   [
     "--unwindset vNDRefreshCacheEntry.0:25",
