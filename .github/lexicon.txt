@@ -185,6 +185,7 @@ dff
 dhcp
 dhcpbroadcast
 dhcpcookie
+dhcpmsg
 dhcpserveraddress
 didn
 diff

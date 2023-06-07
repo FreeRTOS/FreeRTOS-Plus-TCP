@@ -1214,7 +1214,7 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_Transacti
     /* Put the required state. */
     pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
     pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
-    /* make sure the trnasaction ID does not match. */
+    /* make sure the transaction ID does not match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEE;
 
     /* Make sure that the local IP address is uninitialised. */
@@ -3303,7 +3303,6 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     TEST_ASSERT_EQUAL( 100, pxEndPoint->xDHCPData.xDHCPTxTime );
 }
 
-/*rahul.kar* Timeout in HandleWaitingAcknowledge*/
 void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriodLessTimeout( void )
 {
     struct xSOCKET xTestSocket;
@@ -4377,7 +4376,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
     ucGenericPtr = DHCPMsg;
-    ulGenericLength = sizeof( DHCPMsg ) + 100; /* ulGenericLength is incremented by 100 to accomodate uxDNSCount > ipconfigENDPOINT_DNS_ADDRESS_COUNT scenario */
+    ulGenericLength = sizeof( DHCPMsg ) + 100; /* ulGenericLength is incremented by 100 to have uxDNSCount > ipconfigENDPOINT_DNS_ADDRESS_COUNT scenario */
 
     /* This should remain unchanged. */
     xDHCPv4Socket = &xTestSocket;
