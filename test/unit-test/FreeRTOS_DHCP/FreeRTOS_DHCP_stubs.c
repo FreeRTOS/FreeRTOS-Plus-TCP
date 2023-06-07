@@ -25,7 +25,8 @@ volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 #define xSizeofUDPBuffer                       300
 
-Socket_t xDHCPv4Socket;
+Socket_t xDHCPSocket;
+extern Socket_t xDHCPv4Socket;
 
 eDHCPCallbackPhase_t eStubExpectedDHCPPhase;
 struct xNetworkEndPoint * pxStubExpectedEndPoint;
