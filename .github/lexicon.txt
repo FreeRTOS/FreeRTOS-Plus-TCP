@@ -1411,6 +1411,7 @@ ulflag
 ulflags
 ulgateway
 ulgatewayaddress
+ulgenericlength
 ulgetruntimecountervalue
 ulhighestrxallowed
 ulhighestsequencenumber
