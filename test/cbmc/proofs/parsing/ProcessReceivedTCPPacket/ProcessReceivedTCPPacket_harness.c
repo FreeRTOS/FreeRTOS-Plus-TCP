@@ -8,25 +8,15 @@
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_Stream_Buffer.h"
 
+/* CBMC includes. */
+#include "cbmc.h"
+
 /* This proof assumes FreeRTOS_socket, pxTCPSocketLookup and
  * pxGetNetworkBufferWithDescriptor are implemented correctly.
  *
  * It also assumes prvSingleStepTCPHeaderOptions, prvCheckOptions, prvTCPPrepareSend,
- * prvTCPHandleState and prvTCPReturnPacket are correct. These functions are
+ * prvTCPHandleState, prvHandleListen_IPV4 and prvTCPReturnPacket are correct. These functions are
  * proved to be correct separately. */
-
-/* Implementation of safe malloc */
-void * safeMalloc( size_t xWantedSize )
-{
-    if( xWantedSize == 0 )
-    {
-        return NULL;
-    }
-
-    uint8_t byte;
-
-    return byte ? malloc( xWantedSize ) : NULL;
-}
 
 /* Abstraction of FreeRTOS_socket */
 Socket_t FreeRTOS_socket( BaseType_t xDomain,
@@ -52,6 +42,40 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
     return pxCurrentTCB;
 }
 
+/* Abstraction of prvHandleListen_IPV4 */
+FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
+                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    FreeRTOS_Socket_t * xRetSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+
+    if( xRetSocket )
+    {
+        xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
+        xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
+
+        /* This test case is for IPv4. */
+        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
+
+        /* This bit depicts whether the socket was supposed to be reused or not. */
+        if( xRetSocket->u.xTCP.pxPeerSocket == NULL )
+        {
+            xRetSocket->u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+        }
+        else
+        {
+            xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
+        }
+
+        if( xIsCallingFromIPTask() == pdFALSE )
+        {
+            xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+            xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+        }
+    }
+
+    return xRetSocket;
+}
+
 /* Abstraction of pxTCPSocketLookup */
 FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        UBaseType_t uxLocalPort,
@@ -64,6 +88,9 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
     {
         xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
         xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
+
+        /* This test case is for IPv4. */
+        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
 
         /* This bit depicts whether the socket was supposed to be reused or not. */
         if( xRetSocket->u.xTCP.pxPeerSocket == NULL )
