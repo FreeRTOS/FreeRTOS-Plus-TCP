@@ -967,6 +967,54 @@ void EnetNetIFApp_createTxPktHandlerTask(NetworkInterface_t * pxInterface)
     configASSERT(status == SystemP_SUCCESS);
 }
 
+#define   ETHTYPE_VLAN      (0x8100U)
+#define SIZEOF_VLAN_HDR (4)
+#define IP_PROTO_UDPLITE 136
+#define PP_HTONS(x) ((uint16_t)((((x) & (uint16_t)0x00ffU) << 8) | (((x) & (uint16_t)0xff00U) >> 8)))
+inline uint8_t* EnetNetIF_getIpPktStart(uint8_t* pEthpkt)
+{
+    const uint16_t type = ((EthernetHeader_t*)pEthpkt)->usFrameType;
+    const uint32_t ipPacketStartOffset = (type == PP_HTONS(ETHTYPE_VLAN)) ?
+                                         (ipSIZE_OF_ETH_HEADER + SIZEOF_VLAN_HDR) : (ipSIZE_OF_ETH_HEADER);
+
+    return &pEthpkt[ipPacketStartOffset];
+}
+
+// bool LWIPIF_LWIP_UdpLiteValidateChkSum(NetworkBufferDescriptor_t * pxDescriptor)
+// {
+//     Lwip2Enet_assert(pxDescriptor->xDataLength >= (ipSIZE_OF_IP_HEADER + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER));
+
+//     bool isChksumPass = true;
+//     IPHeader_t * pIpPkt   = (IPHeader_t *)EnetNetIF_getIpPktStart((uint8_t*) pxDescriptor->pucEthernetBuffer);
+//     uint8_t *pIpPayload     = (uint8_t*)pIpPkt + ((pIpPkt->ucVersionHeaderLength & 0x0F) << 2);
+//     UDPHeader_t * pUdpHdr = (UDPHeader_t * )pIpPayload;
+//     ip_addr_t srcIp;
+//     ip_addr_t dstIp;
+
+//     LWIPIF_LWIP_getSrcIp((uint8_t *)pIpPkt, &srcIp);
+//     LWIPIF_LWIP_getDstIp((uint8_t *)pIpPkt, &dstIp);
+
+//     const uint32_t chkSumCovLen = (lwip_ntohs(pUdpHdr->len) == 0) ? (lwip_ntohs(IPH_LEN(pIpPkt)) - (IPH_HL(pIpPkt) << 2)) : lwip_ntohs(pUdpHdr->len);
+
+//     if (chkSumCovLen < sizeof(struct udp_hdr))
+//     {
+//         isChksumPass = false;
+//         return false;
+//     }
+
+//     if (0 == LWIPIF_LWIP_getUdpLiteChksum(p, (IPH_HL(pIpPkt) << 2), (lwip_ntohs(IPH_LEN(pIpPkt)) - (IPH_HL(pIpPkt) << 2)), pUdpHdr, &srcIp, &dstIp))
+//     {
+//         isChksumPass = true;
+//     }
+//     else
+//     {
+//         isChksumPass = false;
+//     }
+
+//     /* Return value should indicate true if checksum error found */
+//     return (!isChksumPass);
+// }
+
 static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
                                      EnetDma_PktQ *pPktQ)
 {
@@ -990,28 +1038,29 @@ static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
             // pxDescriptor->tot_len = validLen;
             configASSERT(pxDescriptor->pucEthernetBuffer != NULL);
 
-// TODO: Handle ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
-// #if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
-//             {
-//                 struct ip_hdr* pIpPkt = (struct ip_hdr* ) LWIPIF_LWIP_getIpPktStart((uint8_t*) pxDescriptor->payload);
-//                 if (IPH_PROTO(pIpPkt) == IP_PROTO_UDPLITE)
-//                 {
-//                     isChksumError = LWIPIF_LWIP_UdpLiteValidateChkSum(pxDescriptor);
-//                 }
-//                 else
-//                 {
-//                     /* We don't check if HW checksum offload is enabled while checking for checksum error
-//                      * as default value of this field when offload not enabled is false */
-//                     const uint32_t csumInfo =  pCurrDmaPacket->chkSumInfo;
+#if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
+            {
+                IPHeader_t * pIpPkt = ( IPHeader_t * ) EnetNetIF_getIpPktStart((uint8_t*) pxDescriptor->pucEthernetBuffer);
+                if (pIpPkt->ucProtocol == IP_PROTO_UDPLITE)
+                {
+                    // TODO take care of UDP Lite
+                    configASSERT(pdFALSE);
+                    //isChksumError = LWIPIF_LWIP_UdpLiteValidateChkSum(pxDescriptor);
+                }
+                else
+                {
+                    /* We don't check if HW checksum offload is enabled while checking for checksum error
+                     * as default value of this field when offload not enabled is false */
+                    const uint32_t csumInfo =  pCurrDmaPacket->chkSumInfo;
 
-//                     if ( ENETDMA_RXCSUMINFO_GET_IPV4_FLAG(csumInfo) ||
-//                             ENETDMA_RXCSUMINFO_GET_IPV6_FLAG(csumInfo))
-//                     {
-//                         isChksumError = ENETDMA_RXCSUMINFO_GET_CHKSUM_ERR_FLAG(csumInfo);
-//                     }
-//                 }
-//             }
-// #endif
+                    if ( ENETDMA_RXCSUMINFO_GET_IPV4_FLAG(csumInfo) ||
+                            ENETDMA_RXCSUMINFO_GET_IPV6_FLAG(csumInfo))
+                    {
+                        isChksumError = ENETDMA_RXCSUMINFO_GET_CHKSUM_ERR_FLAG(csumInfo);
+                    }
+                }
+            }
+#endif
             if (!isChksumError)
             {
                 /* Pass the received packet to the LwIP stack */
