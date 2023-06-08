@@ -1,0 +1,19 @@
+{
+    "ENTRY": "MatchingEndpoint",
+    "CBMCFLAGS":
+    [
+      "--unwind 2",
+      "--nondet-static"
+    ],
+    "OBJS":
+    [
+      "$(ENTRY)_harness.goto",
+      "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Routing.goto"
+  
+    ],
+    "INC":
+    [
+      "$(FREERTOS_PLUS_TCP)/test/cbmc/include"
+    ]
+  }
+  
