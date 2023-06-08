@@ -2477,6 +2477,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
     pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
+    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -5686,4 +5687,29 @@ void test_vDHCPProcess_IncorrectState( void )
 
     /* Continue not using DHCP. */
     TEST_ASSERT_EQUAL( ( eNotUsingLeasedAddress << 1 ), pxEndPoint->xDHCPData.eDHCPState );
+}
+
+/*
+ * @brief Check static function , in case of malformed packet , where length byte is zero.
+ */
+
+void test_xProcessCheckOption_LengthByteZero( void )
+{
+    BaseType_t xResult;
+    ProcessSet_t xSet;
+
+    uint8_t ucUDPPayload[ 1 ];
+
+    memset( &( ucUDPPayload ), 0, sizeof( ucUDPPayload ) );
+
+    memset( &( xSet ), 0, sizeof( xSet ) );
+    xSet.ulProcessed = 0U;
+    xSet.ucOptionCode = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
+    xSet.pucByte = ucUDPPayload;
+    xSet.uxIndex = 0;
+    xSet.uxPayloadDataLength = 2;
+
+    xResult = xProcessCheckOption( &xSet );
+
+    TEST_ASSERT_EQUAL( -1, xResult );
 }

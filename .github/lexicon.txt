@@ -553,6 +553,7 @@ macobject
 macobjhandle
 macobjstatus
 macvlantr
+malformed
 malloc
 malloclarge
 mallocsocket
