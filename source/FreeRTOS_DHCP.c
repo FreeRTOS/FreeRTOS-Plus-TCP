@@ -128,7 +128,7 @@
  */
     static void prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
-    static void vDHCPProcessEndPoint( BaseType_t xReset,
+    static int vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
                                       NetworkEndPoint_t * pxEndPoint );
 
@@ -274,7 +274,22 @@
                 if( pxIterator != NULL )
                 {
                     /* The second parameter pdTRUE tells to check for a UDP message. */
-                    vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxIterator );
+                    int ret_val = vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxIterator );
+
+                    if (ret_val == -1)
+                    {
+                        /* Target not found, fetch the message and delete it. */
+                        /* PAss the address of a pointer pucUDPPayload, because zero-copy is used. */
+                        lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, FREERTOS_ZERO_COPY, NULL, NULL );
+
+                        if( ( lBytes > 0 ) && ( pucUDPPayload != NULL ) )
+                        {
+                            /* Remove it now, destination not found. */
+                            FreeRTOS_ReleaseUDPPayloadBuffer( pucUDPPayload );
+                            FreeRTOS_printf( ( "vDHCPProcess: Removed a %d-byte message: target not found\n", ( int ) lBytes ) );
+                            break;
+                        }
+                    }
 
                     if( pxEndPoint == pxIterator )
                     {
@@ -352,6 +367,7 @@
                         EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
                         EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
                         EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+                        FreeRTOS_printf( ( "===> eWaitingAcknowledge set from xHandleWaitingOffer" ) );
                     }
                     else
                     {
@@ -637,6 +653,7 @@
                 {
                     /* The packet was sent successfully, wait for an acknowledgement. */
                     EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+                    FreeRTOS_printf( ( "===> eWaitingAcknowledge set from prvHandleWaitingeLeasedAddress" ) );
                 }
                 else
                 {
@@ -667,7 +684,7 @@
  * @param[in] pxEndPoint The end-point for which the DHCP state machine should
  *                        make one cycle.
  */
-    static void vDHCPProcessEndPoint( BaseType_t xReset,
+    static int vDHCPProcessEndPoint( BaseType_t xReset,
                                       BaseType_t xDoCheck,
                                       NetworkEndPoint_t * pxEndPoint )
     {
@@ -685,8 +702,9 @@
         {
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
-            FreeRTOS_debug_printf( ( "vDHCPProcessEndPoint: wrong state: expect: %d got: %d : ignore\n",
-                                     EP_DHCPData.eExpectedState, EP_DHCPData.eDHCPState ) );
+            // FreeRTOS_debug_printf( ( "vDHCPProcessEndPoint: wrong state: expect: %d got: %d : ignore\n",
+            //                          EP_DHCPData.eExpectedState, EP_DHCPData.eDHCPState ) );
+            return -1;
         }
         else
         {
@@ -725,6 +743,7 @@
                         EP_DHCPData.xDHCPTxTime = xTaskGetTickCount();
                         EP_DHCPData.xDHCPTxPeriod = dhcpINITIAL_DHCP_TX_PERIOD;
                         EP_DHCPData.eDHCPState = eWaitingAcknowledge;
+                        FreeRTOS_printf( ( "===> eWaitingAcknowledge set from vDHCPProcessEndPoint" ) );
                     }
                     else
                     {
@@ -824,6 +843,7 @@
                 prvCloseDHCPSocket( pxEndPoint );
             }
         }
+        return 0;
     }
 /*-----------------------------------------------------------*/
 

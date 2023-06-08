@@ -309,6 +309,8 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     uintptr_t uxBuffer;
     NetworkBufferDescriptor_t * pxResult;
 
+    FreeRTOS_printf(("==>>> prvPacketBuffer_to_NetworkBuffer: %p\n", pvBuffer));
+
     if( pvBuffer == NULL )
     {
         pxResult = NULL;
@@ -341,6 +343,8 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
             pxResult = NULL;
         }
     }
+
+    configASSERT( pxResult != NULL );
 
     return pxResult;
 }
