@@ -1158,6 +1158,11 @@
     {
         BaseType_t xResult = -1;
 
+        for( int i = 0;i < sizeof(pxSet); i++ )
+        {
+            pxSet->uxLength = pxSet->pucByte[ i ];
+        }
+
         do
         {
             if( pxSet->ucOptionCode == ( uint8_t ) dhcpOPTION_END_BYTE )
@@ -1213,7 +1218,11 @@
                 pxSet->ulParameter = 0;
             }
 
-            /* Validity of uxIndex is checked before in the loop, so removing the extra check. */
+            /* Confirm uxIndex is still a valid index after adjustments to uxIndex above */
+            if( !( pxSet->uxIndex < pxSet->uxPayloadDataLength ) )
+            {
+                break;
+            }
 
             /* Return 1 so that the option will be processed. */
             xResult = 1;
