@@ -971,7 +971,7 @@ void EnetNetIFApp_createTxPktHandlerTask(NetworkInterface_t * pxInterface)
 #define SIZEOF_VLAN_HDR (4)
 #define IP_PROTO_UDPLITE 136
 #define PP_HTONS(x) ((uint16_t)((((x) & (uint16_t)0x00ffU) << 8) | (((x) & (uint16_t)0xff00U) >> 8)))
-inline uint8_t* EnetNetIF_getIpPktStart(uint8_t* pEthpkt)
+uint8_t* EnetNetIF_getIpPktStart(uint8_t* pEthpkt)
 {
     const uint16_t type = ((EthernetHeader_t*)pEthpkt)->usFrameType;
     const uint32_t ipPacketStartOffset = (type == PP_HTONS(ETHTYPE_VLAN)) ?
@@ -1064,8 +1064,17 @@ static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
             if (!isChksumError)
             {
                 /* Pass the received packet to the LwIP stack */
-                AM243x_Eth_NetworkInterfaceInput(rx, pCurrDmaPacket->rxPortNum, pxDescriptor);
-                packetCount++;
+                IPHeader_t * pIpPkt   = (IPHeader_t *)EnetNetIF_getIpPktStart((uint8_t*) pxDescriptor->pucEthernetBuffer);
+                if(pIpPkt->ucProtocol != 0x70) 
+                {
+                    AM243x_Eth_NetworkInterfaceInput(rx, pCurrDmaPacket->rxPortNum, pxDescriptor);
+                    packetCount++;
+                }
+                else
+                {
+                    EnetQueue_enq(&rx->freePktInfoQ, &pCurrDmaPacket->node);
+                }
+                
             }
             else
             {

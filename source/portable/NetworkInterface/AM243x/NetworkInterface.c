@@ -121,7 +121,7 @@ void vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( EnetNetIF_AppIf_CustomNetBuf
 {
     // TODO: check alignment and section where this memory block should be placed. Also,
     // check if ETH_MAX_PACKET_SIZE appropriate.
-    static uint8_t ucNetworkPackets[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS * ETH_MAX_PACKET_SIZE ] __attribute__( ( aligned( 32 ), section(".bss:ENET_DMA_PKT_MEMPOOL") ) );
+    static uint8_t ucNetworkPackets[ NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS * (ETH_MAX_PACKET_SIZE + ipBUFFER_PADDING) ] __attribute__( ( aligned( 32 ), section(".bss:ENET_DMA_PKT_MEMPOOL") ) );
     uint8_t * ucRAMBuffer = ucNetworkPackets;
     uint32_t ul;
 
@@ -130,7 +130,7 @@ void vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( EnetNetIF_AppIf_CustomNetBuf
         //pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
         pxCustomNetworkBuffers[ ul ].xNetworkBuffer.pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
         *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxCustomNetworkBuffers[ ul ].xNetworkBuffer ) );
-        ucRAMBuffer += ETH_MAX_PACKET_SIZE;
+        ucRAMBuffer += (ETH_MAX_PACKET_SIZE + ipBUFFER_PADDING);
     }
 }
 
