@@ -1158,11 +1158,6 @@
     {
         BaseType_t xResult = -1;
 
-        for( int i = 0; i < sizeof( pxSet ); i++ )
-        {
-            pxSet->uxLength = pxSet->pucByte[ i ];
-        }
-
         do
         {
             if( pxSet->ucOptionCode == ( uint8_t ) dhcpOPTION_END_BYTE )
