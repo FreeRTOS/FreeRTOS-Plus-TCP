@@ -2,7 +2,7 @@
     "ENTRY": "MatchingEndpoint",
     "CBMCFLAGS":
     [
-      "--unwind 2",
+      "--unwindset pxEasyFit.0:5",
       "--nondet-static"
     ],
     "OBJS":

@@ -39,17 +39,41 @@
 #include "../../utility/memory_assignments.c"
 #include "cbmc.h"
 
+IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
+{
+    IPv6_Type_t eRes;
+
+    __CPROVER_assume( eRes == eIPv6_Global || eRes == eIPv6_LinkLocal ||
+                      eRes == eIPv6_SiteLocal || eRes == eIPv6_Multicast ||
+                      eRes == eIPv6_Unknown );
+
+    return eRes;
+}
 
 void harness()
 {
     NetworkInterface_t * pxNetworkInterface = safeMalloc( sizeof( NetworkInterface_t ) );
-    //uint8_t * pucEthernetBuffer = safeMalloc( sizeof(ProtocolPacket_t) );
+    /*uint8_t * pucEthernetBuffer = safeMalloc( sizeof(ProtocolPacket_t) ); */
     uint8_t * pcNetworkBuffer = safeMalloc( sizeof( ProtocolPacket_t ) + 4 );
+
     __CPROVER_assume( pcNetworkBuffer != NULL );
     ProtocolPacket_t * pxProtocolPacket = ( ProtocolPacket_t * ) ( ( uintptr_t ) ( pcNetworkBuffer ) + 2U );
 
     __CPROVER_assume( pxProtocolPacket != NULL );
 
+    /*
+     * For this proof, its assumed that the endpoints and interfaces are correctly
+     * initialised and the pointers are set correctly.
+     */
+
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+
+    /* Interface init. */
+    pxNetworkEndPoints->pxNetworkInterface = pxNetworkInterface;
+    __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
+
+    pxNetworkEndPoints->pxNext = NULL;
 
     FreeRTOS_MatchingEndpoint( pxNetworkInterface, ( const uint8_t * ) ( pxProtocolPacket ) );
 }
