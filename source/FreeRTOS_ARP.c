@@ -310,8 +310,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
 
                                 /* Make sure target MAC address is either ff:ff:ff:ff:ff:ff or 00:00:00:00:00:00 and senders MAC
                                  * address is not matching with the endpoint MAC address. */
-                                if( ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
-                                      ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
+                                if( ( ( memcmp( ( const void * ) pxARPHeader->xTargetHardwareAddress.ucBytes, xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
+                                      ( ( memcmp( ( const void * ) pxARPHeader->xTargetHardwareAddress.ucBytes, xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
                                     ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                                 {
                                     MACAddress_t xHardwareAddress;
