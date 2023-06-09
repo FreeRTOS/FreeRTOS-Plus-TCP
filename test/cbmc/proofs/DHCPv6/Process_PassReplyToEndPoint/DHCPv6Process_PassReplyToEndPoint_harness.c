@@ -59,7 +59,6 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6Process_PassReplyToEndP
 
 void harness()
 {
-
     BaseType_t xResult;
 
     pxNetworkEndPoints = safeMalloc( sizeof( NetworkEndPoint_t ) );
