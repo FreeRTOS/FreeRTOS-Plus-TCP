@@ -61,20 +61,20 @@ static uint32_t tx_event = 0, rx_event = 0;
 /* ========================================================================== */
 /*                           Macros & Typedefs                                */
 /* ========================================================================== */
-#define ENETLWIP_PACKET_POLL_PERIOD_US (1000U)
+#define ENETNETIF_PACKET_POLL_PERIOD_US (1000U)
 
 #define ENETNETIF_APP_POLL_PERIOD       (500U)
 /*! \brief RX packet task stack size */
-#define LWIPIF_RX_PACKET_TASK_STACK    (3072U)
+#define ENETNETIF_RX_PACKET_TASK_STACK    (3072U)
 
 /*! \brief TX packet task stack size */
-#define LWIPIF_TX_PACKET_TASK_STACK    (1024U)
+#define ENETNETIF_TX_PACKET_TASK_STACK    (1024U)
 
 /*! \brief Links status poll task stack size */
 #if (_DEBUG_ == 1)
-#define LWIPIF_POLL_TASK_STACK         (3072U)
+#define ENETNETIF_POLL_TASK_STACK         (3072U)
 #else
-#define LWIPIF_POLL_TASK_STACK         (1024U)
+#define ENETNETIF_POLL_TASK_STACK         (1024U)
 #endif
 
 #define OS_TASKPRIHIGH              8U
@@ -115,9 +115,9 @@ void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor_RX( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks );
 
-uint8_t gPktRxTaskStack[LWIPIF_RX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
-uint8_t gPktTxTaskStack[LWIPIF_TX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
-uint8_t gPollTaskStack[LWIPIF_POLL_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
+uint8_t gPktRxTaskStack[ENETNETIF_RX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
+uint8_t gPktTxTaskStack[ENETNETIF_TX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
+uint8_t gPollTaskStack[ENETNETIF_POLL_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
 
 SemaphoreP_Object txrxPktSem;
 
@@ -239,7 +239,7 @@ static void EnetNetIFAppCb_getEnetIFInstInfo(EnetNetIF_AppIf_GetEnetIFInstInfo *
     outArgs->hostPortRxMtu = attachInfo.rxMtu;
     ENET_UTILS_ARRAY_COPY(outArgs->txMtu, attachInfo.txMtu);
     outArgs->isPortLinkedFxn = &EnetApp_isPortLinked;
-	outArgs->timerPeriodUs   = ENETLWIP_PACKET_POLL_PERIOD_US;
+	outArgs->timerPeriodUs   = ENETNETIF_PACKET_POLL_PERIOD_US;
 
     outArgs->maxNumNetif = ENET_SYSCFG_NETIF_COUNT;
     outArgs->numRxChannels = ENET_SYSCFG_RX_FLOWS_NUM;
