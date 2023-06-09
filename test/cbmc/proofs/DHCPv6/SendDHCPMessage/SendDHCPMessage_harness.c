@@ -56,7 +56,7 @@ void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage( NetworkEndPoint_
 
 void harness()
 {
-    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( sizeof( NetworkEndPoint_t ) );
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
 
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
