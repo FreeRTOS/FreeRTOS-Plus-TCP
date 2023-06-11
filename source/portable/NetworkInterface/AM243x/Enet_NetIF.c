@@ -28,6 +28,9 @@
 /**
  * Enet device specific header files
  */
+
+#include <limits.h>
+
 #include <kernel/dpl/DebugP.h>
 #include <kernel/nortos/dpl/common/printf.h>
 
@@ -65,14 +68,11 @@ static uint32_t tx_event = 0, rx_event = 0;
 
 #define ENETNETIF_APP_POLL_PERIOD       (500U)
 /*! \brief RX packet task stack size */
-#define ENETNETIF_RX_PACKET_TASK_STACK    (3072U)
-
-/*! \brief TX packet task stack size */
-#define ENETNETIF_TX_PACKET_TASK_STACK    (1024U)
+#define ENETNETIF_TX_RX_PACKET_TASK_STACK    (4096U)
 
 /*! \brief Links status poll task stack size */
 #if (_DEBUG_ == 1)
-#define ENETNETIF_POLL_TASK_STACK         (3072U)
+#define ENETNETIF_POLL_TASK_STACK         (4096U)
 #else
 #define ENETNETIF_POLL_TASK_STACK         (1024U)
 #endif
@@ -115,11 +115,14 @@ void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor_RX( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks );
 
-uint8_t gPktRxTaskStack[ENETNETIF_RX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
-uint8_t gPktTxTaskStack[ENETNETIF_TX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
+uint8_t gPktTxRxTaskStack[ENETNETIF_TX_RX_PACKET_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
 uint8_t gPollTaskStack[ENETNETIF_POLL_TASK_STACK] __attribute__ ((aligned(sizeof(long long))));
 
-SemaphoreP_Object txrxPktSem;
+#define ENET_TX_NOTIFY_BIT      (1U)
+#define ENET_RX_NOTIFY_BIT      (2U)
+
+StaticTask_t xTxRxTaskStaticObj;
+TaskHandle_t xTxRxTask;
 
 /*!* Handle to Polling task semaphore, on which the pollTask awaits for notification
 * of used packets available.
@@ -838,11 +841,19 @@ void EnetNetIF_setNotifyCallbacks(NetworkInterface_t * pxInterface, Enet_notify_
 static void EnetNetIFApp_postSemaphore(void *pArg)
 {
 
-    *((uint32_t *) pArg) = 1;
-    totalISRCnt++;
-    SemaphoreP_post(&txrxPktSem);
-     
-
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    if(xTxRxTask)
+    {
+        if(HwiP_inISR())
+        {
+            xTaskNotifyFromISR( xTxRxTask, (uint32_t) pArg, eSetBits, &xHigherPriorityTaskWoken );
+            portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+        }
+        else
+        {
+            xTaskNotify( xTxRxTask, (uint32_t) pArg, eSetBits );
+        }
+    }
     
 }
 
@@ -1132,11 +1143,12 @@ void EnetNetIF_Enet_rxPktHandler(NetworkInterface_t * pxInterface)
 static void EnetNetIFApp_txrxPacketTask(void *arg)
 {
     NetworkInterface_t * pxInterface = (NetworkInterface_t *) arg;
+    uint32_t ulNotifiedValue;
     while (!shutDownFlag)
     {
-        SemaphoreP_pend(&txrxPktSem, SystemP_WAIT_FOREVER);
+        xTaskNotifyWait(0, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY );
 
-        if (rx_event)
+        if (ulNotifiedValue & ENET_RX_NOTIFY_BIT)
         {
             /* Wait for the Rx ISR to notify us that packets are available with data */
             
@@ -1148,17 +1160,15 @@ static void EnetNetIFApp_txrxPacketTask(void *arg)
             }
 
             EnetNetIF_Enet_rxPktHandler(pxInterface);
-            rx_event = 0;
         }
         
-        if (tx_event)
+        if (ulNotifiedValue & ENET_TX_NOTIFY_BIT)
         {
             /*
             * Wait for the Tx ISR to notify us that empty packets are available
             * that were used to send data
             */
             EnetNetIF_txPktHandler(pxInterface);
-            tx_event = 0;
         }
         
     }
@@ -1169,20 +1179,13 @@ static void EnetNetIFApp_txrxPacketTask(void *arg)
 
 void EnetNetIFApp_createTxRxPktHandlerTask(NetworkInterface_t * pxInterface)
 {
-    TaskP_Params params;
-    int32_t status;
 
-    /* Create RX packet task */
-    TaskP_Params_init(&params);
-    params.name = "EnetNetIFApp_rxPacketTask";
-    params.priority       = ENETNETIF_RX_PACKET_TASK_PRI;
-    params.stack          = &gPktRxTaskStack[0U];
-    params.stackSize      = sizeof(gPktRxTaskStack);
-    params.args           = pxInterface;
-    params.taskMain       = &EnetNetIFApp_txrxPacketTask;
 
-    status = TaskP_construct(&rxTask , &params);
-    EnetAppUtils_assert(status == SystemP_SUCCESS);
+    xTxRxTask = xTaskCreateStatic(&EnetNetIFApp_txrxPacketTask, "EnetNetIFApp_rxPacketTask", sizeof(gPktTxRxTaskStack) / (sizeof(configSTACK_DEPTH_TYPE)), \
+    pxInterface, ENETNETIF_RX_PACKET_TASK_PRI, (StackType_t*) &gPktTxRxTaskStack[0], &xTxRxTaskStaticObj);
+    
+    // configASSERT(ret_status == pdPASS);
+
 }
 
 static void EnetNetIF_setSGList(EnetDma_Pkt *pCurrDmaPacket, NetworkBufferDescriptor_t *netBufPkt, bool isRx)
@@ -1598,18 +1601,15 @@ void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
 {
     uint32_t status;
     
-    status = SemaphoreP_constructBinary(&txrxPktSem, 0U);
-    EnetAppUtils_assert(status == SystemP_SUCCESS);
-
     Enet_notify_t rxNotify =
         {
            .cbFxn = &EnetNetIFApp_postSemaphore, //gives different cb fxn for different events.
-           .cbArg = &rx_event //
+           .cbArg = (void *) ENET_RX_NOTIFY_BIT //
         };
     Enet_notify_t txNotify =
         {
                 .cbFxn = &EnetNetIFApp_postSemaphore,
-                .cbArg = &tx_event
+                .cbArg = (void *) ENET_TX_NOTIFY_BIT
         };
 
     EnetNetIF_setNotifyCallbacks(pxInterface, &rxNotify, &txNotify);
