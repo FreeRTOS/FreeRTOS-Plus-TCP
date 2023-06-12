@@ -152,7 +152,7 @@ void harness()
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen + ipSIZE_OF_ETH_HEADER );
         __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-        pxNetworkBuffer->xDataLength = ( size_t )( ulLen + ipSIZE_OF_ETH_HEADER );
+        pxNetworkBuffer->xDataLength = ( size_t ) ( ulLen + ipSIZE_OF_ETH_HEADER );
 
         /* Add an end point to the network buffer present. Its assumed that the
          * network interface layer correctly assigns the end point to the generated buffer. */
