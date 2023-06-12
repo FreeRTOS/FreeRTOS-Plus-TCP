@@ -66,7 +66,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
             xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
         }
 
-        if( xIsCallingFromIPTask() == pdFALSE )
+        if( nondet_bool() )
         {
             xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
             xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;

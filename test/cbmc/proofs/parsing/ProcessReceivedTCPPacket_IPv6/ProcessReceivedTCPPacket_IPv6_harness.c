@@ -11,7 +11,8 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
-/* This proof assumes FreeRTOS_socket, pxTCPSocketLookup and
+/* This proof assumes FreeRTOS_socket, pxTCPSocketLookup, vTCPStateChange, prvTCPSocketIsActive, xIsCallingFromIPTask,
+ * xSequenceGreaterThan, xSequenceLessThan, xTaskGetTickCount, vReleaseNetworkBufferAndDescriptor, xTCPWindowTxHasData and
  * pxGetNetworkBufferWithDescriptor are implemented correctly.
  *
  * It also assumes prvSingleStepTCPHeaderOptions, prvCheckOptions, prvTCPPrepareSend,
@@ -42,9 +43,9 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
     return pxCurrentTCB;
 }
 
-/* Abstraction of prvHandleListen_IPV6 */
-FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
+/* Abstraction of prvHandleListen */
+FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
+                                     NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     FreeRTOS_Socket_t * xRetSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
 
@@ -66,7 +67,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
             xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
         }
 
-        if( xIsCallingFromIPTask() == pdFALSE )
+        if( nondet_bool() )
         {
             xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
             xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
@@ -102,7 +103,7 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
             xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
         }
 
-        if( xIsCallingFromIPTask() == pdFALSE )
+        if( nondet_bool() )
         {
             xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
             xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
@@ -125,6 +126,20 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     }
 
     return pxNetworkBuffer;
+}
+
+/* Abstraction of uxIPHeaderSizePacket. Because we're testing IPv6 in this test case, the network buffer is
+ * guaranteed to be IPv6 packet. Thus returns IPv6 header size here directly. */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    return ipSIZE_OF_IPv6_HEADER;
+}
+
+/* Abstraction of uxIPHeaderSizePacket. Because we're testing IPv6 in this test case, all socket handlers returned
+ * by functions are for IPv6. Thus returns IPv6 header size here directly. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
+{
+    return ipSIZE_OF_IPv6_HEADER;
 }
 
 void harness()
