@@ -39,17 +39,6 @@
 #include "../../utility/memory_assignments.c"
 #include "cbmc.h"
 
-IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
-{
-    IPv6_Type_t eRes;
-
-    __CPROVER_assume( eRes == eIPv6_Global || eRes == eIPv6_LinkLocal ||
-                      eRes == eIPv6_SiteLocal || eRes == eIPv6_Multicast ||
-                      eRes == eIPv6_Unknown );
-
-    return eRes;
-}
-
 void harness()
 {
     NetworkInterface_t * pxNetworkInterface = safeMalloc( sizeof( NetworkInterface_t ) );
