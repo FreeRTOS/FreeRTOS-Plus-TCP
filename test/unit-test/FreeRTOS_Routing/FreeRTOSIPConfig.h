@@ -32,23 +32,22 @@
 
 #define _static
 
-#define TEST                                1
+#define TEST                              1
 
-#define ipconfigUSE_IPv4                    ( 1 )
-#define ipconfigUSE_IPv6                    ( 1 )
+#define ipconfigUSE_IPv4                  ( 1 )
 
-#define ipconfigMULTI_INTERFACE             1
-#define ipconfigIPv4_BACKWARD_COMPATIBLE    0
+#define ipconfigUSE_IPv6                  ( 1 )
 
-#define ipconfigUSE_IPv4                    ( 1 )
-#define ipconfigUSE_IPv6                    ( 1 )
+#define ipconfigCOMPATIBLE_WITH_SINGLE    ( 0 )
+
+#define ipconfigHAS_ROUTING_STATISTICS    ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF            1
+#define ipconfigHAS_DEBUG_PRINTF          1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    #define FreeRTOS_debug_printf( X )    configPRINTF( X )
+    #define FreeRTOS_debug_printf( X )    printf X
 #endif
 
 /* Set to 1 to print out non debugging messages, for example the output of the
@@ -57,12 +56,14 @@
  * messages. */
 #define ipconfigHAS_PRINTF    1
 #if ( ipconfigHAS_PRINTF == 1 )
-    #define FreeRTOS_printf( X )    configPRINTF( X )
+    #define FreeRTOS_printf( X )    printf X
 #endif
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
-#define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
+#define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
+
+#define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
 
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
@@ -84,7 +85,7 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
 #define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
