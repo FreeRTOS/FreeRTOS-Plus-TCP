@@ -36,6 +36,7 @@
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_TCP_Transmission.h"
 
+/* CBMC includes. */
 #include "../../utility/memory_assignments.c"
 
 #include "cbmc.h"
