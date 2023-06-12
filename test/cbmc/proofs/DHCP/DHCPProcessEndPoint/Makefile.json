@@ -27,7 +27,7 @@
 #
 
 {
-  "ENTRY": "DHCPProcess",
+  "ENTRY": "DHCPProcessEndPoint",
 
   # Minimal buffer size for maximum coverage, see harness for details.
   "BUFFER_SIZE": 299,
