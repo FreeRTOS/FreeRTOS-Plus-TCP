@@ -61,15 +61,15 @@ void harness()
     /* The length of buffer must be larger than or equal to TCP minimum requirement. */
     __CPROVER_assume( xDataLength >= sizeof( TCPPacket_t ) && xDataLength <= ipconfigNETWORK_MTU );
 
-    /* Socket is gauranteed to be non-NULL. */
+    /* Socket is guaranteed to be non-NULL. */
     __CPROVER_assume( pxSocket != NULL );
 
-    /* Network buffer is gauranteed to be non-NULL. */
+    /* Network buffer is guaranteed to be non-NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) safeMalloc( xDataLength );
 
-    /* Network buffer is gauranteed to be non-NULL. */
+    /* Network buffer is guaranteed to be non-NULL. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     pxNetworkBuffer->xDataLength = xDataLength;
