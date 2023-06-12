@@ -15,10 +15,6 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
-/****************************************************************
-* Proof of CheckOptions
-****************************************************************/
-
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
