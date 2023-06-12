@@ -96,10 +96,5 @@ void harness()
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
     pxNetworkEndPoints->pxNext = NULL;
 
-    /* Assumption to call vReceiveRA as it is called only when these fields are set. */
-    __CPROVER_assume( pxNetworkEndPoints->bits.bWantRA == pdTRUE_UNSIGNED );
-    __CPROVER_assume( pxNetworkEndPoints->xRAData.eRAState == eRAStateWait );
-
-
     vReceiveRA( pxNetworkBuffer );
 }

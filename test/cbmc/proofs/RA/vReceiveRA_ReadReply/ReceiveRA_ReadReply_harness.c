@@ -67,10 +67,5 @@ void harness()
     pxNetworkBuffer->pxInterface = safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxInterface != NULL );
 
-    /* Assuming pucBytes to be not NULL as ucLength in xICMPPrefixOption_IPv6 is expected
-     * to be non zero for the loop to run. */
-    pucBytes = &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
-    __CPROVER_assume( pucBytes[ 1 ] == 1 );
-
     pxReturn = __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadReply( pxNetworkBuffer );
 }
