@@ -37,17 +37,19 @@
 #include "FreeRTOS_ICMP.h"
 #include "FreeRTOS_IP_Private.h"
 
+#include "cbmc.h"
 
 /* prvProcessICMPEchoRequest() is proved separately */
 eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
                                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t retVal;
-    __CPROVER_assert(pxICMPPacket != NULL, "pxICMPPacket != NULL");
+
     /* Make sure prvProcessICMPEchoRequest() is never called with  or 
     pxNetworkBuffer being NULL */
     __CPROVER_assert(pxICMPPacket != NULL, "pxICMPPacket != NULL");
     __CPROVER_assert(pxNetworkBuffer != NULL, "pxNetworkBuffer != NULL");
+    
     return retVal;
 }
 

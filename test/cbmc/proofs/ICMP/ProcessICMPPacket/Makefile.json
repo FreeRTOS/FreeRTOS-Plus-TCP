@@ -39,7 +39,6 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.c",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_ICMP.c",
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto"
   ]
