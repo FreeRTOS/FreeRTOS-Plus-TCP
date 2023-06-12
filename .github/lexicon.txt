@@ -1597,8 +1597,8 @@ uxborn
 uxbufferlength
 uxbuffersize
 uxbytecount
-uxbytesread
 uxbytesneeded
+uxbytesread
 uxclockticks
 uxcontents
 uxcount
@@ -1697,8 +1697,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
-varprocesspacketrequest
 varprefreshcacheentry
+varprocesspacketrequest
 varpsendgratuitous
 varptimerreload
 vcastconstpointerto
@@ -2031,6 +2031,8 @@ xsenderhardwareaddress
 xsendeventstructtoiptask
 xsendeventtoiptask
 xsendlength
+xsequencegreaterthan
+xsequencelessthan
 xserverid
 xserversemaphore
 xserversocket
@@ -2074,6 +2076,7 @@ xtcpwindowpeekhead
 xtcpwindowrxconfirm
 xtcpwindowrxfind
 xtcpwindowtxdone
+xtcpwindowtxhasdata
 xtcpwindowtxnew
 xtemplist
 xtickcount
