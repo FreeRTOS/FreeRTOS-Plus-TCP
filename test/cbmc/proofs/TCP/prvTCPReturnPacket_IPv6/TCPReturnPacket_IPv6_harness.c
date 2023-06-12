@@ -150,7 +150,7 @@ void harness()
         /* Assume that the length is proper. */
         __CPROVER_assume( ( ulLen >= sizeof( TCPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen + ipSIZE_OF_ETH_HEADER );
-        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer );
+        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
         pxNetworkBuffer->xDataLength = ( size_t ) ulLen;
 
