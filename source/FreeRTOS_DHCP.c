@@ -670,7 +670,7 @@
         }
         else
         {
-            /* There was a problem with the randomiser. */
+            FreeRTOS_debug_printf( ( "prvInitialiseDHCP: failed to generate a random Transaction ID\n" ) );
         }
     }
     /*-----------------------------------------------------------*/
