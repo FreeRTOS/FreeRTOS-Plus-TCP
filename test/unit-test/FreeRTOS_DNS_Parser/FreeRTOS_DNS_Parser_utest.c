@@ -2929,6 +2929,53 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success( void )
  * @brief ensures that when more records are stored than allowed by
  * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY true is returned when address is of type IPv6,
  *  usType is dnsTYPE_AAAA_HOST
+ */
+void test_parseDNSAnswer_recordstored_gt_count_IPv6_success2( void )
+{
+    BaseType_t ret;
+    DNSMessage_t pxDNSMessageHeader;
+    char pucByte[ 300 ];
+    size_t uxsourceBytesRemaining = 300;
+    size_t uxBytesRead = 0;
+    char pcName[ 300 ];
+    DNSAnswerRecord_t * pxDNSAnswerRecord;
+    uint32_t ip_address = 1234;
+    ParseSet_t xSet = { 0 };
+    struct freertos_addrinfo * pxAddressInfo, * pxAddressInfo_2;
+
+    xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
+    xSet.pucByte = pucByte;
+    xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
+    xSet.xDoStore = pdTRUE;
+    xSet.usNumARecordsStored = 0;
+    xSet.ppxLastAddress = &pxAddressInfo_2;
+    memset( pucByte, 0x00, uxsourceBytesRemaining );
+
+
+    pucByte[ 0 ] = 38;
+    strcpy( pucByte + 1, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+
+    pxDNSMessageHeader.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+    pxDNSAnswerRecord = ( DNSAnswerRecord_t * ) ( pucByte + 40 );
+    pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv6_ADDRESS );
+    pxDNSAnswerRecord->usType = ( dnsTYPE_AAAA_HOST );
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_AAAA_HOST ); /* usType */
+    xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
+    FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
+    FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( pdTRUE );
+
+    ret = parseDNSAnswer( &xSet, NULL, &uxBytesRead );
+
+    TEST_ASSERT_EQUAL( 0, ret );
+    TEST_ASSERT_EQUAL( 40, uxBytesRead );
+}
+
+/**
+ * @brief ensures that when more records are stored than allowed by
+ * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY true is returned when address is of type IPv6,
+ *  usType is dnsTYPE_AAAA_HOST
  *  xDoAccept = FALSE
  */
 void test_parseDNSAnswer_recordstored_gt_count_IPv6_success3( void )
