@@ -33,6 +33,7 @@ void harness()
     BaseType_t xResult;
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
+
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
     DHCPMessage_IPv6_t * pxDHCPMessage = safeMalloc( sizeof( NetworkEndPoint_t ) );

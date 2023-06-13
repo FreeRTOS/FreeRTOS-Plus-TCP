@@ -46,7 +46,7 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_subOption( uint16_t 
     __CPROVER_assume( pxDHCPMessage != NULL );
     __CPROVER_assume( pxSet != NULL );
     /* Setting the lower and upper bound for Option to include the default case. */
-    __CPROVER_assume( DHCPv6_Option_Client_Identifier<= usOption && usOption<= DHCPv6_Option_IA_Prefix );
+    __CPROVER_assume( DHCPv6_Option_Client_Identifier <= usOption && usOption <= DHCPv6_Option_IA_Prefix );
 
     return nondet_BaseType();
 }
@@ -57,6 +57,7 @@ void harness()
     uint16_t usOption;
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
+
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
     DHCPMessage_IPv6_t * pxDHCPMessage = safeMalloc( sizeof( NetworkEndPoint_t ) );
@@ -69,7 +70,7 @@ void harness()
     __CPROVER_assume( pxMessage != NULL );
 
     /* Setting the lower and upper bound for Option to include the default case. */
-    __CPROVER_assume( DHCPv6_Option_Client_Identifier<= usOption && usOption<= DHCPv6_Option_IA_Prefix );
+    __CPROVER_assume( DHCPv6_Option_Client_Identifier <= usOption && usOption <= DHCPv6_Option_IA_Prefix );
 
     xResult = __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleOption( pxNetworkEndPoint_Temp, usOption, pxSet, pxDHCPMessage, pxMessage );
 }

@@ -29,15 +29,16 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleS
     __CPROVER_assume( pxEndPoint != NULL );
     __CPROVER_assume( pxDHCPMessage != NULL );
 
-    if( pxEndPoint->xDHCPData.eDHCPState == eLeasedAddress || pxEndPoint->xDHCPData.eDHCPState == eInitialWait )
+    if( ( pxEndPoint->xDHCPData.eDHCPState == eLeasedAddress ) || ( pxEndPoint->xDHCPData.eDHCPState == eInitialWait ) )
     {
         prvCreateDHCPv6Socket( pxEndPoint );
     }
+
     return nondet_BaseType();
 }
 
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * pxEndPoint,
-                                                                                      DHCPMessage_IPv6_t * pxDHCPMessage )
+                                                                                          DHCPMessage_IPv6_t * pxDHCPMessage )
 {
     __CPROVER_assume( pxEndPoint != NULL );
     __CPROVER_assume( pxDHCPMessage != NULL );
@@ -46,7 +47,7 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleA
 }
 
 void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
-                                                                                      DHCPMessage_IPv6_t * pxDHCPMessage )
+                                                                                DHCPMessage_IPv6_t * pxDHCPMessage )
 {
     __CPROVER_assume( pxEndPoint != NULL );
     __CPROVER_assume( pxDHCPMessage != NULL );
@@ -61,6 +62,7 @@ void harness()
     BaseType_t xReset, xGivingUp;
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
+
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
     DHCPMessage_IPv6_t * pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );

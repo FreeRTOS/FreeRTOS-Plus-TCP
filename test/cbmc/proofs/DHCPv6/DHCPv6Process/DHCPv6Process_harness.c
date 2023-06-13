@@ -64,7 +64,7 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
 }
 
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
-                                                                                    DHCPMessage_IPv6_t * pxDHCPMessage )
+                                                                                      DHCPMessage_IPv6_t * pxDHCPMessage )
 {
     return nondet_BaseType();
 }
@@ -74,6 +74,7 @@ void harness()
     BaseType_t xReset;
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
+
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
     pxNetworkEndPoint_Temp->pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
