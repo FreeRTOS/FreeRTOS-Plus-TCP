@@ -7,7 +7,7 @@
     ],
     "INSTFLAGS":
     [
-    "--remove-function-body vDHCPv6ProcessEndPoint"
+      "--remove-function-body vDHCPv6ProcessEndPoint"
     ],
     "OPT":
     [
