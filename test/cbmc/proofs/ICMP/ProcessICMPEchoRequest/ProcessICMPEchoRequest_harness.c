@@ -64,18 +64,18 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 }
 
 eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
-                                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer );
+                                                                                         const NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 void harness()
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
 
-    ICMPPacket_t * const pxICMPPacket = malloc(sizeof(ICMPPacket_t));
-    __CPROVER_assume(pxICMPPacket != NULL);
+    ICMPPacket_t * const pxICMPPacket = malloc( sizeof( ICMPPacket_t ) );
 
-    xNetworkBuffer.xDataLength = sizeof(ICMPPacket_t);
+    __CPROVER_assume( pxICMPPacket != NULL );
+
+    xNetworkBuffer.xDataLength = sizeof( ICMPPacket_t );
     xNetworkBuffer.pucEthernetBuffer = pxICMPPacket;
 
-    __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest(pxICMPPacket, &xNetworkBuffer);
-
+    __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest( pxICMPPacket, &xNetworkBuffer );
 }

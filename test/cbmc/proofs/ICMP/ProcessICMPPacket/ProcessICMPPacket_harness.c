@@ -41,15 +41,15 @@
 
 /* prvProcessICMPEchoRequest() is proved separately */
 eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
-                                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer )
+                                                                                         const NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t retVal;
 
-    /* Make sure prvProcessICMPEchoRequest() is never called with  or 
-    pxNetworkBuffer being NULL */
-    __CPROVER_assert(pxICMPPacket != NULL, "pxICMPPacket != NULL");
-    __CPROVER_assert(pxNetworkBuffer != NULL, "pxNetworkBuffer != NULL");
-    
+    /* Make sure prvProcessICMPEchoRequest() is never called with  or
+     * pxNetworkBuffer being NULL */
+    __CPROVER_assert( pxICMPPacket != NULL, "pxICMPPacket != NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer != NULL" );
+
     return retVal;
 }
 
@@ -58,12 +58,12 @@ void harness()
     NetworkBufferDescriptor_t xNetworkBuffer;
 
     /* Allocate a ICMP packet */
-    ICMPPacket_t * const pxICMPPacket = malloc(sizeof(ICMPPacket_t));
-    __CPROVER_assume(pxICMPPacket != NULL);
+    ICMPPacket_t * const pxICMPPacket = malloc( sizeof( ICMPPacket_t ) );
 
-    xNetworkBuffer.xDataLength = sizeof(ICMPPacket_t);
+    __CPROVER_assume( pxICMPPacket != NULL );
+
+    xNetworkBuffer.xDataLength = sizeof( ICMPPacket_t );
     xNetworkBuffer.pucEthernetBuffer = pxICMPPacket;
 
     ProcessICMPPacket( &xNetworkBuffer );
-
 }
