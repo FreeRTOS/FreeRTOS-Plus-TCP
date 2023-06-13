@@ -47,9 +47,6 @@
 #include "cbmc.h"
 
 
-/****************************************************************
-* Signature of function under test
-****************************************************************/
 
 void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint );
 
