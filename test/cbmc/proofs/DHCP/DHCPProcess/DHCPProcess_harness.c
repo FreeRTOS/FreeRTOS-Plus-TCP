@@ -61,7 +61,7 @@ uint32_t uxSocketCloseCnt = 0;
 DHCPMessage_IPv4_t xDHCPMessage;
 
 
-void  __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
+void __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
 * vDHCPProcessEndPoint() is proved separately
@@ -71,10 +71,8 @@ void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xRese
                                                                 BaseType_t xDoCheck,
                                                                 NetworkEndPoint_t * pxEndPoint )
 {
-
     __CPROVER_assert( pxEndPoint != NULL,
                       "FreeRTOS precondition: pxEndPoint != NULL" );
-
 }
 
 /****************************************************************
@@ -135,19 +133,18 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 }
 
 /* FreeRTOS_ReleaseUDPPayloadBuffer is mocked here and the memory
-is not freed as the buffer allocated by the FreeRTOS_recvfrom is static 
-memory */
+ * is not freed as the buffer allocated by the FreeRTOS_recvfrom is static
+ * memory */
 void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 {
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
-
 }
 
 /* For the DHCP process loop to be fully covered, we expect FreeRTOS_recvfrom
-to fail after few iterations. This is because vDHCPProcessEndPoint is proved
-separately and is stubbed out for this proof, which ideally is supposed to close 
-the socket and end the loop. */
+ * to fail after few iterations. This is because vDHCPProcessEndPoint is proved
+ * separately and is stubbed out for this proof, which ideally is supposed to close
+ * the socket and end the loop. */
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
@@ -156,17 +153,16 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            socklen_t * pxSourceAddressLength )
 
 {
-
     static uint32_t recvRespCnt = 0;
     int32_t retVal = -1;
 
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
 
-    if(++recvRespCnt < (FR_RECV_FROM_SUCCESS_COUNT - 1))
+    if( ++recvRespCnt < ( FR_RECV_FROM_SUCCESS_COUNT - 1 ) )
     {
         *( ( void ** ) pvBuffer ) = ( void * ) &xDHCPMessage;
-        retVal = sizeof(xDHCPMessage);
+        retVal = sizeof( xDHCPMessage );
     }
 
     return retVal;
@@ -178,7 +174,6 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
 void harness()
 {
-
     BaseType_t xReset;
     eDHCPState_t eExpectedState;
 
@@ -216,12 +211,11 @@ void harness()
         prvCreateDHCPSocket( pxNetworkEndPoints );
     }
 
-    /* Assume vDHCPProcess is only called on IPv4 endpoints which is 
-    validated before the call to vDHCPProcess */
+    /* Assume vDHCPProcess is only called on IPv4 endpoints which is
+     * validated before the call to vDHCPProcess */
     __CPROVER_assume( pxNetworkEndPoints->bits.bIPv6 == 0 );
 
     vDHCPProcess( xReset, pxNetworkEndPoints );
 
-    __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket(pxNetworkEndPoints);
-
+    __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( pxNetworkEndPoints );
 }
