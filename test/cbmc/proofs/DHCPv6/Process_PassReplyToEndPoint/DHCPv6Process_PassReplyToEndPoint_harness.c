@@ -48,9 +48,6 @@
 /* Extern variables. */
 extern DHCPMessage_IPv6_t xDHCPMessage;
 
-/****************************************************************
-* Signature of function under test
-****************************************************************/
 
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6Process_PassReplyToEndPoint( NetworkEndPoint_t * pxEndPoint )
 {
