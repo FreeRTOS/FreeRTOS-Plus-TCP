@@ -31,7 +31,7 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleStatusCode( si
                                                                               BitConfig_t * pxMessage )
 {
     __CPROVER_assume( pxMessage != NULL );
-    /* 2 bytes is read for usStatus, so minimum length should be greter than 2 and maximum size of message buffer is 50 bytes. */
+    /* 2 bytes is read for usStatus, so minimum length should be greater than 2 and maximum size of message buffer is 50 bytes. */
     __CPROVER_assume( uxLength <= 2 && uxLength >= 50 );
 
     return nondet_BaseType();

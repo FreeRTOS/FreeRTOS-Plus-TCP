@@ -49,7 +49,7 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
 }
 
 /**
- * Return value is set to -1 assuming other APIs will be checked separetely,
+ * Return value is set to -1 assuming other APIs will be checked separately,
  * hence only allowing 1 iteration of the loop.
  */
 
