@@ -36,9 +36,11 @@
   # The number of times GetNetworkBufferWithDescriptor can be allowed to fail
   # (plus 1).
   "FAILURE_BOUND": 2,
+  "LOOP_UNWIND_COUNT": 4,
 
   "CBMCFLAGS": [
-    "--unwind 4"
+    "--unwind {LOOP_UNWIND_COUNT}",
+    "--nondet-static --flush"
   ],
   "OPT":
   [
@@ -54,6 +56,7 @@
   ],
   "DEF":
   [
+    "FR_RECV_FROM_SUCCESS_COUNT={LOOP_UNWIND_COUNT}",
     "BUFFER_SIZE={BUFFER_SIZE}",
     "ipconfigDHCP_REGISTER_HOSTNAME=1",
     "CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL=1",

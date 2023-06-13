@@ -232,7 +232,7 @@
                 /* Peek the next UDP message. */
                 lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, xRecvFlags, NULL, NULL );
 
-                if( (lBytes < sizeof(DHCPMessage_IPv4_t)) || (pucUDPPayload == NULL) )
+                if( lBytes < ((int32_t) sizeof(DHCPMessage_IPv4_t)) )
                 {
                     if( ( lBytes < 0 ) && ( lBytes != -pdFREERTOS_ERRNO_EAGAIN ) )
                     {

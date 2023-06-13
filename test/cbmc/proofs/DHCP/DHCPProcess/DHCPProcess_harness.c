@@ -61,6 +61,8 @@ uint32_t uxSocketCloseCnt = 0;
 DHCPMessage_IPv4_t xDHCPMessage;
 
 
+void  __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
+
 /****************************************************************
 * vDHCPProcessEndPoint() is proved separately
 ****************************************************************/
@@ -132,6 +134,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return pxNetworkBuffer;
 }
 
+/* FreeRTOS_ReleaseUDPPayloadBuffer is mocked here and the memory
+is not freed as the buffer allocated by the FreeRTOS_recvfrom is static 
+memory */
 void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 {
     __CPROVER_assert( pvBuffer != NULL,
@@ -139,6 +144,10 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 
 }
 
+/* For the DHCP process loop to be fully covered, we expect FreeRTOS_recvfrom
+to fail after few iterations. This is because vDHCPProcessEndPoint is proved
+separately and is stubbed out for this proof, which ideally is supposed to close 
+the socket and end the loop. */
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
@@ -148,7 +157,19 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
 {
 
-    return -1;
+    static uint32_t recvRespCnt = 0;
+    int32_t retVal = -1;
+
+    __CPROVER_assert( pvBuffer != NULL,
+                      "FreeRTOS precondition: pvBuffer != NULL" );
+
+    if(++recvRespCnt < (FR_RECV_FROM_SUCCESS_COUNT - 1))
+    {
+        *( ( void ** ) pvBuffer ) = ( void * ) &xDHCPMessage;
+        retVal = sizeof(xDHCPMessage);
+    }
+
+    return retVal;
 }
 
 /****************************************************************
@@ -195,12 +216,12 @@ void harness()
         prvCreateDHCPSocket( pxNetworkEndPoints );
     }
 
-    prvCreateDHCPSocket( pxNetworkEndPoints );
-
     /* Assume vDHCPProcess is only called on IPv4 endpoints which is 
     validated before the call to vDHCPProcess */
     __CPROVER_assume( pxNetworkEndPoints->bits.bIPv6 == 0 );
 
     vDHCPProcess( xReset, pxNetworkEndPoints );
+
+    __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket(pxNetworkEndPoints);
 
 }
