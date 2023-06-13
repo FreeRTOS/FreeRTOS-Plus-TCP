@@ -2,8 +2,8 @@
     "ENTRY": "DHCPv6Process_PassReplyToEndPoint",
     "CBMCFLAGS":
     [
-        "--nondet-static",
-        "--unwind 1"
+      "--nondet-static",
+      "--unwind 1"
     ],
     "INSTFLAGS":
     [
