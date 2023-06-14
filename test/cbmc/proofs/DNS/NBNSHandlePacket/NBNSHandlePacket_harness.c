@@ -70,9 +70,10 @@ void harness()
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
 
     BaseType_t xDataSize;
-    __CPROVER_assume( (xDataSize != 0)  && (xDataSize < (ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - (sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t )))));
+    __CPROVER_assume( (xDataSize > sizeof(UDPPacket_t))  && (xDataSize < (ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - (sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t )))));
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
-    xNetworkBuffer.xDataLength = xDataSize;
+    __CPROVER_assume(xNetworkBuffer.pucEthernetBuffer != NULL);
+    xNetworkBuffer.xDataLength = xDataSize - sizeof(UDPPacket_t);
 
     if(nondet_bool())
     {
@@ -83,7 +84,6 @@ void harness()
         xNetworkBuffer.pxEndPoint = NULL;
     }
 
-    //DNS_TreatNBNS(xNetworkBuffer.pucEthernetBuffer, xNetworkBuffer.xDataLength, ulIPAddress);
     ulNBNSHandlePacket(&xNetworkBuffer);
 
 }
