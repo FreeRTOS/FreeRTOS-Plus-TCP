@@ -834,6 +834,7 @@ prvpreparewrongtransactionid
 prvprocessdhcpreplies
 prvprocessdnscache
 prvprocessethernetpacket
+prvprocessicmpechorequest
 prvprocessipeventsandtimers
 prvprocessippacket
 prvprocessnetworkdownevent
@@ -1597,8 +1598,8 @@ uxborn
 uxbufferlength
 uxbuffersize
 uxbytecount
-uxbytesread
 uxbytesneeded
+uxbytesread
 uxclockticks
 uxcontents
 uxcount
@@ -1697,8 +1698,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
-varprocesspacketrequest
 varprefreshcacheentry
+varprocesspacketrequest
 varpsendgratuitous
 varptimerreload
 vcastconstpointerto
