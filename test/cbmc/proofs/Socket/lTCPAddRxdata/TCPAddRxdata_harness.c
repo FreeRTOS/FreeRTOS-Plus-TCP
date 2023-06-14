@@ -45,7 +45,7 @@ void harness()
     /* This function expect socket to be not NULL, as it has been validated previously */
     __CPROVER_assume( pxSocket != NULL );
 
-    /* Assume size of streams to be in the range of maximmum supported size.*/
+    /* Assume size of streams to be in the range of maximum supported size.*/
     __CPROVER_assume( pxSocket->u.xTCP.uxRxStreamSize >= 0 && pxSocket->u.xTCP.uxRxStreamSize < ipconfigTCP_RX_BUFFER_LENGTH );
     __CPROVER_assume( pxSocket->u.xTCP.uxTxStreamSize >= 0 && pxSocket->u.xTCP.uxTxStreamSize < ipconfigTCP_TX_BUFFER_LENGTH );
 
