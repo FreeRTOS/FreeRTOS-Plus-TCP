@@ -51,11 +51,6 @@ extern DHCPData_t xDHCPData;
 extern Socket_t xDHCPv4Socket;
 void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
-/* Static member defined in freertos_api.c */
-#ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
-    extern uint32_t GetNetworkBuffer_failure_count;
-#endif
-
 uint32_t uxSocketCloseCnt = 0;
 
 DHCPMessage_IPv4_t xDHCPMessage;
@@ -195,15 +190,6 @@ void harness()
     {
         pxNetworkEndPoints->pxNext = NULL;
     }
-
-    /****************************************************************
-    * Initialize the counter used to bound the number of times
-    * GetNetworkBufferWithDescriptor can fail.
-    ****************************************************************/
-
-    #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
-        GetNetworkBuffer_failure_count = 0;
-    #endif
 
     if( !( ( pxNetworkEndPoints->xDHCPData.eDHCPState == eInitialWait ) ||
            ( xReset != pdFALSE ) ) )
