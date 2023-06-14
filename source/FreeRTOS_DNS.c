@@ -1629,7 +1629,7 @@
         {
             UDPPacket_t * pxUDPPacket = ( ( UDPPacket_t * )
                                           pxNetworkBuffer->pucEthernetBuffer );
-            
+
 
             size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
 
@@ -1637,7 +1637,7 @@
             if( pxNetworkBuffer->xDataLength >= uxBytesNeeded )
             {
                 uint8_t * pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( *pxUDPPacket ) ] );
-                
+
                 DNS_TreatNBNS( pucUDPPayloadBuffer,
                                pxNetworkBuffer->xDataLength,
                                pxUDPPacket->xIPHeader.ulSourceIPAddress );
