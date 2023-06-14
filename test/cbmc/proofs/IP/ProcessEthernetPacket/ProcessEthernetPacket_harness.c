@@ -39,7 +39,7 @@
 /* eARPProcessPacket() is proved separately */
 eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 {
-    __CPROVER_assert(pxARPFrame != NULL, "pxARPFrame != NULL");
+    __CPROVER_assert( pxARPFrame != NULL, "pxARPFrame != NULL" );
     eFrameProcessingResult_t retVal;
     return retVal;
 }
@@ -48,7 +48,7 @@ eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
 {
-    __CPROVER_assert(pxNetworkBuffer != NULL, "xNetworkBuffer != NULL");
+    __CPROVER_assert( pxNetworkBuffer != NULL, "xNetworkBuffer != NULL" );
 }
 
 void __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
@@ -56,7 +56,6 @@ void __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( NetworkBufferD
 /* The harness test proceeds to call prvProcessEthernetPacket with an unconstrained value */
 void harness()
 {
-
     NetworkBufferDescriptor_t * const pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
@@ -70,5 +69,4 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
 
     __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( pxNetworkBuffer );
-
 }
