@@ -16,4 +16,3 @@
       "$(FREERTOS_PLUS_TCP)/test/cbmc/include"
     ]
   }
-  
