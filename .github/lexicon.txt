@@ -1594,8 +1594,8 @@ uxborn
 uxbufferlength
 uxbuffersize
 uxbytecount
-uxbytesread
 uxbytesneeded
+uxbytesread
 uxclockticks
 uxcontents
 uxcount
@@ -1694,8 +1694,8 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
-varprocesspacketrequest
 varprefreshcacheentry
+varprocesspacketrequest
 varpsendgratuitous
 varptimerreload
 vcastconstpointerto
@@ -1918,6 +1918,7 @@ xiscallingfromiptask
 xisforrx
 xisglobal
 xisinputstream
+xisipinarpcache
 xiswaitingarpresolution
 xitemvalue
 xlastacttime

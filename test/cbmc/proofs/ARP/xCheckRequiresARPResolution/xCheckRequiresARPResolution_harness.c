@@ -89,7 +89,7 @@ void harness()
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     IPPacket_t * pxIPPacket;
 
-    /* IPv4/IPv6 header size are different. To make sure buffer size is enough, 
+    /* IPv4/IPv6 header size are different. To make sure buffer size is enough,
      * determine the test case is for IPv4 or IPv6 at the beginning. */
     xIsIPv6 = nondet_bool();
 
