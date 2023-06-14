@@ -42,19 +42,16 @@
 void harness()
 {
     NetworkInterface_t * pxNetworkInterface = safeMalloc( sizeof( NetworkInterface_t ) );
-    /*uint8_t * pucEthernetBuffer = safeMalloc( sizeof(ProtocolPacket_t) ); */
     uint8_t * pcNetworkBuffer = safeMalloc( sizeof( ProtocolPacket_t ) + 4 );
+    ProtocolPacket_t * pxProtocolPacket;
 
     __CPROVER_assume( pcNetworkBuffer != NULL );
-    ProtocolPacket_t * pxProtocolPacket = ( ProtocolPacket_t * ) ( ( uintptr_t ) ( pcNetworkBuffer ) + 2U );
 
+    pxProtocolPacket = ( ProtocolPacket_t * ) ( ( uintptr_t ) ( pcNetworkBuffer ) + 2U );
     __CPROVER_assume( pxProtocolPacket != NULL );
 
-    /*
-     * For this proof, its assumed that the endpoints and interfaces are correctly
-     * initialised and the pointers are set correctly.
-     */
-
+    /* For this proof, its assumed that the endpoints and interfaces are correctly
+     * initialised and the pointers are set correctly. */
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
