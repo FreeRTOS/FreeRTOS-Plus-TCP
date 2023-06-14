@@ -50,7 +50,6 @@ ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadRepl
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
-    NetworkInterface_t * pxInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
     uint8_t * pucBytes;
     size_t uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterAdvertisement_IPv6_t );
     size_t uxDataLen = 8;
