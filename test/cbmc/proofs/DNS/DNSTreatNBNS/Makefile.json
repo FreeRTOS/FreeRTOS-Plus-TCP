@@ -1,7 +1,5 @@
 {
   "ENTRY": "DNS_TreatNBNS",
-  ################################################################
-  # This configuration flag uses DNS cache
   "USE_CACHE":1,
   "CBMCFLAGS":
   [
