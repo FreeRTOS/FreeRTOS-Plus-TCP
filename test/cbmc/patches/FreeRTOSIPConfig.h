@@ -136,9 +136,7 @@ extern uint32_t ulRand();
  * FreeRTOS_IPInit() function call. */
 #define ipconfigUSE_DHCP                         1
 
-#ifndef ipconfigDHCP_REGISTER_HOSTNAME
-    #define ipconfigDHCP_REGISTER_HOSTNAME           1
-#endif
+#define ipconfigDHCP_REGISTER_HOSTNAME           1
 
 #define ipconfigDHCP_USES_UNICAST                1
 
