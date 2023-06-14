@@ -47,7 +47,7 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * 
 {
     __CPROVER_assert( pxIPv6Address != NULL, "Precondition: pxIPv6Address != NULL" );
 
-    /* Assume atleast one end-point is available */
+    /* Assume at least one end-point is available */
     return pxNetworkEndPoint_Temp;
 }
 
@@ -56,7 +56,7 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * 
 NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask( uint32_t ulIPAddress,
                                                     uint32_t ulWhere )
 {
-    /* Assume atleast one end-point is available */
+    /* Assume at least one end-point is available */
     return pxNetworkEndPoint_Temp;
 }
 
@@ -93,7 +93,7 @@ void harness()
     uint32_t ulIPAddress;
     uint16_t usLength;
 
-    /* Assume atleast 1 valid endpoint */
+    /* Assume at least 1 valid endpoint */
     pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
