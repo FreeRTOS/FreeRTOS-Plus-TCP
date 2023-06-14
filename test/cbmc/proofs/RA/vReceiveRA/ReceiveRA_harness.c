@@ -52,11 +52,11 @@ ICMPPrefixOption_IPv6_t * __CPROVER_file_local_FreeRTOS_RA_c_vReceiveRA_ReadRepl
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    pxNetworkBuffer->pucEthernetBuffer = malloc( xRequestedSizeBytes );
+    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
