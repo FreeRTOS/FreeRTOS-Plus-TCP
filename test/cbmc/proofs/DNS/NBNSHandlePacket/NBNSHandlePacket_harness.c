@@ -14,15 +14,15 @@ NetworkBufferDescriptor_t xNetworkBuffer;
 
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
 {
-    __CPROVER_assert(pvBuffer != NULL, "Precondition: pvBuffer != NULL");
+    __CPROVER_assert( pvBuffer != NULL, "Precondition: pvBuffer != NULL" );
     NetworkBufferDescriptor_t * pxRBuf;
 
-    if(nondet_bool())
+    if( nondet_bool() )
     {
         pxRBuf = NULL;
     }
     else
-    {   
+    {
         pxRBuf = &xNetworkBuffer;
     }
 
@@ -34,48 +34,46 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
 {
     NetworkBufferDescriptor_t * pxRBuf;
 
-    __CPROVER_assert(pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL");
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL" );
 
-    uint8_t *pucNewBuffer = malloc(xNewSizeBytes);
+    uint8_t * pucNewBuffer = malloc( xNewSizeBytes );
     __CPROVER_assume( pucNewBuffer != NULL );
 
     pxNetworkBuffer->pucEthernetBuffer = pucNewBuffer;
 
-    if(nondet_bool())
+    if( nondet_bool() )
     {
         pxRBuf = NULL;
     }
     else
-    {   
+    {
         pxRBuf = pxNetworkBuffer;
     }
-    
-    return pxRBuf;
 
+    return pxRBuf;
 }
 
 /* prepareReplyDNSMessage is proved separately */
 void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                     BaseType_t lNetLength )
+                             BaseType_t lNetLength )
 {
-    __CPROVER_assert(pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL");
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL" );
 }
 
 void harness()
 {
-
-    
     uint32_t ulIPAddress;
 
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
 
     BaseType_t xDataSize;
-    __CPROVER_assume( (xDataSize > sizeof(UDPPacket_t))  && (xDataSize < (ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - (sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t )))));
-    xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
-    __CPROVER_assume(xNetworkBuffer.pucEthernetBuffer != NULL);
-    xNetworkBuffer.xDataLength = xDataSize - sizeof(UDPPacket_t);
 
-    if(nondet_bool())
+    __CPROVER_assume( ( xDataSize > sizeof( UDPPacket_t ) ) && ( xDataSize < ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - ( sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) ) );
+    xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
+    __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
+    xNetworkBuffer.xDataLength = xDataSize - sizeof( UDPPacket_t );
+
+    if( nondet_bool() )
     {
         xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
     }
@@ -84,6 +82,5 @@ void harness()
         xNetworkBuffer.pxEndPoint = NULL;
     }
 
-    ulNBNSHandlePacket(&xNetworkBuffer);
-
+    ulNBNSHandlePacket( &xNetworkBuffer );
 }
