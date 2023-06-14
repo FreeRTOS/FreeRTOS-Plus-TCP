@@ -39,7 +39,7 @@
 #include "../../utility/memory_assignments.c"
 
 /****************************************************************
-* Declare the IPHeader Size external to the harness so it can be
+* Declare the IP Header Size external to the harness so it can be
 * accessed by uxIPHeaderSizePacket.
 ****************************************************************/
 size_t uxIPHeaderSizePacket_uxResult;
