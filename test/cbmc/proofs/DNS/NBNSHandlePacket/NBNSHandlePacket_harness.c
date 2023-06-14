@@ -64,14 +64,19 @@ void harness()
 {
     uint32_t ulIPAddress;
 
-    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
 
     BaseType_t xDataSize;
 
-    __CPROVER_assume( ( xDataSize > sizeof( UDPPacket_t ) ) && ( xDataSize < ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - ( sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) ) );
-    xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
-    __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
-    xNetworkBuffer.xDataLength = xDataSize - sizeof( UDPPacket_t );
+    BaseType_t xDataSize;
+
+    /* When re-adjusting the buffer, (sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t )) more bytes are
+    required to be added to the existing buffer. Make sure total bytes doesn't exceed  ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER
+    when re-resizing. This will prevent hitting an assert if Buffer Allocation 1 is used. */
+    __CPROVER_assume( (xDataSize >= (sizeof(UDPPacket_t)))  && (xDataSize < (ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - (sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t )) )));
+    xNetworkBuffer.pucEthernetBuffer = malloc( xDataSize );
+    __CPROVER_assume(xNetworkBuffer.pucEthernetBuffer != NULL);
+    xNetworkBuffer.xDataLength = xDataSize - sizeof(UDPPacket_t);
 
     if( nondet_bool() )
     {
