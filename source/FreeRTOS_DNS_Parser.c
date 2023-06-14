@@ -71,11 +71,13 @@
                 else
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            {
-                IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                {
+                    IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
-            }
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
+                }
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             if( pxEndPoint != NULL )
             {
@@ -1176,7 +1178,7 @@
 
                 if( xBufferAllocFixedSize == pdFALSE )
                 {
-                    /* We're linked with BufferAllocation_2.c
+                    /* We're linked with BufferAlolocation_2.c
                      * pxResizeNetworkBufferWithDescriptor() will malloc a new bigger buffer,
                      * and memcpy the data. The old buffer will be free'd.
                      */

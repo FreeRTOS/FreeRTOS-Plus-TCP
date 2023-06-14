@@ -1,9 +1,12 @@
 {
-  "ENTRY": "prepareReplyDNSMessage",
+  "ENTRY": "DNS_TreatNBNS",
+  ################################################################
+  # This configuration flag uses DNS cache
   "USE_CACHE":1,
   "CBMCFLAGS":
   [
   	"--unwind 1",
+    "--unwindset DNS_TreatNBNS.0:16",
   	"--nondet-static"
   ],
   "OBJS":
