@@ -11,20 +11,12 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
-/* This proof assumes FreeRTOS_socket, pxTCPSocketLookup and
- * pxGetNetworkBufferWithDescriptor are implemented correctly.
+/* This proof assumes pxTCPSocketLookup and pxGetNetworkBufferWithDescriptor
+ * are implemented correctly.
  *
  * It also assumes prvSingleStepTCPHeaderOptions, prvCheckOptions, prvTCPPrepareSend,
  * prvTCPHandleState, prvHandleListen_IPV4 and prvTCPReturnPacket are correct. These functions are
  * proved to be correct separately. */
-
-/* Abstraction of FreeRTOS_socket */
-Socket_t FreeRTOS_socket( BaseType_t xDomain,
-                          BaseType_t xType,
-                          BaseType_t xProtocol )
-{
-    return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
-}
 
 /* Abstraction of xTaskGetCurrentTaskHandle */
 TaskHandle_t xTaskGetCurrentTaskHandle( void )
@@ -55,22 +47,6 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
 
         /* This test case is for IPv4. */
         __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
-
-        /* This bit depicts whether the socket was supposed to be reused or not. */
-        if( xRetSocket->u.xTCP.pxPeerSocket == NULL )
-        {
-            xRetSocket->u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
-        }
-        else
-        {
-            xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
-        }
-
-        if( nondet_bool() )
-        {
-            xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
-            xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
-        }
     }
 
     return xRetSocket;
@@ -91,22 +67,6 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
 
         /* This test case is for IPv4. */
         __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
-
-        /* This bit depicts whether the socket was supposed to be reused or not. */
-        if( xRetSocket->u.xTCP.pxPeerSocket == NULL )
-        {
-            xRetSocket->u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
-        }
-        else
-        {
-            xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
-        }
-
-        if( xIsCallingFromIPTask() == pdFALSE )
-        {
-            xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
-            xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
-        }
     }
 
     return xRetSocket;

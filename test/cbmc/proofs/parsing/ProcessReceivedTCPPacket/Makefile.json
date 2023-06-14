@@ -27,7 +27,8 @@
     "--remove-function-body prvCheckOptions",
     "--remove-function-body prvTCPPrepareSend",
     "--remove-function-body prvTCPReturnPacket",
-    "--remove-function-body prvTCPHandleState"
+    "--remove-function-body prvTCPHandleState",
+    "--remove-function-body vTCPStateChange"
   ],
   "DEF":
   [
