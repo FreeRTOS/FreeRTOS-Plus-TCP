@@ -71,7 +71,7 @@ void harness()
     __CPROVER_assume( uxBufferLength >= ipSIZE_OF_ETH_HEADER + usHeaderLength + sizeof( ProtocolHeaders_t ) );
     /* IPv4 header length is checked in prvProcessIPPacket. */
     __CPROVER_assume( ( usHeaderLength <= ( uxBufferLength - ipSIZE_OF_ETH_HEADER ) ) && ( usHeaderLength >= ipSIZE_OF_IPv4_HEADER ) );
-    
+
     /* Set to valid input. */
     __CPROVER_assume( ( xOutgoingPacket == pdTRUE ) || ( xOutgoingPacket == pdFALSE ) );
 

@@ -63,7 +63,7 @@ void harness()
     /* This test case verifies IPv6 only. */
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     __CPROVER_assume( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE );
-    
+
     /* Set to valid input. */
     __CPROVER_assume( ( xOutgoingPacket == pdTRUE ) || ( xOutgoingPacket == pdFALSE ) );
 
