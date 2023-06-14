@@ -83,6 +83,7 @@ void harness()
         xNetworkBuffer.pxEndPoint = NULL;
     }
 
-    DNS_TreatNBNS(xNetworkBuffer.pucEthernetBuffer, xNetworkBuffer.xDataLength, ulIPAddress);
+    //DNS_TreatNBNS(xNetworkBuffer.pucEthernetBuffer, xNetworkBuffer.xDataLength, ulIPAddress);
+    ulNBNSHandlePacket(&xNetworkBuffer);
 
 }
