@@ -334,7 +334,6 @@ static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
                                       uint32_t ulSenderProtocolAddress )
 {
     ARPHeader_t * pxARPHeader = &( pxARPFrame->xARPHeader );
-    uint32_t ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
     const void * pvCopySource;
     void * pvCopyDest;
@@ -353,35 +352,17 @@ static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
     /* Generate a reply payload in the same buffer. */
     pxARPHeader->usOperation = ( uint16_t ) ipARP_REPLY;
 
-    if( ulTargetProtocolAddress == ulSenderProtocolAddress )
-    {
-        /* A double IP address is detected! */
-        /* Give the sources MAC address the value of the broadcast address, will be swapped later */
+    /* A double IP address cannot be detected here, it is taken care in the Process ARP Packets path */
 
-        /*
-         * Use helper variables for memcpy() to remain
-         * compliant with MISRA Rule 21.15.  These should be
-         * optimized away.
-         */
-        pvCopySource = xBroadcastMACAddress.ucBytes;
-        pvCopyDest = pxARPFrame->xEthernetHeader.xSourceAddress.ucBytes;
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xBroadcastMACAddress ) );
-
-        ( void ) memset( pxARPHeader->xTargetHardwareAddress.ucBytes, 0, sizeof( MACAddress_t ) );
-        pxARPHeader->ulTargetProtocolAddress = 0U;
-    }
-    else
-    {
-        /*
-         * Use helper variables for memcpy() to remain
-         * compliant with MISRA Rule 21.15.  These should be
-         * optimized away.
-         */
-        pvCopySource = pxARPHeader->xSenderHardwareAddress.ucBytes;
-        pvCopyDest = pxARPHeader->xTargetHardwareAddress.ucBytes;
-        ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
-        pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
-    }
+    /*
+     * Use helper variables for memcpy() to remain
+     * compliant with MISRA Rule 21.15.  These should be
+     * optimized away.
+     */
+    pvCopySource = pxARPHeader->xSenderHardwareAddress.ucBytes;
+    pvCopyDest = pxARPHeader->xTargetHardwareAddress.ucBytes;
+    ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
+    pxARPHeader->ulTargetProtocolAddress = ulSenderProtocolAddress;
 
     /*
      * Use helper variables for memcpy() to remain
@@ -925,7 +906,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+                if( pxEndPoint->bits.bIPv6 == 0U ) /*NULL End Point is checked in the for loop, no need for an extra check */
                 {
                     /* For multi-cast, use the first IPv4 end-point. */
                     *( ppxEndPoint ) = pxEndPoint;
@@ -1158,7 +1139,8 @@ void vARPAgeCache( void )
         {
             if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
             {
-                switch( pxEndPoint->bits.bIPv6 )
+                /* Case default is never toggled because IPv6 flag can be TRUE or FALSE */
+                switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
@@ -1172,10 +1154,10 @@ void vARPAgeCache( void )
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                    default:
+                    default: /* LCOV_EXCL_LINE */
                         /* Shouldn't reach here */
                         /* MISRA 16.4 Compliance */
-                        break;
+                        break; /* LCOV_EXCL_LINE */
                 }
             }
 

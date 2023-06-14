@@ -185,6 +185,7 @@ dff
 dhcp
 dhcpbroadcast
 dhcpcookie
+dhcpmsg
 dhcpserveraddress
 didn
 diff
@@ -552,6 +553,7 @@ macobject
 macobjhandle
 macobjstatus
 macvlantr
+malformed
 malloc
 malloclarge
 mallocsocket
@@ -1410,6 +1412,7 @@ ulflag
 ulflags
 ulgateway
 ulgatewayaddress
+ulgenericlength
 ulgetruntimecountervalue
 ulhighestrxallowed
 ulhighestsequencenumber
@@ -1694,6 +1697,7 @@ vapplicationpingreplyhook
 var
 varpagecache
 varpgeneraterequestpacket
+varprocesspacketrequest
 varprefreshcacheentry
 varpsendgratuitous
 varptimerreload
