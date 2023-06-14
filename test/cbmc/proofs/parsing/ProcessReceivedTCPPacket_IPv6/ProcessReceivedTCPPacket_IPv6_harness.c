@@ -10,6 +10,7 @@
 
 /* CBMC includes. */
 #include "cbmc.h"
+#include "../../utility/memory_assignments.c"
 
 /* This proof assumes pxTCPSocketLookup, vTCPStateChange, prvTCPSocketIsActive, xIsCallingFromIPTask,
  * xSequenceGreaterThan, xSequenceLessThan, xTaskGetTickCount, vReleaseNetworkBufferAndDescriptor, xTCPWindowTxHasData and
@@ -39,13 +40,10 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
 FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
                                      NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    FreeRTOS_Socket_t * xRetSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    FreeRTOS_Socket_t * xRetSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
     if( xRetSocket )
     {
-        xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
-        xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
-
         /* This test case is for IPv6. */
         __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdTRUE );
     }
@@ -59,13 +57,10 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        IPv46_Address_t xRemoteIP,
                                        UBaseType_t uxRemotePort )
 {
-    FreeRTOS_Socket_t * xRetSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    FreeRTOS_Socket_t * xRetSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
     if( xRetSocket )
     {
-        xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
-        xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
-
         /* This test case is for IPv6. */
         __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdTRUE );
     }
