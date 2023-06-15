@@ -758,6 +758,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             pxSocket->xSendBlockTime = ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME;
             pxSocket->ucSocketOptions = ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT;
             pxSocket->ucProtocol = ( uint8_t ) xProtocolCpy; /* protocol: UDP or TCP */
+            #if ( ipconfigPACKET_PRIORITIES > 1 )
+                pxSocket->ucPriority = 0;
+            #endif
 
             xReturn = pxSocket;
         }
@@ -2928,6 +2931,24 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         xReturn = prvSetOptionStopRX( pxSocket, pvOptionValue );
                         break;
                 #endif /* ipconfigUSE_TCP == 1 */
+                #if ( ipconfigPACKET_PRIORITIES > 1 )
+                    case FREERTOS_SO_PRIORITY:
+                       {
+                           uint8_t * pucValue = ( uint8_t * ) pvOptionValue;
+
+                           if( ( pucValue == NULL ) && ( *pucValue > 8 ) )
+                           {
+                               xReturn = pdFREERTOS_ERRNO_EINVAL;
+                           }
+                           else
+                           {
+                               pxSocket->ucPriority = *pucValue;
+                               xReturn = pdPASS;
+                           }
+
+                           break;
+                       }
+                #endif /* if ipconfigEVENT_QUEUES > 1 */
 
             default:
                 /* No other options are handled. */

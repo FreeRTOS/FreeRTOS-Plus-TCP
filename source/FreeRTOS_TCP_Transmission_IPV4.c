@@ -183,6 +183,9 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                 prvTCPReturn_SetSequenceNumber( pxSocket, pxNetworkBuffer, uxIPHeaderSize, ulLen );
                 pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
                 pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
+                #if ( ipconfigPACKET_PRIORITIES > 1 )
+                    pxNetworkBuffer->ucPriority = pxSocket->ucPriority;
+                #endif
             }
             else
             {

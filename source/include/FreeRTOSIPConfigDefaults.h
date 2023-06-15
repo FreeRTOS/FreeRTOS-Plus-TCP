@@ -1161,4 +1161,8 @@
     #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    ( 1500U )
 #endif
 
+#ifndef ipconfigPACKET_PRIORITIES
+    #define ipconfigPACKET_PRIORITIES    1
+#endif
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

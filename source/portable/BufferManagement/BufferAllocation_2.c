@@ -306,6 +306,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     pxReturn->xDataLength = xRequestedSizeBytesCopy;
                     pxReturn->pxInterface = NULL;
                     pxReturn->pxEndPoint = NULL;
+                    #if ( ipconfigPACKET_PRIORITIES > 1 )
+                        pxReturn->ucPriority = 1;
+                    #endif
 
                     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                         {
