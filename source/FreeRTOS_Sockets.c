@@ -2939,7 +2939,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                        {
                            uint8_t * pucValue = ( uint8_t * ) pvOptionValue;
 
-                           if( ( pucValue == NULL ) && ( *pucValue > 8 ) )
+                           if( ( pucValue == NULL ) && ( *pucValue >= ipconfigPACKET_PRIORITIES ) )
                            {
                                xReturn = pdFREERTOS_ERRNO_EINVAL;
                            }
