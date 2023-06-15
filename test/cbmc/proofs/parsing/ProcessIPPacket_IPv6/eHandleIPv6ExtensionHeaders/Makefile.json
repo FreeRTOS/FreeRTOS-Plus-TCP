@@ -1,10 +1,10 @@
 {
   "ENTRY": "eHandleIPv6ExtensionHeaders",
+  "MAX_EXT_HEADER_NUM": 21,
   "CBMCFLAGS":
   [
-    "--unwind 28",
-    "--unwindset memcmp.0:16",
-    "--unwindset eHandleIPv6ExtensionHeaders.0:28",
+    "--unwind 1",
+    "--unwindset eHandleIPv6ExtensionHeaders.3:{MAX_EXT_HEADER_NUM}",
     "--nondet-static"
   ],
   "OPT":

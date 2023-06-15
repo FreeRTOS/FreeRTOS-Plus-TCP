@@ -1,9 +1,13 @@
 {
   "ENTRY": "prvAllowIPPacketIPv6",
+  "MAX_EXT_HEADER_PARSING_LOOP": 21,
+  "IPV6_ADDRESS_LOOP": 17,
   "CBMCFLAGS":
   [
-    "--unwind 28",
-    "--unwindset memcmp.0:28",
+    "--unwind 1",
+    "--unwindset memcmp.0:{IPV6_ADDRESS_LOOP}",
+    "--unwindset memcmp.1:{IPV6_ADDRESS_LOOP}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_IPv6_c_xCheckIPv6SizeFields.0:{MAX_EXT_HEADER_PARSING_LOOP}",
     "--nondet-static"
   ],
   "OPT":

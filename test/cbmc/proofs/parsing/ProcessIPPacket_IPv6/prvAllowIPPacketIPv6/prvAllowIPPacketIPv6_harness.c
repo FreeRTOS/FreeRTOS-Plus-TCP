@@ -19,6 +19,8 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPA
 {
     NetworkEndPoint_t * pxReturn = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
 
+    __CPROVER_assert( pxIPAddress != NULL, "pxIPAddress shouldn't be NULL" );
+
     return pxReturn;
 }
 
@@ -26,8 +28,6 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPA
 BaseType_t FreeRTOS_IsNetworkUp( void )
 {
     BaseType_t xReturn;
-
-    __CPROVER_assume( xReturn == pdTRUE || xReturn == pdFALSE );
 
     return xReturn;
 }
@@ -37,6 +37,8 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddres
                                                 const NetworkInterface_t * pxInterface )
 {
     NetworkEndPoint_t * pxReturn = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+
+    __CPROVER_assert( pxMACAddress != NULL, "MAC address shouldn't be NULL" );
 
     return pxReturn;
 }
@@ -71,11 +73,23 @@ void harness()
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_IPv6_t. */
-    __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_IPv6_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
+    __CPROVER_assume( ( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_IPv6_t ) ) &&
+                      ( pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE ) );
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
+
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+        pxNetworkEndPoints->pxNext->pxNext = NULL;
+        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
+    }
+    else
+    {
+        pxNetworkEndPoints->pxNext = NULL;
+    }
 
     pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints;
 
