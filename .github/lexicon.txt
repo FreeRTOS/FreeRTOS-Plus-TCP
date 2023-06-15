@@ -1446,6 +1446,7 @@ ulmatching
 ulmsec
 ulmss
 ulmtu
+ulnbnshandlepacket
 ulnetmask
 ulnextfreetxdescriptor
 ulnextsequencenumber
