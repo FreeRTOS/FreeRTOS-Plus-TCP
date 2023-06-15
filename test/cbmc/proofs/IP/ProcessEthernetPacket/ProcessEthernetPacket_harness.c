@@ -76,13 +76,15 @@ void __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( NetworkBufferD
 void harness()
 {
     /* Needs a valid network buffer to be passed */
-    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    __CPROVER_assume(pxNetworkBuffer != NULL);
 
     /* Minimum required length of the pxNetworkBuffer->xDataLength is at least the size of the EthernetHeader_t. */
     __CPROVER_assume( ( pxNetworkBuffer->xDataLength >= ( sizeof( EthernetHeader_t ) ) ) && ( pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE ) );
 
     /* Needs a valid ethernet buffer to be passed */
-    pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) malloc( pxNetworkBuffer->xDataLength ) ) );
+    pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) safeMalloc( pxNetworkBuffer->xDataLength ) ) );
+    __CPROVER_assume(pxNetworkBuffer->pucEthernetBuffer != NULL);
 
     __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( pxNetworkBuffer );
 }
