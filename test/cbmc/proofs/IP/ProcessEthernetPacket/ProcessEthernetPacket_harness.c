@@ -36,6 +36,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+#include "cbmc.h"
+
 /* eARPProcessPacket() is proved separately */
 eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame )
 {
@@ -49,24 +51,38 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL, "xNetworkBuffer != NULL" );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "pxNetworkBuffer->pucEthernetBuffer != NULL" );
+
+    free( pxNetworkBuffer->pucEthernetBuffer );
+    free( pxNetworkBuffer );
 }
+
+/* This function has been proved to be memory safe in another proof (in parsing/ProcessIPPacket). Hence we assume it to be correct here. */
+eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_IP_c_prvProcessIPPacket( IPPacket_t * pxIPPacket,
+                                                                                NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxIPPacket != NULL, "pxIPPacket cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
+
+    eFrameProcessingResult_t result;
+
+    return result;
+}
+
 
 void __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /* The harness test proceeds to call prvProcessEthernetPacket with an unconstrained value */
 void harness()
 {
-    NetworkBufferDescriptor_t * const pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) );
+    /* Needs a valid network buffer to be passed */
+    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) );
 
-    __CPROVER_assume( pxNetworkBuffer != NULL );
+    /* Minimum required length of the pxNetworkBuffer->xDataLength is at least the size of the EthernetHeader_t. */
+    __CPROVER_assume( ( pxNetworkBuffer->xDataLength >= ( sizeof( EthernetHeader_t ) ) ) && ( pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE ) );
 
-    /* Points to ethernet buffer offset by ipIP_TYPE_OFFSET, this make sure the buffer allocation is similar
-     * to the pxGetNetworkBufferWithDescriptor */
-    pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) malloc( ipTOTAL_ETHERNET_FRAME_SIZE ) ) + ipIP_TYPE_OFFSET );
-    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
-
-    /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_t. */
-    __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
+    /* Needs a valid ethernet buffer to be passed */
+    pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) malloc( pxNetworkBuffer->xDataLength ) ) );
 
     __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( pxNetworkBuffer );
 }
