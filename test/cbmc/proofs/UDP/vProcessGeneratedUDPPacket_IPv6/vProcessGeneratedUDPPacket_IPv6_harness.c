@@ -99,23 +99,23 @@ void harness()
      * Add an end point to the network buffer present. Its assumed that the
      * network interface layer correctly assigns the end point to the generated buffer.
      */
-    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
     pxNetworkBuffer->pxEndPoint->pxNext = NULL;
 
     /* Add an interface */
-    pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
 
     /* Add few endpoints to global pxNetworkEndPoints */
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
     pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
 
     if( nondet_bool() )
     {
-        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
         pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
         pxNetworkEndPoints->pxNext->pxNext = NULL;
