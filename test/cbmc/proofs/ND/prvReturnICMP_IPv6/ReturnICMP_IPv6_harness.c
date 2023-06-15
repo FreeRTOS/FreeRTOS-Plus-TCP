@@ -82,7 +82,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 }
 
 /* This is an output function implemented by a third party and
- need not be tested with this proof. */
+ * need not be tested with this proof. */
 BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                 BaseType_t xReleaseAfterSend )
@@ -105,7 +105,7 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPA
     if( ensure_memory_is_valid( pxEndPoints, sizeof( NetworkEndPoint_t ) ) )
     {
         /* Interface init. */
-        pxEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+        pxEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
         __CPROVER_assume( pxEndPoints->pxNetworkInterface != NULL );
 
         pxEndPoints->pxNext = NULL;
@@ -150,7 +150,7 @@ void harness()
     /* Add matching data length to the network buffer descriptor. */
     __CPROVER_assume( xLocalBuffer.xDataLength == usEthernetBufferSize );
 
-    xLocalBuffer.pucEthernetBuffer = malloc( usEthernetBufferSize );
+    xLocalBuffer.pucEthernetBuffer = safeMalloc( usEthernetBufferSize );
 
     /* Since this pointer is maintained by the IP-task, either the pointer
      * pxARPWaitingNetworkBuffer will be NULL or xLocalBuffer.pucEthernetBuffer
