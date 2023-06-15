@@ -1434,6 +1434,9 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
     pxNetworkBuffer->xDataLength = uxTotalDataLength + uxPayloadOffset;
     pxNetworkBuffer->usPort = pxDestinationAddress->sin_port;
     pxNetworkBuffer->usBoundPort = ( uint16_t ) socketGET_SOCKET_PORT( pxSocket );
+    #if ipconfigPACKET_PRIORITIES > 1
+        pxNetworkBuffer->ucPriority = pxSocket->ucPriority;
+    #endif
 
     /* The socket options are passed to the IP layer in the
      * space that will eventually get used by the Ethernet header. */
