@@ -178,6 +178,11 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /** @brief The queue used to pass events into the IP-task for processing. */
 QueueHandle_t xNetworkEventQueue = NULL;
 
+#if ipconfigEVENT_QUEUES > 1
+    QueueHandle_t xNetworkEventQueues[ ipconfigEVENT_QUEUES ] = { 0 };
+    uint8_t xQueueMapping[ ipconfigPACKET_PRIORITIES ] = ipconfigPACKET_PRIORITY_MAPPING;
+#endif
+
 /** @brief The IP packet ID. */
 uint16_t usPacketIdentifier = 0U;
 
@@ -271,10 +276,31 @@ static void prvProcessIPEventsAndTimers( void )
     /* Wait until there is something to do. If the following call exits
      * due to a time out rather than a message being received, set a
      * 'NoEvent' value. */
-    if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
-    {
-        xReceivedEvent.eEventType = eNoEvent;
-    }
+    #if ipconfigEVENT_QUEUES > 1
+        if( ulTaskNotifyTake( pdFALSE, xNextIPSleep ) == pdFALSE )
+        {
+            xReceivedEvent.eEventType = eNoEvent;
+        }
+        else
+        {
+            BaseType_t xIndex;
+            BaseType_t xReturn;
+
+            for( xIndex = ipconfigEVENT_QUEUES - 1; xIndex >= 0; xIndex-- )
+            {
+                if( uxQueueMessagesWaiting( xNetworkEventQueues[ xIndex ] ) > 0 )
+                {
+                    xQueueReceive( xNetworkEventQueues[ xIndex ], &xReceivedEvent, 0 );
+                    break;
+                }
+            }
+        }
+    #else /* if ipconfigEVENT_QUEUES > 1 */
+        if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
+        {
+            xReceivedEvent.eEventType = eNoEvent;
+        }
+    #endif /* if ipconfigEVENT_QUEUES > 1 */
 
     #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
         {
@@ -942,6 +968,11 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 BaseType_t FreeRTOS_IPInit_Multi( void )
 {
     BaseType_t xReturn = pdFALSE;
+    BaseType_t xAllocSuccessful = pdFALSE;
+
+    #if ipconfigEVENT_QUEUES > 1
+        BaseType_t xIndex;
+    #endif
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
@@ -953,21 +984,54 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
     /* Attempt to create the queue used to communicate with the IP task. */
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
         {
-            static StaticQueue_t xNetworkEventStaticQueue;
-            static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
-            xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
-                                                     sizeof( IPStackEvent_t ),
-                                                     ucNetworkEventQueueStorageArea,
-                                                     &xNetworkEventStaticQueue );
+            #if ( ipconfigEVENT_QUEUES > 1 )
+                static StaticQueue_t xPacketEventStaticQueue[ ipconfigEVENT_QUEUES ];
+                static uint8_t ucPacketEventQueueStorageArea[ ipconfigEVENT_QUEUES ][ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
+
+                xAllocSuccessful = pdTRUE;
+
+                for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
+                {
+                    xNetworkEventQueues[ xIndex ] = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                                        sizeof( IPStackEvent_t ),
+                                                                        ucPacketEventQueueStorageArea[ xIndex ],
+                                                                        &xPacketEventStaticQueue[ xIndex ] );
+                    xAllocSuccessful &= ( xNetworkEventQueues[ xIndex ] != NULL );
+                }
+
+                xNetworkEventQueue = xNetworkEventQueues[ ipconfigEVENT_QUEUES - 1 ];
+            #else /* if ipconfigEVENT_QUEUES > 1 */
+                static StaticQueue_t xNetworkEventStaticQueue;
+                static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
+                xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                         sizeof( IPStackEvent_t ),
+                                                         ucNetworkEventQueueStorageArea,
+                                                         &xNetworkEventStaticQueue );
+                xAllocSuccessful = ( xNetworkEventQueue != NULL );
+            #endif /* if ipconfigEVENT_QUEUES > 1 */
         }
-    #else
+    #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
         {
-            xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
-            configASSERT( xNetworkEventQueue != NULL );
+            #if ( ipconfigEVENT_QUEUES > 1 )
+                xAllocSuccessful = pdTRUE;
+
+                for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
+                {
+                    xNetworkEventQueues[ xIndex ] = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
+                    configASSERT( xNetworkEventQueues[ xIndex ] != NULL );
+                    xAllocSuccessful &= ( xNetworkEventQueues[ xIndex ] != NULL );
+                }
+
+                xNetworkEventQueue = xNetworkEventQueues[ ipconfigEVENT_QUEUES - 1 ];
+            #else /* if ( ipconfigEVENT_QUEUES > 1 ) */
+                xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
+                configASSERT( xNetworkEventQueue != NULL );
+                xAllocSuccessful = ( xNetworkEventQueue != NULL );
+            #endif /* if ( ipconfigEVENT_QUEUES > 1 ) */
         }
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
-    if( xNetworkEventQueue != NULL )
+    if( xAllocSuccessful != pdFALSE )
     {
         #if ( configQUEUE_REGISTRY_SIZE > 0 )
             {
@@ -1017,8 +1081,18 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             FreeRTOS_debug_printf( ( "FreeRTOS_IPInit_Multi: xNetworkBuffersInitialise() failed\n" ) );
 
             /* Clean up. */
-            vQueueDelete( xNetworkEventQueue );
-            xNetworkEventQueue = NULL;
+            #if ( ipconfigEVENT_QUEUES > 1 )
+                for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
+                {
+                    vQueueDelete( xNetworkEventQueues[ xIndex ] );
+                    xNetworkEventQueues[ xIndex ] = NULL;
+                }
+
+                xNetworkEventQueue = NULL;
+            #else
+                vQueueDelete( xNetworkEventQueue );
+                xNetworkEventQueue = NULL;
+            #endif
         }
     }
     else
@@ -1392,7 +1466,11 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                      * IP task is already awake processing other message. */
                     vIPSetTCPTimerExpiredState( pdTRUE );
 
-                    if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
+                    #if ipconfigEVENT_QUEUES > 1
+                        if( ulTaskGenericNotifyValueClear( xIPTaskHandle, 0, 0 ) != 0U )
+                    #else
+                        if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
+                    #endif
                     {
                         /* Not actually going to send the message but this is not a
                          * failure as the message didn't need to be sent. */
@@ -1411,7 +1489,24 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                 uxUseTimeout = ( TickType_t ) 0;
             }
 
-            xReturn = xQueueSendToBack( xNetworkEventQueue, pxEvent, uxUseTimeout );
+            #if ipconfigEVENT_QUEUES > 1
+                BaseType_t xQueue = ipconfigEVENT_QUEUES - 1;
+
+                if( ( pxEvent->eEventType == eNetworkRxEvent ) || ( pxEvent->eEventType == eNetworkTxEvent ) || ( pxEvent->eEventType == eStackTxEvent ) )
+                {
+                    NetworkBufferDescriptor_t * pxBuffer = ( NetworkBufferDescriptor_t * ) pxEvent->pvData;
+                    xQueue = xQueueMapping[ pxBuffer->ucPriority ];
+                }
+
+                xReturn = xQueueSendToBack( xNetworkEventQueues[ xQueue ], pxEvent, uxUseTimeout );
+
+                if( xReturn != pdFAIL )
+                {
+                    xTaskNotifyGive( xIPTaskHandle );
+                }
+            #else /* if ipconfigEVENT_QUEUES > 1 */
+                xReturn = xQueueSendToBack( xNetworkEventQueue, pxEvent, uxUseTimeout );
+            #endif /* if ipconfigEVENT_QUEUES > 1 */
 
             if( xReturn == pdFAIL )
             {

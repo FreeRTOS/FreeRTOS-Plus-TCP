@@ -1161,8 +1161,28 @@
     #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    ( 1500U )
 #endif
 
+#ifndef ipconfigEVENT_QUEUES
+    #define ipconfigEVENT_QUEUES    1
+#endif
+
 #ifndef ipconfigPACKET_PRIORITIES
-    #define ipconfigPACKET_PRIORITIES    1
+    #if ipconfigEVENT_QUEUES > 1
+        #define ipconfigPACKET_PRIORITIES    8
+    #else
+        #define ipconfigPACKET_PRIORITIES    1
+    #endif
+#endif
+
+#ifndef ipconfigPACKET_PRIORITY_MAPPING
+    #if ipconfigPACKET_PRIORITIES == 8 && ipconfigEVENT_QUEUES == 3
+        #define ipconfigPACKET_PRIORITY_MAPPING    { 0, 1, 1, 1, 2, 2, 2, 2, }
+    #elif ipconfigPACKET_PRIORITIES > 1 && ipconfigEVENT_QUEUES > 1
+        #error "Please define your own ipconfigPACKET_PRIORITY_MAPPING."
+    #endif
+#endif
+
+#if ipconfigPACKET_PRIORITIES == 1 && ipconfigEVENT_QUEUES > 1
+    #error "Network event queues need priority support."
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
