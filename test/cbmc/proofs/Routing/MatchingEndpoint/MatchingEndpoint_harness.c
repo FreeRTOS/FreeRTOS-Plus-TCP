@@ -52,7 +52,7 @@ void harness()
 
     /* For this proof, its assumed that the endpoints and interfaces are correctly
      * initialised and the pointers are set correctly. */
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
     /* Interface init. */
