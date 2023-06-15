@@ -70,12 +70,12 @@ void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                NetworkBufferDescriptor_t * pxNetworkBuffer,
                                size_t uxIPHeaderSize )
 {
-    NetworkEndPoint_t * pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    NetworkEndPoint_t * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
 
     __CPROVER_assume( pxEndPoint != NULL );
 
     /* Add an interface */
-    pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxEndPoint->pxNetworkInterface != NULL );
 
     pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
@@ -96,12 +96,12 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 
         /* Add an end point to the network buffer present. Its assumed that the
          * network interface layer correctly assigns the end point to the generated buffer. */
-        pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
         pxNetworkBuffer->pxEndPoint->pxNext = NULL;
 
         /* Add an interface */
-        pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+        pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
         __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
 
         pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
@@ -156,12 +156,12 @@ void harness()
 
         /* Add an end point to the network buffer present. Its assumed that the
          * network interface layer correctly assigns the end point to the generated buffer. */
-        pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
 
         if( ensure_memory_is_valid( pxNetworkBuffer->pxEndPoint, sizeof( NetworkEndPoint_t ) ) )
         {
             /* Add an interface */
-            pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+            pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
             __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
             pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
         }
