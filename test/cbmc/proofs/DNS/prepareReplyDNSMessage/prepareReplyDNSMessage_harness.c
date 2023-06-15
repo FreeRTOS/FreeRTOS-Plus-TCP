@@ -94,7 +94,7 @@ void harness()
     uint16_t usLength;
 
     /* Assume at least 1 valid endpoint */
-    pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
     BaseType_t xDataSize;
@@ -103,9 +103,9 @@ void harness()
      * call to prepareReplyDNSMessage by pxResizeNetworkBufferWithDescriptor. If buffer allocation
      * scheme #1 (BufferAllocation_1.c) is used we assert if the needed size is actually present
      * in the buffer.  */
-    __CPROVER_assume( ( xDataSize > ( sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) );
+    __CPROVER_assume( ( xDataSize > ( sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) && ( xDataSize < ipconfigNETWORK_MTU ) );
 
-    xNetworkBuffer.pucEthernetBuffer = malloc( xDataSize );
+    xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
 
     /* xNetworkBuffer.pucEthernetBuffer is checked if its valid before the call to
      * prepareReplyDNSMessage() */

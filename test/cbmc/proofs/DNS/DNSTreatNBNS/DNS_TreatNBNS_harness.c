@@ -36,7 +36,7 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
 
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL" );
 
-    uint8_t * pucNewBuffer = malloc( xNewSizeBytes );
+    uint8_t * pucNewBuffer = safeMalloc( xNewSizeBytes );
     __CPROVER_assume( pucNewBuffer != NULL );
 
     pxNetworkBuffer->pucEthernetBuffer = pucNewBuffer;

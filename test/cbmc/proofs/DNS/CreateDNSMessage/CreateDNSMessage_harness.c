@@ -10,11 +10,6 @@
 
 #include "cbmc.h"
 
-size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                            const char * pcHostName,
-                            TickType_t uxIdentifier,
-                            UBaseType_t uxHostType );
-
 void harness()
 {
     size_t uxExpectedPayloadLength;
