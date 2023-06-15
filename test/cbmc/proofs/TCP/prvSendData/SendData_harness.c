@@ -47,6 +47,8 @@ size_t uxIPHeaderSizePacket_uxResult;
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer shouldnt be NULL" );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "pucEthernetBuffer should not be NULL" );
+
     return uxIPHeaderSizePacket_uxResult;
 }
 
@@ -77,6 +79,7 @@ void harness()
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( buf_size );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
+    __CPROVER_havoc_object( pxNetworkBuffer->pucEthernetBuffer );
 
     prvSendData( pxSocket, &pxNetworkBuffer, ulReceiveLength, xByteCount );
 }
