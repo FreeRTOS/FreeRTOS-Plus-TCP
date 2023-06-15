@@ -45,6 +45,9 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddres
     NetworkEndPoint_t * pxEndPoint;
 
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress != NULL" );
+
+    /* pxInterface can be NULL. */
+
     pxEndPoint = safeMalloc( sizeof( pxEndPoint ) );
 
     return pxEndPoint;
