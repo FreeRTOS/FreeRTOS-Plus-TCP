@@ -1181,6 +1181,10 @@
     #endif
 #endif
 
+#ifndef ipconfigPACKET_PRIORITY_DEFAULT
+    #define ipconfigPACKET_PRIORITY_DEFAULT    1
+#endif
+
 #if ipconfigPACKET_PRIORITIES == 1 && ipconfigEVENT_QUEUES > 1
     #error "Network event queues need priority support."
 #endif

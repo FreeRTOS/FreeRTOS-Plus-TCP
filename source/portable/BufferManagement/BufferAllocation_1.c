@@ -293,7 +293,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                 pxReturn->pxInterface = NULL;
                 pxReturn->pxEndPoint = NULL;
                 #if ( ipconfigPACKET_PRIORITIES > 1 )
-                    pxReturn->ucPriority = 1;
+                    pxReturn->ucPriority = ipconfigPACKET_PRIORITY_DEFAULT;
                 #endif
 
                 #if ( ipconfigTCP_IP_SANITY != 0 )

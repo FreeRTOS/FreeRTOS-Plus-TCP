@@ -759,7 +759,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             pxSocket->ucSocketOptions = ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT;
             pxSocket->ucProtocol = ( uint8_t ) xProtocolCpy; /* protocol: UDP or TCP */
             #if ( ipconfigPACKET_PRIORITIES > 1 )
-                pxSocket->ucPriority = 0;
+                pxSocket->ucPriority = ipconfigPACKET_PRIORITY_DEFAULT;
             #endif
 
             xReturn = pxSocket;
