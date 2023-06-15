@@ -31,7 +31,8 @@ void harness()
     pxNetworkBuffer->pucEthernetBuffer = &( pucEthernetBuffer[ ipIP_TYPE_OFFSET ] );
 
     /* Minimum length of the pxNetworkBuffer->xDataLength is at least the size of the IPPacket_IPv6_t. */
-    __CPROVER_assume( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_IPv6_t ) && pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE );
+    __CPROVER_assume( ( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_IPv6_t ) ) &&
+                      ( pxNetworkBuffer->xDataLength <= ipTOTAL_ETHERNET_FRAME_SIZE ) );
 
     IPPacket_IPv6_t * pxIPv6Packet = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     /* Next protocol must be extension header. Checked in prvProcessIPPacket. */
