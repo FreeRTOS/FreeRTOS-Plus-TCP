@@ -115,13 +115,16 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) malloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( xRequestedSizeBytes > ( dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) + ipIP_TYPE_OFFSET ) );
 
-    pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) malloc( xRequestedSizeBytes + ( ipIP_TYPE_OFFSET ) ) ) + ipIP_TYPE_OFFSET;
+    pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) safeMalloc( xRequestedSizeBytes + ( ipIP_TYPE_OFFSET ) ) );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /* Increment with expected buffer padding */
+    pxNetworkBuffer->pucEthernetBuffer += ipIP_TYPE_OFFSET;
 
     pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
     return pxNetworkBuffer;
@@ -172,16 +175,16 @@ void harness()
     BaseType_t xReset;
     eDHCPState_t eExpectedState;
 
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
     /* Interface init. */
-    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
 
     if( nondet_bool() )
     {
-        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
         pxNetworkEndPoints->pxNext->pxNext = NULL;
         pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
