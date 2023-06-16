@@ -1467,7 +1467,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                     vIPSetTCPTimerExpiredState( pdTRUE );
 
                     #if ipconfigEVENT_QUEUES > 1
-                        if( ulTaskGenericNotifyValueClear( xIPTaskHandle, 0, 0 ) != 0U )
+                        if( ulTaskNotifyValueClear( xIPTaskHandle, 0 ) != 0U )
                     #else
                         if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
                     #endif
