@@ -36,6 +36,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+#include "cbmc.h"
+
 /* We do not need to calculate the actual checksum for the proof to be complete.
  * Neither does the checksum matter for completeness. */
 uint16_t usGenerateChecksum( uint16_t usSum,
@@ -70,7 +72,7 @@ void harness()
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
 
-    ICMPPacket_t * const pxICMPPacket = malloc( sizeof( ICMPPacket_t ) );
+    ICMPPacket_t * pxICMPPacket = safeMalloc( sizeof( ICMPPacket_t ) );
 
     __CPROVER_assume( pxICMPPacket != NULL );
 

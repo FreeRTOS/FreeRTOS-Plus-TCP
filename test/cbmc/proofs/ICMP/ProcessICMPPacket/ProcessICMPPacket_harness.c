@@ -43,14 +43,14 @@
 eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
                                                                                          const NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
-    eFrameProcessingResult_t retVal;
+    eFrameProcessingResult_t eReturn;
 
     /* Make sure prvProcessICMPEchoRequest() is never called with  or
      * pxNetworkBuffer being NULL */
     __CPROVER_assert( pxICMPPacket != NULL, "pxICMPPacket != NULL" );
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer != NULL" );
 
-    return retVal;
+    return eReturn;
 }
 
 void harness()
@@ -58,7 +58,7 @@ void harness()
     NetworkBufferDescriptor_t xNetworkBuffer;
 
     /* Allocate a ICMP packet */
-    ICMPPacket_t * const pxICMPPacket = malloc( sizeof( ICMPPacket_t ) );
+    ICMPPacket_t * const pxICMPPacket = safeMalloc( sizeof( ICMPPacket_t ) );
 
     __CPROVER_assume( pxICMPPacket != NULL );
 
