@@ -8,9 +8,13 @@
     "--unwind 1",
     "--unwindset strlen.0:{HOSTNAME_UNWIND}",
     "--unwindset strcpy.0:{HOSTNAME_UNWIND}",
-    "--unwindset prvCreateDNSMessage.0:{HOSTNAME_UNWIND}",
-    "--unwindset prvCreateDNSMessage.1:{HOSTNAME_UNWIND}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.0:{HOSTNAME_UNWIND}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.1:{HOSTNAME_UNWIND}",
     "--nondet-static"
+  ],
+  "OPT":
+  [
+      "--export-file-local-symbols"
   ],
   "OBJS":
   [
