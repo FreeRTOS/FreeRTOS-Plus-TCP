@@ -52,6 +52,7 @@ void harness()
 
     /* For this proof, its assumed that the endpoints and interfaces are correctly
      * initialised and the pointers are set correctly. */
+
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
@@ -59,7 +60,17 @@ void harness()
     pxNetworkEndPoints->pxNetworkInterface = pxNetworkInterface;
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
 
-    pxNetworkEndPoints->pxNext = NULL;
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+        pxNetworkEndPoints->pxNext->pxNext = NULL;
+        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
+    }
+    else
+    {
+        pxNetworkEndPoints->pxNext = NULL;
+    }
 
     FreeRTOS_MatchingEndpoint( pxNetworkInterface, ( const uint8_t * ) ( pxProtocolPacket ) );
 }
