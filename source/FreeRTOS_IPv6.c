@@ -132,7 +132,9 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
             /* Check if the complete IPv6-header plus protocol data have been transferred: */
             usPayloadLength = FreeRTOS_ntohs( pxIPv6Packet->xIPHeader.usPayloadLength );
 
-            if( uxBufferLength != ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
+            /* Since network interface might put some data in the network buffer,
+             * we allow buffer length to be greater than necessary. */
+            if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( size_t ) usPayloadLength ) )
             {
                 DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
                 break;
