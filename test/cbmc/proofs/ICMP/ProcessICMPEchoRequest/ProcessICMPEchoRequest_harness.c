@@ -36,6 +36,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* CBMC includes. */
 #include "cbmc.h"
 
 /* We do not need to calculate the actual checksum for the proof to be complete.

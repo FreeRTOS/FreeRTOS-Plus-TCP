@@ -37,6 +37,7 @@
 #include "FreeRTOS_ICMP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* CBMC includes. */
 #include "cbmc.h"
 
 /* prvProcessICMPEchoRequest() is proved separately */
