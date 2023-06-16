@@ -10,10 +10,10 @@
 
 #include "cbmc.h"
 
-size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                            const char * pcHostName,
-                            TickType_t uxIdentifier,
-                            UBaseType_t uxHostType );
+size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+                                                                const char * pcHostName,
+                                                                TickType_t uxIdentifier,
+                                                                UBaseType_t uxHostType );
 
 void harness()
 {
@@ -54,5 +54,5 @@ void harness()
     /* pucUDPPayloadBuffer is tested to be valid prior */
     uint8_t * pucUDPPayloadBuffer = malloc( uxExpectedPayloadLength );
 
-    prvCreateDNSMessage( pucUDPPayloadBuffer, pcHostName, uxIdentifier, uxHostType );
+    __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( pucUDPPayloadBuffer, pcHostName, uxIdentifier, uxHostType );
 }
