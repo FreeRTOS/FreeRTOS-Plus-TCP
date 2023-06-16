@@ -25,10 +25,9 @@ uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
                              size_t uxByteCount )
 {
-    __CPROVER_assert( pucNextData != NULL, "Next data in GenerateChecksum cannot be NULL" );
-
     uint16_t usChecksum;
 
+    __CPROVER_assert( pucNextData != NULL, "Next data in GenerateChecksum cannot be NULL" );
     /* Return any random value of checksum since it does not matter for CBMC checks. */
     return usChecksum;
 }
@@ -40,8 +39,9 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                                      size_t uxBufferLength,
                                      BaseType_t xOutgoingPacket )
 {
-    __CPROVER_assert( pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL while generating Protocol Checksum" );
     uint16_t usProtocolChecksum;
+
+    __CPROVER_assert( pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL while generating Protocol Checksum" );
 
     /* Return random value of checksum since it does not matter for CBMC checks. */
     return usProtocolChecksum;
@@ -52,10 +52,10 @@ eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                      MACAddress_t * const pxMACAddress,
                                      struct xNetworkEndPoint ** ppxEndPoint )
 {
+    eARPLookupResult_t eResult;
+
     __CPROVER_assert( pxIPAddress != NULL, "pxIPAddress cannot be NULL" );
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
-
-    eARPLookupResult_t eResult;
 
     return eResult;
 }
@@ -65,6 +65,7 @@ void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                    const IPv6_Address_t * pxIPAddress )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
     __CPROVER_assert( pxIPAddress != NULL, "pxIPAddress cannot be NULL." );
 }
 
@@ -72,10 +73,12 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
                                                 NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                 BaseType_t xReleaseAfterSend )
 {
+    BaseType_t ret;
+
     __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
     __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
-    BaseType_t ret;
+
     return ret;
 }
 
