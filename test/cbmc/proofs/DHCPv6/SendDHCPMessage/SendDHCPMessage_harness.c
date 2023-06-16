@@ -60,6 +60,9 @@ void harness()
     /* The application provides the random number and time hook in a memory safe manner. */
 
     pxNetworkEndPoint_Temp->pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
+
+    /* All calls to prvSendDHCPMessage are after asserts to make sure pxDHCPMessage
+     * is never NULL. [xDHCPv6ProcessEndPoint_HandleState(): configASSERT( pxDHCPMessage != NULL );] */
     __CPROVER_assume( pxNetworkEndPoint_Temp->pxDHCPMessage != NULL );
 
     __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage( pxNetworkEndPoint_Temp );
