@@ -178,7 +178,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /** @brief The queue used to pass events into the IP-task for processing. */
 QueueHandle_t xNetworkEventQueue = NULL;
 
-#if ipconfigEVENT_QUEUES > 1
+#if ( ipconfigEVENT_QUEUES > 1 )
     QueueHandle_t xNetworkEventQueues[ ipconfigEVENT_QUEUES ] = { 0 };
     uint8_t xQueueMapping[ ipconfigPACKET_PRIORITIES ] = ipconfigPACKET_PRIORITY_MAPPING;
 #endif
@@ -276,7 +276,7 @@ static void prvProcessIPEventsAndTimers( void )
     /* Wait until there is something to do. If the following call exits
      * due to a time out rather than a message being received, set a
      * 'NoEvent' value. */
-    #if ipconfigEVENT_QUEUES > 1
+    #if ( ipconfigEVENT_QUEUES > 1 )
         if( ulTaskNotifyTake( pdFALSE, xNextIPSleep ) == pdFALSE )
         {
             xReceivedEvent.eEventType = eNoEvent;
@@ -295,12 +295,12 @@ static void prvProcessIPEventsAndTimers( void )
                 }
             }
         }
-    #else /* if ipconfigEVENT_QUEUES > 1 */
+    #else /* if ( ipconfigEVENT_QUEUES > 1 ) */
         if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
         {
             xReceivedEvent.eEventType = eNoEvent;
         }
-    #endif /* if ipconfigEVENT_QUEUES > 1 */
+    #endif /* if ( ipconfigEVENT_QUEUES > 1 ) */
 
     #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
         {
@@ -970,7 +970,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
     BaseType_t xReturn = pdFALSE;
     BaseType_t xAllocSuccessful = pdFALSE;
 
-    #if ipconfigEVENT_QUEUES > 1
+    #if ( ipconfigEVENT_QUEUES > 1 )
         BaseType_t xIndex;
     #endif
 
@@ -1000,7 +1000,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
                 }
 
                 xNetworkEventQueue = xNetworkEventQueues[ ipconfigEVENT_QUEUES - 1 ];
-            #else /* if ipconfigEVENT_QUEUES > 1 */
+            #else /* if ( ipconfigEVENT_QUEUES > 1 ) */
                 static StaticQueue_t xNetworkEventStaticQueue;
                 static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
                 xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
@@ -1008,7 +1008,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
                                                          ucNetworkEventQueueStorageArea,
                                                          &xNetworkEventStaticQueue );
                 xAllocSuccessful = ( xNetworkEventQueue != NULL );
-            #endif /* if ipconfigEVENT_QUEUES > 1 */
+            #endif /* if ( ipconfigEVENT_QUEUES > 1 ) */
         }
     #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
         {
@@ -1466,7 +1466,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                      * IP task is already awake processing other message. */
                     vIPSetTCPTimerExpiredState( pdTRUE );
 
-                    #if ipconfigEVENT_QUEUES > 1
+                    #if ( ipconfigEVENT_QUEUES > 1 )
                         if( ulTaskNotifyValueClear( xIPTaskHandle, 0 ) != 0U )
                     #else
                         if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
@@ -1489,7 +1489,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                 uxUseTimeout = ( TickType_t ) 0;
             }
 
-            #if ipconfigEVENT_QUEUES > 1
+            #if ( ipconfigEVENT_QUEUES > 1 )
                 BaseType_t xQueue = ipconfigEVENT_QUEUES - 1;
 
                 if( ( pxEvent->eEventType == eNetworkRxEvent ) || ( pxEvent->eEventType == eNetworkTxEvent ) || ( pxEvent->eEventType == eStackTxEvent ) )
@@ -1504,9 +1504,9 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                 {
                     xTaskNotifyGive( xIPTaskHandle );
                 }
-            #else /* if ipconfigEVENT_QUEUES > 1 */
+            #else /* if ( ipconfigEVENT_QUEUES > 1 ) */
                 xReturn = xQueueSendToBack( xNetworkEventQueue, pxEvent, uxUseTimeout );
-            #endif /* if ipconfigEVENT_QUEUES > 1 */
+            #endif /* if ( ipconfigEVENT_QUEUES > 1 ) */
 
             if( xReturn == pdFAIL )
             {

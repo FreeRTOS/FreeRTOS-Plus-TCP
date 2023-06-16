@@ -1166,7 +1166,7 @@
 #endif
 
 #ifndef ipconfigPACKET_PRIORITIES
-    #if ipconfigEVENT_QUEUES > 1
+    #if ( ipconfigEVENT_QUEUES > 1 )
         #define ipconfigPACKET_PRIORITIES    8
     #else
         #define ipconfigPACKET_PRIORITIES    1
