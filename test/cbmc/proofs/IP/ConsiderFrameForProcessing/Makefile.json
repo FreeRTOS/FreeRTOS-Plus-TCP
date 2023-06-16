@@ -1,9 +1,9 @@
 {
   "ENTRY": "ConsiderFrameForProcessing",
   "CBMCFLAGS": [
-  	"--unwind 1",
+    "--unwind 1",
     "--unwindset memcmp.0:7",
-  	"--nondet-static"
+    "--nondet-static"
   ],
   "OPT":
   [
