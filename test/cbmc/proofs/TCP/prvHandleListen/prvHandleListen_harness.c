@@ -37,6 +37,7 @@
 
 /* CBMC includes. */
 #include "cbmc.h"
+#include "../../utility/memory_assignments.c"
 
 /* Abstraction of uxIPHeaderSizePacket. This test case only uses to test IPv4 path. */
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
@@ -49,13 +50,13 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                           BaseType_t xType,
                           BaseType_t xProtocol )
 {
-    return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    return ensure_FreeRTOS_Socket_t_is_allocated();
 }
 
 void harness()
 {
     size_t xDataLength;
-    FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
     NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( FreeRTOS_Socket_t ) );
 
     /* The length of buffer must be larger than or equal to TCP minimum requirement. */
