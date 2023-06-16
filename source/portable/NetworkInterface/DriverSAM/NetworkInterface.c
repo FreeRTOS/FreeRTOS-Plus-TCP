@@ -193,6 +193,10 @@ NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
  */
 static void hand_tx_errors( void );
 
+/* Functions to set the hash table for multicast addresses. */
+static uint16_t prvGenerateCRC16( const uint8_t * pucAddress );
+static void prvAddMACAddress( const uint8_t * ucMacAddress );
+
 /*-----------------------------------------------------------*/
 
 /* A copy of PHY register 1: 'PHY_REG_01_BMSR' */
@@ -506,6 +510,8 @@ NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     pxInterface->pfOutput = prvSAM_NetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = prvSAM_GetPhyLinkStatus;
 
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
     return pxInterface;
 }
 /*-----------------------------------------------------------*/
@@ -680,9 +686,18 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     NVIC_SetPriority( GMAC_IRQn, configMAC_INTERRUPT_PRIORITY );
     NVIC_EnableIRQ( GMAC_IRQn );
 
+    /* Clear the hash table for multicast MAC addresses. */
+    GMAC->GMAC_HRB = 0U; /* Hash Register Bottom. */
+    GMAC->GMAC_HRT = 0U; /* Hash Register Top. */
+
+    /* gmac_enable_multicast_hash() sets the wrong bit, don't use it. */
+    /* gmac_enable_multicast_hash( GMAC, pdTRUE ); */
+    /* set Multicast Hash Enable. */
+    GMAC->GMAC_NCFGR |= GMAC_NCFGR_MTIHEN;
+
     #if ( ipconfigUSE_LLMNR == 1 )
         {
-            gmac_set_address( GMAC, xEntry++, xLLMNR_MacAdress.ucBytes );
+            prvAddMACAddress( xLLMNR_MacAdress.ucBytes );
         }
     #endif /* ipconfigUSE_LLMNR */
 
@@ -691,7 +706,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
             NetworkEndPoint_t * pxEndPoint;
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
-                    gmac_set_address( GMAC, xEntry++, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
+                    prvAddMACAddress( xLLMNR_MacAdressIPv6.ucBytes );
                 }
             #endif /* ipconfigUSE_LLMNR */
 
@@ -706,7 +721,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
                     ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
                     ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                     ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                    gmac_set_address( GMAC, xEntry++, ucMACAddress );
+                    prvAddMACAddress( ucMACAddress );
                 }
             }
         }
@@ -739,15 +754,58 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
         gmac_enable_receive( GMAC, true );
     }
 
-    gmac_enable_management( GMAC, true );
-
-    gmac_set_address( GMAC, 1, ( uint8_t * ) llmnr_mac_address );
-
     gmac_enable_management( GMAC, false );
     /* Disable further GMAC maintenance. */
     GMAC->GMAC_NCR &= ~GMAC_NCR_MPE;
 
     return 1;
+}
+/*-----------------------------------------------------------*/
+
+static uint16_t prvGenerateCRC16( const uint8_t * pucAddress )
+{
+    uint16_t usSum;
+    uint16_t usValues[ ipMAC_ADDRESS_LENGTH_BYTES ];
+    size_t x;
+
+    /* Get 6 shorts. */
+    for( x = 0; x < ipMAC_ADDRESS_LENGTH_BYTES; x++ )
+    {
+        usValues[ x ] = ( uint16_t ) pucAddress[ x ];
+    }
+
+    /* Apply the hash function. */
+    usSum = ( usValues[ 0 ] >> 6 ) ^ usValues[ 0 ];
+    usSum ^= ( usValues[ 1 ] >> 4 ) ^ ( usValues[ 1 ] << 2 );
+    usSum ^= ( usValues[ 2 ] >> 2 ) ^ ( usValues[ 2 ] << 4 );
+    usSum ^= ( usValues[ 3 ] >> 6 ) ^ usValues[ 3 ];
+    usSum ^= ( usValues[ 4 ] >> 4 ) ^ ( usValues[ 4 ] << 2 );
+    usSum ^= ( usValues[ 5 ] >> 2 ) ^ ( usValues[ 5 ] << 4 );
+
+    usSum &= 0x3FU;
+    return usSum;
+}
+/*-----------------------------------------------------------*/
+
+static void prvAddMACAddress( const uint8_t * ucMacAddress )
+{
+    uint32_t ulMask;
+    uint16_t usIndex;
+
+    usIndex = prvGenerateCRC16( ucMacAddress );
+
+    ulMask = 1U << ( usIndex % 32 );
+
+    if( usIndex < 32U )
+    {
+        /* 0 .. 31 */
+        GMAC->GMAC_HRB |= ulMask;
+    }
+    else
+    {
+        /* 32 .. 63 */
+        GMAC->GMAC_HRT |= ulMask;
+    }
 }
 /*-----------------------------------------------------------*/
 
@@ -862,6 +920,24 @@ void vGMACGenerateChecksum( uint8_t * pucBuffer,
             usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
         }
     }
+    else if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    {
+        ICMPPacket_IPv6_t * xProtPacket16 = ( ICMPPacket_IPv6_t * ) pucBuffer;
+        IPHeader_IPv6_t * pxIPHeader = &( xProtPacket16->xIPHeader );
+
+        #if ( SAME70 != 0 )
+            if( ( pxIPHeader->ucNextHeader != ipPROTOCOL_UDP ) &&
+                ( pxIPHeader->ucNextHeader != ipPROTOCOL_TCP ) )
+        #endif
+        {
+            /* Calculate the TCP checksum for an outgoing packet. */
+            usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
+        }
+    }
+    else
+    {
+        /* Possibly ARP. */
+    }
 }
 /*-----------------------------------------------------------*/
 
@@ -872,11 +948,13 @@ static uint32_t prvEMACRxPoll( void )
     static NetworkBufferDescriptor_t * pxNextNetworkBufferDescriptor = NULL;
     const UBaseType_t xMinDescriptorsToLeave = 2UL;
     const TickType_t xBlockTime = pdMS_TO_TICKS( 100UL );
-    static IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
+    IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     uint8_t * pucDMABuffer = NULL;
 
     for( ; ; )
     {
+        BaseType_t xRelease = pdFALSE;
+
         /* If pxNextNetworkBufferDescriptor was not left pointing at a valid
          * descriptor then allocate one now. */
         if( ( pxNextNetworkBufferDescriptor == NULL ) && ( uxGetNumberOfFreeNetworkBuffers() > xMinDescriptorsToLeave ) )
@@ -928,11 +1006,26 @@ static uint32_t prvEMACRxPoll( void )
 
         pxNextNetworkBufferDescriptor->xDataLength = ( size_t ) ulReceiveCount;
         pxNextNetworkBufferDescriptor->pxInterface = pxMyInterface;
-        pxNextNetworkBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxCurDescriptor->pucEthernetBuffer );
-        xRxEvent.pvData = ( void * ) pxNextNetworkBufferDescriptor;
+        pxNextNetworkBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNextNetworkBufferDescriptor->pucEthernetBuffer );
 
-        /* Send the descriptor to the IP task for processing. */
-        if( xSendEventStructToIPTask( &xRxEvent, xBlockTime ) != pdTRUE )
+        if( pxNextNetworkBufferDescriptor->pxEndPoint == NULL )
+        {
+            FreeRTOS_printf( ( "NetworkInterface: can not find a proper endpoint\n" ) );
+            xRelease = pdTRUE;
+        }
+        else
+        {
+            xRxEvent.pvData = ( void * ) pxNextNetworkBufferDescriptor;
+
+            if( xSendEventStructToIPTask( &xRxEvent, xBlockTime ) != pdTRUE )
+            {
+                /* xSendEventStructToIPTask() timed out. Release the descriptor. */
+                xRelease = pdTRUE;
+            }
+        }
+
+        /* Release the descriptor in case it can not be delivered. */
+        if( xRelease == pdTRUE )
         {
             /* The buffer could not be sent to the stack so must be released
              * again. */
@@ -1103,3 +1196,15 @@ static void prvEMACHandlerTask( void * pvParameters )
     }
 }
 /*-----------------------------------------------------------*/
+
+void gmac_enable_irq( BaseType_t xEnable )
+{
+    if( xEnable != 0 )
+    {
+        NVIC_EnableIRQ( GMAC_IRQn );
+    }
+    else
+    {
+        NVIC_DisableIRQ( GMAC_IRQn );
+    }
+}
