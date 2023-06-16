@@ -334,7 +334,7 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
 
     if( pxIterator != NULL )
     {
-        if( pxIterator->pxDHCPMessage->xServerID.usDUIDType != 0U )
+        if( ( pxIterator->pxDHCPMessage->xServerID.usDUIDType != 0U ) && ( pxIterator->pxDHCPMessage->xServerID.uxLength <= DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH ) )
         {
             /* Check if the ID-type, the length and the contents are equal. */
             if( ( xDHCPMessage.xServerID.usDUIDType != pxIterator->pxDHCPMessage->xServerID.usDUIDType ) ||
