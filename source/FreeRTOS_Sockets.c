@@ -2937,21 +2937,21 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 #if ( ipconfigPACKET_PRIORITIES > 1 )
                     case FREERTOS_SO_PRIORITY:
                        {
-                           uint8_t * pucValue = ( uint8_t * ) pvOptionValue;
+                           BaseType_t * pxValue = ( BaseType_t * ) pvOptionValue;
 
-                           if( ( pucValue == NULL ) || ( *pucValue >= ipconfigPACKET_PRIORITIES ) )
+                           if( ( pxValue == NULL ) || ( *pxValue >= ipconfigPACKET_PRIORITIES ) )
                            {
                                xReturn = pdFREERTOS_ERRNO_EINVAL;
                            }
                            else
                            {
-                               pxSocket->ucPriority = *pucValue;
+                               pxSocket->ucPriority = *pxValue;
                                xReturn = pdPASS;
                            }
 
                            break;
                        }
-                #endif /* if ipconfigEVENT_QUEUES > 1 */
+                #endif /* if ( ipconfigPACKET_PRIORITIES > 1 ) */
 
             default:
                 /* No other options are handled. */
