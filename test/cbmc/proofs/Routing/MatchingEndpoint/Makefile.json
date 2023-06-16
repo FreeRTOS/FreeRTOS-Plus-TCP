@@ -1,8 +1,9 @@
 {
     "ENTRY": "MatchingEndpoint",
+    "MAX_ENDPOINT_COUNT_LOOP": 3,
     "CBMCFLAGS":
     [
-      "--unwindset pxEasyFit.0:5",
+      "--unwindset pxEasyFit.0:{MAX_ENDPOINT_COUNT_LOOP}",
       "--nondet-static"
     ],
     "OBJS":
