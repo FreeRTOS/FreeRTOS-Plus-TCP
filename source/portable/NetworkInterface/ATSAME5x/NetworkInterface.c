@@ -232,6 +232,8 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
 
     if( xEMACTaskHandle == NULL )
     {
+        pxMyInterface = pxInterface;
+
         /* Initialize MAC and PHY */
         prvGMACInit();
         prvPHYInit();
@@ -252,7 +254,6 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
                      configMAX_PRIORITIES - 1,            /* Priority at which the task is created. */
                      &xEMACTaskHandle );                  /* Used to pass out the created task's handle. */
 
-        pxMyInterface = pxInterface;
 
         configASSERT( xEMACTaskHandle );
     }
@@ -478,8 +479,11 @@ static void prvGMACInit()
 
     /* Set GMAC Filtering for own MAC address */
     struct mac_async_filter mac_filter;
-    extern uint8_t ucMACAddress[ 6 ];
-    memcpy( mac_filter.mac, &ucMACAddress[0], ipMAC_ADDRESS_LENGTH_BYTES );
+    NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
+    if(pxEndPoint != NULL)
+    {
+        memcpy( mac_filter.mac, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+    }
     mac_filter.tid_enable = false;
     mac_async_set_filter( &ETH_MAC, 0, &mac_filter );
 
