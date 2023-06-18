@@ -175,7 +175,7 @@ const PhyProperties_t xPHYProperties =
 
 static void prvPHYLinkReset( void );
 static void prvPHYInit( void );
-static inline bool bPHYGetLinkStatus( void );
+static BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * );
 
 /* PHY read and write functions. */
 static BaseType_t xPHYRead( BaseType_t xAddress,
@@ -185,12 +185,44 @@ static BaseType_t xPHYWrite( BaseType_t xAddress,
                              BaseType_t xRegister,
                              uint32_t pulValue );
 
+static NetworkInterface_t * pxMyInterface = NULL;
 
 /*********************************************************************/
 /*                      FreeRTOS+TCP functions                       */
 /*********************************************************************/
 
-BaseType_t xNetworkInterfaceInitialise( void )
+/*-----------------------------------------------------------*/
+
+BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                  NetworkBufferDescriptor_t * const pxDescriptor,
+                                                  BaseType_t bReleaseAfterSend );
+
+NetworkInterface_t * pxATSAM5x_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                         NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+/* This function pxSTM32Fxx_FillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xATSAM5x_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xATSAM5x_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xATSAM5x_PHYGetLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+
+BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     /*
      * Perform the hardware specific network initialization here.  Typically
@@ -220,10 +252,12 @@ BaseType_t xNetworkInterfaceInitialise( void )
                      configMAX_PRIORITIES - 1,            /* Priority at which the task is created. */
                      &xEMACTaskHandle );                  /* Used to pass out the created task's handle. */
 
+        pxMyInterface = pxInterface;
+
         configASSERT( xEMACTaskHandle );
     }
 
-    return bPHYGetLinkStatus();
+    return xATSAM5x_PHYGetLinkStatus( NULL );
 }
 
 
@@ -273,7 +307,8 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                  * is provided further down this page. */
                 xBytesRead = mac_async_read( &ETH_MAC, pxBufferDescriptor->pucEthernetBuffer, xBytesReceived );
                 pxBufferDescriptor->xDataLength = xBytesRead;
-
+                pxBufferDescriptor->pxInterface = pxMyInterface;
+                pxBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxBufferDescriptor->pucEthernetBuffer );
 
                 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
                     {
@@ -350,8 +385,9 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     }
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                  NetworkBufferDescriptor_t * const pxDescriptor,
+                                                  BaseType_t bReleaseAfterSend )
 {
     /* Simple network interfaces (as opposed to more efficient zero copy network
      * interfaces) just use Ethernet peripheral driver library functions to copy
@@ -362,7 +398,10 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
      * by pxDescriptor->pucEthernetBuffer.  The length of the data is located
      * by pxDescriptor->xDataLength. */
 
-    if( bPHYGetLinkStatus() )
+    /* As there is only a single instance of the EMAC, there is only one pxInterface object. */
+    ( void ) pxInterface;
+
+    if( xATSAM5x_PHYGetLinkStatus( NULL ) )
     {
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 )
             {
@@ -383,7 +422,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
         iptraceNETWORK_INTERFACE_TRANSMIT();
     }
 
-    if( xReleaseAfterSend != pdFALSE )
+    if( bReleaseAfterSend != pdFALSE )
     {
         /* It is assumed SendData() copies the data out of the FreeRTOS+TCP Ethernet
          * buffer.  The Ethernet buffer is therefore no longer needed, and must be
@@ -439,7 +478,8 @@ static void prvGMACInit()
 
     /* Set GMAC Filtering for own MAC address */
     struct mac_async_filter mac_filter;
-    memcpy( mac_filter.mac, ipLOCAL_MAC_ADDRESS, ipMAC_ADDRESS_LENGTH_BYTES );
+    extern uint8_t ucMACAddress[ 6 ];
+    memcpy( mac_filter.mac, &ucMACAddress[0], ipMAC_ADDRESS_LENGTH_BYTES );
     mac_filter.tid_enable = false;
     mac_async_set_filter( &ETH_MAC, 0, &mac_filter );
 
@@ -568,7 +608,8 @@ static BaseType_t xPHYWrite( BaseType_t xAddress,
     return writeStatus;
 }
 
-static inline bool bPHYGetLinkStatus( void )
+static BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * pxInterface )
 {
+    (void) pxInterface;
     return( xPhyObject.ulLinkStatusMask != 0 );
 }
