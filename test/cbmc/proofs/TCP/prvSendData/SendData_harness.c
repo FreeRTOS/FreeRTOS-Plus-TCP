@@ -58,8 +58,7 @@ void harness()
     NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     uint32_t ulReceiveLength;
     BaseType_t xByteCount;
-    /* Give buffer_size an unconstrained value */
-    size_t buf_size;
+    size_t buf_size; /* Give buffer_size an unconstrained value */
 
     /* The code does not expect pxSocket/pxNetworkBuffer to be equal to NULL. */
     __CPROVER_assume( pxSocket != NULL );
