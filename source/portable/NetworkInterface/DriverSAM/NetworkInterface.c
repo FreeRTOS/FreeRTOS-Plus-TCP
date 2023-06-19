@@ -499,12 +499,16 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
 {
+    static char pcName[ 8 ];
+
 /* This function pxSAM_FillInterfaceDescriptor() adds a network-interface.
  * Make sure that the object pointed to by 'pxInterface'
  * is declared static or global, and that it will remain to exist. */
 
+    snprintf( pcName, sizeof( pcName ), "GMAC%ld", xEMACIndex );
+
     memset( pxInterface, '\0', sizeof( *pxInterface ) );
-    pxInterface->pcName = "GMAC";                    /* Just for logging, debugging. */
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
     pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
     pxInterface->pfInitialise = prvSAM_NetworkInterfaceInitialise;
     pxInterface->pfOutput = prvSAM_NetworkInterfaceOutput;
