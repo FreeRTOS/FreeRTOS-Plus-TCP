@@ -44,6 +44,7 @@ BaseType_t xIsIPv6;
 NetworkBufferDescriptor_t * __CPROVER_file_local_FreeRTOS_IP_Utils_c_prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
                                                                                                        size_t uxOffset )
 {
+    __CPROVER_assert( pvBuffer != NULL, "pvBuffer shouldn't be NULL" );
 }
 
 void harness()
