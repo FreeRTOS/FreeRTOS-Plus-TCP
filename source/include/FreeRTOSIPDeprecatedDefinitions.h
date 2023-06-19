@@ -73,10 +73,6 @@
     #error ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS is deprecated
 #endif
 
-#ifdef ipconfigINCLUDE_FULL_INET_ADDR
-    #error ipconfigINCLUDE_FULL_INET_ADDR is deprecated
-#endif
-
 #ifdef ipconfigMAX_SEND_BLOCK_TIME_TICKS
     #error ipconfigMAX_SEND_BLOCK_TIME_TICKS is now called ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS
 #endif

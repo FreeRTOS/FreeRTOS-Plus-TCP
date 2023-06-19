@@ -303,7 +303,7 @@
                                          const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
     #endif
 
-    #if ( ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) && ( ipconfigHAS_ROUTING_STATISTICS != 0 ) )
+    #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
 /** @brief Some simple network statistics. */
         typedef struct xRoutingStats
         {
@@ -316,7 +316,7 @@
         } RoutingStats_t;
 
         extern RoutingStats_t xRoutingStatistics;
-    #endif /* if ( ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) && ( ipconfigHAS_ROUTING_STATISTICS != 0 ) ) */
+    #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
     NetworkEndPoint_t * pxGetSocketEndpoint( ConstSocket_t xSocket );
     void vSetSocketEndpoint( Socket_t xSocket,

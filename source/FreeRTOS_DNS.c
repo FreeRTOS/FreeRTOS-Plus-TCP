@@ -498,6 +498,8 @@
         }
     #endif /* if ( ipconfigDNS_USE_CALLBACKS == 0 ) */
 
+    #if ( ipconfigINCLUDE_FULL_INET_ADDR == 1 )
+
 /**
  * @brief See if pcHostName contains a valid IPv4 or IPv6 IP-address.
  * @param[in] pcHostName The name to be looked up
@@ -506,51 +508,61 @@
  *                            be stored.
  * @return Either 0 or an IP=address.
  */
-    static uint32_t prvPrepare_ReadIPAddress( const char * pcHostName,
-                                              BaseType_t xFamily,
-                                              struct freertos_addrinfo ** ppxAddressInfo )
-    {
-        uint32_t ulIPAddress = 0U;
-
-        ( void ) xFamily;
-
-        /* Check if the hostname given is actually an IP-address. */
-        #if ( ipconfigUSE_IPv6 != 0 )
-            if( xFamily == FREERTOS_AF_INET6 )
-            {
-                IPv6_Address_t xAddress_IPv6;
-                BaseType_t xResult;
-
-                /* ulIPAddress does not represent an IPv4 address here. It becomes non-zero when the look-up succeeds. */
-                xResult = FreeRTOS_inet_pton6( pcHostName, xAddress_IPv6.ucBytes );
-
-                if( xResult == 1 )
-                {
-                    /* This function returns either a valid IPv4 address, or
-                     * in case of an IPv6 lookup, it will return a non-zero */
-                    ulIPAddress = 1U;
-
-                    if( ppxAddressInfo != NULL )
-                    {
-                        *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET6, xAddress_IPv6.ucBytes );
-                    }
-                }
-            }
-            else
-        #endif /* ipconfigUSE_IPv6 */
+        static uint32_t prvPrepare_ReadIPAddress( const char * pcHostName,
+                                                  BaseType_t xFamily,
+                                                  struct freertos_addrinfo ** ppxAddressInfo )
         {
-            ulIPAddress = FreeRTOS_inet_addr( pcHostName );
+            uint32_t ulIPAddress = 0U;
 
-            if( ( ulIPAddress != 0U ) && ( ppxAddressInfo != NULL ) )
+            ( void ) xFamily;
+
+            /* Check if the hostname given is actually an IP-address. */
+            switch( xFamily ) /* LCOV_EXCL_BR_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
             {
-                const uint8_t * ucBytes = ( uint8_t * ) &( ulIPAddress );
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case FREERTOS_AF_INET:
+                        ulIPAddress = FreeRTOS_inet_addr( pcHostName );
 
-                *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET4, ucBytes );
+                        if( ( ulIPAddress != 0U ) && ( ppxAddressInfo != NULL ) )
+                        {
+                            const uint8_t * ucBytes = ( uint8_t * ) &( ulIPAddress );
+
+                            *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET4, ucBytes );
+                        }
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case FREERTOS_AF_INET6:
+                       {
+                           IPv6_Address_t xAddress_IPv6;
+                           BaseType_t xResult;
+
+                           /* ulIPAddress does not represent an IPv4 address here. It becomes non-zero when the look-up succeeds. */
+                           xResult = FreeRTOS_inet_pton6( pcHostName, xAddress_IPv6.ucBytes );
+
+                           if( xResult == 1 )
+                           {
+                               /* This function returns either a valid IPv4 address, or
+                                * in case of an IPv6 lookup, it will return a non-zero */
+                               ulIPAddress = 1U;
+
+                               /* ppxAddressInfo is always non-NULL in IPv6 case. */
+                               *( ppxAddressInfo ) = pxNew_AddrInfo( pcHostName, FREERTOS_AF_INET6, xAddress_IPv6.ucBytes );
+                           }
+                       }
+                       break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default: /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
+                    /* MISRA 16.4 Compliance */
+                    FreeRTOS_debug_printf( ( "prvPrepare_ReadIPAddress: Undefined xFamily Type \n" ) );
+                    break; /* LCOV_EXCL_LINE - Family is always either FREERTOS_AF_INET or FREERTOS_AF_INET6. */
             }
-        }
 
-        return ulIPAddress;
-    }
+            return ulIPAddress;
+        }
+    #endif /* ( ipconfigINCLUDE_FULL_INET_ADDR == 1 ) */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigDNS_USE_CALLBACKS == 1 )
@@ -625,7 +637,11 @@
         {
             /* If the supplied hostname is an IP address, put it in ppxAddressInfo
              * and return. */
-            ulIPAddress = prvPrepare_ReadIPAddress( pcHostName, xFamily, ppxAddressInfo );
+            #if ( ipconfigINCLUDE_FULL_INET_ADDR == 1 )
+                {
+                    ulIPAddress = prvPrepare_ReadIPAddress( pcHostName, xFamily, ppxAddressInfo );
+                }
+            #endif /* ipconfigINCLUDE_FULL_INET_ADDR == 1 */
 
             /* If a DNS cache is used then check the cache before issuing another DNS
              * request. */
