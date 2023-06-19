@@ -50,6 +50,8 @@ void harness()
     }
     else
     {
+        __CPROVER_assume( pvBuffer == NULL );
+
         /* The zero copy flag was set.  pvBuffer is not a buffer into which
          * the received data can be copied, but a pointer that must be set to
          * point to the buffer in which the received data has already been
