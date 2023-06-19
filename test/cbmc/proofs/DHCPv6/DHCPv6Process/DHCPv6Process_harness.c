@@ -19,6 +19,8 @@
 extern Socket_t xDHCPv6Socket;
 extern DHCPMessage_IPv6_t xDHCPMessage;
 
+void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
+
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint( BaseType_t xReset,
                                                                     NetworkEndPoint_t * pxEndPoint,
