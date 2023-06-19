@@ -528,6 +528,42 @@ void test_vReceiveRA_NullICMPPrefix( void )
 
 /**
  * @brief This function verify ICMP prefix option with
+ *        options present with data length as zero.
+ */
+void test_vReceiveRA_NullICMPPrefix_ZeroOptionLength( void )
+{
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkInterface_t xInterface;
+    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
+    uint8_t * pucBytes;
+    ICMPPrefixOption_IPv6_t * pxPrefixOption;
+    ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
+
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xICMPPacket, 0, sizeof( ICMPPacket_IPv6_t ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    /* Data Length to be less than expected */
+    pxNetworkBuffer->xDataLength = raHeaderBytesRA + 10;
+    uxNeededSize = raHeaderBytesRA;
+
+    pxAdvertisement = ( ( ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
+    pxAdvertisement->usLifetime = 1;
+
+    pxPrefixOption = ( ICMPPrefixOption_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
+    /* Number of Options present - 8-byte blocks. */
+    uxOptionsLength = 2;
+    pxPrefixOption->ucLength = 0;
+
+    vReceiveRA( pxNetworkBuffer );
+}
+
+/**
+ * @brief This function verify ICMP prefix option with
  *        options present but data length less than the
  *        required data length by option field.
  */
