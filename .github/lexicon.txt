@@ -764,6 +764,7 @@ pre
 printf
 printfs
 processdhcpreplies
+processethernetpacket
 processicmppacket
 processippacket
 projdefs
