@@ -2038,6 +2038,8 @@ xsenderhardwareaddress
 xsendeventstructtoiptask
 xsendeventtoiptask
 xsendlength
+xsequencegreaterthan
+xsequencelessthan
 xserverid
 xserversemaphore
 xserversocket
@@ -2081,6 +2083,7 @@ xtcpwindowpeekhead
 xtcpwindowrxconfirm
 xtcpwindowrxfind
 xtcpwindowtxdone
+xtcpwindowtxhasdata
 xtcpwindowtxnew
 xtemplist
 xtickcount
