@@ -126,16 +126,11 @@ void harness()
 
     __CPROVER_assume( pxNetworkEndPoint != NULL );
 
-    /* Interface init. */
-    pxNetworkEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
-    __CPROVER_assume( pxNetworkEndPoint->pxNetworkInterface != NULL );
-
     if( nondet_bool() )
     {
         pxNetworkEndPoint->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoint->pxNext != NULL );
         pxNetworkEndPoint->pxNext->pxNext = NULL;
-        pxNetworkEndPoint->pxNext->pxNetworkInterface = pxNetworkEndPoint->pxNetworkInterface;
     }
     else
     {
