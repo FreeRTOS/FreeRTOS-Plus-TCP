@@ -834,6 +834,7 @@ prvpreparewrongtransactionid
 prvprocessdhcpreplies
 prvprocessdnscache
 prvprocessethernetpacket
+prvprocessicmpechorequest
 prvprocessipeventsandtimers
 prvprocessippacket
 prvprocessnetworkdownevent
