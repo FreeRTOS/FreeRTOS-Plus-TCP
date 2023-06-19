@@ -17,15 +17,8 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
-
-BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
-                                                                          uint16_t usOption,
-                                                                          const DHCPOptionSet_t * pxSet,
-                                                                          DHCPMessage_IPv6_t * pxDHCPMessage,
-                                                                          BitConfig_t * pxMessage )
-{
-    return nondet_BaseType();
-}
+#define OPTION_LENGTH    16
+#define DNS_COUNT        ( OPTION_LENGTH / ipSIZE_OF_IPv6_ADDRESS );
 
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleStatusCode( size_t uxLength,
                                                                               BitConfig_t * pxMessage )
@@ -55,22 +48,18 @@ void harness()
 {
     BaseType_t xResult;
     uint16_t usOption;
-
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
-
-    __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
-
-    DHCPMessage_IPv6_t * pxDHCPMessage = safeMalloc( sizeof( NetworkEndPoint_t ) );
-    __CPROVER_assume( pxDHCPMessage != NULL );
-
+    DHCPMessage_IPv6_t * pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
     DHCPOptionSet_t * pxSet = safeMalloc( sizeof( DHCPOptionSet_t ) );
-    __CPROVER_assume( pxSet != NULL );
-
     BitConfig_t * pxMessage = safeMalloc( sizeof( BitConfig_t ) );
-    __CPROVER_assume( pxMessage != NULL );
 
-    /* Setting the lower and upper bound for Option to include the default case. */
-    __CPROVER_assume( DHCPv6_Option_Client_Identifier <= usOption && usOption <= DHCPv6_Option_IA_Prefix );
+    /* These values are assumed to be non NULL while calling this function. */
+    __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
+    __CPROVER_assume( pxDHCPMessage != NULL );
+    __CPROVER_assume( pxSet != NULL );
+    /* This value is assumed to limit the number of times the loop is run.*/
+    pxSet->uxOptionLength = OPTION_LENGTH;
+    __CPROVER_assume( pxMessage != NULL );
 
     xResult = __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleOption( pxNetworkEndPoint_Temp, usOption, pxSet, pxDHCPMessage, pxMessage );
 }

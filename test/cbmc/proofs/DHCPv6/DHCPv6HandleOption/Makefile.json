@@ -2,6 +2,7 @@
     "ENTRY": "DHCPv6HandleOption",
     "CBMCFLAGS":
     [
+      "--unwind 2",
       "--nondet-static --flush"
     ],
     "INSTFLAGS":
