@@ -889,7 +889,6 @@
                 /* Bind to the standard DHCP client port. */
                 xAddress.sin_port = ( uint16_t ) dhcpCLIENT_PORT_IPv4;
                 xReturn = vSocketBind( xDHCPv4Socket, &xAddress, sizeof( xAddress ), pdFALSE );
-                configASSERT( xReturn == 0 );
                 xDHCPSocketUserCount = 1;
                 FreeRTOS_printf( ( "DHCP-socket[%02x-%02x]: DHCP Socket Create\n",
                                    pxEndPoint->xMACAddress.ucBytes[ 4 ],
@@ -1043,11 +1042,7 @@
                         {
                             EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = pxSet->ulParameter;
                             uxTargetIndex++;
-
-                            if( uxTargetIndex >= ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-                            {
-                                break;
-                            }
+                            /* uxDNSCount <= ipconfigENDPOINT_DNS_ADDRESS_COUNT , hence check is removed. */
                         }
 
                         uxByteIndex += sizeof( uint32_t );
