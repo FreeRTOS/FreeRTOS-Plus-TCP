@@ -105,7 +105,7 @@ BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
 
     if( pxConfig->xHasError == pdFALSE )
     {
-        if( pxConfig->uxIndex <= ( pxConfig->uxSize - uxNeeded ) )
+        if( ( pxConfig->uxIndex + uxNeeded ) <= pxConfig->uxSize )
         {
             if( pucData != NULL )
             {
