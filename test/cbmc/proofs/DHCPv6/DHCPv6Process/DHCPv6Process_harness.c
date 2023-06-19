@@ -17,7 +17,50 @@
 #include "cbmc.h"
 
 extern Socket_t xDHCPv6Socket;
-void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
+extern DHCPMessage_IPv6_t xDHCPMessage;
+
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint( BaseType_t xReset,
+                                                                    NetworkEndPoint_t * pxEndPoint,
+                                                                    DHCPMessage_IPv6_t * pxDHCPMessage )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "FreeRTOS precondition: pxEndPoint != NULL" );
+}
+
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
+                                                                    const uint8_t * pucAnswer,
+                                                                    size_t uxTotalLength,
+                                                                    DHCPMessage_IPv6_t * pxDHCPMessage )
+{
+    BaseType_t xResult;
+
+    __CPROVER_assert( pxEndPoint != NULL, "FreeRTOS precondition: pxEndPoint != NULL" );
+    __CPROVER_assert( pxDHCPMessage != NULL, "pxDHCPMessage is not expected to be NULL" );
+
+    __CPROVER_assume( xResult == pdPASS || xResult == pdFAIL );
+    return xResult;
+}
+
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * pxEndPoint )
+{
+    BaseType_t xResult;
+
+    __CPROVER_assert( pxEndPoint != NULL, "FreeRTOS precondition: pxEndPoint != NULL" );
+
+    __CPROVER_assume( xResult == pdPASS || xResult == pdFAIL );
+    return xResult;
+}
+
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
+                                                                                      DHCPMessage_IPv6_t * pxDHCPMessage )
+{
+    __CPROVER_assert( pxEndPoint != NULL, "FreeRTOS precondition: pxEndPoint != NULL" );
+    __CPROVER_assert( pxDHCPMessage != NULL, "pxDHCPMessage is not expected to be NULL" );
+    return nondet_BaseType();
+}
 
 /**
  * For the purpose of this proof we assume that xSocketValid returns true always.
@@ -48,37 +91,58 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
     return xRet;
 }
 
-/**
- * Return value is set to -1 assuming other APIs will be checked separately,
- * hence only allowing 1 iteration of the loop.
- */
-
-int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
+/* For the DHCP process loop to be fully covered, we expect FreeRTOS_recvfrom
+ * to fail after few iterations. This is because vDHCPProcessEndPoint is proved
+ * separately and is stubbed out for this proof, which ideally is supposed to close
+ * the socket and end the loop. */
+int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
                            BaseType_t xFlags,
                            struct freertos_sockaddr * pxSourceAddress,
                            socklen_t * pxSourceAddressLength )
-{
-    return -1;
-}
 
-BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndPoint,
-                                                                                      DHCPMessage_IPv6_t * pxDHCPMessage )
 {
-    return nondet_BaseType();
+    static uint32_t recvRespCnt = 0;
+    int32_t retVal = -1;
+
+    __CPROVER_assert( pvBuffer != NULL,
+                      "FreeRTOS precondition: pvBuffer != NULL" );
+
+    if( ++recvRespCnt < ( FR_RECV_FROM_SUCCESS_COUNT - 1 ) )
+    {
+        *( ( void ** ) pvBuffer ) = ( void * ) &xDHCPMessage;
+        retVal = sizeof( xDHCPMessage );
+    }
+
+    return retVal;
 }
 
 void harness()
 {
     BaseType_t xReset;
 
-    NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
+    NetworkEndPoint_t * pxNetworkEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
 
-    __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
+    __CPROVER_assume( pxNetworkEndPoint != NULL );
 
-    pxNetworkEndPoint_Temp->pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
-    __CPROVER_assume( pxNetworkEndPoint_Temp->pxDHCPMessage != NULL );
+    /* Interface init. */
+    pxNetworkEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkEndPoint->pxNetworkInterface != NULL );
+
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoint->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoint->pxNext != NULL );
+        pxNetworkEndPoint->pxNext->pxNext = NULL;
+        pxNetworkEndPoint->pxNext->pxNetworkInterface = pxNetworkEndPoint->pxNetworkInterface;
+    }
+    else
+    {
+        pxNetworkEndPoint->pxNext = NULL;
+    }
+
+    pxNetworkEndPoint->pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
 
     /****************************************************************
     * Assume a valid socket in most states of the DHCP state machine.
@@ -86,13 +150,15 @@ void harness()
     * The socket is created in the eWaitingSendFirstDiscover state.
     * xReset==True resets the state to eWaitingSendFirstDiscover.
     ****************************************************************/
-    if( !( ( pxNetworkEndPoint_Temp->xDHCPData.eDHCPState == eInitialWait ) ||
+    if( !( ( pxNetworkEndPoint->xDHCPData.eDHCPState == eInitialWait ) ||
            ( xReset != pdFALSE ) ) )
     {
-        prvCreateDHCPv6Socket( pxNetworkEndPoint_Temp );
+        __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvCreateDHCPv6Socket( pxNetworkEndPoint );
     }
 
-    xDHCPv6Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
+    /* Assume vDHCPProcess is only called on IPv6 endpoints which is
+     * validated before the call to vDHCPProcess */
+    __CPROVER_assume( pxNetworkEndPoint->bits.bIPv6 == 1 );
 
-    vDHCPv6Process( xReset, pxNetworkEndPoint_Temp );
+    vDHCPv6Process( xReset, pxNetworkEndPoint );
 }
