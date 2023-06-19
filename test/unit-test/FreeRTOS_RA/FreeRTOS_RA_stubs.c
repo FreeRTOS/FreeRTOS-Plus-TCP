@@ -12,7 +12,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-
+/* ======================== Stub Callback Functions ========================= */
 
 /*
  * @brief Send a neighbour solicitation.
@@ -72,5 +72,3 @@ void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBu
                                    const IPv6_Address_t * pxIPAddress )
 {
 }
-
-/*-----------------------------------------------------------*/

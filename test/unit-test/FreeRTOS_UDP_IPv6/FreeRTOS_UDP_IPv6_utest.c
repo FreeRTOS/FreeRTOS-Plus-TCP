@@ -62,12 +62,6 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define TEST_IPV4_DEFAULT_ADDRESS    ( 0x12345678 )
-
-BaseType_t xIsIfOutCalled = 0;
-
-IPv6_Address_t xDefaultIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
-
 extern NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
                                           BaseType_t xIsGlobal );
 
@@ -79,133 +73,10 @@ void setUp( void )
     xIsIfOutCalled = 0;
 }
 
-/*! called after each test case */
-void tearDown( void )
-{
-}
-
-/* ======================== Stub Callback Functions ========================= */
-
-static void UDPReceiveHandlerChecker( Socket_t xSocket,
-                                      void * pData,
-                                      size_t xLength,
-                                      const struct freertos_sockaddr * pxFrom,
-                                      const struct freertos_sockaddr * pxDest )
-{
-    uint8_t * pucData = ( uint8_t * ) pData;
-    UDPPacket_IPv6_t * pxUDPv6Packet = ( UDPPacket_IPv6_t * ) ( pucData - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER ) );
-
-    TEST_ASSERT_EQUAL_MEMORY( pxUDPv6Packet->xIPHeader.xSourceAddress.ucBytes, pxFrom->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    TEST_ASSERT_EQUAL_MEMORY( pxUDPv6Packet->xIPHeader.xDestinationAddress.ucBytes, pxDest->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    TEST_ASSERT_EQUAL( pxUDPv6Packet->xUDPHeader.usSourcePort, pxFrom->sin_port );
-    TEST_ASSERT_EQUAL( pxUDPv6Packet->xUDPHeader.usDestinationPort, pxDest->sin_port );
-    TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, pxFrom->sin_family );
-    TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, pxDest->sin_family );
-    TEST_ASSERT_EQUAL( sizeof( struct freertos_sockaddr ), pxFrom->sin_len );
-    TEST_ASSERT_EQUAL( sizeof( struct freertos_sockaddr ), pxDest->sin_len );
-    TEST_ASSERT_EQUAL( pxUDPv6Packet->xIPHeader.usPayloadLength - ipSIZE_OF_UDP_HEADER, xLength );
-}
-
-static BaseType_t xStubUDPReceiveHandler_Pass( Socket_t xSocket,
-                                               void * pData,
-                                               size_t xLength,
-                                               const struct freertos_sockaddr * pxFrom,
-                                               const struct freertos_sockaddr * pxDest )
-{
-    UDPReceiveHandlerChecker( xSocket, pData, xLength, pxFrom, pxDest );
-    return 0;
-}
-
-static BaseType_t xStubUDPReceiveHandler_Fail( Socket_t xSocket,
-                                               void * pData,
-                                               size_t xLength,
-                                               const struct freertos_sockaddr * pxFrom,
-                                               const struct freertos_sockaddr * pxDest )
-{
-    UDPReceiveHandlerChecker( xSocket, pData, xLength, pxFrom, pxDest );
-    return -1;
-}
-
-static BaseType_t xNetworkInterfaceOutput( struct xNetworkInterface * pxDescriptor,
-                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                           BaseType_t xReleaseAfterSend )
-{
-    xIsIfOutCalled = 1;
-
-    return pdPASS;
-}
-
-static NetworkBufferDescriptor_t * prvPrepareDefaultNetworkbuffer( uint8_t ucProtocol )
-{
-    static NetworkBufferDescriptor_t xNetworkBuffer;
-    static uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
-    uint16_t usSrcPort = 2048U;
-    uint16_t usDestPort = 1024U;
-    UDPPacket_IPv6_t * pxUDPv6Packet;
-    ICMPPacket_IPv6_t * pxICMPv6Packet;
-
-    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
-    memset( pucEthernetBuffer, 0, sizeof( pucEthernetBuffer ) );
-
-    xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
-    xNetworkBuffer.usBoundPort = FreeRTOS_htons( usSrcPort );
-    xNetworkBuffer.usPort = FreeRTOS_htons( usDestPort );
-    xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
-
-    if( ucProtocol == ipPROTOCOL_UDP )
-    {
-        pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-        pxUDPv6Packet->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    }
-    else if( ucProtocol == ipPROTOCOL_ICMP_IPv6 )
-    {
-        pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pucEthernetBuffer;
-    }
-
-    return &xNetworkBuffer;
-}
-
-static NetworkEndPoint_t * prvPrepareDefaultIPv6EndPoint()
-{
-    static NetworkEndPoint_t xEndpoint;
-    static NetworkInterface_t xNetworkInterface;
-    NetworkEndPoint_t * pxEndpoint = &xEndpoint;
-
-    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
-    memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
-
-    xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
-
-    xEndpoint.pxNetworkInterface = &xNetworkInterface;
-    memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xEndpoint.bits.bIPv6 = pdTRUE;
-
-    return pxEndpoint;
-}
-
-static NetworkEndPoint_t * prvPrepareDefaultIPv4EndPoint()
-{
-    static NetworkEndPoint_t xEndpoint;
-    static NetworkInterface_t xNetworkInterface;
-    NetworkEndPoint_t * pxEndpoint = &xEndpoint;
-
-    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
-    memset( &xNetworkInterface, 0, sizeof( xNetworkInterface ) );
-
-    xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
-
-    xEndpoint.pxNetworkInterface = &xNetworkInterface;
-    xEndpoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
-    xEndpoint.bits.bIPv6 = pdFALSE;
-
-    return pxEndpoint;
-}
-
 /* ==============================  Test Cases  ============================== */
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_NullInput
- * Trigger assertion when input network buffer pointer is NULL.
+ * @brief Trigger assertion when input network buffer pointer is NULL.
  */
 void test_xProcessReceivedUDPPacket_IPv6_NullInput()
 {
@@ -215,8 +86,7 @@ void test_xProcessReceivedUDPPacket_IPv6_NullInput()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_NullBufferPointer
- * Trigger assertion when input buffer pointer in network buffer is NULL.
+ * @brief Trigger assertion when input buffer pointer in network buffer is NULL.
  */
 void test_xProcessReceivedUDPPacket_IPv6_NullBufferPointer()
 {
@@ -229,8 +99,7 @@ void test_xProcessReceivedUDPPacket_IPv6_NullBufferPointer()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_ZeroChecksum
- * Return fail due to zero checksum.
+ * @brief Return fail due to zero checksum.
  */
 void test_xProcessReceivedUDPPacket_IPv6_ZeroChecksum()
 {
@@ -258,8 +127,7 @@ void test_xProcessReceivedUDPPacket_IPv6_ZeroChecksum()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_DNSReplyPass
- * To validate the scenario that receives DNS reply packet and pass.
+ * @brief To validate the scenario that receives DNS reply packet and pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_DNSReplyPass()
 {
@@ -283,7 +151,6 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -292,8 +159,7 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyPass()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_DNSReplyFail
- * To validate the scenario that receives DNS reply packet and fail.
+ * @brief To validate the scenario that receives DNS reply packet and fail.
  */
 void test_xProcessReceivedUDPPacket_IPv6_DNSReplyFail()
 {
@@ -317,7 +183,6 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -326,8 +191,7 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyFail()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestPass
- * To validate the scenario that receives LLMNR request packet and pass.
+ * @brief To validate the scenario that receives LLMNR request packet and pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestPass()
 {
@@ -351,7 +215,6 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -360,8 +223,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestPass()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestFail
- * To validate the scenario that receives LLMNR request packet and fail.
+ * @brief To validate the scenario that receives LLMNR request packet and fail.
  */
 void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestFail()
 {
@@ -385,7 +247,6 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -394,8 +255,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestFail()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyPass
- * To validate the scenario that receives LLMNR reply packet and pass.
+ * @brief To validate the scenario that receives LLMNR reply packet and pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyPass()
 {
@@ -419,7 +279,6 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -428,8 +287,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyPass()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyFail
- * To validate the scenario that receives LLMNR reply packet and fail.
+ * @brief To validate the scenario that receives LLMNR reply packet and fail.
  */
 void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyFail()
 {
@@ -453,7 +311,6 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -462,8 +319,7 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyFail()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_NBNSRequestPass
- * To validate the scenario that receives NBNS request packet and pass.
+ * @brief To validate the scenario that receives NBNS request packet and pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestPass()
 {
@@ -487,7 +343,6 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -496,8 +351,7 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestPass()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_NBNSRequestFail
- * To validate the scenario that receives NBNS request packet and fail.
+ * @brief To validate the scenario that receives NBNS request packet and fail.
  */
 void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestFail()
 {
@@ -521,7 +375,6 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -530,8 +383,7 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestFail()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_NBNSReplyPass
- * To validate the scenario that receives NBNS Reply packet and pass.
+ * @brief To validate the scenario that receives NBNS Reply packet and pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyPass()
 {
@@ -555,7 +407,6 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyPass()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -564,8 +415,7 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyPass()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_NBNSReplyFail
- * To validate the scenario that receives NBNS Reply packet and fail.
+ * @brief To validate the scenario that receives NBNS Reply packet and fail.
  */
 void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyFail()
 {
@@ -589,7 +439,6 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyFail()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
@@ -598,8 +447,7 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyFail()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_NoSocket
- * To validate the scenario that no one is waiting for the packet.
+ * @brief To validate the scenario that no one is waiting for the packet.
  */
 void test_xProcessReceivedUDPPacket_IPv6_NoSocket()
 {
@@ -623,7 +471,6 @@ void test_xProcessReceivedUDPPacket_IPv6_NoSocket()
     pxUDPv6Packet->xUDPHeader.usDestinationPort = usDestPortNetworkEndian;
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
 
     xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
 
@@ -631,8 +478,7 @@ void test_xProcessReceivedUDPPacket_IPv6_NoSocket()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_SocketNeedND
- * To validate the flow that socket needs neighbor discovery.
+ * @brief To validate the flow that socket needs neighbor discovery.
  */
 void test_xProcessReceivedUDPPacket_IPv6_SocketNeedND()
 {
@@ -667,8 +513,7 @@ void test_xProcessReceivedUDPPacket_IPv6_SocketNeedND()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_SocketRecvHandlerFail
- * To validate the flow that socket receive handler returns fail.
+ * @brief To validate the flow that socket receive handler returns fail.
  */
 void test_xProcessReceivedUDPPacket_IPv6_SocketRecvHandlerFail()
 {
@@ -710,8 +555,7 @@ void test_xProcessReceivedUDPPacket_IPv6_SocketRecvHandlerFail()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_UDPListBufferFull
- * To validate the flow that list of the socket is full and return fail.
+ * @brief To validate the flow that list of the socket is full and return fail.
  */
 void test_xProcessReceivedUDPPacket_IPv6_UDPListBufferFull()
 {
@@ -756,8 +600,7 @@ void test_xProcessReceivedUDPPacket_IPv6_UDPListBufferFull()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_Pass
- * To validate the flow that all flows (list/event group/select/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows (list/event group/select/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_Pass()
 {
@@ -824,8 +667,7 @@ void test_xProcessReceivedUDPPacket_IPv6_Pass()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup
- * To validate the flow that all flows except for event group (list/select/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for event group (list/select/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup()
 {
@@ -889,8 +731,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit
- * To validate the flow that all flows except for select bit (list/event group/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for select bit (list/event group/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
 {
@@ -955,8 +796,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet
- * To validate the flow that all flows except for select set (list/event group/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for select set (list/event group/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
 {
@@ -1018,8 +858,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_PassNoSem
- * To validate the flow that all flows except for semaphore (list/event group/select/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for semaphore (list/event group/select/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
 {
@@ -1081,8 +920,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
 }
 
 /**
- * @brief test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP
- * To validate the flow that all flows except for DHCP (list/event group/select/queue) are all pass.
+ * @brief To validate the flow that all flows except for DHCP (list/event group/select/queue) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
 {
@@ -1148,8 +986,7 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCantSend
- * To validate the flow to send ping message but get failure on neighbor discovery.
+ * @brief To validate the flow to send ping message but get failure on neighbor discovery.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCantSend()
 {
@@ -1174,8 +1011,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCantSend()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheUnknown
- * To validate the flow to send ping message but get an unknown ND return.
+ * @brief To validate the flow to send ping message but get an unknown ND return.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheUnknown()
 {
@@ -1200,8 +1036,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheUnknown()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheHit
- * To validate the flow to send ping message and get a cache hit.
+ * @brief To validate the flow to send ping message and get a cache hit.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheHit()
 {
@@ -1234,8 +1069,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheHit()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPCacheHit
- * To validate the flow to send UDP and get a cache hit.
+ * @brief To validate the flow to send UDP and get a cache hit.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHit()
 {
@@ -1272,8 +1106,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHit()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitLessBufferLength
- * To validate the flow to send UDP and get a cache hit. But the buffer length is
+ * @brief To validate the flow to send UDP and get a cache hit. But the buffer length is
  * less than minimum requirement.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitLessBufferLength()
@@ -1314,8 +1147,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitLessBufferLength()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitNoEndPoint
- * To validate the flow to send UDP and get a cache hit but no matching endpoint.
+ * @brief To validate the flow to send UDP and get a cache hit but no matching endpoint.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitNoEndPoint()
 {
@@ -1348,8 +1180,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitNoEndPoint()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissBothGlobal
- * To validate the flow to send UDP and get a cache miss and
+ * @brief To validate the flow to send UDP and get a cache miss and
  * the IP type of network buffer/endpoint are both global.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissBothGlobal()
@@ -1381,8 +1212,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissBothGlobal()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissButEndPointFound
- * To validate the flow to send UDP and get a cache miss but
+ * @brief To validate the flow to send UDP and get a cache miss but
  * matching endpoint is found.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissButEndPointFound()
@@ -1410,8 +1240,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissButEndPointFound()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType
- * To validate the flow to send UDP and get a cache miss and
+ * @brief To validate the flow to send UDP and get a cache miss and
  * the IP type of network buffer is not global but endpoint is global.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType()
@@ -1444,8 +1273,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2
- * To validate the flow to send UDP and get a cache miss and
+ * @brief To validate the flow to send UDP and get a cache miss and
  * the IP type of network buffer is global but endpoint is not global.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2()
@@ -1478,8 +1306,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound
- * To validate the flow to send UDPv4 and get a cache miss.
+ * @brief To validate the flow to send UDPv4 and get a cache miss.
  * Then found an endpoint in same subnet.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound()
@@ -1511,8 +1338,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound()
 }
 
 /**
- * @brief test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound
- * To validate the flow to send UDPv4 and get a cache miss.
+ * @brief To validate the flow to send UDPv4 and get a cache miss.
  * Then can't find an endpoint in same subnet.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound()
@@ -1543,8 +1369,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound()
 }
 
 /**
- * @brief test_pxGetEndpoint_IPv4
- * Searching IPv4 endpoint in the global list. And it always returns NULL.
+ * @brief Searching IPv4 endpoint in the global list. And it always returns NULL.
  */
 void test_pxGetEndpoint_IPv4()
 {
@@ -1561,8 +1386,7 @@ void test_pxGetEndpoint_IPv4()
 }
 
 /**
- * @brief test_pxGetEndpoint_NotMatchEndpoint
- * No matching endpoint.
+ * @brief No matching endpoint.
  */
 void test_pxGetEndpoint_NotMatchEndpoint()
 {

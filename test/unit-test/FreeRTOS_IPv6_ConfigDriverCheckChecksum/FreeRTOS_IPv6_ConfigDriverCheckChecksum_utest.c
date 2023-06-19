@@ -45,81 +45,13 @@
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
+#include "FreeRTOS_IPv6_ConfigDriverCheckChecksum_stubs.c"
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 extern const struct xIPv6_Address xIPv6UnspecifiedAddress;
 
-/* First IPv6 address is 2001:1234:5678::5 */
-const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
-
-/* Second IPv6 address is 2001:1234:5678::10 */
-const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
-
-/* MAC Address for endpoint. */
-const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
-
-/* ============================  Unity Fixtures  ============================ */
-
-/*! called before each test case */
-void setUp( void )
-{
-}
-
-/*! called after each test case */
-void tearDown( void )
-{
-}
-
-/* ======================== Stub Callback Functions ========================= */
-
-static NetworkEndPoint_t * prvInitializeEndpoint()
-{
-    static NetworkEndPoint_t xEndpoint;
-
-    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
-    xEndpoint.bits.bIPv6 = 1U;
-    memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-
-    return &xEndpoint;
-}
-
-/*
- * Prepare a network buffer with following format:
- *  - Ethernet Header
- *  - IPv6 Header
- *  - TCP Header
- *  - 8 Bytes Payload
- */
-static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptor()
-{
-    static NetworkBufferDescriptor_t xNetworkBuffer;
-    static uint8_t pcNetworkBuffer[ sizeof( TCPPacket_IPv6_t ) + 8U ];
-    TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pcNetworkBuffer;
-
-    /* Initialize network buffer descriptor. */
-    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
-    xNetworkBuffer.pxEndPoint = prvInitializeEndpoint();
-    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pxTCPPacket;
-    xNetworkBuffer.xDataLength = sizeof( TCPPacket_IPv6_t ) + 8U;
-
-    /* Initialize network buffer. */
-    memset( pcNetworkBuffer, 0, sizeof( pcNetworkBuffer ) );
-    /* Ethernet part. */
-    memcpy( pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
-    memcpy( pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
-    pxTCPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    /* IP part. */
-    memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPAddressTen.ucBytes, sizeof( IPv6_Address_t ) );
-    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, sizeof( IPv6_Address_t ) );
-    pxTCPPacket->xIPHeader.ucVersionTrafficClass |= 6U << 4;
-    pxTCPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) + 8U );
-    pxTCPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
-
-    return &xNetworkBuffer;
-}
-
-/* ============================== Test Cases ============================== */
+/* =============================== Test Cases =============================== */
 
 /**
  * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_happy_path
