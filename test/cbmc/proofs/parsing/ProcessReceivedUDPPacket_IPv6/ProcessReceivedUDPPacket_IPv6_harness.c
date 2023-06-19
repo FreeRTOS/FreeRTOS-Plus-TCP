@@ -5,9 +5,9 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_TCP_IP.h"
+
+/* CBMC includes. */
+#include "cbmc.h"
 
 /*This proof assumes that pxUDPSocketLookup is implemented correctly. */
 
@@ -36,6 +36,12 @@ uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
     return pdFAIL;
 }
 
+/* Abstraction of pxUDPSocketLookup */
+FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
+{
+    return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+}
+
 /* This proof was done before. Hence we assume it to be correct here. */
 BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
@@ -46,6 +52,20 @@ BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuf
     return xReturn;
 }
 
+/* Abstraction of vNDRefreshCacheEntry */
+void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
+                           const IPv6_Address_t * pxIPAddress,
+                           NetworkEndPoint_t * pxEndPoint )
+{
+}
+
+/* Abstraction of uxIPHeaderSizePacket */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    /* To enter xProcessReceivedUDPPacket_IPv6, the frame type of ethernet header must be IPv6. */
+    return ipSIZE_OF_IPv6_HEADER;
+}
+
 /* Abstraction of xSendDHCPEvent */
 BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
 {
@@ -54,37 +74,6 @@ BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
 
     return xReturn;
-}
-
-/* This proof was done before. Hence we assume it to be correct here. */
-BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                           uint16_t usPort,
-                                           BaseType_t * pxIsWaitingForARPResolution )
-{
-    BaseType_t xReturn;
-
-    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
-
-    return xReturn;
-}
-
-/* Implementation of safe malloc */
-void * safeMalloc( size_t xWantedSize )
-{
-    if( xWantedSize == 0 )
-    {
-        return NULL;
-    }
-
-    uint8_t byte;
-
-    return byte ? malloc( xWantedSize ) : NULL;
-}
-
-/* Abstraction of pxUDPSocketLookup */
-FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
-{
-    return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
 }
 
 void harness()
@@ -104,11 +93,11 @@ void harness()
     /* The network buffer must not be NULL, checked in prvProcessEthernetPacket. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
+    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_IPv6_t ) );
     pxNetworkBuffer->pxEndPoint = &xEndpoint;
 
     /* The ethernet buffer must be valid. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
+    xProcessReceivedUDPPacket_IPv6( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
 }

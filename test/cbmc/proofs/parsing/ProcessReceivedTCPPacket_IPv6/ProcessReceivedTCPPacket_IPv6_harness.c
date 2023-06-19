@@ -12,11 +12,12 @@
 #include "cbmc.h"
 #include "../../utility/memory_assignments.c"
 
-/* This proof assumes pxTCPSocketLookup and pxGetNetworkBufferWithDescriptor
- * are implemented correctly.
+/* This proof assumes pxTCPSocketLookup, vTCPStateChange, prvTCPSocketIsActive, xIsCallingFromIPTask,
+ * xSequenceGreaterThan, xSequenceLessThan, xTaskGetTickCount, vReleaseNetworkBufferAndDescriptor, xTCPWindowTxHasData and
+ * pxGetNetworkBufferWithDescriptor are implemented correctly.
  *
  * It also assumes prvSingleStepTCPHeaderOptions, prvCheckOptions, prvTCPPrepareSend,
- * prvTCPHandleState, prvHandleListen_IPV4 and prvTCPReturnPacket are correct. These functions are
+ * prvTCPHandleState, prvHandleListen_IPV6 and prvTCPReturnPacket are correct. These functions are
  * proved to be correct separately. */
 
 /* Abstraction of xTaskGetCurrentTaskHandle */
@@ -35,16 +36,16 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
     return pxCurrentTCB;
 }
 
-/* Abstraction of prvHandleListen_IPV4 */
-FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
+/* Abstraction of prvHandleListen */
+FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
+                                     NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     FreeRTOS_Socket_t * xRetSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
     if( xRetSocket )
     {
-        /* This test case is for IPv4. */
-        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
+        /* This test case is for IPv6. */
+        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdTRUE );
     }
 
     return xRetSocket;
@@ -60,8 +61,8 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
 
     if( xRetSocket )
     {
-        /* This test case is for IPv4. */
-        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
+        /* This test case is for IPv6. */
+        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdTRUE );
     }
 
     return xRetSocket;
@@ -82,17 +83,36 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return pxNetworkBuffer;
 }
 
+/* Abstraction of uxIPHeaderSizePacket. Because we're testing IPv6 in this test case, the network buffer is
+ * guaranteed to be IPv6 packet. Thus returns IPv6 header size here directly. */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    return ipSIZE_OF_IPv6_HEADER;
+}
+
+/* Abstraction of uxIPHeaderSizePacket. Because we're testing IPv6 in this test case, all socket handlers returned
+ * by functions are for IPv6. Thus returns IPv6 header size here directly. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
+{
+    return ipSIZE_OF_IPv6_HEADER;
+}
+
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    EthernetHeader_t * pxEthernetHeader;
 
     /* To avoid asserting on the network buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
+    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_IPv6_t ) );
 
     /* To avoid asserting on the ethernet buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    xProcessReceivedTCPPacket( pxNetworkBuffer );
+    /* Ethernet frame type is checked before calling xProcessReceivedTCPPacket_IPV6. */
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    __CPROVER_assume( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE );
+
+    xProcessReceivedTCPPacket_IPV6( pxNetworkBuffer );
 }
