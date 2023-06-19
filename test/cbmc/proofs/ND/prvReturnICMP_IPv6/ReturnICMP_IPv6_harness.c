@@ -62,12 +62,14 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
 }
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 void vReceiveNA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
 }
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
@@ -76,6 +78,7 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 {
     BaseType_t xReturn;
 
+    __CPROVER_assert( pxEvent != NULL, "The network buffer descriptor cannot be NULL." );
     __CPROVER_assume( xReturn == pdPASS || xReturn == pdFAIL );
 
     return xReturn;

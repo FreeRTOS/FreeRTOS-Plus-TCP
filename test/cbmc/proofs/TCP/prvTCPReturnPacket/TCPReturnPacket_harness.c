@@ -71,6 +71,8 @@ void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
 {
     NetworkEndPoint_t * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
 
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network interface cannot be NULL." );
+
     __CPROVER_assume( pxEndPoint != NULL );
 
     /* Add an interface */
