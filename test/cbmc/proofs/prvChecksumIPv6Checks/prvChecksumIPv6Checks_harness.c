@@ -16,10 +16,6 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
-/****************************************************************
-* Signature of function under test
-****************************************************************/
-
 void harness()
 {
     size_t uxBufferSize;
