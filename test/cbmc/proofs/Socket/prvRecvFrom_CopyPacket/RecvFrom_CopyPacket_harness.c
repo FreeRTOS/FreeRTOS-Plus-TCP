@@ -56,5 +56,8 @@ void harness()
          * placed. */
         __CPROVER_assume( xFlags == FREERTOS_ZERO_COPY );
         __CPROVER_file_local_FreeRTOS_Sockets_c_prvRecvFrom_CopyPacket( pucEthernetBuffer, &pvBuffer, uxBufferLength, xFlags, lDataLength );
+
+        /* Postconditions */
+        __CPROVER_assert( pvBuffer != NULL, "pvBuffer can not be NULL" );
     }
 }
