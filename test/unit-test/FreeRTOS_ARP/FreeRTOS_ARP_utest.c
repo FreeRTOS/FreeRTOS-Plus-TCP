@@ -66,6 +66,37 @@ static void vResetARPClashCounter( void )
     xTaskCheckForTimeOut_StopIgnore();
 }
 
+void test_xCheckLoopback_NullNetworkBuffer( void )
+{
+    BaseType_t xResult;
+
+    /* bReleaseAfterSend parameter doesn't matter here. */
+    xResult = xCheckLoopback( NULL, pdFALSE );
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+    /* =================================================== */
+}
+
+void test_xCheckLoopback_DataLengthTooSmall( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    NetworkBufferDescriptor_t * const pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucBuffer[ sizeof( IPPacket_t ) + ipBUFFER_PADDING ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer->pucEthernetBuffer = ucBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( IPPacket_t ) - 1;
+
+    IPPacket_t * pxIPPacket = ( IPPacket_t * ) ( pxNetworkBuffer->pucEthernetBuffer );
+
+    /* =================================================== */
+    /* Let the frame-type be anything else than IPv4. */
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    /* bReleaseAfterSend parameter doesn't matter here. */
+    xResult = xCheckLoopback( pxNetworkBuffer, pdFALSE );
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+    /* =================================================== */
+}
+
 void test_xCheckLoopback_IncorrectFrameType( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
