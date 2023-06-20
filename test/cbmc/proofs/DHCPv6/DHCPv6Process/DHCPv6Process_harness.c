@@ -100,6 +100,8 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6ProcessEndPoint_HandleS
  */
 BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
+    /* The assumption is needed to make sure prvCreateDHCPv6Socket is
+     * creating a valid socket. */
     __CPROVER_assume( xSocket != FREERTOS_INVALID_SOCKET );
     __CPROVER_assume( xSocket != NULL );
     return( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) );
@@ -135,10 +137,11 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
 {
     static uint32_t recvRespCnt = 0;
+    FreeRTOS_Socket_t const * pxSocket = xSocket;
     int32_t retVal = -1;
 
-    __CPROVER_assert( pvBuffer != NULL,
-                      "FreeRTOS precondition: pvBuffer != NULL" );
+    __CPROVER_assert( pvBuffer != NULL, "FreeRTOS precondition: pvBuffer != NULL" );
+    __CPROVER_assert( pxSocket != NULL, "FreeRTOS precondition: pxSocket != NULL" );
 
     if( ++recvRespCnt < ( FR_RECV_FROM_SUCCESS_COUNT - 1 ) )
     {
