@@ -391,11 +391,11 @@
                                         MiniListItem_t * pxWhere )
         {
             /* Insert a new list item into pxList, it does not sort the list,
-            * but it puts the item just before xListEnd, so it will be the last item
-            * returned by listGET_HEAD_ENTRY() */
+             * but it puts the item just before xListEnd, so it will be the last item
+             * returned by listGET_HEAD_ENTRY() */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
@@ -408,7 +408,7 @@
 
             ( pxList->uxNumberOfItems )++;
         }
-    #endif
+    #endif /* if ( ipconfigUSE_TCP_WIN == 1 ) */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
