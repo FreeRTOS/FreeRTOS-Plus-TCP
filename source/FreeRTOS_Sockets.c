@@ -1878,7 +1878,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                 if( pvOptionValue == NULL )
                 {
-                    pxSocket->ucSocketOptions &= ~( ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
+                    pxSocket->ucSocketOptions &= ( uint8_t )(~FREERTOS_SO_UDPCKSUM_OUT);
                 }
                 else
                 {
