@@ -1,3 +1,31 @@
+/*
+ * FreeRTOS memory safety proofs with CBMC.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
+ */
+
 /* Standard includes. */
 #include <stdint.h>
 
@@ -27,6 +55,7 @@ void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint( BaseType_t x
                                                                     DHCPMessage_IPv6_t * pxDHCPMessage )
 {
     __CPROVER_assert( pxEndPoint != NULL, "FreeRTOS precondition: pxEndPoint != NULL" );
+    __CPROVER_assert( pxDHCPMessage != NULL, "FreeRTOS precondition: pxDHCPMessage != NULL" );
 }
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
@@ -140,6 +169,13 @@ void harness()
     }
 
     pxNetworkEndPoint->pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
+
+    if( xReset == pdFALSE )
+    {
+        /* pxNetworkEndPoint->pxDHCPMessage is not expected to be NULL when
+         * it is not a state machine reset. */
+        __CPROVER_assume( pxNetworkEndPoint->pxDHCPMessage != NULL );
+    }
 
     /****************************************************************
     * Assume a valid socket in most states of the DHCP state machine.
