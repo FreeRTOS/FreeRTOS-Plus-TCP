@@ -267,7 +267,7 @@
             size_t uxPrefixLength = ( size_t ) pucBytes[ uxIndex + 1U ];
             size_t uxLength = uxPrefixLength * 8U;
 
-            if( uxPrefixLength == 0 )
+            if( uxPrefixLength == 0U )
             {
                 /* According to RFC 4861, length of the option value 0 is invalid. Hence returning from here */
                 FreeRTOS_printf( ( "RA: Invalid length of the option value as zero. " ) );

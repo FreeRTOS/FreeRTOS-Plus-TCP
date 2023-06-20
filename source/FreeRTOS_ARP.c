@@ -476,11 +476,11 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
 
-    switch( uxIPHeaderSizePacket( ( const NetworkBufferDescriptor_t * ) pxNetworkBuffer ) )
+    switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
     {
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipSIZE_OF_IPv4_HEADER:

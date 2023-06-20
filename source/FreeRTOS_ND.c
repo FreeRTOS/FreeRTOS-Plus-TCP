@@ -234,7 +234,7 @@
 
                         if( eMyType == eIPType )
                         {
-                            eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, &pxEndPoint );
+                            eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
                             break;
                         }
                     }

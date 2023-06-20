@@ -521,11 +521,18 @@ static void prvIPTask_Initialise( void )
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
         {
-            /* The following function is declared in FreeRTOS_DNS.c	and 'private' to
+            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
              * this library */
             vDNSInitialise();
         }
     #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
+
+    #if ( ipconfigUSE_DNS_CACHE != 0 )
+        {
+            /* Clear the DNS cache once only. */
+            FreeRTOS_dnsclear();
+        }
+    #endif /* ipconfigUSE_DNS_CACHE != 0 */
 
     /* Initialisation is complete and events can now be processed. */
     xIPTaskInitialised = pdTRUE;
