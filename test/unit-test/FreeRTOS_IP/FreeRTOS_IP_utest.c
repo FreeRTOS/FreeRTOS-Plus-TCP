@@ -3058,6 +3058,33 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
 }
 
 /**
+ * @brief The packet size is less than IPv6 minimum packet size.
+ */
+void test_prvProcessIPPacket_IPv6_LessPacketSize( void )
+{
+    eFrameProcessingResult_t eResult;
+    IPPacket_IPv6_t * pxIPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    UBaseType_t uxHeaderLength = 0;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    IPHeader_IPv6_t * pxIPHeader;
+    BaseType_t xReturnValue = pdTRUE;
+
+    memset( ucEthBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( IPPacket_IPv6_t ) - 1;
+
+    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+
+    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
  * @brief test_vReturnEthernetFrame
  * To validate if vReturnEthernetFrame changes the source/destination MAC addresses correctly
  * and transmits though network interface.
