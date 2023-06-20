@@ -519,20 +519,20 @@ static void prvIPTask_Initialise( void )
     /* Mark the timer as inactive since we are not waiting on any ARP resolution as of now. */
     vIPSetARPResolutionTimerEnableState( pdFALSE );
 
-    #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+    #if ( ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigUSE_DNS != 0 ) )
         {
             /* The following function is declared in FreeRTOS_DNS.c and 'private' to
              * this library */
             vDNSInitialise();
         }
-    #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
+    #endif /* ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigUSE_DNS != 0 ) */
 
-    #if ( ipconfigUSE_DNS_CACHE != 0 )
+    #if ( ( ipconfigUSE_DNS_CACHE != 0 ) && ( ipconfigUSE_DNS != 0 ) )
         {
             /* Clear the DNS cache once only. */
             FreeRTOS_dnsclear();
         }
-    #endif /* ipconfigUSE_DNS_CACHE != 0 */
+    #endif /* ( ( ipconfigUSE_DNS_CACHE != 0 ) && ( ipconfigUSE_DNS != 0 ) ) */
 
     /* Initialisation is complete and events can now be processed. */
     xIPTaskInitialised = pdTRUE;
