@@ -43,8 +43,8 @@ void harness()
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     BaseType_t bReleaseAfterSend;
 
-    __CPROVER_assume( xBufferLength < ipconfigNETWORK_MTU );
-    __CPROVER_assume( ( bReleaseAfterSend == pdTRUE ) || ( bReleaseAfterSend == pdFALSE ) );
+    __CPROVER_assume( ( xBufferLength >= 0 ) &&
+                      ( xBufferLength < ipconfigNETWORK_MTU ) );
 
     pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
