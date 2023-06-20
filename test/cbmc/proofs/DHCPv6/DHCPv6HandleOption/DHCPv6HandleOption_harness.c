@@ -20,6 +20,7 @@
 #define OPTION_LENGTH    16
 #define DNS_COUNT        ( OPTION_LENGTH / ipSIZE_OF_IPv6_ADDRESS );
 
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleStatusCode( size_t uxLength,
                                                                               BitConfig_t * pxMessage )
 {
@@ -30,6 +31,7 @@ BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_handleStatusCode( si
     return nondet_BaseType();
 }
 
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
 BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6_subOption( uint16_t usOption,
                                                                        const DHCPOptionSet_t * pxSet,
                                                                        DHCPMessage_IPv6_t * pxDHCPMessage,
