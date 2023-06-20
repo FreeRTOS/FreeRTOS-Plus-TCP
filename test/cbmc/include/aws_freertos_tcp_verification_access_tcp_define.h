@@ -10,11 +10,3 @@ BaseType_t publicTCPHandleState( FreeRTOS_Socket_t * pxSocket,
 {
     prvTCPHandleState( pxSocket, ppxNetworkBuffer );
 }
-
-void publicTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                            NetworkBufferDescriptor_t * pxNetworkBuffer,
-                            uint32_t ulLen,
-                            BaseType_t xReleaseAfterSend )
-{
-    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, xReleaseAfterSend );
-}

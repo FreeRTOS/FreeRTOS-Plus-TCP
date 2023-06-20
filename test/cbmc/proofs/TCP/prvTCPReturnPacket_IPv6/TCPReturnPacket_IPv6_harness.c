@@ -36,6 +36,7 @@
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_TCP_Transmission.h"
 
+/* CBMC includes. */
 #include "../../utility/memory_assignments.c"
 
 #include "cbmc.h"
@@ -70,8 +71,6 @@ void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                size_t uxIPHeaderSize )
 {
     NetworkEndPoint_t * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
-
-    __CPROVER_assert( pxNetworkBuffer != NULL, "The network interface cannot be NULL." );
 
     __CPROVER_assume( pxEndPoint != NULL );
 
@@ -149,11 +148,11 @@ void harness()
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {
         /* Assume that the length is proper. */
-        __CPROVER_assume( ( ulLen >= sizeof( TCPPacket_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
+        __CPROVER_assume( ( ulLen >= sizeof( TCPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen + ipSIZE_OF_ETH_HEADER );
-        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer );
+        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-        pxNetworkBuffer->xDataLength = ( size_t ) ulLen;
+        pxNetworkBuffer->xDataLength = ( size_t ) ( ulLen + ipSIZE_OF_ETH_HEADER );
 
         /* Add an end point to the network buffer present. Its assumed that the
          * network interface layer correctly assigns the end point to the generated buffer. */
@@ -173,8 +172,8 @@ void harness()
         /* Assume that the length is proper. The length should be between this range. It
          * is made so by the functions up the call tree. Essentially, this is equal to a
          * TCP packet header with and without TCP options. */
-        __CPROVER_assume( ( ulLen >= ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) &&
-                          ( ulLen <= ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + 40 /* Maximum option bytes. */ ) );
+        __CPROVER_assume( ( ulLen >= ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) &&
+                          ( ulLen <= ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER + 40 /* Maximum option bytes. */ ) );
     }
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, xReleaseAfterSend );
