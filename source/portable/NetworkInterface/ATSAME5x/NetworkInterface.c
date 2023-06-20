@@ -277,6 +277,8 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
     for( ; ; )
     {
+        BaseType_t xRelease = pdFALSE;
+
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
          * has been received.  The task notification is used in a similar way to a
          * counting semaphore to count Rx events, but is a lot more efficient than
@@ -311,61 +313,81 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 pxBufferDescriptor->pxInterface = pxMyInterface;
                 pxBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxBufferDescriptor->pucEthernetBuffer );
 
-                #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
-                    {
-                        /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
-                         * It must therefore be implemented in software. */
-                        pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxBufferDescriptor->pucEthernetBuffer );
-
-                        if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
-                        {
-                            xICMPChecksumResult = usGenerateProtocolChecksum( pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength, pdFALSE );
-                        }
-                        else
-                        {
-                            xICMPChecksumResult = ipCORRECT_CRC; /* Reset the result value in case this is not an ICMP packet. */
-                        }
-                    }
-                #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
-
-                /* See if the data contained in the received Ethernet frame needs
-                * to be processed.  NOTE! It is preferable to do this in
-                * the interrupt service routine itself, which would remove the need
-                * to unblock this task for packets that don't need processing. */
-                if( ( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer ) &&
-                    ( xICMPChecksumResult == ipCORRECT_CRC ) )
+                if( pxBufferDescriptor->pxEndPoint == NULL )
                 {
-                    /* The event about to be sent to the TCP/IP is an Rx event. */
-                    xRxEvent.eEventType = eNetworkRxEvent;
-
-                    /* pvData is used to point to the network buffer descriptor that
-                     * now references the received data. */
-                    xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-
-                    /* Send the data to the TCP/IP stack. */
-                    if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-                    {
-                        /* The buffer could not be sent to the IP task so the buffer
-                         * must be released. */
-                        vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-
-                        /* Make a call to the standard trace macro to log the
-                         * occurrence. */
-                        iptraceETHERNET_RX_EVENT_LOST();
-                    }
-                    else
-                    {
-                        /* The message was successfully sent to the TCP/IP stack.
-                        * Call the standard trace macro to log the occurrence. */
-                        iptraceNETWORK_INTERFACE_RECEIVE();
-                    }
+                    FreeRTOS_printf( ( "NetworkInterface: can not find a proper endpoint\n" ) );
+                    xRelease = pdTRUE;
                 }
                 else
                 {
-                    /* The Ethernet frame can be dropped, but the Ethernet buffer
-                     * must be released. */
-                    vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+
+                    #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
+                        {
+                            /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
+                            * It must therefore be implemented in software. */
+                            pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxBufferDescriptor->pucEthernetBuffer );
+
+                            if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+                            {
+                                xICMPChecksumResult = usGenerateProtocolChecksum( pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength, pdFALSE );
+                            }
+                            else
+                            {
+                                xICMPChecksumResult = ipCORRECT_CRC; /* Reset the result value in case this is not an ICMP packet. */
+                            }
+                        }
+                    #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
+
+                    /* See if the data contained in the received Ethernet frame needs
+                    * to be processed.  NOTE! It is preferable to do this in
+                    * the interrupt service routine itself, which would remove the need
+                    * to unblock this task for packets that don't need processing. */
+                    if( ( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer ) &&
+                        ( xICMPChecksumResult == ipCORRECT_CRC ) )
+                    {
+                        /* The event about to be sent to the TCP/IP is an Rx event. */
+                        xRxEvent.eEventType = eNetworkRxEvent;
+
+                        /* pvData is used to point to the network buffer descriptor that
+                        * now references the received data. */
+                        xRxEvent.pvData = ( void * ) pxBufferDescriptor;
+
+                        /* Send the data to the TCP/IP stack. */
+                        if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+                        {
+                            /* The buffer could not be sent to the IP task so the buffer
+                            * must be released. */
+                            xRelease = pdTRUE;
+
+                            /* Make a call to the standard trace macro to log the
+                            * occurrence. */
+                            iptraceETHERNET_RX_EVENT_LOST();
+                        }
+                        else
+                        {
+                            /* The message was successfully sent to the TCP/IP stack.
+                            * Call the standard trace macro to log the occurrence. */
+                            iptraceNETWORK_INTERFACE_RECEIVE();
+                        }
+                    }
+                    else
+                    {
+                        /* The Ethernet frame can be dropped, but the Ethernet buffer
+                        * must be released. */
+                        xRelease = pdTRUE;
+                    }
                 }
+
+                /* Release the descriptor in case it can not be delivered. */
+                if( xRelease == pdTRUE )
+                {
+                    /* The buffer could not be sent to the stack so must be released
+                    * again. */
+                    vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
+                    iptraceETHERNET_RX_EVENT_LOST();
+                    FreeRTOS_printf( ( "prvEMACDeferredInterruptHandlerTask: Can not queue RX packet!\n" ) );
+                }
+
             }
             else
             {
