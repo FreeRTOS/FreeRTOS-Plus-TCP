@@ -185,6 +185,7 @@ dff
 dhcp
 dhcpbroadcast
 dhcpcookie
+dhcpmsg
 dhcpserveraddress
 didn
 diff
@@ -552,6 +553,7 @@ macobject
 macobjhandle
 macobjstatus
 macvlantr
+malformed
 malloc
 malloclarge
 mallocsocket
@@ -762,6 +764,7 @@ pre
 printf
 printfs
 processdhcpreplies
+processethernetpacket
 processicmppacket
 processippacket
 projdefs
@@ -832,6 +835,7 @@ prvpreparewrongtransactionid
 prvprocessdhcpreplies
 prvprocessdnscache
 prvprocessethernetpacket
+prvprocessicmpechorequest
 prvprocessipeventsandtimers
 prvprocessippacket
 prvprocessnetworkdownevent
@@ -954,6 +958,7 @@ pvsource
 pxackmessage
 pxaddr
 pxaddress
+pxaddresses
 pxaddressinfo
 pxaddresslength
 pxaddresstolookup
@@ -1396,6 +1401,7 @@ uldestinationaddress
 uldestinationipaddress
 uldhcpcookie
 uldhcpserveraddress
+uldnshandlepacket
 uldnsserver
 uldnsserveraddress
 uldnsserveraddresses
@@ -1409,6 +1415,7 @@ ulflag
 ulflags
 ulgateway
 ulgatewayaddress
+ulgenericlength
 ulgetruntimecountervalue
 ulhighestrxallowed
 ulhighestsequencenumber
@@ -1441,6 +1448,7 @@ ulmatching
 ulmsec
 ulmss
 ulmtu
+ulnbnshandlepacket
 ulnetmask
 ulnextfreetxdescriptor
 ulnextsequencenumber
@@ -1593,6 +1601,7 @@ uxborn
 uxbufferlength
 uxbuffersize
 uxbytecount
+uxbytesneeded
 uxbytesread
 uxclockticks
 uxcontents
@@ -1682,6 +1691,7 @@ uxtotaldatalength
 uxtotallength
 uxtxstreamsize
 uxtxwinsize
+uxudpoffset
 uxunrollcount
 uxupper
 uxwinsize
@@ -1692,6 +1702,7 @@ var
 varpagecache
 varpgeneraterequestpacket
 varprefreshcacheentry
+varprocesspacketrequest
 varpsendgratuitous
 varptimerreload
 vcastconstpointerto
@@ -1722,6 +1733,7 @@ vlantagcomparison
 vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
+vlistinsertend
 vmyconnecthandler
 vndagecache
 vndrefreshcacheentry
@@ -1730,6 +1742,8 @@ vndsendroutersolicitation
 vnetworkinterfaceallocateramtobuffers
 vnetworktimerreload
 vperformaction
+vportentercritical
+vportexitcritical
 vportfree
 vprecheckconfigs
 vprintresourcestats
@@ -1754,6 +1768,7 @@ vstartntptask
 vtaskdelay
 vtasklist
 vtasknotifygivefromisr
+vtasksuspendall
 vtcpnetstat
 vtcpstatechange
 vtcptimergetage
@@ -1865,6 +1880,7 @@ xerrnum
 xethernetheader
 xeventbits
 xeventgroup
+xeventgroupsetbits
 xeventgroupwaitbits
 xexpected
 xexpectedmessagetype
@@ -2024,6 +2040,8 @@ xsenderhardwareaddress
 xsendeventstructtoiptask
 xsendeventtoiptask
 xsendlength
+xsequencegreaterthan
+xsequencelessthan
 xserverid
 xserversemaphore
 xserversocket
@@ -2067,6 +2085,7 @@ xtcpwindowpeekhead
 xtcpwindowrxconfirm
 xtcpwindowrxfind
 xtcpwindowtxdone
+xtcpwindowtxhasdata
 xtcpwindowtxnew
 xtemplist
 xtickcount

@@ -84,7 +84,7 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
 #define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )

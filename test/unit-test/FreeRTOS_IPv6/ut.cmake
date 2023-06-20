@@ -15,7 +15,6 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/FreeRTOS_IPv6_list_macros.h"
         )
 
 set(mock_include_list "")
