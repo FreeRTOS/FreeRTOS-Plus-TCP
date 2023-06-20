@@ -765,6 +765,7 @@ preparereplydnsmessage
 printf
 printfs
 processdhcpreplies
+processethernetpacket
 processicmppacket
 processippacket
 projdefs
@@ -835,6 +836,7 @@ prvpreparewrongtransactionid
 prvprocessdhcpreplies
 prvprocessdnscache
 prvprocessethernetpacket
+prvprocessicmpechorequest
 prvprocessipeventsandtimers
 prvprocessippacket
 prvprocessnetworkdownevent
