@@ -338,7 +338,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                                 xICMPChecksumResult = ipCORRECT_CRC; /* Reset the result value in case this is not an ICMP packet. */
                             }
                         }
-                    #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
+                    #endif /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
 
                     /* See if the data contained in the received Ethernet frame needs
                     * to be processed.  NOTE! It is preferable to do this in
@@ -439,7 +439,7 @@ BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                     ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
                 }
             }
-        #endif
+        #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) */
 
         mac_async_write( &ETH_MAC, pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
 
