@@ -146,7 +146,7 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_wrong_ip_length()
     IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
     /* Modify the length in IP header to be greater than data length. */
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) + 9U );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) + TEST_DEFAULT_PROTOCOL_PAYLOAD_LENGTH + 1U );
 
     eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
