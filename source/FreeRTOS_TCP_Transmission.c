@@ -1170,11 +1170,12 @@
         int32_t lRxSpace;
         BaseType_t xSendLength = xByteCount;
         uint32_t ulRxBufferSpace;
-        /* Two steps to please MISRA. */
-        size_t uxSize = uxIPHeaderSizePacket( *ppxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER;
-        BaseType_t xSizeWithoutData = ( BaseType_t ) uxSize;
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
+            /* Two steps to please MISRA. */
+            size_t uxSize = uxIPHeaderSizePacket( *ppxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER;
+            BaseType_t xSizeWithoutData = ( BaseType_t ) uxSize;
+
             int32_t lMinLength;
         #endif
 

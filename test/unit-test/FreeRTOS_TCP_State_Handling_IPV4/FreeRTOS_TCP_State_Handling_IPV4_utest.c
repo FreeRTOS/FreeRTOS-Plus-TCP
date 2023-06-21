@@ -201,6 +201,45 @@ void test_prvHandleListen_IPV4_NewSocketGood( void )
 }
 
 /**
+ * @brief Happy path with valid data length.
+ */
+void test_prvHandleListen_IPV4_NewSocketGoodValidDataLength( void )
+{
+    FreeRTOS_Socket_t * pxReturn = NULL;
+    FreeRTOS_Socket_t MockReturnSocket;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+
+    pxSocket = &xSocket;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->xDataLength = TCP_PACKET_SIZE + 1;
+
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
+    FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
+    prvTCPSocketCopy_ExpectAndReturn( &MockReturnSocket, pxSocket, pdTRUE );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgs();
+    vTCPStateChange_ExpectAnyArgs();
+
+    pxReturn = prvHandleListen_IPV4( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( &MockReturnSocket, pxReturn );
+    TEST_ASSERT_EQUAL( 1000, pxReturn->u.xTCP.xTCPWindow.ulOurSequenceNumber );
+}
+
+/**
  * @brief Got NULL return when creating socket.
  */
 void test_prvHandleListen_IPV4_NewSocketNULLSocket( void )

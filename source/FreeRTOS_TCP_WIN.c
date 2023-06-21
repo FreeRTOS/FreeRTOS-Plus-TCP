@@ -93,9 +93,11 @@
     #endif /* configUSE_TCP_WIN */
 /*-----------------------------------------------------------*/
 
-    static void vListInsertGeneric( List_t * const pxList,
-                                    ListItem_t * const pxNewListItem,
-                                    MiniListItem_t * pxWhere );
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        static void vListInsertGeneric( List_t * const pxList,
+                                        ListItem_t * const pxNewListItem,
+                                        MiniListItem_t * pxWhere );
+    #endif
 
 /*
  * All TCP sockets share a pool of segment descriptors (TCPSegment_t)
@@ -383,28 +385,30 @@
  * @param[in] pxNewListItem The item to be inserted.
  * @param[in] pxWhere Where should the item be inserted.
  */
-    static void vListInsertGeneric( List_t * const pxList,
-                                    ListItem_t * const pxNewListItem,
-                                    MiniListItem_t * pxWhere )
-    {
-        /* Insert a new list item into pxList, it does not sort the list,
-         * but it puts the item just before xListEnd, so it will be the last item
-         * returned by listGET_HEAD_ENTRY() */
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        static void vListInsertGeneric( List_t * const pxList,
+                                        ListItem_t * const pxNewListItem,
+                                        MiniListItem_t * pxWhere )
+        {
+            /* Insert a new list item into pxList, it does not sort the list,
+             * but it puts the item just before xListEnd, so it will be the last item
+             * returned by listGET_HEAD_ENTRY() */
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
-        pxNewListItem->pxPrevious = pxWhere->pxPrevious;
-        pxWhere->pxPrevious->pxNext = pxNewListItem;
-        pxWhere->pxPrevious = pxNewListItem;
+            pxNewListItem->pxPrevious = pxWhere->pxPrevious;
+            pxWhere->pxPrevious->pxNext = pxNewListItem;
+            pxWhere->pxPrevious = pxNewListItem;
 
-        /* Remember which list the item is in. */
-        listLIST_ITEM_CONTAINER( pxNewListItem ) = ( struct xLIST * configLIST_VOLATILE ) pxList;
+            /* Remember which list the item is in. */
+            listLIST_ITEM_CONTAINER( pxNewListItem ) = ( struct xLIST * configLIST_VOLATILE ) pxList;
 
-        ( pxList->uxNumberOfItems )++;
-    }
+            ( pxList->uxNumberOfItems )++;
+        }
+    #endif /* if ( ipconfigUSE_TCP_WIN == 1 ) */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
