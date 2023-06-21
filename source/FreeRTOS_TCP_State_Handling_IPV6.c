@@ -161,6 +161,8 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
 
     if( ( xHasSequence != pdFALSE ) && ( pxReturn != NULL ) )
     {
+        size_t xCopyLength;
+
         /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -191,9 +193,18 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
 
         /* Make a copy of the header up to the TCP header.  It is needed later
          * on, whenever data must be sent to the peer. */
+        if( pxNetworkBuffer->xDataLength > sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) )
+        {
+            xCopyLength = sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket );
+        }
+        else
+        {
+            xCopyLength = pxNetworkBuffer->xDataLength;
+        }
+
         ( void ) memcpy( ( void * ) pxReturn->u.xTCP.xPacket.u.ucLastPacket,
                          ( const void * ) pxNetworkBuffer->pucEthernetBuffer,
-                         sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) );
+                         xCopyLength );
     }
 
     return pxReturn;
