@@ -175,7 +175,7 @@ void harness()
 
     if( xReset == pdFALSE )
     {
-        /* The endpoint DHCPMessage is not expected to be NULL when
+        /* The pxDHCPmessage is not expected to be NULL when
          * it is not a state machine reset. */
         __CPROVER_assume( pxNetworkEndPoint->pxDHCPMessage != NULL );
     }
