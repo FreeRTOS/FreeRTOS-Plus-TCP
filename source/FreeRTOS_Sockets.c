@@ -4633,6 +4633,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @return 0 in case of success, or else a negative error code is
  *         returned.
  */
+    /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+    /* coverity[misra_c_2012_rule_17_2_violation] */
+    /* coverity[recursive_step] */
     BaseType_t FreeRTOS_listen( Socket_t xSocket,
                                 BaseType_t xBacklog )
     {
