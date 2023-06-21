@@ -195,7 +195,7 @@ static void hand_tx_errors( void );
 
 /* Functions to set the hash table for multicast addresses. */
 static uint16_t prvGenerateCRC16( const uint8_t * pucAddress );
-static void prvAddMACAddress( const uint8_t * ucMacAddress );
+static void prvAddMulticastMACAddress( const uint8_t * ucMacAddress );
 
 /*-----------------------------------------------------------*/
 
@@ -701,7 +701,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
 
     #if ( ipconfigUSE_LLMNR == 1 )
         {
-            prvAddMACAddress( xLLMNR_MacAdress.ucBytes );
+            prvAddMulticastMACAddress( xLLMNR_MacAdress.ucBytes );
         }
     #endif /* ipconfigUSE_LLMNR */
 
@@ -710,7 +710,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
             NetworkEndPoint_t * pxEndPoint;
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
-                    prvAddMACAddress( xLLMNR_MacAdressIPv6.ucBytes );
+                    prvAddMulticastMACAddress( xLLMNR_MacAdressIPv6.ucBytes );
                 }
             #endif /* ipconfigUSE_LLMNR */
 
@@ -725,7 +725,7 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
                     ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
                     ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                     ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                    prvAddMACAddress( ucMACAddress );
+                    prvAddMulticastMACAddress( ucMACAddress );
                 }
             }
         }
@@ -791,7 +791,7 @@ static uint16_t prvGenerateCRC16( const uint8_t * pucAddress )
 }
 /*-----------------------------------------------------------*/
 
-static void prvAddMACAddress( const uint8_t * ucMacAddress )
+static void prvAddMulticastMACAddress( const uint8_t * ucMacAddress )
 {
     uint32_t ulMask;
     uint16_t usIndex;
@@ -1200,15 +1200,3 @@ static void prvEMACHandlerTask( void * pvParameters )
     }
 }
 /*-----------------------------------------------------------*/
-
-void gmac_enable_irq( BaseType_t xEnable )
-{
-    if( xEnable != 0 )
-    {
-        NVIC_EnableIRQ( GMAC_IRQn );
-    }
-    else
-    {
-        NVIC_DisableIRQ( GMAC_IRQn );
-    }
-}
