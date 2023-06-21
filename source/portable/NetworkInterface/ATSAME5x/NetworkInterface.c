@@ -154,7 +154,9 @@ static inline void prvGMACEnablePHYManagementPort( bool enable );
 /* GMAC registers configuration functions. */
 static inline void prvGMACEnable100Mbps( bool enable );
 static inline void prvGMACEnableFullDuplex( bool enable );
-
+static inline void prvGMACClearMulticastHashTable();
+static inline void prvGMACEnableMulticastHashTable(bool enable);
+static inline void prvGMACEnableUnicastHashTable(bool enable);
 
 /***********************************************/
 /*                PHY variables                */
@@ -494,31 +496,65 @@ void xRxCallback( void )
  * configuration is saved in "hpl_gmac_config.h". */
 static void prvGMACInit()
 {
+    NetworkEndPoint_t * pxEndPointIter;
+
     /* Call MAC initialization function here: */
     vGMACInit();
     prvGMACEnablePHYManagementPort( false );
     mac_async_disable_irq( &ETH_MAC );
 
-    /* Set GMAC Filtering for own MAC address */
-    struct mac_async_filter mac_filter;
-    NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
-    if(pxEndPoint != NULL)
-    {
-        memcpy( mac_filter.mac, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
-    }
-    mac_filter.tid_enable = false;
-    mac_async_set_filter( &ETH_MAC, 0, &mac_filter );
+    prvGMACClearMulticastHashTable();
+    prvGMACEnableUnicastHashTable(true);
+    prvGMACEnableMulticastHashTable(true);
 
     /* Set GMAC filtering for LLMNR, if defined. */
     #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
         {
-            memcpy( mac_filter.mac, ucLLMNR_MAC_address, ipMAC_ADDRESS_LENGTH_BYTES );
-            /* LLMNR requires responders to listen to both TCP and UDP protocols. */
-            mac_filter.tid_enable = false;
-            mac_async_set_filter( &ETH_MAC, 1, &mac_filter );
+            mac_async_set_filter_ex(&ETH_MAC, ucLLMNR_MAC_address);
         }
     #endif
 
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+        {
+            /* Allow all nodes IPv6 multicast MAC */
+            uint8_t ucMACAddressAllNodes[ 6 ] = { 0x33, 0x33, 0, 0, 0, 1 };
+            mac_async_set_filter_ex(&ETH_MAC, ucMACAddressAllNodes);
+
+            #if ( ipconfigUSE_LLMNR == 1 )
+                {
+                    mac_async_set_filter_ex(&ETH_MAC, xLLMNR_MacAdressIPv6.ucBytes);
+                }
+            #endif /* ipconfigUSE_LLMNR */
+        }
+    #endif /* ipconfigUSE_IPv6 */
+
+    for( pxEndPointIter = FreeRTOS_FirstEndPoint( pxMyInterface );
+            pxEndPointIter != NULL;
+            pxEndPointIter = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPointIter ) )
+    {
+        #if ( ipconfigUSE_IPv6 != 0 )
+            {
+                if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    /* Allow IPv6 multicast traffic for the address used */
+                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0 };
+
+                    ucMACAddress[ 2 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 12 ];
+                    ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                    ucMACAddress[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                    ucMACAddress[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                    mac_async_set_filter_ex(&ETH_MAC, ucMACAddress);
+                
+                }
+            }
+        #endif /* ipconfigUSE_IPv6 */
+
+        /* Allow endpoint MAC */
+        mac_async_set_filter_ex(&ETH_MAC, pxEndPointIter->xMACAddress.ucBytes);
+
+    }
+        
     /* Set GMAC interrupt priority to be compatible with FreeRTOS API */
     NVIC_SetPriority( GMAC_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY >> ( 8 - configPRIO_BITS ) );
 
@@ -563,6 +599,36 @@ static inline void prvGMACEnableFullDuplex( bool enable )
     else
     {
         ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_FD;
+    }
+}
+
+static inline void prvGMACClearMulticastHashTable()
+{
+    ( ( Gmac * ) ETH_MAC.dev.hw )->HRB.reg = 0;
+    ( ( Gmac * ) ETH_MAC.dev.hw )->HRT.reg = 0;
+}
+
+static inline void prvGMACEnableMulticastHashTable(bool enable)
+{
+    if( enable )
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg |= GMAC_NCFGR_MTIHEN;
+    }
+    else
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_MTIHEN;
+    }
+}
+
+static inline void prvGMACEnableUnicastHashTable(bool enable)
+{
+    if( enable )
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg |= GMAC_NCFGR_UNIHEN;
+    }
+    else
+    {
+        ( ( Gmac * ) ETH_MAC.dev.hw )->NCFGR.reg &= ~GMAC_NCFGR_UNIHEN;
     }
 }
 
