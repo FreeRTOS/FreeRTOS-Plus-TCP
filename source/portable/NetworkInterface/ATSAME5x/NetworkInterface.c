@@ -81,7 +81,7 @@
 
 /* Setup LLMNR specific multicast address. */
 #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
-    static const uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+    static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
 
 /* Receive task refresh time */
@@ -516,12 +516,15 @@ static void prvGMACInit()
     #if ( ipconfigUSE_IPv6 != 0 )
         {
             /* Allow all nodes IPv6 multicast MAC */
-            uint8_t ucMACAddressAllNodes[ 6 ] = { 0x33, 0x33, 0, 0, 0, 1 };
+            uint8_t ucMACAddressAllNodes[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0, 0, 0, 1 };
             mac_async_set_filter_ex( &ETH_MAC, ucMACAddressAllNodes );
 
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
-                    mac_async_set_filter_ex( &ETH_MAC, xLLMNR_MacAdressIPv6.ucBytes );
+                    uint8_t ucMACAddressLLMNRIPv6[ ipMAC_ADDRESS_LENGTH_BYTES ];
+                    /* Avoid warning */
+                    memcpy(ucMACAddressLLMNRIPv6, xLLMNR_MacAdressIPv6.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES);
+                    mac_async_set_filter_ex( &ETH_MAC, ucMACAddressLLMNRIPv6 );
                 }
             #endif /* ipconfigUSE_LLMNR */
         }
