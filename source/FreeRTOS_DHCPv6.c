@@ -420,7 +420,7 @@ void vDHCPv6Process( BaseType_t xReset,
     }
 
     /* If there is a socket, check for incoming messages first. */
-    if( EP_DHCPData.xDHCPSocket != NULL )
+    if( ( xDoProcess != pdFALSE ) && ( EP_DHCPData.xDHCPSocket != NULL ) )
     {
         uint8_t * pucUDPPayload;
 
