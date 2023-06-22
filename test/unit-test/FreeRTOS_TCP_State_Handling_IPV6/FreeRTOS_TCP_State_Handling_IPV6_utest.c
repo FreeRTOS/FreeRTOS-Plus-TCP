@@ -407,3 +407,55 @@ void test_prvHandleListen_IPV6_NewSocketGood( void )
     TEST_ASSERT_EQUAL( usSrcPort, pxReturn->u.xTCP.usRemotePort );
     TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, pxReturn->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
+
+/**
+ * @brief Happy path with valid data length.
+ */
+void test_prvHandleListen_IPV6_NewSocketGoodValidDataLength( void )
+{
+    FreeRTOS_Socket_t * pxReturn;
+    TCPPacket_IPv6_t * pxTCPPacket = NULL;
+    uint32_t ulRandomReturn = 0x12345678;
+    FreeRTOS_Socket_t xChildSocket, * pxChildSocket;
+    uint16_t usSrcPort = 0x1234;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxEndPoint = &xEndPoint;
+
+    pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+    pxNetworkBuffer->xDataLength = TCP_PACKET_SIZE + 1;
+
+    /* Set same IPv6 address to endpoint & buffer. */
+    pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
+    memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
+
+    pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
+    pxSocket->u.xTCP.usChildCount = 1;
+    pxSocket->u.xTCP.usBacklog = 9;
+
+    memset( &xChildSocket, 0, sizeof( xChildSocket ) );
+    pxChildSocket = &xChildSocket;
+
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_STREAM, FREERTOS_IPPROTO_TCP, pxChildSocket );
+    prvTCPSocketCopy_ExpectAndReturn( pxChildSocket, pxSocket, pdTRUE );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgs();
+    vTCPStateChange_Expect( NULL, eSYN_FIRST );
+    vTCPStateChange_IgnoreArg_pxSocket();
+
+    pxReturn = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, pxReturn->bits.bIsIPv6 );
+    TEST_ASSERT_EQUAL( pxEndPoint, pxReturn->pxEndPoint );
+    TEST_ASSERT_EQUAL( usSrcPort, pxReturn->u.xTCP.usRemotePort );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, pxReturn->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+}
