@@ -761,6 +761,7 @@ ppxresult
 pr
 pragma
 pre
+preparereplydnsmessage
 printf
 printfs
 processdhcpreplies
@@ -1930,6 +1931,7 @@ xiscallingfromiptask
 xisforrx
 xisglobal
 xisinputstream
+xisipinarpcache
 xiswaitingarpresolution
 xitemvalue
 xlastacttime
