@@ -51,24 +51,20 @@ extern DHCPData_t xDHCPData;
 extern Socket_t xDHCPv4Socket;
 void prvCreateDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
-uint32_t uxSocketCloseCnt = 0;
+/* Static member defined in freertos_api.c */
+#ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
+    extern uint32_t GetNetworkBuffer_failure_count;
+#endif
 
-DHCPMessage_IPv4_t xDHCPMessage;
 
-
-void __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
-* vDHCPProcessEndPoint() is proved separately
+* The signature of the function under test.
 ****************************************************************/
 
 void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xReset,
                                                                 BaseType_t xDoCheck,
-                                                                NetworkEndPoint_t * pxEndPoint )
-{
-    __CPROVER_assert( pxEndPoint != NULL,
-                      "FreeRTOS precondition: pxEndPoint != NULL" );
-}
+                                                                NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
 * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
@@ -118,7 +114,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
-    __CPROVER_assume( xRequestedSizeBytes > ( dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) + ipIP_TYPE_OFFSET ) );
+    __CPROVER_assume( ( xRequestedSizeBytes > ( dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) + ipIP_TYPE_OFFSET ) ) && ( xRequestedSizeBytes < ipconfigNETWORK_MTU ) );
 
     pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) safeMalloc( xRequestedSizeBytes + ( ipIP_TYPE_OFFSET ) ) );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -130,40 +126,13 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return pxNetworkBuffer;
 }
 
-/* FreeRTOS_ReleaseUDPPayloadBuffer is mocked here and the memory
- * is not freed as the buffer allocated by the FreeRTOS_recvfrom is static
- * memory */
 void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 {
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
-}
 
-/* For the DHCP process loop to be fully covered, we expect FreeRTOS_recvfrom
- * to fail after few iterations. This is because vDHCPProcessEndPoint is proved
- * separately and is stubbed out for this proof, which ideally is supposed to close
- * the socket and end the loop. */
-int32_t FreeRTOS_recvfrom( Socket_t xSocket,
-                           void * pvBuffer,
-                           size_t uxBufferLength,
-                           BaseType_t xFlags,
-                           struct freertos_sockaddr * pxSourceAddress,
-                           socklen_t * pxSourceAddressLength )
-
-{
-    static uint32_t recvRespCnt = 0;
-    int32_t retVal = -1;
-
-    __CPROVER_assert( pvBuffer != NULL,
-                      "FreeRTOS precondition: pvBuffer != NULL" );
-
-    if( ++recvRespCnt < ( FR_RECV_FROM_SUCCESS_COUNT - 1 ) )
-    {
-        *( ( void ** ) pvBuffer ) = ( void * ) &xDHCPMessage;
-        retVal = sizeof( xDHCPMessage );
-    }
-
-    return retVal;
+    /* Free buffer after adjusting offsets. */
+    free( ( ( ( uint8_t * ) pvBuffer ) - ( ipUDP_PAYLOAD_OFFSET_IPv4 + ipIP_TYPE_OFFSET ) ) );
 }
 
 /****************************************************************
@@ -173,7 +142,7 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 void harness()
 {
     BaseType_t xReset;
-    eDHCPState_t eExpectedState;
+    BaseType_t xDoCheck;
 
     pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
@@ -194,17 +163,33 @@ void harness()
         pxNetworkEndPoints->pxNext = NULL;
     }
 
-    if( !( ( pxNetworkEndPoints->xDHCPData.eDHCPState == eInitialWait ) ||
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
+    pxNetworkEndPoint_Temp->pxNext = NULL;
+
+    /****************************************************************
+    * Initialize the counter used to bound the number of times
+    * GetNetworkBufferWithDescriptor can fail.
+    ****************************************************************/
+
+    #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
+        GetNetworkBuffer_failure_count = 0;
+    #endif
+
+    /****************************************************************
+    * Assume a valid socket in most states of the DHCP state machine.
+    *
+    * The socket is created in the eWaitingSendFirstDiscover state.
+    * xReset==True resets the state to eWaitingSendFirstDiscover.
+    ****************************************************************/
+
+    if( !( ( pxNetworkEndPoint_Temp->xDHCPData.eDHCPState == eInitialWait ) ||
            ( xReset != pdFALSE ) ) )
     {
-        prvCreateDHCPSocket( pxNetworkEndPoints );
+        prvCreateDHCPSocket( pxNetworkEndPoint_Temp );
     }
 
-    /* Assume vDHCPProcess is only called on IPv4 endpoints which is
-     * validated before the call to vDHCPProcess */
-    __CPROVER_assume( pxNetworkEndPoints->bits.bIPv6 == 0 );
+    xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
-    vDHCPProcess( xReset, pxNetworkEndPoints );
-
-    __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( pxNetworkEndPoints );
+    __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
 }
