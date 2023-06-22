@@ -1931,6 +1931,7 @@ xiscallingfromiptask
 xisforrx
 xisglobal
 xisinputstream
+xisipinarpcache
 xiswaitingarpresolution
 xitemvalue
 xlastacttime
