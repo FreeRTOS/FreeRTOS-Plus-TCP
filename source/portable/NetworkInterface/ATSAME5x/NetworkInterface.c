@@ -542,9 +542,8 @@ static void prvGMACInit()
                 if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
                 {
                     /* Allow IPv6 multicast traffic for the address used */
-                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0 };
-
-                    ucMACAddress[ 2 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 12 ];
+                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                    
                     ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
                     ucMACAddress[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                     ucMACAddress[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
