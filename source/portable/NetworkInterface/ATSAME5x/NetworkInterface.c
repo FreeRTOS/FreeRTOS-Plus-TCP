@@ -135,6 +135,9 @@ TaskHandle_t xEMACTaskHandle = NULL;
     QueueHandle_t xPingReplyQueue = NULL;
 #endif
 
+/* GMAC HW Init */
+void vGMACInit(void);
+
 /* GMAC interrupt callbacks. */
 void xRxCallback( void );
 static void prvEMACDeferredInterruptHandlerTask( void * pvParameters );
