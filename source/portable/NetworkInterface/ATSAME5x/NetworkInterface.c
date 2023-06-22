@@ -155,8 +155,8 @@ static inline void prvGMACEnablePHYManagementPort( bool enable );
 static inline void prvGMACEnable100Mbps( bool enable );
 static inline void prvGMACEnableFullDuplex( bool enable );
 static inline void prvGMACClearMulticastHashTable();
-static inline void prvGMACEnableMulticastHashTable(bool enable);
-static inline void prvGMACEnableUnicastHashTable(bool enable);
+static inline void prvGMACEnableMulticastHashTable( bool enable );
+static inline void prvGMACEnableUnicastHashTable( bool enable );
 
 /***********************************************/
 /*                PHY variables                */
@@ -177,7 +177,7 @@ const PhyProperties_t xPHYProperties =
 
 static void prvPHYLinkReset( void );
 static void prvPHYInit( void );
-static BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * );
+static inline BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * );
 
 /* PHY read and write functions. */
 static BaseType_t xPHYRead( BaseType_t xAddress,
@@ -198,11 +198,11 @@ static NetworkInterface_t * pxMyInterface = NULL;
 BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
 BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                  NetworkBufferDescriptor_t * const pxDescriptor,
-                                                  BaseType_t bReleaseAfterSend );
+                                            NetworkBufferDescriptor_t * const pxDescriptor,
+                                            BaseType_t bReleaseAfterSend );
 
 NetworkInterface_t * pxATSAM5x_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface )
+                                                        NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
@@ -322,11 +322,10 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 }
                 else
                 {
-
                     #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
                         {
                             /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
-                            * It must therefore be implemented in software. */
+                             * It must therefore be implemented in software. */
                             pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxBufferDescriptor->pucEthernetBuffer );
 
                             if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
@@ -351,18 +350,18 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                         xRxEvent.eEventType = eNetworkRxEvent;
 
                         /* pvData is used to point to the network buffer descriptor that
-                        * now references the received data. */
+                         * now references the received data. */
                         xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
                         /* Send the data to the TCP/IP stack. */
                         if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
                         {
                             /* The buffer could not be sent to the IP task so the buffer
-                            * must be released. */
+                             * must be released. */
                             xRelease = pdTRUE;
 
                             /* Make a call to the standard trace macro to log the
-                            * occurrence. */
+                             * occurrence. */
                             iptraceETHERNET_RX_EVENT_LOST();
                         }
                         else
@@ -375,7 +374,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                     else
                     {
                         /* The Ethernet frame can be dropped, but the Ethernet buffer
-                        * must be released. */
+                         * must be released. */
                         xRelease = pdTRUE;
                     }
                 }
@@ -384,12 +383,11 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 if( xRelease == pdTRUE )
                 {
                     /* The buffer could not be sent to the stack so must be released
-                    * again. */
+                     * again. */
                     vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
                     iptraceETHERNET_RX_EVENT_LOST();
                     FreeRTOS_printf( ( "prvEMACDeferredInterruptHandlerTask: Can not queue RX packet!\n" ) );
                 }
-
             }
             else
             {
@@ -411,8 +409,8 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 }
 
 BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                  NetworkBufferDescriptor_t * const pxDescriptor,
-                                                  BaseType_t bReleaseAfterSend )
+                                            NetworkBufferDescriptor_t * const pxDescriptor,
+                                            BaseType_t bReleaseAfterSend )
 {
     /* Simple network interfaces (as opposed to more efficient zero copy network
      * interfaces) just use Ethernet peripheral driver library functions to copy
@@ -504,13 +502,13 @@ static void prvGMACInit()
     mac_async_disable_irq( &ETH_MAC );
 
     prvGMACClearMulticastHashTable();
-    prvGMACEnableUnicastHashTable(true);
-    prvGMACEnableMulticastHashTable(true);
+    prvGMACEnableUnicastHashTable( true );
+    prvGMACEnableMulticastHashTable( true );
 
     /* Set GMAC filtering for LLMNR, if defined. */
     #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
         {
-            mac_async_set_filter_ex(&ETH_MAC, ucLLMNR_MAC_address);
+            mac_async_set_filter_ex( &ETH_MAC, ucLLMNR_MAC_address );
         }
     #endif
 
@@ -519,19 +517,19 @@ static void prvGMACInit()
         {
             /* Allow all nodes IPv6 multicast MAC */
             uint8_t ucMACAddressAllNodes[ 6 ] = { 0x33, 0x33, 0, 0, 0, 1 };
-            mac_async_set_filter_ex(&ETH_MAC, ucMACAddressAllNodes);
+            mac_async_set_filter_ex( &ETH_MAC, ucMACAddressAllNodes );
 
             #if ( ipconfigUSE_LLMNR == 1 )
                 {
-                    mac_async_set_filter_ex(&ETH_MAC, xLLMNR_MacAdressIPv6.ucBytes);
+                    mac_async_set_filter_ex( &ETH_MAC, xLLMNR_MacAdressIPv6.ucBytes );
                 }
             #endif /* ipconfigUSE_LLMNR */
         }
     #endif /* ipconfigUSE_IPv6 */
 
     for( pxEndPointIter = FreeRTOS_FirstEndPoint( pxMyInterface );
-            pxEndPointIter != NULL;
-            pxEndPointIter = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPointIter ) )
+         pxEndPointIter != NULL;
+         pxEndPointIter = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPointIter ) )
     {
         #if ( ipconfigUSE_IPv6 != 0 )
             {
@@ -544,17 +542,15 @@ static void prvGMACInit()
                     ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
                     ucMACAddress[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                     ucMACAddress[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                    mac_async_set_filter_ex(&ETH_MAC, ucMACAddress);
-                
+                    mac_async_set_filter_ex( &ETH_MAC, ucMACAddress );
                 }
             }
         #endif /* ipconfigUSE_IPv6 */
 
         /* Allow endpoint MAC */
-        mac_async_set_filter_ex(&ETH_MAC, pxEndPointIter->xMACAddress.ucBytes);
-
+        mac_async_set_filter_ex( &ETH_MAC, pxEndPointIter->xMACAddress.ucBytes );
     }
-        
+
     /* Set GMAC interrupt priority to be compatible with FreeRTOS API */
     NVIC_SetPriority( GMAC_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY >> ( 8 - configPRIO_BITS ) );
 
@@ -608,7 +604,7 @@ static inline void prvGMACClearMulticastHashTable()
     ( ( Gmac * ) ETH_MAC.dev.hw )->HRT.reg = 0;
 }
 
-static inline void prvGMACEnableMulticastHashTable(bool enable)
+static inline void prvGMACEnableMulticastHashTable( bool enable )
 {
     if( enable )
     {
@@ -620,7 +616,7 @@ static inline void prvGMACEnableMulticastHashTable(bool enable)
     }
 }
 
-static inline void prvGMACEnableUnicastHashTable(bool enable)
+static inline void prvGMACEnableUnicastHashTable( bool enable )
 {
     if( enable )
     {
@@ -700,8 +696,8 @@ static BaseType_t xPHYWrite( BaseType_t xAddress,
     return writeStatus;
 }
 
-static BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * pxInterface )
+static inline BaseType_t xATSAM5x_PHYGetLinkStatus( NetworkInterface_t * pxInterface )
 {
-    (void) pxInterface;
+    ( void ) pxInterface;
     return( xPhyObject.ulLinkStatusMask != 0 );
 }
