@@ -31,4 +31,3 @@
 * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Compiler_Porting.html
 *
 *****************************************************************************/
-/* FIX ME. Update for the compiler specifier needed at the start of a struct declaration to pack the struct. */

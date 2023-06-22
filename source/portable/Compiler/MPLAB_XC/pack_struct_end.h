@@ -32,4 +32,4 @@
 *
 *****************************************************************************/
 
-__attribute__( ( aligned( 2 ), packed ) ); /* FIX ME. Update for the compiler specifier needed at end of a struct declaration to pack the struct. */
+__attribute__( ( aligned( 2 ), packed ) );
