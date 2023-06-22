@@ -720,8 +720,9 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
             {
                 if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                 {
-                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0 };
 
+                    ucMACAddress[ 2 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 12 ];
                     ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
                     ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                     ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
