@@ -582,17 +582,6 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
         }
         else
         {
-            const ProtocolHeaders_t * pxProtocolHeaders;
-            size_t uxIPLength;
-
-            uxIPLength = uxIPHeaderSizePacket( pxNetworkBuffer );
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPLength ] ) );
-
-            ( void ) pxProtocolHeaders;
-
             /* There is no socket listening to the target port, but still it might
              * be for this node. */
 
@@ -602,7 +591,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                  * does open a UDP socket to send a messages, this socket will be
                  * closed after a short timeout.  Messages that come late (after the
                  * socket is closed) will be treated here. */
-                if( FreeRTOS_ntohs( pxProtocolHeaders->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
+                if( FreeRTOS_ntohs( pxUDPPacket_IPv6->xUDPHeader.usSourcePort ) == ( uint16_t ) ipDNS_PORT )
                 {
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }
@@ -612,7 +601,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_LLMNR == 1 )
                 /* A LLMNR request, check for the destination port. */
                 if( ( usPort == FreeRTOS_htons( ipLLMNR_PORT ) ) ||
-                    ( pxProtocolHeaders->xUDPHeader.usSourcePort == FreeRTOS_htons( ipLLMNR_PORT ) ) )
+                    ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_htons( ipLLMNR_PORT ) ) )
                 {
                     xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
                 }

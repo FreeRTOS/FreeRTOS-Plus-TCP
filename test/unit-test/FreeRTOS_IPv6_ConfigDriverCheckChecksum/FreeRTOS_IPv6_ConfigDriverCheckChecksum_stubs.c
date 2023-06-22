@@ -51,6 +51,9 @@ const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00,
 /* MAC Address for endpoint. */
 const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
 
+/* Default payload length in this test. */
+#define TEST_DEFAULT_PROTOCOL_PAYLOAD_LENGTH    ( 8U )
+
 /* ======================== Stub Callback Functions ========================= */
 
 NetworkEndPoint_t * prvInitializeEndpoint()
@@ -74,14 +77,14 @@ NetworkEndPoint_t * prvInitializeEndpoint()
 NetworkBufferDescriptor_t * prvInitializeNetworkDescriptor()
 {
     static NetworkBufferDescriptor_t xNetworkBuffer;
-    static uint8_t pcNetworkBuffer[ sizeof( TCPPacket_IPv6_t ) + 8U ];
+    static uint8_t pcNetworkBuffer[ sizeof( TCPPacket_IPv6_t ) + TEST_DEFAULT_PROTOCOL_PAYLOAD_LENGTH ];
     TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pcNetworkBuffer;
 
     /* Initialize network buffer descriptor. */
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
     xNetworkBuffer.pxEndPoint = prvInitializeEndpoint();
     xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pxTCPPacket;
-    xNetworkBuffer.xDataLength = sizeof( TCPPacket_IPv6_t ) + 8U;
+    xNetworkBuffer.xDataLength = sizeof( TCPPacket_IPv6_t ) + TEST_DEFAULT_PROTOCOL_PAYLOAD_LENGTH;
 
     /* Initialize network buffer. */
     memset( pcNetworkBuffer, 0, sizeof( pcNetworkBuffer ) );
@@ -93,7 +96,7 @@ NetworkBufferDescriptor_t * prvInitializeNetworkDescriptor()
     memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPAddressTen.ucBytes, sizeof( IPv6_Address_t ) );
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, sizeof( IPv6_Address_t ) );
     pxTCPPacket->xIPHeader.ucVersionTrafficClass |= 6U << 4;
-    pxTCPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) + 8U );
+    pxTCPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) + TEST_DEFAULT_PROTOCOL_PAYLOAD_LENGTH );
     pxTCPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
 
     return &xNetworkBuffer;

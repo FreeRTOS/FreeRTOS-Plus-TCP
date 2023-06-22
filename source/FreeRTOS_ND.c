@@ -479,6 +479,7 @@
         void FreeRTOS_PrintNDCache( void )
         {
             BaseType_t x, xCount = 0;
+            char pcBuffer[ 40 ];
 
             /* Loop through each entry in the ND cache. */
             for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
@@ -486,7 +487,6 @@
                 if( xNDCache[ x ].ucValid != ( uint8_t ) 0U )
                 {
                     /* See if the MAC-address also matches, and we're all happy */
-                    char pcBuffer[ 40 ];
 
                     FreeRTOS_printf( ( "ND %2d: age %3u - %pip MAC %02x-%02x-%02x-%02x-%02x-%02x endPoint %s\n",
                                        ( int ) x,

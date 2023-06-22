@@ -16,14 +16,17 @@
   [
     "--unwind 1",
     "--unwindset strchr.0:{HOSTNAME_UNWIND}",
-    "--unwindset prvIncreaseDNS4Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
-    "--unwindset prvIncreaseDNS6Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
-    "--unwindset prvFillSockAddress.0:2,prvFillSockAddress.1:2",
-    "--unwindset prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
-    "--unwindset prvGetHostByNameOp_WithRetry.0:{HOSTNAME_UNWIND}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvIncreaseDNS4Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvIncreaseDNS6Index.0:{ENDPOINT_DNS_ADDRESS_COUNT_UNWIND}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvFillSockAddress.0:2,__CPROVER_file_local_FreeRTOS_DNS_c_prvFillSockAddress.1:2",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.0:{HOSTNAME_UNWIND},__CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.1:{HOSTNAME_UNWIND},strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvGetHostByNameOp_WithRetry.0:{HOSTNAME_UNWIND}",
     "--nondet-static"
   ],
-
+  "OPT":
+  [
+      "--export-file-local-symbols"
+  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
