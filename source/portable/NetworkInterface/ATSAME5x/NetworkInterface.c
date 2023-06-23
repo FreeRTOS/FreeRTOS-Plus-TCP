@@ -190,6 +190,7 @@ static BaseType_t xPHYWrite( BaseType_t xAddress,
                              BaseType_t xRegister,
                              uint32_t pulValue );
 
+/* Pointer to the interface object of this NIC */
 static NetworkInterface_t * pxMyInterface = NULL;
 
 /*********************************************************************/
@@ -197,7 +198,7 @@ static NetworkInterface_t * pxMyInterface = NULL;
 /*********************************************************************/
 
 /*-----------------------------------------------------------*/
-
+/* Function to initialise the network interface */
 BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
 BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
@@ -320,6 +321,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
                 if( pxBufferDescriptor->pxEndPoint == NULL )
                 {
+                    /* Couldn't find a proper endpoint for the incoming packet, drop it. */
                     FreeRTOS_printf( ( "NetworkInterface: can not find a proper endpoint\n" ) );
                     xRelease = pdTRUE;
                 }
@@ -504,11 +506,13 @@ static void prvGMACInit()
     prvGMACEnablePHYManagementPort( false );
     mac_async_disable_irq( &ETH_MAC );
 
+    /* Clear the MAC address hash table and enable multicast and unicast
+     * MAC address hash table. */
     prvGMACClearMulticastHashTable();
     prvGMACEnableUnicastHashTable( true );
     prvGMACEnableMulticastHashTable( true );
 
-    /* Set GMAC filtering for LLMNR, if defined. */
+    /* Enable traffic for LLMNR, if defined. */
     #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
         {
             mac_async_set_filter_ex( &ETH_MAC, ucLLMNR_MAC_address );
@@ -541,7 +545,8 @@ static void prvGMACInit()
             {
                 if( pxEndPointIter->bits.bIPv6 != pdFALSE_UNSIGNED )
                 {
-                    /* Allow IPv6 multicast traffic for the address used */
+                    /* Allow traffic from IPv6 solicited-node multicast MAC address for
+                     * each endpoint */
                     uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
                     ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
@@ -605,6 +610,7 @@ static inline void prvGMACEnableFullDuplex( bool enable )
 
 static inline void prvGMACClearMulticastHashTable()
 {
+    /* First clear Hash Register Bottom and then Top */
     ( ( Gmac * ) ETH_MAC.dev.hw )->HRB.reg = 0;
     ( ( Gmac * ) ETH_MAC.dev.hw )->HRT.reg = 0;
 }
