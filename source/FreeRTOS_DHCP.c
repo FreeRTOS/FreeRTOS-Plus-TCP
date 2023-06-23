@@ -222,7 +222,7 @@
             /* No need to initialise 'pucUDPPayload', it just looks nicer. */
             uint8_t * pucUDPPayload = NULL;
             const DHCPMessage_IPv4_t * pxDHCPMessage;
-            BaseType_t lBytes;
+            int32_t lBytes;
 
             while( xDHCPv4Socket != NULL )
             {
@@ -232,7 +232,7 @@
                 /* Peek the next UDP message. */
                 lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, xRecvFlags, NULL, NULL );
 
-                if( lBytes <= 0 )
+                if( lBytes < ( ( int32_t ) sizeof( DHCPMessage_IPv4_t ) ) )
                 {
                     if( ( lBytes < 0 ) && ( lBytes != -pdFREERTOS_ERRNO_EAGAIN ) )
                     {
