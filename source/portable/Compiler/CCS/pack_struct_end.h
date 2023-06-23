@@ -25,6 +25,8 @@
  *
  *      Contains a semicolon to end the wrapped structure,
  *      and resets warnings that were supressed in pack_struct_start.h.
+ *      It also pops the previously pushed alignment of 1 byte of the stack.
  */
 ;
+#pragma pack(pop)
 #pragma diag_pop
