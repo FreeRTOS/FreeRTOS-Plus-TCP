@@ -56,6 +56,7 @@
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_DNS.h"
+#include "mock_FreeRTOS_DNS_Cache.h"
 #include "mock_FreeRTOS_UDP_IP.h"
 #include "mock_FreeRTOS_ND.h"
 #include "mock_FreeRTOS_IPv6.h"
@@ -476,6 +477,7 @@ void test_prvIPTask( void )
     vTCPTimerReload_ExpectAnyArgs();
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
     vDNSInitialise_Ignore();
+    FreeRTOS_dnsclear_Ignore();
 
     /* In prvIPTask. */
     ipFOREVER_ExpectAndReturn( 0 );
@@ -516,6 +518,7 @@ void test_prvIPTask_NetworkDown( void )
     vTCPTimerReload_ExpectAnyArgs();
     vIPSetARPResolutionTimerEnableState_Expect( pdFALSE );
     vDNSInitialise_Ignore();
+    FreeRTOS_dnsclear_Ignore();
 
     /* In prvIPTask. */
     ipFOREVER_ExpectAndReturn( pdTRUE );

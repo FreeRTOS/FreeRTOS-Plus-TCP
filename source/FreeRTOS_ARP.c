@@ -476,11 +476,11 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
 
-    switch( uxIPHeaderSizePacket( ( const NetworkBufferDescriptor_t * ) pxNetworkBuffer ) )
+    switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
     {
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipSIZE_OF_IPv4_HEADER:
@@ -1457,9 +1457,6 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
         BaseType_t xResult = pdFALSE;
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_t * pxIPPacket;
 
         if( ( pxUseDescriptor == NULL ) || ( pxUseDescriptor->xDataLength < sizeof( IPPacket_t ) ) )
@@ -1468,6 +1465,9 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
         }
         else
         {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
             if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )

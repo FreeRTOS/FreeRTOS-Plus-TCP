@@ -77,9 +77,6 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
 {
     /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
     const TCPPacket_t * pxTCPPacket = NULL;
     FreeRTOS_Socket_t * pxReturn = NULL;
     uint32_t ulInitialSequenceNumber = 0U;
@@ -88,6 +85,9 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
     if( ( pxSocket != NULL ) && ( pxNetworkBuffer != NULL ) )
     {
         /* Initialize pointers if inputs are valid. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         pxEndpoint = pxNetworkBuffer->pxEndPoint;
     }
