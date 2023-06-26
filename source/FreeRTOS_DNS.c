@@ -63,10 +63,10 @@
 /*
  * Create the DNS message in the zero copy buffer passed in the first parameter.
  */
-    _static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                                        const char * pcHostName,
-                                        TickType_t uxIdentifier,
-                                        UBaseType_t uxHostType );
+    static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+                                       const char * pcHostName,
+                                       TickType_t uxIdentifier,
+                                       UBaseType_t uxHostType );
 
 
 /*
@@ -1466,10 +1466,10 @@
  * @return Total size of the generated message, which is the space from the last written byte
  *         to the beginning of the buffer.
  */
-    _static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                                        const char * pcHostName,
-                                        TickType_t uxIdentifier,
-                                        UBaseType_t uxHostType )
+    static size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+                                       const char * pcHostName,
+                                       TickType_t uxIdentifier,
+                                       UBaseType_t uxHostType )
     {
         DNSMessage_t * pxDNSMessageHeader;
         size_t uxStart, uxIndex;

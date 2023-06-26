@@ -25,7 +25,8 @@
  *
  *      Also suppress an incorrect warning from the CCS compiler:
  *          error #1916-D: definition at end of file not followed by a semicolon or a declarator
+ *      Pushes the struct alignment of packed.
  */
 #pragma diag_push
 #pragma diag_suppress=1916
-#pragma pack(1)
+#pragma pack(push, 1)

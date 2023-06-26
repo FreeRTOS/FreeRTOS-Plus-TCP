@@ -4550,6 +4550,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Go sleeping until a SEND or a CLOSE event is received. */
             ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_SEND | ( EventBits_t ) eSOCKET_CLOSED,
                                           pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+
+            xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
+
+            if( xByteCount < 0 )
+            {
+                /* In a meanwhile, the connection has dropped, stop iterating. */
+                break;
+            }
+
             /* See if in a meanwhile there is space in the TX-stream. */
             xByteCount = ( BaseType_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.txStream );
         } /* while( xBytesLeft > 0 ) */

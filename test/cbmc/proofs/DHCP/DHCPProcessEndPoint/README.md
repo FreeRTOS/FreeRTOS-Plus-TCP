@@ -1,4 +1,4 @@
-This is the memory safety proof for DHCPProcess function, which is the
+This is the memory safety proof for DHCPProcessEndPoint function, which is the
 function that triggers the DHCP protocol.
 
 The main stubs in this proof deal with buffer management, which assume
