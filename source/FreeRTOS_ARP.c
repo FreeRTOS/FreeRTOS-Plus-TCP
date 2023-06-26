@@ -1457,9 +1457,6 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
         BaseType_t xResult = pdFALSE;
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPPacket_t * pxIPPacket;
 
         if( ( pxUseDescriptor == NULL ) || ( pxUseDescriptor->xDataLength < sizeof( IPPacket_t ) ) )
@@ -1468,6 +1465,9 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
         }
         else
         {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
             if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )

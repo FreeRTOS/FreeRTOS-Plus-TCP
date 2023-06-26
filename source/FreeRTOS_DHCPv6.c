@@ -351,6 +351,7 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
             }
             else
             {
+                /* do nothing, coverity happy */
             }
         }
 
