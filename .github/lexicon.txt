@@ -871,8 +871,8 @@ prvtcpprepareconnect
 prvtcppreparesend
 prvtcpreturnpacket
 prvtcpsendchallengeack
-prvtcpsendloop
 prvtcpsendcheck
+prvtcpsendloop
 prvtcpsendpacket
 prvtcpsendrepeated
 prvtcpsendreset
@@ -919,6 +919,7 @@ pucnextdata
 pucoptionsarray
 pucpayload
 pucpayloadbuffer
+pucprotocol
 pucptr
 pucrecvdata
 pucreturn
@@ -1019,6 +1020,7 @@ pxlocation
 pxlostbuffer
 pxmacaddress
 pxmessage
+pxneedchecksumcheck
 pxnetprefix
 pxnetworkbuffer
 pxnetworkendpoints
@@ -1551,6 +1553,7 @@ usfragmentoffset
 usframetype
 usgeneratechecksum
 usgenerateprotocolchecksum
+usgetextensionheaderlength
 usgroupaddress
 ushardwaretype
 usheaderchecks
@@ -1895,6 +1898,7 @@ xforsend
 xfound
 xfreebufferslist
 xgatewayaddress
+xgetextensionorder
 xgetphylinkstatus
 xgivingup
 xgmacswitchrequired
