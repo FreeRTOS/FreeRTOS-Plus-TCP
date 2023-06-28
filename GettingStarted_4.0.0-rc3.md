@@ -1,4 +1,4 @@
-Moving to 4.0.0-rc1/rc2 from 3.x.x:
+Moving to 4.0.0-rc1/rc2/rc3 from 3.x.x:
 --------------------------------
 
 In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
@@ -10,7 +10,7 @@ Backward Compatibility Mode:
    If you are moving your code from V3.x.x to V4.0.0-rc1, then set the "ipconfigIPv4_BACKWARD_COMPATIBLE" macro to 1 in “FreeRTOSIPConfigDefaults.h” to run the code in backward compatible mode.
    The "Existing API's" defined in all the API changes below work only when the backward compatibility mode is enabled.
 
-API changes in 4.0.0-rc1/rc2:
+API changes in 4.0.0-rc1/rc2/rc3:
 ----------------------
 
 The changes mentioned below uses ipconfigIPv4_BACKWARD_COMPATIBLE flag to differentiate between old API and new API.
