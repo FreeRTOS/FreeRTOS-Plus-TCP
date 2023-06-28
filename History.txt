@@ -1,3 +1,6 @@
+Changes between dev/ipv6_integration branch 4.0.0-RC3 and 4.0.0-RC2 releases:
+		+ Added memory safety proofs for IPv6 using[ CBMC automated reasoning tool ] ( https:/*www.cprover.org/cbmc/)
+
 Changes between dev/ipv6_integration branch 4.0.0-RC2 and 4.0.0-RC1 releases:
         + Added changes to fix IPv6 issues observed by Maxwell protocol tester.
 
