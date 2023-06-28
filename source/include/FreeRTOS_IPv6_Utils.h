@@ -61,7 +61,7 @@ extern BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
                                            struct xPacketSummary * pxSet );
 
 /* Get total length of all extension headers in IPv6 packet. */
-size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
+size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
                                    size_t uxBufferLength,
                                    uint8_t * pucProtocol );
 

@@ -106,7 +106,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
             pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ] ) );
             pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
             /* For IPv6, the number of bytes in the protocol is indicated. */
-            pxSet->usProtocolBytes = pxSet->usPayloadLength - uxExtensionHeaderLength;
+            pxSet->usProtocolBytes = pxSet->usPayloadLength - ( uint16_t ) uxExtensionHeaderLength;
 
             size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
             uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
@@ -181,12 +181,12 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
  *
  * @return The total length of all extension headers, or whole buffer length when error detected.
  */
-size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
+size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
                                    size_t uxBufferLength,
                                    uint8_t * pucProtocol )
 {
     uint8_t ucCurrentHeader;
-    IPPacket_IPv6_t * pxIPPacket_IPv6;
+    const IPPacket_IPv6_t * pxIPPacket_IPv6;
     uint8_t ucNextHeader = 0U;
     size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
     size_t uxHopSize = 0U;
@@ -200,7 +200,10 @@ size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
     }
     else
     {
-        pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pucEthernetBuffer );
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
         ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
 
         /* Check if packet has extension header. */
@@ -270,7 +273,7 @@ size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
         }
     }
 
-    if( uxReturn == 0 )
+    if( uxReturn == 0U )
     {
         uxReturn = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
     }
