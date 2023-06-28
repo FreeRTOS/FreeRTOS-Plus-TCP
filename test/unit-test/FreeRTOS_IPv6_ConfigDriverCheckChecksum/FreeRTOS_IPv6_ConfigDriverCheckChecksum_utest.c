@@ -264,3 +264,41 @@ void test_prvAllowIPPacketIPv6_source_unspecified_address()
     eResult = prvAllowIPPacketIPv6( &xIPv6Address, NULL, 0U );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_ICMPv6ChecksumSuccess
+ * Make sure prvAllowIPPacketIPv6 check checksum of ICMPv6 packet in happy case.
+ */
+void test_prvAllowIPPacketIPv6_ICMPv6ChecksumSuccess()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to ICMPv6 */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipCORRECT_CRC );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_ICMPv6ChecksumFail
+ * Make sure prvAllowIPPacketIPv6 check checksum of ICMPv6 packet in fail case.
+ */
+void test_prvAllowIPPacketIPv6_ICMPv6ChecksumFail()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to ICMPv6 */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdFALSE, ipWRONG_CRC );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}

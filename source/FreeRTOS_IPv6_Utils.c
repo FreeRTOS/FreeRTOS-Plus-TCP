@@ -192,12 +192,18 @@ size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
     size_t uxHopSize = 0U;
     BaseType_t xCurrentOrder = 0;
     BaseType_t xNextOrder = 0;
+    size_t uxReturn = 0;
 
-    if( ( pucEthernetBuffer != NULL ) && ( pucProtocol != NULL ) )
+    if( ( pucEthernetBuffer == NULL ) || ( pucProtocol == NULL ) )
+    {
+        uxReturn = uxBufferLength;
+    }
+    else
     {
         pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pucEthernetBuffer );
         ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
 
+        /* Check if packet has extension header. */
         if( xGetExtensionOrder( ucCurrentHeader, 0U ) > 0 )
         {
             while( ( uxIndex + 8U ) < uxBufferLength )
@@ -217,7 +223,7 @@ size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
                 if( ( uxIndex + uxHopSize ) >= uxBufferLength )
                 {
                     FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxBufferLength ) );
-                    uxIndex = uxBufferLength;
+                    uxReturn = uxBufferLength;
                     break;
                 }
 
@@ -251,7 +257,7 @@ size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
                 if( xNextOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
                 {
                     FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
-                    uxIndex = uxBufferLength;
+                    uxReturn = uxBufferLength;
                     break;
                 }
 
@@ -264,7 +270,12 @@ size_t usGetExtensionHeaderLength( uint8_t * pucEthernetBuffer,
         }
     }
 
-    return uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    if( uxReturn == 0 )
+    {
+        uxReturn = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    }
+
+    return uxReturn;
 }
 /*-----------------------------------------------------------*/
 
