@@ -76,6 +76,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
                                   struct xPacketSummary * pxSet )
 {
     BaseType_t xReturn = 0;
+    size_t uxExtensionHeaderLength = 0;
 
     pxSet->xIsIPv6 = pdTRUE;
 
@@ -89,23 +90,33 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
     }
     else
     {
-        pxSet->ucProtocol = pxSet->pxIPPacket_IPv6->ucNextHeader;
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
-        pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
-        /* For IPv6, the number of bytes in the protocol is indicated. */
-        pxSet->usProtocolBytes = pxSet->usPayloadLength;
+        uxExtensionHeaderLength = usGetExtensionHeaderLength( pucEthernetBuffer, uxBufferLength, &pxSet->ucProtocol );
 
-        size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
-        uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-
-        if( uxBufferLength < uxNeeded )
+        if( uxExtensionHeaderLength >= uxBufferLength )
         {
-            /* The packet does not contain a complete IPv6 packet. */
+            /* Error detected when parsing extension header. */
             pxSet->usChecksum = ipINVALID_LENGTH;
-            xReturn = 2;
+            xReturn = 3;
+        }
+        else
+        {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ] ) );
+            pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
+            /* For IPv6, the number of bytes in the protocol is indicated. */
+            pxSet->usProtocolBytes = pxSet->usPayloadLength - ( uint16_t ) uxExtensionHeaderLength;
+
+            size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
+            uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+            if( uxBufferLength < uxNeeded )
+            {
+                /* The packet does not contain a complete IPv6 packet. */
+                pxSet->usChecksum = ipINVALID_LENGTH;
+                xReturn = 2;
+            }
         }
     }
 
@@ -158,6 +169,117 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
     }
 
     return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get total length of all extension headers in IPv6 packet.
+ *
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[out] pucProtocol The L4 protocol, such as TCP/UDP/ICMPv6.
+ *
+ * @return The total length of all extension headers, or whole buffer length when error detected.
+ */
+size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
+                                   size_t uxBufferLength,
+                                   uint8_t * pucProtocol )
+{
+    uint8_t ucCurrentHeader;
+    const IPPacket_IPv6_t * pxIPPacket_IPv6;
+    uint8_t ucNextHeader = 0U;
+    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+    size_t uxHopSize = 0U;
+    BaseType_t xCurrentOrder = 0;
+    BaseType_t xNextOrder = 0;
+    size_t uxReturn = uxBufferLength;
+
+    if( ( pucEthernetBuffer != NULL ) && ( pucProtocol != NULL ) )
+    {
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
+        ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
+
+        /* Check if packet has extension header. */
+        if( xGetExtensionOrder( ucCurrentHeader, 0U ) > 0 )
+        {
+            while( ( uxIndex + 8U ) < uxBufferLength )
+            {
+                ucNextHeader = pucEthernetBuffer[ uxIndex ];
+
+                xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
+
+                /* To avoid compile warning if debug print is disabled. */
+                ( void ) xCurrentOrder;
+
+                /* Read the length expressed in number of octets. */
+                uxHopSize = ( size_t ) pucEthernetBuffer[ uxIndex + 1U ];
+                /* And multiply by 8 and add the minimum size of 8. */
+                uxHopSize = ( uxHopSize * 8U ) + 8U;
+
+                if( ( uxIndex + uxHopSize ) >= uxBufferLength )
+                {
+                    FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxBufferLength ) );
+                    break;
+                }
+
+                uxIndex = uxIndex + uxHopSize;
+
+                if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
+                    ( ucNextHeader == ipPROTOCOL_UDP ) ||
+                    ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
+                {
+                    FreeRTOS_debug_printf( ( "Stop at header %u\n", ucNextHeader ) );
+
+                    uxReturn = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+                    *pucProtocol = ucNextHeader;
+                    break;
+                }
+
+                xNextOrder = xGetExtensionOrder( ucNextHeader, pucEthernetBuffer[ uxIndex ] );
+
+                FreeRTOS_debug_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
+                                         ucCurrentHeader,
+                                         ( int ) xCurrentOrder,
+                                         ucNextHeader,
+                                         ( int ) xNextOrder ) );
+
+                /*
+                 * IPv6 nodes must accept and attempt to process extension headers in
+                 * any order and occurring any number of times in the same packet,
+                 * except for the Hop-by-Hop Options header which is restricted to
+                 * appear immediately after an IPv6 header only. Outlined
+                 * by RFC 2460 section 4.1  Extension Header Order.
+                 */
+                if( xNextOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
+                {
+                    FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
+                    break;
+                }
+                else if( xNextOrder < 0 )
+                {
+                    FreeRTOS_printf( ( "Invalid extension header detected\n" ) );
+                    break;
+                }
+                else
+                {
+                    /* Do nothing, coverity happy. */
+                }
+
+                ucCurrentHeader = ucNextHeader;
+            }
+        }
+        else
+        {
+            /* No extension headers. */
+            *pucProtocol = ucCurrentHeader;
+            uxReturn = 0;
+        }
+    }
+
+    return uxReturn;
 }
 /*-----------------------------------------------------------*/
 
