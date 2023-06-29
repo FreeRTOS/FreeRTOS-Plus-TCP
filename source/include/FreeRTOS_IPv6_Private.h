@@ -62,9 +62,9 @@
 /* coverity[misra_c_2012_rule_20_5_violation] */
 /* The maximum UDP payload length. */
 #undef ipMAX_UDP_PAYLOAD_LENGTH
-#define ipMAX_UDP_PAYLOAD_LENGTH          ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
+#define ipMAX_UDP_PAYLOAD_LENGTH     ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
-#define ipUDP_PAYLOAD_OFFSET_IPv6         ( sizeof( UDPPacket_IPv6_t ) )
+#define ipUDP_PAYLOAD_OFFSET_IPv6    ( sizeof( UDPPacket_IPv6_t ) )
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
