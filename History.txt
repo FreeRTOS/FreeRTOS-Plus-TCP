@@ -2,13 +2,13 @@ Changes between dev/ipv6_integration branch 4.0.0-RC3 and 4.0.0-RC2 releases:
 		+ Added memory safety proofs for IPv6 using[ CBMC automated reasoning tool ] ( https:/*www.cprover.org/cbmc/)
 		+ Added build separation in FreeRTOS+TCP stack to make the library more lightweight and optimized for users,
 		  who are not using the entire features of the stack.
-		  There are the build combinations supported : 
-    		1. IPv4 + UDP
-    		2. IPv4 + UDP + TCP
-    		3. IPv6 + UDP
-    		4. IPv6 + UDP + TCP
-    		5. IPv4 + IPv6 + UDP
-    		6. IPv4 + IPv6 + UDP + TCP
+		  There are the build combinations supported :
+		    1. IPv4 + UDP
+		    2. IPv4 + UDP + TCP
+		    3. IPv6 + UDP
+		    4. IPv6 + UDP + TCP
+		    5. IPv4 + IPv6 + UDP
+		    6. IPv4 + IPv6 + UDP + TCP
 
 Changes between dev/ipv6_integration branch 4.0.0-RC2 and 4.0.0-RC1 releases:
         + Added changes to fix IPv6 issues observed by Maxwell protocol tester.
