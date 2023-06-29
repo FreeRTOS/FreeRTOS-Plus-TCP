@@ -3,6 +3,9 @@ Moving to 4.0.0-rc1/rc2/rc3 from 3.x.x:
 
 In version 4.0.0-rc1, new files have been added to support IPv6 functionality and each file has been broken down into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.
 
+In version 4.0.0-rc3, build separation is added in FreeRTOS+TCP stack to make the library more lightweight and optimized for users who are not using the entire features of the stack. The build separation is done at two different levels i.e. IPv4/IPv6 and UDP/TCP. The users should be able to build the stack for either IPv4 or IPv6, or both IPv4 and IPv6 enabled.
+
+
 Some of the APIs have changed which is illustrated in the section below. However, there is a backward compatibility mode provided as well.
 
 Backward Compatibility Mode:
