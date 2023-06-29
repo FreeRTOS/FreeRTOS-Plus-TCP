@@ -46,11 +46,7 @@
 #include "FreeRTOS_TCP_Utils_stubs.c"
 #include "FreeRTOS_TCP_Utils.h"
 
-
-
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+/* =========================== EXTERN VARIABLES =========================== */
 
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
@@ -63,8 +59,12 @@ uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
     0xc3, 0x17
 };
 
+/* ============================== Test Cases ============================== */
 
-/* Test for prvTCPFlagMeaning function */
+/**
+ * @brief This function Print out the value of flags
+ *        in a human readable manner.
+ */
 void test_prvTCPFlagMeaning_FlagGroup1( void )
 {
     char ReturnString[ 10 ];
@@ -74,7 +74,10 @@ void test_prvTCPFlagMeaning_FlagGroup1( void )
     TEST_ASSERT_EQUAL_STRING( "F.R.A.E.", ReturnString );
 }
 
-/* Test for prvTCPFlagMeaning function */
+/**
+ * @brief This function Print out the value of flags
+ *        in a human readable manner.
+ */
 void test_prvTCPFlagMeaning_FlagGroup2( void )
 {
     char ReturnString[ 10 ];
@@ -84,25 +87,80 @@ void test_prvTCPFlagMeaning_FlagGroup2( void )
     TEST_ASSERT_EQUAL_STRING( ".S.P.U.C", ReturnString );
 }
 
-/* Test for prvSocketSetMSS function. */
-void test_prvSocketSetMSS_Reduced( void )
+/**
+ * @brief This function sets the maximum segment size for
+ *        IPv4 packet with NULL endpoint.
+ */
+void test_prvSocketSetMSS_NULL_EP( void )
 {
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ulRemoteIP = 0xC0C0C0C0;
+    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    pxSocket->pxEndPoint = pxEndPoint;
+    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = 0xC0C0C0C0;
+
+    prvSocketSetMSS( pxSocket );
+
+    TEST_ASSERT_EQUAL( ipconfigTCP_MSS, pxSocket->u.xTCP.usMSS );
+}
+
+/**
+ * @brief This function sets the maximum segment size for
+ *        IPv4 packet with valid endpoint.
+ */
+void test_prvSocketSetMSS_Reduced( void )
+{
+    NetworkEndPoint_t xEndPoint;
+
+    pxSocket = &xSocket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    pxSocket->pxEndPoint = &xEndPoint;
+    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC1C1C1C1;
+    xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
 
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1400 );
     prvSocketSetMSS( pxSocket );
     TEST_ASSERT_EQUAL( 1400, pxSocket->u.xTCP.usMSS );
 }
 
-/* Test for prvSocketSetMSS function. */
+/**
+ * @brief This function sets the maximum segment size for
+ *        IPv6 packet with valid endpoint.
+ */
 void test_prvSocketSetMSS_Normal( void )
 {
+    NetworkEndPoint_t xEndPoint = { 0 };
+
     pxSocket = &xSocket;
 
-    pxSocket->u.xTCP.ulRemoteIP = 0x0;
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxSocket->bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    xEndPoint.ipv4_settings.ulIPAddress = 0;
+    xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
+    pxSocket->pxEndPoint = &xEndPoint;
+    pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 = 0x0;
 
     prvSocketSetMSS( pxSocket );
     TEST_ASSERT_EQUAL( ipconfigNETWORK_MTU - 40U, pxSocket->u.xTCP.usMSS );
+}
+
+/**
+ * @brief This function sets the maximum segment size for
+ *        IPv6 packet.
+ */
+void test_prvSocketSetMSS_Normal_IPv6( void )
+{
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    pxSocket = &xSocket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    pxSocket->bits.bIsIPv6 = 1;
+
+    prvSocketSetMSS( pxSocket );
 }

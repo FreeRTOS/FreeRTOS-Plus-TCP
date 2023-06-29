@@ -12,6 +12,7 @@
   ],
   "DEF":
   [
-    "ipconfigARP_CACHE_ENTRIES=6"
+    "ipconfigARP_CACHE_ENTRIES=6",
+    "ipconfigHAS_PRINTF=1"
   ]
 }

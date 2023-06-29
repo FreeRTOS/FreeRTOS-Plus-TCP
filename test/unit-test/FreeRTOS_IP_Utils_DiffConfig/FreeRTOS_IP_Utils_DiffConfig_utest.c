@@ -46,23 +46,19 @@
 #include "FreeRTOSIPConfig.h"
 
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
 #include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
 #include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_Sockets.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_FreeRTOS_Routing.h"
+#include "mock_NetworkBufferManagement.h"
+#include "mock_FreeRTOS_IPv4_Utils.h"
 
 #include "FreeRTOS_IP_Utils.h"
+#include "FreeRTOS_IP_Utils_DiffConfig_stubs.c"
 
 #include "catch_assert.h"
+
+/* =========================== EXTERN VARIABLES =========================== */
 
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     extern BaseType_t xCallEventHook;
@@ -72,6 +68,14 @@ extern UBaseType_t uxLastMinBufferCount;
 extern size_t uxMinLastSize;
 extern UBaseType_t uxLastMinQueueSpace;
 
+extern NetworkInterface_t xInterfaces[ 1 ];
+
+/* ============================== Test Cases ============================== */
+
+/**
+ * @brief test_pxPacketBuffer_to_NetworkBuffer
+ * To validate if pxPacketBuffer_to_NetworkBuffer returns NULL when input is NULL.
+ */
 void test_pxPacketBuffer_to_NetworkBuffer( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
@@ -81,21 +85,44 @@ void test_pxPacketBuffer_to_NetworkBuffer( void )
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
-void test_prvProcessNetworkDownEvent_Pass( void )
+/**
+ * @brief test_prvProcessNetworkDownEvent_Pass_DHCP_Enabled
+ * To validate if prvProcessNetworkDownEvent runs DHCP flow when it's enabled for that endpoint.
+ */
+void test_prvProcessNetworkDownEvent_Pass_DHCP_Enabled( void )
 {
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
     xCallEventHook = pdFALSE;
+
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
-    FreeRTOS_ClearARP_Expect();
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
 
-    xNetworkInterfaceInitialise_ExpectAndReturn( pdPASS );
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
 
-    vIPNetworkUpCalls_Expect();
+    FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
 
-    prvProcessNetworkDownEvent();
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
+
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    vDHCPProcess_Expect( pdTRUE, &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
+
+    prvProcessNetworkDownEvent( &xInterface );
 }
 
+/**
+ * @brief test_FreeRTOS_round_up
+ * To validate if FreeRTOS_round_up doesn't trigger assertion when configASSERT is not enabled.
+ */
 void test_FreeRTOS_round_up( void )
 {
     uint32_t ulReturn;
@@ -106,6 +133,10 @@ void test_FreeRTOS_round_up( void )
     TEST_ASSERT_EQUAL( 10, ulReturn );
 }
 
+/**
+ * @brief test_FreeRTOS_round_down
+ * To validate if FreeRTOS_round_down doesn't trigger assertion when configASSERT is not enabled.
+ */
 void test_FreeRTOS_round_down( void )
 {
     uint32_t ulReturn;
@@ -116,6 +147,11 @@ void test_FreeRTOS_round_down( void )
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
+/**
+ * @brief test_vPrintResourceStats_MinSizeIsBigger
+ * To validate if vPrintResourceStats updates uxLastMinQueueSpace when
+ * ipconfigCHECK_IP_QUEUE_SPACE is enabled.
+ */
 void test_vPrintResourceStats_MinSizeIsBigger( void )
 {
     uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -133,6 +169,11 @@ void test_vPrintResourceStats_MinSizeIsBigger( void )
     TEST_ASSERT_EQUAL( 0, uxLastMinQueueSpace );
 }
 
+/**
+ * @brief test_vPrintResourceStats_LastQueueNECurrentQueue
+ * To validate if vPrintResourceStats updates uxLastMinQueueSpace when
+ * ipconfigCHECK_IP_QUEUE_SPACE is enabled.
+ */
 void test_vPrintResourceStats_LastQueueNECurrentQueue( void )
 {
     uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
@@ -148,4 +189,145 @@ void test_vPrintResourceStats_LastQueueNECurrentQueue( void )
 
     TEST_ASSERT_EQUAL( 10, uxMinLastSize );
     TEST_ASSERT_EQUAL( 10, uxLastMinQueueSpace );
+}
+
+/**
+ * @brief test_vPrintResourceStats_LastQueueNECurrentQueue
+ * To validate if prvProcessNetworkDownEvent skip DHCP flow when
+ * DHCP is disabled for that endpoint.
+ */
+void test_prvProcessNetworkDownEvent_Pass_DHCP_Disabled( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xCallEventHook = pdFALSE;
+    xEndPoint.bits.bCallDownHook = 1;
+
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
+
+    vApplicationIPNetworkEventHook_Expect( eNetworkDown );
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
+
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
+
+    xEndPoint.bits.bWantDHCP = pdFALSE;
+    xEndPoint.bits.bWantRA = pdFALSE;
+
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
+
+    prvProcessNetworkDownEvent( &xInterface );
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_PassIPv6
+ * To validate if prvProcessNetworkDownEvent skip setting IPv6 address to
+ * endpoint when IPv6 is disabled.
+ */
+void test_prvProcessNetworkDownEvent_PassIPv6( void )
+{
+    NetworkInterface_t xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    xCallEventHook = pdFALSE;
+    xEndPoint.bits.bCallDownHook = 1;
+
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
+
+    vApplicationIPNetworkEventHook_Expect( eNetworkDown );
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
+
+    xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( &xInterface, &xEndPoint );
+
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdFALSE;
+    xEndPoint.bits.bWantRA = pdFALSE;
+
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
+
+    prvProcessNetworkDownEvent( &xInterface );
+}
+
+/**
+ * @brief test_usGenerateProtocolChecksum_UDPv6IncomingPacket
+ * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if
+ * checksum if IPv6 is not supported.
+ */
+void test_usGenerateProtocolChecksum_UDPv6IncomingPacket( void )
+{
+    uint16_t usReturn;
+    uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
+    BaseType_t xOutgoingPacket = pdFALSE;
+    IPPacket_IPv6_t * pxIPPacket;
+    UDPPacket_IPv6_t * pxUDPv6Packet;
+    uint16_t usLength = 100;
+    size_t uxBufferLength = usLength + ipSIZE_OF_ETH_HEADER;
+
+    memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
+    pxUDPv6Packet->xUDPHeader.usChecksum = 0xB2FF;
+
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+
+    TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
+}
+
+/**
+ * @brief test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6
+ * Though the packet is marked as IPv6, we count it as IPv4 packet when
+ * IPv6 is disabled.
+ */
+void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
+{
+    NetworkBufferDescriptor_t * pxNetBufferToReturn, xNetBufferToReturn;
+    size_t uxOffset = sizeof( UDPPacket_t );
+    uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
+    uint8_t * pucIPType;
+    uint8_t * pucPayloadBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    memset( ucEthBuf, 0, sizeof( ucEthBuf ) );
+    memset( &xNetBufferToReturn, 0, sizeof( xNetBufferToReturn ) );
+
+    pxNetBufferToReturn = &xNetBufferToReturn;
+
+    pxNetBufferToReturn->pucEthernetBuffer = ucEthBuf;
+
+    *( ( NetworkBufferDescriptor_t ** ) pxNetBufferToReturn->pucEthernetBuffer ) = pxNetBufferToReturn;
+
+    pucPayloadBuffer = &ucEthBuf[ uxOffset + ipBUFFER_PADDING ];
+
+    pucIPType = pucPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    *pucIPType = ipTYPE_IPv6;
+
+    pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pucPayloadBuffer );
+
+    TEST_ASSERT_EQUAL( pxNetBufferToReturn, pxNetworkBuffer );
 }

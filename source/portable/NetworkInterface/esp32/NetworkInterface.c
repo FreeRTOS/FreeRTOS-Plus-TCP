@@ -45,7 +45,62 @@ enum if_state_t
 static const char * TAG = "NetInterface";
 volatile static uint32_t xInterfaceState = INTERFACE_DOWN;
 
-BaseType_t xNetworkInterfaceInitialise( void )
+static NetworkInterface_t * pxMyInterface;
+
+static BaseType_t xESP32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxDescriptor,
+                                                     BaseType_t xReleaseAfterSend );
+
+static BaseType_t xESP32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        pxESP32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif
+/*-----------------------------------------------------------*/
+
+
+NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                          NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 8 ];
+
+/* This function pxESP32_Eth_FillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xESP32_Eth_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xESP32_Eth_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xESP32_Eth_GetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+    pxMyInterface = pxInterface;
+
+    return pxInterface;
+}
+/*-----------------------------------------------------------*/
+
+static BaseType_t xESP32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     static BaseType_t xMACAdrInitialized = pdFALSE;
     uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
@@ -65,8 +120,21 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return pdFALSE;
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+static BaseType_t xESP32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
+{
+    BaseType_t xResult = pdFALSE;
+
+    if( xInterfaceState == INTERFACE_UP )
+    {
+        xResult = pdTRUE;
+    }
+
+    return xResult;
+}
+
+static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                     NetworkBufferDescriptor_t * const pxDescriptor,
+                                                     BaseType_t xReleaseAfterSend )
 {
     if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pucEthernetBuffer == NULL ) || ( pxNetworkBuffer->xDataLength == 0 ) )
     {
@@ -152,6 +220,8 @@ esp_err_t wlanif_input( void * netif,
     {
         /* Set the packet size, in case a larger buffer was returned. */
         pxNetworkBuffer->xDataLength = len;
+        pxNetworkBuffer->pxInterface = pxMyInterface;
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pcBuffer );
 
         /* Copy the packet data. */
         memcpy( pxNetworkBuffer->pucEthernetBuffer, buffer, len );

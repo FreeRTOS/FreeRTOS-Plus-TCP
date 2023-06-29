@@ -51,7 +51,6 @@
 #define configUSE_TRACE_FACILITY                   1
 #define configUSE_16_BIT_TICKS                     0
 #define configIDLE_SHOULD_YIELD                    1
-#define configUSE_CO_ROUTINES                      0
 #define configUSE_MUTEXES                          1
 #define configUSE_RECURSIVE_MUTEXES                1
 #define configQUEUE_REGISTRY_SIZE                  0
@@ -75,10 +74,6 @@
 
 /* Event group related definitions. */
 #define configUSE_EVENT_GROUPS                     1
-
-/* Co-routine definitions. */
-#define configUSE_CO_ROUTINES                      0
-#define configMAX_CO_ROUTINE_PRIORITIES            ( 2 )
 
 /* Currently the TCP/IP stack is using dynamic allocation, and the MQTT task is
  * using static allocation. */

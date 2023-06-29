@@ -31,26 +31,54 @@
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 
-/* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
+#include "FreeRTOS_DNS_Globals.h"
 
 /* Standard includes. */
 #include <stdint.h>
 
 #if ( ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
+/**
+ * @brief cache entry format structure
+ */
+    typedef struct xDNS_CACHE_TABLE_ROW
+    {
+        IPv46_Address_t xAddresses[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ]; /*!< The IP address(es) of an ARP cache entry. */
+        char pcName[ ipconfigDNS_CACHE_NAME_LENGTH ];                        /*!< The name of the host */
+        uint32_t ulTTL;                                                      /*!< Time-to-Live (in seconds) from the DNS server. */
+        uint32_t ulTimeWhenAddedInSeconds;                                   /*!< time at which the entry was added */
+        #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY > 1 )
+            uint8_t ucNumIPAddresses;                                        /*!< number of ip addresses for the same entry */
+            uint8_t ucCurrentIPAddress;                                      /*!< current ip address index */
+        #endif
+    } DNSCacheRow_t;
+
+/* Look for the indicated host name in the DNS cache. Returns the IPv4
+ * address if present, or 0x0 otherwise. */
     uint32_t FreeRTOS_dnslookup( const char * pcHostName );
 
     void FreeRTOS_dnsclear( void );
 
+/**
+ * @brief For debugging only: prints the contents of the DNS cache table.
+ */
+    void vShowDNSCacheTable( void );
+
     BaseType_t FreeRTOS_dns_update( const char * pcName,
-                                    uint32_t * pulIP,
-                                    uint32_t ulTTL );
+                                    IPv46_Address_t * pxIP,
+                                    uint32_t ulTTL,
+                                    BaseType_t xLookUp,
+                                    struct freertos_addrinfo ** ppxAddressInfo );
 
     BaseType_t FreeRTOS_ProcessDNSCache( const char * pcName,
-                                         uint32_t * pulIP,
+                                         IPv46_Address_t * pxIP,
                                          uint32_t ulTTL,
-                                         BaseType_t xLookUp );
+                                         BaseType_t xLookUp,
+                                         struct freertos_addrinfo ** ppxAddressInfo );
+
+    uint32_t Prepare_CacheLookup( const char * pcHostName,
+                                  BaseType_t xFamily,
+                                  struct freertos_addrinfo ** ppxAddressInfo );
 #endif /* if ( ipconfigUSE_DNS_CACHE == 1 ) */
 
 #endif /* ifndef FREERTOS_DNS_CACHE_H */
