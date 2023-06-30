@@ -1823,6 +1823,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     eReturn = prvAllowIPPacketIPv6( ( ( const IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
+
+                    /* The IP-header type is copied to a special reserved location a few bytes before the message
+                     * starts. In the case of IPv6, this value is never actually used and the line below can safely be removed
+                     * with no ill effects. We only store it to help with debugging. */
+                    pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader_IPv6->ucVersionTrafficClass;
                 }
                 break;
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
