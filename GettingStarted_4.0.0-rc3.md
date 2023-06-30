@@ -1,7 +1,7 @@
 Moving to 4.0.0-rc1/rc2/rc3 from 3.x.x:
 --------------------------------
 
-In version 4.0.0-rc1/rc2/rc3, new files have been added to support IPv6 functionality and each file has been broken down into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP has not changed.Build separation feature is added to make the library modular. This enables the users to compile and create a low footprint binary with only the required functionalities. For more details on various build combination supported, please check History.txt.
+Version 4.0.0-rc1/rc2/rc3 adds new files to support IPv6 functionality, breaking each file into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP remains unchanged. Build separation is added to make the library modular, enabling users to compile and create a low-footprint binary with only the required functionalities. For more details on supported build combinations, see [History.txt] (https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/History.txt) .
 
 Some of the APIs have changed which is illustrated in the section below. However, there is a backward compatibility mode provided as well.
 
