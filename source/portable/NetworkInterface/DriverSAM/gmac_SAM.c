@@ -621,6 +621,9 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
         return GMAC_RX_NO_DATA;
     }
 
+    /* Return the number of bytes received. */
+    *p_rcv_size = bytesLeft;
+
     /* gmac_dev_poll has confirmed that there is a complete frame at
      * the current position 'ul_rx_idx'
      */
@@ -692,8 +695,6 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
     } while( ( pxHead->status.val & GMAC_RXD_EOF ) == 0 );
 
     p_gmac_dev->ul_rx_idx = nextIdx;
-
-    *p_rcv_size = bytesLeft;
 
     return GMAC_OK;
 }
@@ -1010,7 +1011,7 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 /*/ @cond 0 */
 /**INDENT-OFF**/
 #ifdef __cplusplus
-    }
+}
 #endif
 /**INDENT-ON**/
 /*/ @endcond */
