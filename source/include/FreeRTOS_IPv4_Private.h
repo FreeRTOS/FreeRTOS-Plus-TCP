@@ -54,13 +54,12 @@
  * If however we use that same constant for an IPv4 packet, we end up somewhere in front of the Ethernet header.
  * In order to accommodate that, the Ethernet frame buffer gets allocated a bit larger than needed.
  * For IPv4 frames, prvProcessIPPacket() stores the version header field at a negative offset, a few bytes before the start
- * of the Ethernet header. That IPv4 version field MUST be stored the same distance from the payload as in IPv6. Make sure that:
- * ipUDP_PAYLOAD_IP_TYPE_OFFSET == ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) ) which expands to:
- * ( sizeof( UDPPacket_t ) + ipIP_TYPE_OFFSET ) != ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) ) which means that:
+ * of the Ethernet header. That IPv4 version field MUST be stored the same distance from the payload as in IPv6.
  * ipIP_TYPE_OFFSET must be equal to: sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) - ( sizeof( UDPPacket_t )
  * In most situations, ipIP_TYPE_OFFSET will end up being equal to 6. If the Ethernet header is enlarged to include VLAN
  * tag support, ipIP_TYPE_OFFSET will shrink to 2. With the current design, the Ethernet header cannot be expanded to contain
- * more than one VLAN tag or ipIP_TYPE_OFFSET will become less than zero. ipIP_TYPE_OFFSET should never be allowed to be <= 0.
+ * more than one VLAN tag or ipIP_TYPE_OFFSET will become less than zero. ipIP_TYPE_OFFSET should never be allowed to be <= 0
+ * or storing of the IPv4 version byte will overwrite the Ethernet header of the frame.
  */
 #define ipIP_TYPE_OFFSET                ( (int32_t) sizeof( UDPHeader_t ) + (int32_t) sizeof( IPHeader_IPv6_t ) - (int32_t) sizeof( UDPPacket_t ) )
 

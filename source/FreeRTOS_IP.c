@@ -1849,7 +1849,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                        eReturn = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
                        {
-                           /* The IP-header type is copied to a location 6 bytes before the
+                           /* The IP-header type is copied to a special reserved location a few bytes before the
                             * messages starts.  It might be needed later on when a UDP-payload
                             * buffer is being used. */
                            pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader->ucVersionHeaderLength;
