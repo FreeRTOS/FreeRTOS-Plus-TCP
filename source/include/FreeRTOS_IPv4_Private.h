@@ -62,7 +62,7 @@
  * tag support, ipIP_TYPE_OFFSET will shrink to 2. With the current design, the Ethernet header cannot be expanded to contain
  * more than one VLAN tag or ipIP_TYPE_OFFSET will become less than zero. ipIP_TYPE_OFFSET should never be allowed to be <= 0.
  */
-#define ipIP_TYPE_OFFSET                ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) - sizeof( UDPPacket_t ) )
+#define ipIP_TYPE_OFFSET                ( (int32_t) sizeof( UDPHeader_t ) + (int32_t) sizeof( IPHeader_IPv6_t ) - (int32_t) sizeof( UDPPacket_t ) )
 
 #include "pack_struct_start.h"
 struct xIP_HEADER
