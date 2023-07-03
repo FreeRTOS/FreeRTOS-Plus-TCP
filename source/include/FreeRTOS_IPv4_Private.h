@@ -61,7 +61,7 @@
  * more than one VLAN tag or ipIP_TYPE_OFFSET will become less than zero. ipIP_TYPE_OFFSET should never be allowed to be <= 0
  * or storing of the IPv4 version byte will overwrite the Ethernet header of the frame.
  */
-#define ipIP_TYPE_OFFSET                ( (int32_t) sizeof( UDPHeader_t ) + (int32_t) sizeof( IPHeader_IPv6_t ) - (int32_t) sizeof( UDPPacket_t ) )
+#define ipIP_TYPE_OFFSET                ( ( int32_t ) sizeof( UDPHeader_t ) + ( int32_t ) sizeof( IPHeader_IPv6_t ) - ( int32_t ) sizeof( UDPPacket_t ) )
 
 #include "pack_struct_start.h"
 struct xIP_HEADER
