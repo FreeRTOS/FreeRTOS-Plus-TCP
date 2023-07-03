@@ -371,10 +371,6 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
  * rather than duplicated in its own variable. */
 #define ipLOCAL_MAC_ADDRESS            ( xDefaultPartUDPPacketHeader.ucBytes )
 
-/* The loopback address block is defined as part of rfc5735 */
-#define ipLOOPBACK_ADDRESS             ( FreeRTOS_inet_addr_quick( 127, 0, 0, 0 ) )
-#define ipLOOPBACK_NETMASK             ( FreeRTOS_inet_addr_quick( 255, 0, 0, 0 ) )
-
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
 #define ipPACKET_CONTAINS_ICMP_DATA    ( 0 )
