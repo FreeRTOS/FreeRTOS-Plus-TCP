@@ -32,4 +32,5 @@
 *
 *****************************************************************************/
 
+#pragma GCC diagnostic ignored "-Wpragma-pack"
 #pragma pack(push,1)

@@ -48,19 +48,24 @@
  * @brief A DNS reply was received, see if there is any matching entry and
  *        call the handler.
  *
- * @param[in] uxIdentifier: Identifier associated with the callback function.
- * @param[in] pcName: The name associated with the callback function.
- * @param[in] ulIPAddress: IP-address obtained from the DNS server.
+ * @param[in,out] pxSet a set of variables that are shared among the helper functions.
+ * @param[in] pxAddress Pointer to address info ( IPv4/IPv6 ) obtained from the DNS server.
  *
  * @return Returns pdTRUE if uxIdentifier was recognized.
  */
-    BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
-                               const char * pcName,
-                               uint32_t ulIPAddress )
+    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
+                               struct freertos_addrinfo * pxAddress )
     {
         BaseType_t xResult = pdFALSE;
         const ListItem_t * pxIterator;
         const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
+        TickType_t uxIdentifier = ( TickType_t ) pxSet->pxDNSMessageHeader->usIdentifier;
+
+        /* While iterating through the list, the scheduler is suspended.
+         * Remember which function shall be called once the scheduler is
+         * running again. */
+        FOnDNSEvent pCallbackFunction = NULL;
+        void * pvSearchID = NULL;
 
         vTaskSuspendAll();
         {
@@ -68,13 +73,27 @@
                  pxIterator != ( const ListItem_t * ) xEnd;
                  pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator ) )
             {
-                if( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier )
-                {
-                    DNSCallback_t * pxCallback = ( ( DNSCallback_t * )
-                                                   listGET_LIST_ITEM_OWNER( pxIterator ) );
+                BaseType_t xMatching;
+                DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
+                #if ( ipconfigUSE_MDNS == 1 )
+                    /* mDNS port 5353. */
+                    if( pxSet->usPortNumber == FreeRTOS_htons( ipMDNS_PORT ) )
+                    {
+                        /* In mDNS, the query ID field is ignored and the
+                         * hostname will be compared with outstanding requests. */
 
-                    pxCallback->pCallbackFunction( pcName, pxCallback->pvSearchID,
-                                                   ulIPAddress );
+                        xMatching = ( strcasecmp( pxCallback->pcName, pxSet->pcName ) == 0 ) ? pdTRUE : pdFALSE;
+                    }
+                    else
+                #endif /* if ( ipconfigUSE_MDNS == 1 ) */
+                {
+                    xMatching = ( listGET_LIST_ITEM_VALUE( pxIterator ) == uxIdentifier ) ? pdTRUE : pdFALSE;
+                }
+
+                if( xMatching == pdTRUE )
+                {
+                    pvSearchID = pxCallback->pvSearchID;
+                    pCallbackFunction = pxCallback->pCallbackFunction;
                     ( void ) uxListRemove( &pxCallback->xListItem );
                     vPortFree( pxCallback );
 
@@ -90,6 +109,12 @@
             }
         }
         ( void ) xTaskResumeAll();
+
+        if( pCallbackFunction != NULL )
+        {
+            pCallbackFunction( pxSet->pcName, pvSearchID, pxAddress );
+        }
+
         return xResult;
     }
 
@@ -97,17 +122,19 @@
  * @brief FreeRTOS_gethostbyname_a() was called along with callback parameters.
  *        Store them in a list for later reference.
  *
- * @param[in] pcHostName: The hostname whose IP address is being searched for.
- * @param[in] pvSearchID: The search ID of the DNS callback function to set.
- * @param[in] pCallbackFunction: The callback function pointer.
- * @param[in] uxTimeout: Timeout of the callback function.
- * @param[in] uxIdentifier: Random number used as ID in the DNS message.
+ * @param[in] pcHostName The hostname whose IP address is being searched for.
+ * @param[in] pvSearchID The search ID of the DNS callback function to set.
+ * @param[in] pCallbackFunction The callback function pointer.
+ * @param[in] uxTimeout Timeout of the callback function.
+ * @param[in] uxIdentifier Random number used as ID in the DNS message.
+ * @param[in] xIsIPv6 pdTRUE if the address type should be IPv6.
  */
     void vDNSSetCallBack( const char * pcHostName,
                           void * pvSearchID,
                           FOnDNSEvent pCallbackFunction,
                           TickType_t uxTimeout,
-                          TickType_t uxIdentifier )
+                          TickType_t uxIdentifier,
+                          BaseType_t xIsIPv6 )
     {
         size_t lLength = strlen( pcHostName );
 
@@ -131,7 +158,9 @@
             pxCallback->pCallbackFunction = pCallbackFunction;
             pxCallback->pvSearchID = pvSearchID;
             pxCallback->uxRemainingTime = uxTimeout;
-            vTaskSetTimeOutState( &pxCallback->uxTimeoutState );
+            pxCallback->xIsIPv6 = xIsIPv6;
+
+            vTaskSetTimeOutState( &( pxCallback->uxTimeoutState ) );
             listSET_LIST_ITEM_OWNER( &( pxCallback->xListItem ), ( void * ) pxCallback );
             listSET_LIST_ITEM_VALUE( &( pxCallback->xListItem ), uxIdentifier );
             vTaskSuspendAll();
@@ -146,14 +175,15 @@
                                      ( unsigned ) ( sizeof( *pxCallback ) + lLength ) ) );
         }
     }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Iterate through the list of call-back structures and remove
- *        old entries which have reached a timeout.
- *        As soon as the list has become empty, the DNS timer will be stopped.
- *        In case pvSearchID is supplied, the user wants to cancel a DNS request.
+ * old entries which have reached a timeout.
+ * As soon as the list has become empty, the DNS timer will be stopped.
+ * In case pvSearchID is supplied, the user wants to cancel a DNS request.
  *
- * @param[in] pvSearchID: The search ID of callback function whose associated
+ * @param[in] pvSearchID The search ID of callback function whose associated
  *                 DNS request is being cancelled. If non-ID specific checking of
  *                 all requests is required, then this field should be kept as NULL.
  */
@@ -161,6 +191,14 @@
     {
         const ListItem_t * pxIterator;
         const ListItem_t * xEnd = listGET_END_MARKER( &xCallbackList );
+
+        /* When a DNS-search times out, the call-back function shall
+         * be called. Store theses item in a temporary list.
+         * Only when the scheduler is running, user functions
+         * shall be called. */
+        List_t xTempList;
+
+        vListInitialise( &xTempList );
 
         vTaskSuspendAll();
         {
@@ -176,11 +214,15 @@
                     ( void ) uxListRemove( &( pxCallback->xListItem ) );
                     vPortFree( pxCallback );
                 }
-                else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &pxCallback->uxRemainingTime ) != pdFALSE )
+                else if( xTaskCheckForTimeOut( &pxCallback->uxTimeoutState, &( pxCallback->uxRemainingTime ) ) != pdFALSE )
                 {
-                    pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0 );
+                    /* A time-out occurred in the asynchronous search.
+                     * Remove it from xCallbackList. */
                     ( void ) uxListRemove( &( pxCallback->xListItem ) );
-                    vPortFree( pxCallback );
+
+                    /* Insert it in a temporary list. The function will be called
+                     * once the scheduler is resumed. */
+                    vListInsertEnd( &( xTempList ), &pxCallback->xListItem );
                 }
                 else
                 {
@@ -190,11 +232,42 @@
         }
         ( void ) xTaskResumeAll();
 
+        if( listLIST_IS_EMPTY( &xTempList ) == pdFALSE )
+        {
+            /* There is at least one item in xTempList which must be removed and deleted. */
+            xEnd = listGET_END_MARKER( &xTempList );
+
+            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
+                 pxIterator != xEnd;
+                 )
+            {
+                DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
+                /* Move to the next item because we might remove this item */
+                pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator );
+
+                /* A time-out occurred in the asynchronous search.
+                 * Call the application hook with the proper information. */
+                if( pxCallback->xIsIPv6 != 0 )
+                {
+                    pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, NULL );
+                }
+                else
+                {
+                    pxCallback->pCallbackFunction( pxCallback->pcName, pxCallback->pvSearchID, 0U );
+                }
+
+                /* Remove it from 'xTempList' and free the memory. */
+                ( void ) uxListRemove( &( pxCallback->xListItem ) );
+                vPortFree( pxCallback );
+            }
+        }
+
         if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
         {
             vIPSetDNSTimerEnableState( pdFALSE );
         }
     }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief initialize the cache

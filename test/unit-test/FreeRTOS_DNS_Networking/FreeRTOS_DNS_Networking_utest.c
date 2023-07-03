@@ -59,7 +59,7 @@
 
 typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                 void * /* pvSearchID */,
-                                uint32_t /* ulIPAddress */ );
+                                struct freertos_addrinfo * /* pxAddressInfo */ );
 
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
@@ -124,7 +124,6 @@ void test_CreateSocket_success( void )
                                      FREERTOS_IPPROTO_UDP,
                                      ( Socket_t ) 235 );
     xSocketValid_ExpectAndReturn( ( Socket_t ) 235, pdTRUE );
-    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
     FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
     FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( 0 );
 
@@ -134,23 +133,37 @@ void test_CreateSocket_success( void )
 }
 
 /**
- * @brief Ensure that when bind fails null is returned
+ * @brief Ensures that when the socket could not be created or could not be found, null is returned
  */
-void test_CreateSocket_bind_fail( void )
+void test_BindSocket_fail( void )
 {
-    Socket_t s;
+    struct freertos_sockaddr xAddress;
+    Socket_t xSocket;
+    uint16_t usPort;
+    uint32_t ret;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET,
-                                     FREERTOS_SOCK_DGRAM,
-                                     FREERTOS_IPPROTO_UDP,
-                                     ( Socket_t ) 235 );
-    xSocketValid_ExpectAndReturn( ( Socket_t ) 235, pdTRUE );
+    FreeRTOS_bind_ExpectAnyArgsAndReturn( 0 );
+
+    ret = DNS_BindSocket( xSocket, usPort );
+
+    TEST_ASSERT_EQUAL( 0, ret );
+}
+
+/**
+ * @brief  Happy path!
+ */
+void test_BindSocket_success( void )
+{
+    struct freertos_sockaddr xAddress;
+    Socket_t xSocket;
+    uint16_t usPort;
+    uint32_t ret;
+
     FreeRTOS_bind_ExpectAnyArgsAndReturn( 1 );
-    FreeRTOS_closesocket_ExpectAndReturn( ( Socket_t ) 235, 0 );
 
-    s = DNS_CreateSocket( 235 );
+    ret = DNS_BindSocket( xSocket, usPort );
 
-    TEST_ASSERT_EQUAL( NULL, s );
+    TEST_ASSERT_EQUAL( 1, ret );
 }
 
 /**
@@ -163,7 +176,9 @@ void test_SendRequest_success( void )
     struct freertos_sockaddr xAddress;
     struct xDNSBuffer pxDNSBuf;
 
-    FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdTRUE );
+    pxDNSBuf.uxPayloadLength = 1024;
+
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( pxDNSBuf.uxPayloadLength );
 
     ret = DNS_SendRequest( s, &xAddress, &pxDNSBuf );
 
@@ -195,12 +210,13 @@ void test_ReadReply_success( void )
     Socket_t s = ( Socket_t ) 123;
     struct freertos_sockaddr xAddress;
     struct xDNSBuffer pxDNSBuf;
+    BaseType_t xReturn;
 
     FreeRTOS_recvfrom_ExpectAnyArgsAndReturn( 600 );
 
-    DNS_ReadReply( s, &xAddress, &pxDNSBuf );
+    xReturn = DNS_ReadReply( s, &xAddress, &pxDNSBuf );
 
-    TEST_ASSERT_EQUAL( 600, pxDNSBuf.uxPayloadLength );
+    TEST_ASSERT_EQUAL( 600, xReturn );
 }
 
 /**

@@ -47,6 +47,8 @@
         #error FreeRTOSIPConfig.h has not been included yet
     #endif
 
+    #include "FreeRTOS_IP_Common.h"
+
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
 
@@ -92,6 +94,7 @@
     #define FREERTOS_IPPROTO_TCP             ( 6 )
     #define FREERTOS_SOCK_DEPENDENT_PROTO    ( 0 )
 
+    #define FREERTOS_AF_INET4                FREERTOS_AF_INET
 /* Values for xFlags parameter of Receive/Send functions. */
     #define FREERTOS_ZERO_COPY               ( 1 )  /* Can be used with recvfrom(), sendto() and recv(),
                                                      * Indicates that the zero copy interface is being used.
@@ -145,10 +148,11 @@
     #endif
 
     #if ( ipconfigUSE_TCP == 1 )
-        #define FREERTOS_SO_SET_LOW_HIGH_WATER    ( 18 )
+        #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
     #endif
+    #define FREERTOS_INADDR_ANY                           ( 0U ) /* The 0.0.0.0 IPv4 address. */
 
-    #if ( 0 ) /* Not Used */
+    #if ( 0 )                                                    /* Not Used */
         #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 )
         #define FREERTOS_FRAGMENTED_PACKET                ( 0x40 )
     #endif
@@ -169,20 +173,26 @@
  */
     struct freertos_sockaddr
     {
-/* _HT_ On 32- and 64-bit architectures, the addition of the two uint8_t
- * fields sin_len and sin_family doesn't make the structure bigger, due to alignment.
- * These fields are only inserted as a preparation for IPv6
- * and are not used in the IPv4-only release. */
-        uint8_t sin_len;    /**< length of this structure. */
-        uint8_t sin_family; /**< FREERTOS_AF_INET. */
-        uint16_t sin_port;  /**< The port. */
-        uint32_t sin_addr;  /**< The IP address. */
+        uint8_t sin_len;          /**< length of this structure. */
+        uint8_t sin_family;       /**< FREERTOS_AF_INET. */
+        uint16_t sin_port;        /**< The port. */
+        uint32_t sin_flowinfo;    /**< IPv6 flow information, not used in this library. */
+        IP_Address_t sin_address; /**< The IPv4/IPv6 address. */
     };
+
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+        #define sin_addr    sin_address.ulIP_IPv4
+
+    #endif
+
+/** Introduce a short name to make casting easier. */
+    typedef struct freertos_sockaddr   xFreertosSocAddr;
 
 /* The socket type itself. */
     struct xSOCKET;
-    typedef struct xSOCKET         * Socket_t;
-    typedef struct xSOCKET const   * ConstSocket_t;
+    typedef struct xSOCKET             * Socket_t;
+    typedef struct xSOCKET const       * ConstSocket_t;
 
     extern BaseType_t xSocketValid( const ConstSocket_t xSocket );
 
@@ -242,7 +252,7 @@
                                size_t uxBufferLength,
                                BaseType_t xFlags,
                                struct freertos_sockaddr * pxSourceAddress,
-                               const socklen_t * pxSourceAddressLength );
+                               socklen_t * pxSourceAddressLength );
 
 
 /* Function to get the local address and IP port. */
@@ -344,6 +354,9 @@
 /* Return the remote address and IP port of a connected TCP Socket. */
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr * pxAddress );
+
+/* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
+        BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
 
 /* Returns the number of bytes that may be added to txStream. */
         BaseType_t FreeRTOS_maywrite( ConstSocket_t xSocket );
@@ -482,12 +495,8 @@
                                      char * pcDestination,
                                      socklen_t uxSize );
 
-    BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
+    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
                                     void * pvDestination );
-
-    const char * FreeRTOS_inet_ntop4( const void * pvSource,
-                                      char * pcDestination,
-                                      socklen_t uxSize );
 
 /** @brief This function converts a human readable string, representing an 48-bit MAC address,
  * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */

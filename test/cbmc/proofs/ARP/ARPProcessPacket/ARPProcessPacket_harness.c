@@ -1,3 +1,5 @@
+#include "cbmc.h"
+
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -17,7 +19,6 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 
 void harness()
 {
-    ARPPacket_t xARPFrame;
     NetworkBufferDescriptor_t xLocalBuffer;
     uint16_t usEthernetBufferSize;
 
@@ -47,5 +48,30 @@ void harness()
         pxARPWaitingNetworkBuffer = NULL;
     }
 
-    eARPProcessPacket( &xARPFrame );
+    /*
+     * The assumption made here is that the buffer pointed by pucEthernetBuffer
+     * is at least allocated to sizeof(ARPPacket_t) size but eventually an even larger buffer.
+     * This is not checked inside eARPProcessPacket.
+     */
+    uint8_t ucBUFFER_SIZE;
+
+    void * xBuffer = malloc( ucBUFFER_SIZE + sizeof( ARPPacket_t ) );
+
+    __CPROVER_assume( xBuffer != NULL );
+
+    NetworkBufferDescriptor_t xNetworkBuffer2;
+
+    xNetworkBuffer2.pucEthernetBuffer = xBuffer;
+    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE + sizeof( ARPPacket_t );
+
+    /*
+     * This proof assumes one end point is present.
+     */
+    xNetworkBuffer2.pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( xNetworkBuffer2.pxEndPoint != NULL );
+    xNetworkBuffer2.pxEndPoint->pxNext = NULL;
+
+    /* eARPProcessPacket will be called in the source code only after checking if
+     * xNetworkBuffer2.pucEthernetBuffer is not NULL, hence, __CPROVER_assume( xBuffer != NULL );   */
+    eARPProcessPacket( &xNetworkBuffer2 );
 }

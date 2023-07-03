@@ -13,10 +13,12 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Callback.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Cache.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Networking.h"
         )
 # list the directories your mocks need
@@ -46,6 +48,7 @@ list(APPEND real_source_files
 set ( real_include_directories ""
         )
 list(APPEND real_include_directories
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             .
             ${CMAKE_BINARY_DIR}/Annexed_TCP/
             ${TCP_INCLUDE_DIRS}
