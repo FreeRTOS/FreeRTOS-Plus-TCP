@@ -7,7 +7,7 @@ Some of the APIs have changed which is illustrated in the section below. However
 
 Backward Compatibility Mode:
 ---------------------------
-   If you are moving your code from V3.x.x to V4.0.0-rc1, then set the "ipconfigIPv4_BACKWARD_COMPATIBLE" macro to 1 in “FreeRTOSIPConfigDefaults.h” to run the code in backward compatible mode.
+   If you are moving your code from V3.x.x to V4.0.0-rc1/rc2/rc3, then set the "ipconfigIPv4_BACKWARD_COMPATIBLE" macro to 1 in “FreeRTOSIPConfigDefaults.h” to run the code in backward compatible mode.
    The "Existing API's" defined in all the API changes below work only when the backward compatibility mode is enabled.
 
 API changes in 4.0.0-rc1/rc2/rc3:
