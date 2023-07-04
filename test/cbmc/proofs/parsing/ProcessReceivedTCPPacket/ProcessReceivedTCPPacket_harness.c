@@ -8,33 +8,16 @@
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_Stream_Buffer.h"
 
-/* This proof assumes FreeRTOS_socket, pxTCPSocketLookup and
- * pxGetNetworkBufferWithDescriptor are implemented correctly.
+/* CBMC includes. */
+#include "cbmc.h"
+#include "../../utility/memory_assignments.c"
+
+/* This proof assumes pxTCPSocketLookup and pxGetNetworkBufferWithDescriptor
+ * are implemented correctly.
  *
  * It also assumes prvSingleStepTCPHeaderOptions, prvCheckOptions, prvTCPPrepareSend,
- * prvTCPHandleState and prvTCPReturnPacket are correct. These functions are
+ * prvTCPHandleState, prvHandleListen_IPV4 and prvTCPReturnPacket are correct. These functions are
  * proved to be correct separately. */
-
-/* Implementation of safe malloc */
-void * safeMalloc( size_t xWantedSize )
-{
-    if( xWantedSize == 0 )
-    {
-        return NULL;
-    }
-
-    uint8_t byte;
-
-    return byte ? malloc( xWantedSize ) : NULL;
-}
-
-/* Abstraction of FreeRTOS_socket */
-Socket_t FreeRTOS_socket( BaseType_t xDomain,
-                          BaseType_t xType,
-                          BaseType_t xProtocol )
-{
-    return safeMalloc( sizeof( FreeRTOS_Socket_t ) );
-}
 
 /* Abstraction of xTaskGetCurrentTaskHandle */
 TaskHandle_t xTaskGetCurrentTaskHandle( void )
@@ -52,34 +35,33 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
     return pxCurrentTCB;
 }
 
-/* Abstraction of pxTCPSocketLookup */
-FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
-                                       UBaseType_t uxLocalPort,
-                                       uint32_t ulRemoteIP,
-                                       UBaseType_t uxRemotePort )
+/* Abstraction of prvHandleListen_IPV4 */
+FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
+                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    FreeRTOS_Socket_t * xRetSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    FreeRTOS_Socket_t * xRetSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
     if( xRetSocket )
     {
-        xRetSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
-        xRetSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( StreamBuffer_t ) );
+        /* This test case is for IPv4. */
+        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
+    }
 
-        /* This bit depicts whether the socket was supposed to be reused or not. */
-        if( xRetSocket->u.xTCP.pxPeerSocket == NULL )
-        {
-            xRetSocket->u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
-        }
-        else
-        {
-            xRetSocket->u.xTCP.bits.bReuseSocket = pdFALSE_UNSIGNED;
-        }
+    return xRetSocket;
+}
 
-        if( xIsCallingFromIPTask() == pdFALSE )
-        {
-            xRetSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
-            xRetSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
-        }
+/* Abstraction of pxTCPSocketLookup */
+FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
+                                       UBaseType_t uxLocalPort,
+                                       IPv46_Address_t xRemoteIP,
+                                       UBaseType_t uxRemotePort )
+{
+    FreeRTOS_Socket_t * xRetSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+
+    if( xRetSocket )
+    {
+        /* This test case is for IPv4. */
+        __CPROVER_assume( xRetSocket->bits.bIsIPv6 == pdFALSE );
     }
 
     return xRetSocket;

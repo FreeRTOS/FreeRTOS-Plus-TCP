@@ -12,6 +12,9 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/** @brief A list of all network end-points.  Each element has a next pointer. */
+struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
+
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
@@ -51,13 +54,16 @@ NetworkAddressingParameters_t xNetworkAddressing =
     0xC0C0C0FF
 };              /* 192.192.192.255 - Broadcast address. */
 
+/* ======================== Stub Callback Functions ========================= */
+
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
     return 0;
 }
 
 
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
+BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                           const char * pcName )
 {
 }
 
@@ -80,7 +86,9 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 BaseType_t xNetworkInterfaceInitialise( void )
 {
 }
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                           struct xNetworkEndPoint * pxEndPoint )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
@@ -146,9 +154,18 @@ void vConfigureTimerForRunTimeStats( void )
 }
 
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
     return pdPASS;
+}
+
+/**
+ * @brief Send an ND advertisement.
+ * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
+ */
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
+{
 }
 /*-----------------------------------------------------------*/

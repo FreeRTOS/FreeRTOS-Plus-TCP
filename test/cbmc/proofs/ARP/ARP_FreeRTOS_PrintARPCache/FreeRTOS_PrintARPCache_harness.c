@@ -8,6 +8,8 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOS_ARP.h"
 
+void FreeRTOS_PrintARPCache( void );
+
 void harness()
 {
     FreeRTOS_PrintARPCache();

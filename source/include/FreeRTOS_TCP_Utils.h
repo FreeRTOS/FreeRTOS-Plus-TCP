@@ -47,6 +47,16 @@
  */
 void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket );
 
+/*
+ * Set the initial value for MSS (Maximum Segment Size) to be used.
+ */
+void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket );
+
+/*
+ * Set the initial value for MSS (Maximum Segment Size) to be used.
+ */
+void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */

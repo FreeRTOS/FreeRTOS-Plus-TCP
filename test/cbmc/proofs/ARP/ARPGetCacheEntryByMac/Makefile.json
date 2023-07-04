@@ -2,8 +2,7 @@
   "ENTRY": "ARPGetCacheEntryByMac",
   "CBMCFLAGS":
   [
-      "--unwind 7",
-      "--nondet-static"
+      "--unwind 7"
   ],
   "OBJS":
   [

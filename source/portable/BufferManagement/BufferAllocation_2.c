@@ -304,6 +304,8 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     /* Store the actual size of the allocated buffer, which may be
                      * greater than the original requested size. */
                     pxReturn->xDataLength = xRequestedSizeBytesCopy;
+                    pxReturn->pxInterface = NULL;
+                    pxReturn->pxEndPoint = NULL;
 
                     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                         {

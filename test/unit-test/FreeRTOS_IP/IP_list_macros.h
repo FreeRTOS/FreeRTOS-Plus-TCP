@@ -31,6 +31,7 @@
 #include <FreeRTOS.h>
 #include <portmacro.h>
 #include <list.h>
+#include "FreeRTOS_IPv6_Private.h"
 
 #undef listSET_LIST_ITEM_OWNER
 void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
@@ -72,6 +73,20 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eEvent );
+extern NetworkInterface_t xInterfaces[ 1 ];
 
+/* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
+ * It handles all ICMP messages except the PING requests. */
+eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/**
+ * @brief Work on the RA/SLAAC processing.
+ * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
+ * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
+ */
+void vRAProcess( BaseType_t xDoReset,
+                 NetworkEndPoint_t * pxEndPoint );
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface );
 #endif /* ifndef LIST_MACRO_H */

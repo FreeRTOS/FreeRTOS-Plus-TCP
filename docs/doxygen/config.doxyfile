@@ -48,7 +48,7 @@ PROJECT_NAME           = FreeRTOS-Plus-TCP
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = V3.0.0
+PROJECT_NUMBER         = V4.0.0-rc3
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -909,20 +909,48 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = ./ \
-                         ./source/FreeRTOS_DNS.c \
-                         ./source/FreeRTOS_DNS_Cache.c \
-                         ./source/FreeRTOS_DNS_Callback.c \
-                         ./source/FreeRTOS_DNS_Networking.c \
-                         ./source/FreeRTOS_DNS_Parser.c \
-                         ./source/FreeRTOS_Stream_Buffer.c \
-                         ./source/FreeRTOS_UDP_IP.c \
-                         ./source/FreeRTOS_ARP.c \
-                         ./source/FreeRTOS_IP.c \
-                         ./source/FreeRTOS_TCP_IP.c \
-                         ./source/FreeRTOS_DHCP.c \
-                         ./source/FreeRTOS_Sockets.c \
-                         ./source/FreeRTOS_TCP_WIN.c \
-                         ./source/FreeRTOS_Tiny_TCP.c
+                        ./source/FreeRTOS_ARP.c \
+                        ./source/FreeRTOS_BitConfig.c \
+                        ./source/FreeRTOS_DHCP.c \
+                        ./source/FreeRTOS_DHCPv6.c \
+                        ./source/FreeRTOS_DNS.c \
+                        ./source/FreeRTOS_DNS_Cache.c \
+                        ./source/FreeRTOS_DNS_Callback.c \
+                        ./source/FreeRTOS_DNS_Networking.c \
+                        ./source/FreeRTOS_DNS_Parser.c \
+                        ./source/FreeRTOS_ICMP.c \
+                        ./source/FreeRTOS_IP.c \
+                        ./source/FreeRTOS_IP_Timers.c \
+                        ./source/FreeRTOS_IP_Utils.c \
+                        ./source/FreeRTOS_IPv4.c \
+                        ./source/FreeRTOS_IPv4_Sockets.c \
+                        ./source/FreeRTOS_IPv4_Utils.c \
+                        ./source/FreeRTOS_IPv6.c \
+                        ./source/FreeRTOS_IPv6_Sockets.c \
+                        ./source/FreeRTOS_IPv6_Utils.c \
+                        ./source/FreeRTOS_ND.c \
+                        ./source/FreeRTOS_RA.c \
+                        ./source/FreeRTOS_Routing.c \
+                        ./source/FreeRTOS_Sockets.c \
+                        ./source/FreeRTOS_Stream_Buffer.c \
+                        ./source/FreeRTOS_TCP_IP.c \
+                        ./source/FreeRTOS_TCP_IP_IPV4.c \
+                        ./source/FreeRTOS_TCP_IP_IPV6.c \
+                        ./source/FreeRTOS_TCP_Reception.c \
+                        ./source/FreeRTOS_TCP_State_Handling.c \
+                        ./source/FreeRTOS_TCP_State_Handling_IPV4.c       \
+                        ./source/FreeRTOS_TCP_State_Handling_IPV6.c \
+                        ./source/FreeRTOS_TCP_Transmission.c \
+                        ./source/FreeRTOS_TCP_Transmission_IPV4.c \
+                        ./source/FreeRTOS_TCP_Transmission_IPV6.c \
+                        ./source/FreeRTOS_TCP_Utils.c \
+                        ./source/FreeRTOS_TCP_Utils_IPV4.c \
+                        ./source/FreeRTOS_TCP_Utils_IPV6.c \
+                        ./source/FreeRTOS_TCP_WIN.c \
+                        ./source/FreeRTOS_Tiny_TCP.c \
+                        ./source/FreeRTOS_UDP_IP.c \
+                        ./source/FreeRTOS_UDP_IPv4.c \
+                        ./source/FreeRTOS_UDP_IPv6.c \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -2338,7 +2366,17 @@ PREDEFINED             = DOXYGEN=1 \
                          ipconfigDNS_USE_CALLBACKS=1 \
                          ipconfigSUPPORT_SELECT_FUNCTION=1 \
                          ipconfigUSE_TCP=1 \
-                         ipconfigUSE_TCP_WIN=1
+                         ipconfigUSE_TCP_WIN=1 \
+                         ipconfigUSE_IPv4=1 \
+                         ipconfigUSE_IPv6=1 \
+                         ipconfigUSE_DHCPv6=1 \
+                         ipconfigUSE_DNS_CACHE=1 \
+                         ipconfigREPLY_TO_INCOMING_PINGS=1 \
+                         ipconfigSUPPORT_OUTGOING_PINGS=1 \
+                         ipconfigUSE_RA=1
+
+
+
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

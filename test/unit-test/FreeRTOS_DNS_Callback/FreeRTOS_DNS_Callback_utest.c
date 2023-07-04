@@ -60,7 +60,7 @@
 
 typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                 void * /* pvSearchID */,
-                                uint32_t /* ulIPAddress */ );
+                                struct freertos_addrinfo * /* pxAddressInfo */ );
 
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
@@ -104,7 +104,16 @@ void tearDown( void )
 void test_xDNSDoCallback_success_not_equal_identifier( void )
 {
     BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
+    DNSMessage_t xDNSMessageHeader;
 
+    pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
+    pxSet.pxDNSMessageHeader->usIdentifier = 123;
+    char pc_name[] = "test";
+    strcpy( pxSet.pcName, pc_name );
+
+    listGET_LIST_ITEM_OWNER_IgnoreAndReturn( ( DNSCallback_t * ) 1234 );
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 ); /* xEnd */
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
@@ -114,7 +123,7 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
-    ret = xDNSDoCallback( 123, "test", 123456 );
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
     TEST_ASSERT_EQUAL( pdFALSE, ret );
 }
 
@@ -124,23 +133,31 @@ void test_xDNSDoCallback_success_not_equal_identifier( void )
 void test_xDNSDoCallback_success_equal_identifier( void )
 {
     BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
+    DNSMessage_t xDNSMessageHeader;
+
+    pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
+    pxSet.pxDNSMessageHeader->usIdentifier = 123;
+    char pc_name[] = "test";
+    strcpy( pxSet.pcName, pc_name );
 
     dnsCallback.pCallbackFunction = dns_callback;
 
-
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
+
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
-    listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     vPortFree_ExpectAnyArgs();
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
-    ret = xDNSDoCallback( 123, "test", 123456 );
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
     TEST_ASSERT_EQUAL( pdTRUE, ret );
     TEST_ASSERT_EQUAL( 1, callback_called );
 }
@@ -151,17 +168,23 @@ void test_xDNSDoCallback_success_equal_identifier( void )
 void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 {
     BaseType_t ret;
+    ParseSet_t pxSet;
+    struct freertos_addrinfo pxAddress;
+    DNSMessage_t xDNSMessageHeader;
 
+    pxSet.pxDNSMessageHeader = &xDNSMessageHeader;
+    pxSet.pxDNSMessageHeader->usIdentifier = 123;
+    char pc_name[] = "test";
+    strcpy( pxSet.pcName, pc_name );
     dnsCallback.pCallbackFunction = dns_callback;
-
 
     /* Expectations */
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 4 );
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
 
-    listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_LIST_ITEM_VALUE_ExpectAnyArgsAndReturn( 123 );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     vPortFree_ExpectAnyArgs();
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
@@ -170,7 +193,7 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     /* API Call */
-    ret = xDNSDoCallback( 123, "test", 123456 );
+    ret = xDNSDoCallback( &pxSet, &pxAddress );
 
     /* Validations */
     TEST_ASSERT_EQUAL( pdTRUE, ret );
@@ -195,7 +218,7 @@ void test_vDNSSetCallback_success( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123 );
+    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
     TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
@@ -224,7 +247,7 @@ void test_vDNSSetCallback_success_empty_list( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123 );
+    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
     TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
@@ -244,7 +267,7 @@ void test_vDNSSetCallback_malloc_failed( void )
     pvPortMalloc_ExpectAnyArgsAndReturn( NULL );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123 );
+    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 }
 
 
@@ -258,6 +281,7 @@ void test_vDNSCheckCallback_success_search_id_not_null( void )
     dnsCallback.pvSearchID = pvSearchID;
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
@@ -265,6 +289,7 @@ void test_vDNSCheckCallback_success_search_id_not_null( void )
     uxListRemove_ExpectAnyArgsAndReturn( pdFALSE );
     vPortFree_ExpectAnyArgs();
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
@@ -284,6 +309,7 @@ void test_vDNSCheckCallback_success_search_id_not_null_list_empty( void )
     dnsCallback.pvSearchID = pvSearchID;
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
@@ -291,6 +317,7 @@ void test_vDNSCheckCallback_success_search_id_not_null_list_empty( void )
     uxListRemove_ExpectAnyArgsAndReturn( pdFALSE );
     vPortFree_ExpectAnyArgs();
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
 
     /* API Call */
@@ -309,6 +336,7 @@ void test_vDNSCheckCallback_success_search_id_null( void )
     dnsCallback.pvSearchID = pvSearchID;
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
@@ -318,6 +346,7 @@ void test_vDNSCheckCallback_success_search_id_null( void )
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
     /* API Call */
@@ -326,18 +355,20 @@ void test_vDNSCheckCallback_success_search_id_null( void )
     /* Validations */
 }
 
-
 /**
  * @brief search id null
  */
 void test_vDNSCheckCallback_success_search_id_null_timeout( void )
 {
+    List_t xTempList;
     void * pvSearchID = ( void * ) 456;
 
     dnsCallback.pvSearchID = pvSearchID;
+    dnsCallback.xIsIPv6 = 0;
     dnsCallback.pCallbackFunction = dns_callback;
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
@@ -345,9 +376,62 @@ void test_vDNSCheckCallback_success_search_id_null_timeout( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
-    vPortFree_ExpectAnyArgs();
+    vListInsertEnd_ExpectAnyArgs();
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    vPortFree_ExpectAnyArgs();
+
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
+
+    /* API Call */
+    vDNSCheckCallBack( NULL );
+
+    /* Validations */
+    TEST_ASSERT_EQUAL( 1, callback_called );
+}
+
+/**
+ * @brief search id null same as the above function but calling IPv6
+ *        sub-branch
+ */
+void test_vDNSCheckCallback_success_search_id_null_timeout_IPv6( void )
+{
+    List_t xTempList;
+    void * pvSearchID = ( void * ) 456;
+
+    dnsCallback.pvSearchID = pvSearchID;
+    dnsCallback.xIsIPv6 = 1;
+    dnsCallback.pCallbackFunction = dns_callback;
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vListInitialise_ExpectAnyArgs();
+    vTaskSuspendAll_Expect();
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
+
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    vListInsertEnd_ExpectAnyArgs();
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    vPortFree_ExpectAnyArgs();
+
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     vIPSetDNSTimerEnableState_ExpectAnyArgs();
 
@@ -368,9 +452,11 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2( void )
     void * pvSearchID2 = ( void * ) 457;
 
     dnsCallback.pvSearchID = pvSearchID2;
+    dnsCallback.xIsIPv6 = 0;
     dnsCallback.pCallbackFunction = dns_callback;
 
     listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vListInitialise_ExpectAnyArgs();
     vTaskSuspendAll_Expect();
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
@@ -378,9 +464,62 @@ void test_vDNSCheckCallback_success_search_id_null_timeout2( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
-    vPortFree_ExpectAnyArgs();
+    vListInsertEnd_ExpectAnyArgs();
 
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    vPortFree_ExpectAnyArgs();
+
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
+    vIPSetDNSTimerEnableState_ExpectAnyArgs();
+
+    /* API Call */
+    vDNSCheckCallBack( pvSearchID );
+
+    /* Validations */
+    TEST_ASSERT_EQUAL( 1, callback_called );
+}
+
+/**
+ * @brief search id null same as the above function but calling IPv6
+ *        sub-branch
+ */
+void test_vDNSCheckCallback_success_search_id_null_timeout2_IPv6( void )
+{
+    void * pvSearchID = ( void * ) 456;
+    void * pvSearchID2 = ( void * ) 457;
+
+    dnsCallback.pvSearchID = pvSearchID2;
+    dnsCallback.xIsIPv6 = 1;
+    dnsCallback.pCallbackFunction = dns_callback;
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 );
+    vListInitialise_ExpectAnyArgs();
+    vTaskSuspendAll_Expect();
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 8 ); /* end marker */
+
+    xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    vListInsertEnd_ExpectAnyArgs();
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+    listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
+
+    listGET_END_MARKER_ExpectAnyArgsAndReturn( NULL );
+    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) 16 );
+    listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &dnsCallback );
+    listGET_NEXT_ExpectAnyArgsAndReturn( NULL ); /* end marker */
+    uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
+    vPortFree_ExpectAnyArgs();
+
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
     vIPSetDNSTimerEnableState_ExpectAnyArgs();
 

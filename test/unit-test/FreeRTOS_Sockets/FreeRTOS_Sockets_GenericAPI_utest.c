@@ -46,13 +46,11 @@
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_ARP.h"
 #include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
-#include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_IPv4_Sockets.h"
+#include "mock_FreeRTOS_IPv6_Sockets.h"
+#include "mock_FreeRTOS_Sockets.h"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -61,170 +59,17 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* =========================== EXTERN VARIABLES =========================== */
+
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
-BaseType_t prvValidSocket( const FreeRTOS_Socket_t * pxSocket,
-                           BaseType_t xProtocol,
-                           BaseType_t xIsBound );
+/* 2001::1 */
+static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
 
-uint8_t ucASCIIToHex( char cChar );
+/* ============================== Test Cases ============================== */
 
-BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket );
-
-static uint32_t xRandomNumberToReturn;
-static BaseType_t xRNGStatus;
-static UBaseType_t uxGlobalCallbackCount;
-static BaseType_t xLocalReceiveCallback_Return;
-static uint8_t xLocalReceiveCallback_Called = 0;
-
-static FreeRTOS_Socket_t xGlobalSocket;
-
-static void vUserCallbackLocal( FreeRTOS_Socket_t * xSocket )
-{
-    uxGlobalCallbackCount++;
-}
-
-static BaseType_t xStubApplicationGetRandomNumber( uint32_t * xRndNumber,
-                                                   int count )
-{
-    ( void ) count;
-    *xRndNumber = xRandomNumberToReturn;
-    return xRNGStatus;
-}
-
-static void vpxListFindListItemWithValue_NotFound( void )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
-}
-
-static void vpxListFindListItemWithValue_Found( const List_t * pxList,
-                                                TickType_t xWantedItemValue,
-                                                const ListItem_t * pxReturn )
-{
-    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
-
-    listGET_NEXT_ExpectAndReturn( &( pxList->xListEnd ), pxReturn );
-
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
-}
-
-static BaseType_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
-                                              const EventBits_t uxBitsToWaitFor,
-                                              const BaseType_t xClearOnExit,
-                                              const BaseType_t xWaitForAllBits,
-                                              TickType_t xTicksToWait,
-                                              int CallbackCount )
-{
-    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
-}
-
-static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
-                                         void * pvData,
-                                         size_t xLength )
-{
-    xLocalReceiveCallback_Called++;
-    return xLocalReceiveCallback_Return;
-}
-
-
-/*
- * @brief Test for FreeRTOS_inet_pton4 function.
- */
-void test_FreeRTOS_inet_pton4( void )
-{
-    char * pucValidString1 = "192.68.1.1";
-    uint32_t ulValidResponse1 = 0x010144C0;
-    char * pucValidString2 = "192.0.1.1";
-    uint32_t ulValidResponse2 = 0x010100C0;
-    char * pucValidString3 = "192.68.1.0";
-    uint32_t ulValidResponse3 = 0x000144C0;
-    char * pucValidString4 = "0.0.0.0";
-    uint32_t ulValidResponse4 = 0x00000000;
-    char * pucValidString5 = "0.68.1.1";
-    uint32_t ulValidResponse5 = 0x01014400;
-
-    char * pucInvalidString1 = "0192.68.1.1";
-    char * pucInvalidString2 = "192.68.00.1";
-    char * pucInvalidString3 = "192.00.1.1";
-    char * pucInvalidString4 = "freertos.com";
-    char * pucInvalidString5 = "192.freertos.com";
-    char * pucInvalidString6 = "\0";
-    char * pucInvalidString7 = "1234.68.1.1";
-    char * pucInvalidString8 = "123.68.0a.1";
-    uint32_t ulInValidResponse = 0x00;
-
-    BaseType_t xResult;
-    uint32_t ulIPAddress;
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucValidString1, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse1, ulIPAddress, "Could not convert string 1 correctly." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucValidString2, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse2, ulIPAddress, "Could not convert string 2 correctly." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucValidString3, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse3, ulIPAddress, "Could not convert string 3 correctly." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucValidString4, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse4, ulIPAddress, "Could not convert string 4 correctly." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucValidString5, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse5, ulIPAddress, "Could not convert string 5 correctly." );
-
-    /* Invalid test cases. */
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString1, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 1." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString2, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 2." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString3, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 3." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString4, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 4." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString5, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 5." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString6, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 6." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString7, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 7." );
-
-    ulIPAddress = 0xABABABAB;
-    xResult = FreeRTOS_inet_pton4( pucInvalidString8, &ulIPAddress );
-    TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 8." );
-}
-
-/*
+/**
  * @brief Creation of socket when socket size determination fails as IP task is not ready.
  */
 void test_FreeRTOS_socket_SockSizeFailure( void )
@@ -240,7 +85,7 @@ void test_FreeRTOS_socket_SockSizeFailure( void )
     TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, xSocket );
 }
 
-/*
+/**
  * @brief Creation of socket when socket size determination fails as IP task is not ready.
  */
 void test_FreeRTOS_socket_SockSizeFailure_SockDependent( void )
@@ -257,7 +102,7 @@ void test_FreeRTOS_socket_SockSizeFailure_SockDependent( void )
     TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, xSocket );
 }
 
-/*
+/**
  * @brief Creation of socket when no memory could be allocated.
  */
 void test_FreeRTOS_socket_NoMemory( void )
@@ -278,7 +123,7 @@ void test_FreeRTOS_socket_NoMemory( void )
     TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, xSocket );
 }
 
-/*
+/**
  * @brief Creation of socket when event group creation fails.
  */
 void test_FreeRTOS_socket_EventGroupCreationFailed( void )
@@ -304,7 +149,7 @@ void test_FreeRTOS_socket_EventGroupCreationFailed( void )
     TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, xSocket );
 }
 
-/*
+/**
  * @brief Creation of socket when the protocol is TCP.
  */
 void test_FreeRTOS_socket_TCPSocket_ProtocolDependent( void )
@@ -324,15 +169,16 @@ void test_FreeRTOS_socket_TCPSocket_ProtocolDependent( void )
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
 
-    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+    xEventGroupCreate_ExpectAndReturn( ( EventGroupHandle_t ) xEventGroup );
+
+    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
 
     vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
 
     listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
 
-    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -349,7 +195,7 @@ void test_FreeRTOS_socket_TCPSocket_ProtocolDependent( void )
     TEST_ASSERT_EQUAL( 0x3456, pxSocket->u.xTCP.uxTxWinSize );
 }
 
-/*
+/**
  * @brief Creation of socket when the protocol is TCP.
  */
 void test_FreeRTOS_socket_TCPSocket( void )
@@ -369,15 +215,15 @@ void test_FreeRTOS_socket_TCPSocket( void )
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
 
-    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+    xEventGroupCreate_ExpectAndReturn( ( EventGroupHandle_t ) xEventGroup );
+
+    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
 
     vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
 
     listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
-
-    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
-    FreeRTOS_max_uint32_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
 
     xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
 
@@ -394,7 +240,7 @@ void test_FreeRTOS_socket_TCPSocket( void )
     TEST_ASSERT_EQUAL( 0x3456, pxSocket->u.xTCP.uxTxWinSize );
 }
 
-/*
+/**
  * @brief Creation of socket when the protocol is UDP.
  */
 void test_FreeRTOS_socket_UDPSocket( void )
@@ -414,7 +260,7 @@ void test_FreeRTOS_socket_UDPSocket( void )
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ), ( void * ) ucSocket );
 
-    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+    xEventGroupCreate_ExpectAndReturn( ( EventGroupHandle_t ) xEventGroup );
 
     vListInitialise_Expect( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
 
@@ -433,7 +279,7 @@ void test_FreeRTOS_socket_UDPSocket( void )
     TEST_ASSERT_EQUAL( xSocket->u.xUDP.uxMaxPackets, ( UBaseType_t ) ipconfigUDP_MAX_RX_PACKETS );
 }
 
-/*
+/**
  * @brief Creation of socket when the protocol is UDP.
  */
 void test_FreeRTOS_socket_UDPSocket_ProtocolDependent( void )
@@ -453,7 +299,7 @@ void test_FreeRTOS_socket_UDPSocket_ProtocolDependent( void )
 
     pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ), ( void * ) ucSocket );
 
-    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+    xEventGroupCreate_ExpectAndReturn( ( EventGroupHandle_t ) xEventGroup );
 
     vListInitialise_Expect( &( pxSocket->u.xUDP.xWaitingPacketsList ) );
 
@@ -472,7 +318,62 @@ void test_FreeRTOS_socket_UDPSocket_ProtocolDependent( void )
     TEST_ASSERT_EQUAL( xSocket->u.xUDP.uxMaxPackets, ( UBaseType_t ) ipconfigUDP_MAX_RX_PACKETS );
 }
 
-/*
+/**
+ * @brief Assertion when unknown domain comes.
+ */
+void test_FreeRTOS_socket_unknownDomain( void )
+{
+    BaseType_t xDomain = FREERTOS_AF_INET + 1, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_SOCK_DEPENDENT_PROTO;
+
+    catch_assert( FreeRTOS_socket( xDomain, xType, xProtocol ) );
+}
+
+/**
+ * @brief Creation of socket when the protocol is TCPv6.
+ */
+void test_FreeRTOS_socket_TCPv6Socket( void )
+{
+    Socket_t xSocket;
+    FreeRTOS_Socket_t * pxSocket;
+    BaseType_t xDomain = FREERTOS_AF_INET6, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    uint8_t ucSocket[ ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ) ];
+    uint8_t xEventGroup[ sizeof( uintptr_t ) ];
+
+    pxSocket = ( FreeRTOS_Socket_t * ) ucSocket;
+
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundUDPSocketsList, pdTRUE );
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    pvPortMalloc_ExpectAndReturn( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), ( void * ) ucSocket );
+
+    xEventGroupCreate_ExpectAndReturn( ( EventGroupHandle_t ) xEventGroup );
+
+    FreeRTOS_round_up_ExpectAndReturn( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS, 0xAABB );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( ipconfigTCP_RX_BUFFER_LENGTH / 2U ) / ipconfigTCP_MSS, 0x1234 );
+    FreeRTOS_max_size_t_ExpectAndReturn( 1U, ( uint32_t ) ( 0xAABB / 2U ) / ipconfigTCP_MSS, 0x3456 );
+
+    vListInitialiseItem_Expect( &( pxSocket->xBoundSocketListItem ) );
+
+    listSET_LIST_ITEM_OWNER_Expect( &( pxSocket->xBoundSocketListItem ), pxSocket );
+
+    xSocket = FreeRTOS_socket( xDomain, xType, xProtocol );
+
+    TEST_ASSERT_EQUAL( ucSocket, xSocket );
+    TEST_ASSERT_EQUAL( xSocket->xEventGroup, xEventGroup );
+    TEST_ASSERT_EQUAL( xSocket->xReceiveBlockTime, ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->xSendBlockTime, ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME );
+    TEST_ASSERT_EQUAL( xSocket->ucSocketOptions, ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
+    TEST_ASSERT_EQUAL( xSocket->ucProtocol, ( uint8_t ) xProtocol );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.usMSS, ( uint16_t ) ipconfigTCP_MSS - ( ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER ) );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.uxRxStreamSize, ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH );
+    TEST_ASSERT_EQUAL( xSocket->u.xTCP.uxTxStreamSize, 0xAABB );
+    TEST_ASSERT_EQUAL( 0x1234, pxSocket->u.xTCP.uxRxWinSize );
+    TEST_ASSERT_EQUAL( 0x3456, pxSocket->u.xTCP.uxTxWinSize );
+}
+
+/**
  * @brief Creation of socket-set when there is no memory.
  */
 void test_FreeRTOS_CreateSocketSet_NoMemory( void )
@@ -486,7 +387,7 @@ void test_FreeRTOS_CreateSocketSet_NoMemory( void )
     TEST_ASSERT_EQUAL( NULL, pxSocketSet );
 }
 
-/*
+/**
  * @brief Creation of socket-set when event group creation fails.
  */
 void test_FreeRTOS_CreateSocketSet_EventGroupCreationFails( void )
@@ -505,7 +406,7 @@ void test_FreeRTOS_CreateSocketSet_EventGroupCreationFails( void )
     TEST_ASSERT_EQUAL( NULL, pxSocketSet );
 }
 
-/*
+/**
  * @brief Creation of socket-set happy path.
  */
 void test_FreeRTOS_CreateSocketSet_HappyPath( void )
@@ -516,7 +417,7 @@ void test_FreeRTOS_CreateSocketSet_HappyPath( void )
 
     pvPortMalloc_ExpectAndReturn( sizeof( *pxSocketSet ), ucSocketSet );
 
-    xEventGroupCreate_ExpectAndReturn( xEventGroup );
+    xEventGroupCreate_ExpectAndReturn( ( EventGroupHandle_t ) xEventGroup );
 
     pxSocketSet = FreeRTOS_CreateSocketSet();
 
@@ -524,7 +425,7 @@ void test_FreeRTOS_CreateSocketSet_HappyPath( void )
     TEST_ASSERT_EQUAL( xEventGroup, pxSocketSet->xSelectGroup );
 }
 
-/*
+/**
  * @brief Deletion of socket-set happy path.
  */
 void test_FreeRTOS_DeleteSocketSet_happyPath( void )
@@ -537,7 +438,7 @@ void test_FreeRTOS_DeleteSocketSet_happyPath( void )
     FreeRTOS_DeleteSocketSet( xSocketSet );
 }
 
-/*
+/**
  * @brief Deletion of socket-set when sending of event to IP task fails.
  */
 void test_FreeRTOS_DeleteSocketSet_SendingFailed( void )
@@ -550,7 +451,7 @@ void test_FreeRTOS_DeleteSocketSet_SendingFailed( void )
     FreeRTOS_DeleteSocketSet( xSocketSet );
 }
 
-/*
+/**
  * @brief Assertion when socket is NULL.
  */
 void test_FreeRTOS_FD_SET_CatchAssert1( void )
@@ -562,28 +463,28 @@ void test_FreeRTOS_FD_SET_CatchAssert1( void )
     catch_assert( FreeRTOS_FD_SET( xSocket, xSocketSet, xBitsToSet ) );
 }
 
-/*
+/**
  * @brief Assertion when socket-set is NULL.
  */
 void test_FreeRTOS_FD_SET_CatchAssert2( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xSocket = ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     SocketSet_t xSocketSet = NULL;
     EventBits_t xBitsToSet;
 
     catch_assert( FreeRTOS_FD_SET( xSocket, xSocketSet, xBitsToSet ) );
 }
 
-/*
+/**
  * @brief Test when no-bits are to be set.
  */
 void test_FreeRTOS_FD_SET_NoBitsToSet( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    Socket_t xSocket = ucSocket;
-    SocketSet_t xSocketSet = ucSocketSet;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     EventBits_t xBitsToSet = 0;
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -594,15 +495,15 @@ void test_FreeRTOS_FD_SET_NoBitsToSet( void )
     TEST_ASSERT_EQUAL( 0, xSocket->xSelectBits );
 }
 
-/*
+/**
  * @brief Test for when all bits are to be set.
  */
 void test_FreeRTOS_FD_SET_AllBitsToSet( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    Socket_t xSocket = ucSocket;
-    SocketSet_t xSocketSet = ucSocketSet;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     EventBits_t xBitsToSet = eSELECT_ALL;
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -617,7 +518,7 @@ void test_FreeRTOS_FD_SET_AllBitsToSet( void )
     TEST_ASSERT_EQUAL( ucSocketSet, xSocket->pxSocketSet );
 }
 
-/*
+/**
  * @brief Assertion when socket is NULL.
  */
 void test_FreeRTOS_FD_CLR_CatchAssert1( void )
@@ -629,28 +530,28 @@ void test_FreeRTOS_FD_CLR_CatchAssert1( void )
     catch_assert( FreeRTOS_FD_CLR( xSocket, xSocketSet, xBitsToClear ) );
 }
 
-/*
+/**
  * @brief Assertion when socket-set is NULL.
  */
 void test_FreeRTOS_FD_CLR_CatchAssert2( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xSocket = ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     SocketSet_t xSocketSet = NULL;
     EventBits_t xBitsToClear;
 
     catch_assert( FreeRTOS_FD_CLR( xSocket, xSocketSet, xBitsToClear ) );
 }
 
-/*
+/**
  * @brief No bits to be cleared.
  */
 void test_FreeRTOS_FD_CLR_NoBitsToClear( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    Socket_t xSocket = ucSocket;
-    SocketSet_t xSocketSet = ucSocketSet;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     EventBits_t xBitsToClear = 0;
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -664,15 +565,15 @@ void test_FreeRTOS_FD_CLR_NoBitsToClear( void )
     TEST_ASSERT_EQUAL( 0, xSocket->xSelectBits );
 }
 
-/*
+/**
  * @brief All bits to be cleared.
  */
 void test_FreeRTOS_FD_CLR_AllBitsToClear( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    Socket_t xSocket = ucSocket;
-    SocketSet_t xSocketSet = ucSocketSet;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     EventBits_t xBitsToClear = 0;
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -686,7 +587,7 @@ void test_FreeRTOS_FD_CLR_AllBitsToClear( void )
     TEST_ASSERT_EQUAL( eSELECT_ALL, xSocket->xSelectBits );
 }
 
-/*
+/**
  * @brief Assertion when socket is NULL.
  */
 void test_FreeRTOS_FD_ISSET_CatchAssert1( void )
@@ -698,28 +599,28 @@ void test_FreeRTOS_FD_ISSET_CatchAssert1( void )
     catch_assert( FreeRTOS_FD_ISSET( xSocket, xSocketSet ) );
 }
 
-/*
+/**
  * @brief Assertion when socket-set is NULL.
  */
 void test_FreeRTOS_FD_ISSET_CatchAssert2( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
-    Socket_t xSocket = ucSocket;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
     SocketSet_t xSocketSet = NULL;
 
     /* Assertion that the socket set must be non-NULL. */
     catch_assert( FreeRTOS_FD_ISSET( xSocket, xSocketSet ) );
 }
 
-/*
+/**
  * @brief Test for when the socket set is different.
  */
 void test_FreeRTOS_FD_ISSET_SocketSetDifferent( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    Socket_t xSocket = ucSocket;
-    SocketSet_t xSocketSet = ucSocketSet;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     EventBits_t xReturn;
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -730,15 +631,15 @@ void test_FreeRTOS_FD_ISSET_SocketSetDifferent( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Happy path.
  */
 void test_FreeRTOS_FD_ISSET_SocketSetSame( void )
 {
     uint8_t ucSocket[ sizeof( FreeRTOS_Socket_t ) ];
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    Socket_t xSocket = ucSocket;
-    SocketSet_t xSocketSet = ucSocketSet;
+    Socket_t xSocket = ( Socket_t ) ucSocket;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     EventBits_t xReturn;
 
     memset( ucSocket, 0, sizeof( FreeRTOS_Socket_t ) );
@@ -753,7 +654,7 @@ void test_FreeRTOS_FD_ISSET_SocketSetSame( void )
     TEST_ASSERT_EQUAL( 0x12 & eSELECT_ALL, xReturn );
 }
 
-/*
+/**
  * @brief Assertion when socket-set is NULL.
  */
 void test_FreeRTOS_select_CatchAssert( void )
@@ -766,14 +667,14 @@ void test_FreeRTOS_select_CatchAssert( void )
     catch_assert( FreeRTOS_select( xSocketSet, xBlockTimeTicks ) );
 }
 
-/*
+/**
  * @brief Test case when bits matched.
  */
 void test_FreeRTOS_select_BitsMatched( void )
 {
     BaseType_t xReturn;
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    SocketSet_t xSocketSet = ucSocketSet;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     TickType_t xBlockTimeTicks = 0xAB12;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
@@ -791,14 +692,14 @@ void test_FreeRTOS_select_BitsMatched( void )
     TEST_ASSERT_EQUAL( 0x123, xReturn );
 }
 
-/*
+/**
  * @brief Call to select timed out.
  */
 void test_FreeRTOS_select_Timeout( void )
 {
     BaseType_t xReturn;
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    SocketSet_t xSocketSet = ucSocketSet;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     TickType_t xBlockTimeTicks = 0xAB12;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
@@ -818,14 +719,14 @@ void test_FreeRTOS_select_Timeout( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Call to select timed out second time.
  */
 void test_FreeRTOS_select_TimeoutSecondTime( void )
 {
     BaseType_t xReturn;
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    SocketSet_t xSocketSet = ucSocketSet;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     TickType_t xBlockTimeTicks = 0xAB12;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
@@ -855,14 +756,14 @@ void test_FreeRTOS_select_TimeoutSecondTime( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Found the bits for which the select function was waiting.
  */
 void test_FreeRTOS_select_FoundWaitBits( void )
 {
     BaseType_t xReturn;
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
-    SocketSet_t xSocketSet = ucSocketSet;
+    SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     TickType_t xBlockTimeTicks = 0xAB12;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
@@ -876,7 +777,7 @@ void test_FreeRTOS_select_FoundWaitBits( void )
     TEST_ASSERT_EQUAL( eSELECT_INTR, xReturn );
 }
 
-/*
+/**
  * @brief Bind cannot be call from IP task.
  */
 void test_FreeRTOS_bind_catchAssert( void )
@@ -891,7 +792,7 @@ void test_FreeRTOS_bind_catchAssert( void )
     catch_assert( FreeRTOS_bind( xSocket, &xAddress, xAddressLength ) );
 }
 
-/*
+/**
  * @brief Binding a NULL socket.
  */
 void test_FreeRTOS_bind_SocketIsNULL( void )
@@ -908,7 +809,7 @@ void test_FreeRTOS_bind_SocketIsNULL( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Binding invalid socket.
  */
 void test_FreeRTOS_bind_SocketIsInvalid( void )
@@ -925,7 +826,7 @@ void test_FreeRTOS_bind_SocketIsInvalid( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Binding already bound socket.
  */
 void test_FreeRTOS_bind_SocketIsAlreadyBound( void )
@@ -944,7 +845,7 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Binding event to IP task cannot be sent.
  */
 void test_FreeRTOS_bind_SendToIPTaskFailed( void )
@@ -966,7 +867,7 @@ void test_FreeRTOS_bind_SendToIPTaskFailed( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ECANCELED, xReturn );
 }
 
-/*
+/**
  * @brief IP task did not bind the socket.
  */
 void test_FreeRTOS_bind_IPTaskDidNotBindTheSocket( void )
@@ -992,7 +893,7 @@ void test_FreeRTOS_bind_IPTaskDidNotBindTheSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief IP task bound to socket to a NULL address.
  */
 void test_FreeRTOS_bind_NonNullAddress( void )
@@ -1018,7 +919,77 @@ void test_FreeRTOS_bind_NonNullAddress( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
+ * @brief IPv4 socket did not bind the socket.
+ */
+void test_FreeRTOS_bind_IPTaskDidNotBindTheSocketIPv4Address( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+    uint32_t ulExpectIPAddress = 0xC0A80101; /* 192.168.1.1 */
+    uint16_t usExpectPort = 0x1234;
+
+    xAddress.sin_family = FREERTOS_AF_INET4;
+    xAddress.sin_address.ulIP_IPv4 = FreeRTOS_htonl( ulExpectIPAddress );
+    xAddress.sin_port = FreeRTOS_htons( usExpectPort );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xSendEventStructToIPTask_ExpectAndReturn( NULL, portMAX_DELAY, pdPASS );
+    xSendEventStructToIPTask_IgnoreArg_pxEvent();
+
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, ( EventBits_t ) eSOCKET_BOUND, pdTRUE, pdFALSE, portMAX_DELAY, pdPASS );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    TEST_ASSERT_EQUAL( pdFALSE, xSocket.bits.bIsIPv6 );
+    TEST_ASSERT_EQUAL( ulExpectIPAddress, xSocket.xLocalAddress.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( usExpectPort, xSocket.usLocalPort );
+}
+
+/**
+ * @brief IPv6 socket did not bind the socket.
+ */
+void test_FreeRTOS_bind_IPTaskDidNotBindTheSocketIPv6Address( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+    IPv6_Address_t xExpectIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } }; /* 2001::1 */
+    uint16_t usExpectPort = 0x1234;
+
+    xAddress.sin_family = FREERTOS_AF_INET6;
+    memcpy( xAddress.sin_address.xIP_IPv6.ucBytes, xExpectIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xAddress.sin_port = FreeRTOS_htons( usExpectPort );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xSendEventStructToIPTask_ExpectAndReturn( NULL, portMAX_DELAY, pdPASS );
+    xSendEventStructToIPTask_IgnoreArg_pxEvent();
+
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, ( EventBits_t ) eSOCKET_BOUND, pdTRUE, pdFALSE, portMAX_DELAY, pdPASS );
+
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+
+    xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    TEST_ASSERT_EQUAL( pdTRUE, xSocket.bits.bIsIPv6 );
+    TEST_ASSERT_EQUAL_MEMORY( xExpectIPv6Address.ucBytes, xSocket.xLocalAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( usExpectPort, xSocket.usLocalPort );
+}
+
+/**
  * @brief Trying to close a NULL socket.
  */
 void test_FreeRTOS_closesocket_NULLSocket( void )
@@ -1031,7 +1002,7 @@ void test_FreeRTOS_closesocket_NULLSocket( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Trying to close an invalid socket.
  */
 void test_FreeRTOS_closesocket_InvalidSocket( void )
@@ -1044,7 +1015,7 @@ void test_FreeRTOS_closesocket_InvalidSocket( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Sending event to IP task failed.
  */
 void test_FreeRTOS_closesocket_TCPSocketSendFail( void )
@@ -1067,7 +1038,7 @@ void test_FreeRTOS_closesocket_TCPSocketSendFail( void )
     TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxHandleSent );
 }
 
-/*
+/**
  * @brief Closing socket successful.
  */
 void test_FreeRTOS_closesocket_TCPSocketSendPass( void )
@@ -1090,7 +1061,7 @@ void test_FreeRTOS_closesocket_TCPSocketSendPass( void )
     TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxHandleSent );
 }
 
-/*
+/**
  * @brief UDP socket closing failed as sending event to IP task failed.
  */
 void test_FreeRTOS_closesocket_UDPSocketSendFail( void )
@@ -1112,7 +1083,7 @@ void test_FreeRTOS_closesocket_UDPSocketSendFail( void )
     TEST_ASSERT_EQUAL( NULL, xSocket.u.xUDP.pxHandleSent );
 }
 
-/*
+/**
  * @brief Closing UDP socket successful.
  */
 void test_FreeRTOS_closesocket_UDPSocketSendPass( void )
@@ -1134,7 +1105,7 @@ void test_FreeRTOS_closesocket_UDPSocketSendPass( void )
     TEST_ASSERT_EQUAL( NULL, xSocket.u.xUDP.pxHandleSent );
 }
 
-/*
+/**
  * @brief Closing socket with unknown protocol.
  */
 void test_FreeRTOS_closesocket_UnknownProtocol( void )
@@ -1152,7 +1123,7 @@ void test_FreeRTOS_closesocket_UnknownProtocol( void )
     TEST_ASSERT_EQUAL( 1, xReturn );
 }
 
-/*
+/**
  * @brief Setting option of a NULL socket.
  */
 void test_FreeRTOS_setsockopt_NULLSocket( void )
@@ -1168,7 +1139,7 @@ void test_FreeRTOS_setsockopt_NULLSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Setting option of an invalid socket.
  */
 void test_FreeRTOS_setsockopt_InvalidSocket( void )
@@ -1184,7 +1155,7 @@ void test_FreeRTOS_setsockopt_InvalidSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief
  */
 void test_FreeRTOS_setsockopt_RecvTimeOut( void )
@@ -1203,7 +1174,7 @@ void test_FreeRTOS_setsockopt_RecvTimeOut( void )
     TEST_ASSERT_EQUAL( vOptionValue, xSocket.xReceiveBlockTime );
 }
 
-/*
+/**
  * @brief Setting timeout option.
  */
 void test_FreeRTOS_setsockopt_SendTimeOut( void )
@@ -1223,7 +1194,7 @@ void test_FreeRTOS_setsockopt_SendTimeOut( void )
     TEST_ASSERT_EQUAL( vOptionValue, xSocket.xSendBlockTime );
 }
 
-/*
+/**
  * @brief Setting send timeout option for UDP socket.
  */
 void test_FreeRTOS_setsockopt_SendTimeOutUDP( void )
@@ -1245,7 +1216,7 @@ void test_FreeRTOS_setsockopt_SendTimeOutUDP( void )
     TEST_ASSERT_EQUAL( vOptionValue, xSocket.xSendBlockTime );
 }
 
-/*
+/**
  * @brief Setting send timeout option for UDP socket, timeout is more than maximum allowed value.
  */
 void test_FreeRTOS_setsockopt_SendTimeOutUDPMoreBockingTime( void )
@@ -1267,7 +1238,7 @@ void test_FreeRTOS_setsockopt_SendTimeOutUDPMoreBockingTime( void )
     TEST_ASSERT_EQUAL( ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS, xSocket.xSendBlockTime );
 }
 
-/*
+/**
  * @brief Setting maximum waiting packet limit in UDP socket.
  */
 void test_FreeRTOS_setsockopt_UDPMaxRxPackets( void )
@@ -1289,7 +1260,7 @@ void test_FreeRTOS_setsockopt_UDPMaxRxPackets( void )
     TEST_ASSERT_EQUAL( 100, xSocket.u.xUDP.uxMaxPackets );
 }
 
-/*
+/**
  * @brief Setting maximum waiting packet limit in non-UDP socket.
  */
 void test_FreeRTOS_setsockopt_UDPMaxRxPacketsNonUDPSock( void )
@@ -1311,7 +1282,7 @@ void test_FreeRTOS_setsockopt_UDPMaxRxPacketsNonUDPSock( void )
     TEST_ASSERT_EQUAL( 0, xSocket.u.xUDP.uxMaxPackets );
 }
 
-/*
+/**
  * @brief Set UDP checksum option with NULL value.
  */
 void test_FreeRTOS_setsockopt_UDPChkSumNULL( void )
@@ -1334,7 +1305,7 @@ void test_FreeRTOS_setsockopt_UDPChkSumNULL( void )
     TEST_ASSERT_EQUAL( 0, xSocket.ucSocketOptions );
 }
 
-/*
+/**
  * @brief Set UDP checksum option.
  */
 void test_FreeRTOS_setsockopt_UDPChkSum( void )
@@ -1356,7 +1327,7 @@ void test_FreeRTOS_setsockopt_UDPChkSum( void )
     TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT, xSocket.ucSocketOptions );
 }
 
-/*
+/**
  * @brief Set TCP connection handler for UDP socket.
  */
 void test_FreeRTOS_setsockopt_TCPConnInvalidProtocol( void )
@@ -1377,7 +1348,7 @@ void test_FreeRTOS_setsockopt_TCPConnInvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief TCP connection handler success.
  */
 void test_FreeRTOS_setsockopt_TCPConnSuccess( void )
@@ -1393,7 +1364,7 @@ void test_FreeRTOS_setsockopt_TCPConnSuccess( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    vOptionValue.pxOnTCPConnected = ( uintptr_t ) 0x123ABD;
+    vOptionValue.pxOnTCPConnected = ( FOnConnected_t ) 0x123ABD;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
@@ -1401,7 +1372,7 @@ void test_FreeRTOS_setsockopt_TCPConnSuccess( void )
     TEST_ASSERT_EQUAL( 0x123ABD, xSocket.u.xTCP.pxHandleConnected );
 }
 
-/*
+/**
  * @brief
  */
 void test_FreeRTOS_setsockopt_TCPRecvInvalidProtocol( void )
@@ -1422,7 +1393,7 @@ void test_FreeRTOS_setsockopt_TCPRecvInvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief TCP receive handler success.
  */
 void test_FreeRTOS_setsockopt_TCPRecvSuccess( void )
@@ -1438,7 +1409,7 @@ void test_FreeRTOS_setsockopt_TCPRecvSuccess( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    vOptionValue.pxOnTCPReceive = ( uintptr_t ) 0x123ABD;
+    vOptionValue.pxOnTCPReceive = ( FOnTCPReceive_t ) 0x123ABD;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
@@ -1446,7 +1417,7 @@ void test_FreeRTOS_setsockopt_TCPRecvSuccess( void )
     TEST_ASSERT_EQUAL( 0x123ABD, xSocket.u.xTCP.pxHandleReceive );
 }
 
-/*
+/**
  * @brief Setting TCP send handler for a UDP socket.
  */
 void test_FreeRTOS_setsockopt_TCPSendInvalidProtocol( void )
@@ -1467,7 +1438,7 @@ void test_FreeRTOS_setsockopt_TCPSendInvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set TCP sending handler.
  */
 void test_FreeRTOS_setsockopt_TCPSendSuccess( void )
@@ -1483,7 +1454,7 @@ void test_FreeRTOS_setsockopt_TCPSendSuccess( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    vOptionValue.pxOnTCPSent = ( uintptr_t ) 0x123ABD;
+    vOptionValue.pxOnTCPSent = ( FOnTCPSent_t ) 0x123ABD;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
@@ -1491,7 +1462,7 @@ void test_FreeRTOS_setsockopt_TCPSendSuccess( void )
     TEST_ASSERT_EQUAL( 0x123ABD, xSocket.u.xTCP.pxHandleSent );
 }
 
-/*
+/**
  * @brief Set UDP receive handler for a TCP socket.
  */
 void test_FreeRTOS_setsockopt_UDPRecvInvalidProtocol( void )
@@ -1512,7 +1483,7 @@ void test_FreeRTOS_setsockopt_UDPRecvInvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set UDP receive handler.
  */
 void test_FreeRTOS_setsockopt_UDPRecvSuccess( void )
@@ -1528,7 +1499,7 @@ void test_FreeRTOS_setsockopt_UDPRecvSuccess( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 
-    vOptionValue.pxOnUDPReceive = ( uintptr_t ) 0x123ABD;
+    vOptionValue.pxOnUDPReceive = ( FOnUDPReceive_t ) 0x123ABD;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
@@ -1536,7 +1507,7 @@ void test_FreeRTOS_setsockopt_UDPRecvSuccess( void )
     TEST_ASSERT_EQUAL( 0x123ABD, xSocket.u.xUDP.pxHandleReceive );
 }
 
-/*
+/**
  * @brief UDP send handler for TCP socket.
  */
 void test_FreeRTOS_setsockopt_UDPSendInvalidProtocol( void )
@@ -1557,7 +1528,7 @@ void test_FreeRTOS_setsockopt_UDPSendInvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set UDP send handler.
  */
 void test_FreeRTOS_setsockopt_UDPSendSuccess( void )
@@ -1573,7 +1544,7 @@ void test_FreeRTOS_setsockopt_UDPSendSuccess( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 
-    vOptionValue.pxOnUDPSent = ( uintptr_t ) 0x123ABD;
+    vOptionValue.pxOnUDPSent = ( FOnUDPSent_t ) 0x123ABD;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
@@ -1581,7 +1552,7 @@ void test_FreeRTOS_setsockopt_UDPSendSuccess( void )
     TEST_ASSERT_EQUAL( 0x123ABD, xSocket.u.xUDP.pxHandleSent );
 }
 
-/*
+/**
  * @brief Set semaphore for a socket.
  */
 void test_FreeRTOS_setsockopt_SetSemaphore( void )
@@ -1601,7 +1572,7 @@ void test_FreeRTOS_setsockopt_SetSemaphore( void )
     TEST_ASSERT_EQUAL( vOptionValue, xSocket.pxUserSemaphore );
 }
 
-/*
+/**
  * @brief Set wakeup callback.
  */
 void test_FreeRTOS_setsockopt_WakeUpCallback( void )
@@ -1621,7 +1592,7 @@ void test_FreeRTOS_setsockopt_WakeUpCallback( void )
     TEST_ASSERT_EQUAL( &vOptionValue, xSocket.pxUserWakeCallback );
 }
 
-/*
+/**
  * @brief Set low high water mark of socket having invalid protocol.
  */
 void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidProtocol( void )
@@ -1642,7 +1613,7 @@ void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set low high water mark of socket with invalid values.
  */
 void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidValues1( void )
@@ -1666,7 +1637,7 @@ void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidValues1( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set low high water mark of socket with invalid values.
  */
 void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidValues2( void )
@@ -1690,7 +1661,7 @@ void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidValues2( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set low high water mark of socket with invalid values.
  */
 void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidValues3( void )
@@ -1715,7 +1686,7 @@ void test_FreeRTOS_setsockopt_SetLowHighWaterInvalidValues3( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set low high water mark of socket.
  */
 void test_FreeRTOS_setsockopt_SetLowHighWaterHappyPath( void )
@@ -1742,7 +1713,7 @@ void test_FreeRTOS_setsockopt_SetLowHighWaterHappyPath( void )
     TEST_ASSERT_EQUAL( vOptionValue.uxEnoughSpace, xSocket.u.xTCP.uxEnoughSpace );
 }
 
-/*
+/**
  * @brief Send buffer set for TCP socket.
  */
 void test_FreeRTOS_setsockopt_SendBuff( void )
@@ -1768,7 +1739,7 @@ void test_FreeRTOS_setsockopt_SendBuff( void )
     TEST_ASSERT_EQUAL( 0xAB, xSocket.u.xTCP.uxTxStreamSize );
 }
 
-/*
+/**
  * @brief Receive buffer set for TCP socket.
  */
 void test_FreeRTOS_setsockopt_RecvBuff( void )
@@ -1791,7 +1762,7 @@ void test_FreeRTOS_setsockopt_RecvBuff( void )
     TEST_ASSERT_EQUAL( vOptionValue, xSocket.u.xTCP.uxRxStreamSize );
 }
 
-/*
+/**
  * @brief Set windows properties of a socket for a UDP socket.
  */
 void test_FreeRTOS_setsockopt_WinPropsInvalidProtocol( void )
@@ -1812,7 +1783,7 @@ void test_FreeRTOS_setsockopt_WinPropsInvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set windows properties of a socket which doesn't have a valid Tx stream.
  */
 void test_FreeRTOS_setsockopt_WinPropsInvalidTxStream( void )
@@ -1827,14 +1798,14 @@ void test_FreeRTOS_setsockopt_WinPropsInvalidTxStream( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.txStream = 0x1234;
+    xSocket.u.xTCP.txStream = ( StreamBuffer_t * ) 0x1234;
 
     xReturn = FreeRTOS_setsockopt( &xSocket, lLevel, lOptionName, &vOptionValue, uxOptionLength );
 
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set windows properties of a socket which doesn't have a valid Rx stream.
  */
 void test_FreeRTOS_setsockopt_WinPropsInvalidRxStream( void )
@@ -1851,7 +1822,7 @@ void test_FreeRTOS_setsockopt_WinPropsInvalidRxStream( void )
     vOptionValue.lTxBufSize = 0xBB;
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.rxStream = 0x1234;
+    xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) 0x1234;
     xSocket.u.xTCP.usMSS = 0x12;
 
     FreeRTOS_round_up_ExpectAndReturn( vOptionValue.lTxBufSize, xSocket.u.xTCP.usMSS, 0xAB );
@@ -1861,7 +1832,7 @@ void test_FreeRTOS_setsockopt_WinPropsInvalidRxStream( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set windows properties of a socket whose windowing has not been initialised.
  */
 void test_FreeRTOS_setsockopt_WinPropsTCPWinNotInit( void )
@@ -1891,7 +1862,7 @@ void test_FreeRTOS_setsockopt_WinPropsTCPWinNotInit( void )
     TEST_ASSERT_EQUAL( ( uint32_t ) vOptionValue.lTxWinSize, xSocket.u.xTCP.uxTxWinSize );
 }
 
-/*
+/**
  * @brief Set windows properties of a socket whose windowing has been initialised.
  */
 void test_FreeRTOS_setsockopt_WinPropsTCPWinInit( void )
@@ -1923,7 +1894,7 @@ void test_FreeRTOS_setsockopt_WinPropsTCPWinInit( void )
     TEST_ASSERT_EQUAL_UINT32( ( ( uint32_t ) vOptionValue.lTxWinSize * xSocket.u.xTCP.usMSS ), xSocket.u.xTCP.xTCPWindow.xSize.ulTxWindowLength );
 }
 
-/*
+/**
  * @brief Set option to reuse socket of a UDP socket.
  */
 void test_FreeRTOS_setsockopt_ReUseListenSock_InvalidProtocol( void )
@@ -1945,7 +1916,7 @@ void test_FreeRTOS_setsockopt_ReUseListenSock_InvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set reuse of a socket to true.
  */
 void test_FreeRTOS_setsockopt_ReUseListenSock_Set( void )
@@ -1967,7 +1938,7 @@ void test_FreeRTOS_setsockopt_ReUseListenSock_Set( void )
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bReuseSocket );
 }
 
-/*
+/**
  * @brief Set reuse of a socket to false.
  */
 void test_FreeRTOS_setsockopt_ReUseListenSock_Reset( void )
@@ -1990,7 +1961,7 @@ void test_FreeRTOS_setsockopt_ReUseListenSock_Reset( void )
     TEST_ASSERT_EQUAL( pdFALSE, xSocket.u.xTCP.bits.bReuseSocket );
 }
 
-/*
+/**
  * @brief Close after send of a UDP socket.
  */
 void test_FreeRTOS_setsockopt_SockClose_InvalidProtocol( void )
@@ -2011,7 +1982,7 @@ void test_FreeRTOS_setsockopt_SockClose_InvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Close after send option set.
  */
 void test_FreeRTOS_setsockopt_SockClose_Set( void )
@@ -2033,7 +2004,7 @@ void test_FreeRTOS_setsockopt_SockClose_Set( void )
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bCloseAfterSend );
 }
 
-/*
+/**
  * @brief Close after send option reset.
  */
 void test_FreeRTOS_setsockopt_SockClose_Reset( void )
@@ -2056,7 +2027,7 @@ void test_FreeRTOS_setsockopt_SockClose_Reset( void )
     TEST_ASSERT_EQUAL( pdFALSE, xSocket.u.xTCP.bits.bCloseAfterSend );
 }
 
-/*
+/**
  * @brief Set full size of UDP socket.
  */
 void test_FreeRTOS_setsockopt_SetFullSize_InvalidProtocol( void )
@@ -2077,7 +2048,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_InvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Set full size option set.
  */
 void test_FreeRTOS_setsockopt_SetFullSize_Set( void )
@@ -2099,7 +2070,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Set( void )
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.xTCPWindow.u.bits.bSendFullSize );
 }
 
-/*
+/**
  * @brief Set full size option reset but the state is not correct.
  */
 void test_FreeRTOS_setsockopt_SetFullSize_Reset_StateIncorrect( void )
@@ -2124,7 +2095,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Reset_StateIncorrect( void )
     TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Set full size option reset.
  */
 void test_FreeRTOS_setsockopt_SetFullSize_Reset_StateCorrect( void )
@@ -2149,7 +2120,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Reset_StateCorrect( void )
     TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Set full size option reset.
  */
 void test_FreeRTOS_setsockopt_SetFullSize_Reset_HappyPath( void )
@@ -2166,7 +2137,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Reset_HappyPath( void )
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE;
     xSocket.u.xTCP.eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.txStream = ( uintptr_t ) 0xABCD;
+    xSocket.u.xTCP.txStream = ( StreamBuffer_t * ) 0xABCD;
 
     uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.txStream, 0x123 );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdTRUE );
@@ -2178,7 +2149,7 @@ void test_FreeRTOS_setsockopt_SetFullSize_Reset_HappyPath( void )
     TEST_ASSERT_EQUAL( 1, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Stop receive with a UDP socket.
  */
 void test_FreeRTOS_setsockopt_StopRx_InvalidProtocol( void )
@@ -2201,7 +2172,7 @@ void test_FreeRTOS_setsockopt_StopRx_InvalidProtocol( void )
     TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Stop receive set.
  */
 void test_FreeRTOS_setsockopt_StopRx_Set( void )
@@ -2227,7 +2198,7 @@ void test_FreeRTOS_setsockopt_StopRx_Set( void )
     TEST_ASSERT_EQUAL( 1, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Stop receive reset.
  */
 void test_FreeRTOS_setsockopt_StopRx_Reset( void )
@@ -2254,7 +2225,7 @@ void test_FreeRTOS_setsockopt_StopRx_Reset( void )
     TEST_ASSERT_EQUAL( 1, xSocket.u.xTCP.usTimeout );
 }
 
-/*
+/**
  * @brief Setting an invalid option.
  */
 void test_FreeRTOS_setsockopt_InvalidOption( void )
@@ -2273,12 +2244,12 @@ void test_FreeRTOS_setsockopt_InvalidOption( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOPROTOOPT, xReturn );
 }
 
-/*
+/**
  * @brief Translate 32-bit IP to string.
  */
 void test_FreeRTOS_inet_ntoa_1( void )
 {
-    char * pucReturn;
+    const char * pucReturn;
     uint32_t ulIPAddress = 0;
     char pcBuffer[ 255 ];
     char * pucIdealReturn = "0.0.0.0";
@@ -2289,12 +2260,12 @@ void test_FreeRTOS_inet_ntoa_1( void )
     TEST_ASSERT_EQUAL_STRING( pucIdealReturn, pucReturn );
 }
 
-/*
+/**
  * @brief Translate 32-bit IP to string.
  */
 void test_FreeRTOS_inet_ntoa_2( void )
 {
-    char * pucReturn;
+    const char * pucReturn;
     uint32_t ulIPAddress = 0xAAAAAAAA;
     char pcBuffer[ 255 ];
     char * pucIdealReturn = "170.170.170.170";
@@ -2305,12 +2276,12 @@ void test_FreeRTOS_inet_ntoa_2( void )
     TEST_ASSERT_EQUAL_STRING( pucIdealReturn, pucReturn );
 }
 
-/*
+/**
  * @brief Translate 32-bit IP to string.
  */
 void test_FreeRTOS_inet_ntoa_3( void )
 {
-    char * pucReturn;
+    const char * pucReturn;
     uint32_t ulIPAddress = 0xFFFFFFFF;
     char pcBuffer[ 255 ];
     char * pucIdealReturn = "255.255.255.255";
@@ -2321,7 +2292,7 @@ void test_FreeRTOS_inet_ntoa_3( void )
     TEST_ASSERT_EQUAL_STRING( pucIdealReturn, pucReturn );
 }
 
-/*
+/**
  * @brief Incorrect address family.
  */
 void test_FreeRTOS_inet_pton_IncorrectAddressFamily( void )
@@ -2336,7 +2307,7 @@ void test_FreeRTOS_inet_pton_IncorrectAddressFamily( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EAFNOSUPPORT, xReturn );
 }
 
-/*
+/**
  * @brief Octal notation being converted.
  */
 void test_FreeRTOS_inet_pton_Octal( void )
@@ -2346,13 +2317,14 @@ void test_FreeRTOS_inet_pton_Octal( void )
     const char * pcSource = "00.01.2.3";
     uint32_t ulDestination = 0;
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcSource, &ulDestination, pdFAIL );
     xReturn = FreeRTOS_inet_pton( xAddressFamily, pcSource, &ulDestination );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
     TEST_ASSERT_EQUAL( 0, ulDestination );
 }
 
-/*
+/**
  * @brief Happy path of this function.
  */
 void test_FreeRTOS_inet_pton_HappyPath( void )
@@ -2361,76 +2333,36 @@ void test_FreeRTOS_inet_pton_HappyPath( void )
     BaseType_t xAddressFamily = FREERTOS_AF_INET;
     const char * pcSource = "255.255.255.255";
     uint32_t ulDestination;
+    uint32_t ulExpectDestination = 0xFFFFFFFF;
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcSource, &ulDestination, pdPASS );
+    FreeRTOS_inet_pton4_ReturnMemThruPtr_pvDestination( &ulExpectDestination, sizeof( ulExpectDestination ) );
     xReturn = FreeRTOS_inet_pton( xAddressFamily, pcSource, &ulDestination );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
-    TEST_ASSERT_EQUAL_UINT32( 0xFFFFFFFF, ulDestination );
+    TEST_ASSERT_EQUAL_UINT32( ulExpectDestination, ulDestination );
 }
 
-/*
- * @brief Incorrect family of address.
+/**
+ * @brief Happy path of this function for IPv6.
  */
-void test_FreeRTOS_inet_ntop_IncorrectAddrFamily( void )
+void test_FreeRTOS_inet_pton_IPv6HappyPath( void )
 {
-    char * pucReturn;
-    BaseType_t xAddressFamily = FREERTOS_AF_INET + 1;
-    uint32_t ulSource;
-    char * pcDestination;
-    socklen_t uxSize = 100;
+    BaseType_t xReturn;
+    BaseType_t xAddressFamily = FREERTOS_AF_INET6;
+    const char * pcSource = "2001::1";
+    IPv6_Address_t xDestination;
+    IPv6_Address_t * pxExpectDestination = &xIPv6Address;
 
-    pucReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulSource, pcDestination, uxSize );
+    FreeRTOS_inet_pton6_ExpectAndReturn( pcSource, &xDestination, pdPASS );
+    FreeRTOS_inet_pton6_ReturnMemThruPtr_pvDestination( pxExpectDestination->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xReturn = FreeRTOS_inet_pton( xAddressFamily, pcSource, &xDestination );
 
-    TEST_ASSERT_EQUAL( NULL, pucReturn );
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( pxExpectDestination->ucBytes, xDestination.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
-/*
- * @brief Incorrect size of the string being passed to the function.
- */
-void test_FreeRTOS_inet_ntop_IncorrectSize( void )
-{
-    char * pucReturn;
-    BaseType_t xAddressFamily = FREERTOS_AF_INET;
-    uint32_t ulSource;
-    const socklen_t uxSize = 15;
-    char pcDestination[ uxSize ];
-
-    pucReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulSource, pcDestination, uxSize );
-
-    TEST_ASSERT_EQUAL( NULL, pucReturn );
-}
-
-/*
- * @brief Happy path.
- */
-void test_FreeRTOS_inet_ntop_HappyCase( void )
-{
-    char * pucReturn;
-    BaseType_t xAddressFamily = FREERTOS_AF_INET;
-    uint32_t ulSource;
-    const socklen_t uxSize = 16;
-    char pcDestination[ uxSize ];
-
-    ulSource = 0xFFFFFFFF;
-    pucReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulSource, pcDestination, uxSize );
-
-    TEST_ASSERT_EQUAL( pcDestination, pucReturn );
-    TEST_ASSERT_EQUAL_STRING( "255.255.255.255", pcDestination );
-
-    ulSource = 0;
-    pucReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulSource, pcDestination, uxSize );
-
-    TEST_ASSERT_EQUAL( pcDestination, pucReturn );
-    TEST_ASSERT_EQUAL_STRING( "0.0.0.0", pcDestination );
-
-    ulSource = 0xABCDEF12;
-    pucReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulSource, pcDestination, uxSize );
-
-    TEST_ASSERT_EQUAL( pcDestination, pucReturn );
-    TEST_ASSERT_EQUAL_STRING( "18.239.205.171", pcDestination );
-}
-
-/*
+/**
  * @brief Translate array to string for MAC address.
  */
 void test_FreeRTOS_EUI48_ntop1( void )
@@ -2455,7 +2387,7 @@ void test_FreeRTOS_EUI48_ntop1( void )
     TEST_ASSERT_EQUAL_STRING( "aa-aa-aa-aa-aa-aa", pcTarget );
 }
 
-/*
+/**
  * @brief Translate array to string for MAC address.
  */
 void test_FreeRTOS_EUI48_ntop2( void )
@@ -2485,7 +2417,7 @@ void test_FreeRTOS_EUI48_ntop2( void )
     TEST_ASSERT_EQUAL_STRING( "12-34-56-78-ef-dc", pcTarget );
 }
 
-/*
+/**
  * @brief Translate array to string for MAC address. Invalid values.
  */
 void test_FreeRTOS_EUI48_pton_InvalidInput( void )
@@ -2498,7 +2430,7 @@ void test_FreeRTOS_EUI48_pton_InvalidInput( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-/*
+/**
  * @brief Translate array to string for MAC address. Invalid values.
  */
 void test_FreeRTOS_EUI48_pton_InvalidInput2( void )
@@ -2511,7 +2443,7 @@ void test_FreeRTOS_EUI48_pton_InvalidInput2( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-/*
+/**
  * @brief Translate array to string for MAC address. Invalid values.
  */
 void test_FreeRTOS_EUI48_pton_InvalidInput3( void )
@@ -2524,7 +2456,7 @@ void test_FreeRTOS_EUI48_pton_InvalidInput3( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-/*
+/**
  * @brief Translate array to string for MAC address. Invalid values.
  */
 void test_FreeRTOS_EUI48_pton_InvalidInput4( void )
@@ -2537,7 +2469,7 @@ void test_FreeRTOS_EUI48_pton_InvalidInput4( void )
     TEST_ASSERT_EQUAL( pdFALSE, xReturn );
 }
 
-/*
+/**
  * @brief Translate string to array for MAC address.
  */
 void test_FreeRTOS_EUI48_pton_HappyPath( void )
@@ -2552,7 +2484,7 @@ void test_FreeRTOS_EUI48_pton_HappyPath( void )
     TEST_ASSERT_EQUAL_UINT8_ARRAY( pucIdeal, pucTarget, 6 );
 }
 
-/*
+/**
  * @brief Translate string to array for MAC address.
  */
 void test_FreeRTOS_EUI48_pton_HappyPath1( void )
@@ -2567,7 +2499,7 @@ void test_FreeRTOS_EUI48_pton_HappyPath1( void )
     TEST_ASSERT_EQUAL_UINT8_ARRAY( pucIdeal, pucTarget, 6 );
 }
 
-/*
+/**
  * @brief Translate string to array for MAC address.
  */
 void test_FreeRTOS_EUI48_pton_HappyPath2( void )
@@ -2582,7 +2514,7 @@ void test_FreeRTOS_EUI48_pton_HappyPath2( void )
     TEST_ASSERT_EQUAL_UINT8_ARRAY( pucIdeal, pucTarget, 6 );
 }
 
-/*
+/**
  * @brief Invalid input to convert to IP address.
  */
 void test_FreeRTOS_inet_addr_InvalidString( void )
@@ -2590,23 +2522,29 @@ void test_FreeRTOS_inet_addr_InvalidString( void )
     uint32_t ulReturn;
     char * pcIPAddress = "0..12.34.4";
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcIPAddress, NULL, pdFAIL );
+    FreeRTOS_inet_pton4_IgnoreArg_pvDestination();
     ulReturn = FreeRTOS_inet_addr( pcIPAddress );
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
-/*
+/**
  * @brief Valid input to convert to IP address.
  */
 void test_FreeRTOS_inet_addr_ValidString( void )
 {
+    uint32_t ulExpectAnswer = 0x04030201;
     uint32_t ulReturn;
     char * pcIPAddress = "1.2.3.4";
 
+    FreeRTOS_inet_pton4_ExpectAndReturn( pcIPAddress, NULL, pdPASS );
+    FreeRTOS_inet_pton4_IgnoreArg_pvDestination();
+    FreeRTOS_inet_pton4_ReturnMemThruPtr_pvDestination( &ulExpectAnswer, sizeof( ulExpectAnswer ) );
     ulReturn = FreeRTOS_inet_addr( pcIPAddress );
-    TEST_ASSERT_EQUAL( 0x04030201, ulReturn );
+    TEST_ASSERT_EQUAL( ulExpectAnswer, ulReturn );
 }
 
-/*
+/**
  * @brief Get local address from a socket.
  */
 void test_FreeRTOS_GetLocalAddress( void )
@@ -2619,16 +2557,40 @@ void test_FreeRTOS_GetLocalAddress( void )
     memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.usLocalPort = 0xAB12;
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABFC8769;
+    xSocket.xLocalAddress.ulIP_IPv4 = 0xABFC8769;
 
     uxReturn = FreeRTOS_GetLocalAddress( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( sizeof( xAddress ), uxReturn );
-    TEST_ASSERT_EQUAL( 0xABFC8769, xAddress.sin_addr );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 0xABFC8769 ), xAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( FreeRTOS_htons( 0xAB12 ), xAddress.sin_port );
 }
 
-/*
+/**
+ * @brief Get local address from an IPv6 socket.
+ */
+void test_FreeRTOS_GetLocalAddress_IPv6( void )
+{
+    size_t uxReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+    IPv6_Address_t xIPAddress = { { 0x20 } };
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    xSocket.usLocalPort = 0xAB12;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    uxReturn = FreeRTOS_GetLocalAddress( &xSocket, &xAddress );
+
+    TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, xAddress.sin_family );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xAddress.sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_htons( 0xAB12 ), xAddress.sin_port );
+}
+
+/**
  * @brief All fields are NULL in the socket.
  */
 void test_FreeRTOS_connect_SocketValuesNULL( void )
@@ -2645,7 +2607,7 @@ void test_FreeRTOS_connect_SocketValuesNULL( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EBADF, xResult );
 }
 
-/*
+/**
  * @brief Test for invalid values.
  */
 void test_FreeRTOS_connect_InvalidValues( void )
@@ -2680,7 +2642,7 @@ void test_FreeRTOS_connect_InvalidValues( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xResult );
 }
 
-/*
+/**
  * @brief Non blocking connect.
  */
 void test_FreeRTOS_connect_NonBlocking( void )
@@ -2703,7 +2665,7 @@ void test_FreeRTOS_connect_NonBlocking( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EWOULDBLOCK, xResult );
 }
 
-/*
+/**
  * @brief Timeout in connection.
  */
 void test_FreeRTOS_connect_Timeout( void )
@@ -2739,7 +2701,7 @@ void test_FreeRTOS_connect_Timeout( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ETIMEDOUT, xResult );
 }
 
-/*
+/**
  * @brief Timeout in connection.
  */
 void test_FreeRTOS_connect_SocketClosed( void )
@@ -2772,7 +2734,7 @@ void test_FreeRTOS_connect_SocketClosed( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xResult );
 }
 
-/*
+/**
  * @brief Connection successful.
  */
 void test_FreeRTOS_connect_Connected( void )
@@ -2782,6 +2744,9 @@ void test_FreeRTOS_connect_Connected( void )
     socklen_t xAddressLength;
 
     memset( &xGlobalSocket, 0, sizeof( xGlobalSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xAddress.sin_family = FREERTOS_AF_INET4;
 
     xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     /* Non 0 value to show blocking. */
@@ -2803,7 +2768,34 @@ void test_FreeRTOS_connect_Connected( void )
     TEST_ASSERT_EQUAL( 0, xResult );
 }
 
-/*
+/**
+ * @brief Connection failed due to error happening during sleep.
+ */
+void test_FreeRTOS_connect_SocketErrorDuringSleep( void )
+{
+    BaseType_t xResult;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+
+    memset( &xGlobalSocket, 0, sizeof( xGlobalSocket ) );
+
+    xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    /* Non 0 value to show blocking. */
+    xGlobalSocket.xReceiveBlockTime = 0x123;
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+
+    vTCPStateChange_Expect( &xGlobalSocket, eCONNECT_SYN );
+    xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
+
+    /* Set the global socket handler to error during sleep. */
+    vTaskSetTimeOutState_Stub( vStub_vTaskSetTimeOutState_socketError );
+
+    xResult = FreeRTOS_connect( &xGlobalSocket, &xAddress, xAddressLength );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xResult );
+}
+
+/**
  * @brief Invalid protocol.
  */
 void test_FreeRTOS_GetRemoteAddress_InvalidProtocol( void )
@@ -2820,7 +2812,7 @@ void test_FreeRTOS_GetRemoteAddress_InvalidProtocol( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief happy path.
  */
 void test_FreeRTOS_GetRemoteAddress_HappyPath( void )
@@ -2833,17 +2825,41 @@ void test_FreeRTOS_GetRemoteAddress_HappyPath( void )
     memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.ulRemoteIP = 0xABCDEF12;
+    xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xABCDEF12;
     xSocket.u.xTCP.usRemotePort = 0x1234;
 
     xReturn = FreeRTOS_GetRemoteAddress( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( sizeof( xAddress ), xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 0xABCDEF12 ), xAddress.sin_addr );
+    TEST_ASSERT_EQUAL( FreeRTOS_htonl( 0xABCDEF12 ), xAddress.sin_address.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( FreeRTOS_htons( 0x1234 ), xAddress.sin_port );
 }
 
-/*
+/**
+ * @brief IPv6 happy path.
+ */
+void test_FreeRTOS_GetRemoteAddress_IPv6HappyPath( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xAddress;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.u.xTCP.usRemotePort = 0x1234;
+
+    xReturn = FreeRTOS_GetRemoteAddress( &xSocket, &xAddress );
+
+    TEST_ASSERT_EQUAL( sizeof( xAddress ), xReturn );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xAddress.sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_htons( 0x1234 ), xAddress.sin_port );
+}
+
+/**
  * @brief Invalid values.
  */
 void test_FreeRTOS_maywrite_InvalidValues( void )
@@ -2882,7 +2898,7 @@ void test_FreeRTOS_maywrite_InvalidValues( void )
     TEST_ASSERT_EQUAL( 0x123, xReturn );
 }
 
-/*
+/**
  * @brief Happy path.
  */
 void test_FreeRTOS_maywrite_HappyPath( void )
@@ -2895,15 +2911,15 @@ void test_FreeRTOS_maywrite_HappyPath( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.eTCPState = eESTABLISHED;
-    xSocket.u.xTCP.txStream = ucStream;
+    xSocket.u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
 
-    uxStreamBufferGetSpace_ExpectAndReturn( ucStream, 0x3344 );
+    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0x3344 );
 
     xReturn = FreeRTOS_maywrite( &xSocket );
     TEST_ASSERT_EQUAL( 0x3344, xReturn );
 }
 
-/*
+/**
  * @brief Test setting socket ID when the socket is NULL.
  */
 void test_xSocketSetSocketID_NULLSocket( void )
@@ -2915,7 +2931,7 @@ void test_xSocketSetSocketID_NULLSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Test setting socket ID when the socket is invalid.
  */
 void test_xSocketSetSocketID_InvalidSocket( void )
@@ -2927,7 +2943,7 @@ void test_xSocketSetSocketID_InvalidSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Test setting socket ID when the socket is Valid.
  */
 void test_xSocketSetSocketID_ValidSocket( void )
@@ -2944,7 +2960,7 @@ void test_xSocketSetSocketID_ValidSocket( void )
     TEST_ASSERT_EQUAL( &AnchorVariable, xSocket.pvSocketID );
 }
 
-/*
+/**
  * @brief Test setting socket ID when the socket is NULL.
  */
 void test_pvSocketGetSocketID_NULLSocket( void )
@@ -2956,7 +2972,7 @@ void test_pvSocketGetSocketID_NULLSocket( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Test setting socket ID when the socket is invalid.
  */
 void test_pvSocketGetSocketID_InvalidSocket( void )
@@ -2968,7 +2984,7 @@ void test_pvSocketGetSocketID_InvalidSocket( void )
     TEST_ASSERT_EQUAL( NULL, pvReturn );
 }
 
-/*
+/**
  * @brief Test setting socket ID when the socket is Valid.
  */
 void test_pvSocketGetSocketID_ValidSocket( void )
@@ -2981,12 +2997,12 @@ void test_pvSocketGetSocketID_ValidSocket( void )
 
     xSocket.pvSocketID = &AnchorVariable;
 
-    pvReturn = pvSocketGetSocketID( &xSocket );
+    pvReturn = ( BaseType_t ) pvSocketGetSocketID( &xSocket );
 
     TEST_ASSERT_EQUAL( &AnchorVariable, pvReturn );
 }
 
-/*
+/**
  * @brief This function just prints out some data. It is expected to make calls to the
  *        below functions when IP stack is not initialised.
  */
@@ -3000,7 +3016,7 @@ void test_vTCPNetStat_IPStackNotInit( void )
     vTCPNetStat();
 }
 
-/*
+/**
  * @brief This function just prints out some data. It is expected to make calls to the
  *        below functions when IP stack is initialised. It is expected to go through the
  *        list of TCP and UDP sockets which are bound and print them out.
@@ -3028,6 +3044,8 @@ void test_vTCPNetStat_IPStackInit( void )
 
     xTaskGetTickCount_ExpectAndReturn( 0x10 );
 
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     /* Second Iteration. */
     xSocket2.u.xTCP.eTCPState = eTCP_LISTEN;
     listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
@@ -3052,7 +3070,102 @@ void test_vTCPNetStat_IPStackInit( void )
     vTCPNetStat();
 }
 
-/*
+/**
+ * @brief This function just prints out some data. It is expected to change the age ( current tick - last alive )
+ * if it's greater than 999999.
+ */
+void test_vTCPNetStat_LongTimeSinceLastAlive( void )
+{
+    ListItem_t xLocalTCPItem, xLocalUDPItem, xIterator;
+    FreeRTOS_Socket_t xSocket, xSocket2;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xSocket2, 0, sizeof( xSocket2 ) );
+
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( 0 );
+    uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 0 );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    listGET_END_MARKER_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalTCPItem );
+    listGET_END_MARKER_ExpectAndReturn( &xBoundUDPSocketsList, &xLocalUDPItem );
+
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xIterator );
+
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket );
+
+    xTaskGetTickCount_ExpectAndReturn( 1000000U );
+
+    /* Second Iteration. */
+    xSocket2.u.xTCP.eTCPState = eTCP_LISTEN;
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket2 );
+
+    xTaskGetTickCount_ExpectAndReturn( 0x20 );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalTCPItem );
+
+
+    /* UDP */
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundUDPSocketsList, &xIterator );
+
+    /* Second Iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalUDPItem );
+
+    vTCPNetStat();
+}
+
+/**
+ * @brief This function just prints out some data. It is able to print IPv6
+ * socket as well.
+ */
+void test_vTCPNetStat_IPv6Socket( void )
+{
+    ListItem_t xLocalTCPItem, xLocalUDPItem, xIterator;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( 0 );
+    uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 0 );
+
+    listLIST_IS_INITIALISED_ExpectAndReturn( &xBoundTCPSocketsList, pdTRUE );
+
+    listGET_END_MARKER_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalTCPItem );
+    listGET_END_MARKER_ExpectAndReturn( &xBoundUDPSocketsList, &xLocalUDPItem );
+
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xIterator );
+
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xSocket );
+
+    xTaskGetTickCount_ExpectAndReturn( 0x10 );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalTCPItem );
+
+    /* UDP */
+    /* First Iteration. */
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundUDPSocketsList, &xIterator );
+
+    /* Second Iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xIterator );
+
+    /* TCP last iteration. */
+    listGET_NEXT_ExpectAndReturn( &xIterator, &xLocalUDPItem );
+
+    vTCPNetStat();
+}
+
+/**
  * @brief Socket select function when only UDP sockets are bound.
  */
 void test_vSocketSelect_UDPSocketsOnly( void )
@@ -3071,7 +3184,7 @@ void test_vSocketSelect_UDPSocketsOnly( void )
     xSocket4.pxSocketSet = &xSocketSet;
 
     /* Round 0. Not same socket set. */
-    listGET_NEXT_ExpectAndReturn( &( xBoundUDPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ), &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     /* Round 1. Same socket set. No select bits. */
@@ -3093,10 +3206,10 @@ void test_vSocketSelect_UDPSocketsOnly( void )
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket4.u.xUDP.xWaitingPacketsList ), 3 );
 
     /* Last item. */
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, &( xBoundUDPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
     /* Last item. Nothing in TCP. */
-    listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
     xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, 0 );
 
@@ -3110,7 +3223,7 @@ void test_vSocketSelect_UDPSocketsOnly( void )
     TEST_ASSERT_EQUAL( eSELECT_READ, xSocket4.xSocketBits );
 }
 
-/*
+/**
  * @brief Socket select function when only TCP sockets are bound.
  */
 void test_vSocketSelect_TCPSocketsOnly( void )
@@ -3134,10 +3247,10 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     xSocket[ 0 ].ucProtocol = FREERTOS_IPPROTO_TCP;
 
     /* Last item. Nothing in UDP. */
-    listGET_NEXT_ExpectAndReturn( &( xBoundUDPSocketsList.xListEnd ), &( xBoundUDPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
     /* Round 0. Not same socket set. */
-    listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[ 0 ] );
 
     /* Round 1. Same socket set. No bits Set. */
@@ -3172,21 +3285,21 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     xSocket[ 5 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
     xSocket[ 5 ].u.xTCP.eTCPState = eTCP_LISTEN;
     xSocket[ 5 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
-    xSocket[ 5 ].u.xTCP.txStream = ucStream;
+    xSocket[ 5 ].u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[ 5 ] );
-    uxStreamBufferGetSpace_ExpectAndReturn( ucStream, 0xABCD );
+    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xABCD );
 
     /* Round 5. */
     xSocket[ 6 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
     xSocket[ 6 ].u.xTCP.eTCPState = eCLOSE_WAIT;
     xSocket[ 6 ].u.xTCP.bits.bConnPrepared = pdTRUE_UNSIGNED;
-    xSocket[ 6 ].u.xTCP.txStream = ucStream;
-    xSocket[ 6 ].u.xTCP.rxStream = ucStream;
+    xSocket[ 6 ].u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
+    xSocket[ 6 ].u.xTCP.rxStream = ( StreamBuffer_t * ) ucStream;
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[ 6 ] );
-    uxStreamBufferGetSize_ExpectAndReturn( ucStream, 0xAB );
-    uxStreamBufferGetSpace_ExpectAndReturn( ucStream, 0xABCD );
+    uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xAB );
+    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xABCD );
 
     /* Round 6. */
     xSocket[ 7 ].xSelectBits = eSELECT_READ | eSELECT_EXCEPT | eSELECT_WRITE;
@@ -3209,7 +3322,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket[ 8 ] );
 
     /* Last item. */
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
     xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, eSELECT_READ );
 
@@ -3229,7 +3342,7 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     TEST_ASSERT_EQUAL( eSELECT_READ, xSocket[ 8 ].xSocketBits );
 }
 
-/*
+/**
  * @brief Socket select function when no sockets are bound.
  */
 void test_vSocketSelect_NoSocketsAtAll( void )
@@ -3239,10 +3352,10 @@ void test_vSocketSelect_NoSocketsAtAll( void )
     uint8_t ucStream[ 20 ];
 
     /* Last item. Nothing in UDP. */
-    listGET_NEXT_ExpectAndReturn( &( xBoundUDPSocketsList.xListEnd ), &( xBoundUDPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ) );
 
     /* Last item. Nothing in TCP. */
-    listGET_NEXT_ExpectAndReturn( &( xBoundTCPSocketsList.xListEnd ), &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
     xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, 0, eSELECT_READ );
     xEventGroupClearBits_ExpectAnyArgsAndReturn( pdPASS );
@@ -3251,7 +3364,7 @@ void test_vSocketSelect_NoSocketsAtAll( void )
     vSocketSelect( &xSocketSet );
 }
 
-/*
+/**
  * @brief Signalling socket with invalid values given for socket.
  */
 void test_FreeRTOS_SignalSocket_InvalidSocket( void )
@@ -3268,7 +3381,7 @@ void test_FreeRTOS_SignalSocket_InvalidSocket( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 }
 
-/*
+/**
  * @brief Event group is present for the socket being signalled.
  */
 void test_FreeRTOS_SignalSocket_NonNULLEventGroup( void )
@@ -3282,7 +3395,7 @@ void test_FreeRTOS_SignalSocket_NonNULLEventGroup( void )
     memset( &xSocketSet, 0, sizeof( xSocketSet ) );
 
     xSocket.pxSocketSet = &xSocketSet;
-    xSocket.xEventGroup = xEventGroup;
+    xSocket.xEventGroup = ( EventGroupHandle_t ) xEventGroup;
 
     xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_INTR, pdFALSE );
 
@@ -3290,7 +3403,7 @@ void test_FreeRTOS_SignalSocket_NonNULLEventGroup( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Select group is present for the socket being called.
  */
 void test_FreeRTOS_SignalSocket_NonNULLSelectGroup( void )
@@ -3304,7 +3417,7 @@ void test_FreeRTOS_SignalSocket_NonNULLSelectGroup( void )
     memset( &xSocketSet, 0, sizeof( xSocketSet ) );
 
     xSocket.pxSocketSet = &xSocketSet;
-    xSocket.pxSocketSet->xSelectGroup = xSelectGroup;
+    xSocket.pxSocketSet->xSelectGroup = ( EventGroupHandle_t ) xSelectGroup;
 
     xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_INTR, pdFALSE );
 
@@ -3312,7 +3425,7 @@ void test_FreeRTOS_SignalSocket_NonNULLSelectGroup( void )
     TEST_ASSERT_EQUAL( 0, xReturn );
 }
 
-/*
+/**
  * @brief Catch various asserts.
  */
 void test_FreeRTOS_SignalSocketFromISR_catchAsserts( void )
@@ -3333,7 +3446,7 @@ void test_FreeRTOS_SignalSocketFromISR_catchAsserts( void )
     catch_assert( FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken ) );
 }
 
-/*
+/**
  * @brief happy path of the function.
  */
 void test_FreeRTOS_SignalSocketFromISR_HappyPath( void )
@@ -3345,10 +3458,209 @@ void test_FreeRTOS_SignalSocketFromISR_HappyPath( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.xEventGroup = xEventGroup;
+    xSocket.xEventGroup = ( EventGroupHandle_t ) xEventGroup;
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( 0xABC );
 
     xReturn = FreeRTOS_SignalSocketFromISR( &xSocket, &xHigherPriorityTaskWoken );
     TEST_ASSERT_EQUAL( 0xABC, xReturn );
+}
+
+/**
+ * @brief Get TCPv4 packets property string.
+ */
+void test_prvSocketProps_TCPv4()
+{
+    FreeRTOS_Socket_t xSocket;
+    uint32_t ulExpectSrcIP = 0xC0A80101;
+    uint32_t ulExpectRemoteIP = 0xC0A80102;
+    uint16_t usSrcPort = 1024U;
+    uint16_t usRemotePort = 2048U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = pdFALSE;
+    xSocket.xLocalAddress.ulIP_IPv4 = ulExpectSrcIP;
+    xSocket.usLocalPort = usSrcPort;
+    xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = ulExpectRemoteIP;
+    xSocket.u.xTCP.usRemotePort = usRemotePort;
+
+    pcReturn = prvSocketProps( &xSocket );
+    TEST_ASSERT_EQUAL_STRING( "c0a80101ip port 1024 to c0a80102ip port 2048", pcReturn );
+}
+
+/**
+ * @brief Get UDPv4 packets property string.
+ */
+void test_prvSocketProps_UDPv4()
+{
+    FreeRTOS_Socket_t xSocket;
+    uint32_t ulExpectSrcIP = 0xC0A80101;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket.bits.bIsIPv6 = pdFALSE;
+    xSocket.xLocalAddress.ulIP_IPv4 = ulExpectSrcIP;
+    xSocket.usLocalPort = 1024U;
+
+    pcReturn = prvSocketProps( &xSocket );
+    TEST_ASSERT_EQUAL_STRING( "c0a80101ip port 1024", pcReturn );
+}
+
+/**
+ * @brief Get TCPv6 packets property string.
+ */
+void test_prvSocketProps_TCPv6()
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address;                                                                                          /* 2001::1 */
+    IPv6_Address_t xIPv6RemoteAddress = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 } }; /* 2001::2 */
+    uint16_t usSrcPort = 1024U;
+    uint16_t usRemotePort = 2048U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.usLocalPort = usSrcPort;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6RemoteAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.u.xTCP.usRemotePort = usRemotePort;
+
+    pcReturn = prvSocketProps( &xSocket );
+}
+
+/**
+ * @brief Get UDPv6 packets property string.
+ */
+void test_prvSocketProps_UDPv6()
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    uint16_t usSrcPort = 1024U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.usLocalPort = usSrcPort;
+
+    pcReturn = prvSocketProps( &xSocket );
+}
+
+/**
+ * @brief Get packets property string with unknown protocol.
+ */
+void test_prvSocketProps_UnknownProtocol()
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    uint16_t usSrcPort = 1024U;
+    const char * pcReturn;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.ucProtocol = FREERTOS_IPPROTO_UDP + 1;
+    xSocket.bits.bIsIPv6 = pdTRUE;
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xSocket.usLocalPort = usSrcPort;
+
+    pcReturn = prvSocketProps( &xSocket );
+}
+
+/**
+ * @brief Happy path of this function for IPv4.
+ */
+void test_FreeRTOS_inet_ntop_IPv4( void )
+{
+    const char * pcReturn;
+    uint32_t ulIPAddress = 0x10101010; /* 16.16.16.16 */
+    char * pcExpectResult = "16.16.16.16";
+    const size_t xSize = 16;
+    char cDestination[ xSize ];
+    BaseType_t xAddressFamily = FREERTOS_AF_INET4;
+
+    memset( cDestination, 0, sizeof( cDestination ) );
+
+    FreeRTOS_inet_ntop4_ExpectAndReturn( &ulIPAddress, cDestination, xSize, cDestination );
+    FreeRTOS_inet_ntop4_ReturnMemThruPtr_pcDestination( pcExpectResult, strlen( pcExpectResult ) );
+    pcReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulIPAddress, cDestination, xSize );
+
+    TEST_ASSERT_EQUAL_STRING( pcExpectResult, pcReturn );
+}
+
+/**
+ * @brief Happy path of this function for IPv4.
+ */
+void test_FreeRTOS_inet_ntop_IPv6( void )
+{
+    const char * pcReturn;
+    IPv6_Address_t * pxIPAddress = &xIPv6Address;
+    char * pcExpectResult = "2001::1";
+    const size_t xSize = 16;
+    char cDestination[ xSize ];
+    BaseType_t xAddressFamily = FREERTOS_AF_INET6;
+
+    memset( cDestination, 0, sizeof( cDestination ) );
+
+    FreeRTOS_inet_ntop6_ExpectAndReturn( pxIPAddress, cDestination, xSize, cDestination );
+    FreeRTOS_inet_ntop6_ReturnMemThruPtr_pcDestination( pcExpectResult, strlen( pcExpectResult ) );
+    pcReturn = FreeRTOS_inet_ntop( xAddressFamily, pxIPAddress, cDestination, xSize );
+
+    TEST_ASSERT_EQUAL_STRING( pcExpectResult, pcReturn );
+}
+
+/**
+ * @brief Happy path of this function for unknown family.
+ */
+void test_FreeRTOS_inet_ntop_Unknown( void )
+{
+    const char * pcReturn;
+    uint32_t ulIPAddress = 0x10101010; /* 16.16.16.16 */
+    char * pcExpectResult = "16.16.16.16";
+    const size_t xSize = 16;
+    char cDestination[ xSize ];
+    BaseType_t xAddressFamily = FREERTOS_AF_INET6 + 1;
+
+    memset( cDestination, 0, sizeof( cDestination ) );
+
+    pcReturn = FreeRTOS_inet_ntop( xAddressFamily, &ulIPAddress, cDestination, xSize );
+
+    TEST_ASSERT_EQUAL( NULL, pcReturn );
+}
+
+/**
+ * @brief Query socket type of IPv4 socket.
+ */
+void test_FreeRTOS_GetIPType_IPv4HappyPath( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
+
+    xReturn = FreeRTOS_GetIPType( &xSocket );
+
+    TEST_ASSERT_EQUAL( ipTYPE_IPv4, xReturn );
+}
+
+/**
+ * @brief Query socket type of IPv6 socket.
+ */
+void test_FreeRTOS_GetIPType_IPv6HappyPath( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+
+    xReturn = FreeRTOS_GetIPType( &xSocket );
+
+    TEST_ASSERT_EQUAL( ipTYPE_IPv6, xReturn );
 }
