@@ -81,7 +81,7 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
     return xReturn;
 }
 
-/* To guarantee the remining buffer size greater than protocol header size to avoid dereference failure. */
+/* To guarantee the remaining buffer size greater than protocol header size to avoid dereference failure. */
 void prvPrepareExtensionHeaders( uint8_t * pucEthernetBuffer,
                                  size_t uxBufferLength )
 {
@@ -147,10 +147,7 @@ void harness()
     size_t uxBufferLength;
     uint8_t * pucEthernetBuffer;
     BaseType_t xOutgoingPacket;
-    EthernetHeader_t * pxEthernetHeader;
     IPPacket_IPv6_t * pxIPPacket;
-    uint16_t usHeaderLength;
-    uint16_t protocolheadersize = sizeof( ProtocolHeaders_t );
 
     /* The buffer must contain enough buffer size for ethernet header + IPv6 header and less than MTU size. */
     __CPROVER_assume( ( uxBufferLength >= ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ProtocolHeaders_t ) ) && ( uxBufferLength < ipconfigNETWORK_MTU ) );
