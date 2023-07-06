@@ -740,8 +740,8 @@ struct xIPv6_Couple
         NetworkEndPoint_t * pxEndPoint;
         NetworkEndPoint_t * pxReturn = NULL;
         /* endpoints found for IP-type, IP-address, and MAC-address. */
-        NetworkEndPoint_t * pxFound[ rMATCH_COUNT ] = { NULL, NULL, NULL };
-        BaseType_t xCount[ rMATCH_COUNT ] = { 0, 0, 0 };
+        NetworkEndPoint_t * pxFound[ rMATCH_COUNT ] = { NULL, NULL, NULL, NULL };
+        BaseType_t xCount[ rMATCH_COUNT ] = { 0, 0, 0, 0 };
         BaseType_t xIndex;
         BaseType_t xIsIPv6 = ( usFrameType == ipIPv6_FRAME_TYPE ) ? pdTRUE : pdFALSE;
         BaseType_t xGatewayTarget = pdFALSE;
@@ -821,9 +821,9 @@ struct xIPv6_Couple
                            break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                    #if ( ipconfigUSE_IPv4 != 0 )
-                        case ( BaseType_t ) pdFALSE:
-
+                    case ( BaseType_t ) pdFALSE:
+                    default:
+                        #if ( ipconfigUSE_IPv4 != 0 )
                             if( pxEndPoint->ipv4_settings.ulIPAddress == pxIPAddressTo->ulIP_IPv4 )
                             {
                                 pxFound[ rMATCH_IP_ADDR ] = pxEndPoint;
@@ -833,12 +833,9 @@ struct xIPv6_Couple
                             {
                                 /* do nothing, coverity happy */
                             }
-                            break;
-                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                    default:   /* LCOV_EXCL_LINE */
-                        /* MISRA 16.4 Compliance */
-                        break; /* LCOV_EXCL_LINE */
+                        break;
                 }
 
                 if( xSameMACAddress == pdTRUE )
@@ -1522,6 +1519,9 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
 
             default:
                 /* MISRA 16.4 Compliance */
+                /* MISRA Ref 21.6.1 [snprintf and logging] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+                /* coverity[misra_c_2012_rule_21_6_violation] */
                 ( void ) snprintf( pcBuffer, uxSize, "NULL" );
                 break;
         }

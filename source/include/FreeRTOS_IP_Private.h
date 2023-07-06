@@ -538,15 +538,15 @@ BaseType_t xIPIsNetworkTaskReady( void );
     {
         struct
         {
-            uint64_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 64-bit variable. */
+            uint32_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 32-bit variable. */
         } a;                           /**< A struct to increase alignment. */
         struct
         {
             /* The next field only serves to give 'ucLastPacket' a correct
-             * alignment of 8 + 2.  See comments in FreeRTOS_IP.h */
+             * alignment of 4 + 2.  See comments in FreeRTOS_IP.h */
             uint8_t ucFillPacket[ ipconfigPACKET_FILLER_SIZE ];
             uint8_t ucLastPacket[ TCP_PACKET_SIZE ];
-        } u; /**< The structure to give an alignment of 8 + 2 */
+        } u; /**< The structure to give an alignment of 4 + 2 */
     } LastTCPPacket_t;
 
 /**
@@ -721,12 +721,9 @@ struct xSOCKET
 
     union
     {
-        IPUDPSocket_t xUDP;           /**< Union member: UDP socket*/
+        IPUDPSocket_t xUDP;     /**< Union member: UDP socket*/
         #if ( ipconfigUSE_TCP == 1 )
-            IPTCPSocket_t xTCP;       /**< Union member: TCP socket */
-
-            uint64_t ullTCPAlignment; /**< Make sure that xTCP is 8-bytes aligned by
-                                       * declaring a 64-bit variable in the same union */
+            IPTCPSocket_t xTCP; /**< Union member: TCP socket */
         #endif /* ipconfigUSE_TCP */
     }
     u; /**< Union of TCP/UDP socket */

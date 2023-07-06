@@ -4550,6 +4550,15 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* Go sleeping until a SEND or a CLOSE event is received. */
             ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_SEND | ( EventBits_t ) eSOCKET_CLOSED,
                                           pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+
+            xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
+
+            if( xByteCount < 0 )
+            {
+                /* In a meanwhile, the connection has dropped, stop iterating. */
+                break;
+            }
+
             /* See if in a meanwhile there is space in the TX-stream. */
             xByteCount = ( BaseType_t ) uxStreamBufferGetSpace( pxSocket->u.xTCP.txStream );
         } /* while( xBytesLeft > 0 ) */
@@ -4633,6 +4642,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @return 0 in case of success, or else a negative error code is
  *         returned.
  */
+    /* MISRA Ref 17.2.1 [Sockets and limited recursion] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-172 */
+    /* coverity[misra_c_2012_rule_17_2_violation] */
+    /* coverity[recursive_step] */
     BaseType_t FreeRTOS_listen( Socket_t xSocket,
                                 BaseType_t xBacklog )
     {

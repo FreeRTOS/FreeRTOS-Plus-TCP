@@ -63,7 +63,7 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
         char cIPv6Address[ 40 ];
     #endif
 
-    NetworkEndPoint_t * pxEndPoint = NULL;
+    const NetworkEndPoint_t * pxEndPoint = NULL;
 
     do
     {

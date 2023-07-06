@@ -10,12 +10,16 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset prvFillSockAddress.0:2,prvFillSockAddress.1:2",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvFillSockAddress.0:2,__CPROVER_file_local_FreeRTOS_DNS_c_prvFillSockAddress.1:2",
     "--unwindset FreeRTOS_freeaddrinfo.0:2",
     "--unwindset strchr.0:{HOSTNAME_UNWIND}",
     "--unwindset strncpy.0:255",
-    "--unwindset prvCreateDNSMessage.0:{HOSTNAME_UNWIND},prvCreateDNSMessage.1:{HOSTNAME_UNWIND},prvGetHostByName.0:{HOSTNAME_UNWIND},prvProcessDNSCache.0:5,strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},xTaskResumeAll.0:{HOSTNAME_UNWIND},xTaskResumeAll.1:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
+    "--unwindset __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.0:{HOSTNAME_UNWIND},__CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage.1:{HOSTNAME_UNWIND},prvGetHostByName.0:{HOSTNAME_UNWIND},prvProcessDNSCache.0:5,strlen.0:{HOSTNAME_UNWIND},__builtin___strcpy_chk.0:{HOSTNAME_UNWIND},strcmp.0:{HOSTNAME_UNWIND},xTaskResumeAll.0:{HOSTNAME_UNWIND},xTaskResumeAll.1:{HOSTNAME_UNWIND},strcpy.0:{HOSTNAME_UNWIND}",
     "--nondet-static"
+  ],
+  "OPT":
+  [
+      "--export-file-local-symbols"
   ],
   "OBJS":
   [
