@@ -1,7 +1,7 @@
 Moving to 4.0.0-rc1/rc2/rc3 from 3.x.x:
 --------------------------------
 
-Version 4.0.0-rc1/rc2/rc3 adds new files to support IPv6 functionality, breaking each file into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP remains unchanged. Build separation is added to make the library modular, enabling users to compile and create a low-footprint binary with only the required functionalities. For more details on supported build combinations, see [History.txt](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/dev/IPv6_integration/History.txt) .
+Version 4.0.0-rc1/rc2/rc3 adds new files to support IPv6 functionality, breaking each file into logically separated IPv4 and IPv6 files. The folder structure of FreeRTOS-Plus-TCP remains unchanged. Build separation is added to make the library modular, enabling users to compile and create a low-footprint binary with only the required functionalities. For more details on supported build combinations, see [History.txt](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/History.txt) .
 
 Some of the APIs have changed which is illustrated in the section below. However, there is a backward compatibility mode provided as well.
 
@@ -67,9 +67,9 @@ Change 7:
 
 Running Demos:
 -------------
-The demos can be found at: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo
+The demos can be found on [this page](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo).
 
 In all the demos, there is a backward compatibility mode which can be enabled by setting the flag “ipconfigIPv4_BACKWARD_COMPATIBLE” to 1 in the header file “FreeRTOSIPConfigDefaults.h”.
 This flag is by default set to zero.
 
-New IPv6 WinSim Demo: https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo
+New IPv6 WinSim Demo can be found on [this page](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo).
