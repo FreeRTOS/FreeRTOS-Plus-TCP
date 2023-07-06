@@ -36,6 +36,7 @@
 #include "event_groups.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
@@ -102,7 +103,7 @@
     static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
 /* local prototypes */
-    static bool StartInitMac( void );
+    static bool StartInitMac( NetworkInterface_t * pxInterface );
     static void StartInitCleanup( void );
 
     static void SetMacCtrl( TCPIP_MAC_MODULE_CTRL * pMacCtrl );
@@ -124,6 +125,17 @@
     static void MacRxPackets( void );
     static void MacProcessRxPacket( TCPIP_MAC_PACKET * pRxPkt );
 
+    static NetworkInterface_t * pxMyInterface;
+    static BaseType_t xPIC32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+    static BaseType_t xPIC32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                         NetworkBufferDescriptor_t * const pxDescriptor,
+                                                         BaseType_t xReleaseAfterSend );
+
+    static BaseType_t xPIC32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+    NetworkInterface_t * pxPIC32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                              NetworkInterface_t * pxInterface );
 
 /* memory allocation mapping to FreeRTOS */
     static void * _malloc( size_t nBytes )
@@ -207,9 +219,47 @@
         };
     #endif /* (PIC32_MAC_DEBUG_COMMANDS != 0) */
 
+    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+        NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                        NetworkInterface_t * pxInterface )
+        {
+            pxPIC32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        }
+
+    #endif
+/*-----------------------------------------------------------*/
+
+    NetworkInterface_t * pxPIC32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                              NetworkInterface_t * pxInterface )
+    {
+        static char pcName[ 8 ];
+
+/* This function pxPIC32_Eth_FillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+        snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+        memset( pxInterface, '\0', sizeof( *pxInterface ) );
+        pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+        pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+        pxInterface->pfInitialise = xPIC32_Eth_NetworkInterfaceInitialise;
+        pxInterface->pfOutput = xPIC32_Eth_NetworkInterfaceOutput;
+        pxInterface->pfGetPhyLinkStatus = xPIC32_Eth_GetPhyLinkStatus;
+
+        FreeRTOS_AddNetworkInterface( pxInterface );
+        pxMyInterface = pxInterface;
+
+        return pxInterface;
+    }
+    /*-----------------------------------------------------------*/
 
 /* FreeRTOS implementation functions */
-    BaseType_t xNetworkInterfaceInitialise( void )
+    static BaseType_t xPIC32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
     {
         BaseType_t xResult;
 
@@ -229,7 +279,7 @@
 
         if( xMacInitStatus == eMACPass )
         {
-            xResult = xGetPhyLinkStatus();
+            xResult = xPIC32_Eth_GetPhyLinkStatus( pxMyInterface );
         }
         else
         {
@@ -241,12 +291,14 @@
         return xResult;
     }
 
-
 /*-----------------------------------------------------------*/
 
-    BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                        BaseType_t xReleaseAfterSend )
+/*-----------------------------------------------------------*/
+    static BaseType_t xPIC32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                         NetworkBufferDescriptor_t * const pxDescriptor,
+                                                         BaseType_t xReleaseAfterSend )
     {
+        BaseType_t xEMACIndex = ( BaseType_t ) pxInterface->pvArgument;
         TCPIP_MAC_RES macRes;
         TCPIP_MAC_PACKET * pTxPkt;
 
@@ -317,11 +369,12 @@
 /* */
 
 
-    static bool StartInitMac( void )
+    static bool StartInitMac( NetworkInterface_t * pxInterface )
     {
         TCPIP_MAC_MODULE_CTRL macCtrl;
         SYS_MODULE_INIT moduleInit;
         EventBits_t evBits;
+        NetworkEndPoint_t * pxEndPoint;
 
 
         /* perform some initialization of all variables so that we can cleanup what failed */
@@ -360,8 +413,15 @@
              * FreeRTOSConfig.h and therefore it will be initialized to the
              * factory programmed MAC address. */
             SetMacCtrl( &macCtrl );
-            /* Set the mac address in the FreeRTOS+TCP stack. */
-            FreeRTOS_UpdateMACAddress( macCtrl.ifPhyAddress.v );
+
+            /* Set the mac address in the end-points. */
+            for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+                 pxEndPoint != NULL;
+                 pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+            {
+                /* This driver, for now, will have the same MAC-address for all its end-points. */
+                memcpy( pxEndPoint->xMACAddress.ucBytes, macCtrl.ifPhyAddress.v, ipMAC_ADDRESS_LENGTH_BYTES );
+            }
 
             TCPIP_MAC_INIT macInit =
             {
@@ -677,9 +737,9 @@
 
 /*-----------------------------------------------------------*/
 
-    BaseType_t xGetPhyLinkStatus( void )
+    static BaseType_t xPIC32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
     {
-        return macLinkStatus == true ? pdPASS : pdFAIL;
+        return ( macLinkStatus == true ) ? pdPASS : pdFAIL;
     }
 
 
@@ -748,6 +808,8 @@
             }
 
             PIC32_MacAssociate( pRxPkt, pxBufferDescriptor, pktLength );
+            pxBufferDescriptor->pxInterface = pxMyInterface;
+            pxBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxBufferDescriptor->pucEthernetBuffer );
 
             xRxEvent.eEventType = eNetworkRxEvent;
             xRxEvent.pvData = ( void * ) pxBufferDescriptor;

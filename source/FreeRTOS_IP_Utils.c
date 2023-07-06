@@ -53,6 +53,9 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_Routing.h"
+#include "FreeRTOS_ND.h"
+/*-----------------------------------------------------------*/
 
 /* Used to ensure the structure packing is having the desired effect.  The
  * 'volatile' is used to prevent compiler warnings about comparing a constant with
@@ -72,15 +75,8 @@
     #define ipINITIALISATION_RETRY_DELAY    ( pdMS_TO_TICKS( 3000U ) )
 #endif
 
-#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-    /* used for unit testing */
-
-/* MISRA Ref 8.9.1 [File scoped variables] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-/* coverity[misra_c_2012_rule_8_9_violation] */
-/* coverity[single_use] */
-    static BaseType_t xCallEventHook = pdFALSE;
-#endif
+/** @brief The minimum value of TCP offset value. */
+#define FREERTOS_MINIMUM_TCP_OFFSET    ( 5U )
 
 #if ( ipconfigHAS_PRINTF != 0 )
     /** @brief Last value of minimum buffer count. */
@@ -120,52 +116,133 @@ typedef union xUnionPtr
 static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
                                                                      size_t uxOffset );
 
-#if ( ipconfigUSE_DHCP != 0 )
+static uintptr_t void_ptr_to_uintptr( const void * pvPointer );
+
+static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
+                                             struct xPacketSummary * pxSet );
+
+static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet );
+
+static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
+                                          const uint8_t * pucEthernetBuffer,
+                                          struct xPacketSummary * pxSet );
+
+static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
+                                            const uint8_t * pucEthernetBuffer,
+                                            size_t uxBufferLength,
+                                            const struct xPacketSummary * pxSet );
+
+static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
+                                    uint16_t usChecksum );
+
+static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
+
+/**
+ * @brief Set checksum in the packet
+ *
+ * @param pxSet Pointer to the packet summary that describes the packet,
+ *                  to which the checksum will be set.
+ *
+ * @param usChecksum Checksum value to be set.
+ */
+static void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
+                                    uint16_t usChecksum )
+{
+    if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
+    {
+        pxSet->pxProtocolHeaders->xUDPHeader.usChecksum = usChecksum;
+    }
+    else if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
+    {
+        pxSet->pxProtocolHeaders->xTCPHeader.usChecksum = usChecksum;
+    }
+    else if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
+             ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
+    {
+        pxSet->pxProtocolHeaders->xICMPHeader.usChecksum = usChecksum;
+    }
+    else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
+    {
+        pxSet->pxProtocolHeaders->xICMPHeaderIPv6.usChecksum = usChecksum;
+    }
+    else
+    {
+        /* Unhandled protocol. */
+    }
+}
+
+/**
+ * @brief Get checksum from the packet summary
+ *
+ * @param pxSet Pointer to the packet summary that describes the packet,
+ *                  from which the checksum will be retrieved.
+ *
+ * @return Checksum value that is retrieved from pxSet.
+ */
+static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
+{
+    uint16_t usChecksum;
+
+    if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
+    {
+        usChecksum = pxSet->pxProtocolHeaders->xUDPHeader.usChecksum;
+    }
+    else if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
+    {
+        usChecksum = pxSet->pxProtocolHeaders->xTCPHeader.usChecksum;
+    }
+    else if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
+             ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
+    {
+        usChecksum = pxSet->pxProtocolHeaders->xICMPHeader.usChecksum;
+    }
+    else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
+    {
+        usChecksum = pxSet->pxProtocolHeaders->xICMPHeaderIPv6.usChecksum;
+    }
+    else
+    {
+        /* Unhandled protocol. */
+        usChecksum = ipUNHANDLED_PROTOCOL;
+    }
+
+    return usChecksum;
+}
+
+#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
 
 /**
  * @brief Create a DHCP event.
  *
  * @return pdPASS or pdFAIL, depending on whether xSendEventStructToIPTask()
  *         succeeded.
+ * @param pxEndPoint The end-point that needs DHCP.
  */
-    BaseType_t xSendDHCPEvent( void )
+    BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
     {
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
-        uintptr_t uxOption = ( uintptr_t ) eGetDHCPState();
+
+        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+            eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
+        #endif
 
         xEventMessage.eEventType = eDHCPEvent;
 
         /* MISRA Ref 11.6.1 [DHCP events and conversion to void] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
-        xEventMessage.pvData = ( void * ) uxOption;
+        xEventMessage.pvData = ( void * ) pxEndPoint;
+        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+            {
+                pxEndPoint->xDHCPData.eExpectedState = uxOption;
+            }
+        #endif
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
     }
+#endif /* if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) */
 /*-----------------------------------------------------------*/
-#endif /* ( ipconfigUSE_DHCP != 0 ) */
-
-/**
- * @brief Set multicast MAC address.
- *
- * @param[in] ulIPAddress IP address.
- * @param[out] pxMACAddress Pointer to MAC address.
- */
-void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
-                                  MACAddress_t * pxMACAddress )
-{
-    uint32_t ulIP = FreeRTOS_ntohl( ulIPAddress );
-
-    pxMACAddress->ucBytes[ 0 ] = ( uint8_t ) 0x01U;
-    pxMACAddress->ucBytes[ 1 ] = ( uint8_t ) 0x00U;
-    pxMACAddress->ucBytes[ 2 ] = ( uint8_t ) 0x5EU;
-    pxMACAddress->ucBytes[ 3 ] = ( uint8_t ) ( ( ulIP >> 16 ) & 0x7fU ); /* Use 7 bits. */
-    pxMACAddress->ucBytes[ 4 ] = ( uint8_t ) ( ( ulIP >> 8 ) & 0xffU );  /* Use 8 bits. */
-    pxMACAddress->ucBytes[ 5 ] = ( uint8_t ) ( ( ulIP ) & 0xffU );       /* Use 8 bits. */
-}
-/*-----------------------------------------------------------*/
-
 
 /**
  * @brief Duplicate the given network buffer descriptor with a modified length.
@@ -188,6 +265,8 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
 
     if( pxNewBuffer != NULL )
     {
+        configASSERT( pxNewBuffer->pucEthernetBuffer != NULL );
+
         /* Get the minimum of both values to copy the data. */
         if( uxLengthToCopy > pxNetworkBuffer->xDataLength )
         {
@@ -199,10 +278,19 @@ NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const Networ
         pxNewBuffer->xDataLength = uxNewLength;
 
         /* Copy the original packet information. */
-        pxNewBuffer->ulIPAddress = pxNetworkBuffer->ulIPAddress;
+        pxNewBuffer->xIPAddress.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
         pxNewBuffer->usPort = pxNetworkBuffer->usPort;
         pxNewBuffer->usBoundPort = pxNetworkBuffer->usBoundPort;
+        pxNewBuffer->pxInterface = pxNetworkBuffer->pxInterface;
+        pxNewBuffer->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         ( void ) memcpy( pxNewBuffer->pucEthernetBuffer, pxNetworkBuffer->pucEthernetBuffer, uxLengthToCopy );
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( uxIPHeaderSizePacket( pxNewBuffer ) == ipSIZE_OF_IPv6_HEADER )
+            {
+                ( void ) memcpy( pxNewBuffer->xIPAddress.xIP_IPv6.ucBytes, pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+            }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
 
     return pxNewBuffer;
@@ -234,7 +322,7 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
         /* MISRA Ref 11.6.2 [Pointer arithmetic and hidden pointer] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
-        uxBuffer = ( uintptr_t ) pvBuffer;
+        uxBuffer = void_ptr_to_uintptr( pvBuffer );
 
         /* The input here is a pointer to a packet buffer plus some offset.  Subtract
          * this offset, and also the size of the header in the network buffer, usually
@@ -257,6 +345,348 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
     }
 
     return pxResult;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief uintptr_t is an unsigned integer type that is capable of storing a data pointer.
+ *        Therefore it is safe to convert from a void pointer to a uintptr_t, using a union.
+ */
+union uIntPtr
+{
+    uintptr_t uxPtr;    /**< THe numeric value. */
+    const void * pvPtr; /**< THe void pointer. */
+};
+
+/**
+ * @brief Helper function: cast a pointer to a numeric value 'uintptr_t',
+ *        using a union as defined here above.
+ * @param[in] pvPointer A void pointer to be converted.
+ * @return The value of the void pointer as an unsigned number.
+ */
+static uintptr_t void_ptr_to_uintptr( const void * pvPointer )
+{
+    /* The type 'uintptr_t' has the same size as a pointer.
+     * Therefore, it is safe to use a union to convert it. */
+    union uIntPtr intPtr;
+
+    intPtr.pvPtr = pvPointer;
+    return intPtr.uxPtr;
+}
+/*-----------------------------------------------------------*/
+
+/** @brief Get and check the specific lengths depending on the protocol ( TCP/UDP/ICMP/IGMP ).
+ * @param[in] uxBufferLength The number of bytes to be sent or received.
+ * @param[in] pxSet A struct describing this packet.
+ *
+ * @return Non-zero in case of an error.
+ */
+static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
+                                             struct xPacketSummary * pxSet )
+{
+    BaseType_t xReturn = 0;
+
+    /* Both in case of IPv4, as well as IPv6, it has been confirmed that the packet
+     * is long enough to contain the promised data. */
+
+    /* Switch on the Layer 3/4 protocol. */
+    if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
+    {
+        if( ( pxSet->usProtocolBytes < ipSIZE_OF_UDP_HEADER ) ||
+            ( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + ipSIZE_OF_UDP_HEADER ) ) )
+        {
+            pxSet->usChecksum = ipINVALID_LENGTH;
+            xReturn = 7;
+        }
+
+        if( xReturn == 0 )
+        {
+            pxSet->uxProtocolHeaderLength = sizeof( pxSet->pxProtocolHeaders->xUDPHeader );
+            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                {
+                    pxSet->pcType = "UDP";
+                }
+            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+        }
+    }
+    else if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
+    {
+        if( ( pxSet->usProtocolBytes < ipSIZE_OF_TCP_HEADER ) ||
+            ( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + ipSIZE_OF_TCP_HEADER ) ) )
+        {
+            pxSet->usChecksum = ipINVALID_LENGTH;
+            xReturn = 8;
+        }
+
+        if( xReturn == 0 )
+        {
+            uint8_t ucLength = pxSet->pxProtocolHeaders->xTCPHeader.ucTCPOffset >> 4U;
+            size_t uxOptionsLength;
+
+            if( ucLength < FREERTOS_MINIMUM_TCP_OFFSET )
+            {
+                pxSet->usChecksum = ipINVALID_LENGTH;
+                xReturn = 9;
+            }
+            else
+            {
+                uxOptionsLength = ( ( ( size_t ) ucLength - 5U ) << 2U );
+
+                pxSet->uxProtocolHeaderLength = ipSIZE_OF_TCP_HEADER + uxOptionsLength;
+                #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                    {
+                        pxSet->pcType = "TCP";
+                    }
+                #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+            }
+        }
+    }
+    else if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
+             ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
+    {
+        if( ( pxSet->usProtocolBytes < ipSIZE_OF_ICMPv4_HEADER ) ||
+            ( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + ipSIZE_OF_ICMPv4_HEADER ) ) )
+        {
+            pxSet->usChecksum = ipINVALID_LENGTH;
+            xReturn = 10;
+        }
+
+        if( xReturn == 0 )
+        {
+            pxSet->uxProtocolHeaderLength = sizeof( pxSet->pxProtocolHeaders->xICMPHeader );
+
+            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                {
+                    if( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+                    {
+                        pxSet->pcType = "ICMP";
+                    }
+                    else
+                    {
+                        pxSet->pcType = "IGMP";
+                    }
+                }
+            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+        }
+    }
+    else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
+    {
+        #if ( ipconfigUSE_IPv6 != 0 )
+            xReturn = prvChecksumICMPv6Checks( uxBufferLength, pxSet );
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    }
+    else
+    {
+        /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
+        pxSet->usChecksum = ipUNHANDLED_PROTOCOL;
+        xReturn = 11;
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/** @brief See if the packet doesn't get bigger than the value of MTU.
+ * @param[in] pxSet A struct describing this packet.
+ *
+ * @return Non-zero in case of an error.
+ */
+static BaseType_t prvChecksumProtocolMTUCheck( struct xPacketSummary * pxSet )
+{
+    BaseType_t xReturn = 0;
+
+    /* Here, 'pxSet->usProtocolBytes' contains the size of the protocol data
+     * ( headers and payload ). */
+
+    /* The Ethernet header is excluded from the MTU. */
+    uint32_t ulMaxLength = ipconfigNETWORK_MTU;
+
+    ulMaxLength -= ( uint32_t ) pxSet->uxIPHeaderLength;
+
+    if( ( pxSet->usProtocolBytes < ( uint16_t ) pxSet->uxProtocolHeaderLength ) ||
+        ( pxSet->usProtocolBytes > ulMaxLength ) )
+    {
+        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+            {
+                FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: len invalid: %u\n", pxSet->pcType, pxSet->usProtocolBytes ) );
+            }
+        #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+
+        /* Again, in a 16-bit return value there is no space to indicate an
+         * error.  For incoming packets, 0x1234 will cause dropping of the packet.
+         * For outgoing packets, there is a serious problem with the
+         * format/length */
+        pxSet->usChecksum = ipINVALID_LENGTH;
+        xReturn = 13;
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/** @brief Do the actual checksum calculations, both the pseudo header, and the payload.
+ * @param[in] xOutgoingPacket pdTRUE when the packet is to be sent.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] pxSet A struct describing this packet.
+ */
+static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
+                                          const uint8_t * pucEthernetBuffer,
+                                          struct xPacketSummary * pxSet )
+{
+    #if ( ipconfigUSE_IPv6 != 0 )
+        if( pxSet->xIsIPv6 != pdFALSE )
+        {
+            uint32_t pulHeader[ 2 ];
+
+            /* IPv6 has a 40-byte pseudo header:
+             * 0..15 Source IPv6 address
+             * 16..31 Target IPv6 address
+             * 32..35 Length of payload
+             * 36..38 three zero's
+             * 39 Next Header, i.e. the protocol type. */
+
+            pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
+            pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
+            pulHeader[ 1 ] = ( uint32_t ) pxSet->pxIPPacket_IPv6->ucNextHeader;
+            pulHeader[ 1 ] = FreeRTOS_htonl( pulHeader[ 1 ] );
+
+            pxSet->usChecksum = usGenerateChecksum( 0U,
+                                                    &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + offsetof( IPHeader_IPv6_t, xSourceAddress ) ] ),
+                                                    ( size_t ) ( 2U * sizeof( pxSet->pxIPPacket_IPv6->xSourceAddress ) ) );
+
+            pxSet->usChecksum = usGenerateChecksum( pxSet->usChecksum,
+                                                    ( const uint8_t * ) pulHeader,
+                                                    ( size_t ) ( sizeof( pulHeader ) ) );
+        }
+    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+    if( ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) || ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
+    {
+        /* ICMP/IGMP do not have a pseudo header for CRC-calculation. */
+        pxSet->usChecksum = ( uint16_t )
+                            ( ~usGenerateChecksum( 0U, &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] ), ( size_t ) pxSet->usProtocolBytes ) );
+    }
+
+    else if( ( pxSet->xIsIPv6 != pdFALSE ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 ) )
+    {
+        #if ( ipconfigUSE_IPv6 != 0 )
+            pxSet->usChecksum = ( uint16_t )
+                                ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                       ( uint8_t * ) &( pxSet->pxProtocolHeaders->xTCPHeader ),
+                                                       ( size_t ) pxSet->usProtocolBytes ) );
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    }
+    else
+    {
+        /* Default case is impossible to reach because it's checked before calling this function. */
+        switch( pxSet->xIsIPv6 ) /* LCOV_EXCL_BR_LINE */
+        {
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE:
+                    /* The CRC of the IPv6 pseudo-header has already been calculated. */
+                    pxSet->usChecksum = ( uint16_t )
+                                        ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                               ( uint8_t * ) &( pxSet->pxProtocolHeaders->xUDPHeader.usSourcePort ),
+                                                               ( size_t ) ( pxSet->usProtocolBytes ) ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE:
+                   {
+                       /* The IPv4 pseudo header contains 2 IP-addresses, totalling 8 bytes. */
+                       uint32_t ulByteCount = pxSet->usProtocolBytes;
+                       ulByteCount += 2U * ipSIZE_OF_IPv4_ADDRESS;
+
+                       /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
+                        * fields */
+                       pxSet->usChecksum = ( uint16_t ) ( pxSet->usProtocolBytes + ( ( uint16_t ) pxSet->ucProtocol ) );
+
+                       /* And then continue at the IPv4 source and destination addresses. */
+                       pxSet->usChecksum = ( uint16_t )
+                                           ( ~usGenerateChecksum( pxSet->usChecksum,
+                                                                  ( const uint8_t * ) &( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
+                                                                  ulByteCount ) );
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            /* Default case is impossible to reach because it's checked before calling this function. */
+            default: /* LCOV_EXCL_LINE */
+                /* Shouldn't reach here */
+                /* MISRA 16.4 Compliance */
+                break; /* LCOV_EXCL_LINE */
+        }
+
+        /* Sum TCP header and data. */
+    }
+
+    if( xOutgoingPacket == pdFALSE )
+    {
+        /* This is in incoming packet. If the CRC is correct, it should be zero. */
+        if( pxSet->usChecksum == 0U )
+        {
+            pxSet->usChecksum = ( uint16_t ) ipCORRECT_CRC;
+        }
+        else
+        {
+            pxSet->usChecksum = ( uint16_t ) ipWRONG_CRC;
+        }
+    }
+    else
+    {
+        if( ( pxSet->usChecksum == 0U ) && ( pxSet->ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
+        {
+            /* In case of UDP, a calculated checksum of 0x0000 is transmitted
+             * as 0xffff. A value of zero would mean that the checksum is not used. */
+            pxSet->usChecksum = ( uint16_t ) 0xffffu;
+        }
+    }
+
+    pxSet->usChecksum = FreeRTOS_htons( pxSet->usChecksum );
+}
+/*-----------------------------------------------------------*/
+
+/** @brief For outgoing packets, set the checksum in the packet,
+ *        for incoming packets: show logging in case an error occurred.
+ * @param[in] xOutgoingPacket Non-zero if this is an outgoing packet.
+ * @param[in] pucEthernetBuffer The buffer containing the packet.
+ * @param[in] uxBufferLength the total number of bytes received, or the number of bytes written
+ * @param[in] pxSet A struct describing this packet.
+ */
+static void prvChecksumProtocolSetChecksum( BaseType_t xOutgoingPacket,
+                                            const uint8_t * pucEthernetBuffer,
+                                            size_t uxBufferLength,
+                                            const struct xPacketSummary * pxSet )
+{
+    if( xOutgoingPacket != pdFALSE )
+    {
+        prvSetChecksumInPacket( pxSet, pxSet->usChecksum );
+    }
+
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+        else if( pxSet->usChecksum != ipCORRECT_CRC )
+        {
+            uint16_t usGot;
+            usGot = prvGetChecksumFromPacket( pxSet );
+            FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: len %d ID %04X: from %xip to %xip cal %04X got %04X\n",
+                                     pxSet->pcType,
+                                     pxSet->usProtocolBytes,
+                                     FreeRTOS_ntohs( pxSet->pxIPPacket->xIPHeader.usIdentification ),
+                                     ( unsigned ) FreeRTOS_ntohl( pxSet->pxIPPacket->xIPHeader.ulSourceIPAddress ),
+                                     ( unsigned ) FreeRTOS_ntohl( pxSet->pxIPPacket->xIPHeader.ulDestinationIPAddress ),
+                                     FreeRTOS_ntohs( pxSet->usChecksum ),
+                                     FreeRTOS_ntohs( usGot ) ) );
+        }
+        else
+        {
+            /* This is an incoming packet and it doesn't need debug logging. */
+        }
+    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+
+    /* Mention parameters that are not used by the function. */
+    ( void ) uxBufferLength;
+    ( void ) pucEthernetBuffer;
 }
 /*-----------------------------------------------------------*/
 
@@ -286,7 +716,66 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
  */
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
 {
-    return prvPacketBuffer_to_NetworkBuffer( pvBuffer, sizeof( UDPPacket_t ) );
+    NetworkBufferDescriptor_t * pxResult;
+
+    if( pvBuffer == NULL )
+    {
+        pxResult = NULL;
+    }
+    else
+    {
+        size_t uxOffset;
+
+        /* The input here is a pointer to a payload buffer.  Subtract
+         * the total size of a UDP/IP packet plus the size of the header in
+         * the network buffer, usually 8 + 2 bytes. */
+
+        uintptr_t uxTypeOffset;
+        const uint8_t * pucIPType;
+        uint8_t ucIPType;
+
+        /* When IPv6 is supported, find out the type of the packet.
+         * It is stored 48 bytes before the payload buffer as 0x40 or 0x60. */
+        uxTypeOffset = void_ptr_to_uintptr( pvBuffer );
+        uxTypeOffset -= ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+        /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+        /* coverity[misra_c_2012_rule_11_4_violation] */
+        pucIPType = ( const uint8_t * ) uxTypeOffset;
+
+        /* For an IPv4 packet, pucIPType points to 6 bytes before the pucEthernetBuffer,
+         * for a IPv6 packet, pucIPType will point to the first byte of the IP-header: 'ucVersionTrafficClass'. */
+        ucIPType = pucIPType[ 0 ] & 0xf0U;
+
+        /* To help the translation from a UDP payload pointer to a networkBuffer,
+         * a byte was stored at a certain negative offset (-48 bytes).
+         * It must have a value of either 0x4x or 0x6x. */
+        configASSERT( ( ucIPType == ipTYPE_IPv4 ) || ( ucIPType == ipTYPE_IPv6 ) );
+
+        switch( ucIPType ) /* LCOV_EXCL_BR_LINE */
+        {
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipTYPE_IPv6:
+                    uxOffset = sizeof( UDPPacket_IPv6_t );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipTYPE_IPv4:
+                    uxOffset = sizeof( UDPPacket_t );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            default:
+                FreeRTOS_debug_printf( ( "pxUDPPayloadBuffer_to_NetworkBuffer: Undefined ucIPType \n" ) );
+                uxOffset = sizeof( UDPPacket_t );
+                break;
+        }
+
+        pxResult = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
+    }
+
+    return pxResult;
 }
 /*-----------------------------------------------------------*/
 
@@ -321,60 +810,134 @@ BaseType_t xIsCallingFromIPTask( void )
 
 /**
  * @brief Process a 'Network down' event and complete required processing.
+ * @param pxInterface The interface that goes down.
  */
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 /* coverity[single_use] */
-void prvProcessNetworkDownEvent( void )
+void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 {
+    NetworkEndPoint_t * pxEndPoint;
+
+    configASSERT( pxInterface != NULL );
+    configASSERT( pxInterface->pfInitialise != NULL );
     /* Stop the ARP timer while there is no network. */
     vIPSetARPTimerEnableState( pdFALSE );
 
-    #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        {
-            /* The first network down event is generated by the IP stack itself to
-             * initialise the network hardware, so do not call the network down event
-             * the first time through. */
-            if( xCallEventHook == pdTRUE )
+    /* The first network down event is generated by the IP stack itself to
+     * initialise the network hardware, so do not call the network down event
+     * the first time through. */
+
+    for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+         pxEndPoint != NULL;
+         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+    {
+        /* The bit 'bEndPointUp' stays low until vIPNetworkUpCalls() is called. */
+        pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
+        #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
             {
-                vApplicationIPNetworkEventHook( eNetworkDown );
+                if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
+                {
+                    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                        {
+                            vApplicationIPNetworkEventHook( eNetworkDown );
+                        }
+                    #else
+                        {
+                            vApplicationIPNetworkEventHook_Multi( eNetworkDown, pxEndPoint );
+                        }
+                    #endif
+                }
+                else
+                {
+                    /* The next time NetworkEventHook will be called for this end-point. */
+                    pxEndPoint->bits.bCallDownHook = pdTRUE_UNSIGNED;
+                }
             }
+        #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
 
-            xCallEventHook = pdTRUE;
-        }
-    #endif /* if ipconfigUSE_NETWORK_EVENT_HOOK == 1 */
-
-    /* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122,
-     * treat network down as a "delivery problem" and flush the ARP cache for this
-     * interface. */
-    FreeRTOS_ClearARP();
+        /* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122,
+         * treat network down as a "delivery problem" and flush the ARP cache for this
+         *  interface. */
+        FreeRTOS_ClearARP( pxEndPoint );
+    }
 
     /* The network has been disconnected (or is being initialised for the first
      * time).  Perform whatever hardware processing is necessary to bring it up
      * again, or wait for it to be available again.  This is hardware dependent. */
-    if( xNetworkInterfaceInitialise() != pdPASS )
+
+    if( pxInterface->pfInitialise( pxInterface ) == pdPASS )
     {
-        /* Ideally the network interface initialisation function will only
-         * return when the network is available.  In case this is not the case,
-         * wait a while before retrying the initialisation. */
-        vTaskDelay( ipINITIALISATION_RETRY_DELAY );
-        FreeRTOS_NetworkDown();
+        pxInterface->bits.bInterfaceUp = pdTRUE_UNSIGNED;
+        /* Set remaining time to 0 so it will become active immediately. */
+
+        /* The network is not up until DHCP has completed.
+         * Start it now for all associated end-points. */
+
+        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+        {
+            #if ( ipconfigUSE_DHCP == 1 )
+                if( END_POINT_USES_DHCP( pxEndPoint ) )
+                {
+                    #if ( ( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                        {
+                            vDHCPv6Process( pdTRUE, pxEndPoint );
+                        }
+                        else
+                    #endif /* (( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 )) */
+                    {
+                        /* Reset the DHCP process for this end-point. */
+                        vDHCPProcess( pdTRUE, pxEndPoint );
+                    }
+                }
+                else /* Yes this else ought to be here. */
+            #endif /* ( ipconfigUSE_DHCP == 1 ) */
+
+            #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                if( END_POINT_USES_RA( pxEndPoint ) )
+                {
+                    /* Reset the RA/SLAAC process for this end-point. */
+                    vRAProcess( pdTRUE, pxEndPoint );
+                }
+                else
+            #endif /* ( (ipconfigUSE_RA != 0) && ( ipconfigUSE_IPv6 != 0 )) */
+
+            {
+                switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
+                {
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case pdFALSE_UNSIGNED:
+                            ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case pdTRUE_UNSIGNED:
+                            ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    default:
+                        /* MISRA 16.4 Compliance */
+                        break;
+                }
+
+                *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
+
+                /* DHCP or Router Advertisement are not enabled for this end-point.
+                 * Perform any necessary 'network up' processing. */
+                vIPNetworkUpCalls( pxEndPoint );
+            }
+        }
     }
     else
     {
-        /* Set remaining time to 0 so it will become active immediately. */
-        #if ipconfigUSE_DHCP == 1
-            {
-                /* The network is not up until DHCP has completed. */
-                vDHCPProcess( pdTRUE, eInitialWait );
-            }
-        #else
-            {
-                /* Perform any necessary 'network up' processing. */
-                vIPNetworkUpCalls();
-            }
-        #endif
+        /* Nothing to do. When the 'xNetworkTimer' expires, all interfaces
+         * with bits.bInterfaceUp cleared will get a new 'eNetworkDownEvent' */
     }
 }
 /*-----------------------------------------------------------*/
@@ -397,10 +960,12 @@ void vPreCheckConfigs( void )
             if( uxSize == 8U )
             {
                 /* This is a 64-bit platform, make sure there is enough space in
-                 * pucEthernetBuffer to store a pointer. */
-                configASSERT( ipconfigBUFFER_PADDING >= 14 );
-                /* But it must have this strange alignment: */
-                configASSERT( ( ( ( ipconfigBUFFER_PADDING ) + 2 ) % 4 ) == 0 );
+                 * pucEthernetBuffer to store a pointer and also make sure that the value of
+                 * ipconfigBUFFER_PADDING is such that (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) is a
+                 * 32 bit (4 byte) aligned value, so that when incrementing the ethernet buffer with
+                 * (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) bytes it lands in a 32 bit aligned address
+                 * which lets us efficiently access 32 bit values later in the packet. */
+                configASSERT( ( ipconfigBUFFER_PADDING >= 14 ) && ( ( ( ( ipconfigBUFFER_PADDING ) + ( ipSIZE_OF_ETH_HEADER ) ) % 4 ) == 0 ) );
             }
 
             /* LCOV_EXCL_BR_START */
@@ -423,10 +988,18 @@ void vPreCheckConfigs( void )
 
             uxSize = sizeof( UDPHeader_t );
             configASSERT( uxSize == ipEXPECTED_UDPHeader_t_SIZE );
+
+            #if ipconfigUSE_TCP == 1
+                {
+                    uxSize = sizeof( TCPHeader_t );
+                    configASSERT( uxSize == ( ipEXPECTED_TCPHeader_t_SIZE + ipSIZE_TCP_OPTIONS ) );
+                }
+            #endif
             /* LCOV_EXCL_BR_STOP */
         }
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Generate or check the protocol checksum of the data sent in the first parameter.
@@ -434,7 +1007,9 @@ void vPreCheckConfigs( void )
  *        will be checked.
  *
  * @param[in] pucEthernetBuffer The Ethernet buffer for which the checksum is to be calculated
- *                               or checked.
+ *                               or checked.  'pucEthernetBuffer' is now non-const because the
+ *                               function will set the checksum fields, in case 'xOutgoingPacket'
+ *                               is pdTRUE.
  * @param[in] uxBufferLength the total number of bytes received, or the number of bytes written
  *                            in the packet buffer.
  * @param[in] xOutgoingPacket Whether this is an outgoing packet or not.
@@ -448,335 +1023,137 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                      size_t uxBufferLength,
                                      BaseType_t xOutgoingPacket )
 {
-    uint32_t ulLength;
-    uint16_t usChecksum;           /* The checksum as calculated. */
-    uint16_t usChecksumFound = 0U; /* The checksum as found in the incoming packet. */
-    const IPPacket_t * pxIPPacket;
-    UBaseType_t uxIPHeaderLength;
-    ProtocolPacket_t * pxProtPack;
-    uint8_t ucProtocol;
+    struct xPacketSummary xSet;
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
+
+    DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-        const char * pcType;
-    #endif
-    uint16_t usLength;
-    uint16_t ucVersionHeaderLength;
-    DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
+        {
+            xSet.pcType = "???";
+        }
+    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+
+    configASSERT( ( ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) ||
+                  ( ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE ) );
 
     /* Introduce a do-while loop to allow use of break statements.
      * Note: MISRA prohibits use of 'goto', thus replaced with breaks. */
     do
     {
-        /* Check for minimum packet size. */
-        if( uxBufferLength < sizeof( IPPacket_t ) )
-        {
-            usChecksum = ipINVALID_LENGTH;
-            DEBUG_SET_TRACE_VARIABLE( xLocation, 1 );
-            break;
-        }
+        BaseType_t xResult = 0;
 
         /* Parse the packet length. */
-
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
+        xSet.pxIPPacket = ( ( const IPPacket_t * ) pucEthernetBuffer );
 
-        /* Per https://tools.ietf.org/html/rfc791, the four-bit Internet Header
-         * Length field contains the length of the internet header in 32-bit words. */
-        ucVersionHeaderLength = pxIPPacket->xIPHeader.ucVersionHeaderLength;
-        ucVersionHeaderLength = ( uint16_t ) ( ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2U );
-        uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
-
-        /* Check for minimum packet size. */
-        if( uxBufferLength < ( sizeof( IPPacket_t ) + ( uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ) ) )
+        switch( xSet.pxIPPacket->xEthernetHeader.usFrameType ) /* LCOV_EXCL_BR_LINE */
         {
-            usChecksum = ipINVALID_LENGTH;
-            DEBUG_SET_TRACE_VARIABLE( xLocation, 2 );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                    xResult = prvChecksumIPv4Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                    /* MISRA Ref 11.3.1 [Misaligned access] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                    /* coverity[misra_c_2012_rule_11_3_violation] */
+                    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+                    xResult = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &( xSet ) );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* MISRA 16.4 Compliance */
+                FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum: Undefined usFrameType %d\n", xSet.pxIPPacket->xEthernetHeader.usFrameType ) );
+
+                xSet.usChecksum = ipINVALID_LENGTH;
+                xResult = 1;
+                break;
+        }
+
+        if( xResult != 0 )
+        {
+            DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
             break;
         }
 
-        usLength = pxIPPacket->xIPHeader.usLength;
-        usLength = FreeRTOS_ntohs( usLength );
-
-        if( usLength < uxIPHeaderLength )
         {
-            usChecksum = ipINVALID_LENGTH;
-            DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
-            break;
-        }
+            xResult = prvChecksumProtocolChecks( uxBufferLength, &( xSet ) );
 
-        if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
-        {
-            usChecksum = ipINVALID_LENGTH;
-            DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
-            break;
-        }
-
-        /* Identify the next protocol. */
-        ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-
-        /* N.B., if this IP packet header includes Options, then the following
-         * assignment results in a pointer into the protocol packet with the Ethernet
-         * and IP headers incorrectly aligned. However, either way, the "third"
-         * protocol (Layer 3 or 4) header will be aligned, which is the convenience
-         * of this calculation. */
-
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxProtPack = ( ( ProtocolPacket_t * ) &( pucEthernetBuffer[ uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
-
-        /* Switch on the Layer 3/4 protocol. */
-        if( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP )
-        {
-            if( uxBufferLength < ( uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER ) )
+            if( xResult != 0 )
             {
-                usChecksum = ipINVALID_LENGTH;
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 5 );
+                DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
                 break;
             }
-
-            if( xOutgoingPacket != pdFALSE )
-            {
-                /* Clear the UDP checksum field before calculating it. */
-                pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0U;
-            }
-            else
-            {
-                usChecksumFound = pxProtPack->xUDPPacket.xUDPHeader.usChecksum;
-            }
-
-            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                {
-                    pcType = "UDP";
-                }
-            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-        }
-        else if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
-        {
-            if( uxBufferLength < ( uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER ) )
-            {
-                usChecksum = ipINVALID_LENGTH;
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
-                break;
-            }
-
-            if( xOutgoingPacket != pdFALSE )
-            {
-                /* Clear the TCP checksum field before calculating it. */
-                pxProtPack->xTCPPacket.xTCPHeader.usChecksum = 0U;
-            }
-            else
-            {
-                usChecksumFound = pxProtPack->xTCPPacket.xTCPHeader.usChecksum;
-            }
-
-            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                {
-                    pcType = "TCP";
-                }
-            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-        }
-        else if( ( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP ) ||
-                 ( ucProtocol == ( uint8_t ) ipPROTOCOL_IGMP ) )
-        {
-            if( uxBufferLength < ( uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMP_HEADER ) )
-            {
-                usChecksum = ipINVALID_LENGTH;
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 7 );
-                break;
-            }
-
-            if( xOutgoingPacket != pdFALSE )
-            {
-                /* Clear the ICMP/IGMP checksum field before calculating it. */
-                pxProtPack->xICMPPacket.xICMPHeader.usChecksum = 0U;
-            }
-            else
-            {
-                usChecksumFound = pxProtPack->xICMPPacket.xICMPHeader.usChecksum;
-            }
-
-            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                {
-                    if( ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
-                    {
-                        pcType = "ICMP";
-                    }
-                    else
-                    {
-                        pcType = "IGMP";
-                    }
-                }
-            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-        }
-        else
-        {
-            /* Unhandled protocol, other than ICMP, IGMP, UDP, or TCP. */
-            usChecksum = ipUNHANDLED_PROTOCOL;
-            DEBUG_SET_TRACE_VARIABLE( xLocation, 8 );
-            break;
         }
 
         /* The protocol and checksum field have been identified. Check the direction
          * of the packet. */
         if( xOutgoingPacket != pdFALSE )
         {
-            /* This is an outgoing packet. The CRC-field has been cleared. */
+            /* This is an outgoing packet. Before calculating the checksum, set it
+             * to zero. */
+            prvSetChecksumInPacket( &( xSet ), 0 );
         }
-        else if( ( usChecksumFound == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
+        else if( ( prvGetChecksumFromPacket( &( xSet ) ) == 0U ) && ( xSet.ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
         {
             #if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 )
                 {
                     /* Sender hasn't set the checksum, drop the packet because
                      * ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS is not set. */
-                    usChecksum = ipWRONG_CRC;
-                    #if ( ipconfigHAS_PRINTF != 0 )
-                        {
-                            static BaseType_t xCount = 0;
-
-                            /* Exclude this from branch coverage as this is only used for debugging. */
-                            if( xCount < 5 ) /* LCOV_EXCL_BR_LINE */
-                            {
-                                FreeRTOS_printf( ( "usGenerateProtocolChecksum: UDP packet from %xip without CRC dropped\n",
-                                                   ( unsigned ) FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ) ) );
-                                xCount++;
-                            }
-                        }
-                    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+                    xSet.usChecksum = ipWRONG_CRC;
                 }
             #else /* if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 ) */
                 {
                     /* Sender hasn't set the checksum, no use to calculate it. */
-                    usChecksum = ipCORRECT_CRC;
+                    xSet.usChecksum = ipCORRECT_CRC;
                 }
             #endif /* if ( ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS == 0 ) */
-            DEBUG_SET_TRACE_VARIABLE( xLocation, 9 );
+            DEBUG_SET_TRACE_VARIABLE( xLocation, 12 );
             break;
         }
         else
         {
-            /* Other incoming packet than UDP. */
+            /* This is an incoming packet, not being an UDP packet without a checksum. */
         }
 
-        usLength = pxIPPacket->xIPHeader.usLength;
-        usLength = FreeRTOS_ntohs( usLength );
-        ulLength = ( uint32_t ) usLength;
-        ulLength -= ( ( uint16_t ) uxIPHeaderLength ); /* normally minus 20 */
+        xResult = prvChecksumProtocolMTUCheck( &( xSet ) );
 
-        if( ( ulLength < ( ( uint32_t ) sizeof( pxProtPack->xUDPPacket.xUDPHeader ) ) ) ||
-            ( ulLength > ( ( uint32_t ) ipconfigNETWORK_MTU - ( uint32_t ) uxIPHeaderLength ) ) )
+        if( xResult != 0 )
         {
-            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                {
-                    FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: len invalid: %lu\n", pcType, ulLength ) );
-                }
-            #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
-
-            /* Again, in a 16-bit return value there is no space to indicate an
-             * error.  For incoming packets, 0x1234 will cause dropping of the packet.
-             * For outgoing packets, there is a serious problem with the
-             * format/length */
-            usChecksum = ipINVALID_LENGTH;
-            DEBUG_SET_TRACE_VARIABLE( xLocation, 10 );
+            DEBUG_SET_TRACE_VARIABLE( xLocation, xResult );
             break;
         }
 
-        if( ucProtocol <= ( uint8_t ) ipPROTOCOL_IGMP )
-        {
-            /* ICMP/IGMP do not have a pseudo header for CRC-calculation. */
-            usChecksum = ( uint16_t )
-                         ( ~usGenerateChecksum( 0U,
-                                                ( const uint8_t * ) &( pxProtPack->xICMPPacket.xICMPHeader ), ( size_t ) ulLength ) );
-        }
-        else
-        {
-            /* For UDP and TCP, sum the pseudo header, i.e. IP protocol + length
-             * fields */
-            usChecksum = ( uint16_t ) ( ulLength + ( ( uint16_t ) ucProtocol ) );
+        /* Do the actual calculations. */
+        prvChecksumProtocolCalculate( xOutgoingPacket, pucEthernetBuffer, &( xSet ) );
 
-            /* And then continue at the IPv4 source and destination addresses. */
-            usChecksum = ( uint16_t )
-                         ( ~usGenerateChecksum( usChecksum,
-                                                ( const uint8_t * ) &( pxIPPacket->xIPHeader.ulSourceIPAddress ),
-                                                ( size_t ) ( ( 2U * ( size_t ) ipSIZE_OF_IPv4_ADDRESS ) + ulLength ) ) );
-            /* Sum TCP header and data. */
-        }
-
-        if( xOutgoingPacket == pdFALSE )
-        {
-            /* This is in incoming packet. If the CRC is correct, it should be zero. */
-            if( usChecksum == 0U )
-            {
-                usChecksum = ( uint16_t ) ipCORRECT_CRC;
-            }
-            else
-            {
-                usChecksum = ( uint16_t ) ipWRONG_CRC;
-            }
-        }
-        else
-        {
-            if( ( usChecksum == 0U ) && ( ucProtocol == ( uint8_t ) ipPROTOCOL_UDP ) )
-            {
-                /* In case of UDP, a calculated checksum of 0x0000 is transmitted
-                 * as 0xffff. A value of zero would mean that the checksum is not used. */
-                usChecksum = ( uint16_t ) 0xffffu;
-            }
-        }
-
-        usChecksum = FreeRTOS_htons( usChecksum );
+        /* For outgoing packets, set the checksum in the packet,
+         * for incoming packets: show logging in case an error occurred. */
+        prvChecksumProtocolSetChecksum( xOutgoingPacket, pucEthernetBuffer, uxBufferLength, &( xSet ) );
 
         if( xOutgoingPacket != pdFALSE )
         {
-            switch( ucProtocol )
-            {
-                case ipPROTOCOL_UDP:
-                    pxProtPack->xUDPPacket.xUDPHeader.usChecksum = usChecksum;
-                    break;
-
-                case ipPROTOCOL_TCP:
-                    pxProtPack->xTCPPacket.xTCPHeader.usChecksum = usChecksum;
-                    break;
-
-                case ipPROTOCOL_ICMP:
-                    pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
-                    break;
-
-                default: /*  ipPROTOCOL_IGMP */
-                    pxProtPack->xICMPPacket.xICMPHeader.usChecksum = usChecksum;
-                    break;
-            }
-
-            usChecksum = ( uint16_t ) ipCORRECT_CRC;
+            xSet.usChecksum = ( uint16_t ) ipCORRECT_CRC;
         }
-
-        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            else if( ( xOutgoingPacket == pdFALSE ) && ( usChecksum != ipCORRECT_CRC ) )
-            {
-                FreeRTOS_debug_printf( ( "usGenerateProtocolChecksum[%s]: ID %04X: from %lxip to %lxip bad crc: %04X\n",
-                                         pcType,
-                                         FreeRTOS_ntohs( pxIPPacket->xIPHeader.usIdentification ),
-                                         FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulSourceIPAddress ),
-                                         FreeRTOS_ntohl( pxIPPacket->xIPHeader.ulDestinationIPAddress ),
-                                         FreeRTOS_ntohs( usChecksumFound ) ) );
-            }
-            else
-            {
-                /* Nothing. */
-            }
-        #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
     } while( ipFALSE_BOOL );
 
-    if( ( usChecksum == ipUNHANDLED_PROTOCOL ) ||
-        ( usChecksum == ipINVALID_LENGTH ) )
-    {
-        /* NOP if ipconfigHAS_PRINTF != 0 */
-        FreeRTOS_printf( ( "CRC error: %04x location %ld\n", usChecksum, xLocation ) );
-    }
+    #if ( ipconfigHAS_PRINTF == 1 )
+        if( xLocation != 0 )
+        {
+            FreeRTOS_printf( ( "CRC error: %04x location %ld\n", xSet.usChecksum, xLocation ) );
+        }
+    #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 
-    return usChecksum;
+    return xSet.usChecksum;
 }
 /*-----------------------------------------------------------*/
 
@@ -1050,7 +1427,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         else if( ( uxMinLastSize * ipMONITOR_PERCENTAGE_90 ) > ( uxMinSize * ipMONITOR_PERCENTAGE_100 ) )
         {
             uxMinLastSize = uxMinSize;
-            FreeRTOS_printf( ( "Heap: current %u lowest %u\n", xPortGetFreeHeapSize(), uxMinSize ) );
+            FreeRTOS_printf( ( "Heap: current %u lowest %u\n", ( unsigned ) xPortGetFreeHeapSize(), ( unsigned ) uxMinSize ) );
         }
         else
         {
@@ -1086,13 +1463,20 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  *
  * @return The buffer filled with human readable error string.
  */
+
 const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   char * pcBuffer,
                                   size_t uxLength )
 {
     const char * pcName;
+    BaseType_t xErrnumPositive = xErrnum;
 
-    switch( xErrnum )
+    if( xErrnumPositive < 0 )
+    {
+        xErrnumPositive = -xErrnumPositive;
+    }
+
+    switch( xErrnumPositive )
     {
         case pdFREERTOS_ERRNO_EADDRINUSE:
             pcName = "EADDRINUSE";
@@ -1158,7 +1542,7 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
             /* MISRA Ref 21.6.1 [snprintf and logging] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno %d", ( int ) xErrnum );
+            ( void ) snprintf( pcBuffer, uxLength, "Errno 0x%lx", xErrnum );
             pcName = NULL;
             break;
     }

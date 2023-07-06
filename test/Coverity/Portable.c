@@ -73,9 +73,11 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                           struct xNetworkEndPoint * pxEndPoint )
 {
     ( void ) eNetworkEvent;
+    ( void ) pxEndPoint;
 }
 /*-----------------------------------------------------------*/
 
@@ -207,5 +209,14 @@ BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
     ( void ) uxBlockTimeTicks;
 
     return pdFAIL;
+}
+/*-----------------------------------------------------------*/
+
+eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
+                                                  struct xNetworkEndPoint * pxEndPoint,
+                                                  IP_Address_t * pxIPAddress )
+{
+    /* Provide a stub for this function. */
+    return eDHCPContinue;
 }
 /*-----------------------------------------------------------*/

@@ -26,6 +26,7 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_Sockets/Sockets_list_macros.h"
         )
 # list the directories your mocks need
+set(mock_include_list "")
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
@@ -34,6 +35,7 @@ list(APPEND mock_include_list
         )
 
 #list the definitions of your mocks to control what to be included
+set(mock_define_list "")
 list(APPEND mock_define_list
        )
 
@@ -41,13 +43,13 @@ list(APPEND mock_define_list
 
 add_compile_options(-Wno-pedantic -Wno-div-by-zero -O0 -ggdb3)
 # list the files you would like to test here
-set(real_source_files ""
-        )
+set(real_source_files "")
 list(APPEND real_source_files
             ${project_name}/FreeRTOS_UDP_IP_stubs.c
             ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS_Callback.c
 	)
 # list the directories the module under test includes
+set(real_include_directories "")
 list(APPEND real_include_directories
             .
             ${TCP_INCLUDE_DIRS}
@@ -59,6 +61,7 @@ list(APPEND real_include_directories
 # =====================  Create UnitTest Code here (edit)  =====================
 
 # list the directories your test needs to include
+set(test_include_directories "")
 list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src

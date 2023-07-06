@@ -43,6 +43,11 @@
 /* Miscellaneous structure and definitions. */
 /*-----------------------------------------------------------*/
 
+/* A forward declaration of 'xNetworkInterface' which is
+ * declared in FreeRTOS_Routing.h */
+struct xNetworkInterface;
+struct xNetworkEndPoint;
+
 /**
  * Structure for one row in the ARP cache table.
  */
@@ -52,6 +57,8 @@ typedef struct xARP_CACHE_TABLE_ROW
     MACAddress_t xMACAddress; /**< The MAC address of an ARP cache entry. */
     uint8_t ucAge;            /**< A value that is periodically decremented but can also be refreshed by active communication.  The ARP cache entry is removed if the value reaches zero. */
     uint8_t ucValid;          /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ARP reply */
+    struct xNetworkEndPoint
+    * pxEndPoint;             /**< The end-point on which the MAC address was last seen. */
 } ARPCacheRow_t;
 
 typedef enum
@@ -61,14 +68,27 @@ typedef enum
     eCantSendPacket    /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
 } eARPLookupResult_t;
 
+/** @brief A structure used internally in FreeRTOS_ARP.c.
+ * It is used as a parameter for the function prvFindCacheEntry().*/
+typedef struct xCacheLocation
+{
+    BaseType_t xIpEntry;  /**< The index of the matching IP-address. */
+    BaseType_t xMacEntry; /**< The index of the matching MAC-address. */
+    BaseType_t xUseEntry; /**< The index of the first free location. */
+} CacheLocation_t;
+
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
  * entry back to its maximum value.  If ulIPAddress is not already in the ARP
  * cache table then add it - replacing the oldest current entry if there is not
  * a free space available.
  */
+/*void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress, */
+/*                            const uint32_t ulIPAddress ); */
+
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
-                            const uint32_t ulIPAddress );
+                            const uint32_t ulIPAddress,
+                            struct xNetworkEndPoint * pxEndPoint );
 
 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
     /* Becomes non-zero if another device responded to a gratuitous ARP message. */
@@ -101,13 +121,15 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  * isn't a gateway defined) then return eCantSendPacket.
  */
 eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress );
+                                      MACAddress_t * const pxMACAddress,
+                                      struct xNetworkEndPoint ** ppxEndPoint );
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
 /* Lookup an IP-address if only the MAC-address is known */
     eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
-                                               uint32_t * pulIPAddress );
+                                               uint32_t * pulIPAddress,
+                                               struct xNetworkInterface ** ppxInterface );
 
 #endif
 
@@ -149,6 +171,9 @@ BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
                            BaseType_t bReleaseAfterSend );
 
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
+
+/* Clear all entries in the ARp cache. */
+void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
