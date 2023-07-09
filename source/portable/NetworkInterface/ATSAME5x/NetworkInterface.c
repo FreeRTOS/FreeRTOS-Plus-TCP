@@ -210,7 +210,7 @@ NetworkInterface_t * pxATSAM5x_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 {
     static char pcName[ 17 ];
 
-/* This function pxSTM32Fxx_FillInterfaceDescriptor() adds a network-interface.
+/* This function pxATSAM5x_FillInterfaceDescriptor() adds a network-interface.
  * Make sure that the object pointed to by 'pxInterface'
  * is declared static or global, and that it will remain to exist. */
 
