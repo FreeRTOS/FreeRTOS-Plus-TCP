@@ -313,9 +313,6 @@ static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInt
     NetBufQueue_enQ(&hTxHandle->readyPbufQ, pxDescriptor);
     // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hTxHandle->stats.readyPbufPktEnq);
 
-    static uint32_t tx_cont = 0;
-    FreeRTOS_printf(("FR TX Cnt: %d\n", tx_cont++));
-
     /* Pass the packet to the translation layer */
     EnetNetIF_sendTxPackets(hTxHandle, macPort);
 

@@ -233,7 +233,6 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
         #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
             {
                 pxEndPoint->xDHCPData.eExpectedState = uxOption;
-                FreeRTOS_printf(("========> DHCP EXP STATE SET: %d\n", pxEndPoint->xDHCPData.eExpectedState));
             }
         #endif
 
@@ -308,8 +307,6 @@ static NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void 
 {
     uintptr_t uxBuffer;
     NetworkBufferDescriptor_t * pxResult;
-
-    FreeRTOS_printf(("==>>> prvPacketBuffer_to_NetworkBuffer: %p\n", pvBuffer));
 
     if( pvBuffer == NULL )
     {
