@@ -103,7 +103,7 @@ SemaphoreHandle_t xTXDescriptorSemaphore = NULL;
 static SemaphoreHandle_t xTransmissionMutex;
 
 /* Global Ethernet handle */
-static ETH_HandleTypeDef xEthHandle;
+ETH_HandleTypeDef xEthHandle;
 static ETH_TxPacketConfig xTxConfig;
 
 static NetworkInterface_t * pxMyInterface = NULL;
@@ -803,7 +803,7 @@ static int32_t ETH_PHY_IO_WriteReg( uint32_t ulDevAddr,
 /*******************************************************************************
 *                   Ethernet Handling Functions
 *******************************************************************************/
-
+#if 0
 /* ETH_IRQHandler might be defined in the (auto-generated) stm32h7xx_it.c.
  * In order to not clash with the other implementation it is possible to disable
  * the code here and add the following define to an "USER CODE" section
@@ -815,6 +815,7 @@ void ETH_IRQHandler( void )
 {
     HAL_ETH_IRQHandler( &( xEthHandle ) );
 }
+#endif
 /*-----------------------------------------------------------*/
 
 static void prvSetFlagsAndNotify( uint32_t ulFlags )
@@ -879,7 +880,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 }
 /*-----------------------------------------------------------*/
 
-#define __NOP()    __ASM volatile ( "nop" )
+//#define __NOP()    __ASM volatile ( "nop" )
 
 static void vClearOptionBit( volatile uint32_t * pulValue,
                              uint32_t ulValue )

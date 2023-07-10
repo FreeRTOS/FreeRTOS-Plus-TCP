@@ -169,7 +169,8 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
 /** @addtogroup STM32H7xx_HAL_Driver
  * @{
  */
-#ifdef HAL_ETH_MODULE_ENABLED
+// disable HAL_ETH_MODULE_ENABLED as it is used to skip compiling original stm32hxx_hal_eth.c
+//#ifdef HAL_ETH_MODULE_ENABLED
 
     static void set_error_state( ETH_HandleTypeDef * heth,
                                  uint32_t ulState )
@@ -2974,7 +2975,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
 
     #endif /* ETH */
 
-#endif /* HAL_ETH_MODULE_ENABLED */
+//#endif /* HAL_ETH_MODULE_ENABLED */
 
 /**
  * @}
