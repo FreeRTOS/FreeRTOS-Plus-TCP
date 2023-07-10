@@ -171,7 +171,9 @@ static int32_t ETH_PHY_IO_WriteReg( uint32_t DevAddr,
 static void vClearOptionBit( volatile uint32_t * pulValue,
                              uint32_t ulValue );
 
-static size_t uxGetOwnCount( ETH_HandleTypeDef * heth );
+#if ( ipconfigHAS_PRINTF != 0 )
+    static size_t uxGetOwnCount( ETH_HandleTypeDef * heth );
+#endif
 
 /* FreeRTOS+TCP/multi :
  * Each network device has 3 access functions:
@@ -881,6 +883,7 @@ static void vClearOptionBit( volatile uint32_t * pulValue,
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigHAS_PRINTF != 0 )
 static size_t uxGetOwnCount( ETH_HandleTypeDef * heth )
 {
     BaseType_t xIndex;
@@ -901,6 +904,7 @@ static size_t uxGetOwnCount( ETH_HandleTypeDef * heth )
 
     return xCount;
 }
+#endif
 /*-----------------------------------------------------------*/
 
 static void prvEMACHandlerTask( void * pvParameters )
@@ -909,8 +913,10 @@ static void prvEMACHandlerTask( void * pvParameters )
  * be occupied.  In stat case, the program will wait (block) for the counting
  * semaphore. */
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
+#if ( ipconfigHAS_PRINTF != 0 )
     size_t uxTXDescriptorsUsed = 0U;
     size_t uxRXDescriptorsUsed = ETH_RX_DESC_CNT;
+#endif
 
     ( void ) pvParameters;
 
