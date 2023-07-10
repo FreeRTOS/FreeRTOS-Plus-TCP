@@ -1872,8 +1872,8 @@
 #endif /* STM32Hxx_HAL_ETH_H */
 
 #ifdef HAL_ETH_MODULE_ENABLED
-  // undefine this to skip compiling original stm32hxx_hal_eth.c
-  #undef HAL_ETH_MODULE_ENABLED
+    /* undefine this to skip compiling original stm32hxx_hal_eth.c */
+    #undef HAL_ETH_MODULE_ENABLED
 #endif
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
