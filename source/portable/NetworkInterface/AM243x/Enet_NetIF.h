@@ -60,7 +60,7 @@ void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNe
 #define CONFG_PKT_MAX_MCAST                   ((uint32_t)31U)
 
 /* Callback used by ENET to allocate RX payload buffers */
-uint8_t * getEnetAppBuffMem(uint32_t req_Size);
+uint8_t * getEnetAppBuffMem(uint32_t req_Size, uint8_t *pktAddr);
 
 typedef struct EnetNetIF_PktTaskStats_s
 {

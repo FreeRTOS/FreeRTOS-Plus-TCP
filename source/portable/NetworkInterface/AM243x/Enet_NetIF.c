@@ -157,9 +157,10 @@ volatile bool shutDownFlag;
 *  give them to the stack */
     TaskP_Object pollTask;
 
-uint8_t * getEnetAppBuffMem(uint32_t req_Size)
+uint8_t * getEnetAppBuffMem(uint32_t req_Size, uint8_t *pktAddr)
 {
     (void) req_Size;
+    (void) pktAddr;
 
     NetworkBufferDescriptor_t * pxReturn = pxGetNetworkBufferWithDescriptor_RX(1536U, 0);
     return pxReturn->pucEthernetBuffer;
