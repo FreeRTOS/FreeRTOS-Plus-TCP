@@ -37,21 +37,22 @@ The following macro's are **not** used by the FreeRTOS driver:
 
 All memory that is shared between the CPU and the DMA ETH peripheral, should be
 located in special RAM area called ".ethernet_data". This shall be declared in
-the linker file.
+the linker file (.ld).
 
 It is possible to use the AXI SRAM for this, but RAM{1,2,3} are also connected
 to the Ethernet MAC.
 
 Here is an example of the changes to the linker file:
 
-	AXI_RAM (xrw)   : ORIGIN = 0x24000000, LENGTH = 512K	/* .ethernet_data declared here. */
-	.ethernet_data :
+	RAM_D1 (xrw)   : ORIGIN = 0x24000000, LENGTH = 512K	/* should already exist in MEMORY section */
+	
+	.ethernet_data : /* inside SECTIONS section, before /DISCARD/ */ 
 	{
 		PROVIDE_HIDDEN (__ethernet_data_start = .);
 		KEEP (*(SORT(.ethernet_data.*)))
 		KEEP (*(.ethernet_data*))
 		PROVIDE_HIDDEN (__ethernet_data_end = .);
-	} >AXI_RAM
+	} >RAM_D1
 
 Here is a table of 3 types of STH32H7 :
 
@@ -68,6 +69,10 @@ Here is a table of 3 types of STH32H7 :
 
 Please make sure that the addresses and lengths are correct for your model of STM32H7xx.
 If you use a memory that is not supported, it will result in a DMA errors.
+
+Don't redefine a new memory area (like AXI-SRAM, RAM_D1) if it already exists in the
+MEMORY section, just take note of it's name for defining the section .ethernet_data later
+in that same file.
 
 In FreeRTOSIPConfig.h :
 
@@ -120,3 +125,25 @@ The most important DMAC registers, along with their names which are used in the 
 As most EMAC's, the STM32H7 EMAC is able to put packets in multiple linked DMA segments.
 FreeRTOS+TCP never uses this feature. Each packet is stored in a single buffer called
 `NetworkBufferDescriptor_t`.
+
+~~~
+
+The provided NetworkInterface.c and stm32hxx_hal_eth.c may clash with the original
+auto-generated files from STM32CubeIDE code generator. Some tricks may apply:
+
+1) Undefining HAL_ETH_MODULE_ENABLED at the end of stm32hxx_hal_eth.h and having 
+"portable/NetworkInterface/STM32Hxx" included before "STM32H7xx_HAL_Driver/Inc" in
+path order. This will disable STM32H7xx_HAL_Driver/stm32hxx_hal_eth.c entirely
+(removing the link file within IDE project might not work since it keeps coming
+back on reconfiguration).
+
+2) Remove '#ifdef HAL_ETH_MODULE_ENABLED' check from our own stm32hxx_hal_eth.c
+(so it will compile regardless of the #undef just added above). 
+ 
+3) Comment ETH_IRQHandler() from NetworkInterface.c and trick stm32h7xx_it.c's
+version of the same function into using our handle xEthHandle instead of heth.
+
+4) Remove DMARxDscrTab and DMATxDscrTab from auto-generated main.c. Since they are
+inside a non-"USER CODE" section, one possible trick is to temporaly undefine __GNUC__
+in main.c so these two variables are never compiled there.
+  
