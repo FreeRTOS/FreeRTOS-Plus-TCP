@@ -534,7 +534,7 @@
 
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
             {
-                /* calculate the UDP checksum for outgoing package */
+                /* calculate the ICMPv6 checksum for outgoing package */
                 ( void ) usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE );
             }
         #else
@@ -639,9 +639,18 @@
                 ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
 
                 /* Checksums. */
-                pxICMPHeader_IPv6->usChecksum = 0U;
-                /* calculate the ICMP checksum for the outgoing package. */
-                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+                #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+                    {
+                        /* calculate the ICMPv6 checksum for outgoing package */
+                        ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+                    }
+                #else
+                    {
+                        /* Many EMAC peripherals will only calculate the ICMP checksum
+                         * correctly if the field is nulled beforehand. */
+                        pxICMPHeader_IPv6->usChecksum = 0U;
+                    }
+                #endif
 
                 /* This function will fill in the eth addresses and send the packet */
                 vReturnEthernetFrame( pxDescriptor, pdTRUE );
@@ -1180,9 +1189,18 @@
             /* Important: tell NIC driver how many bytes must be sent */
             pxNetworkBuffer->xDataLength = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
 
-            pxICMPHeader_IPv6->usChecksum = 0;
-            /* calculate the UDP checksum for outgoing package */
-            ( void ) usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE );
+            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+                {
+                    /* calculate the ICMPv6 checksum for outgoing package */
+                    ( void ) usGenerateProtocolChecksum( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE );
+                }
+            #else
+                {
+                    /* Many EMAC peripherals will only calculate the ICMP checksum
+                     * correctly if the field is nulled beforehand. */
+                    pxICMPHeader_IPv6->usChecksum = 0;
+                }
+            #endif
 
             /* Set the parameter 'bReleaseAfterSend'. */
             ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, pdTRUE );
@@ -1265,5 +1283,4 @@
         return xResult;
     }
 /*-----------------------------------------------------------*/
-
 #endif /* ipconfigUSE_IPv6 */

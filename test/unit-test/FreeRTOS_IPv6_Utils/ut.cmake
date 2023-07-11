@@ -15,6 +15,7 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv6.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ICMP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Utils.h"
