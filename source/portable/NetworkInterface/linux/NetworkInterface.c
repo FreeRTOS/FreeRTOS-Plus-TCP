@@ -356,7 +356,7 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxlinux_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+                                                      NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
