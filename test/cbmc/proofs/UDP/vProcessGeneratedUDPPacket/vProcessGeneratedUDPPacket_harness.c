@@ -75,6 +75,17 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     return eResult;
 }
 
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
+    BaseType_t ret;
+    return ret;
+}
+
 
 void harness()
 {
@@ -90,6 +101,37 @@ void harness()
     /* The buffer cannot be NULL for the function call. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /*
+     * Add an end point to the network buffer present. Its assumed that the
+     * network interface layer correctly assigns the end point to the generated buffer.
+     */
+    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
+    pxNetworkBuffer->pxEndPoint->pxNext = NULL;
+
+    /* Add an interface */
+    pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
+
+    /* Add few endpoints to global pxNetworkEndPoints */
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+        pxNetworkEndPoints->pxNext->pxNext = NULL;
+    }
+    else
+    {
+        pxNetworkEndPoints->pxNext = NULL;
+    }
+
+    pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     vProcessGeneratedUDPPacket( pxNetworkBuffer );
 }

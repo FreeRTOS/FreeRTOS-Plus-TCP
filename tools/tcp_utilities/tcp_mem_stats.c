@@ -26,8 +26,8 @@
  */
 
 /*
- * tcp_mem_stats.c
- * Used to create a CSV file with detailed information about the memory usage of FreeRTOS+TCP.
+ * @file tcp_mem_stats.c
+ * @brief To create a CSV file with detailed information about the memory usage of FreeRTOS+TCP.
  * See tools/tcp_mem_stats.md for further description.
  */
 
@@ -52,15 +52,8 @@
 #if ( ipconfigUSE_TCP_MEM_STATS != 0 )
 
     #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
-
-/* Define the maximum number of objects ( memory allocations by
- * the IP-stack ) that will be recorded. */
         #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128u
-
-/* If you don't want to see this pragma message, you can either
- * remove it or define 'ipconfigTCP_MEM_STATS_MAX_ALLOCATION' in
- * your freeRTOSIPConfig.h. */
-        #pragma message ("ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?")
+        #pragma warning "ipconfigTCP_MEM_STATS_MAX_ALLOCATION undefined?"
     #endif
 
 /* When a streambuffer is allocated, 4 extra bytes will be reserved. */
@@ -113,21 +106,21 @@
                 {
                     /* Already added, strange. */
                     FreeRTOS_printf( ( "vAddAllocation: Pointer %p already added\n", pxObject ) );
-                    break;
+                    return;
                 }
             }
 
-            /* If the object has not been found,
-             * and if there is still space, add the object. */
-            if( ( uxIndex == uxAllocationCount ) &&
-                ( uxAllocationCount < ipconfigTCP_MEM_STATS_MAX_ALLOCATION ) )
+            if( uxAllocationCount >= ipconfigTCP_MEM_STATS_MAX_ALLOCATION )
             {
-                xAllocations[ uxIndex ].pxObject = pxObject;
-                xAllocations[ uxIndex ].xMemType = xMemType;
-                xAllocations[ uxIndex ].uxSize = uxSize;
-                xAllocations[ uxIndex ].uxNumber = uxNextObjectNumber++;
-                uxAllocationCount++;
+                /* The table is full. */
+                return;
             }
+
+            xAllocations[ uxIndex ].pxObject = pxObject;
+            xAllocations[ uxIndex ].xMemType = xMemType;
+            xAllocations[ uxIndex ].uxSize = uxSize;
+            xAllocations[ uxIndex ].uxNumber = uxNextObjectNumber++;
+            uxAllocationCount++;
         }
         xTaskResumeAll();
     }

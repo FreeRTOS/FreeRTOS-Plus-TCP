@@ -4,6 +4,7 @@
   [
       "--unwind 1",
       "--unwindset vARPRefreshCacheEntry.0:7,memcmp.0:17,xIsIPInARPCache.0:7",
+      "--unwindset prvFindCacheEntry.0:7",
       "--nondet-static"
   ],
   "OBJS":

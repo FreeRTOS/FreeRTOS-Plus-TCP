@@ -49,18 +49,17 @@
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-    BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
-                               const char * pcName,
-                               uint32_t ulIPAddress );
+    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
+                               struct freertos_addrinfo * pxAddress );
 
     void vDNSSetCallBack( const char * pcHostName,
                           void * pvSearchID,
                           FOnDNSEvent pCallbackFunction,
                           TickType_t uxTimeout,
-                          TickType_t uxIdentifier );
+                          TickType_t uxIdentifier,
+                          BaseType_t xIsIPv6 );
 
     void vDNSCheckCallBack( void * pvSearchID );
-
 
     void vDNSCallbackInitialise();
 

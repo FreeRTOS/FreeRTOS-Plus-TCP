@@ -31,12 +31,6 @@
 #include "task.h"
 #include "semphr.h"
 
-/* ========================= FreeRTOS+TCP includes ========================== */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
-#include "NetworkBufferManagement.h"
-#include "FreeRTOS_Stream_Buffer.h"
-
 /* ======================== Standard Library includes ======================== */
 #include <stdio.h>
 #include <unistd.h>
@@ -48,6 +42,12 @@
 #include <ctype.h>
 #include <signal.h>
 #include <pcap.h>
+
+/* ========================= FreeRTOS+TCP includes ========================== */
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "NetworkBufferManagement.h"
+#include "FreeRTOS_Stream_Buffer.h"
 
 /* ========================== Local includes =================================*/
 #include <utils/wait_for_event.h>
@@ -95,15 +95,45 @@ static BaseType_t xInvalidInterfaceDetected = pdFALSE;
 
 /* ======================= API Function definitions ========================= */
 
+static size_t prvStreamBufferAdd( StreamBuffer_t * pxBuffer,
+                                  const uint8_t * pucData,
+                                  size_t uxByteCount );
+
+/*
+ * This function will return pdTRUE if the packet is targeted at
+ * the MAC address of this device, in other words when is was bounced-
+ * back by the WinPCap interface.
+ */
+static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer );
+
+/*-----------------------------------------------------------*/
+
+/*
+ * A pointer to the network interface is needed later when receiving packets.
+ */
+static NetworkInterface_t * pxMyInterface;
+
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t bReleaseAfterSend );
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
 /*!
  * @brief API call, called from reeRTOS_IP.c to initialize the capture device
  *        to be able to send and receive packets
  * @return pdPASS if successful else pdFAIL
  */
-BaseType_t xNetworkInterfaceInitialise( void )
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     BaseType_t ret = pdFAIL;
     pcap_if_t * pxAllNetworkInterfaces;
+
+    ( void ) pxInterface;
 
     /* Query the computer the simulation is being executed on to find the
      * network interfaces it has installed. */
@@ -136,18 +166,70 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return ret;
 }
 
+static size_t prvStreamBufferAdd( StreamBuffer_t * pxBuffer,
+                                  const uint8_t * pucData,
+                                  size_t uxByteCount )
+{
+    size_t uxSpace, uxNextHead, uxFirst;
+    size_t uxCount = uxByteCount;
+
+    uxSpace = uxStreamBufferGetSpace( pxBuffer );
+
+    /* The number of bytes that can be written is the minimum of the number of
+     * bytes requested and the number available. */
+    uxCount = FreeRTOS_min_size_t( uxSpace, uxCount );
+
+    if( uxCount != 0U )
+    {
+        uxNextHead = pxBuffer->uxHead;
+
+        if( pucData != NULL )
+        {
+            /* Calculate the number of bytes that can be added in the first
+            * write - which may be less than the total number of bytes that need
+            * to be added if the buffer will wrap back to the beginning. */
+            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextHead, uxCount );
+
+            /* Write as many bytes as can be written in the first write. */
+            ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
+
+            /* If the number of bytes written was less than the number that
+             * could be written in the first write... */
+            if( uxCount > uxFirst )
+            {
+                /* ...then write the remaining bytes to the start of the
+                 * buffer. */
+                ( void ) memcpy( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
+            }
+        }
+
+        uxNextHead += uxCount;
+
+        if( uxNextHead >= pxBuffer->LENGTH )
+        {
+            uxNextHead -= pxBuffer->LENGTH;
+        }
+
+        pxBuffer->uxHead = uxNextHead;
+    }
+
+    return uxCount;
+}
+
 /*!
  * @brief API call, called from reeRTOS_IP.c to send a network packet over the
  *        selected interface
  * @return pdTRUE if successful else pdFALSE
  */
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t bReleaseAfterSend )
 {
     size_t xSpace;
 
     iptraceNETWORK_INTERFACE_TRANSMIT();
     configASSERT( xIsCallingFromIPTask() == pdTRUE );
+    ( void ) pxInterface;
 
     /* Both the length of the data being sent and the actual data being sent
      *  are placed in the thread safe buffer used to pass data between the FreeRTOS
@@ -239,6 +321,50 @@ static int prvCreateThreadSafeBuffers( void )
 
     return ret;
 }
+/*-----------------------------------------------------------*/
+
+BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
+{
+    BaseType_t xResult = pdFALSE;
+
+    ( void ) pxInterface;
+
+    if( pxOpenedInterfaceHandle != NULL )
+    {
+        xResult = pdTRUE;
+    }
+
+    return xResult;
+}
+
+/*-----------------------------------------------------------*/
+
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+/* This function pxFillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    pxMyInterface = pxInterface;
+
+    snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
+    pxInterface->pfOutput = xNetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+/*-----------------------------------------------------------*/
 
 /*!
  * @brief  print network interfaces available on the system
@@ -633,8 +759,16 @@ static void pcap_callback( unsigned char * user,
     if( ( pkt_header->caplen <= ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER ) ) &&
         ( uxStreamBufferGetSpace( xRecvBuffer ) >= ( ( ( size_t ) pkt_header->caplen ) + sizeof( *pkt_header ) ) ) )
     {
-        uxStreamBufferAdd( xRecvBuffer, 0, ( const uint8_t * ) pkt_header, sizeof( *pkt_header ) );
-        uxStreamBufferAdd( xRecvBuffer, 0, ( const uint8_t * ) pkt_data, ( size_t ) pkt_header->caplen );
+        /* NOTE. The prvStreamBufferAdd function is used here in place of
+         * uxStreamBufferAdd since the uxStreamBufferAdd call will suspend
+         * the FreeRTOS scheduler to atomically update the head and front
+         * of the stream buffer. Since xRecvBuffer is being used as a regular
+         * circular buffer (i.e. only the head and tail are needed), this call
+         * only updates the head of the buffer, removing the need to suspend
+         * the scheduler, and allowing this function to be safely called from
+         * a Windows thread. */
+        prvStreamBufferAdd( xRecvBuffer, ( const uint8_t * ) pkt_header, sizeof( *pkt_header ) );
+        prvStreamBufferAdd( xRecvBuffer, ( const uint8_t * ) pkt_data, ( size_t ) pkt_header->caplen );
     }
 }
 
@@ -723,6 +857,46 @@ static void * prvLinuxPcapSendThread( void * pvParam )
     return NULL;
 }
 
+/*-----------------------------------------------------------*/
+
+static BaseType_t xPacketBouncedBack( const uint8_t * pucBuffer )
+{
+    static BaseType_t xHasWarned = pdFALSE;
+    EthernetHeader_t * pxEtherHeader;
+    NetworkEndPoint_t * pxEndPoint;
+    BaseType_t xResult = pdFALSE;
+
+    pxEtherHeader = ( EthernetHeader_t * ) pucBuffer;
+
+    /* Sometimes, packets are bounced back by the driver and we need not process them. Check
+     * whether this packet is one such packet. */
+    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+         pxEndPoint != NULL;
+         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+    {
+        if( memcmp( pxEndPoint->xMACAddress.ucBytes, pxEtherHeader->xSourceAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 )
+        {
+            if( xHasWarned == pdFALSE )
+            {
+                xHasWarned = pdTRUE;
+                FreeRTOS_printf( ( "Bounced back by WinPCAP interface: %02x:%02x:%02x:%02x:%02x:%02x\n",
+                                   pxEndPoint->xMACAddress.ucBytes[ 0 ],
+                                   pxEndPoint->xMACAddress.ucBytes[ 1 ],
+                                   pxEndPoint->xMACAddress.ucBytes[ 2 ],
+                                   pxEndPoint->xMACAddress.ucBytes[ 3 ],
+                                   pxEndPoint->xMACAddress.ucBytes[ 4 ],
+                                   pxEndPoint->xMACAddress.ucBytes[ 5 ] ) );
+            }
+
+            xResult = pdTRUE;
+            break;
+        }
+    }
+
+    return xResult;
+}
+/*-----------------------------------------------------------*/
+
 /*!
  * @brief FreeRTOS infinite loop thread that simulates a network interrupt to notify the
  *         network stack of the presence of new data
@@ -775,7 +949,14 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                      * is ok to call the task level function here, but note that
                      * some buffer implementations cannot be called from a real
                      * interrupt. */
-                    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( pxHeader->len, 0 );
+                    if( xPacketBouncedBack( pucPacketData ) == pdFALSE )
+                    {
+                        pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( pxHeader->len, 0 );
+                    }
+                    else
+                    {
+                        pxNetworkBuffer = NULL;
+                    }
 
                     if( pxNetworkBuffer != NULL )
                     {
@@ -791,6 +972,10 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         if( pxNetworkBuffer != NULL )
                         {
                             xRxEvent.pvData = ( void * ) pxNetworkBuffer;
+
+                            pxNetworkBuffer->pxInterface = pxMyInterface;
+                            pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
+                            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; /*temporary change for single end point */
 
                             /* Data was received and stored.  Send a message to
                              * the IP task to let it know. */

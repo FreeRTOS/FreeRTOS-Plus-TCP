@@ -40,30 +40,74 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-volatile BaseType_t xInsideInterrupt = pdFALSE;
+/* =========================== EXTERN VARIABLES =========================== */
 
 QueueHandle_t xNetworkEventQueue = NULL;
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+FreeRTOS_Socket_t xGlobalSocket;
 
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
+UBaseType_t uxGlobalCallbackCount;
+
+uint32_t xRandomNumberToReturn;
+BaseType_t xRNGStatus;
+
+BaseType_t xLocalReceiveCallback_Return;
+uint8_t xLocalReceiveCallback_Called = 0;
+
+/* ======================== Stub Callback Functions ========================= */
+
+EventBits_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,
+                                        const EventBits_t uxBitsToWaitFor,
+                                        const BaseType_t xClearOnExit,
+                                        const BaseType_t xWaitForAllBits,
+                                        TickType_t xTicksToWait,
+                                        int CallbackCount )
 {
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
+    xGlobalSocket.u.xTCP.eTCPState = eESTABLISHED;
+}
+
+void vStub_vTaskSetTimeOutState_socketError( TimeOut_t * const pxTimeOut,
+                                             int numCalls )
+{
+    xGlobalSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
+}
+
+static void vUserCallbackLocal( FreeRTOS_Socket_t * xSocket )
+{
+    uxGlobalCallbackCount++;
+}
+
+static BaseType_t xStubApplicationGetRandomNumber( uint32_t * xRndNumber,
+                                                   int count )
+{
+    ( void ) count;
+    *xRndNumber = xRandomNumberToReturn;
+    return xRNGStatus;
+}
+
+static void vpxListFindListItemWithValue_NotFound( void )
+{
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
+}
+
+static void vpxListFindListItemWithValue_Found( const List_t * pxList,
+                                                TickType_t xWantedItemValue,
+                                                const ListItem_t * pxReturn )
+{
+    xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
+
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( pxList->xListEnd ), ( ListItem_t * ) pxReturn );
+
+    listGET_LIST_ITEM_VALUE_ExpectAndReturn( pxReturn, xWantedItemValue );
+}
+
+static BaseType_t xLocalReceiveCallback( Socket_t xSocket,
+                                         void * pvData,
+                                         size_t xLength )
+{
+    xLocalReceiveCallback_Called++;
+    return xLocalReceiveCallback_Return;
+}
 
 void vPortEnterCritical( void )
 {

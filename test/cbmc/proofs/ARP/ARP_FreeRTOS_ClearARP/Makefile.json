@@ -2,7 +2,8 @@
   "ENTRY": "ClearARP",
   "CBMCFLAGS":
   [
-      "--unwind 1"
+      "--unwind 1",
+      "--unwindset FreeRTOS_ClearARP.0:7"
   ],
   "OBJS":
   [

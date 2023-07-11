@@ -9,11 +9,14 @@
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/test/cbmc/stubs/cbmc.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Timers.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP_IPV4.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission_IPV4.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_State_Handling.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Reception.goto"
@@ -24,7 +27,8 @@
     "--remove-function-body prvCheckOptions",
     "--remove-function-body prvTCPPrepareSend",
     "--remove-function-body prvTCPReturnPacket",
-    "--remove-function-body prvTCPHandleState"
+    "--remove-function-body prvTCPHandleState",
+    "--remove-function-body vTCPStateChange"
   ],
   "DEF":
   [

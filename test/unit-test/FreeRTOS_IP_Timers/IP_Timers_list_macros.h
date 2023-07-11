@@ -74,4 +74,12 @@ void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 size_t xPortGetMinimumEverFreeHeapSize( void );
 
+/**
+ * @brief Work on the RA/SLAAC processing.
+ * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
+ * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
+ */
+void vRAProcess( BaseType_t xDoReset,
+                 NetworkEndPoint_t * pxEndPoint );
+
 #endif /* ifndef LIST_MACRO_H */
