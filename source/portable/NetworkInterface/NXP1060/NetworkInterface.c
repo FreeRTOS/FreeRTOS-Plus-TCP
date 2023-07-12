@@ -624,6 +624,7 @@ static void ethernet_callback( ENET_Type * base,
 static void prvProcessFrame( int length )
 {
     NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+    BaseType_t xRelease = pdFALSE;
 
     if( pxBufferDescriptor != NULL )
     {
@@ -632,36 +633,48 @@ static void prvProcessFrame( int length )
         pxBufferDescriptor->pxInterface = pxMyInterface;
         pxBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxBufferDescriptor->pucEthernetBuffer );
 
-        if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+        if( pxBufferDescriptor->pxEndPoint == NULL )
         {
-            IPStackEvent_t xRxEvent;
-            xRxEvent.eEventType = eNetworkRxEvent;
-            xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-
-            if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
-            {
-                vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-                iptraceETHERNET_RX_EVENT_LOST();
-                FreeRTOS_printf( ( "RX Event Lost\n" ) );
-            }
+            /* Endpoint not found, drop the packet. */
+            xRelease = pdTRUE;
         }
         else
         {
-            #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) )
-                const EthernetHeader_t * pxEthernetHeader;
-                char ucSource[ 18 ];
-                char ucDestination[ 18 ];
+            if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+            {
+                IPStackEvent_t xRxEvent;
+                xRxEvent.eEventType = eNetworkRxEvent;
+                xRxEvent.pvData = ( void * ) pxBufferDescriptor;
 
-                pxEthernetHeader = ( ( const EthernetHeader_t * ) pxBufferDescriptor->pucEthernetBuffer );
+                if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
+                {
+                    xRelease = pdTRUE;
+                    iptraceETHERNET_RX_EVENT_LOST();
+                    FreeRTOS_printf( ( "RX Event Lost\n" ) );
+                }
+            }
+            else
+            {
+                #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) )
+                    const EthernetHeader_t * pxEthernetHeader;
+                    char ucSource[ 18 ];
+                    char ucDestination[ 18 ];
 
+                    pxEthernetHeader = ( ( const EthernetHeader_t * ) pxBufferDescriptor->pucEthernetBuffer );
 
-                FreeRTOS_EUI48_ntop( pxEthernetHeader->xSourceAddress.ucBytes, ucSource, 'A', ':' );
-                FreeRTOS_EUI48_ntop( pxEthernetHeader->xDestinationAddress.ucBytes, ucDestination, 'A', ':' );
+                    FreeRTOS_EUI48_ntop( pxEthernetHeader->xSourceAddress.ucBytes, ucSource, 'A', ':' );
+                    FreeRTOS_EUI48_ntop( pxEthernetHeader->xDestinationAddress.ucBytes, ucDestination, 'A', ':' );
 
-                FreeRTOS_debug_printf( ( "Invalid target MAC: dropping frame from: %s to: %s", ucSource, ucDestination ) );
-            #endif /* if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) ) */
+                    FreeRTOS_debug_printf( ( "Invalid target MAC: dropping frame from: %s to: %s", ucSource, ucDestination ) );
+                #endif /* if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) ) */
+                xRelease = pdTRUE;
+                /* Not sure if a trace is required.  The stack did not want this message */
+            }
+        }
+
+        if( xRelease != pdFALSE )
+        {
             vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-            /* Not sure if a trace is required.  The stack did not want this message */
         }
     }
     else
@@ -905,6 +918,8 @@ static status_t xEMACInit( phy_speed_t speed,
             {
                 if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                 {
+                    /* Allow traffic from IPv6 solicited-node multicast MAC address for
+                     * each endpoint */
                     uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
                     ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
