@@ -1804,6 +1804,8 @@ void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
 
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
+    pxICMPHeader_IPv6->usChecksum = 0U;
+
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( pxNetworkBuffer );
     usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );
 

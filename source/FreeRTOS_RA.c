@@ -195,15 +195,25 @@
             ( void ) memset( xRASolicitationRequest, 0, sizeof( *xRASolicitationRequest ) );
             xRASolicitationRequest->ucTypeOfMessage = ipICMP_ROUTER_SOLICITATION_IPv6;
 
-/*  __XX__ revisit on why commented out
- *  xRASolicitationRequest->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
- *  xRASolicitationRequest->ucOptionLength = 1;
- *  ( void ) memcpy( xRASolicitationRequest->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
- */
+            /*  __XX__ revisit on why commented out
+             *  xRASolicitationRequest->ucOptionType = ndICMP_SOURCE_LINK_LAYER_ADDRESS;
+             *  xRASolicitationRequest->ucOptionLength = 1;
+             *  ( void ) memcpy( xRASolicitationRequest->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+             */
+
             /* Checksums. */
-            xRASolicitationRequest->usChecksum = 0U;
-            /* calculate the UDP checksum for outgoing package */
-            ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+                {
+                    /* calculate the ICMPv6 checksum for outgoing package */
+                    ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+                }
+            #else
+                {
+                    /* Many EMAC peripherals will only calculate the ICMP checksum
+                     * correctly if the field is nulled beforehand. */
+                    xRASolicitationRequest->usChecksum = 0U;
+                }
+            #endif
 
             /* This function will fill in the eth addresses and send the packet */
             vReturnEthernetFrame( pxDescriptor, pdTRUE );
