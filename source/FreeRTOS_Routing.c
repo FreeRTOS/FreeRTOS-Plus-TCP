@@ -594,7 +594,7 @@ struct xIPv6_Couple
         /* This was only for debugging. */
         if( pxEndPoint == NULL )
         {
-            FreeRTOS_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
+            FreeRTOS_debug_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
                                ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
         }
 
@@ -766,7 +766,7 @@ struct xIPv6_Couple
 
                 if( xGatewayTarget == pdTRUE )
                 {
-                    FreeRTOS_printf( ( " GW address %pip to %pip\n",
+                    FreeRTOS_debug_printf( ( " GW address %pip to %pip\n",
                                        pxIPAddressFrom->xIP_IPv6.ucBytes,
                                        pxIPAddressTo->xIP_IPv6.ucBytes ) );
                 }
@@ -872,7 +872,7 @@ struct xIPv6_Couple
                                                    pcBufferFrom,
                                                    sizeof( pcBufferFrom ) );
 
-                FreeRTOS_printf( ( "EasyFit[%x]: %d %d %d ( %s ->%s ) BAD\n",
+                FreeRTOS_debug_printf( ( "EasyFit[%x]: %d %d %d ( %s ->%s ) BAD\n",
                                    usFrameType,
                                    ( unsigned ) xCount[ 0 ],
                                    ( unsigned ) xCount[ 1 ],
@@ -984,7 +984,7 @@ struct xIPv6_Couple
                                 /* do nothing, coverity happy */
                             }
 
-                            FreeRTOS_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                            FreeRTOS_debug_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
                         }
                         xDoProcessPacket = pdTRUE;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
