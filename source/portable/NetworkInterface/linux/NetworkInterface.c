@@ -348,7 +348,7 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxlinux_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxlinux_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif
