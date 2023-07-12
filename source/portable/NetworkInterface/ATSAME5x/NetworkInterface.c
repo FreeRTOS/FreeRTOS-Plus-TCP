@@ -203,7 +203,7 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
 
 BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                             NetworkBufferDescriptor_t * const pxDescriptor,
-                                            BaseType_t bReleaseAfterSend );
+                                            BaseType_t xReleaseAfterSend );
 
 NetworkInterface_t * pxATSAM5x_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                         NetworkInterface_t * pxInterface )
@@ -259,7 +259,6 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
                      ( void * ) 1,                        /* Parameter passed into the task. */
                      configMAX_PRIORITIES - 1,            /* Priority at which the task is created. */
                      &xEMACTaskHandle );                  /* Used to pass out the created task's handle. */
-
 
         configASSERT( xEMACTaskHandle );
     }
@@ -415,7 +414,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
 BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                             NetworkBufferDescriptor_t * const pxDescriptor,
-                                            BaseType_t bReleaseAfterSend )
+                                            BaseType_t xReleaseAfterSend )
 {
     /* Simple network interfaces (as opposed to more efficient zero copy network
      * interfaces) just use Ethernet peripheral driver library functions to copy
@@ -450,7 +449,7 @@ BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         iptraceNETWORK_INTERFACE_TRANSMIT();
     }
 
-    if( bReleaseAfterSend != pdFALSE )
+    if( xReleaseAfterSend != pdFALSE )
     {
         /* It is assumed SendData() copies the data out of the FreeRTOS+TCP Ethernet
          * buffer.  The Ethernet buffer is therefore no longer needed, and must be
