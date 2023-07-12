@@ -595,7 +595,7 @@ struct xIPv6_Couple
         if( pxEndPoint == NULL )
         {
             FreeRTOS_debug_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
-                               ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
+                                     ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
         }
 
         return pxEndPoint;
@@ -767,8 +767,8 @@ struct xIPv6_Couple
                 if( xGatewayTarget == pdTRUE )
                 {
                     FreeRTOS_debug_printf( ( " GW address %pip to %pip\n",
-                                       pxIPAddressFrom->xIP_IPv6.ucBytes,
-                                       pxIPAddressTo->xIP_IPv6.ucBytes ) );
+                                             pxIPAddressFrom->xIP_IPv6.ucBytes,
+                                             pxIPAddressTo->xIP_IPv6.ucBytes ) );
                 }
 
                 xTargetGlobal = ( xIPv6_GetIPType( &( pxIPAddressTo->xIP_IPv6 ) ) == eIPv6_Global ) ? pdTRUE : pdFALSE;
@@ -873,12 +873,12 @@ struct xIPv6_Couple
                                                    sizeof( pcBufferFrom ) );
 
                 FreeRTOS_debug_printf( ( "EasyFit[%x]: %d %d %d ( %s ->%s ) BAD\n",
-                                   usFrameType,
-                                   ( unsigned ) xCount[ 0 ],
-                                   ( unsigned ) xCount[ 1 ],
-                                   ( unsigned ) xCount[ 2 ],
-                                   ( xRetNtopFrom == NULL ) ? "INVALID" : pcBufferFrom,
-                                   ( xRetNtopTo == NULL ) ? "INVALID" : pcBufferTo ) );
+                                         usFrameType,
+                                         ( unsigned ) xCount[ 0 ],
+                                         ( unsigned ) xCount[ 1 ],
+                                         ( unsigned ) xCount[ 2 ],
+                                         ( xRetNtopFrom == NULL ) ? "INVALID" : pcBufferFrom,
+                                         ( xRetNtopTo == NULL ) ? "INVALID" : pcBufferTo ) );
             }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
