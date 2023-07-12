@@ -118,8 +118,8 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                            BaseType_t bReleaseAfterSend );
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface );
+NetworkInterface_t * pxlinux_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
