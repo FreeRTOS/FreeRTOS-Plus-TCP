@@ -118,8 +118,8 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                            BaseType_t bReleaseAfterSend );
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface );
+NetworkInterface_t * pxLinux_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
@@ -339,9 +339,24 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /*-----------------------------------------------------------*/
 
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        return pxLinux_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif
+
+/*-----------------------------------------------------------*/
+
+NetworkInterface_t * pxLinux_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
