@@ -66,7 +66,6 @@ typedef struct
     TaskHandle_t xRecvTask;
     void * pvSendEvent;
     void * pvBackendContext;
-    NetworkInterface_t * pxNetif;
 } MBuffNetDriverContext_t;
 
 extern void vMBuffNetifBackendInit( MessageBufferHandle_t * pxSendMsgBuffer,
@@ -224,8 +223,8 @@ static void vNetifReceiveTask( void * pvParameters )
                                          uxMessageLen, xFrameProcess ) );
             }
 
-            pxDescriptor->pxInterface = pxDriverCtx->pxNetif;
-            pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxDriverCtx->pxNetif, pxDescriptor->pucEthernetBuffer );
+            pxDescriptor->pxInterface = pxNetif;
+            pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxNetif, pxDescriptor->pucEthernetBuffer );
 
             xRxEvent.eEventType = eNetworkRxEvent;
             xRxEvent.pvData = ( void * ) pxDescriptor;
