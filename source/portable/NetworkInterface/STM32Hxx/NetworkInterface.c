@@ -203,6 +203,30 @@ const PhyProperties_t xPHYProperties =
 };
 /*-----------------------------------------------------------*/
 
+static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
+                                 uint32_t ulIndex,
+                                 uint8_t * Addr )
+{
+    uint32_t ulTempReg;
+    uint32_t ulETH_MAC_ADDR_HBASE = (uint32_t) &(heth->Instance->MACA0HR);
+    uint32_t ulETH_MAC_ADDR_LBASE = (uint32_t) &(heth->Instance->MACA0LR);
+
+    configASSERT(ulIndex >= ETH_MAC_ADDRESS1);
+
+    /* Calculate the selected MAC address high register. */
+    ulTempReg = 0xBF000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+
+    /* Load the selected MAC address high register. */
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ulETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+
+    /* Calculate the selected MAC address low register. */
+    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+
+    /* Load the selected MAC address low register */
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ulETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+}
+
+/*-----------------------------------------------------------*/
 
 
 /*******************************************************************************
@@ -232,6 +256,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
     NetworkEndPoint_t * pxEndPoint;
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
+    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
     if( xMacInitStatus == eMACInit )
     {
@@ -303,6 +328,55 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
             HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
         }
+
+        {
+            /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
+            for( ;
+                    pxEndPoint != NULL;
+                    pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
+            {
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    {
+                        uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+
+                        ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                        ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                        ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                        prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
+                        xMACEntry += 8;
+                    }
+                    else
+                #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+                    {
+                        if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
+                        {
+                            prvMACAddressConfig( &xEthHandle, xMACEntry, pxEndPoint->xMACAddress.ucBytes );
+                            xMACEntry += 8;
+                        }
+                    }
+                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+
+                if( xMACEntry > ( BaseType_t ) ETH_MAC_ADDRESS3 )
+                {
+                    /* No more locations available. */
+                    break;
+                }
+            }
+        }
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            {
+                if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
+                {
+                    /* 33:33:00:00:00:01 */
+                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+
+                    prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
+                    xMACEntry += 8;
+                }
+            }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         /* Initialize the MACB and set all PHY properties */
         prvMACBProbePhy();
