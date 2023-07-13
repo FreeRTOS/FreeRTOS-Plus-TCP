@@ -412,7 +412,7 @@ static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
     TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 100U );
     uint8_t * pucTXBuffer;
 
-    if( xGetPhyLinkStatus( pxInterface ) == = pdPASS )
+    if( xSTM32H_GetPhyLinkStatus( pxInterface ) == pdPASS )
     {
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
             /* Zero-copy method, pass the buffer. */
@@ -870,8 +870,6 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 }
 /*-----------------------------------------------------------*/
 
-#define __NOP()    __ASM volatile ( "nop" )
-
 static void vClearOptionBit( volatile uint32_t * pulValue,
                              uint32_t ulValue )
 {
@@ -994,7 +992,7 @@ static void prvEMACHandlerTask( void * pvParameters )
              * The function xPhyCheckLinkStatus() returns pdTRUE if the
              * Link Status has changes since it was called the last time.
              */
-            if( xGetPhyLinkStatus( pxMyInterface ) == pdFALSE )
+            if( xSTM32H_GetPhyLinkStatus( pxMyInterface ) == pdFALSE )
             {
                 /* Stop the DMA transfer. */
                 HAL_ETH_Stop_IT( &( xEthHandle ) );
