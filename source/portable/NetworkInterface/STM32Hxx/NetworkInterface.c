@@ -205,13 +205,17 @@ const PhyProperties_t xPHYProperties =
 
 static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
                                  uint32_t ulIndex,
-                                 uint8_t * Addr )
+                                 const uint8_t * Addr )
 {
     uint32_t ulTempReg;
     uint32_t ulETH_MAC_ADDR_HBASE = (uint32_t) &(heth->Instance->MACA0HR);
     uint32_t ulETH_MAC_ADDR_LBASE = (uint32_t) &(heth->Instance->MACA0LR);
 
+    /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
     configASSERT(ulIndex >= ETH_MAC_ADDRESS1);
+
+    /* ETH_MAC_ADDRESS0 - ETH_MAC_ADDRESS3 */
+    configASSERT(ulIndex <= ETH_MAC_ADDRESS3);
 
     /* Calculate the selected MAC address high register. */
     ulTempReg = 0xBF000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
@@ -329,6 +333,33 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
             HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
         }
 
+        #if ( ipconfigUSE_MDNS == 1 )
+            {
+                /* Program the MDNS address. */
+                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MacAdress.ucBytes );
+                xMACEntry += 8;
+            }
+        #endif
+        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            {
+                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+                xMACEntry += 8;
+            }
+        #endif
+        #if ( ipconfigUSE_LLMNR == 1 )
+            {
+                /* Program the LLMNR address. */
+                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
+                xMACEntry += 8;
+            }
+        #endif
+        #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            {
+                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
+                xMACEntry += 8;
+            }
+        #endif
+
         {
             /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
             for( ;
@@ -343,6 +374,9 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
                         ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
                         ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                         ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+
+                        /* Allow traffic destined to Solicited-Node multicast address"of this endpoint 
+                        for Duplicate Address Detection (DAD) */
                         prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
                         xMACEntry += 8;
                     }
@@ -369,7 +403,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
             {
                 if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
                 {
-                    /* 33:33:00:00:00:01 */
+                    /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
                     uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
 
                     prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
