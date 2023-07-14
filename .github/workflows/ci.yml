@@ -18,9 +18,9 @@ jobs:
         run: sudo apt-get install -y uncrustify=0.69.0+dfsg1-1build1 git
       - name: Run Uncrustify
         run: |
-          uncrustify --version 
+          uncrustify --version
           echo "::group::Uncrustify Check"
-          find . -iname "*.[ch]" | xargs uncrustify --no-backup --replace --if-changed -c tools/uncrustify.cfg 
+          find . -iname "*.[ch]" | xargs uncrustify --no-backup --replace --if-changed -c tools/uncrustify.cfg
           echo "::endgroup::"
           git diff --exit-code
           if [ "$?" = "0" ]; then
