@@ -327,7 +327,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
             uint32_t ulValue = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_NWCFG_OFFSET );
             /* Allow the use of hashed MAC addresses. */
             ulValue |= XEMACPS_NWCFG_MCASTHASHEN_MASK;
-            #warning As 'MCASTHASHEN' doesn't seem to work, use the promiscuous mode so that IPv6 multicast packets are received.
+            /* As 'MCASTHASHEN' doesn't seem to work, use the promiscuous mode so that IPv6 multicast packets are received. */
             /* Allow promiscuous mode. */
             ulValue |= XEMACPS_NWCFG_COPYALLEN_MASK;
             XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_NWCFG_OFFSET, ulValue );
