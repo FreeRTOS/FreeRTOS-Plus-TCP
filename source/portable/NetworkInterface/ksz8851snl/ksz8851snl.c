@@ -121,7 +121,7 @@ void ksz8851_reg_clrbits( uint16_t reg,
 /**
  * \brief Configure the INTN interrupt.
  */
-void configure_intn( void ( *p_handler )( uint32_t, uint32_t ) )
+void configure_intn( void ( * p_handler )( uint32_t, uint32_t ) )
 {
 /*	gpio_configure_pin(KSZ8851SNL_INTN_GPIO, PIO_INPUT); */
 /*	pio_set_input(PIOA, PIO_PA11_IDX, PIO_PULLUP); */
