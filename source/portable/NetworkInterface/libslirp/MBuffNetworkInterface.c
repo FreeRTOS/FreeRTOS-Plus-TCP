@@ -122,13 +122,20 @@ BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
             }
         }
 
-        if( xResult == pdTRUE )
+        static BaseType_t xReceiveTaskCreated = pdFALSE;
+
+        if( ( xResult == pdTRUE ) && ( xReceiveTaskCreated == pdFALSE ) )
         {
             xResult = xTaskCreate( vNetifReceiveTask, "NetRX",
                                    configMINIMAL_STACK_SIZE,
                                    pxNetif,
                                    tskIDLE_PRIORITY,
                                    &( pxDriverCtx->xRecvTask ) );
+
+            if( xResult == pdPASS )
+            {
+                xReceiveTaskCreated = pdTRUE;
+            }
         }
 
         /* Cleanup on failure */
