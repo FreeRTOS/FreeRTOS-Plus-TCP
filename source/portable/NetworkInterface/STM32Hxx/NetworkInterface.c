@@ -375,7 +375,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
                         ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                         ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
 
-                        /* Allow traffic destined to Solicited-Node multicast address"of this endpoint
+                        /* Allow traffic destined to Solicited-Node multicast address of this endpoint
                          * for Duplicate Address Detection (DAD) */
                         prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
                         xMACEntry += 8;
