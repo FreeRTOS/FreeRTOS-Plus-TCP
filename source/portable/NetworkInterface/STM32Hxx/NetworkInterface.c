@@ -366,35 +366,11 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
             {
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                    {
-                        uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
-
-                        ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                        ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                        ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-
-                        /* Allow traffic destined to Solicited-Node multicast address of this endpoint
-                         * for Duplicate Address Detection (DAD) */
-                        prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
-                        xMACEntry += 8;
-                    }
-                    else
-                #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-                    {
-                        if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
-                        {
-                            prvMACAddressConfig( &xEthHandle, xMACEntry, pxEndPoint->xMACAddress.ucBytes );
-                            xMACEntry += 8;
-                        }
-                    }
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
-
-                switch( pxEndPoint->bits.bIPv6 ) 
+                switch( pxEndPoint->bits.bIPv6 )
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
+
                             if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
                             {
                                 prvMACAddressConfig( &xEthHandle, xMACEntry, pxEndPoint->xMACAddress.ucBytes );
@@ -405,19 +381,19 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE_UNSIGNED:
-                            {
-                                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                           {
+                               uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
-                                ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                                ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                                ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                               ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                               ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                               ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
 
-                                /* Allow traffic destined to Solicited-Node multicast address of this endpoint
+                               /* Allow traffic destined to Solicited-Node multicast address of this endpoint
                                 * for Duplicate Address Detection (DAD) */
-                                prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
-                            xMACEntry += 8;
-                            }
-                            break;
+                               prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
+                               xMACEntry += 8;
+                           }
+                           break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
                     default:
