@@ -214,7 +214,9 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
     /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
     configASSERT( ulIndex >= ETH_MAC_ADDRESS1 );
 
-    /* ETH_MAC_ADDRESS0 - ETH_MAC_ADDRESS3 */
+    /* STM32Hxx devices support 4 MAC address registers
+     * (ETH_MAC_ADDRESS0 - ETH_MAC_ADDRESS3), make sure ulIndex is not
+     * more than that. */
     configASSERT( ulIndex <= ETH_MAC_ADDRESS3 );
 
     /* Calculate the selected MAC address high register. */
