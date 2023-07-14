@@ -208,14 +208,14 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
                                  const uint8_t * Addr )
 {
     uint32_t ulTempReg;
-    uint32_t ulETH_MAC_ADDR_HBASE = (uint32_t) &(heth->Instance->MACA0HR);
-    uint32_t ulETH_MAC_ADDR_LBASE = (uint32_t) &(heth->Instance->MACA0LR);
+    uint32_t ulETH_MAC_ADDR_HBASE = ( uint32_t ) &( heth->Instance->MACA0HR );
+    uint32_t ulETH_MAC_ADDR_LBASE = ( uint32_t ) &( heth->Instance->MACA0LR );
 
     /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
-    configASSERT(ulIndex >= ETH_MAC_ADDRESS1);
+    configASSERT( ulIndex >= ETH_MAC_ADDRESS1 );
 
     /* ETH_MAC_ADDRESS0 - ETH_MAC_ADDRESS3 */
-    configASSERT(ulIndex <= ETH_MAC_ADDRESS3);
+    configASSERT( ulIndex <= ETH_MAC_ADDRESS3 );
 
     /* Calculate the selected MAC address high register. */
     ulTempReg = 0xBF000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
@@ -363,8 +363,8 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         {
             /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
             for( ;
-                    pxEndPoint != NULL;
-                    pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
+                 pxEndPoint != NULL;
+                 pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
             {
                 #if ( ipconfigUSE_IPv6 != 0 )
                     if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
@@ -375,8 +375,8 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
                         ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
                         ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
 
-                        /* Allow traffic destined to Solicited-Node multicast address"of this endpoint 
-                        for Duplicate Address Detection (DAD) */
+                        /* Allow traffic destined to Solicited-Node multicast address"of this endpoint
+                         * for Duplicate Address Detection (DAD) */
                         prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
                         xMACEntry += 8;
                     }
