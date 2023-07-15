@@ -220,7 +220,7 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
     configASSERT( ulIndex <= ETH_MAC_ADDRESS3 );
 
     /* Calculate the selected MAC address high register. */
-    ulTempReg = 0xBF000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
 
     /* Load the selected MAC address high register. */
     ( *( __IO uint32_t * ) ( ( uint32_t ) ( ulETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
@@ -263,6 +263,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
     BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
+    ETH_MACFilterConfigTypeDef xFilterConfig;
 
     if( xMacInitStatus == eMACInit )
     {
@@ -291,6 +292,10 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
         /* Only for inspection by debugger. */
         ( void ) xHalEthInitStatus;
+
+        HAL_ETH_GetMACFilterConfig(&( xEthHandle ), &(xFilterConfig));
+        xFilterConfig.PassAllMulticast = ENABLE;
+        HAL_ETH_SetMACFilterConfig(&( xEthHandle ), &(xFilterConfig));
 
         /* Configuration for HAL_ETH_Transmit(_IT). */
         memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
@@ -411,18 +416,18 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
             }
         }
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-            {
-                if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
-                {
-                    /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
-                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+        // #if ( ipconfigUSE_IPv6 != 0 )
+        //     {
+        //         if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
+        //         {
+        //             /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
+        //             uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
 
-                    prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
-                    xMACEntry += 8;
-                }
-            }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        //             prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
+        //             xMACEntry += 8;
+        //         }
+        //     }
+        // #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         /* Initialize the MACB and set all PHY properties */
         prvMACBProbePhy();
