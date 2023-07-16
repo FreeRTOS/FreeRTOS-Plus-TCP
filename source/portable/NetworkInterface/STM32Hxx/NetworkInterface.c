@@ -65,12 +65,12 @@
 #endif
 
 /* Interrupt events to process: reception, transmission and error handling. */
-#define EMAC_IF_RX_EVENT     1UL
-#define EMAC_IF_TX_EVENT     2UL
-#define EMAC_IF_ERR_EVENT    4UL
+#define EMAC_IF_RX_EVENT                1UL
+#define EMAC_IF_TX_EVENT                2UL
+#define EMAC_IF_ERR_EVENT               4UL
 
-/* 
- * Enable either Hash or Perfect Filter, Multicast filter - None, 
+/*
+ * Enable either Hash or Perfect Filter, Multicast filter - None,
  * Enable Hash Multicast, and Enable Hash Unicast.
  */
 #define ENABLE_MULTICAST_HASH_FILTER    ( ( uint32_t ) 0x00000416U )
@@ -208,77 +208,78 @@ const PhyProperties_t xPHYProperties =
 };
 /*-----------------------------------------------------------*/
 
-static uint32_t prvRevBits32(uint32_t ulValue)
+static uint32_t prvRevBits32( uint32_t ulValue )
 {
     uint32_t ulRev32;
     int iIndex;
- 
+
     ulRev32 = 0;
- 
-    for(iIndex=0; iIndex<32; iIndex++)
+
+    for( iIndex = 0; iIndex < 32; iIndex++ )
     {
-        if (ulValue & (1 << iIndex))
+        if( ulValue & ( 1 << iIndex ) )
         {
             {
-                ulRev32 |= 1 << (31 - iIndex);
+                ulRev32 |= 1 << ( 31 - iIndex );
             }
         }
     }
-    
-    return ulRev32;
 
+    return ulRev32;
 }
 
-static uint32_t prvComputeCRC32_MAC(const uint8_t *pucMAC) 
+static uint32_t prvComputeCRC32_MAC( const uint8_t * pucMAC )
 {
     int iiIndex, ijIndex;
     uint32_t ulCRC32 = 0xFFFFFFFF;
- 
-    for(ijIndex=0; ijIndex<6; ijIndex++)
+
+    for( ijIndex = 0; ijIndex < 6; ijIndex++ )
     {
-        ulCRC32 = ulCRC32 ^ (uint32_t)pucMAC[ijIndex];
- 
-        for(iiIndex=0; iiIndex<8; iiIndex++)
+        ulCRC32 = ulCRC32 ^ ( uint32_t ) pucMAC[ ijIndex ];
+
+        for( iiIndex = 0; iiIndex < 8; iiIndex++ )
         {
-            if (ulCRC32 & 1)
+            if( ulCRC32 & 1 )
             {
-                ulCRC32 = (ulCRC32 >> 1) ^ prvRevBits32(0x04C11DB7); /* IEEE 802.3 CRC32 polynomial - 0x04C11DB7 */
+                ulCRC32 = ( ulCRC32 >> 1 ) ^ prvRevBits32( 0x04C11DB7 ); /* IEEE 802.3 CRC32 polynomial - 0x04C11DB7 */
             }
             else
             {
-                ulCRC32 = (ulCRC32 >> 1);
+                ulCRC32 = ( ulCRC32 >> 1 );
             }
         }
     }
 
-    ulCRC32 = ~(ulCRC32);
+    ulCRC32 = ~( ulCRC32 );
     return ulCRC32;
-
 }
 
-static uint32_t prvComputeEthernet_MACHash(const uint8_t *pucMAC) 
+static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC )
 {
     uint32_t ulCRC32;
     uint32_t ulHash;
-    
-    ulCRC32 = prvComputeCRC32_MAC(pucMAC);
-    ulHash = prvRevBits32(ulCRC32);
 
-    return (ulHash >> 26);
+    ulCRC32 = prvComputeCRC32_MAC( pucMAC );
+    ulHash = prvRevBits32( ulCRC32 );
+
+    return( ulHash >> 26 );
 }
 
-static void prvSetMulitcastMAC_HashFilter(ETH_HandleTypeDef * pxEthHandle, const uint8_t *pucMAC)
+static void prvSetMulitcastMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle,
+                                           const uint8_t * pucMAC )
 {
     uint32_t ulHash;
-    ulHash = prvComputeEthernet_MACHash(pucMAC);
 
-	if (ulHash < 32) 
+    ulHash = prvComputeEthernet_MACHash( pucMAC );
+
+    if( ulHash < 32 )
     {
-        pxEthHandle->Instance->MACHT0R |= (1 << ulHash);
-	} else 
+        pxEthHandle->Instance->MACHT0R |= ( 1 << ulHash );
+    }
+    else
     {
-        pxEthHandle->Instance->MACHT1R |= (1 << (ulHash % 32));
-	}
+        pxEthHandle->Instance->MACHT1R |= ( 1 << ( ulHash % 32 ) );
+    }
 }
 
 /*-----------------------------------------------------------*/
@@ -389,23 +390,23 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         #if ( ipconfigUSE_MDNS == 1 )
             {
                 /* Program the MDNS address. */
-                prvSetMulitcastMAC_HashFilter(&xEthHandle, ( uint8_t * ) xMDNS_MacAdress.ucBytes);
+                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAdress.ucBytes );
             }
         #endif
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             {
-                prvSetMulitcastMAC_HashFilter(&xEthHandle, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes);
+                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
             }
         #endif
         #if ( ipconfigUSE_LLMNR == 1 )
             {
                 /* Program the LLMNR address. */
-                prvSetMulitcastMAC_HashFilter(&xEthHandle, ( uint8_t * ) xLLMNR_MacAdress.ucBytes);
+                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
             }
         #endif
         #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             {
-                prvSetMulitcastMAC_HashFilter(&xEthHandle, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes);
+                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
             }
         #endif
 
@@ -422,7 +423,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                             if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
                             {
-                                prvSetMulitcastMAC_HashFilter(&xEthHandle, pxEndPoint->xMACAddress.ucBytes);
+                                prvSetMulitcastMAC_HashFilter( &xEthHandle, pxEndPoint->xMACAddress.ucBytes );
                             }
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -438,7 +439,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                                /* Allow traffic destined to Solicited-Node multicast address of this endpoint
                                 * for Duplicate Address Detection (DAD) */
-                               prvSetMulitcastMAC_HashFilter(&xEthHandle, ucMACAddress);
+                               prvSetMulitcastMAC_HashFilter( &xEthHandle, ucMACAddress );
                            }
                            break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -447,7 +448,6 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
                         /* MISRA 16.4 Compliance */
                         break;
                 }
-
             }
         }
 
