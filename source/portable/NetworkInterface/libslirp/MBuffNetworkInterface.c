@@ -88,6 +88,12 @@ BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
 
     pxNetif->pvArgument = pvPortMalloc( sizeof( MBuffNetDriverContext_t ) );
 
+    if( pxNetif->pvArgument == NULL )
+    {
+        FreeRTOS_printf( ( "Failed to allocate memory for pxNetif->pvArgument" ) );
+        configASSERT( 0 );
+    }
+
     MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
 
     if( pxDriverCtx->xInterfaceState == pdFALSE )

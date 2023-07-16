@@ -250,6 +250,12 @@ void vMBuffNetifBackendInit( MessageBufferHandle_t * pxSendMsgBuffer,
     else
     {
         pvContextBuffer = pvPortMalloc( sizeof( SlirpBackendContext_t ) );
+
+        if( pvContextBuffer == NULL )
+        {
+            FreeRTOS_printf( ( "Failed to allocate memory for pvContextBuffer" ) );
+            configASSERT( 0 );
+        }
     }
 
     if( pvContextBuffer != NULL )
@@ -472,6 +478,12 @@ static void vEnsurePollfdSize( SlirpBackendContext_t * pxCtx,
         if( pxCtx->pxPollFdArray == NULL )
         {
             pxCtx->pxPollFdArray = ( struct pollfd * ) malloc( xNewSize * sizeof( struct pollfd ) );
+
+            if( pxCtx->pxPollFdArray == NULL )
+            {
+                FreeRTOS_printf( ( "Failed to allocate memory for pxCtx->pxPollFdArray" ) );
+                configASSERT( 0 );
+            }
         }
         else
         {
