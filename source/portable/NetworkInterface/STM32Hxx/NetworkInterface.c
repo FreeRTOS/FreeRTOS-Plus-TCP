@@ -312,6 +312,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
     NetworkEndPoint_t * pxEndPoint;
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
+    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
     if( xMacInitStatus == eMACInit )
     {
