@@ -276,7 +276,7 @@ static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC )
 /* Update the Hash Table Registers
  * (ETH_MACHT0R and ETH_MACHT1R) with hash value of the given MAC address */
 static void prvSetMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle,
-                                           const uint8_t * pucMAC )
+                                  const uint8_t * pucMAC )
 {
     uint32_t ulHash;
 
