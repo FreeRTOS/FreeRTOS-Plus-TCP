@@ -562,7 +562,7 @@
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* FREERTOS_SOCKETS_H */

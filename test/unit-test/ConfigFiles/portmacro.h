@@ -128,7 +128,7 @@
     #define portGET_RUN_TIME_COUNTER_VALUE()            ulPortGetRunTime()
 
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* PORTMACRO_H */
