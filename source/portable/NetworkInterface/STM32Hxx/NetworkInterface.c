@@ -73,7 +73,7 @@
  * Enable either Hash or Perfect Filter, Multicast filter - None,
  * Enable Hash Multicast (HMC), and Enable Hash Unicast (HUC).
  */
-#define ENABLE_HASH_FILTER_SETTINGS    ( ( uint32_t ) 0x00000416U )
+#define ENABLE_HASH_FILTER_SETTINGS     ( ( uint32_t ) 0x00000416U )
 
 #ifndef niEMAC_HANDLER_TASK_NAME
     #define niEMAC_HANDLER_TASK_NAME    "EMAC-task"
@@ -208,6 +208,7 @@ const PhyProperties_t xPHYProperties =
 };
 /*-----------------------------------------------------------*/
 
+/* Reverse the bits of a 32 bit unsigned integer */
 static uint32_t prvRevBits32( uint32_t ulValue )
 {
     uint32_t ulRev32;
@@ -228,6 +229,7 @@ static uint32_t prvRevBits32( uint32_t ulValue )
     return ulRev32;
 }
 
+/* Compute the CRC32 of the given MAC address as per IEEE 802.3 CRC32 */
 static uint32_t prvComputeCRC32_MAC( const uint8_t * pucMAC )
 {
     int iiIndex, ijIndex;
@@ -254,24 +256,35 @@ static uint32_t prvComputeCRC32_MAC( const uint8_t * pucMAC )
     return ulCRC32;
 }
 
+/* Compute the hash value of a given MAC address to index the bits in the Hash Table
+ * Registers (ETH_MACHT0R and ETH_MACHT1R) */
 static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC )
 {
     uint32_t ulCRC32;
     uint32_t ulHash;
 
+    /*  Calculate the 32-bit CRC for the MAC */
     ulCRC32 = prvComputeCRC32_MAC( pucMAC );
+
+    /* Perform bitwise reversal on the CRC32 */
     ulHash = prvRevBits32( ulCRC32 );
 
+    /* Take the upper 6 bits of the above result */
     return( ulHash >> 26 );
 }
 
+/* Update the Hash Table Registers
+ * (ETH_MACHT0R and ETH_MACHT1R) with hash value of the given MAC address */
 static void prvSetMulitcastMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle,
                                            const uint8_t * pucMAC )
 {
     uint32_t ulHash;
 
+    /* Compute the hash */
     ulHash = prvComputeEthernet_MACHash( pucMAC );
 
+    /* Use the upper (MACHT1R) or lower (MACHT0R) Hash Table Registers
+     * to set the required bit based on the ulHash */
     if( ulHash < 32 )
     {
         pxEthHandle->Instance->MACHT0R |= ( 1 << ulHash );
