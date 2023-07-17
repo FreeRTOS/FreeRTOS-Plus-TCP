@@ -275,7 +275,7 @@ static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC )
 
 /* Update the Hash Table Registers
  * (ETH_MACHT0R and ETH_MACHT1R) with hash value of the given MAC address */
-static void prvSetMulitcastMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle,
+static void prvSetMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle,
                                            const uint8_t * pucMAC )
 {
     uint32_t ulHash;
@@ -403,23 +403,23 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         #if ( ipconfigUSE_MDNS == 1 )
             {
                 /* Program the MDNS address. */
-                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAdress.ucBytes );
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAdress.ucBytes );
             }
         #endif
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             {
-                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
             }
         #endif
         #if ( ipconfigUSE_LLMNR == 1 )
             {
                 /* Program the LLMNR address. */
-                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
             }
         #endif
         #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             {
-                prvSetMulitcastMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
             }
         #endif
 
@@ -436,7 +436,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                             if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
                             {
-                                prvSetMulitcastMAC_HashFilter( &xEthHandle, pxEndPoint->xMACAddress.ucBytes );
+                                prvSetMAC_HashFilter( &xEthHandle, pxEndPoint->xMACAddress.ucBytes );
                             }
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -452,7 +452,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                                /* Allow traffic destined to Solicited-Node multicast address of this endpoint
                                 * for Duplicate Address Detection (DAD) */
-                               prvSetMulitcastMAC_HashFilter( &xEthHandle, ucMACAddress );
+                               prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
                            }
                            break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -468,7 +468,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
             {
                 /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
                 const uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
-                prvSetMulitcastMAC_HashFilter( &xEthHandle, ucMACAddress );
+                prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
             }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
