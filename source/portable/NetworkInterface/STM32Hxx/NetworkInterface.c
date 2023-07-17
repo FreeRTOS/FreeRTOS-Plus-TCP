@@ -71,9 +71,9 @@
 
 /*
  * Enable either Hash or Perfect Filter, Multicast filter - None,
- * Enable Hash Multicast, and Enable Hash Unicast.
+ * Enable Hash Multicast (HMC), and Enable Hash Unicast (HUC).
  */
-#define ENABLE_MULTICAST_HASH_FILTER    ( ( uint32_t ) 0x00000416U )
+#define ENABLE_HASH_FILTER_SETTINGS    ( ( uint32_t ) 0x00000416U )
 
 #ifndef niEMAC_HANDLER_TASK_NAME
     #define niEMAC_HANDLER_TASK_NAME    "EMAC-task"
@@ -312,7 +312,6 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
     NetworkEndPoint_t * pxEndPoint;
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
-    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
     if( xMacInitStatus == eMACInit )
     {
@@ -343,7 +342,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         ( void ) xHalEthInitStatus;
 
         /* Update MAC filter settings */
-        xEthHandle.Instance->MACPFR |= ENABLE_MULTICAST_HASH_FILTER;
+        xEthHandle.Instance->MACPFR |= ENABLE_HASH_FILTER_SETTINGS;
 
         /* Configuration for HAL_ETH_Transmit(_IT). */
         memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
