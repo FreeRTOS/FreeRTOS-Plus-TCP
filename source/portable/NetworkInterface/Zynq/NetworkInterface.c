@@ -103,7 +103,9 @@
 /* When the PHY is forces to work with a speed of 100 Mbps
  * many outgoing packets seem to get dropped.
  */
-    #warning ipconfigNIC_LINKSPEED100 is btoken. Are you sure?
+    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+        #warning ipconfigNIC_LINKSPEED100 is btoken. Are you sure?
+    #endif
 #endif
 
 static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
@@ -113,7 +115,9 @@ static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
 #endif
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 || ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-    #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+        #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #endif
 #endif
 
 #ifndef nicUSE_UNCACHED_MEMORY
