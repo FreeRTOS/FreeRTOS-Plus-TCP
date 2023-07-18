@@ -530,6 +530,10 @@ static inline int lSlirpEventsToNativePollEvents( int lSlirpPollFlags )
         lPosixPollFlags |= POLLHUP;
     }
 
+    #if defined( _WIN32 )
+        lPosixPollFlags &= ~( POLLPRI | POLLERR | POLLHUP );
+    #endif
+
     return lPosixPollFlags;
 }
 
