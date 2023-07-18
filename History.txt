@@ -1,10 +1,20 @@
-Changes between dev/ipv6_integration branch 4.0.0-RC2 and 4.0.0-RC1 releases:
+Changes between 4.0.0-RC3 and 4.0.0-RC2 releases:
+		+ Added memory safety proofs for IPv6 using[ CBMC automated reasoning tool ] ( https:/*www.cprover.org/cbmc/)
+		+ Introduced build separation feature to achieve low memory footprint. Supported build combinations:
+		    1. IPv4 + UDP
+		    2. IPv4 + UDP + TCP
+		    3. IPv6 + UDP
+		    4. IPv6 + UDP + TCP
+		    5. IPv4 + IPv6 + UDP
+		    6. IPv4 + IPv6 + UDP + TCP
+
+Changes between 4.0.0-RC2 and 4.0.0-RC1 releases:
         + Added changes to fix IPv6 issues observed by Maxwell protocol tester.
 
-Changes between dev/ipv6_integration branch RC1 and main branch V3.0.0 releases:
+Changes between RC1 and V3.0.0 releases:
         + Unified code for IPv4 and IPv6
         + Multiple Interface/Endpoint support
-	((Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/freertostcp-multiple-interfaces.html).
+	(Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/freertostcp-multiple-interfaces.html).
         + New WinSim demo to support both IPv4 and IPv6.
 **Note**- This release does not support ESP32/ M487/ mw300_rd ports yet. This will be released soon.
 

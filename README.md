@@ -1,7 +1,7 @@
-## NOTE - Work In Progress
+## Introduction
 
 This branch contains unified IPv4 and IPv6 functionalities.
-Refer to the Getting started Guide (found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/dev/IPv6_integration/GettingStarted_4.0.0-rc2.md)) for more details.
+Refer to the Getting started Guide (found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted_4.0.0-rc3.md)) for more details.
 
 ## FreeRTOS-Plus-TCP Library
 FreeRTOS-Plus-TCP is a lightweight TCP/IP stack for FreeRTOS. It provides a familiar Berkeley sockets interface, making it as simple to use and learn as possible. FreeRTOS-Plus-TCP's features and RAM footprint are fully scalable, making FreeRTOS-Plus-TCP equally applicable to smaller lower throughput microcontrollers as well as larger higher throughput microprocessors.
@@ -9,8 +9,8 @@ FreeRTOS-Plus-TCP is a lightweight TCP/IP stack for FreeRTOS. It provides a fami
 This library has undergone static code analysis and checks for compliance with the [MISRA coding standard](https://www.misra.org.uk/). Any deviations from the MISRA C:2012 guidelines are documented under [MISRA Deviations](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md). The library is validated for memory safety and data structure invariance through the [CBMC automated reasoning tool](https://www.cprover.org/cbmc/) for the functions that parse data originating from the network. The library is also protocol tested using Maxwell protocol tester for both IPv4 and IPv6.
 
 ## Getting started
-The easiest way to use the 4.0.0-rc2 version of FreeRTOS-Plus-TCP is to refer to to the Getting started Guide (found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/dev/IPv6_integration/GettingStarted_4.0.0-rc2.md))
-Another way is to start with the pre-configured demo application project (found in [this directory](https://github.com/FreeRTOS/FreeRTOS/tree/devIPv6/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator)).  That way you will have the correct FreeRTOS source files included, and the correct include paths configured.  Once a demo application is building and executing you can remove the demo application files, and start to add in your own application source files.  See the [FreeRTOS Kernel Quick Start Guide](https://www.freertos.org/FreeRTOS-quick-start-guide.html) for detailed instructions and other useful links.
+The easiest way to use the 4.0.0-rc3 version of FreeRTOS-Plus-TCP is to refer to to the Getting started Guide (found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted_4.0.0-rc3.md))
+Another way is to start with the pre-configured demo application project (found in [this directory](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator)).  That way you will have the correct FreeRTOS source files included, and the correct include paths configured.  Once a demo application is building and executing you can remove the demo application files, and start to add in your own application source files.  See the [FreeRTOS Kernel Quick Start Guide](https://www.freertos.org/FreeRTOS-quick-start-guide.html) for detailed instructions and other useful links.
 
 Additionally, for FreeRTOS-Plus-TCP source code organization refer to the [Documentation](http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial.html), and [API Reference](https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html).
 
