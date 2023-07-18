@@ -425,8 +425,10 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 1 )
-            #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
-            #warning Please ipconfigZERO_COPY_TX_DRIVER as 1
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+                {
+                    #warning Please ipconfigZERO_COPY_TX_DRIVER as 1
+                }
             #endif
         #endif
         configASSERT( bReleaseAfterSend != pdFALSE );

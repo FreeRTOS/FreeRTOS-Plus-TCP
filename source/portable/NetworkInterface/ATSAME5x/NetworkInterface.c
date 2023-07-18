@@ -59,19 +59,19 @@
 
 /* Check for optimal performance parameters */
 #if ( CONF_GMAC_NCFGR_RXCOEN == 0 )
-    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning This driver works best with RX CRC offloading enabled.
     #endif
 #endif
 
 #if ( CONF_GMAC_DCFGR_TXCOEN == 0 )
-    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning This driver works best with TX CRC offloading enabled.
     #endif
 #endif
 
 #if ( CONF_GMAC_NCFGR_CAF != 0 )
-    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning This driver includes GMAC hardware frame filtering for better performance.
     #endif
 #endif

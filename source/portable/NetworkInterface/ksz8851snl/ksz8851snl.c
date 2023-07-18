@@ -479,8 +479,10 @@ void ksz8851snl_set_registers( void )
 
 
 /*#define   RXQ_TWOBYTE_OFFSET          (0x0200)    / * Enable adding 2-byte before frame header for IP aligned with DWORD * / */
-    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
-    #warning Remember to try the above option to get a 2-byte offset
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        {
+            #warning Remember to try the above option to get a 2-byte offset
+        }
     #endif
 
     /* Init step11: configure QMU receive queue: trigger INT and auto-dequeue frame. */

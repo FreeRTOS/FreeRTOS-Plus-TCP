@@ -77,7 +77,7 @@
 #define TX_OFFSET    ipconfigPACKET_FILLER_SIZE
 
 #if ( ipconfigNETWORK_MTU > 1526 )
-    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning the use of Jumbo Frames has not been tested sufficiently yet.
     #endif
 
@@ -665,7 +665,7 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
             value |= XEMACPS_DMACR_TCPCKSUM_MASK;
         #else
-            #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
                 {
                     #warning Are you sure the EMAC should not calculate outgoing checksums?
                 }
@@ -686,7 +686,7 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 )
             value |= XEMACPS_NWCFG_RXCHKSUMEN_MASK;
         #else
-            #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
                 {
                     #warning Are you sure the EMAC should not calculate incoming checksums?
                 }

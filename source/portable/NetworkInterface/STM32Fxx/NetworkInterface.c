@@ -95,7 +95,7 @@
 #endif
 
 #if ( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
-    #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning Consider enabling checksum offloading
     #endif
 #endif
@@ -151,12 +151,12 @@
 #ifndef ipconfigUSE_RMII
     #ifdef STM32F7xx
         #define ipconfigUSE_RMII    1
-        #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
             #warning Using RMII, make sure if this is correct
         #endif
     #else
         #define ipconfigUSE_RMII    0
-        #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
             #warning Using MII, make sure if this is correct
         #endif
     #endif /* STM32F7xx */
