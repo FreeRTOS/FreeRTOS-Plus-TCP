@@ -666,7 +666,9 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
             value |= XEMACPS_DMACR_TCPCKSUM_MASK;
         #else
             #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
-            #warning Are you sure the EMAC should not calculate outgoing checksums?
+                {
+                    #warning Are you sure the EMAC should not calculate outgoing checksums?
+                }
             #endif
 
             value &= ~XEMACPS_DMACR_TCPCKSUM_MASK;
@@ -685,7 +687,9 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
             value |= XEMACPS_NWCFG_RXCHKSUMEN_MASK;
         #else
             #if ( ipconfigPORT_SUPPRESS_WARNING != 0 )
-            #warning Are you sure the EMAC should not calculate incoming checksums?
+                {
+                    #warning Are you sure the EMAC should not calculate incoming checksums?
+                }
             #endif
 
             value &= ~( ( uint32_t ) XEMACPS_NWCFG_RXCHKSUMEN_MASK );
