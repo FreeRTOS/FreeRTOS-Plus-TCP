@@ -978,7 +978,11 @@
 
 /* When ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM is enabled,
  * the network interface is responsible for checking the checksums
- * of the incoming packets.
+ * of the incoming packets. If hardware supports checking TCP checksum only,
+ * the network interface layer should handle the same for other protocols,
+ * such as IP/UDP/ICMP/etc, and give the checksum verified packets to the
+ * FreeRTOS-plus-TCP stack.
+ *
  * This can be either done in hardware, or by calling the checksum
  * functions.
  */
