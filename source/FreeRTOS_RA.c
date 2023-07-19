@@ -138,6 +138,7 @@
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
         IPv6_Address_t xSourceAddress;
         BaseType_t xHasLocal;
+        NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
 
         configASSERT( pxEndPoint != NULL );
         configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
@@ -156,7 +157,9 @@
 
         if( pxDescriptor->xDataLength < uxNeededSize )
         {
-            pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+            pxNewDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+            vReleaseNetworkBufferAndDescriptor(pxDescriptor);
+            pxDescriptor = pxNewDescriptor;
         }
 
         if( pxDescriptor != NULL )
