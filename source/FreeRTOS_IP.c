@@ -2115,16 +2115,17 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
             NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface; /*_RB_ Why not use the pxNetworkBuffer->pxNetworkInterface directly? */
+            uint32_t ulDestinationIPAddress = 0U;
 
             /* Interpret the Ethernet packet being sent. */
             switch( pxIPPacket->xEthernetHeader.usFrameType )
             {
                 case ipIPv4_FRAME_TYPE:
-                    uint32_t ulDestinationIPAddress = pxIPPacket->xIPHeader.ulDestinationIPAddress;
+                    ulDestinationIPAddress = pxIPPacket->xIPHeader.ulDestinationIPAddress;
 
                     /* Try to find a MAC address corresponding to the destination IP
                      * address. */
-                    eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress );
+                    eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
 
                     if( eResult == eARPCacheHit )
                     {
