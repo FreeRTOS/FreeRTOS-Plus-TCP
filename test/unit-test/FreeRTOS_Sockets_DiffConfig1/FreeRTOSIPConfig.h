@@ -34,6 +34,10 @@
 
 #define TEST                        1
 
+#define ipconfigUSE_IPv4            ( 1 )
+#define ipconfigUSE_IPv6            ( 1 )
+#define ipconfigTCP_MSS             ( ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER - 1 )
+
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
@@ -137,6 +141,8 @@ extern uint32_t ulRand();
 #define ipconfigUSE_DHCP                         1
 #define ipconfigDHCP_REGISTER_HOSTNAME           1
 #define ipconfigDHCP_USES_UNICAST                1
+
+#define ipconfigENDPOINT_DNS_ADDRESS_COUNT       5
 
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,

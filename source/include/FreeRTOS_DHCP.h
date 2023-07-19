@@ -32,14 +32,13 @@
 #ifdef __cplusplus
     extern "C" {
 #endif
-/* *INDENT-ON* */
+
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_Routing.h"
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "IPTraceMacroDefaults.h"
-
-#include "FreeRTOS_Sockets.h"
-
 
 #if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 
@@ -65,6 +64,8 @@
  * unanswered request, this time-out shall be multiplied by 2. */
     #define dhcpINITIAL_DHCP_TX_PERIOD    ( pdMS_TO_TICKS( 5000U ) )
 #endif
+
+#define dhcpIPv6_CLIENT_DUID_LENGTH                ( 14U )
 
 /* Codes of interest found in the DHCP options field. */
 #define dhcpIPv4_ZERO_PAD_OPTION_CODE              ( 0U )      /**< Used to pad other options to make them aligned. See RFC 2132. */
@@ -96,16 +97,15 @@
 
 
 /* Values used in the DHCP packets. */
-#define dhcpREQUEST_OPCODE             ( 1U )                 /**< DHCP request opcode. */
-#define dhcpREPLY_OPCODE               ( 2U )                 /**< DHCP reply opcode. */
-#define dhcpADDRESS_TYPE_ETHERNET      ( 1U )                 /**< Address type: ethernet opcode. */
-#define dhcpETHERNET_ADDRESS_LENGTH    ( 6U )                 /**< Ethernet address length opcode. */
+#define dhcpREQUEST_OPCODE              ( 1U )                /**< DHCP request opcode. */
+#define dhcpREPLY_OPCODE                ( 2U )                /**< DHCP reply opcode. */
+#define dhcpADDRESS_TYPE_ETHERNET       ( 1U )                /**< Address type: ethernet opcode. */
+#define dhcpETHERNET_ADDRESS_LENGTH     ( 6U )                /**< Ethernet address length opcode. */
 
 /* The following define is temporary and serves to make the /single source
- * code more similar to the /multi version. */
-
-#define EP_DHCPData                     xDHCPData              /**< Temporary define to make /single source similar to /multi version. */
-#define EP_IPv4_SETTINGS                xNetworkAddressing     /**< Temporary define to make /single source similar to /multi version. */
+ * code more similar to the /multi version. TODO */
+//#define EP_DHCPData                     xDHCPData              /**< Temporary define to make /single source similar to /multi version. */
+//#define EP_IPv4_SETTINGS                xNetworkAddressing     /**< Temporary define to make /single source similar to /multi version. */
 
 /** @brief If a lease time is not received, use the default of two days (48 hours in ticks).
  * Can not use pdMS_TO_TICKS() as integer overflow can occur. */
@@ -131,7 +131,7 @@
     #define dhcpBROADCAST           0x0080U          /**< Little endian representation of broadcast flag. */
 #else
     #define dhcpCLIENT_PORT_IPv4    0x0044U          /**< Big endian representation of port 68. */
-    #define dhcpSERVER_PORT_IPv4    0x0043U          /**< Big endian representation of port 68. */
+    #define dhcpSERVER_PORT_IPv4    0x0043U          /**< Big endian representation of port 67. */
     #define dhcpCOOKIE              0x63825363UL     /**< Big endian representation of magic cookie. */
     #define dhcpBROADCAST           0x8000U          /**< Big endian representation of broadcast flag. */
 #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
@@ -198,21 +198,40 @@ typedef enum
 /** @brief Hold information in between steps in the DHCP state machine. */
 struct xDHCP_DATA
 {
-    uint32_t ulTransactionId;      /**< The ID of the DHCP transaction */
-    uint32_t ulOfferedIPAddress;   /**< The IP address offered by the DHCP server */
+    uint32_t ulTransactionId;      /**< The ID used in all transactions. */
+    uint32_t ulOfferedIPAddress;   /**< The IP-address offered by the DHCP server. */
     uint32_t ulPreferredIPAddress; /**< A preferred IP address */
-    uint32_t ulDHCPServerAddress;  /**< The IP address of the DHCP server */
-    uint32_t ulLeaseTime;          /**< The time for which the current IP address is leased */
-    TickType_t xDHCPTxTime;        /**< The time at which a DHCP request was sent. */
-    TickType_t xDHCPTxPeriod;      /**< The maximum time that the client will wait for a reply. */
-    BaseType_t xUseBroadcast;      /**< Try both without and with the broadcast flag */
-    eDHCPState_t eDHCPState;       /**< Maintains the DHCP state machine state. */
+    uint32_t ulDHCPServerAddress;  /**< The IP-address of the DHCP server. */
+    uint32_t ulLeaseTime;          /**< The maximum time that the IP-address can be leased. */
+    /* Hold information on the current timer state. */
+    TickType_t xDHCPTxTime;        /**< The time at which a request was sent, initialised with xTaskGetTickCount(). */
+    TickType_t xDHCPTxPeriod;      /**< The maximum time to wait for a response. */
+    /* Try both without and with the broadcast flag */
+    BaseType_t xUseBroadcast;      /**< pdTRUE if the broadcast bit 'dhcpBROADCAST' must be set. */
+    /* Maintains the DHCP state machine state. */
+    eDHCPState_t eDHCPState;       /**< The current state of the DHCP state machine. */
+    eDHCPState_t eExpectedState;   /**< If the state is not equal the the expected state, no cycle needs to be done. */
+    Socket_t xDHCPSocket;
+    /**< Record latest client ID for DHCPv6. */
+    uint8_t ucClientDUID[ dhcpIPv6_CLIENT_DUID_LENGTH ];
 };
 
 typedef struct xDHCP_DATA DHCPData_t;
 
+/** brief: a set of parameters that are passed to helper functions. */
+typedef struct xProcessSet
+{
+    uint8_t ucOptionCode;       /**< The code currently being handled. */
+    size_t uxIndex;             /**< The index within 'pucByte'. */
+    size_t uxPayloadDataLength; /**< The number of bytes in the UDP payload. */
+    size_t uxLength;            /**< The size of the current option. */
+    uint32_t ulParameter;       /**< The uint32 value of the answer, if available. */
+    uint32_t ulProcessed;       /**< The number of essential options that were parsed. */
+    const uint8_t * pucByte;    /**< A pointer to the data to be analysed. */
+} ProcessSet_t;
+
 /* Returns the current state of a DHCP process. */
-eDHCPState_t eGetDHCPState( void );
+eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
 
 /*
  * NOT A PUBLIC API FUNCTION.
@@ -220,15 +239,11 @@ eDHCPState_t eGetDHCPState( void );
  * data has been received on the DHCP socket.
  */
 void vDHCPProcess( BaseType_t xReset,
-                   eDHCPState_t eExpectedState );
+                    struct xNetworkEndPoint * pxEndPoint );
 
 /* Internal call: returns true if socket is the current DHCP socket */
 BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );
 
-
-/* The application can indicate a preferred IP address by calling this function
- * before FreeRTOS_IPInit() is called. */
-uint32_t vDHCPSetPreferredIPAddress( uint32_t ulIPAddress );
 
 #if ( ipconfigUSE_DHCP_HOOK != 0 )
 
@@ -237,9 +252,27 @@ uint32_t vDHCPSetPreferredIPAddress( uint32_t ulIPAddress );
  * usage information:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_DHCP_HOOK
  */
-    eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-                                                uint32_t ulIPAddress );
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                    uint32_t ulIPAddress );
+    #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+        eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
+                                                          struct xNetworkEndPoint * pxEndPoint,
+                                                          IP_Address_t * pxIPAddress );
+    #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 #endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
+
+#if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
+    struct xNetworkEndPoint;
+
+/**
+ * @brief When DHCP has failed, the code can assign a Link-Layer
+ *        address, and check if another device already uses the IP-address.
+ *
+ * param[in] pxEndPoint: The end-point that wants to obtain a link-layer address.
+ */
+    void prvPrepareLinkLayerIPLookUp( struct xNetworkEndPoint * pxEndPoint );
+#endif
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -40,12 +40,14 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-volatile BaseType_t xInsideInterrupt = pdFALSE;
+/* =========================== EXTERN VARIABLES =========================== */
+
+NetworkInterface_t xInterfaces[ 1 ];
+
+BaseType_t xCallEventHook;
 
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
-const MACAddress_t xLLMNR_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
 
 QueueHandle_t xNetworkEventQueue;
 
@@ -67,19 +69,100 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
-void vPortEnterCritical( void )
+/* ============================ Stubs Functions =========================== */
+
+BaseType_t xNetworkInterfaceInitialise_returnTrue( NetworkInterface_t * xInterface )
 {
-}
-void vPortExitCritical( void )
-{
+    return pdTRUE;
 }
 
-void * pvPortMalloc( size_t xNeeded )
+BaseType_t xNetworkInterfaceInitialise_returnFalse( NetworkInterface_t * xInterface )
 {
-    return malloc( xNeeded );
+    return pdFALSE;
 }
 
-void vPortFree( void * ptr )
+BaseType_t prvChecksumICMPv6Checks_Valid( size_t uxBufferLength,
+                                          struct xPacketSummary * pxSet,
+                                          int NumCalls )
 {
-    free( ptr );
+    pxSet->uxProtocolHeaderLength = ipSIZE_OF_ICMPv6_HEADER;
+    return 0;
+}
+
+BaseType_t prvChecksumICMPv6Checks_BigHeaderLength( size_t uxBufferLength,
+                                                    struct xPacketSummary * pxSet,
+                                                    int NumCalls )
+{
+    pxSet->uxProtocolHeaderLength = 0xFF;
+    return 0;
+}
+
+BaseType_t prvChecksumIPv6Checks_Valid( uint8_t * pucEthernetBuffer,
+                                        size_t uxBufferLength,
+                                        struct xPacketSummary * pxSet,
+                                        int NumCalls )
+{
+    IPPacket_IPv6_t * pxIPPacket;
+
+    pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
+
+    pxSet->xIsIPv6 = pdTRUE;
+
+    pxSet->uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
+    pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
+    pxSet->ucProtocol = pxIPPacket->xIPHeader.ucNextHeader;
+    pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
+    pxSet->usProtocolBytes = pxSet->usPayloadLength;
+
+    return 0;
+}
+
+BaseType_t prvChecksumIPv4Checks_Valid( uint8_t * pucEthernetBuffer,
+                                        size_t uxBufferLength,
+                                        struct xPacketSummary * pxSet,
+                                        int NumCalls )
+{
+    IPPacket_t * pxIPPacket;
+
+    pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
+
+    pxSet->xIsIPv6 = pdFALSE;
+
+    pxSet->uxIPHeaderLength = ( pxIPPacket->xIPHeader.ucVersionHeaderLength & 0x0F ) * 4;
+    pxSet->usPayloadLength = FreeRTOS_ntohs( pxIPPacket->xIPHeader.usLength );
+    pxSet->ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
+    pxSet->pxProtocolHeaders = ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] );
+    pxSet->usProtocolBytes = pxSet->usPayloadLength - ipSIZE_OF_IPv4_HEADER;
+
+    return 0;
+}
+
+BaseType_t prvChecksumIPv4Checks_UnknownProtocol( uint8_t * pucEthernetBuffer,
+                                                  size_t uxBufferLength,
+                                                  struct xPacketSummary * pxSet,
+                                                  int NumCalls )
+{
+    prvChecksumIPv4Checks_Valid( pucEthernetBuffer, uxBufferLength, pxSet, NumCalls );
+
+    pxSet->ucProtocol = 0xFF;
+
+    return 0;
+}
+
+BaseType_t prvChecksumIPv4Checks_InvalidLength( uint8_t * pucEthernetBuffer,
+                                                size_t uxBufferLength,
+                                                struct xPacketSummary * pxSet,
+                                                int NumCalls )
+{
+    BaseType_t xReturn = 0;
+
+    prvChecksumIPv4Checks_Valid( pucEthernetBuffer, uxBufferLength, pxSet, NumCalls );
+
+    if( uxBufferLength < sizeof( IPPacket_t ) )
+    {
+        pxSet->usChecksum = ipINVALID_LENGTH;
+        xReturn = 4;
+    }
+
+    return xReturn;
 }

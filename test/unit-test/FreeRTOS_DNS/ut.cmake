@@ -13,6 +13,7 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
@@ -23,14 +24,17 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS_Parser.h"
         )
 # list the directories your mocks need
+set(mock_include_list "")
 list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
 #list the definitions of your mocks to control what to be included
+set(mock_define_list "")
 list(APPEND mock_define_list
         -DipconfigDNS_USE_CALLBACKS=1
         -DipconfigUSE_DNS=1
@@ -40,16 +44,16 @@ list(APPEND mock_define_list
 
 add_compile_options(-Wno-pedantic -Wno-div-by-zero -O0 -ggdb3)
 # list the files you would like to test here
-set(real_source_files ""
-        )
+set(real_source_files "")
 list(APPEND real_source_files
-            ${project_name}/FreeRTOS_UDP_IP_stubs.c
             ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS.c
 	)
 # list the directories the module under test includes
+set(real_include_directories "")
 list(APPEND real_include_directories
             .
             ${TCP_INCLUDE_DIRS}
+            ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${CMOCK_DIR}/vendor/unity/src
@@ -58,6 +62,7 @@ list(APPEND real_include_directories
 # =====================  Create UnitTest Code here (edit)  =====================
 
 # list the directories your test needs to include
+set(test_include_directories "")
 list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src

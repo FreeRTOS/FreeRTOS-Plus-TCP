@@ -40,19 +40,14 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
 
 BaseType_t xBufferAllocFixedSize = pdFALSE;
 
-
-void vPortEnterCritical( void )
-{
-}
-
-void vPortExitCritical( void )
-{
-}
-
 uint16_t usPacketIdentifier;
+
+struct freertos_addrinfo pucAddrBuffer[ 2 ];
+struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
 
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
@@ -72,3 +67,12 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
         0x00, 0x00, 0x00, 0x00               /* Source IP address. */
     }
 };
+
+/* ======================== Stub Callback Functions ========================= */
+void vPortEnterCritical( void )
+{
+}
+
+void vPortExitCritical( void )
+{
+}
