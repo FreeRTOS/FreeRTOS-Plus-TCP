@@ -994,7 +994,7 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
                 #endif
                 ( *ipLOCAL_IP_ADDRESS_POINTER != 0 ) )
             {
-                FreeRTOS_printf( ( "Drop IP %lxip\n", FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
+                FreeRTOS_debug_printf( ( "Drop IP %lxip\n", FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
                 return pdFALSE;
             }
 
@@ -1503,9 +1503,9 @@ static void prvEMACHandlerTask( void * pvParameters )
 
             #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
                 {
-                    if( xGetPhyLinkStatus() == pdFALSE )
+                    if( xGetPhyLinkStatus( pxMyInterface ) == pdFALSE )
                     {
-                        FreeRTOS_NetworkDown();
+                        FreeRTOS_NetworkDown( pxMyInterface );
                     }
                 }
             #endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
