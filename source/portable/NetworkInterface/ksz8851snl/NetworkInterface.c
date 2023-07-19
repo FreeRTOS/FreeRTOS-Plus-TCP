@@ -939,13 +939,15 @@ static void ksz8851snl_update()
         case SPI_PDC_RX_COMPLETE:
            {
                int rxHead = xMicrelDevice.us_rx_head;
-               /* RX step18-19: pad with dummy data to keep dword alignment. */
-               /* Packet lengths will be rounded up to a multiple of "sizeof size_t". */
-               /* xLength = xMicrelDevice.rx_buffers[ rxHead ]->xDataLength & 3; */
-               /* if( xLength != 0 ) */
-               /* { */
-               /* ksz8851_fifo_dummy( 4 - xLength ); */
-               /* } */
+
+               /* RX step18-19: pad with dummy data to keep dword alignment.
+                * Packet lengths will be rounded up to a multiple of "sizeof size_t". */
+
+               /* xLength = xMicrelDevice.rx_buffers[ rxHead ]->xDataLength & 3;
+                * if( xLength != 0 )
+                * {
+                * ksz8851_fifo_dummy( 4 - xLength );
+                * } */
 
                /* RX step20: end RX transfer. */
                gpio_set_pin_high( KSZ8851SNL_CSN_GPIO );
