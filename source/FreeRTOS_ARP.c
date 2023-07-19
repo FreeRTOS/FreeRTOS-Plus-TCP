@@ -290,15 +290,35 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                 {
                     case ipARP_REQUEST:
 
-                        if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) &&
-                            ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
-                                      ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
-                                      ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
+                        if( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress )
                         {
-                            vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
-                            eReturn = eReturnEthernetFrame;
-                        }
+                            if( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
+                                      ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                      ipMAC_ADDRESS_LENGTH_BYTES ) != 0 )
+                            {
+                                vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
+                                eReturn = eReturnEthernetFrame;
+                            }
 
+                        }
+                        else if( ulSenderProtocolAddress == ulTargetProtocolAddress ) /* Gratuitous ARP request? */
+                        {
+                            MACAddress_t xHardwareAddress;
+                            NetworkEndPoint_t * pxCachedEndPoint;
+
+                            pxCachedEndPoint = NULL;
+
+                            /* The request is a Gratuitous ARP message.
+                            * Refresh the entry if it already exists. */
+                            /* Determine the ARP cache status for the requested IP address. */
+                            if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint )) == eARPCacheHit )
+                            {
+                                if(pxCachedEndPoint == pxTargetEndPoint)
+                                {
+                                    vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
+                                }
+                            }
+                        }
                         break;
 
                     case ipARP_REPLY:
