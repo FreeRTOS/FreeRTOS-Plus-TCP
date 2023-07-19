@@ -142,7 +142,6 @@
     {
         BaseType_t xReturn;
         uint32_t ulAddressLength = ( uint32_t ) sizeof( struct freertos_sockaddr );
-        int32_t lResult;
 
         /* Wait for the reply. */
         xReturn = FreeRTOS_recvfrom( xDNSSocket,
