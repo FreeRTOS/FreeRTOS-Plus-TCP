@@ -573,6 +573,7 @@
         IPv6_Address_t xTargetIPAddress;
         MACAddress_t xMultiCastMacAddress;
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
+        NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
 
         if( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
         {
@@ -580,7 +581,9 @@
 
             if( pxDescriptor->xDataLength < uxNeededSize )
             {
-                pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+                pxNewDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+                pxDescriptor = pxNewDescriptor;
             }
 
             if( pxDescriptor != NULL )
