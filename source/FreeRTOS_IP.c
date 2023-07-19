@@ -2148,45 +2148,42 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                     break;
             }
 
-            if( pvCopySource != NULL )
+            /*
+             * Use helper variables for memcpy() to remain
+             * compliant with MISRA Rule 21.15.  These should be
+             * optimized away.
+             */
+            pvCopyDest = &( pxIPPacket->xEthernetHeader.xDestinationAddress );
+            ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxIPPacket->xEthernetHeader.xDestinationAddress ) );
+
+            pvCopySource = pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes;
+            pvCopyDest = &( pxIPPacket->xEthernetHeader.xSourceAddress );
+            ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+
+            /* Send! */
+            if( xIsCallingFromIPTask() == pdTRUE )
             {
-                /*
-                 * Use helper variables for memcpy() to remain
-                 * compliant with MISRA Rule 21.15.  These should be
-                 * optimized away.
-                 */
-                pvCopyDest = &( pxIPPacket->xEthernetHeader.xDestinationAddress );
-                ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxIPPacket->xEthernetHeader.xDestinationAddress ) );
+                iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+                ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
+            }
+            else if( xReleaseAfterSend != pdFALSE )
+            {
+                IPStackEvent_t xSendEvent;
 
-                pvCopySource = pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes;
-                pvCopyDest = &( pxIPPacket->xEthernetHeader.xSourceAddress );
-                ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+                /* Send a message to the IP-task to send this ARP packet. */
+                xSendEvent.eEventType = eNetworkTxEvent;
+                xSendEvent.pvData = pxNetworkBuffer;
 
-                /* Send! */
-                if( xIsCallingFromIPTask() == pdTRUE )
+                if( xSendEventStructToIPTask( &xSendEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
                 {
-                    iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-                    ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
+                    /* Failed to send the message, so release the network buffer. */
+                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                 }
-                else if( xReleaseAfterSend != pdFALSE )
-                {
-                    IPStackEvent_t xSendEvent;
-
-                    /* Send a message to the IP-task to send this ARP packet. */
-                    xSendEvent.eEventType = eNetworkTxEvent;
-                    xSendEvent.pvData = pxNetworkBuffer;
-
-                    if( xSendEventStructToIPTask( &xSendEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
-                    {
-                        /* Failed to send the message, so release the network buffer. */
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    }
-                }
-                else
-                {
-                    /* This should never reach or the packet is gone. */
-                    configASSERT( pdFALSE );
-                }
+            }
+            else
+            {
+                /* This should never reach or the packet is gone. */
+                configASSERT( pdFALSE );
             }
         }
     }
