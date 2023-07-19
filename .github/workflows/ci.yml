@@ -39,15 +39,17 @@ jobs:
         with:
           path: ./test/unit-test/build/coverage.info
 
-  spell-check:
+  rust-spell-check:
     runs-on: ubuntu-latest
     steps:
       - name: Clone This Repo
         uses: actions/checkout@v2
       - name: Run spellings check
-        uses: FreeRTOS/CI-CD-Github-Actions/spellings@main
+        uses: Skptak/CI-CD-Github-Actions/rust-spell-check@rustSpellCheck
         with:
           path: ./
+          lexicon: ./lexicon.txt     
+
   formatting:
     runs-on: ubuntu-20.04
     steps:
