@@ -40,32 +40,16 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
+/* =========================== EXTERN Functions =========================== */
 
-/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
-NetworkAddressingParameters_t xNetworkAddressing =
+BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
+                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
+ * Set the initial value for MSS (Maximum Segment Size) to be used.
+ */
+void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
 {
-    0xC0C0C0C0, /* 192.192.192.192 - Default IP address. */
-    0xFFFFFF00, /* 255.255.255.0 - Netmask. */
-    0xC0C0C001, /* 192.192.192.1 - Gateway Address. */
-    0x01020304, /* 1.2.3.4 - DNS server address. */
-    0xC0C0C0FF
-};              /* 192.192.192.255 - Broadcast address. */
+    /* Do Nothing */
+}

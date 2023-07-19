@@ -31,7 +31,7 @@
     ],
 
     "CBMCFLAGS ": [
-	"--object-bits 7",
+	"--object-bits 8",
 	"--32",
 	"--bounds-check",
 	"--pointer-check"

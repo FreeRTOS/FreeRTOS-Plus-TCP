@@ -65,6 +65,49 @@ BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
 FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
                                      NetworkBufferDescriptor_t * pxNetworkBuffer );
 
+/*
+ * Return either a newly created socket, or the current socket in a connected
+ * state (depends on the 'bReuseSocket' flag).
+ */
+FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
+                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
+ * Return either a newly created socket, or the current socket in a connected
+ * state (depends on the 'bReuseSocket' flag).
+ */
+FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
+                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
+ * Common code for sending a TCP protocol control packet (i.e. no options, no
+ * payload, just flags).
+ */
+BaseType_t prvTCPSendSpecialPacketHelper( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                          uint8_t ucTCPFlags );
+
+/*
+ * Common code for sending a TCP protocol control packet (i.e. no options, no
+ * payload, just flags).
+ */
+BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                            uint8_t ucTCPFlags );
+
+/*
+ * Common code for sending a TCP protocol control packet (i.e. no options, no
+ * payload, just flags).
+ */
+BaseType_t prvTCPSendSpecialPktHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                            uint8_t ucTCPFlags );
+
+/*
+ * After a listening socket receives a new connection, it may duplicate itself.
+ * The copying takes place in prvTCPSocketCopy.
+ */
+BaseType_t prvTCPSocketCopy( FreeRTOS_Socket_t * pxNewSocket,
+                             FreeRTOS_Socket_t * pxSocket );
+
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */

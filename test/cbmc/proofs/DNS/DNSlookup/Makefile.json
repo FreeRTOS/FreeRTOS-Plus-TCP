@@ -8,13 +8,14 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
+    "--unwindset prvFindEntryIndex.0:3",
     "--unwindset prvProcessDNSCache.0:5,strcmp.0:{HOSTNAME_UNWIND}",
     "--nondet-static"
   ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Cache.goto",
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto"
   ],
   "DEF":

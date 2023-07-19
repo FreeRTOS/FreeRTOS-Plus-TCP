@@ -25,6 +25,47 @@ BaseType_t xIsDHCPSocket( Socket_t xSocket )
 /* This proof was done before. Hence we assume it to be correct here. */
 uint32_t ulDNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
+    /* ulDNSHandlePacket always returns pdFAIL. */
+    return pdFAIL;
+}
+
+/* This proof was done before. Hence we assume it to be correct here. */
+uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    /* ulNBNSHandlePacket always returns pdFAIL. */
+    return pdFAIL;
+}
+
+/* This proof was done before. Hence we assume it to be correct here. */
+BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+/* Abstraction of xSendDHCPEvent */
+BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+/* This proof was done before. Hence we assume it to be correct here. */
+BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
 }
 
 /* Implementation of safe malloc */
@@ -50,6 +91,8 @@ void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
     BaseType_t * pxIsWaitingForARPResolution;
+    NetworkEndPoint_t xEndpoint;
+    uint16_t usPort;
 
     pxIsWaitingForARPResolution = safeMalloc( sizeof( BaseType_t ) );
 
@@ -58,15 +101,14 @@ void harness()
      * Thus, it cannot ever be NULL. */
     __CPROVER_assume( pxIsWaitingForARPResolution != NULL );
 
-    if( pxNetworkBuffer )
-    {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
-    }
+    /* The network buffer must not be NULL, checked in prvProcessEthernetPacket. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    uint16_t usPort;
+    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
 
-    if( pxNetworkBuffer && pxNetworkBuffer->pucEthernetBuffer )
-    {
-        xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
-    }
+    /* The ethernet buffer must be valid. */
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
 }

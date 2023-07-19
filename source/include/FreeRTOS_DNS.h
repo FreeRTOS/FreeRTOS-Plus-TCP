@@ -49,6 +49,44 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     extern const MACAddress_t xLLMNR_MacAdress;
 #endif /* ipconfigUSE_LLMNR */
 
+#if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+
+/* The LLMNR IPv6 address is ff02::1:3 */
+    extern const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6;
+
+/* The LLMNR IPv6 MAC address is 33:33:00:01:00:03 */
+    extern const MACAddress_t xLLMNR_MacAdressIPv6;
+#endif /* ipconfigUSE_LLMNR */
+
+#if ( ipconfigUSE_MDNS == 1 )
+    /* The MDNS MAC address is 01:00:5e:00:00:fc */
+    extern const MACAddress_t xMDNS_MacAdress;
+#endif /* ipconfigUSE_MDNS */
+
+#if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
+
+/* The MDNS IPv6 address is ff02::1:3 */
+    extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
+
+/* The MDNS IPv6 MAC address is 33:33:00:01:00:03 */
+    extern const MACAddress_t xMDNS_MACAdressIPv6;
+#endif /* ipconfigUSE_MDNS */
+
+/** @brief While doing integration tests, it is necessary to influence the choice
+ * between DNS/IPv4 and DNS/IPv4.  Depending on this, a DNS server will be
+ * addressed via IPv4 or IPv6 messages. */
+typedef enum xIPPreference
+{
+    xPreferenceNone,
+    xPreferenceIPv4,
+    #if ( ipconfigUSE_IPv6 != 0 )
+        xPreferenceIPv6,
+    #endif
+} IPPreference_t;
+
+/** @brief This variable determines he choice of DNS server, either IPv4 or IPv6. */
+extern IPPreference_t xDNS_IP_Preference;
+
 #if ( ipconfigUSE_NBNS != 0 )
 
 /*
@@ -60,7 +98,6 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 #endif /* ipconfigUSE_NBNS */
-
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
 
@@ -74,6 +111,14 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
                                        TickType_t uxTimeout );
     void FreeRTOS_gethostbyname_cancel( void * pvSearchID );
 
+/* The asynchronous versions of FreeRTOS_getaddrinfo(). */
+    BaseType_t FreeRTOS_getaddrinfo_a( const char * pcName,                      /* The name of the node or device */
+                                       const char * pcService,                   /* Ignored for now. */
+                                       const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
+                                       struct freertos_addrinfo ** ppxResult,    /* An allocated struct, containing the results. */
+                                       FOnDNSEvent pCallback,
+                                       void * pvSearchID,
+                                       TickType_t uxTimeout );
 
 #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
 
@@ -83,6 +128,28 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
  * gethostbyname() is already deprecated.
  */
 uint32_t FreeRTOS_gethostbyname( const char * pcHostName );
+
+/* _HT_ Although this function is private to the library, it needs a global declaration. */
+struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
+                                           BaseType_t xFamily,
+                                           const uint8_t * pucAddress );
+
+/*
+ * FreeRTOS_getaddrinfo() replaces FreeRTOS_gethostbyname().
+ * When 'ipconfigUSE_IPv6' is defined, it can also retrieve IPv6 addresses,
+ * in case pxHints->ai_family equals FREERTOS_AF_INET6.
+ * Otherwise, or when pxHints is NULL, only IPv4 addresses will be returned.
+ */
+BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* The name of the node or device */
+                                 const char * pcService,                   /* Ignored for now. */
+                                 const struct freertos_addrinfo * pxHints, /* If not NULL: preferences. */
+                                 struct freertos_addrinfo ** ppxResult );  /* An allocated struct, containing the results. */
+
+/* When FreeRTOS_getaddrinfo() is successful, ppxResult will point to an
+ * allocated structure.  This pointer must be released by the user by calling
+ * FreeRTOS_freeaddrinfo().
+ */
+void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo );
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 

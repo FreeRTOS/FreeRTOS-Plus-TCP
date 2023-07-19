@@ -32,12 +32,21 @@
 
 #define _static
 
-#define TEST                        1
+#define TEST                                1
+
+#define ipconfigUSE_IPv4                    ( 1 )
+#define ipconfigUSE_IPv6                    ( 1 )
+
+#define ipconfigMULTI_INTERFACE             1
+#define ipconfigIPv4_BACKWARD_COMPATIBLE    0
+
+#define ipconfigUSE_IPv4                    ( 1 )
+#define ipconfigUSE_IPv6                    ( 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    1
+#define ipconfigHAS_DEBUG_PRINTF            1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
     #define FreeRTOS_debug_printf( X )    configPRINTF( X )
 #endif
@@ -53,9 +62,7 @@
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
-#define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
-
-#define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
+#define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
 
 /* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
  * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
@@ -77,7 +84,7 @@
  * a socket.
  */
 #define ipconfigUSE_DNS_CACHE                      ( 1 )
-#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 2 )
+#define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY      ( 1 )
 #define ipconfigDNS_REQUEST_ATTEMPTS               ( 2 )
 
 #define ipconfigDNS_CACHE_NAME_LENGTH              ( 254 )
@@ -139,6 +146,8 @@ extern uint32_t ulRand();
 #define ipconfigUSE_DHCP                         1
 #define ipconfigDHCP_REGISTER_HOSTNAME           1
 #define ipconfigDHCP_USES_UNICAST                1
+
+#define ipconfigENDPOINT_DNS_ADDRESS_COUNT       5
 
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,

@@ -85,7 +85,50 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket );
  */
 FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                        UBaseType_t uxLocalPort,
-                                       uint32_t ulRemoteIP,
+                                       IPv46_Address_t xRemoteIP,
                                        UBaseType_t uxRemotePort );
 
+/* Get the size of the IP-header.
+ * The socket is checked for its type: IPv4 or IPv6. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
+
+/**
+ * @brief Process the received TCP packet.
+ *
+ * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+ *
+ * @return If the processing of the packet was successful, then pdPASS is returned
+ *         or else pdFAIL.
+ *
+ * @note FreeRTOS_TCP_IP has only 2 public functions, this is the second one:
+ *  xProcessReceivedTCPPacket()
+ *      prvTCPHandleState()
+ *          prvTCPPrepareSend()
+ *              prvTCPReturnPacket()
+ *              xNetworkInterfaceOutput()  // Sends data to the NIC
+ *      prvTCPSendRepeated()
+ *          prvTCPReturnPacket()        // Prepare for returning
+ *          xNetworkInterfaceOutput()   // Sends data to the NIC
+ */
+BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor );
+
+/**
+ * @brief Process the received TCP packet.
+ *
+ * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+ *
+ * @return If the processing of the packet was successful, then pdPASS is returned
+ *         or else pdFAIL.
+ *
+ * @note FreeRTOS_TCP_IP has only 2 public functions, this is the second one:
+ *  xProcessReceivedTCPPacket()
+ *      prvTCPHandleState()
+ *          prvTCPPrepareSend()
+ *              prvTCPReturnPacket()
+ *              xNetworkInterfaceOutput()  // Sends data to the NIC
+ *      prvTCPSendRepeated()
+ *          prvTCPReturnPacket()        // Prepare for returning
+ *          xNetworkInterfaceOutput()   // Sends data to the NIC
+ */
+BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor );
 #endif /* ifndef LIST_MACRO_H */

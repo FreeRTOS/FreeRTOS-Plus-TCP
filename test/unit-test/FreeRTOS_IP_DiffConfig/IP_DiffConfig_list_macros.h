@@ -32,6 +32,10 @@
 #include <portmacro.h>
 #include <list.h>
 
+#include "FreeRTOS_IPv6_Private.h"
+
+extern NetworkInterface_t xInterfaces[ 1 ];
+
 #undef listSET_LIST_ITEM_OWNER
 void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
                               void * owner );
@@ -72,6 +76,66 @@ TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );
 #undef listGET_LIST_ITEM_OWNER
 void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eEvent );
+/**
+ * @brief Reduce the age counter in each entry within the ND cache.  An entry is no
+ * longer considered valid and is deleted if its age reaches zero.
+ * Just before getting to zero, 3 times a neighbour solicitation will be sent.
+ */
+void vNDAgeCache( void );
+
+/**
+ * >>>>>>> afcedead21c747cef64f07c7fedd50df75bcbd10
+ * @brief Work on the RA/SLAAC processing.
+ * @param[in] xDoReset: WHen true, the state-machine will be reset and initialised.
+ * @param[in] pxEndPoint: The end-point for which the RA/SLAAC process should be done..
+ */
+void vRAProcess( BaseType_t xDoReset,
+                 NetworkEndPoint_t * pxEndPoint );
+
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                           struct xNetworkEndPoint * pxEndPoint );
+
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      struct xNetworkInterface * pxInterface );
+
+
+/* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
+eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength );
+
+
+/* Return IPv6 header extension order number */
+BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
+                               uint8_t ucNextHeader );
+
+
+
+/** @brief Handle the IPv6 extension headers. */
+eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                      BaseType_t xDoRemove );
+
+/*
+ * If ulIPAddress is already in the ND cache table then reset the age of the
+ * entry back to its maximum value.  If ulIPAddress is not already in the ND
+ * cache table then add it - replacing the oldest current entry if there is not
+ * a free space available.
+ */
+void vNDRefreshCacheEntry( const MACAddress_t * pxMACAddress,
+                           const IPv6_Address_t * pxIPAddress,
+                           NetworkEndPoint_t * pxEndPoint );
+
+/* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
+ * It handles all ICMP messages except the PING requests. */
+eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+
+/* Return pdTRUE if all end-points are up.
+ * When pxInterface is null, all end-points will be checked. */
+BaseType_t FreeRTOS_AllEndPointsUp( const struct xNetworkInterface * pxInterface );
 
 #endif /* ifndef LIST_MACRO_H */

@@ -19,7 +19,8 @@
 * Signature of function under test
 ****************************************************************/
 
-BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType );
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+                                                                       NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
 * The proof for FreeRTOS_gethostbyname.
@@ -33,5 +34,10 @@ void harness()
 
     BaseType_t xExpectedMessageType;
 
-    prvProcessDHCPReplies( xExpectedMessageType );
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+
+    __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
+    pxNetworkEndPoint_Temp->pxNext = NULL;
+
+    __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( xExpectedMessageType, pxNetworkEndPoint_Temp );
 }

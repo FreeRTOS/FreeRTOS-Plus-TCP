@@ -130,6 +130,11 @@ EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
     return uxReturnBits;
 }
 
+void SocketWakeupCallback_Stub( struct xSOCKET * pxSocket )
+{
+    __CPROVER_assert( pxSocket != NULL,
+                      "The pxSocket cannot be NULL" );
+}
 
 void harness()
 {
@@ -138,7 +143,7 @@ void harness()
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
-    pxSocket->pxUserWakeCallback = safeMalloc( sizeof( SocketWakeupCallback_t ) );
+    pxSocket->pxUserWakeCallback = SocketWakeupCallback_Stub;
 
     pxSocket->pxSocketSet = safeMalloc( sizeof( struct xSOCKET_SET ) );
 
