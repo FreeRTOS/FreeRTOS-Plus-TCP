@@ -2080,8 +2080,12 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
         const void * pvCopySource = NULL;
         void * pvCopyDest;
-        MACAddress_t xMACAddress;
-        eARPLookupResult_t eResult;
+
+        #if ( ipconfigUSE_IPv4 != 0 )
+            MACAddress_t xMACAddress;
+            eARPLookupResult_t eResult;
+            uint32_t ulDestinationIPAddress = 0U;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
         /* Send! */
         if( pxNetworkBuffer->pxEndPoint == NULL )
@@ -2115,30 +2119,30 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
         if( pxNetworkBuffer->pxEndPoint != NULL )
         {
             NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface; /*_RB_ Why not use the pxNetworkBuffer->pxNetworkInterface directly? */
-            uint32_t ulDestinationIPAddress = 0U;
 
             /* Interpret the Ethernet packet being sent. */
             switch( pxIPPacket->xEthernetHeader.usFrameType )
             {
-                case ipIPv4_FRAME_TYPE:
-                    ulDestinationIPAddress = pxIPPacket->xIPHeader.ulDestinationIPAddress;
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipIPv4_FRAME_TYPE:
+                        ulDestinationIPAddress = pxIPPacket->xIPHeader.ulDestinationIPAddress;
 
-                    /* Try to find a MAC address corresponding to the destination IP
-                     * address. */
-                    eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
+                        /* Try to find a MAC address corresponding to the destination IP
+                         * address. */
+                        eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
 
-                    if( eResult == eARPCacheHit )
-                    {
-                        /* Best case scenario - an address is found, use it. */
-                        pvCopySource = &xMACAddress;
-                    }
-                    else
-                    {
-                        /* If an address is not found, just swap the source and destination MAC addresses. */
-                        pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
-                    }
-
-                    break;
+                        if( eResult == eARPCacheHit )
+                        {
+                            /* Best case scenario - an address is found, use it. */
+                            pvCopySource = &xMACAddress;
+                        }
+                        else
+                        {
+                            /* If an address is not found, just swap the source and destination MAC addresses. */
+                            pvCopySource = &( pxIPPacket->xEthernetHeader.xSourceAddress );
+                        }
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 case ipIPv6_FRAME_TYPE:
                 case ipARP_FRAME_TYPE:
