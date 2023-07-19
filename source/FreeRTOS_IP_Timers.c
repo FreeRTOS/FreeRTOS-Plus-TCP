@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_ICMP.c
+ * @file FreeRTOS_IP_Timers.c
  * @brief Implements the Internet Control Message Protocol for the FreeRTOS+TCP network stack.
  */
 
@@ -48,20 +48,46 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_ND.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
+#include "FreeRTOS_Routing.h"
 #include "FreeRTOS_DNS.h"
+/*-----------------------------------------------------------*/
+
+/** @brief 'xAllNetworksUp' becomes pdTRUE as soon as all network interfaces have
+ * been initialised. */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+static BaseType_t xAllNetworksUp = pdFALSE;
+
+/*-----------------------------------------------------------*/
 
 /*
  * Utility functions for the light weight IP timers.
  */
+
+/**
+ * Start an IP timer. The IP-task has its own implementation of a timer
+ * called 'IPTimer_t', which is based on the FreeRTOS 'TimeOut_t'.
+ */
 static void prvIPTimerStart( IPTimer_t * pxTimer,
                              TickType_t xTime );
+
+/**
+ * Check the IP timer to see whether an IP event should be processed or not.
+ */
 static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer );
+
+/**
+ * Sets the reload time of an IP timer and restarts it.
+ */
 static void prvIPTimerReload( IPTimer_t * pxTimer,
                               TickType_t xTime );
+/*-----------------------------------------------------------*/
 
 /*
  * A timer for each of the following processes, all of which need attention on a
@@ -74,10 +100,7 @@ static IPTimer_t xARPResolutionTimer;
 
 /** @brief ARP timer, to check its table entries. */
 static IPTimer_t xARPTimer;
-#if ( ipconfigUSE_DHCP != 0 )
-    /** @brief DHCP timer, to send requests and to renew a reservation.  */
-    static IPTimer_t xDHCPTimer;
-#endif
+
 #if ( ipconfigUSE_TCP != 0 )
     /** @brief TCP timer, to check for timeouts, resends. */
     static IPTimer_t xTCPTimer;
@@ -86,6 +109,17 @@ static IPTimer_t xARPTimer;
     /** @brief DNS timer, to check for timeouts when looking-up a domain. */
     static IPTimer_t xDNSTimer;
 #endif
+
+/** @brief As long as not all networks are up, repeat initialisation by calling the
+ * xNetworkInterfaceInitialise() function of the interfaces that are not ready. */
+
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+static IPTimer_t xNetworkTimer;
+struct xNetworkEndpoint;
+
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Calculate the maximum sleep time remaining. It will go through all
@@ -111,14 +145,21 @@ TickType_t xCalculateSleepTime( void )
         }
     }
 
-    #if ( ipconfigUSE_DHCP == 1 )
+    #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
         {
-            if( xDHCPTimer.bActive != pdFALSE_UNSIGNED )
+            const NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+            while( pxEndPoint != NULL )
             {
-                if( xDHCPTimer.ulRemainingTime < uxMaximumSleepTime )
+                if( pxEndPoint->xDHCP_RATimer.bActive != pdFALSE_UNSIGNED )
                 {
-                    uxMaximumSleepTime = xDHCPTimer.ulRemainingTime;
+                    if( pxEndPoint->xDHCP_RATimer.ulRemainingTime < uxMaximumSleepTime )
+                    {
+                        uxMaximumSleepTime = pxEndPoint->xDHCP_RATimer.ulRemainingTime;
+                    }
                 }
+
+                pxEndPoint = pxEndPoint->pxNext;
             }
         }
     #endif /* ipconfigUSE_DHCP */
@@ -155,8 +196,14 @@ TickType_t xCalculateSleepTime( void )
  * @brief Check the network timers (ARP/DHCP/DNS/TCP) and if they are
  *        expired, send an event to the IP-Task.
  */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+/* coverity[single_use] */
 void vCheckNetworkTimers( void )
 {
+    NetworkInterface_t * pxInterface;
+
     /* Is it time for ARP processing? */
     if( prvIPTimerCheck( &xARPTimer ) != pdFALSE )
     {
@@ -182,15 +229,34 @@ void vCheckNetworkTimers( void )
         }
     }
 
-    #if ( ipconfigUSE_DHCP == 1 )
+    #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
         {
             /* Is it time for DHCP processing? */
-            if( prvIPTimerCheck( &xDHCPTimer ) != pdFALSE )
+            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+            while( pxEndPoint != NULL )
             {
-                ( void ) xSendDHCPEvent();
+                if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
+                {
+                    #if ( ipconfigUSE_DHCP == 1 )
+                        if( END_POINT_USES_DHCP( pxEndPoint ) )
+                        {
+                            ( void ) xSendDHCPEvent( pxEndPoint );
+                        }
+                    #endif /* ( ipconfigUSE_DHCP == 1 ) */
+
+                    #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                        if( END_POINT_USES_RA( pxEndPoint ) )
+                        {
+                            vRAProcess( pdFALSE, pxEndPoint );
+                        }
+                    #endif /* ( ipconfigUSE_RA != 0 ) */
+                }
+
+                pxEndPoint = pxEndPoint->pxNext;
             }
         }
-    #endif /* ipconfigUSE_DHCP */
+    #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA != 0 ) */
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
         {
@@ -224,7 +290,7 @@ void vCheckNetworkTimers( void )
 
             /* Sockets will also be checked if there are TCP messages but the
             * message queue is empty (indicated by xWillSleep being true). */
-            if( ( xProcessedTCPMessage != pdFALSE ) && ( xWillSleep != pdFALSE ) )
+            if( xWillSleep != pdFALSE )
             {
                 xCheckTCPSockets = pdTRUE;
             }
@@ -245,6 +311,26 @@ void vCheckNetworkTimers( void )
         /* See if any reusable socket needs to go back to 'eTCP_LISTEN' state. */
         vSocketListenNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
+
+    /* Is it time to trigger the repeated NetworkDown events? */
+    if( xAllNetworksUp == pdFALSE )
+    {
+        if( prvIPTimerCheck( &( xNetworkTimer ) ) != pdFALSE )
+        {
+            BaseType_t xUp = pdTRUE;
+
+            for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
+            {
+                if( pxInterface->bits.bInterfaceUp == pdFALSE_UNSIGNED )
+                {
+                    xUp = pdFALSE;
+                    FreeRTOS_NetworkDown( pxInterface );
+                }
+            }
+
+            xAllNetworksUp = xUp;
+        }
+    }
 }
 /*-----------------------------------------------------------*/
 
@@ -252,9 +338,9 @@ void vCheckNetworkTimers( void )
  * @brief Start an IP timer. The IP-task has its own implementation of a timer
  *        called 'IPTimer_t', which is based on the FreeRTOS 'TimeOut_t'.
  *
- * @param[in] pxTimer: Pointer to the IP timer. When zero, the timer is marked
+ * @param[in] pxTimer Pointer to the IP timer. When zero, the timer is marked
  *                     as expired.
- * @param[in] xTime: Time to be loaded into the IP timer.
+ * @param[in] xTime Time to be loaded into the IP timer.
  */
 static void prvIPTimerStart( IPTimer_t * pxTimer,
                              TickType_t xTime )
@@ -275,6 +361,11 @@ static void prvIPTimerStart( IPTimer_t * pxTimer,
 }
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Start an ARP Resolution timer.
+ *
+ * @param[in] xTime Time to be loaded into the ARP Resolution timer.
+ */
 void vIPTimerStartARPResolution( TickType_t xTime )
 {
     prvIPTimerStart( &( xARPResolutionTimer ), xTime );
@@ -284,8 +375,8 @@ void vIPTimerStartARPResolution( TickType_t xTime )
 /**
  * @brief Sets the reload time of an IP timer and restarts it.
  *
- * @param[in] pxTimer: Pointer to the IP timer.
- * @param[in] xTime: Time to be reloaded into the IP timer.
+ * @param[in] pxTimer Pointer to the IP timer.
+ * @param[in] xTime Time to be reloaded into the IP timer.
  */
 static void prvIPTimerReload( IPTimer_t * pxTimer,
                               TickType_t xTime )
@@ -296,6 +387,12 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
+
+/**
+ * @brief Sets the reload time of the TCP timer and restarts it.
+ *
+ * @param[in] xTime Time to be reloaded into the TCP timer.
+ */
     void vTCPTimerReload( TickType_t xTime )
     {
         prvIPTimerReload( &xTCPTimer, xTime );
@@ -303,24 +400,16 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
 #endif
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Sets the reload time of the ARP timer and restarts it.
+ *
+ * @param[in] xTime Time to be reloaded into the ARP timer.
+ */
 void vARPTimerReload( TickType_t xTime )
 {
     prvIPTimerReload( &xARPTimer, xTime );
 }
-/*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCP == 1 )
-
-/**
- * @brief Reload the DHCP timer.
- *
- * @param[in] ulLeaseTime: The reload value.
- */
-    void vDHCPTimerReload( TickType_t xLeaseTime )
-    {
-        prvIPTimerReload( &xDHCPTimer, xLeaseTime );
-    }
-#endif /* ipconfigUSE_DHCP */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
@@ -328,7 +417,7 @@ void vARPTimerReload( TickType_t xTime )
 /**
  * @brief Reload the DNS timer.
  *
- * @param[in] ulCheckTime: The reload value.
+ * @param[in] ulCheckTime The reload value.
  */
     void vDNSTimerReload( uint32_t ulCheckTime )
     {
@@ -337,10 +426,39 @@ void vARPTimerReload( TickType_t xTime )
 #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+
+/**
+ * @brief Set the reload time of the DHCP/DHCPv6/RA timer.
+ *
+ * @param[in] pxEndPoint The end-point that needs to acquire an IP-address.
+ * @param[in] uxClockTicks The number of clock-ticks after which the timer should expire.
+ */
+
+    void vDHCP_RATimerReload( NetworkEndPoint_t * pxEndPoint,
+                              TickType_t uxClockTicks )
+    {
+        FreeRTOS_printf( ( "vDHCP_RATimerReload: %lu\n", uxClockTicks ) );
+        prvIPTimerReload( &( pxEndPoint->xDHCP_RATimer ), uxClockTicks );
+    }
+#endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) */
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Reload the Network timer.
+ *
+ * @param[in] xTime Time to be reloaded into the Network timer.
+ */
+void vNetworkTimerReload( TickType_t xTime )
+{
+    prvIPTimerReload( &xNetworkTimer, xTime );
+}
+/*-----------------------------------------------------------*/
+
 /**
  * @brief Check the IP timer to see whether an IP event should be processed or not.
  *
- * @param[in] pxTimer: Pointer to the IP timer.
+ * @param[in] pxTimer Pointer to the IP timer.
  *
  * @return If the timer is expired then pdTRUE is returned. Else pdFALSE.
  */
@@ -385,7 +503,7 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
 /**
  * @brief Enable/disable the TCP timer.
  *
- * @param[in] xExpiredState: pdTRUE - set as expired; pdFALSE - set as non-expired.
+ * @param[in] xExpiredState pdTRUE - set as expired; pdFALSE - set as non-expired.
  */
     void vIPSetTCPTimerExpiredState( BaseType_t xExpiredState )
     {
@@ -400,13 +518,13 @@ static BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer )
             xTCPTimer.bExpired = pdFALSE_UNSIGNED;
         }
     }
-/*-----------------------------------------------------------*/
 #endif /* if ( ipconfigUSE_TCP == 1 ) */
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Enable/disable the ARP timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] xEnableState pdTRUE - enable timer; pdFALSE - disable timer.
  */
 void vIPSetARPTimerEnableState( BaseType_t xEnableState )
 {
@@ -424,7 +542,7 @@ void vIPSetARPTimerEnableState( BaseType_t xEnableState )
 /**
  * @brief Enable or disable the ARP resolution timer.
  *
- * @param[in] xEnableState: pdTRUE if the timer must be enabled, pdFALSE otherwise.
+ * @param[in] xEnableState pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
 void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 {
@@ -439,25 +557,30 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCP == 1 )
+#if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
 
 /**
- * @brief Enable/disable the DHCP timer.
+ * @brief Enable or disable the DHCP/DHCPv6/RA timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] pxEndPoint The end-point that needs to acquire an IP-address.
+ * @param[in] xEnableState pdTRUE if the timer must be enabled, pdFALSE otherwise.
  */
-    void vIPSetDHCPTimerEnableState( BaseType_t xEnableState )
+    void vIPSetDHCP_RATimerEnableState( NetworkEndPoint_t * pxEndPoint,
+                                        BaseType_t xEnableState )
     {
-        if( xEnableState != pdFALSE )
+        FreeRTOS_printf( ( "vIPSetDHCP_RATimerEnableState: %s\n", ( xEnableState != 0 ) ? "On" : "Off" ) );
+
+        /* 'xDHCP_RATimer' is shared between DHCP (IPv4) and RA/SLAAC (IPv6). */
+        if( xEnableState != 0 )
         {
-            xDHCPTimer.bActive = pdTRUE_UNSIGNED;
+            pxEndPoint->xDHCP_RATimer.bActive = pdTRUE_UNSIGNED;
         }
         else
         {
-            xDHCPTimer.bActive = pdFALSE_UNSIGNED;
+            pxEndPoint->xDHCP_RATimer.bActive = pdFALSE_UNSIGNED;
         }
     }
-#endif /* ipconfigUSE_DHCP */
+#endif /* if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
@@ -465,7 +588,7 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 /**
  * @brief Enable/disable the DNS timer.
  *
- * @param[in] xEnableState: pdTRUE - enable timer; pdFALSE - disable timer.
+ * @param[in] xEnableState pdTRUE - enable timer; pdFALSE - disable timer.
  */
     void vIPSetDNSTimerEnableState( BaseType_t xEnableState )
     {

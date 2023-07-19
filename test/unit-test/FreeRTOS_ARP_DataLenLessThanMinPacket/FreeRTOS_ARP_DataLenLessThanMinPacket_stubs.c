@@ -12,6 +12,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
+
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
@@ -57,7 +59,10 @@ size_t xPortGetMinimumEverFreeHeapSize( void )
 }
 
 
-BaseType_t xApplicationDNSQueryHook( const char * pcName )
+/* Even though the function is defined in main.c, the rule is violated. */
+/* misra_c_2012_rule_8_6_violation */
+extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                                  const char * pcName )
 {
 }
 
@@ -77,7 +82,9 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                              uint16_t usDestinationPort )
 {
 }
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+/* This function shall be defined by the application. */
+void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                           struct xNetworkEndPoint * pxEndPoint )
 {
 }
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
@@ -139,5 +146,13 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
 {
 }
 void vConfigureTimerForRunTimeStats( void )
+{
+}
+
+/**
+ * @brief Send an ND advertisement.
+ * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
+ */
+void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
 {
 }

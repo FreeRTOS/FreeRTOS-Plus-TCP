@@ -39,6 +39,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
+#include "FreeRTOS_Routing.h"
 
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
@@ -55,6 +56,34 @@
     #define ipFOREVER()    1
 #endif
 
+typedef enum
+{
+    eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
+    eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
+    eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
+    eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
+    eWaitingARPResolution /* Frame is awaiting ARP resolution. */
+} eFrameProcessingResult_t;
+
+typedef enum
+{
+    eNoEvent = -1,
+    eNetworkDownEvent,     /* 0: The network interface has been lost and/or needs [re]connecting. */
+    eNetworkRxEvent,       /* 1: The network interface has queued a received Ethernet frame. */
+    eNetworkTxEvent,       /* 2: Let the IP-task send a network packet. */
+    eARPTimerEvent,        /* 3: The ARP timer expired. */
+    eStackTxEvent,         /* 4: The software stack has queued a packet to transmit. */
+    eDHCPEvent,            /* 5: Process the DHCP state machine. */
+    eTCPTimerEvent,        /* 6: See if any TCP socket needs attention. */
+    eTCPAcceptEvent,       /* 7: Client API FreeRTOS_accept() waiting for client connections. */
+    eTCPNetStat,           /* 8: IP-task is asked to produce a netstat listing. */
+    eSocketBindEvent,      /* 9: Send a message to the IP-task to bind a socket to a port. */
+    eSocketCloseEvent,     /*10: Send a message to the IP-task to close a socket. */
+    eSocketSelectEvent,    /*11: Send a message to the IP-task for select(). */
+    eSocketSignalEvent,    /*12: A socket must be signalled. */
+    eSocketSetDeleteEvent, /*13: A socket set must be deleted. */
+} eIPEvent_t;
+
 /**
  * Structure to hold the information about the Network parameters.
  */
@@ -69,6 +98,7 @@ typedef struct xNetworkAddressingParameters
 
 extern BaseType_t xTCPWindowLoggingLevel;
 extern QueueHandle_t xNetworkEventQueue;
+typedef struct xSOCKET FreeRTOS_Socket_t;
 
 /*-----------------------------------------------------------*/
 /* Protocol headers.                                         */
@@ -101,23 +131,6 @@ struct xARP_HEADER
 typedef struct xARP_HEADER ARPHeader_t;
 
 #include "pack_struct_start.h"
-struct xIP_HEADER
-{
-    uint8_t ucVersionHeaderLength;        /**< The version field + internet header length 0 + 1 =  1 */
-    uint8_t ucDifferentiatedServicesCode; /**< Differentiated services code point + ECN    1 + 1 =  2 */
-    uint16_t usLength;                    /**< Entire Packet size                         2 + 2 =  4 */
-    uint16_t usIdentification;            /**< Identification field                       4 + 2 =  6 */
-    uint16_t usFragmentOffset;            /**< Fragment flags and fragment offset         6 + 2 =  8 */
-    uint8_t ucTimeToLive;                 /**< Time to live field                         8 + 1 =  9 */
-    uint8_t ucProtocol;                   /**< Protocol used in the IP-datagram           9 + 1 = 10 */
-    uint16_t usHeaderChecksum;            /**< Checksum of the IP-header                 10 + 2 = 12 */
-    uint32_t ulSourceIPAddress;           /**< IP address of the source                  12 + 4 = 16 */
-    uint32_t ulDestinationIPAddress;      /**< IP address of the destination             16 + 4 = 20 */
-}
-#include "pack_struct_end.h"
-typedef struct xIP_HEADER IPHeader_t;
-
-#include "pack_struct_start.h"
 struct xICMP_HEADER
 {
     uint8_t ucTypeOfMessage;   /**< The ICMP type                     0 + 1 = 1 */
@@ -128,6 +141,21 @@ struct xICMP_HEADER
 }
 #include "pack_struct_end.h"
 typedef struct xICMP_HEADER ICMPHeader_t;
+
+#include "pack_struct_start.h"
+struct xICMPHeader_IPv6
+{
+    uint8_t ucTypeOfMessage;     /**< The message type.     0 +  1 = 1 */
+    uint8_t ucTypeOfService;     /**< Type of service.      1 +  1 = 2 */
+    uint16_t usChecksum;         /**< Checksum.             2 +  2 = 4 */
+    uint32_t ulReserved;         /**< Reserved.             4 +  4 = 8 */
+    IPv6_Address_t xIPv6Address; /**< The IPv6 address.     8 + 16 = 24 */
+    uint8_t ucOptionType;        /**< The option type.     24 +  1 = 25 */
+    uint8_t ucOptionLength;      /**< The option length.   25 +  1 = 26 */
+    uint8_t ucOptionBytes[ 6 ];  /**< Option bytes.        26 +  6 = 32 */
+}
+#include "pack_struct_end.h"
+typedef struct xICMPHeader_IPv6 ICMPHeader_IPv6_t;
 
 #include "pack_struct_start.h"
 struct xUDP_HEADER
@@ -159,11 +187,6 @@ struct xTCP_HEADER
 #include "pack_struct_end.h"
 typedef struct xTCP_HEADER TCPHeader_t;
 
-
-/*-----------------------------------------------------------*/
-/* Nested protocol packets.                                  */
-/*-----------------------------------------------------------*/
-
 #include "pack_struct_start.h"
 struct xARP_PACKET
 {
@@ -173,44 +196,9 @@ struct xARP_PACKET
 #include "pack_struct_end.h"
 typedef struct xARP_PACKET ARPPacket_t;
 
-#include "pack_struct_start.h"
-struct xIP_PACKET
-{
-    EthernetHeader_t xEthernetHeader;
-    IPHeader_t xIPHeader;
-}
-#include "pack_struct_end.h"
-typedef struct xIP_PACKET IPPacket_t;
 
-#include "pack_struct_start.h"
-struct xICMP_PACKET
-{
-    EthernetHeader_t xEthernetHeader; /**< The Ethernet header of an ICMP packet. */
-    IPHeader_t xIPHeader;             /**< The IP header of an ICMP packet. */
-    ICMPHeader_t xICMPHeader;         /**< The ICMP header of an ICMP packet. */
-}
-#include "pack_struct_end.h"
-typedef struct xICMP_PACKET ICMPPacket_t;
-
-#include "pack_struct_start.h"
-struct xUDP_PACKET
-{
-    EthernetHeader_t xEthernetHeader; /**< UDP-Packet ethernet header  0 + 14 = 14 */
-    IPHeader_t xIPHeader;             /**< UDP-Packet IP header        14 + 20 = 34 */
-    UDPHeader_t xUDPHeader;           /**< UDP-Packet UDP header       34 +  8 = 42 */
-}
-#include "pack_struct_end.h"
-typedef struct xUDP_PACKET UDPPacket_t;
-
-#include "pack_struct_start.h"
-struct xTCP_PACKET
-{
-    EthernetHeader_t xEthernetHeader; /**< The ethernet header  0 + 14 = 14 */
-    IPHeader_t xIPHeader;             /**< The IP header        14 + 20 = 34 */
-    TCPHeader_t xTCPHeader;           /**< The TCP header       34 + 32 = 66 */
-}
-#include "pack_struct_end.h"
-typedef struct xTCP_PACKET TCPPacket_t;
+#include "FreeRTOS_IPv4_Private.h"
+#include "FreeRTOS_IPv6_Private.h"
 
 /**
  * Union for the protocol packet to save space. Any packet cannot have more than one
@@ -230,41 +218,11 @@ typedef union XPROT_PACKET
  */
 typedef union xPROT_HEADERS
 {
-    ICMPHeader_t xICMPHeader; /**< Union member: ICMP header */
-    UDPHeader_t xUDPHeader;   /**< Union member: UDP header */
-    TCPHeader_t xTCPHeader;   /**< Union member: TCP header */
+    ICMPHeader_t xICMPHeader;          /**< Union member: ICMP header */
+    UDPHeader_t xUDPHeader;            /**< Union member: UDP header */
+    TCPHeader_t xTCPHeader;            /**< Union member: TCP header */
+    ICMPHeader_IPv6_t xICMPHeaderIPv6; /**< Union member: ICMPv6 header */
 } ProtocolHeaders_t;
-
-/* The maximum UDP payload length. */
-#define ipMAX_UDP_PAYLOAD_LENGTH    ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
-
-typedef enum
-{
-    eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
-    eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
-    eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
-    eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
-    eWaitingARPResolution /* Frame is awaiting ARP resolution. */
-} eFrameProcessingResult_t;
-
-typedef enum
-{
-    eNoEvent = -1,
-    eNetworkDownEvent,     /* 0: The network interface has been lost and/or needs [re]connecting. */
-    eNetworkRxEvent,       /* 1: The network interface has queued a received Ethernet frame. */
-    eNetworkTxEvent,       /* 2: Let the IP-task send a network packet. */
-    eARPTimerEvent,        /* 3: The ARP timer expired. */
-    eStackTxEvent,         /* 4: The software stack has queued a packet to transmit. */
-    eDHCPEvent,            /* 5: Process the DHCP state machine. */
-    eTCPTimerEvent,        /* 6: See if any TCP socket needs attention. */
-    eTCPAcceptEvent,       /* 7: Client API FreeRTOS_accept() waiting for client connections. */
-    eTCPNetStat,           /* 8: IP-task is asked to produce a netstat listing. */
-    eSocketBindEvent,      /* 9: Send a message to the IP-task to bind a socket to a port. */
-    eSocketCloseEvent,     /*10: Send a message to the IP-task to close a socket. */
-    eSocketSelectEvent,    /*11: Send a message to the IP-task for select(). */
-    eSocketSignalEvent,    /*12: A socket must be signalled. */
-    eSocketSetDeleteEvent, /*13: A socket set must be deleted. */
-} eIPEvent_t;
 
 /**
  * Structure for the information of the commands issued to the IP task.
@@ -275,6 +233,27 @@ typedef struct IP_TASK_COMMANDS
     void * pvData;         /**< The data in the event */
 } IPStackEvent_t;
 
+/** @brief This struct describes a packet, it is used by the function
+ * usGenerateProtocolChecksum(). */
+struct xPacketSummary
+{
+    BaseType_t xIsIPv6;                          /**< pdTRUE for IPv6 packets. */
+    #if ipconfigUSE_IPv6
+        const IPHeader_IPv6_t * pxIPPacket_IPv6; /**< A pointer to the IPv6 header. */
+    #endif
+    #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+        const char * pcType;               /**< Just for logging purposes: the name of the protocol. */
+    #endif
+    size_t uxIPHeaderLength;               /**< Either 40 or 20, depending on the IP-type */
+    size_t uxProtocolHeaderLength;         /**< Either 8, 20, or more or 20, depending on the protocol-type */
+    uint16_t usChecksum;                   /**< Checksum accumulator. */
+    uint8_t ucProtocol;                    /**< ipPROTOCOL_TCP, ipPROTOCOL_UDP, ipPROTOCOL_ICMP */
+    const IPPacket_t * pxIPPacket;         /**< A pointer to the IPv4 header. */
+    ProtocolHeaders_t * pxProtocolHeaders; /**< Points to first byte after IP-header */
+    uint16_t usPayloadLength;              /**< Property of IP-header (for IPv4: length of IP-header included) */
+    uint16_t usProtocolBytes;              /**< The total length of the protocol data. */
+};
+
 #define ipBROADCAST_IP_ADDRESS               0xffffffffU
 
 /* Offset into the Ethernet frame that is used to temporarily store information
@@ -283,12 +262,6 @@ typedef struct IP_TASK_COMMANDS
 #define ipFRAGMENTATION_PARAMETERS_OFFSET    ( 6 )
 #define ipSOCKET_OPTIONS_OFFSET              ( 6 )
 
-
-/* The offset into a UDP packet at which the UDP data (payload) starts. */
-#define ipUDP_PAYLOAD_OFFSET_IPv4    ( sizeof( UDPPacket_t ) )
-
-/* The offset into an IP packet into which the IP data (payload) starts. */
-#define ipIP_PAYLOAD_OFFSET          ( sizeof( IPPacket_t ) )
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
@@ -374,6 +347,17 @@ extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could def
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
 extern const BaseType_t xBufferAllocFixedSize;
 
+/* As FreeRTOS_Routing is included later, use forward declarations
+ * of the two structs. */
+struct xNetworkEndPoint;
+struct xNetworkInterface;
+
+/* A list of all network end-points: */
+extern struct xNetworkEndPoint * pxNetworkEndPoints;
+
+/* A list of all network interfaces: */
+extern struct xNetworkInterface * pxNetworkInterfaces;
+
 /* Defined in FreeRTOS_Sockets.c */
 #if ( ipconfigUSE_TCP == 1 )
     extern List_t xBoundTCPSocketsList;
@@ -396,10 +380,10 @@ extern const BaseType_t xBufferAllocFixedSize;
 #define SOCKET_EVENT_BIT_COUNT         8
 
 #define vSetField16( pxBase, xType, xField, usValue )                                                        \
-    {                                                                                                        \
+    do {                                                                                                     \
         ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( usValue ) >> 8 );    \
         ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( usValue ) & 0xffU ); \
-    }
+    } while( ipFALSE_BOOL )
 
 #define vSetField32( pxBase, xType, xField, ulValue )                                                                  \
     {                                                                                                                  \
@@ -423,10 +407,24 @@ extern const BaseType_t xBufferAllocFixedSize;
         ( right ) = tmp;         \
     } while( ipFALSE_BOOL )
 
+/** @brief Macro calculates the number of elements in an array as a size_t. */
+#ifndef ARRAY_SIZE_X
+    #ifndef _WINDOWS_
+        #define ARRAY_SIZE_X( x )                            \
+    ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
+        BaseType_t xCount = ( BaseType_t ) uxCount;          \
+        xCount; }                                            \
+    )
+    #else
+        #define ARRAY_SIZE_X( x )    ( sizeof( x ) / sizeof( x[ 0 ] ) )
+    #endif
+#endif
+
 /* WARNING: Do NOT use this macro when the array was received as a parameter. */
 #ifndef ARRAY_SIZE
     #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
 #endif
+
 
 #ifndef ARRAY_USIZE
     #define ARRAY_USIZE( x )    ( ( UBaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
@@ -444,13 +442,13 @@ extern const BaseType_t xBufferAllocFixedSize;
  * returns a non-zero value then a context switch should be performed before
  * the interrupt is exited.
  */
-void FreeRTOS_NetworkDown( void );
-BaseType_t FreeRTOS_NetworkDownFromISR( void );
+void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface );
+BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInterface );
 
 /*
  * Processes incoming ARP packets.
  */
-eFrameProcessingResult_t eARPProcessPacket( ARPPacket_t * const pxARPFrame );
+eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Inspect an Ethernet frame to see if it contains data that the stack needs to
@@ -476,6 +474,14 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                       uint16_t usPort,
                                       BaseType_t * pxIsWaitingForARPResolution );
+
+BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution );
+
+BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.
@@ -509,6 +515,20 @@ BaseType_t xIPIsNetworkTaskReady( void );
     TickType_t xTCPTimerCheck( BaseType_t xWillSleep );
 
 /**
+ * About the TCP flags 'bPassQueued' and 'bPassAccept':
+ *
+ * When a new TCP connection request is received on a listening socket, the bPassQueued and
+ * bPassAccept members of the newly created socket are updated as follows:
+ *
+ * 1. bPassQueued is set to indicate that the 3-way TCP handshake is in progress.
+ * 2. When the 3-way TCP handshake is complete, bPassQueued is cleared. At the same time,
+ *    bPassAccept is set to indicate that the socket is ready to be picked up by the task
+ *    that called FreeRTOS_accept().
+ * 3. When the socket is picked up by the task that called FreeRTOS_accept, the bPassAccept
+ *    is cleared.
+ */
+
+/**
  * Every TCP socket has a buffer space just big enough to store
  * the last TCP header received.
  * As a reference of this field may be passed to DMA, force the
@@ -518,15 +538,15 @@ BaseType_t xIPIsNetworkTaskReady( void );
     {
         struct
         {
-            uint64_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 64-bit variable. */
+            uint32_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 32-bit variable. */
         } a;                           /**< A struct to increase alignment. */
         struct
         {
             /* The next field only serves to give 'ucLastPacket' a correct
-             * alignment of 8 + 2.  See comments in FreeRTOS_IP.h */
+             * alignment of 4 + 2.  See comments in FreeRTOS_IP.h */
             uint8_t ucFillPacket[ ipconfigPACKET_FILLER_SIZE ];
-            uint8_t ucLastPacket[ sizeof( TCPPacket_t ) ];
-        } u; /**< The structure to give an alignment of 8 + 2 */
+            uint8_t ucLastPacket[ TCP_PACKET_SIZE ];
+        } u; /**< The structure to give an alignment of 4 + 2 */
     } LastTCPPacket_t;
 
 /**
@@ -537,17 +557,15 @@ BaseType_t xIPIsNetworkTaskReady( void );
  */
     typedef struct TCPSOCKET
     {
-        uint32_t ulRemoteIP;   /**< IP address of remote machine */
-        uint16_t usRemotePort; /**< Port on remote machine */
+        IP_Address_t xRemoteIP; /**< IP address of remote machine */
+        uint16_t usRemotePort;  /**< Port on remote machine */
         struct
         {
             /* Most compilers do like bit-flags */
             uint32_t
                 bMssChange : 1,        /**< This socket has seen a change in MSS */
-                bPassAccept : 1,       /**< when true, this socket may be returned in a call to accept() */
-                bPassQueued : 1,       /**< when true, this socket is an orphan until it gets connected
-                                        * Why an orphan? Because it may not be returned in a accept() call until it
-                                        * gets the state eESTABLISHED */
+                bPassAccept : 1,       /**< See comment here above. */
+                bPassQueued : 1,       /**< See comment here above. */
                 bReuseSocket : 1,      /**< When a listening socket gets a connection, do not create a new instance but keep on using it */
                 bCloseAfterSend : 1,   /**< As soon as the last byte has been transmitted, finalise the connection
                                         * Useful in e.g. FTP connections, where the last data bytes are sent along with the FIN flag */
@@ -654,15 +672,24 @@ enum eSOCKET_EVENT
 /**
  * Structure to hold information for a socket.
  */
-typedef struct xSOCKET
+struct xSOCKET
 {
-    EventBits_t xEventBits;                /**< The eventbits to keep track of events. */
-    EventGroupHandle_t xEventGroup;        /**< The event group for this socket. */
+    EventBits_t xEventBits;         /**< The eventbits to keep track of events. */
+    EventGroupHandle_t xEventGroup; /**< The event group for this socket. */
+
+    /* Most compilers do like bit-flags */
+    struct
+    {
+        uint32_t bIsIPv6 : 1; /**< Non-zero in case the connection is using IPv6. */
+        uint32_t bSomeFlag : 1;
+    }
+    bits;
 
     ListItem_t xBoundSocketListItem;       /**< Used to reference the socket from a bound sockets list. */
     TickType_t xReceiveBlockTime;          /**< if recv[to] is called while no data is available, wait this amount of time. Unit in clock-ticks */
     TickType_t xSendBlockTime;             /**< if send[to] is called while there is not enough space to send, wait this amount of time. Unit in clock-ticks */
 
+    IP_Address_t xLocalAddress;            /**< Local IP address */
     uint16_t usLocalPort;                  /**< Local port on this machine */
     uint8_t ucSocketOptions;               /**< Socket options */
     uint8_t ucProtocol;                    /**< choice of FREERTOS_IPPROTO_UDP/TCP */
@@ -680,6 +707,7 @@ typedef struct xSOCKET
         EventBits_t xSocketBits;          /**< These bits indicate the events which have actually occurred.
                                            * They are maintained by the IP-task */
     #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
+    struct xNetworkEndPoint * pxEndPoint; /**< The end-point to which the socket is bound. */
 
     /* This field is only only by the user, and can be accessed with
      * vSocketSetSocketID() / vSocketGetSocketID().
@@ -693,15 +721,13 @@ typedef struct xSOCKET
 
     union
     {
-        IPUDPSocket_t xUDP;           /**< Union member: UDP socket*/
+        IPUDPSocket_t xUDP;     /**< Union member: UDP socket*/
         #if ( ipconfigUSE_TCP == 1 )
-            IPTCPSocket_t xTCP;       /**< Union member: TCP socket */
-
-            uint64_t ullTCPAlignment; /**< Make sure that xTCP is 8-bytes aligned by
-                                       * declaring a 64-bit variable in the same union */
+            IPTCPSocket_t xTCP; /**< Union member: TCP socket */
         #endif /* ipconfigUSE_TCP */
-    } u;                              /**< Union of TCP/UDP socket */
-} FreeRTOS_Socket_t;
+    }
+    u; /**< Union of TCP/UDP socket */
+};
 
 #if ( ipconfigUSE_TCP == 1 )
 
@@ -721,7 +747,7 @@ typedef struct xSOCKET
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                            UBaseType_t uxLocalPort,
-                                           uint32_t ulRemoteIP,
+                                           IPv46_Address_t xRemoteIP,
                                            UBaseType_t uxRemotePort );
 
 #endif /* ipconfigUSE_TCP */
@@ -819,6 +845,16 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  */
 NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
 
+/* Get the size of the IP-header.
+ * 'usFrameType' must be filled in if IPv6is to be recognised. */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+/*-----------------------------------------------------------*/
+
+/* Get the size of the IP-header.
+ * The socket is checked for its type: IPv4 or IPv6. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
+/*-----------------------------------------------------------*/
+
 /*
  * Internal: Sets a new state for a TCP socket and performs the necessary
  * actions like calling a OnConnected handler to notify the socket owner.
@@ -853,7 +889,7 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( void );
+void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

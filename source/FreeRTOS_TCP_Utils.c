@@ -32,16 +32,19 @@
  * Endianness: in this module all ports and IP addresses are stored in
  * host byte-order, except fields in the IP-packets
  */
+
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 
 #include "FreeRTOS_TCP_Utils.h"
 
@@ -53,14 +56,15 @@
  */
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
+        static char retString[ 10 ];
+
 /**
  * @brief Print out the value of flags in a human readable manner.
  *
- * @param[in] xFlags: The TCP flags.
+ * @param[in] xFlags The TCP flags.
  *
  * @return The string containing the flags.
  */
-
         static char retString[ 10 ];
         const char * prvTCPFlagMeaning( UBaseType_t xFlags )
         {
@@ -78,40 +82,35 @@
                                ( ( uxFlags & ( size_t ) tcpTCP_FLAG_CWR ) != 0 ) ? 'C' : '.' ); /* 0x0080: Congestion Window Reduced */
             return retString;
         }
-        /*-----------------------------------------------------------*/
-
-    #endif /* ipconfigHAS_DEBUG_PRINTF */
+    #endif /* #if ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
+    /*-----------------------------------------------------------*/
 
 /**
  * @brief Set the MSS (Maximum segment size) associated with the given socket.
  *
- * @param[in] pxSocket: The socket whose MSS is to be set.
+ * @param[in] pxSocket The socket whose MSS is to be set.
  */
     void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
-        uint32_t ulMSS;
-
-        /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
-        #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-            {
-                ulMSS = ipconfigTCP_MSS;
-            }
-        #else
-            {
-                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-            }
-        #endif
-
-        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.ulRemoteIP ) ^ *ipLOCAL_IP_ADDRESS_POINTER ) & xNetworkAddressing.ulNetMask ) != 0U )
+        switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
-            /* Data for this peer will pass through a router, and maybe through
-             * the internet.  Limit the MSS to 1400 bytes or less. */
-            ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case pdFALSE_UNSIGNED:
+                    prvSocketSetMSS_IPV4( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case pdTRUE_UNSIGNED:
+                    prvSocketSetMSS_IPV6( pxSocket );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default: /* LCOV_EXCL_LINE */
+                /* Shouldn't reach here */
+                /* MISRA 16.4 Compliance */
+                break; /* LCOV_EXCL_LINE */
         }
-
-        FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip:%u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, pxSocket->u.xTCP.usRemotePort ) );
-
-        pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
     }
     /*-----------------------------------------------------------*/
 

@@ -20,10 +20,9 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/list_macros.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/FreeRTOS_UDP_IP/FreeRTOS_UDP_IP_list_macros.h"
         )
 
 #set(mock_include_list "")
@@ -51,7 +50,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${MODULE_ROOT_DIR}/source/${project_name}.c
+        ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
 	)
 
 #set(real_include_directories "")
@@ -112,8 +111,4 @@ create_test(${utest_name}
             "${utest_link_list}"
             "${utest_dep_list}"
             "${test_include_directories}"
-        )
-
-target_compile_options(${real_name} PUBLIC
-            -include list_macros.h
         )

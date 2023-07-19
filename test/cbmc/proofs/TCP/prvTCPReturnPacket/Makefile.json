@@ -39,7 +39,9 @@
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Stream_Buffer.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission_IPV4.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission.goto"
   ],
   "DEF":
   [

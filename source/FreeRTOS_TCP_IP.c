@@ -60,7 +60,6 @@
 #include "FreeRTOS_TCP_State_Handling.h"
 #include "FreeRTOS_TCP_Utils.h"
 
-
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
@@ -86,21 +85,7 @@
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
     /* coverity[misra_c_2012_rule_8_9_violation] */
-    static FreeRTOS_Socket_t * xSocketToListen = NULL;
-
-/*
- * For anti-hang protection and TCP keep-alive messages.  Called in two places:
- * after receiving a packet and after a state change.  The socket's alive timer
- * may be reset.
- */
-    static void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket );
-
-
-/*
- * Calculate when this socket needs to be checked to do (re-)transmissions.
- */
-    static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket );
-
+    _static FreeRTOS_Socket_t * xSocketToListen = NULL;
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
 
@@ -116,7 +101,7 @@
 
 /** @brief Close the socket another time.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketCloseNextTime( FreeRTOS_Socket_t * pxSocket )
@@ -132,14 +117,14 @@
 
 /** @brief Postpone a call to FreeRTOS_listen() to avoid recursive calls.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  */
     /* coverity[single_use] */
     void vSocketListenNextTime( FreeRTOS_Socket_t * pxSocket )
     {
         if( ( xSocketToListen != NULL ) && ( xSocketToListen != pxSocket ) )
         {
-            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, xSocketToListen->u.xTCP.usBacklog );
+            ( void ) FreeRTOS_listen( ( Socket_t ) xSocketToListen, ( BaseType_t ) ( xSocketToListen->u.xTCP.usBacklog ) );
         }
 
         xSocketToListen = pxSocket;
@@ -150,7 +135,7 @@
  * @brief As soon as a TCP socket timer expires, this function will be called
  *       (from xTCPTimerCheck). It can send a delayed ACK or new data.
  *
- * @param[in] pxSocket: socket to be checked.
+ * @param[in] pxSocket socket to be checked.
  *
  * @return 0 on success, a negative error code on failure. A negative value will be
  *         returned in case the hang-protection has put the socket in a wait-close state.
@@ -196,10 +181,10 @@
                                                          pxSocket->u.xTCP.usRemotePort,
                                                          ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
                                                          ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ),
-                                                         ( unsigned ) ( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER ) ) );
+                                                         ( unsigned ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ) ) );
                             }
 
-                            prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+                            prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
 
                             #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
                                 {
@@ -260,13 +245,13 @@
 /**
  * @brief 'Touch' the socket to keep it alive/updated.
  *
- * @param[in] pxSocket: The socket to be updated.
+ * @param[in] pxSocket The socket to be updated.
  *
  * @note This is used for anti-hanging protection and TCP keep-alive messages.
  *       Called in two places: after receiving a packet and after a state change.
  *       The socket's alive timer may be reset.
  */
-    static void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket )
+    void prvTCPTouchSocket( struct xSOCKET * pxSocket )
     {
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
             {
@@ -293,8 +278,8 @@
  *        that a socket has got (dis)connected, and setting bit to unblock a call to
  *        FreeRTOS_select().
  *
- * @param[in] pxSocket: The socket whose state we are trying to change.
- * @param[in] eTCPState: The state to which we want to change to.
+ * @param[in] pxSocket The socket whose state we are trying to change.
+ * @param[in] eTCPState The state to which we want to change to.
  */
     void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
                           enum eTCP_STATE eTCPState )
@@ -303,7 +288,7 @@
         BaseType_t bBefore = tcpNOW_CONNECTED( ( BaseType_t ) pxSocket->u.xTCP.eTCPState ); /* Was it connected ? */
         BaseType_t bAfter = tcpNOW_CONNECTED( ( BaseType_t ) eTCPState );                   /* Is it connected now ? */
 
-        BaseType_t xPreviousState = ( BaseType_t ) pxSocket->u.xTCP.eTCPState;
+        eIPTCPState_t xPreviousState = pxSocket->u.xTCP.eTCPState;
 
         #if ( ipconfigUSE_CALLBACKS == 1 )
             FreeRTOS_Socket_t * xConnected = NULL;
@@ -317,7 +302,7 @@
             /* A socket was in the connecting phase but something
              * went wrong and it should be closed. */
             FreeRTOS_debug_printf( ( "Move from %s to %s\n",
-                                     FreeRTOS_GetTCPStateName( xPreviousState ),
+                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                      FreeRTOS_GetTCPStateName( eTCPState ) ) );
 
             /* Set the flag to show that it was connected before and that the
@@ -445,26 +430,41 @@
             }
         }
 
+        /* Fill in the new state. */
+        pxSocket->u.xTCP.eTCPState = eTCPState;
+
         if( ( eTCPState == eCLOSED ) ||
             ( eTCPState == eCLOSE_WAIT ) )
         {
             /* Socket goes to status eCLOSED because of a RST.
              * When nobody owns the socket yet, delete it. */
-            if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
-                ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
+            vTaskSuspendAll();
             {
-                FreeRTOS_debug_printf( ( "vTCPStateChange: Closing socket\n" ) );
-
-                if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
+                    ( pxSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED ) )
                 {
-                    configASSERT( xIsCallingFromIPTask() != pdFALSE );
-                    vSocketCloseNextTime( pxSocket );
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
+                        pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
+                    }
+
+                    ( void ) xTaskResumeAll();
+
+                    FreeRTOS_printf( ( "vTCPStateChange: Closing socket\n" ) );
+
+                    if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
+                    {
+                        configASSERT( xIsCallingFromIPTask() != pdFALSE );
+                        vSocketCloseNextTime( pxSocket );
+                    }
+                }
+                else
+                {
+                    ( void ) xTaskResumeAll();
                 }
             }
         }
-
-        /* Fill in the new state. */
-        pxSocket->u.xTCP.eTCPState = eTCPState;
 
         if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
         {
@@ -496,9 +496,39 @@
             {
                 if( ( xTCPWindowLoggingLevel >= 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) ) )
                 {
-                    FreeRTOS_debug_printf( ( "Socket %u -> %xip:%u State %s->%s\n",
+                    char pcBuffer[ 40 ];
+
+                    switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
+                    {
+                        #if ( ipconfigUSE_IPv4 != 0 )
+                            case pdFALSE_UNSIGNED:
+                               {
+                                   uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                                   FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                       ( const uint8_t * ) &ulIPAddress,
+                                                       pcBuffer,
+                                                       sizeof( pcBuffer ) );
+                               }
+                               break;
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            case pdTRUE_UNSIGNED:
+                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                    pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                                    pcBuffer,
+                                                    sizeof( pcBuffer ) );
+                                break;
+                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                        default:   /* LCOV_EXCL_LINE */
+                            /* MISRA 16.4 Compliance */
+                            break; /* LCOV_EXCL_LINE */
+                    }
+
+                    FreeRTOS_debug_printf( ( "Socket %u -> [%s]:%u State %s->%s\n",
                                              pxSocket->usLocalPort,
-                                             ( unsigned ) pxSocket->u.xTCP.ulRemoteIP,
+                                             pcBuffer,
                                              pxSocket->u.xTCP.usRemotePort,
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
                                              FreeRTOS_GetTCPStateName( ( UBaseType_t ) eTCPState ) ) );
@@ -527,11 +557,11 @@
 /**
  * @brief Calculate after how much time this socket needs to be checked again.
  *
- * @param[in] pxSocket: The socket to be checked.
+ * @param[in] pxSocket The socket to be checked.
  *
  * @return The number of clock ticks before the timer expires.
  */
-    static TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket )
+    TickType_t prvTCPNextTimeout( struct xSOCKET * pxSocket )
     {
         TickType_t ulDelayMs = ( TickType_t ) tcpMAXIMUM_TCP_WAKEUP_TIME_MS;
 
@@ -558,7 +588,7 @@
             }
 
             FreeRTOS_debug_printf( ( "Connect[%xip:%u]: next timeout %u: %u ms\n",
-                                     ( unsigned ) pxSocket->u.xTCP.ulRemoteIP, pxSocket->u.xTCP.usRemotePort,
+                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, pxSocket->u.xTCP.usRemotePort,
                                      pxSocket->u.xTCP.ucRepCount, ( unsigned ) ulDelayMs ) );
             pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs );
         }
@@ -599,7 +629,7 @@
 /**
  * @brief Process the received TCP packet.
  *
- * @param[in] pxDescriptor: The descriptor in which the TCP packet is held.
+ * @param[in] pxDescriptor The descriptor in which the TCP packet is held.
  *
  * @return If the processing of the packet was successful, then pdPASS is returned
  *         or else pdFAIL.
@@ -617,251 +647,36 @@
     BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor )
     {
         /* Function might modify the parameter. */
-        NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
+        const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
 
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-        /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
+        BaseType_t xResult;
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-        FreeRTOS_Socket_t * pxSocket;
-        uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
-        uint32_t ulLocalIP;
-        uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
-        uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
-        uint32_t ulRemoteIP;
-        uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );
-        uint32_t ulAckNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulAckNr );
-        BaseType_t xResult = pdPASS;
-
-        const IPHeader_t * pxIPHeader;
-
-        /* Check for a minimum packet size. */
-        if( pxNetworkBuffer->xDataLength < ( ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) + ipSIZE_OF_TCP_HEADER ) )
+        switch( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType )
         {
-            xResult = pdFAIL;
-        }
-        else
-        {
-            /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                    xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
+                    break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-            ulLocalIP = FreeRTOS_htonl( pxIPHeader->ulDestinationIPAddress );
-            ulRemoteIP = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                    xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
+                    break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            /* Find the destination socket, and if not found: return a socket listening to
-             * the destination PORT. */
-            pxSocket = ( FreeRTOS_Socket_t * ) pxTCPSocketLookup( ulLocalIP, usLocalPort, ulRemoteIP, usRemotePort );
-
-            if( ( pxSocket == NULL ) || ( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == pdFALSE ) )
-            {
-                /* A TCP messages is received but either there is no socket with the
-                 * given port number or the there is a socket, but it is in one of these
-                 * non-active states:  eCLOSED, eCLOSE_WAIT, eFIN_WAIT_2, eCLOSING, or
-                 * eTIME_WAIT. */
-
-                FreeRTOS_debug_printf( ( "TCP: No active socket on port %d (%xip:%d)\n", usLocalPort, ( unsigned ) ulRemoteIP, usRemotePort ) );
-
-                /* Send a RST to all packets that can not be handled.  As a result
-                 * the other party will get a ECONN error.  There are two exceptions:
-                 * 1) A packet that already has the RST flag set.
-                 * 2) A packet that only has the ACK flag set.
-                 * A packet with only the ACK flag set might be the last ACK in
-                 * a three-way hand-shake that closes a connection. */
-                if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) != tcpTCP_FLAG_ACK ) &&
-                    ( ( ucTCPFlags & tcpTCP_FLAG_RST ) == 0U ) )
-                {
-                    ( void ) prvTCPSendReset( pxNetworkBuffer );
-                }
-
-                /* The packet can't be handled. */
+            default:
+                /* Shouldn't reach here */
                 xResult = pdFAIL;
-            }
-            else
-            {
-                pxSocket->u.xTCP.ucRepCount = 0U;
-
-                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
-                {
-                    /* The matching socket is in a listening state.  Test if the peer
-                     * has set the SYN flag. */
-                    if( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) != tcpTCP_FLAG_SYN )
-                    {
-                        /* What happens: maybe after a reboot, a client doesn't know the
-                         * connection had gone.  Send a RST in order to get a new connect
-                         * request. */
-                        #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-                            {
-                                FreeRTOS_debug_printf( ( "TCP: Server can't handle flags: %s from %xip:%u to port %u\n",
-                                                         prvTCPFlagMeaning( ( UBaseType_t ) ucTCPFlags ), ( unsigned ) ulRemoteIP, usRemotePort, usLocalPort ) );
-                            }
-                        #endif /* ipconfigHAS_DEBUG_PRINTF */
-
-                        if( ( ucTCPFlags & tcpTCP_FLAG_RST ) == 0U )
-                        {
-                            ( void ) prvTCPSendReset( pxNetworkBuffer );
-                        }
-
-                        xResult = pdFAIL;
-                    }
-                    else
-                    {
-                        /* prvHandleListen() will either return a newly created socket
-                         * (if bReuseSocket is false), otherwise it returns the current
-                         * socket which will later get connected. */
-                        pxSocket = prvHandleListen( pxSocket, pxNetworkBuffer );
-
-                        if( pxSocket == NULL )
-                        {
-                            xResult = pdFAIL;
-                        }
-                    }
-                } /* if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN ). */
-                else
-                {
-                    /* This is not a socket in listening mode. Check for the RST
-                     * flag. */
-                    if( ( ucTCPFlags & tcpTCP_FLAG_RST ) != 0U )
-                    {
-                        FreeRTOS_debug_printf( ( "TCP: RST received from %xip:%u for %u\n", ( unsigned ) ulRemoteIP, usRemotePort, usLocalPort ) );
-
-                        /* Implement https://tools.ietf.org/html/rfc5961#section-3.2. */
-                        if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
-                        {
-                            /* Per the above RFC, "In the SYN-SENT state ... the RST is
-                             * acceptable if the ACK field acknowledges the SYN." */
-                            if( ulAckNumber == ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber + 1U ) )
-                            {
-                                vTCPStateChange( pxSocket, eCLOSED );
-                            }
-                        }
-                        else
-                        {
-                            /* Check whether the packet matches the next expected sequence number. */
-                            if( ulSequenceNumber == pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber )
-                            {
-                                vTCPStateChange( pxSocket, eCLOSED );
-                            }
-                            /* Otherwise, check whether the packet is within the receive window. */
-                            else if( ( xSequenceGreaterThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber ) != pdFALSE ) &&
-                                     ( xSequenceLessThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber +
-                                                          pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength ) != pdFALSE ) )
-                            {
-                                /* Send a challenge ACK. */
-                                ( void ) prvTCPSendChallengeAck( pxNetworkBuffer );
-                            }
-                            else
-                            {
-                                /* Nothing. */
-                            }
-                        }
-
-                        /* Otherwise, do nothing. In any case, the packet cannot be handled. */
-                        xResult = pdFAIL;
-                    }
-                    /* Check whether there is a pure SYN amongst the TCP flags while the connection is established. */
-                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) )
-                    {
-                        /* SYN flag while this socket is already connected. */
-                        FreeRTOS_debug_printf( ( "TCP: SYN unexpected from %xip:%u\n", ( unsigned ) ulRemoteIP, usRemotePort ) );
-
-                        /* The packet cannot be handled. */
-                        xResult = pdFAIL;
-                    }
-                    else
-                    {
-                        /* Update the copy of the TCP header only (skipping eth and IP
-                         * headers).  It might be used later on, whenever data must be sent
-                         * to the peer. */
-                        const size_t uxOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket );
-                        ( void ) memcpy( ( void * ) ( &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset ] ) ),
-                                         ( const void * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ uxOffset ] ) ),
-                                         ipSIZE_OF_TCP_HEADER );
-                        /* Clear flags that are set by the peer, and set the ACK flag. */
-                        pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset + ipTCP_FLAGS_OFFSET ] = tcpTCP_FLAG_ACK;
-                    }
-                }
-            }
-
-            if( xResult != pdFAIL )
-            {
-                uint16_t usWindow;
-
-                /* pxSocket is not NULL when xResult != pdFAIL. */
-                configASSERT( pxSocket != NULL ); /* LCOV_EXCL_LINE ,this branch will not be hit*/
-
-                /* Touch the alive timers because we received a message for this
-                 * socket. */
-                prvTCPTouchSocket( pxSocket );
-
-                /* Parse the TCP option(s), if present. */
-
-                /* _HT_ : if we're in the SYN phase, and peer does not send a MSS option,
-                 * then we MUST assume an MSS size of 536 bytes for backward compatibility. */
-
-                /* When there are no TCP options, the TCP offset equals 20 bytes, which is stored as
-                 * the number 5 (words) in the higher nibble of the TCP-offset byte. */
-                if( ( pxProtocolHeaders->xTCPHeader.ucTCPOffset & tcpTCP_OFFSET_LENGTH_BITS ) > tcpTCP_OFFSET_STANDARD_LENGTH )
-                {
-                    xResult = prvCheckOptions( pxSocket, pxNetworkBuffer );
-                }
-
-                if( xResult != pdFAIL )
-                {
-                    usWindow = FreeRTOS_ntohs( pxProtocolHeaders->xTCPHeader.usWindow );
-                    pxSocket->u.xTCP.ulWindowSize = ( uint32_t ) usWindow;
-                    #if ( ipconfigUSE_TCP_WIN == 1 )
-                        {
-                            /* rfc1323 : The Window field in a SYN (i.e., a <SYN> or <SYN,ACK>)
-                             * segment itself is never scaled. */
-                            if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_SYN ) == 0U )
-                            {
-                                pxSocket->u.xTCP.ulWindowSize =
-                                    ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
-                            }
-                        }
-                    #endif /* ipconfigUSE_TCP_WIN */
-
-                    /* In prvTCPHandleState() the incoming messages will be handled
-                     * depending on the current state of the connection. */
-                    if( prvTCPHandleState( pxSocket, &pxNetworkBuffer ) > 0 )
-                    {
-                        /* prvTCPHandleState() has sent a message, see if there are more to
-                         * be transmitted. */
-                        #if ( ipconfigUSE_TCP_WIN == 1 )
-                            {
-                                ( void ) prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
-                            }
-                        #endif /* ipconfigUSE_TCP_WIN */
-                    }
-
-                    if( pxNetworkBuffer != NULL )
-                    {
-                        /* We must check if the buffer is unequal to NULL, because the
-                         * socket might keep a reference to it in case a delayed ACK must be
-                         * sent. */
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                        #ifndef _lint
-                            /* Clear pointers that are freed. */
-                            pxNetworkBuffer = NULL;
-                        #endif
-                    }
-
-                    /* And finally, calculate when this socket wants to be woken up. */
-                    ( void ) prvTCPNextTimeout( pxSocket );
-                }
-            }
+                break;
         }
 
-        /* pdPASS being returned means the buffer has been consumed. */
         return xResult;
     }
     /*-----------------------------------------------------------*/
@@ -871,7 +686,7 @@
  * @brief In the API accept(), the user asks is there is a new client? As API's can
  *        not walk through the xBoundTCPSocketsList the IP-task will do this.
  *
- * @param[in] pxSocket: The socket for which the bound socket list will be iterated.
+ * @param[in] pxSocket The socket for which the bound socket list will be iterated.
  *
  * @return if there is a new client, then pdTRUE is returned or else, pdFALSE.
  */

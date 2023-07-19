@@ -93,9 +93,11 @@
     #endif /* configUSE_TCP_WIN */
 /*-----------------------------------------------------------*/
 
-    static void vListInsertGeneric( List_t * const pxList,
-                                    ListItem_t * const pxNewListItem,
-                                    MiniListItem_t * pxWhere );
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        static void vListInsertGeneric( List_t * const pxList,
+                                        ListItem_t * const pxNewListItem,
+                                        MiniListItem_t * pxWhere );
+    #endif
 
 /*
  * All TCP sockets share a pool of segment descriptors (TCPSegment_t)
@@ -229,8 +231,8 @@
 /**
  * @brief Check if a <= b.
  *
- * @param[in] a: The value on the left-hand side.
- * @param[in] b: The value on the right-hand side.
+ * @param[in] a The value on the left-hand side.
+ * @param[in] b The value on the right-hand side.
  *
  * @return pdTRUE when "( b - a ) < 0x80000000". Else, pdFALSE.
  */
@@ -256,8 +258,8 @@
 /**
  * @brief Check if a < b.
  *
- * @param[in] a: The value on the left-hand side.
- * @param[in] b: The value on the right-hand side.
+ * @param[in] a The value on the left-hand side.
+ * @param[in] b The value on the right-hand side.
  *
  * @return pdTRUE when "( b - ( a + 1 ) ) < 0x80000000", else pdFALSE.
  */
@@ -280,8 +282,8 @@
 /**
  * @brief Check if a > b.
  *
- * @param[in] a: The value on the left-hand side.
- * @param[in] b: The value on the right-hand side.
+ * @param[in] a The value on the left-hand side.
+ * @param[in] b The value on the right-hand side.
  *
  * @return pdTRUE when "( a - b ) < 0x80000000", else pdFALSE.
  */
@@ -307,8 +309,8 @@
 /**
  * @brief Test if a>=b. This function is required since the sequence numbers can roll over.
  *
- * @param[in] a: The first sequence number.
- * @param[in] b: The second sequence number.
+ * @param[in] a The first sequence number.
+ * @param[in] b The second sequence number.
  *
  * @return pdTRUE if a>=b, else pdFALSE.
  */
@@ -334,8 +336,8 @@
 /**
  * @brief Insert the given item in the list in FIFO manner.
  *
- * @param[in] pxList: The list in which the item is to inserted.
- * @param[in] pxNewListItem: The item to be inserted.
+ * @param[in] pxList The list in which the item is to inserted.
+ * @param[in] pxNewListItem The item to be inserted.
  */
         static portINLINE void vListInsertFifo( List_t * const pxList,
                                                 ListItem_t * const pxNewListItem )
@@ -350,7 +352,7 @@
 /**
  * @brief Set the timer's "born" time.
  *
- * @param[in] pxTimer: The TCP timer.
+ * @param[in] pxTimer The TCP timer.
  */
     static portINLINE void vTCPTimerSet( TCPTimer_t * pxTimer )
     {
@@ -363,7 +365,7 @@
 /**
  * @brief Get the timer age in milliseconds.
  *
- * @param[in] pxTimer: The timer whose age is to be fetched.
+ * @param[in] pxTimer The timer whose age is to be fetched.
  *
  * @return The time in milliseconds since the timer was born.
  */
@@ -372,39 +374,41 @@
         TickType_t uxNow = xTaskGetTickCount();
         TickType_t uxDiff = uxNow - pxTimer->uxBorn;
 
-        return uxDiff * portTICK_PERIOD_MS;
+        return ( uint32_t ) ( uxDiff * portTICK_PERIOD_MS );
     }
 /*-----------------------------------------------------------*/
 
 /**
  * @brief Insert a new list item into a list.
  *
- * @param[in] pxList: The list in which the item is to be inserted.
- * @param[in] pxNewListItem: The item to be inserted.
- * @param[in] pxWhere: Where should the item be inserted.
+ * @param[in] pxList The list in which the item is to be inserted.
+ * @param[in] pxNewListItem The item to be inserted.
+ * @param[in] pxWhere Where should the item be inserted.
  */
-    static void vListInsertGeneric( List_t * const pxList,
-                                    ListItem_t * const pxNewListItem,
-                                    MiniListItem_t * pxWhere )
-    {
-        /* Insert a new list item into pxList, it does not sort the list,
-         * but it puts the item just before xListEnd, so it will be the last item
-         * returned by listGET_HEAD_ENTRY() */
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        static void vListInsertGeneric( List_t * const pxList,
+                                        ListItem_t * const pxNewListItem,
+                                        MiniListItem_t * pxWhere )
+        {
+            /* Insert a new list item into pxList, it does not sort the list,
+             * but it puts the item just before xListEnd, so it will be the last item
+             * returned by listGET_HEAD_ENTRY() */
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
-        pxNewListItem->pxPrevious = pxWhere->pxPrevious;
-        pxWhere->pxPrevious->pxNext = pxNewListItem;
-        pxWhere->pxPrevious = pxNewListItem;
+            pxNewListItem->pxPrevious = pxWhere->pxPrevious;
+            pxWhere->pxPrevious->pxNext = pxNewListItem;
+            pxWhere->pxPrevious = pxNewListItem;
 
-        /* Remember which list the item is in. */
-        listLIST_ITEM_CONTAINER( pxNewListItem ) = ( struct xLIST * configLIST_VOLATILE ) pxList;
+            /* Remember which list the item is in. */
+            listLIST_ITEM_CONTAINER( pxNewListItem ) = ( struct xLIST * configLIST_VOLATILE ) pxList;
 
-        ( pxList->uxNumberOfItems )++;
-    }
+            ( pxList->uxNumberOfItems )++;
+        }
+    #endif /* if ( ipconfigUSE_TCP_WIN == 1 ) */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -468,8 +472,8 @@
 /**
  * @brief Find a segment with a given sequence number in the list of received segments.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber: the sequence number to look-up
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulSequenceNumber the sequence number to look-up
  *
  * @return The address of the segment descriptor found, or NULL when not found.
  */
@@ -511,10 +515,10 @@
 /**
  * @brief Allocate a new segment object, either for transmission or reception.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber: The sequence number.
- * @param[in] lCount: The number of bytes stored in this segment.
- * @param[in] xIsForRx: True when this is a reception segment.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulSequenceNumber The sequence number.
+ * @param[in] lCount The number of bytes stored in this segment.
+ * @param[in] xIsForRx True when this is a reception segment.
  *
  * @return Allocate and initialise a segment descriptor, or NULL when none was available.
  */
@@ -589,7 +593,7 @@
 /**
  * @brief See if the peer has more packets for this node, before allowing to shut down the connection.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
  *
  * @return pdTRUE if the connection can be closed. Else, pdFALSE.
  */
@@ -631,7 +635,7 @@
 /**
  * @brief Remove the head item of a list (generic function).
  *
- * @param[in] pxList: The list of segment descriptors.
+ * @param[in] pxList The list of segment descriptors.
  *
  * @return The address of the segment descriptor, or NULL when not found.
  */
@@ -663,7 +667,7 @@
 /**
  * @brief Return the head item of a list (generic function).
  *
- * @param[in] pxList: The list of segment descriptors.
+ * @param[in] pxList The list of segment descriptors.
  *
  * @return The address of the segment descriptor, or NULL when the list is empty.
  */
@@ -693,7 +697,7 @@
 /**
  * @brief Release a segment object, return it to the list of available segment holders.
  *
- * @param[in] pxSegment: The segment descriptor that must be freed.
+ * @param[in] pxSegment The segment descriptor that must be freed.
  */
         static void vTCPWindowFree( TCPSegment_t * pxSegment )
         {
@@ -727,7 +731,7 @@
 /**
  * @brief Return all segment descriptor to the poll of descriptors, before deleting a socket.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
  */
         void vTCPWindowDestroy( TCPWindow_t const * pxWindow )
         {
@@ -766,12 +770,12 @@
 /**
  * @brief Create a window for TCP.
  *
- * @param[in] pxWindow: The window to be created.
- * @param[in] ulRxWindowLength: The length of the receive window.
- * @param[in] ulTxWindowLength: The length of the transmit window.
- * @param[in] ulAckNumber: The first ACK number.
- * @param[in] ulSequenceNumber: The first sequence number.
- * @param[in] ulMSS: The MSS of the connection.
+ * @param[in] pxWindow The window to be created.
+ * @param[in] ulRxWindowLength The length of the receive window.
+ * @param[in] ulTxWindowLength The length of the transmit window.
+ * @param[in] ulAckNumber The first ACK number.
+ * @param[in] ulSequenceNumber The first sequence number.
+ * @param[in] ulMSS The MSS of the connection.
  */
     void vTCPWindowCreate( TCPWindow_t * pxWindow,
                            uint32_t ulRxWindowLength,
@@ -814,10 +818,10 @@
 /**
  * @brief Initialise a TCP window.
  *
- * @param[in] pxWindow: The window to be initialised.
- * @param[in] ulAckNumber: The number of the first ACK.
- * @param[in] ulSequenceNumber: The first sequence number.
- * @param[in] ulMSS: The MSS of the connection.
+ * @param[in] pxWindow The window to be initialised.
+ * @param[in] ulAckNumber The number of the first ACK.
+ * @param[in] ulSequenceNumber The first sequence number.
+ * @param[in] ulMSS The MSS of the connection.
  */
     void vTCPWindowInit( TCPWindow_t * pxWindow,
                          uint32_t ulAckNumber,
@@ -915,9 +919,9 @@
 /**
  * @brief A expected segment has been received, see if there is overlap with earlier segments.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber: The sequence number of the segment that was received.
- * @param[in] ulLength: The number of bytes that were received.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulSequenceNumber The sequence number of the segment that was received.
+ * @param[in] ulLength The number of bytes that were received.
  *
  * @return The first segment descriptor involved, or NULL when no matching descriptor was found.
  */
@@ -987,8 +991,8 @@
 /**
  * @brief Data has been received with the correct ( expected  ) sequence number.
  *        It can be added to the RX stream buffer.
- * @param[in] pxWindow: The TCP sliding window data of the socket.
- * @param[in] ulLength: The number of bytes that can be added.
+ * @param[in] pxWindow The TCP sliding window data of the socket.
+ * @param[in] ulLength The number of bytes that can be added.
  */
         static void prvTCPWindowRx_ExpectedRX( TCPWindow_t * pxWindow,
                                                uint32_t ulLength )
@@ -1063,9 +1067,9 @@
 /**
  * @brief Data has been received with a non-expected sequence number.
  *        This function will check if the RX data can be accepted.
- * @param[in] pxWindow: The TCP sliding window data of the socket.
- * @param[in] ulSequenceNumber: The sequence number at which the data should be placed.
- * @param[in] ulLength: The number of bytes that can be added.
+ * @param[in] pxWindow The TCP sliding window data of the socket.
+ * @param[in] ulSequenceNumber The sequence number at which the data should be placed.
+ * @param[in] ulLength The number of bytes that can be added.
  * @return Return -1 if the data must be refused, otherwise it returns the
  *         offset ( from the head ) at which the data can be placed.
  */
@@ -1174,11 +1178,11 @@
 /**
  * @brief Check what to do with a new incoming packet: store or ignore.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulSequenceNumber: The sequence number of the packet received.
- * @param[in] ulLength: The number of bytes received.
- * @param[in] ulSpace: The available space in the RX stream buffer.
- * @param[out] pulSkipCount: the number of bytes to skip in the receive buffer.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulSequenceNumber The sequence number of the packet received.
+ * @param[in] ulLength The number of bytes received.
+ * @param[in] ulSpace The available space in the RX stream buffer.
+ * @param[out] pulSkipCount the number of bytes to skip in the receive buffer.
  *
  * @return 0 or positive value indicating the offset at which the packet is to
  *         be stored, -1 if the packet is to be ignored.
@@ -1320,9 +1324,9 @@
 /**
  * @brief Increment the position in a circular buffer of size 'lMax'.
  *
- * @param[in] lPosition: The current index in the buffer.
- * @param[in] lMax: The total number of items in this buffer.
- * @param[in] lCount: The number of bytes that must be advanced.
+ * @param[in] lPosition The current index in the buffer.
+ * @param[in] lMax The total number of items in this buffer.
+ * @param[in] lCount The number of bytes that must be advanced.
  *
  * @return The new incremented position, or "( lPosition + lCount ) % lMax".
  */
@@ -1353,10 +1357,10 @@
  * @brief Adding data to a segment that was already in the TX queue.  It
  *        will be filled-up to a maximum of MSS ( maximum segment size ).
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] pxSegment: The TX segment with the highest sequence number,
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] pxSegment The TX segment with the highest sequence number,
  *                       i.e. the "front segment".
- * @param[in] lBytesLeft: The number of bytes that must be added.
+ * @param[in] lBytesLeft The number of bytes that must be added.
  *
  * @return lToWrite: the number of bytes added to the segment.
  */
@@ -1400,10 +1404,10 @@
 /**
  * @brief Will add data to be transmitted to the front of the segment fifo.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulLength: The number of bytes that will be sent.
- * @param[in] lPosition: The index in the TX stream buffer.
- * @param[in] lMax: The size of the ( circular ) TX stream buffer.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulLength The number of bytes that will be sent.
+ * @param[in] lPosition The index in the TX stream buffer.
+ * @param[in] lMax The size of the ( circular ) TX stream buffer.
  *
  * @return The number of bytes added to the sliding window for transmission.
  *
@@ -1492,7 +1496,7 @@
 /**
  * @brief Returns true if there are no more outstanding TX segments.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
  *
  * @return pdTRUE if there are no more outstanding Tx segments, else pdFALSE.
  */
@@ -1508,8 +1512,8 @@
 /**
  * @brief Find out if the peer is able to receive more data.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulWindowSize: The number of bytes in this segment.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulWindowSize The number of bytes in this segment.
  *
  * @return True if the peer has space in it window to receive more data.
  */
@@ -1578,9 +1582,9 @@
 /**
  * @brief Returns true if there is TX data that can be sent right now.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulWindowSize: The current size of the sliding RX window of the peer.
- * @param[out] pulDelay: The delay before the packet may be sent.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulWindowSize The current size of the sliding RX window of the peer.
+ * @param[out] pulDelay The delay before the packet may be sent.
  *
  * @return pdTRUE if there is Tx data that can be sent, else pdFALSE.
  */
@@ -1669,7 +1673,7 @@
  * @brief Three type of queues are used for transmission: priority, waiting, and
  *        the normal TX queue of unsent data.  Message in the waiting queue will
  *        be sent when their timer has expired.
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
  */
         static TCPSegment_t * pxTCPWindowTx_GetWaitQueue( const TCPWindow_t * pxWindow )
         {
@@ -1720,8 +1724,8 @@
  * @brief See if there is a transmission in the normal TX queue. It is the
  *        first time these data are being sent. After sending they will move
  *        the waiting queue.
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulWindowSize: The available space that the peer has in his
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulWindowSize The available space that the peer has in his
  *                          reception window.
  * @return Either a segment that has to be sent, or NULL.
  */
@@ -1787,9 +1791,9 @@
  * @brief Get data that can be transmitted right now. There are three types of
  *        outstanding segments: Priority queue, Waiting queue, Normal TX queue.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulWindowSize: The current size of the sliding RX window of the peer.
- * @param[out] plPosition: The index within the TX stream buffer of the first byte to be sent.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulWindowSize The current size of the sliding RX window of the peer.
+ * @param[out] plPosition The index within the TX stream buffer of the first byte to be sent.
  *
  * @return The amount of data in bytes that can be transmitted right now.
  */
@@ -1891,8 +1895,8 @@
  *        of the round-trip time, and calculate the new timeout for transmissions.
  *        More explanation in a comment here below.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] pxSegment: The segment that was just acknowledged.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] pxSegment The segment that was just acknowledged.
  */
         static void prvTCPWindowTxCheckAck_CalcSRTT( TCPWindow_t * pxWindow,
                                                      const TCPSegment_t * pxSegment )
@@ -1927,9 +1931,9 @@
  *        ( ( ulSequenceNumber >= ulFirst ) && ( ulSequenceNumber < ulLast ) in a contiguous block.
  *        Note that the segments are stored in xTxSegments in a strict sequential order.
  *
- * @param[in] pxWindow: The TCP-window object of the current connection.
- * @param[in] ulFirst: The sequence number of the first byte that was acknowledged.
- * @param[in] ulLast: The sequence number of the last byte ( minus one ) that was acknowledged.
+ * @param[in] pxWindow The TCP-window object of the current connection.
+ * @param[in] ulFirst The sequence number of the first byte that was acknowledged.
+ * @param[in] ulLast The sequence number of the last byte ( minus one ) that was acknowledged.
  *
  * @return number of bytes that the tail of txStream may be advanced.
  */
@@ -2081,8 +2085,8 @@
 /**
  * @brief See if there are segments that need a fast retransmission.
  *
- * @param[in] pxWindow: The descriptor of the TCP sliding windows.
- * @param[in] ulFirst: The sequence number of the first segment that must be checked.
+ * @param[in] pxWindow The descriptor of the TCP sliding windows.
+ * @param[in] ulFirst The sequence number of the first segment that must be checked.
  *
  * @return The number of segments that need a fast retransmission.
  */
@@ -2158,8 +2162,8 @@
 /**
  * @brief Receive a normal ACK.
  *
- * @param[in] pxWindow: Window in which a data is receive.
- * @param[in] ulSequenceNumber: The sequence number of the ACK.
+ * @param[in] pxWindow Window in which a data is receive.
+ * @param[in] ulSequenceNumber The sequence number of the ACK.
  *
  * @return The location where the packet should be added.
  */
@@ -2192,9 +2196,9 @@
 /**
  * @brief Receive a SACK option.
  *
- * @param[in] pxWindow: Window in which the data is received.
- * @param[in] ulFirst: Index of starting position of options.
- * @param[in] ulLast: Index of end position of the options.
+ * @param[in] pxWindow Window in which the data is received.
+ * @param[in] ulFirst Index of starting position of options.
+ * @param[in] ulLast Index of end position of the options.
  *
  * @return returns the number of bytes which have been acked starting from
  *         the head position.

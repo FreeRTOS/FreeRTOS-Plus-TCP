@@ -82,8 +82,8 @@
 /**
  * @brief Parse the TCP option(s) received, if present.
  *
- * @param[in] pxSocket: The socket handling the connection.
- * @param[in] pxNetworkBuffer: The network buffer containing the TCP
+ * @param[in] pxSocket The socket handling the connection.
+ * @param[in] pxNetworkBuffer The network buffer containing the TCP
  *                             packet.
  *
  * @return: If the options are well formed and processed successfully
@@ -96,7 +96,7 @@
     BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
                                 const NetworkBufferDescriptor_t * pxNetworkBuffer )
     {
-        size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+        size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -108,7 +108,7 @@
         BaseType_t xHasSYNFlag;
         BaseType_t xReturn = pdPASS;
         /* Offset in the network packet where the first option byte is stored. */
-        size_t uxOptionOffset = uxTCPHeaderOffset + ( sizeof( TCPHeader_t ) - sizeof( pxTCPHeader->ucOptdata ) );
+        size_t uxOptionOffset = uxTCPHeaderOffset + ipSIZE_OF_TCP_HEADER;
         size_t uxOptionsLength;
         int32_t lResult;
         uint8_t ucLength;
@@ -125,7 +125,7 @@
         }
         else
         {
-            ucLength = ( ( ( pxTCPHeader->ucTCPOffset >> 4U ) - 5U ) << 2U );
+            ucLength = ( uint8_t ) ( ( ( pxTCPHeader->ucTCPOffset >> 4U ) - 5U ) << 2U );
             uxOptionsLength = ( size_t ) ucLength;
 
             if( pxNetworkBuffer->xDataLength > uxOptionOffset )
@@ -180,10 +180,10 @@
  * @brief Identify and deal with a single TCP header option, advancing the pointer to
  *        the header.
  *
- * @param[in] pucPtr: Pointer to the TCP packet options.
- * @param[in] uxTotalLength: Length of the TCP packet options.
- * @param[in] pxSocket: Socket handling the connection.
- * @param[in] xHasSYNFlag: Whether the header has SYN flag or not.
+ * @param[in] pucPtr Pointer to the TCP packet options.
+ * @param[in] uxTotalLength Length of the TCP packet options.
+ * @param[in] pxSocket Socket handling the connection.
+ * @param[in] xHasSYNFlag Whether the header has SYN flag or not.
  *
  * @return This function returns index of the next option if the current option is
  *         successfully processed and it is not the end of options whereafter the caller
@@ -365,9 +365,9 @@
  * @brief Skip past TCP header options when doing Selective ACK, until there are no
  *        more options left.
  *
- * @param[in] pucPtr: Pointer to the TCP packet options.
- * @param[in] uxIndex: Index of options in the TCP packet options.
- * @param[in] pxSocket: Socket handling the TCP connection.
+ * @param[in] pucPtr Pointer to the TCP packet options.
+ * @param[in] uxIndex Index of options in the TCP packet options.
+ * @param[in] pxSocket Socket handling the TCP connection.
  */
         static void prvReadSackOption( const uint8_t * const pucPtr,
                                        size_t uxIndex,
@@ -419,8 +419,8 @@
  *        first thing that will be done is find the TCP payload data
  *        and check the length of this data.
  *
- * @param[in] pxNetworkBuffer: The network buffer holding the received data.
- * @param[out] ppucRecvData: It will point to first byte of the TCP payload.
+ * @param[in] pxNetworkBuffer The network buffer holding the received data.
+ * @param[out] ppucRecvData It will point to first byte of the TCP payload.
  *
  * @return Length of the received buffer.
  */
@@ -433,17 +433,13 @@
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer ) ] ) );
         const TCPHeader_t * pxTCPHeader = &( pxProtocolHeaders->xTCPHeader );
         int32_t lLength, lTCPHeaderLength, lReceiveLength, lUrgentLength;
 
         /* Map the buffer onto an IPHeader_t struct for easy access to fields. */
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        const IPHeader_t * pxIPHeader = ( ( const IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-        const size_t xIPHeaderLength = ipSIZE_OF_IPv4_HEADER;
+        const size_t xIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
         uint16_t usLength;
         uint8_t ucIntermediateResult = 0;
 
@@ -465,8 +461,47 @@
         lReceiveLength = ( int32_t ) pxNetworkBuffer->xDataLength;
         lReceiveLength -= ( int32_t ) ipSIZE_OF_ETH_HEADER;
 
-        usLength = FreeRTOS_htons( pxIPHeader->usLength );
-        lLength = ( int32_t ) usLength;
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        switch( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType )
+        {
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case ipIPv4_FRAME_TYPE:
+                   {
+                       /* MISRA Ref 11.3.1 [Misaligned access] */
+                       /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                       /* coverity[misra_c_2012_rule_11_3_violation] */
+                       const IPHeader_t * pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+                       usLength = FreeRTOS_htons( pxIPHeader->usLength );
+                       lLength = ( int32_t ) usLength;
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case ipIPv6_FRAME_TYPE:
+                   {
+                       /* MISRA Ref 11.3.1 [Misaligned access] */
+                       /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                       /* coverity[misra_c_2012_rule_11_3_violation] */
+                       const IPHeader_IPv6_t * pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
+                       /* For Coverity: conversion and cast in 2 steps. */
+                       usLength = FreeRTOS_htons( pxIPHeader->usPayloadLength );
+                       lLength = ( int32_t ) usLength;
+                       /* Add the length of the TCP-header, because that was not included in 'usPayloadLength'. */
+                       lLength += ( int32_t ) sizeof( IPHeader_IPv6_t );
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+            default:
+                /* Shouldn't reach here */
+                lLength = 0;
+                break;
+        }
 
         if( lReceiveLength > lLength )
         {
@@ -509,10 +544,10 @@
  *        The second thing is to do is check if the payload data may
  *        be accepted. If so, they will be added to the reception queue.
  *
- * @param[in] pxSocket: The socket owning the connection.
- * @param[in] pucRecvData: Pointer to received data.
- * @param[in] pxNetworkBuffer: The network buffer descriptor.
- * @param[in] ulReceiveLength: The length of the received data.
+ * @param[in] pxSocket The socket owning the connection.
+ * @param[in] pucRecvData Pointer to received data.
+ * @param[in] pxNetworkBuffer The network buffer descriptor.
+ * @param[in] ulReceiveLength The length of the received data.
  *
  * @return 0 on success, -1 on failure of storing data.
  */
@@ -522,12 +557,12 @@
                                uint32_t ulReceiveLength )
     {
         /* Map the ethernet buffer onto the ProtocolHeader_t struct for easy access to the fields. */
-
+        size_t uxIPOffset = uxIPHeaderSizePacket( pxNetworkBuffer );
         /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
-                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                                        &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPOffset ] ) );
         const TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
         TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
         uint32_t ulSequenceNumber, ulSpace;
