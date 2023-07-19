@@ -581,9 +581,9 @@
 
             if( pxDescriptor->xDataLength < uxNeededSize )
             {
-            	pxNewDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
-            	vReleaseNetworkBufferAndDescriptor(pxDescriptor);
-            	pxDescriptor = pxNewDescriptor;
+                pxNewDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+                pxDescriptor = pxNewDescriptor;
             }
 
             if( pxDescriptor != NULL )
