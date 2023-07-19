@@ -213,6 +213,17 @@ void vApplicationIdleHook( void )
 
 /*-----------------------------------------------------------*/
 
+void vLoggingPrintf( const char * pcFormat,
+                     ... )
+{
+    va_list arg;
+
+    va_start( arg, pcFormat );
+    vprintf( pcFormat, arg );
+    va_end( arg );
+}
+/*-----------------------------------------------------------*/
+
 void getUserCmd( char * pucUserCmd )
 {
     /* Provide a stub for this function. */

@@ -337,12 +337,21 @@ static BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * 
         if( pxIterator->pxDHCPMessage->xServerID.usDUIDType != 0U )
         {
             /* Check if the ID-type, the length and the contents are equal. */
-            if( ( xDHCPMessage.xServerID.usDUIDType != pxIterator->pxDHCPMessage->xServerID.usDUIDType ) ||
-                ( xDHCPMessage.xServerID.uxLength != pxIterator->pxDHCPMessage->xServerID.uxLength ) ||
-                ( memcmp( xDHCPMessage.xServerID.pucID, pxIterator->pxDHCPMessage->xServerID.pucID, pxIterator->pxDHCPMessage->xServerID.uxLength ) != 0 ) )
+            if( pxIterator->pxDHCPMessage->xServerID.uxLength > DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH )
+            {
+                FreeRTOS_printf( ( "DHCPv6 invalid uxLength.\n" ) );
+                ulCompareResult = pdFAIL;
+            }
+            else if( ( xDHCPMessage.xServerID.usDUIDType != pxIterator->pxDHCPMessage->xServerID.usDUIDType ) ||
+                     ( xDHCPMessage.xServerID.uxLength != pxIterator->pxDHCPMessage->xServerID.uxLength ) ||
+                     ( memcmp( xDHCPMessage.xServerID.pucID, pxIterator->pxDHCPMessage->xServerID.pucID, pxIterator->pxDHCPMessage->xServerID.uxLength ) != 0 ) )
             {
                 FreeRTOS_printf( ( "DHCPv6 reply contains an unknown ID.\n" ) );
                 ulCompareResult = pdFAIL;
+            }
+            else
+            {
+                /* do nothing, coverity happy */
             }
         }
 
@@ -412,7 +421,7 @@ void vDHCPv6Process( BaseType_t xReset,
     }
 
     /* If there is a socket, check for incoming messages first. */
-    if( EP_DHCPData.xDHCPSocket != NULL )
+    if( ( xDoProcess != pdFALSE ) && ( EP_DHCPData.xDHCPSocket != NULL ) )
     {
         uint8_t * pucUDPPayload;
 

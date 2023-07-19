@@ -476,11 +476,11 @@ BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup )
  *
  * @return pdTRUE if the packet needs ARP resolution, pdFALSE otherwise.
  */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xNeedsARPResolution = pdFALSE;
 
-    switch( uxIPHeaderSizePacket( ( const NetworkBufferDescriptor_t * ) pxNetworkBuffer ) )
+    switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
     {
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipSIZE_OF_IPv4_HEADER:
@@ -1457,45 +1457,54 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
         BaseType_t xResult = pdFALSE;
         NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        const IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
+        const IPPacket_t * pxIPPacket;
 
-        if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+        if( ( pxUseDescriptor == NULL ) || ( pxUseDescriptor->xDataLength < sizeof( IPPacket_t ) ) )
         {
-            NetworkEndPoint_t * pxEndPoint;
+            /* The packet is too small to parse. */
+        }
+        else
+        {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
 
-            pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xDestinationAddress ), NULL );
-
-            if( ( pxEndPoint != NULL ) &&
-                ( memcmp( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) )
+            if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
             {
-                xResult = pdTRUE;
+                NetworkEndPoint_t * pxEndPoint;
 
-                if( bReleaseAfterSend == pdFALSE )
+                pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xDestinationAddress ), NULL );
+
+                if( ( pxEndPoint != NULL ) &&
+                    ( memcmp( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) )
                 {
-                    /* Driver is not allowed to transfer the ownership
-                     * of descriptor,  so make a copy of it */
-                    pxUseDescriptor =
-                        pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
-                }
+                    xResult = pdTRUE;
 
-                if( pxUseDescriptor != NULL )
-                {
-                    IPStackEvent_t xRxEvent;
-
-                    pxUseDescriptor->pxInterface = pxEndPoint->pxNetworkInterface;
-                    pxUseDescriptor->pxEndPoint = pxEndPoint;
-
-                    xRxEvent.eEventType = eNetworkRxEvent;
-                    xRxEvent.pvData = pxUseDescriptor;
-
-                    if( xSendEventStructToIPTask( &xRxEvent, 0U ) != pdTRUE )
+                    if( bReleaseAfterSend == pdFALSE )
                     {
-                        vReleaseNetworkBufferAndDescriptor( pxUseDescriptor );
-                        iptraceETHERNET_RX_EVENT_LOST();
-                        FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
+                        /* Driver is not allowed to transfer the ownership
+                         * of descriptor,  so make a copy of it */
+                        pxUseDescriptor =
+                            pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
+                    }
+
+                    if( pxUseDescriptor != NULL )
+                    {
+                        IPStackEvent_t xRxEvent;
+
+                        pxUseDescriptor->pxInterface = pxEndPoint->pxNetworkInterface;
+                        pxUseDescriptor->pxEndPoint = pxEndPoint;
+
+                        xRxEvent.eEventType = eNetworkRxEvent;
+                        xRxEvent.pvData = pxUseDescriptor;
+
+                        if( xSendEventStructToIPTask( &xRxEvent, 0U ) != pdTRUE )
+                        {
+                            vReleaseNetworkBufferAndDescriptor( pxUseDescriptor );
+                            iptraceETHERNET_RX_EVENT_LOST();
+                            FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
+                        }
                     }
                 }
             }

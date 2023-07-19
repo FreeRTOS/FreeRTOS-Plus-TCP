@@ -768,6 +768,7 @@ ppxresult
 pr
 pragma
 pre
+preparereplydnsmessage
 printf
 printfs
 processdhcpreplies
@@ -878,6 +879,7 @@ prvtcppreparesend
 prvtcpreturnpacket
 prvtcpsendchallengeack
 prvtcpsendloop
+prvtcpsendcheck
 prvtcpsendpacket
 prvtcpsendrepeated
 prvtcpsendreset
@@ -1952,6 +1954,7 @@ xiscallingfromiptask
 xisforrx
 xisglobal
 xisinputstream
+xisipinarpcache
 xiswaitingarpresolution
 xitemvalue
 xlastacttime

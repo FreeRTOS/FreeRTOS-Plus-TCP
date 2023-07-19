@@ -2421,6 +2421,50 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLengt
 }
 
 /**
+ * @brief The server ID length in reply message is invalid.
+ */
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLength_HigherThanThreshold()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+    xDHCPMessage.xServerID.usDUIDType = 1U;
+    xDHCPMessage.xServerID.uxLength = 150U;
+    memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 100 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareReplyDifferentServerLength();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
+}
+
+
+/**
  * @brief The server DUID in reply message is different from advertise.
  */
 void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerDUID()

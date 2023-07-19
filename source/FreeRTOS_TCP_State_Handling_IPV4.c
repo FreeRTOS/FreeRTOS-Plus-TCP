@@ -77,9 +77,6 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
 {
     /* Map the ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
     const TCPPacket_t * pxTCPPacket = NULL;
     FreeRTOS_Socket_t * pxReturn = NULL;
     uint32_t ulInitialSequenceNumber = 0U;
@@ -88,6 +85,9 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
     if( ( pxSocket != NULL ) && ( pxNetworkBuffer != NULL ) )
     {
         /* Initialize pointers if inputs are valid. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         pxTCPPacket = ( ( const TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         pxEndpoint = pxNetworkBuffer->pxEndPoint;
     }
@@ -166,6 +166,8 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
 
     if( ( ulInitialSequenceNumber != 0U ) && ( pxReturn != NULL ) )
     {
+        size_t xCopyLength;
+
         /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -191,9 +193,18 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
 
         /* Make a copy of the header up to the TCP header.  It is needed later
          * on, whenever data must be sent to the peer. */
+        if( pxNetworkBuffer->xDataLength > sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) )
+        {
+            xCopyLength = sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket );
+        }
+        else
+        {
+            xCopyLength = pxNetworkBuffer->xDataLength;
+        }
+
         ( void ) memcpy( ( void * ) pxReturn->u.xTCP.xPacket.u.ucLastPacket,
                          ( const void * ) pxNetworkBuffer->pucEthernetBuffer,
-                         sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) );
+                         xCopyLength );
     }
 
     return pxReturn;

@@ -430,7 +430,7 @@ static BaseType_t prvChecksumProtocolChecks( size_t uxBufferLength,
             }
             else
             {
-                uxOptionsLength = ( size_t ) ( ( ucLength - 5U ) << 2U );
+                uxOptionsLength = ( ( ( size_t ) ucLength - 5U ) << 2U );
 
                 pxSet->uxProtocolHeaderLength = ipSIZE_OF_TCP_HEADER + uxOptionsLength;
                 #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
