@@ -1291,10 +1291,10 @@
                 }
 
                 xReturn = prvSendBuffer( pcHostName,
-                                          uxIdentifier,
-                                          xDNSSocket,
-                                          xFamily,
-                                          &xAddress );
+                                         uxIdentifier,
+                                         xDNSSocket,
+                                         xFamily,
+                                         &xAddress );
 
                 if( xReturn == pdFAIL )
                 {
