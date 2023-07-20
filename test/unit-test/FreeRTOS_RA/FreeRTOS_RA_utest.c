@@ -149,6 +149,8 @@ void test_vNDSendRouterSolicitation_xHasLocal0( void )
 
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
     vNDSendRouterSolicitation( pxNetworkBuffer, &xIPAddress );
 }
 
@@ -188,6 +190,8 @@ void test_vNDSendRouterSolicitation_xHasLocal1( void )
 
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
     vNDSendRouterSolicitation( pxNetworkBuffer, &xIPAddress );
 }
 
@@ -222,6 +226,8 @@ void test_vNDSendRouterSolicitation_NullDesc( void )
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     vNDSendRouterSolicitation( pxNetworkBuffer, &xIPAddress );
 }
@@ -1016,6 +1022,8 @@ void test_vRAProcess_eRAStateApply2( void )
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
     /*usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC ); */
     /*vReturnEthernetFrame_ExpectAnyArgs(); */
+
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     vDHCP_RATimerReload_ExpectAnyArgs();
 
