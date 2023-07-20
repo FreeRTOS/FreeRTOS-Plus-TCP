@@ -1706,6 +1706,7 @@ var
 varpagecache
 varpgeneraterequestpacket
 varprefreshcacheentry
+varprefreshcacheentryage
 varprocesspacketrequest
 varpsendgratuitous
 varptimerreload
