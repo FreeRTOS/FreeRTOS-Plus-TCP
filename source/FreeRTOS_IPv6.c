@@ -625,88 +625,23 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 {
     eFrameProcessingResult_t eResult = eReleaseBuffer;
     const size_t uxMaxLength = pxNetworkBuffer->xDataLength;
-    const uint8_t * pucSource = pxNetworkBuffer->pucEthernetBuffer;
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-    size_t uxHopSize = 0U;
     size_t xMoveLen = 0U;
     size_t uxRemovedBytes = 0U;
-    uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
     uint8_t ucNextHeader = 0U;
-    BaseType_t xNextOrder = 0;
-    BaseType_t xExtHeaderCount = 0;
+    size_t uxIndex = 0U;
 
-    ( void ) xNextOrder;
-
-    while( ( uxIndex + 8U ) < uxMaxLength )
-    {
-        BaseType_t xCurrentOrder;
-        ucNextHeader = pucSource[ uxIndex ];
-
-        xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
-
-        /* To avoid compile warning if debug print is disabled. */
-        ( void ) xCurrentOrder;
-
-        /* Read the length expressed in number of octets. */
-        uxHopSize = ( size_t ) pucSource[ uxIndex + 1U ];
-        /* And multiply by 8 and add the minimum size of 8. */
-        uxHopSize = ( uxHopSize * 8U ) + 8U;
-
-        if( ( uxIndex + uxHopSize ) >= uxMaxLength )
-        {
-            FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxMaxLength ) );
-            uxIndex = uxMaxLength;
-            break;
-        }
-
-        uxIndex = uxIndex + uxHopSize;
-
-        if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
-            ( ucNextHeader == ipPROTOCOL_UDP ) ||
-            ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
-        {
-            FreeRTOS_debug_printf( ( "Stop at header %u\n", ucNextHeader ) );
-            break;
-        }
-
-        xNextOrder = xGetExtensionOrder( ucNextHeader, pucSource[ uxIndex ] );
-
-        FreeRTOS_debug_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
-                                 ucCurrentHeader,
-                                 ( int ) xCurrentOrder,
-                                 ucNextHeader,
-                                 ( int ) xNextOrder ) );
-
-        xExtHeaderCount += 1;
-
-        /*
-         * IPv6 nodes must accept and attempt to process extension headers in
-         * any order and occurring any number of times in the same packet,
-         * except for the Hop-by-Hop Options header which is restricted to
-         * appear immediately after an IPv6 header only. Outlined
-         * by RFC 2460 section 4.1  Extension Header Order.
-         */
-        if( xNextOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
-        {
-            FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
-            uxIndex = uxMaxLength;
-            break;
-        }
-
-        ucCurrentHeader = ucNextHeader;
-    }
+    uxRemovedBytes = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucNextHeader );
+    uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxRemovedBytes;
 
     if( uxIndex < uxMaxLength )
     {
         uint8_t * pucTo;
         const uint8_t * pucFrom;
         uint16_t usPayloadLength = FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength );
-
-        uxRemovedBytes = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
 
         if( uxRemovedBytes >= ( size_t ) usPayloadLength )
         {

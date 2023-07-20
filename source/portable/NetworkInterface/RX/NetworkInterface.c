@@ -94,7 +94,7 @@ typedef enum
     eMACFailed, /* Initialisation failed. */
 } eMAC_INIT_STATUS_TYPE;
 
-static TaskHandle_t ether_receive_check_task_handle = 0;
+static TaskHandle_t ether_receive_check_task_handle = NULL;
 static TaskHandle_t xTaskToNotify = NULL;
 static BaseType_t xPHYLinkStatus;
 static BaseType_t xReportedStatus;
@@ -448,12 +448,19 @@ static int InitializeNetwork( void )
         return pdFALSE;
     }
 
-    return_code = xTaskCreate( prvEMACDeferredInterruptHandlerTask,
-                               "ETHER_RECEIVE_CHECK_TASK",
-                               512u,
-                               0,
-                               configMAX_PRIORITIES - 1,
-                               &ether_receive_check_task_handle );
+    if( ether_receive_check_task_handle == NULL )
+    {
+        return_code = xTaskCreate( prvEMACDeferredInterruptHandlerTask,
+                                   "ETHER_RECEIVE_CHECK_TASK",
+                                   512u,
+                                   0,
+                                   configMAX_PRIORITIES - 1,
+                                   &ether_receive_check_task_handle );
+    }
+    else
+    {
+        return_code = pdTRUE;
+    }
 
     if( pdFALSE == return_code )
     {
