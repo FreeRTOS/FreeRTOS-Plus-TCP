@@ -2872,3 +2872,54 @@ void test_FreeRTOS_PrintARPCache( void )
     /* Nothing to actually unit-test here. */
     FreeRTOS_PrintARPCache();
 }
+
+/**
+ * @brief Check if vARPRefreshCacheEntryAge executes normally when pointer of MAC address is NULL.
+ */
+void test_vARPRefreshCacheEntryAge_NullMAC( void )
+{
+    vARPRefreshCacheEntryAge( NULL, 0U );
+}
+
+/**
+ * @brief Check if vARPRefreshCacheEntryAge update the age of matching ARP cache correctly.
+ */
+void test_vARPRefreshCacheEntryAge_MatchIPMaychMAC( void )
+{
+    MACAddress_t xTargetMACAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+    uint32_t ulTargetIPAddress = 0x12345678U;
+    BaseType_t xHitCacheIndex = ipconfigARP_CACHE_ENTRIES - 1;
+
+    memset( xARPCache, 0, sizeof( xARPCache ) );
+
+    xARPCache[ xHitCacheIndex ].ulIPAddress = ulTargetIPAddress;
+    memcpy( xARPCache[ xHitCacheIndex ].xMACAddress.ucBytes, xTargetMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    xARPCache[ xHitCacheIndex ].ucAge = ipconfigMAX_ARP_AGE - 1U;
+
+    vARPRefreshCacheEntryAge( &xTargetMACAddress, ulTargetIPAddress );
+
+    TEST_ASSERT_EQUAL_UINT16( ipconfigMAX_ARP_AGE, xARPCache[ xHitCacheIndex ].ucAge );
+}
+
+/**
+ * @brief Test the scenario that no cache matches.
+ */
+void test_vARPRefreshCacheEntryAge_NotFound( void )
+{
+    MACAddress_t xTargetMACAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+    uint32_t ulTargetIPAddress = 0x12345678U;
+    BaseType_t xCacheIndex;
+
+    memset( xARPCache, 0, sizeof( xARPCache ) );
+
+    xARPCache[ 0 ].ulIPAddress = ulTargetIPAddress;
+
+    memcpy( xARPCache[ 1 ].xMACAddress.ucBytes, xTargetMACAddress.ucBytes, sizeof( MACAddress_t ) );
+
+    vARPRefreshCacheEntryAge( &xTargetMACAddress, ulTargetIPAddress );
+
+    for( xCacheIndex = 0; xCacheIndex < ipconfigARP_CACHE_ENTRIES; xCacheIndex++ )
+    {
+        TEST_ASSERT_EQUAL_UINT16( 0, xARPCache[ xCacheIndex ].ucAge );
+    }
+}
