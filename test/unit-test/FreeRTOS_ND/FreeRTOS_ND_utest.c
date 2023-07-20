@@ -722,6 +722,8 @@ void test_vNDAgeCache_NSIncorrectDataLen( void )
 
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+
     vNDAgeCache();
 
     TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, xAgeDefault - 1 );
