@@ -137,7 +137,9 @@
     #define ipconfigETHERNET_MINIMUM_PACKET_BYTES    ETHERNET_MIN_PACKET_BYTES
 #endif
 #if ipconfigHAS_DEBUG_PRINTF == 1
-    #warning The network interface may not work properly if ipconfigHAS_DEBUG_PRINTF 1.  Please set ipconfigHAS_DEBUG_PRINTF 0 for production use.
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning The network interface may not work properly if ipconfigHAS_DEBUG_PRINTF 1.  Please set ipconfigHAS_DEBUG_PRINTF 0 for production use.
+    #endif
 #endif
 #ifndef __MSP432E401Y__
     #define __MSP432E401Y__

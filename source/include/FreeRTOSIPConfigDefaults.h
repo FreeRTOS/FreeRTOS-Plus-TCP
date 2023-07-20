@@ -1161,4 +1161,11 @@
     #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    ( 1500U )
 #endif
 
+/* For some use cases, users set the configurations that issues warning messages.
+ * This configuration is used to suppress warning in portable layers to make compilation clean.
+ */
+#ifndef ipconfigPORT_SUPPRESS_WARNING
+    #define ipconfigPORT_SUPPRESS_WARNING    ( 0 )
+#endif
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
