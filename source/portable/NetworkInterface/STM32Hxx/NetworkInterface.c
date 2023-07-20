@@ -103,7 +103,7 @@ SemaphoreHandle_t xTXDescriptorSemaphore = NULL;
 static SemaphoreHandle_t xTransmissionMutex;
 
 /* Global Ethernet handle */
-ETH_HandleTypeDef xEthHandle;
+static ETH_HandleTypeDef xEthHandle;
 static ETH_TxPacketConfig xTxConfig;
 
 static NetworkInterface_t * pxMyInterface = NULL;
@@ -803,7 +803,6 @@ static int32_t ETH_PHY_IO_WriteReg( uint32_t ulDevAddr,
 /*******************************************************************************
 *                   Ethernet Handling Functions
 *******************************************************************************/
-#if 0
 
 /* ETH_IRQHandler might be defined in the (auto-generated) stm32h7xx_it.c.
  * In order to not clash with the other implementation it is possible to disable
@@ -812,11 +811,10 @@ static int32_t ETH_PHY_IO_WriteReg( uint32_t ulDevAddr,
  * #define heth xEthHandle
  * (...) generated code there (can't edit): HAL_ETH_IRQHandler(&heth);
  */
-    void ETH_IRQHandler( void )
-    {
-        HAL_ETH_IRQHandler( &( xEthHandle ) );
-    }
-#endif
+void ETH_IRQHandler( void )
+{
+    HAL_ETH_IRQHandler( &( xEthHandle ) );
+}
 /*-----------------------------------------------------------*/
 
 static void prvSetFlagsAndNotify( uint32_t ulFlags )
@@ -881,7 +879,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 }
 /*-----------------------------------------------------------*/
 
-/*#define __NOP()    __ASM volatile ( "nop" ) */
+#define __NOP()    __ASM volatile ( "nop" )
 
 static void vClearOptionBit( volatile uint32_t * pulValue,
                              uint32_t ulValue )
@@ -893,27 +891,27 @@ static void vClearOptionBit( volatile uint32_t * pulValue,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigHAS_PRINTF != 0 )
-    static size_t uxGetOwnCount( ETH_HandleTypeDef * heth )
+static size_t uxGetOwnCount( ETH_HandleTypeDef * heth )
+{
+    BaseType_t xIndex;
+    BaseType_t xCount = 0;
+    ETH_RxDescListTypeDef * dmarxdesclist = &heth->RxDescList;
+
+    /* Count the number of RX descriptors that are owned by DMA. */
+    for( xIndex = 0; xIndex < ETH_RX_DESC_CNT; xIndex++ )
     {
-        BaseType_t xIndex;
-        BaseType_t xCount = 0;
-        ETH_RxDescListTypeDef * dmarxdesclist = &heth->RxDescList;
+        __IO const ETH_DMADescTypeDef * dmarxdesc =
+            ( __IO const ETH_DMADescTypeDef * )dmarxdesclist->RxDesc[ xIndex ];
 
-        /* Count the number of RX descriptors that are owned by DMA. */
-        for( xIndex = 0; xIndex < ETH_RX_DESC_CNT; xIndex++ )
+        if( ( dmarxdesc->DESC3 & ETH_DMARXNDESCWBF_OWN ) != 0U )
         {
-            __IO const ETH_DMADescTypeDef * dmarxdesc =
-                ( __IO const ETH_DMADescTypeDef * )dmarxdesclist->RxDesc[ xIndex ];
-
-            if( ( dmarxdesc->DESC3 & ETH_DMARXNDESCWBF_OWN ) != 0U )
-            {
-                xCount++;
-            }
+            xCount++;
         }
-
-        return xCount;
     }
-#endif /* if ( ipconfigHAS_PRINTF != 0 ) */
+
+    return xCount;
+}
+#endif
 /*-----------------------------------------------------------*/
 
 static void prvEMACHandlerTask( void * pvParameters )
@@ -922,11 +920,10 @@ static void prvEMACHandlerTask( void * pvParameters )
  * be occupied.  In stat case, the program will wait (block) for the counting
  * semaphore. */
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
-
-    #if ( ipconfigHAS_PRINTF != 0 )
-        size_t uxTXDescriptorsUsed = 0U;
-        size_t uxRXDescriptorsUsed = ETH_RX_DESC_CNT;
-    #endif
+#if ( ipconfigHAS_PRINTF != 0 )
+    size_t uxTXDescriptorsUsed = 0U;
+    size_t uxRXDescriptorsUsed = ETH_RX_DESC_CNT;
+#endif
 
     ( void ) pvParameters;
 
