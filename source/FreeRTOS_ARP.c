@@ -82,15 +82,17 @@
     #define arpIP_CLASH_MAX_RETRIES    1U
 #endif
 
-static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
-                                      NetworkEndPoint_t * pxTargetEndPoint,
-                                      uint32_t ulSenderProtocolAddress );
 
-static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
-                                    NetworkEndPoint_t * pxTargetEndPoint,
-                                    uint32_t ulSenderProtocolAddress );
 
 #if ( ipconfigUSE_IPv4 != 0 )
+
+    static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
+                                        NetworkEndPoint_t * pxTargetEndPoint,
+                                        uint32_t ulSenderProtocolAddress );
+
+    static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
+                                        NetworkEndPoint_t * pxTargetEndPoint,
+                                        uint32_t ulSenderProtocolAddress );
 
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
@@ -132,6 +134,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
 #endif /* ipconfigARP_USE_CLASH_DETECTION */
 
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv4 != 0 )
 
 /**
  * @brief Process the ARP packets.
@@ -342,6 +346,8 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
 }
 /*-----------------------------------------------------------*/
 
+
+
 /**
  * @brief Process an ARP request packets.
  *
@@ -454,6 +460,8 @@ static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
     }
 }
 /*-----------------------------------------------------------*/
+
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief Check whether an IP address is in the ARP cache.
@@ -899,64 +907,65 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
  *         addressing needs a gateway but there isn't a gateway defined) then return
  *         eCantSendPacket.
  */
-    eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                          MACAddress_t * const pxMACAddress,
-                                          struct xNetworkEndPoint ** ppxEndPoint )
+eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                      MACAddress_t * const pxMACAddress,
+                                      struct xNetworkEndPoint ** ppxEndPoint )
+{
+    eARPLookupResult_t eReturn;
+    uint32_t ulAddressToLookup;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    configASSERT( pxMACAddress != NULL );
+    configASSERT( pulIPAddress != NULL );
+    configASSERT( ppxEndPoint != NULL );
+
+    *( ppxEndPoint ) = NULL;
+    ulAddressToLookup = *pulIPAddress;
+    pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
+
+    if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
     {
-        eARPLookupResult_t eReturn;
-        uint32_t ulAddressToLookup;
-        NetworkEndPoint_t * pxEndPoint = NULL;
+        /* Get the lowest 23 bits of the IP-address. */
+        vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
 
-        configASSERT( pxMACAddress != NULL );
-        configASSERT( pulIPAddress != NULL );
-        configASSERT( ppxEndPoint != NULL );
+        eReturn = eCantSendPacket;
+        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-        *( ppxEndPoint ) = NULL;
-        ulAddressToLookup = *pulIPAddress;
-        pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
-
-        if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
+        for( ;
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
         {
-            /* Get the lowest 23 bits of the IP-address. */
-            vSetMultiCastIPv4MacAddress( ulAddressToLookup, pxMACAddress );
-
-            eReturn = eCantSendPacket;
-            pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-
-            for( ;
-                 pxEndPoint != NULL;
-                 pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+            if( pxEndPoint->bits.bIPv6 == 0U )     /*NULL End Point is checked in the for loop, no need for an extra check */
             {
-                if( pxEndPoint->bits.bIPv6 == 0U ) /*NULL End Point is checked in the for loop, no need for an extra check */
-                {
-                    /* For multi-cast, use the first IPv4 end-point. */
-                    *( ppxEndPoint ) = pxEndPoint;
-                    eReturn = eARPCacheHit;
-                    break;
-                }
-            }
-        }
-        else if( ( FreeRTOS_htonl( ulAddressToLookup ) & 0xffU ) == 0xffU ) /* Is this a broadcast address like x.x.x.255 ? */
-        {
-            /* This is a broadcast so it uses the broadcast MAC address. */
-            ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
-            pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
-
-            if( pxEndPoint != NULL )
-            {
+                /* For multi-cast, use the first IPv4 end-point. */
                 *( ppxEndPoint ) = pxEndPoint;
+                eReturn = eARPCacheHit;
+                break;
             }
-
-            eReturn = eARPCacheHit;
         }
-        else
-        {
-            eReturn = eARPGetCacheEntryGateWay( pulIPAddress, pxMACAddress, ppxEndPoint );
-        }
-
-        return eReturn;
     }
+    else if( ( FreeRTOS_htonl( ulAddressToLookup ) & 0xffU ) == 0xffU )     /* Is this a broadcast address like x.x.x.255 ? */
+    {
+        /* This is a broadcast so it uses the broadcast MAC address. */
+        ( void ) memcpy( pxMACAddress->ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulAddressToLookup, 4 );
+
+        if( pxEndPoint != NULL )
+        {
+            *( ppxEndPoint ) = pxEndPoint;
+        }
+
+        eReturn = eARPCacheHit;
+    }
+    else
+    {
+        eReturn = eARPGetCacheEntryGateWay( pulIPAddress, pxMACAddress, ppxEndPoint );
+    }
+
+    return eReturn;
+}
 /*-----------------------------------------------------------*/
+
 
 /**
  * @brief The IPv4 address is apparently a web-address. Find a gateway..
