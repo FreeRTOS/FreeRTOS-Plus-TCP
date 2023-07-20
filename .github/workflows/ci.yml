@@ -39,16 +39,28 @@ jobs:
         with:
           path: ./test/unit-test/build/coverage.info
 
-  rust-spell-check:
+  spell-check:
     runs-on: ubuntu-latest
     steps:
       - name: Clone This Repo
         uses: actions/checkout@v2
-      - name: Run spellings check
-        uses: Skptak/CI-CD-Github-Actions/rust-spell-check@rustSpellCheck
         with:
-          path: ./
-          lexicon: ./lexicon.txt     
+          path: ./tcp
+      - name: Install spell
+        run: |
+          sudo apt-get install spell
+          sudo apt-get install util-linux
+      - name: Check spelling
+        run: |
+          PATH=$PATH:main/tools/spell
+          # Make sure that the portable directory is not included in the spellcheck.
+          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'/g' main/tools/spell/find-unknown-comment-words
+          find-unknown-comment-words --directory tcp/ --lexicon tcp/.github/lexicon.txt
+          if [ "$?" = "0" ]; then
+            exit 0
+          else
+            exit 1
+          fi
 
   formatting:
     runs-on: ubuntu-20.04
