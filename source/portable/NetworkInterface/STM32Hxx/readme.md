@@ -45,8 +45,8 @@ to the Ethernet MAC.
 Here is an example of the changes to the linker file:
 
 	RAM_D1 (xrw)   : ORIGIN = 0x24000000, LENGTH = 512K	/* should already exist in MEMORY section */
-	
-	.ethernet_data : /* inside SECTIONS section, before /DISCARD/ */ 
+
+	.ethernet_data : /* inside SECTIONS section, before /DISCARD/ */
 	{
 		PROVIDE_HIDDEN (__ethernet_data_start = .);
 		KEEP (*(SORT(.ethernet_data.*)))
