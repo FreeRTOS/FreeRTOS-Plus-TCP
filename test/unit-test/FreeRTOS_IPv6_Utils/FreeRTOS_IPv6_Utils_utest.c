@@ -43,10 +43,13 @@
 #include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IPv6.h"
 
 #include "FreeRTOS_IPv6_Utils.h"
 
 #include "FreeRTOSIPConfig.h"
+
+#include "FreeRTOS_IPv6_Utils_stubs.c"
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
@@ -136,6 +139,8 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
     pxIPv6Packet->usPayloadLength = ipSIZE_OF_IPv6_PAYLOAD_LEN;
     xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pucEthernetBuffer );
 
+    xGetExtensionOrder_ExpectAndReturn( 0, 0, -1 );
+
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
     TEST_ASSERT_EQUAL( ipFAIL_PACKET_CHECK, usReturn );
@@ -159,9 +164,78 @@ void test_prvChecksumIPv6Checks_Success( void )
     pxIPv6Packet = ( IPHeader_IPv6_t * ) pucEthernetBuffer;
     xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pucEthernetBuffer );
 
+    xGetExtensionOrder_ExpectAndReturn( 0, 0, -1 );
+
     usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
 
     TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
+}
+
+/**
+ * @brief Prepare a packet with large extension header length.
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipPROTOCOL_TCP
+ */
+void test_prvChecksumIPv6Checks_LargeExtensionHeader( void )
+{
+    BaseType_t usReturn;
+    struct xPacketSummary xSet;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+    /* Modify the extension header */
+    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 200U; /* Extension header length is set to 200*8 + 8, which is larger than buffer size. */
+    uxIndex += 8;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
+    uxIndex += 8;
+
+    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 1 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 1 );
+
+    usReturn = prvChecksumIPv6Checks( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &xSet );
+
+    TEST_ASSERT_EQUAL( 3, usReturn );
+}
+
+/**
+ * @brief Prepare a packet have extension with following order.
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP (Hop by hop must be set in first place)
+ *         - ipPROTOCOL_TCP
+ */
+void test_prvChecksumIPv6Checks_HopByHopInWrongOrder( void )
+{
+    BaseType_t usReturn;
+    struct xPacketSummary xSet;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+    /* Modify the extension header */
+    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_ROUTING_HEADER;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
+    uxIndex += 8;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
+    uxIndex += 8;
+
+    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, 0U, 7 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_HOP_BY_HOP, 1 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipPROTOCOL_TCP, 1 );
+
+    usReturn = prvChecksumIPv6Checks( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &xSet );
+
+    TEST_ASSERT_EQUAL( 3, usReturn );
 }
 
 /**
@@ -352,4 +426,219 @@ void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
 
     TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
     TEST_ASSERT_EQUAL( sizeof( ICMPRouterSolicitation_IPv6_t ), xSet.uxProtocolHeaderLength );
+}
+
+/**
+ * @brief Null buffer pointer in usGetExtensionHeaderLength.
+ */
+void test_usGetExtensionHeaderLength_NullBuffer( void )
+{
+    size_t uxReturn;
+    size_t uxBufferLength = 0xFF;
+    uint8_t ucProtocol = 0;
+
+    uxReturn = usGetExtensionHeaderLength( NULL, uxBufferLength, &ucProtocol );
+
+    TEST_ASSERT_EQUAL( uxBufferLength, uxReturn );
+}
+
+/**
+ * @brief Null protocol pointer in usGetExtensionHeaderLength.
+ */
+void test_usGetExtensionHeaderLength_NullProtocol( void )
+{
+    size_t uxReturn;
+    size_t uxBufferLength = 10;
+    uint8_t ucBuffer[ 10 ] = { 0 };
+
+    uxReturn = usGetExtensionHeaderLength( ucBuffer, uxBufferLength, NULL );
+
+    TEST_ASSERT_EQUAL( uxBufferLength, uxReturn );
+}
+
+/**
+ * @brief Prepare a TCP packet with extension header and pass the check.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_TCP
+ *            - 1 byte payload
+ */
+void test_usGetExtensionHeaderLength_TCPExtensionSuccess( void )
+{
+    BaseType_t xReturn;
+    uint8_t ucProtocol = 0;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_TCP, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_TCP, 2 );
+
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+
+    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_TCP, ucProtocol );
+}
+
+/**
+ * @brief Prepare a UDP packet with extension header and pass the check.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_UDP
+ *            - 1 byte payload
+ */
+void test_usGetExtensionHeaderLength_UDPExtensionSuccess( void )
+{
+    BaseType_t xReturn;
+    uint8_t ucProtocol = 0;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_UDP );
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_UDP, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_UDP, 2 );
+
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+
+    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, ucProtocol );
+}
+
+/**
+ * @brief Prepare a ICMPv6 packet with extension header and pass the check.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_ICMP_IPv6
+ *            - 1 byte payload
+ */
+void test_usGetExtensionHeaderLength_ICMPv6ExtensionSuccess( void )
+{
+    BaseType_t xReturn;
+    uint8_t ucProtocol = 0;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_ICMP_IPv6 );
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_ICMP_IPv6, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_ICMP_IPv6, 2 );
+
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+
+    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP_IPv6, ucProtocol );
+}
+
+/**
+ * @brief Prepare a TCP packet with extension header but the length is not enough for extension headers.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_TCP
+ *            - 1 byte payload
+ */
+void test_usGetExtensionHeaderLength_ShortBufferLength( void )
+{
+    BaseType_t xReturn;
+    uint8_t ucProtocol = 0;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH - 1 );
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_TCP, 2 );
+
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength, xReturn );
+}
+
+/**
+ * @brief Prepare a TCP packet with extension header but one of them in the middle is invalid.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - 0xFF (invalid)
+ */
+void test_usGetExtensionHeaderLength_InvalidHeader( void )
+{
+    BaseType_t xReturn;
+    uint8_t ucProtocol = 0;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
+
+    /* Modify the extension header */
+    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = 0xFF;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
+    uxIndex += 8;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
+    uxIndex += 8;
+
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0xFF, 2 );
+    xGetExtensionOrder_ExpectAndReturn( 0xFF, ipPROTOCOL_TCP, -1 );
+
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength, xReturn );
 }

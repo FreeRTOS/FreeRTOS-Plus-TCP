@@ -103,7 +103,9 @@
 /* When the PHY is forces to work with a speed of 100 Mbps
  * many outgoing packets seem to get dropped.
  */
-    #warning ipconfigNIC_LINKSPEED100 is btoken. Are you sure?
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning ipconfigNIC_LINKSPEED100 is btoken. Are you sure?
+    #endif
 #endif
 
 static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
@@ -113,7 +115,9 @@ static NetworkInterface_t * pxMyInterfaces[ XPAR_XEMACPS_NUM_INSTANCES ];
 #endif
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 || ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-    #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #endif
 #endif
 
 #ifndef nicUSE_UNCACHED_MEMORY
@@ -327,7 +331,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
             uint32_t ulValue = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_NWCFG_OFFSET );
             /* Allow the use of hashed MAC addresses. */
             ulValue |= XEMACPS_NWCFG_MCASTHASHEN_MASK;
-            #warning As 'MCASTHASHEN' doesn't seem to work, use the promiscuous mode so that IPv6 multicast packets are received.
+            /* As 'MCASTHASHEN' doesn't seem to work, use the promiscuous mode so that IPv6 multicast packets are received. */
             /* Allow promiscuous mode. */
             ulValue |= XEMACPS_NWCFG_COPYALLEN_MASK;
             XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_NWCFG_OFFSET, ulValue );

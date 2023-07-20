@@ -95,7 +95,9 @@
 #endif
 
 #if ( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
-    #warning Consider enabling checksum offloading
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning Consider enabling checksum offloading
+    #endif
 #endif
 
 #ifndef niDESCRIPTOR_WAIT_TIME_MS
@@ -149,10 +151,14 @@
 #ifndef ipconfigUSE_RMII
     #ifdef STM32F7xx
         #define ipconfigUSE_RMII    1
-        #warning Using RMII, make sure if this is correct
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+            #warning Using RMII, make sure if this is correct
+        #endif
     #else
         #define ipconfigUSE_RMII    0
-        #warning Using MII, make sure if this is correct
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+            #warning Using MII, make sure if this is correct
+        #endif
     #endif /* STM32F7xx */
 #endif /* ipconfigUSE_RMII */
 
@@ -994,7 +1000,7 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
                 #endif
                 ( *ipLOCAL_IP_ADDRESS_POINTER != 0 ) )
             {
-                FreeRTOS_printf( ( "Drop IP %lxip\n", FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
+                FreeRTOS_debug_printf( ( "Drop IP %lxip\n", FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
                 return pdFALSE;
             }
 
@@ -1503,9 +1509,9 @@ static void prvEMACHandlerTask( void * pvParameters )
 
             #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
                 {
-                    if( xGetPhyLinkStatus() == pdFALSE )
+                    if( xGetPhyLinkStatus( pxMyInterface ) == pdFALSE )
                     {
-                        FreeRTOS_NetworkDown();
+                        FreeRTOS_NetworkDown( pxMyInterface );
                     }
                 }
             #endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
