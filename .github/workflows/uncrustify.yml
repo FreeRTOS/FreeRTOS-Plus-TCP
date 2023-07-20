@@ -9,7 +9,6 @@ jobs:
     name: Run_Uncrustify
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/bot run uncrustify' }}
     runs-on: ubuntu-20.04
-    container: ubuntu:18.04
     steps:
       - name: Dump GitHub context
         env:
@@ -41,16 +40,35 @@ jobs:
            repository: ${{ steps.upstreamrepo.outputs.RemoteRepo }}
            ref: ${{ steps.upstreambranch.outputs.branchname }}
       - name: Install Uncrustify
-        run: apt-get update && apt-get --assume-yes install uncrustify
+        run: |
+          : # Install Uncrustify
+          echo "::group::Install Uncrustify"
+          sudo apt-get update && apt-get --assume-yes install uncrustify
+          echo "::endgroup::"
       - name: Run Uncrustify
         run: |
+          : # Uncrustify on C files while ignoring symlinks.
+          : # Make a collapsible section in the log to run uncrustify
+          echo "::group::Uncrustify Check"
           uncrustify --version
           find .  -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
+          echo "::endgroup::"
+          echo -e "\033[32;3mUncrustify Formatting Applied\033[0m"
       - name: Push changes to upstream repository
         run: |
+          : # Push changes to upstream repository
+          echo "::group::Push changes to upstream repository"
           git config --global --add safe.directory '*'
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
           git add -A
           git commit -m "Uncrustify: triggered by comment."
+          echo "::endgroup::"
           git push
+          if [ "$?" = "0" ]; then
+            echo -e "\033[32;3mPushed formatting changes, don't forget to run 'git pull'!\033[0m"
+            exit 0
+          else
+            echo -e "\033[32;31mFailed to push the formatting changes\033[0m"
+            exit 1
+          fi

@@ -69,7 +69,7 @@
 
         vTaskSuspendAll();
         {
-            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd );
+            for( pxIterator = ( const ListItem_t * ) listGET_NEXT( xEnd   );
                  pxIterator != ( const ListItem_t * ) xEnd;
                  pxIterator = ( const ListItem_t * ) listGET_NEXT( pxIterator ) )
             {
@@ -77,12 +77,15 @@
                 DNSCallback_t * pxCallback = ( ( DNSCallback_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
                 #if ( ipconfigUSE_MDNS == 1 )
                     /* mDNS port 5353. */
-                    if( pxSet->usPortNumber == FreeRTOS_htons( ipMDNS_PORT ) )
+                    if   ( pxSet->usPortNumber == FreeRTOS_htons( ipMDNS_PORT   ) )
                     {
-                        /* In mDNS, the query ID field is ignored and the
+                        /* In mDNS, the query ID field is ignored and     the
                          * hostname will be compared with outstanding requests. */
 
                         xMatching = ( strcasecmp( pxCallback->pcName, pxSet->pcName ) == 0 ) ? pdTRUE : pdFALSE;
+
+
+
                     }
                     else
                 #endif /* if ( ipconfigUSE_MDNS == 1 ) */
