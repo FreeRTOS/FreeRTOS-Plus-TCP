@@ -125,25 +125,3 @@ The most important DMAC registers, along with their names which are used in the 
 As most EMAC's, the STM32H7 EMAC is able to put packets in multiple linked DMA segments.
 FreeRTOS+TCP never uses this feature. Each packet is stored in a single buffer called
 `NetworkBufferDescriptor_t`.
-
-~~~
-
-The provided NetworkInterface.c and stm32hxx_hal_eth.c may clash with the original
-auto-generated files from STM32CubeIDE code generator. Some tricks may apply:
-
-1) Undefining HAL_ETH_MODULE_ENABLED at the end of stm32hxx_hal_eth.h and having 
-"portable/NetworkInterface/STM32Hxx" included before "STM32H7xx_HAL_Driver/Inc" in
-path order. This will disable STM32H7xx_HAL_Driver/stm32hxx_hal_eth.c entirely
-(removing the link file within IDE project might not work since it keeps coming
-back on reconfiguration).
-
-2) Remove '#ifdef HAL_ETH_MODULE_ENABLED' check from our own stm32hxx_hal_eth.c
-(so it will compile regardless of the #undef just added above). 
- 
-3) Comment ETH_IRQHandler() from NetworkInterface.c and trick stm32h7xx_it.c's
-version of the same function into using our handle xEthHandle instead of heth.
-
-4) Remove DMARxDscrTab and DMATxDscrTab from auto-generated main.c. Since they are
-inside a non-"USER CODE" section, one possible trick is to temporaly undefine __GNUC__
-in main.c so these two variables are never compiled there.
-  

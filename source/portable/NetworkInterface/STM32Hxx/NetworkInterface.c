@@ -924,13 +924,6 @@ static int32_t ETH_PHY_IO_WriteReg( uint32_t ulDevAddr,
 *                   Ethernet Handling Functions
 *******************************************************************************/
 
-/* ETH_IRQHandler might be defined in the (auto-generated) stm32h7xx_it.c.
- * In order to not clash with the other implementation it is possible to disable
- * the code here and add the following define to an "USER CODE" section
- * of stm32h7xx_it.c to trick it into using the right handle.
- * #define heth xEthHandle
- * (...) generated code there (can't edit): HAL_ETH_IRQHandler(&heth);
- */
 void ETH_IRQHandler( void )
 {
     HAL_ETH_IRQHandler( &( xEthHandle ) );
