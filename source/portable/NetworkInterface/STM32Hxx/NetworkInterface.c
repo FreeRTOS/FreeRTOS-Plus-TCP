@@ -1002,27 +1002,27 @@ static void vClearOptionBit( volatile uint32_t * pulValue,
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigHAS_PRINTF != 0 )
-static size_t uxGetOwnCount( ETH_HandleTypeDef * heth )
-{
-    BaseType_t xIndex;
-    BaseType_t xCount = 0;
-    ETH_RxDescListTypeDef * dmarxdesclist = &heth->RxDescList;
-
-    /* Count the number of RX descriptors that are owned by DMA. */
-    for( xIndex = 0; xIndex < ETH_RX_DESC_CNT; xIndex++ )
+    static size_t uxGetOwnCount( ETH_HandleTypeDef * heth )
     {
-        __IO const ETH_DMADescTypeDef * dmarxdesc =
-            ( __IO const ETH_DMADescTypeDef * )dmarxdesclist->RxDesc[ xIndex ];
+        BaseType_t xIndex;
+        BaseType_t xCount = 0;
+        ETH_RxDescListTypeDef * dmarxdesclist = &heth->RxDescList;
 
-        if( ( dmarxdesc->DESC3 & ETH_DMARXNDESCWBF_OWN ) != 0U )
+        /* Count the number of RX descriptors that are owned by DMA. */
+        for( xIndex = 0; xIndex < ETH_RX_DESC_CNT; xIndex++ )
         {
-            xCount++;
-        }
-    }
+            __IO const ETH_DMADescTypeDef * dmarxdesc =
+                ( __IO const ETH_DMADescTypeDef * )dmarxdesclist->RxDesc[ xIndex ];
 
-    return xCount;
-}
-#endif
+            if( ( dmarxdesc->DESC3 & ETH_DMARXNDESCWBF_OWN ) != 0U )
+            {
+                xCount++;
+            }
+        }
+
+        return xCount;
+    }
+#endif /* if ( ipconfigHAS_PRINTF != 0 ) */
 /*-----------------------------------------------------------*/
 
 static void prvEMACHandlerTask( void * pvParameters )
@@ -1031,10 +1031,11 @@ static void prvEMACHandlerTask( void * pvParameters )
  * be occupied.  In stat case, the program will wait (block) for the counting
  * semaphore. */
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
-#if ( ipconfigHAS_PRINTF != 0 )
-    size_t uxTXDescriptorsUsed = 0U;
-    size_t uxRXDescriptorsUsed = ETH_RX_DESC_CNT;
-#endif
+
+    #if ( ipconfigHAS_PRINTF != 0 )
+        size_t uxTXDescriptorsUsed = 0U;
+        size_t uxRXDescriptorsUsed = ETH_RX_DESC_CNT;
+    #endif
 
     ( void ) pvParameters;
 
