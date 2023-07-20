@@ -17,6 +17,21 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 {
 }
 
+/* This function is proved elsewhere hence stubbing it out */
+eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                      MACAddress_t * const pxMACAddress,
+                                      struct xNetworkEndPoint ** ppxEndPoint )
+{
+    eARPLookupResult_t eReturn;
+
+    __CPROVER_assert( pulIPAddress != NULL, "pulIPAddress cannot be NULL." );
+    __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL." );
+    __CPROVER_assert( ppxEndPoint != NULL, "ppxEndPoint cannot be NULL." );
+
+    /* Return random value */
+    return eReturn;
+}
+
 void harness()
 {
     NetworkBufferDescriptor_t xLocalBuffer;
