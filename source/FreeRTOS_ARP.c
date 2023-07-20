@@ -312,7 +312,8 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
                             * Refresh the entry if it already exists. */
                             /* Determine the ARP cache status for the requested IP address. */
                             if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint )) == eARPCacheHit )
-                            {
+                            {   
+                                /* Check if the endpoint matches with the one present in the ARP cache */
                                 if(pxCachedEndPoint == pxTargetEndPoint)
                                 {
                                     vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
