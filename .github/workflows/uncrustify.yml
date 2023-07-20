@@ -8,7 +8,7 @@ jobs:
   Uncrustify:
     name: Run_Uncrustify
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/bot run uncrustify' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Dump GitHub context
         env:
