@@ -78,7 +78,9 @@
 
 
 #if ( ipconfigNETWORK_MTU > 1526 )
-    #warning the use of Jumbo Frames has not been tested sufficiently yet.
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning the use of Jumbo Frames has not been tested sufficiently yet.
+    #endif
     #define USE_JUMBO_FRAMES    1
 #endif
 
@@ -109,7 +111,9 @@
 #endif
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 || ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-    #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #endif
 #endif
 
 #ifndef nicUSE_UNCACHED_MEMORY

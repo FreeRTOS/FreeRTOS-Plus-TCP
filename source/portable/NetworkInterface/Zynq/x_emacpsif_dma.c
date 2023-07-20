@@ -731,7 +731,12 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
             value |= XEMACPS_DMACR_TCPCKSUM_MASK;
         #else
-        #warning Are you sure the EMAC should not calculate outgoing checksums?
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+                {
+                    #warning Are you sure the EMAC should not calculate outgoing checksums?
+                }
+            #endif
+
             value &= ~XEMACPS_DMACR_TCPCKSUM_MASK;
         #endif
         XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_DMACR_OFFSET, value );
@@ -747,7 +752,12 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 )
             value |= XEMACPS_NWCFG_RXCHKSUMEN_MASK;
         #else
-        #warning Are you sure the EMAC should not calculate incoming checksums?
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+                {
+                    #warning Are you sure the EMAC should not calculate incoming checksums?
+                }
+            #endif
+
             value &= ~( ( uint32_t ) XEMACPS_NWCFG_RXCHKSUMEN_MASK );
         #endif
         XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress, XEMACPS_NWCFG_OFFSET, value );

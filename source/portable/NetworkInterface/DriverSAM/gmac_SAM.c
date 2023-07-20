@@ -100,7 +100,10 @@
 #define TSR_TSR_BITS    ( GMAC_TSR_TXCOMP | GMAC_TSR_COL | GMAC_TSR_RLE | GMAC_TSR_UND )
 
 #if ( GMAC_STATS != 0 )
-    #warning Statistics are enabled
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning Statistics are enabled
+    #endif
+
     struct SGmacStats gmacStats;
     TransmitStats_t xTransmitStats;
 #endif
