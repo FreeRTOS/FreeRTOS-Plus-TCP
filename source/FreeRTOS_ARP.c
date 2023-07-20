@@ -82,17 +82,15 @@
     #define arpIP_CLASH_MAX_RETRIES    1U
 #endif
 
-
-
 #if ( ipconfigUSE_IPv4 != 0 )
-
-    static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
-                                        NetworkEndPoint_t * pxTargetEndPoint,
-                                        uint32_t ulSenderProtocolAddress );
 
     static void vARPProcessPacketRequest( ARPPacket_t * pxARPFrame,
                                           NetworkEndPoint_t * pxTargetEndPoint,
                                           uint32_t ulSenderProtocolAddress );
+
+    static void vARPProcessPacketReply( const ARPPacket_t * pxARPFrame,
+                                        NetworkEndPoint_t * pxTargetEndPoint,
+                                        uint32_t ulSenderProtocolAddress );
 
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
@@ -345,8 +343,6 @@ static TickType_t xLastGratuitousARPTime = 0U;
         return eReturn;
     }
 /*-----------------------------------------------------------*/
-
-
 
 /**
  * @brief Process an ARP request packets.
@@ -965,7 +961,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
         return eReturn;
     }
 /*-----------------------------------------------------------*/
-
 
 /**
  * @brief The IPv4 address is apparently a web-address. Find a gateway..
