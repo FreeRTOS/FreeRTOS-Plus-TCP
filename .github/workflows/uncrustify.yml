@@ -8,7 +8,7 @@ jobs:
   Uncrustify:
     name: Run_Uncrustify
     if: ${{ github.event.issue.pull_request && github.event.comment.body == '/bot run uncrustify' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Dump GitHub context
         env:
@@ -16,9 +16,9 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
       - name: Install Utils
         run: |
-          apt-get update && apt-get --assume-yes install software-properties-common curl jq sed
-          add-apt-repository ppa:git-core/ppa
-          apt-get update && apt-get --assume-yes install git
+          sudo apt-get update && sudo apt-get --assume-yes install software-properties-common curl jq sed
+          sudo add-apt-repository ppa:git-core/ppa
+          sudo apt-get update && sudo apt-get --assume-yes install git
           git --version
       - name: get pullrequest url
         run: |
@@ -43,7 +43,7 @@ jobs:
         run: |
           : # Install Uncrustify
           echo "::group::Install Uncrustify"
-          sudo apt-get update && apt-get --assume-yes install uncrustify
+          sudo apt-get update && sudo apt-get --assume-yes install uncrustify
           echo "::endgroup::"
       - name: Run Uncrustify
         run: |
@@ -51,7 +51,7 @@ jobs:
           : # Make a collapsible section in the log to run uncrustify
           echo "::group::Uncrustify Check"
           uncrustify --version
-          find .  -iname "*.[hc]" -exec uncrustify -c tools/uncrustify.cfg --no-backup --replace {} +
+          find . -iname "*.[ch]" | xargs uncrustify --no-backup --replace --if-changed -c tools/uncrustify.cfg -l C
           echo "::endgroup::"
           echo -e "\033[32;3mUncrustify Formatting Applied\033[0m"
       - name: Push changes to upstream repository
