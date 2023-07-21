@@ -1013,7 +1013,7 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 /*/ @cond 0 */
 /**INDENT-OFF**/
 #ifdef __cplusplus
-    }
+}
 #endif
 /**INDENT-ON**/
 /*/ @endcond */

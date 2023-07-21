@@ -46,7 +46,7 @@
 
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* DATE_AND_TIME_H */

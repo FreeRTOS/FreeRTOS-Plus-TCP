@@ -344,7 +344,7 @@
     IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* FREERTOS_ROUTING_H */
