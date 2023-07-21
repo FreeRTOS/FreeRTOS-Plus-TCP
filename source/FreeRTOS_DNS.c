@@ -1139,7 +1139,7 @@
                                      BaseType_t xFamily,
                                      const struct freertos_sockaddr * pxAddress )
     {
-        BaseType_t uxReturn = pdFAIL;
+        BaseType_t xReturn = pdFAIL;
         struct xDNSBuffer xDNSBuf = { 0 };
         NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
         size_t uxHeaderBytes;
@@ -1215,17 +1215,17 @@
             }
 
             /* send the dns message */
-            uxReturn = DNS_SendRequest( xDNSSocket,
-                                        pxAddress,
-                                        &xDNSBuf );
+            xReturn = DNS_SendRequest( xDNSSocket,
+                                       pxAddress,
+                                       &xDNSBuf );
 
-            if( uxReturn == pdFAIL )
+            if( xReturn == pdFAIL )
             {
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             }
         }
 
-        return uxReturn;
+        return xReturn;
     }
 
 /*!
@@ -1251,7 +1251,7 @@
         struct freertos_sockaddr xAddress;
         struct freertos_sockaddr xRecvAddress;
         DNSBuffer_t xReceiveBuffer = { 0 };
-        BaseType_t uxReturn = pdFAIL;
+        BaseType_t xReturn = pdFAIL;
         BaseType_t xBytes;
         NetworkEndPoint_t * pxEndPoint;
 
@@ -1290,13 +1290,13 @@
                     }
                 }
 
-                uxReturn = prvSendBuffer( pcHostName,
-                                          uxIdentifier,
-                                          xDNSSocket,
-                                          xFamily,
-                                          &xAddress );
+                xReturn = prvSendBuffer( pcHostName,
+                                         uxIdentifier,
+                                         xDNSSocket,
+                                         xFamily,
+                                         &xAddress );
 
-                if( uxReturn == pdFAIL )
+                if( xReturn == pdFAIL )
                 {
                     break;
                 }
