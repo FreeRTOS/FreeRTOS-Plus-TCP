@@ -55,7 +55,7 @@
 /*extern SemaphoreHandle_t xServerSemaphore; */
 
     #if __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
     extern int verboseLevel;

@@ -154,7 +154,7 @@
     void resetrx_on_no_rxdata( xemacpsif_s * xemacpsif );
 
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */
