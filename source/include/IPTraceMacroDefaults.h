@@ -329,9 +329,9 @@
 /*
  * iptraceFAILED_TO_NOTIFY_SELECT_GROUP
  */
-    #ifndef iptraceFAILED_TO_NOTIFY_SELECT_GROUP
-        #define iptraceFAILED_TO_NOTIFY_SELECT_GROUP( xSocket )
-    #endif
+#ifndef iptraceFAILED_TO_NOTIFY_SELECT_GROUP
+    #define iptraceFAILED_TO_NOTIFY_SELECT_GROUP( xSocket )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -611,18 +611,18 @@
  * be obtained from a DHCP. ulIPAddress is expressed as a 32-bit number in
  * network byte order.
  */
-    #ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
-        #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ulIPAddress )
-    #endif
+#ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
+    #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ulIPAddress )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
 /*
  * iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
  */
-    #ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
-        #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( xIPAddress )
-    #endif
+#ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
+    #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( xIPAddress )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -632,9 +632,9 @@
  * Called when DHCP negotiation is complete and the IP address in
  * ulOfferedIPAddress is offered to the device.
  */
-    #ifndef iptraceDHCP_SUCCEDEED
-        #define iptraceDHCP_SUCCEDEED( ulOfferedIPAddress )
-    #endif
+#ifndef iptraceDHCP_SUCCEDEED
+    #define iptraceDHCP_SUCCEDEED( ulOfferedIPAddress )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -643,9 +643,9 @@
  *
  * Called when a DHCP discover packet is sent.
  */
-    #ifndef iptraceSENDING_DHCP_DISCOVER
-        #define iptraceSENDING_DHCP_DISCOVER()
-    #endif
+#ifndef iptraceSENDING_DHCP_DISCOVER
+    #define iptraceSENDING_DHCP_DISCOVER()
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -654,9 +654,9 @@
  *
  * Called when a DHCP request packet is sent.
  */
-    #ifndef iptraceSENDING_DHCP_REQUEST
-        #define iptraceSENDING_DHCP_REQUEST()
-    #endif
+#ifndef iptraceSENDING_DHCP_REQUEST
+    #define iptraceSENDING_DHCP_REQUEST()
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -708,9 +708,9 @@
  *
  * Called when an ICMP packet is received.
  */
-    #ifndef iptraceICMP_PACKET_RECEIVED
-        #define iptraceICMP_PACKET_RECEIVED()
-    #endif
+#ifndef iptraceICMP_PACKET_RECEIVED
+    #define iptraceICMP_PACKET_RECEIVED()
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -730,9 +730,9 @@
  * from the same address. ulIPAddress is expressed as a 32-bit number in
  * network byte order.
  */
-    #ifndef iptraceSENDING_PING_REPLY
-        #define iptraceSENDING_PING_REPLY( ulIPAddress )
-    #endif
+#ifndef iptraceSENDING_PING_REPLY
+    #define iptraceSENDING_PING_REPLY( ulIPAddress )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -823,9 +823,9 @@
  * Should be called by the application when the collection of memory
  * statistics should be stopped.
  */
-    #ifndef iptraceMEM_STATS_CLOSE
-        #define iptraceMEM_STATS_CLOSE()
-    #endif
+#ifndef iptraceMEM_STATS_CLOSE
+    #define iptraceMEM_STATS_CLOSE()
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -835,9 +835,9 @@
  * Called when an object at address pxObject of type xMemType and size
  * uxSize has been allocated from the heap.
  */
-    #ifndef iptraceMEM_STATS_CREATE
-        #define iptraceMEM_STATS_CREATE( xMemType, pxObject, uxSize )
-    #endif
+#ifndef iptraceMEM_STATS_CREATE
+    #define iptraceMEM_STATS_CREATE( xMemType, pxObject, uxSize )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -847,9 +847,9 @@
  * Called when an object at address pxObject has been deallocated and the
  * memory has been returned to the heap.
  */
-    #ifndef iptraceMEM_STATS_DELETE
-        #define iptraceMEM_STATS_DELETE( pxObject )
-    #endif
+#ifndef iptraceMEM_STATS_DELETE
+    #define iptraceMEM_STATS_DELETE( pxObject )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
@@ -877,18 +877,18 @@
 /*
  * iptraceDUMP_INIT
  */
-    #ifndef iptraceDUMP_INIT
-        #define iptraceDUMP_INIT( pcFileName, pxEntries )
-    #endif
+#ifndef iptraceDUMP_INIT
+    #define iptraceDUMP_INIT( pcFileName, pxEntries )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
 /*
  * iptraceDUMP_PACKET
  */
-    #ifndef iptraceDUMP_PACKET
-        #define iptraceDUMP_PACKET( pucBuffer, uxLength, xIncoming )
-    #endif
+#ifndef iptraceDUMP_PACKET
+    #define iptraceDUMP_PACKET( pucBuffer, uxLength, xIncoming )
+#endif
 
 /*-----------------------------------------------------------------------*/
 
