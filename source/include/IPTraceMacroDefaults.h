@@ -322,20 +322,20 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigSUPPORT_SELECT_FUNCTION != 0 )
+/*#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) )*/
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceFAILED_TO_NOTIFY_SELECT_GROUP
-     */
+/*
+ * iptraceFAILED_TO_NOTIFY_SELECT_GROUP
+ */
     #ifndef iptraceFAILED_TO_NOTIFY_SELECT_GROUP
         #define iptraceFAILED_TO_NOTIFY_SELECT_GROUP( xSocket )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigSUPPORT_SELECT_FUNCTION != 0 ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -600,67 +600,67 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCP != 0 )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) )*/
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
-     *
-     * Called when the default IP address is used because an IP address could not
-     * be obtained from a DHCP. ulIPAddress is expressed as a 32-bit number in
-     * network byte order.
-     */
+/*
+ * iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
+ *
+ * Called when the default IP address is used because an IP address could not
+ * be obtained from a DHCP. ulIPAddress is expressed as a 32-bit number in
+ * network byte order.
+ */
     #ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
         #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ulIPAddress )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
-     */
+/*
+ * iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
+ */
     #ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
         #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( xIPAddress )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceDHCP_SUCCEDEED
-     *
-     * Called when DHCP negotiation is complete and the IP address in
-     * ulOfferedIPAddress is offered to the device.
-     */
+/*
+ * iptraceDHCP_SUCCEDEED
+ *
+ * Called when DHCP negotiation is complete and the IP address in
+ * ulOfferedIPAddress is offered to the device.
+ */
     #ifndef iptraceDHCP_SUCCEDEED
         #define iptraceDHCP_SUCCEDEED( ulOfferedIPAddress )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceSENDING_DHCP_DISCOVER
-     *
-     * Called when a DHCP discover packet is sent.
-     */
+/*
+ * iptraceSENDING_DHCP_DISCOVER
+ *
+ * Called when a DHCP discover packet is sent.
+ */
     #ifndef iptraceSENDING_DHCP_DISCOVER
         #define iptraceSENDING_DHCP_DISCOVER()
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceSENDING_DHCP_REQUEST
-     *
-     * Called when a DHCP request packet is sent.
-     */
+/*
+ * iptraceSENDING_DHCP_REQUEST
+ *
+ * Called when a DHCP request packet is sent.
+ */
     #ifndef iptraceSENDING_DHCP_REQUEST
         #define iptraceSENDING_DHCP_REQUEST()
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigUSE_DHCP != 0 ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -699,44 +699,44 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS ) )*/
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceICMP_PACKET_RECEIVED
-     *
-     * Called when an ICMP packet is received.
-     */
+/*
+ * iptraceICMP_PACKET_RECEIVED
+ *
+ * Called when an ICMP packet is received.
+ */
     #ifndef iptraceICMP_PACKET_RECEIVED
         #define iptraceICMP_PACKET_RECEIVED()
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) )*/
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceSENDING_PING_REPLY
-     *
-     * Called when an ICMP echo reply (ping reply) is sent to the IP address
-     * ulIPAddress in response to an ICMP echo request (ping request) originating
-     * from the same address. ulIPAddress is expressed as a 32-bit number in
-     * network byte order.
-     */
+/*
+ * iptraceSENDING_PING_REPLY
+ *
+ * Called when an ICMP echo reply (ping reply) is sent to the IP address
+ * ulIPAddress in response to an ICMP echo request (ping request) originating
+ * from the same address. ulIPAddress is expressed as a 32-bit number in
+ * network byte order.
+ */
     #ifndef iptraceSENDING_PING_REPLY
         #define iptraceSENDING_PING_REPLY( ulIPAddress )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -813,47 +813,47 @@
 /*---------------------------------------------------------------------------*/
 
 /* See tools/tcp_mem_stat.c */
-#if ( ipconfigIS_DISABLED( ipconfigUSE_TCP_MEM_STATS ) )
+/*#if ( ipconfigIS_DISABLED( ipconfigUSE_TCP_MEM_STATS ) )*/
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceMEM_STATS_CLOSE
-     *
-     * Should be called by the application when the collection of memory
-     * statistics should be stopped.
-     */
+/*
+ * iptraceMEM_STATS_CLOSE
+ *
+ * Should be called by the application when the collection of memory
+ * statistics should be stopped.
+ */
     #ifndef iptraceMEM_STATS_CLOSE
         #define iptraceMEM_STATS_CLOSE()
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceMEM_STATS_CREATE
-     *
-     * Called when an object at address pxObject of type xMemType and size
-     * uxSize has been allocated from the heap.
-     */
+/*
+ * iptraceMEM_STATS_CREATE
+ *
+ * Called when an object at address pxObject of type xMemType and size
+ * uxSize has been allocated from the heap.
+ */
     #ifndef iptraceMEM_STATS_CREATE
         #define iptraceMEM_STATS_CREATE( xMemType, pxObject, uxSize )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceMEM_STATS_DELETE
-     *
-     * Called when an object at address pxObject has been deallocated and the
-     * memory has been returned to the heap.
-     */
+/*
+ * iptraceMEM_STATS_DELETE
+ *
+ * Called when an object at address pxObject has been deallocated and the
+ * memory has been returned to the heap.
+ */
     #ifndef iptraceMEM_STATS_DELETE
         #define iptraceMEM_STATS_DELETE( pxObject )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_DISABLED( ipconfigUSE_TCP_MEM_STATS ) ) */
+/*#endif*/ /* if ( ipconfigIS_DISABLED( ipconfigUSE_TCP_MEM_STATS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -870,29 +870,29 @@
 /*---------------------------------------------------------------------------*/
 
 /* See tools/tcp_dump_packets.c */
-#if ( ipconfigIS_DISABLED( ipconfigUSE_DUMP_PACKETS ) )
+/*#if ( ipconfigIS_DISABLED( ipconfigUSE_DUMP_PACKETS ) )*/
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceDUMP_INIT
-     */
+/*
+ * iptraceDUMP_INIT
+ */
     #ifndef iptraceDUMP_INIT
         #define iptraceDUMP_INIT( pcFileName, pxEntries )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-    /*
-     * iptraceDUMP_PACKET
-     */
+/*
+ * iptraceDUMP_PACKET
+ */
     #ifndef iptraceDUMP_PACKET
         #define iptraceDUMP_PACKET( pucBuffer, uxLength, xIncoming )
     #endif
 
-    /*-----------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_DISABLED( ipconfigUSE_DUMP_PACKETS ) ) */
+/*#endif*/ /* if ( ipconfigIS_DISABLED( ipconfigUSE_DUMP_PACKETS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
