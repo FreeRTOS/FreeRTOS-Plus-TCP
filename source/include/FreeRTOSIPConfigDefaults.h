@@ -209,7 +209,7 @@
  */
 
     #ifndef ipconfigND_CACHE_ENTRIES
-        #define ipconfigND_CACHE_ENTRIES    24
+        #define ipconfigND_CACHE_ENTRIES    24U
     #endif
 
     #if ( ipconfigND_CACHE_ENTRIES < 1 )
@@ -424,6 +424,24 @@
 
 #if ( ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != ipconfigDISABLE ) && ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != ipconfigENABLE ) )
     #error Invalid ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigMAX_IP_TASK_SLEEP_TIME
+ *
+ * Type: TickType_t
+ * Unit: Ticks
+ * Minimum: 0
+ * Maximum: portMAX_DELAY
+ *
+ * The maximum time the IP task is allowed to remain in the Blocked state if no
+ * events are posted to the network event queue.
+ */
+
+#ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
+    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -797,21 +815,16 @@
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
  *
  * Type: size_t
- * Unit: length of NetworkBufferDescriptor_t array
+ * Unit: Count of network buffers
  * Minimum: 1
  *
- * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS defines the total number of network
- * buffer that are available to the TCP/IP stack. The total number of network
- * buffers is limited to ensure the total amount of RAM that can be consumed by
- * the TCP/IP stack is capped to a pre-determinable value. How the storage area
- * is actually allocated to the network buffer structures is not fixed, but
- * part of the portable layer. The simplest scheme simply allocates the exact
- * amount of storage as it is required.
- *
- * More information on network buffers and network buffer descriptors is
- * provided on the pages that describe porting FreeRTOS-Plus-TCP to other
- * hardware and the pxGetNetworkBufferWithDescriptor() porting specific API
- * function.
+ * Defines the total number of network buffers that are available to the TCP/IP
+ * stack. The total number of network buffers is limited to ensure the total
+ * amount of RAM that can be consumed by the TCP/IP stack is capped to a
+ * pre-determinable value. How the storage area is actually allocated to the
+ * network buffer structures is not fixed, but part of the portable layer.
+ * The simplest scheme simply allocates the exact amount of storage as it is
+ * required.
  */
 
 #ifndef ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
@@ -837,10 +850,9 @@
  *
  * Advanced users only.
  *
- * When pconfigUSE_LINKED_RX_MESSAGES is set to 1 it is possible to reduce CPU
- * load during periods of heavy network traffic by linking multiple received
- * packets together, then passing all the linked packets to the IP RTOS task in
- * one go.
+ * When enabled it is possible to reduce CPU load during periods of heavy
+ * network traffic by linking multiple received packets together, then passing
+ * all the linked packets to the IP RTOS task in one go.
  */
 
 #ifndef ipconfigUSE_LINKED_RX_MESSAGES
@@ -862,9 +874,9 @@
  *
  * Advanced users only.
  *
- * If ipconfigZERO_COPY_RX_DRIVER is set to 1 then the network interface will
- * assign network buffers NetworkBufferDescriptor_t::pucEthernetBuffer to the
- * DMA of the EMAC. When a packet is received, no data is copied. Instead, the
+ * When enabled the network interface will assign network buffers
+ * NetworkBufferDescriptor_t::pucEthernetBuffer to the DMA of the EMAC.
+ * When a packet is received, no data is copied. Instead, the
  * buffer is sent directly to the IP-task. If the RX zero-copy option is
  * disabled, every received packet will be copied from the DMA buffer to the
  * network buffer of type NetworkBufferDescriptor_t.
@@ -889,10 +901,10 @@
  *
  * Advanced users only.
  *
- * If ipconfigZERO_COPY_TX_DRIVER is set to 1 then the driver function
- * xNetworkInterfaceOutput() will always be called with its bReleaseAfterSend
- * parameter set to pdTRUE - meaning it is always the driver that is
- * responsible for freeing the network buffer and network buffer descriptor.
+ * When enabled the driver function xNetworkInterfaceOutput() will always be
+ * called with its bReleaseAfterSend parameter set to pdTRUE - meaning it is
+ * always the driver that is responsible for freeing the network buffer and
+ * network buffer descriptor.
  *
  * This is useful if the driver implements a zero-copy scheme whereby the
  * packet data is sent directly from within the network buffer (for example by
@@ -932,6 +944,64 @@
 
 #if ( ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != ipconfigDISABLE ) && ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != ipconfigENABLE ) )
     #error Invalid ipconfigSUPPORT_NETWORK_DOWN_EVENT configuration
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+ *
+ * Type: uint32_t
+ * Unit: milliseconds
+ *
+ * Interval in which to check if the LinkStatus in the PHY is still high after
+ * not receiving packets.
+ */
+
+#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigSUPPORT_NETWORK_DOWN_EVENT
+ *
+ * Type: uint32_t
+ * Unit: milliseconds
+ *
+ * Interval in which to check if the LinkStatus in the PHY is still low.
+ */
+
+#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigHAS_TX_CRC_OFFLOADING
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ */
+
+#ifndef ipconfigHAS_TX_CRC_OFFLOADING
+    #define ipconfigHAS_TX_CRC_OFFLOADING    ipconfigDISABLE
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigPHY_MAX_PORTS
+ *
+ * Type: size_t
+ * Unit: count of ports
+ * Minimum: 0
+ * Maximum: 32
+ */
+
+#ifndef ipconfigPHY_MAX_PORTS
+    #define ipconfigPHY_MAX_PORTS    4U
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -3276,6 +3346,33 @@
 /*-----------------------------------------------------------------------*/
 
 /*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_MEM_STATS ) ) */
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigENABLE_BACKWARD_COMPATIBILITY
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * For backward compatibility define old structure names to the newer equivalent
+ * structure name.
+ */
+
+#ifndef ipconfigENABLE_BACKWARD_COMPATIBILITY
+    #define ipconfigENABLE_BACKWARD_COMPATIBILITY    ipconfigENABLE
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ */
+
+#ifndef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
+    #define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS    ipconfigDISABLE
+#endif
 
 /*---------------------------------------------------------------------------*/
 
