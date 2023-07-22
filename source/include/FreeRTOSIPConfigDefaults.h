@@ -185,13 +185,15 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) || ipconfigIS_DISABLED( ipconfigUSE_IPv6 ) )
-    #error Invalid build configuration
-#endif
+/*
+ * #if ( ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) || ipconfigIS_DISABLED( ipconfigUSE_IPv6 ) )
+ *  #error Invalid build configuration
+ * #endif
+ */
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -238,7 +240,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-    #if ( ipconfigIS_ENABLED( ipconfigUSE_RA ) )
+    /*#if ( ipconfigIS_ENABLED( ipconfigUSE_RA ) )*/
 
 /*-------------------------------------------------------------------*/
 
@@ -342,11 +344,11 @@
 
 /*-------------------------------------------------------------------*/
 
-    #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_RA ) ) */
+    /*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_RA ) ) */
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -727,7 +729,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )
+/*#if ( ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -756,7 +758,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) ) */
+/*#endif*/ /* if ( ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -1141,7 +1143,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -1193,7 +1195,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-    #if ( ipconfigIS_ENABLED( ipconfigTCP_HANG_PROTECTION ) )
+    /*#if ( ipconfigIS_ENABLED( ipconfigTCP_HANG_PROTECTION ) )*/
 
 /*-------------------------------------------------------------------*/
 
@@ -1227,7 +1229,7 @@
 
 /*-------------------------------------------------------------------*/
 
-    #endif /* if ( ipconfigIS_ENABLED( ipconfigTCP_HANG_PROTECTION ) ) */
+    /*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigTCP_HANG_PROTECTION ) ) */
 
 /*-----------------------------------------------------------------------*/
 
@@ -1269,7 +1271,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-    #if ( ipconfigIS_ENABLED( ipconfigTCP_KEEP_ALIVE ) )
+    /*#if ( ipconfigIS_ENABLED( ipconfigTCP_KEEP_ALIVE ) )*/
 
 /*-------------------------------------------------------------------*/
 
@@ -1304,7 +1306,7 @@
 
 /*-------------------------------------------------------------------*/
 
-    #endif /* if ( ipconfigIS_ENABLED( ipconfigTCP_KEEP_ALIVE ) ) */
+    /*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigTCP_KEEP_ALIVE ) ) */
 
 /*-----------------------------------------------------------------------*/
 
@@ -1475,7 +1477,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-    #if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN ) )
+    /*#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN ) )*/
 
 /*-------------------------------------------------------------------*/
 
@@ -1548,7 +1550,7 @@
 
 /*-------------------------------------------------------------------*/
 
-    #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN ) */
+    /*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN ) */
 
 /*-----------------------------------------------------------------------*/
 
@@ -1568,7 +1570,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* ( ipconfigIS_ENABLED( ipconfigUSE_TCP ) ) */
+/*#endif*/ /* ( ipconfigIS_ENABLED( ipconfigUSE_TCP ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -1758,7 +1760,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -1788,7 +1790,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2011,7 +2013,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigUSE_CALLBACKS ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_CALLBACKS ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2044,7 +2046,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_CALLBACKS ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_CALLBACKS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2134,7 +2136,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2163,11 +2165,11 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) ) */
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) || ipconfigIS_ENABLED( ipconfigUSE_DHCPv6 ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) || ipconfigIS_ENABLED( ipconfigUSE_DHCPv6 ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2253,7 +2255,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) || ipconfigIS_ENABLED( ipconfigUSE_DHCPv6 ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) || ipconfigIS_ENABLED( ipconfigUSE_DHCPv6 ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2295,7 +2297,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigUSE_DNS ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DNS ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2323,7 +2325,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-    #if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) )
+    /*#if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) )*/
 
 /*-------------------------------------------------------------------*/
 
@@ -2387,7 +2389,7 @@
 
 /*-------------------------------------------------------------------*/
 
-    #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ) */
+    /*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ) */
 
 /*-----------------------------------------------------------------------*/
 
@@ -2515,7 +2517,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_DNS ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DNS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2863,7 +2865,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2896,7 +2898,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2951,7 +2953,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_DISABLED( ipconfigCOMPATIBLE_WITH_SINGLE ) )
+/*#if ( ipconfigIS_DISABLED( ipconfigCOMPATIBLE_WITH_SINGLE ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2973,7 +2975,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_DISABLED( ipconfigCOMPATIBLE_WITH_SINGLE ) ) */
+/*#endif*/ /* if ( ipconfigIS_DISABLED( ipconfigCOMPATIBLE_WITH_SINGLE ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -3072,7 +3074,11 @@
 #endif
 
 #ifndef FreeRTOS_debug_printf
-    #define FreeRTOS_debug_printf( MSG )    if( ipconfigHAS_DEBUG_PRINTF ) configPRINTF
+    #ifdef configPRINTF
+        #define FreeRTOS_debug_printf( MSG )    if( ipconfigHAS_DEBUG_PRINTF ) configPRINTF
+    #else
+        #define FreeRTOS_debug_printf( MSG )    do {} while( pdFALSE )
+    #endif
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -3102,7 +3108,11 @@
 #endif
 
 #ifndef FreeRTOS_printf
-    #define FreeRTOS_printf( MSG )    if( ipconfigHAS_PRINTF ) configPRINTF
+    #ifdef configPRINTF
+        #define FreeRTOS_printf( MSG )    if( ipconfigHAS_PRINTF ) configPRINTF
+    #else
+        #define FreeRTOS_printf( MSG )    do {} while( pdFALSE )
+    #endif
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -3237,7 +3247,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_MEM_STATS ) )
+/*#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_MEM_STATS ) )*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -3265,7 +3275,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_MEM_STATS ) ) */
+/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_MEM_STATS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
