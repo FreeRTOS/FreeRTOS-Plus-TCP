@@ -17,6 +17,7 @@
 #include "FreeRTOS_DNS_Parser.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
+#include "IPTraceMacroDefaults.h"
 
 #include "cbmc.h"
 
