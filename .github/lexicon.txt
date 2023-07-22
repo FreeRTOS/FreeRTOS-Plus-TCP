@@ -57,6 +57,7 @@ bcloserequested
 bconnpassed
 bconnprepared
 bds
+behaviour
 bendpointup
 berkeley
 besr
@@ -168,6 +169,7 @@ dcrs
 dd
 de
 debounce
+decaseconds
 deferral
 deferralcheck
 defgroup
@@ -275,6 +277,7 @@ en
 enablesolved
 endcode
 endcond
+enetworkevent
 endgetcacheentry
 endian
 endianness
@@ -377,6 +380,7 @@ fromisr
 fsrxdesc
 fuf
 func
+functionname
 getaddrinfo
 gethostbyname
 getnetworkbuffer
@@ -449,6 +453,8 @@ ip
 ipaddress
 ipc
 ipco
+ipconfigdisable
+ipconfigenable
 ipg
 ipif
 ipsec
@@ -1748,11 +1754,8 @@ vlantagcomparison
 vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
-<<<<<<< HEAD
 vlistinsertend
-=======
 vloggingprintf
->>>>>>> 2aba59f (Fixes for definitions updates)
 vmyconnecthandler
 vndagecache
 vndrefreshcacheentry
@@ -1764,12 +1767,9 @@ vperformaction
 vportentercritical
 vportexitcritical
 vportfree
-<<<<<<< HEAD
-vprecheckconfigs
-=======
 vportfreelarge
 vportfreesocket
->>>>>>> 2aba59f (Fixes for definitions updates)
+vprecheckconfigs
 vprintresourcestats
 vprocessgeneratedudppacket
 vraprocess
@@ -1901,6 +1901,7 @@ xendpoints
 xentries
 xentryfound
 xerrnum
+xerrorcode
 xethernetheader
 xeventbits
 xeventgroup
