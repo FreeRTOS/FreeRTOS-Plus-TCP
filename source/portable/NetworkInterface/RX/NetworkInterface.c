@@ -53,7 +53,7 @@
  **********************************************************************************************************************/
 #define ETHER_BUFSIZE_MIN    60
 
-#if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) || defined( BSP_MCU_RX72M )
+#if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) || defined( BSP_MCU_RX72M ) || defined( BSP_MCU_RX72N )
     #if ETHER_CFG_MODE_SEL == 0
         #define R_ETHER_PinSet_CHANNEL_0()    R_ETHER_PinSet_ETHERC0_MII()
     #elif ETHER_CFG_MODE_SEL == 1
