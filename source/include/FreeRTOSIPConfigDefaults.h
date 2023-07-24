@@ -161,7 +161,15 @@
  * configMAX_PRIORITIES is a standard FreeRTOS configuration parameter defined in
  * FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration needs to be given as to
  * the priority assigned to the task executing the IP stack relative to the
- * priority assigned to tasks that use the IP stack. */
+ * priority assigned to tasks that use the IP stack.
+ *
+ * Define the priority of the IP-task.  It is recommended to use this
+ * order of priorities:
+ * Highest : network interface, handling transmission and reception.
+ * Medium  : the IP-task handling API calls from the application.
+ * Lower   : the tasks that make use of the IP-stack.
+ * For other tasks any priority can be chosen.
+ */
 #ifndef ipconfigIP_TASK_PRIORITY
     #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
 #endif
@@ -575,26 +583,6 @@
     #define ipconfigUDP_MAX_RX_PACKETS    0U
 #endif
 
-/* Define the priority of the IP-task.  It is recommended to use this
- * order of priorities:
- * Highest : network interface, handling transmission and reception.
- * Medium  : the IP-task handling API calls from the application.
- * Lower   : the tasks that make use of the IP-stack.
- * For other tasks any priority can be chosen.
- */
-#ifndef ipconfigIP_TASK_PRIORITY
-    #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
-#endif
-
-/* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
- * task.  This setting is less important when the FreeRTOS Win32 simulator is used
- * as the Win32 simulator only stores a fixed amount of information on the task
- * stack.  FreeRTOS includes optional stack overflow detection, see:
- * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
-#ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
-#endif
-
 /* When non-zero, the module FreeRTOS_DHCP.c will be included and called.
  * Note that the application can override decide to ignore the outcome
  * of the DHCP negotiation and use a static IP-address. */
@@ -729,14 +717,6 @@
     #endif /* _WINDOWS_ */
 #endif /* ipconfigMAXIMUM_DISCOVER_TX_PERIOD */
 
-#if ( ipconfigUSE_DNS == 0 )
-    /* The DNS module will not be included. */
-    #if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) )
-        /* LLMNR and NBNS depend on DNS because those protocols share a lot of code. */
-        #error When either LLMNR or NBNS is used, ipconfigUSE_DNS must be defined
-    #endif
-#endif
-
 /* By default, the DNS client is included.  Note that LLMNR and
  * NBNS also need the code from FreeRTOS_DNS.c
  */
@@ -746,6 +726,14 @@
 
 #if ( ipconfigUSE_IPv4 == 0 ) && ( ipconfigUSE_DNS != 0 )
     #error "IPv4 (ipconfigUSE_IPv4) needs to be enabled to use DNS"
+#endif
+
+#if ( ipconfigUSE_DNS == 0 )
+    /* The DNS module will not be included. */
+    #if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) )
+        /* LLMNR and NBNS depend on DNS because those protocols share a lot of code. */
+        #error When either LLMNR or NBNS is used, ipconfigUSE_DNS must be defined
+    #endif
 #endif
 
 /* When looking up a host with DNS, this macro determines how long the
