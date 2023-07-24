@@ -717,6 +717,14 @@
     #endif /* _WINDOWS_ */
 #endif /* ipconfigMAXIMUM_DISCOVER_TX_PERIOD */
 
+#if ( ipconfigUSE_DNS == 0 )
+    /* The DNS module will not be included. */
+    #if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) )
+        /* LLMNR and NBNS depend on DNS because those protocols share a lot of code. */
+        #error When either LLMNR or NBNS is used, ipconfigUSE_DNS must be defined
+    #endif
+#endif
+
 /* By default, the DNS client is included.  Note that LLMNR and
  * NBNS also need the code from FreeRTOS_DNS.c
  */
@@ -726,14 +734,6 @@
 
 #if ( ipconfigUSE_IPv4 == 0 ) && ( ipconfigUSE_DNS != 0 )
     #error "IPv4 (ipconfigUSE_IPv4) needs to be enabled to use DNS"
-#endif
-
-#if ( ipconfigUSE_DNS == 0 )
-    /* The DNS module will not be included. */
-    #if ( ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_NBNS != 0 ) )
-        /* LLMNR and NBNS depend on DNS because those protocols share a lot of code. */
-        #error When either LLMNR or NBNS is used, ipconfigUSE_DNS must be defined
-    #endif
 #endif
 
 /* When looking up a host with DNS, this macro determines how long the
