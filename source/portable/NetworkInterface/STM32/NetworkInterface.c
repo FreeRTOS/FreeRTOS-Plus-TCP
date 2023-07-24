@@ -49,13 +49,13 @@
 #include "phyHandling.h"
 
 /* ST includes. */
-#if defined(STM32F4)
+#if defined( STM32F4 )
     #include "stm32f4xx_hal_eth.h"
-#elif defined(STM32F7)
+#elif defined( STM32F7 )
     #include "stm32f7xx_hal_eth.h"
-#elif defined(STM32H7)
+#elif defined( STM32H7 )
     #include "stm32h7xx_hal_eth.h"
-#elif defined(STM32H5)
+#elif defined( STM32H5 )
     /* Untested */
     #include "stm32h5xx_hal_eth.h"
 #else
@@ -64,59 +64,53 @@
 
 /*-----------------------------------------------------------*/
 
-/* TODO: Should these be moved to FreeRTOSIPConfigDefaults.h? */
-#ifndef ipconfigETHERNET_AN_ENABLE
-    #define ipconfigETHERNET_AN_ENABLE 1
-#endif
-
-#if ( ipconfigETHERNET_AN_ENABLE == 0 )
-    #ifndef ipconfigETHERNET_USE_100MB
-        #define ipconfigETHERNET_USE_100MB 1
-    #endif
-
-    #ifndef ipconfigETHERNET_USE_FULL_DUPLEX
-        #define ipconfigETHERNET_USE_FULL_DUPLEX 1
-    #endif
-#endif
-
-#ifndef ipconfigETHERNET_AUTO_CROSS_ENABLE
-    #define ipconfigETHERNET_AUTO_CROSS_ENABLE 1
-#endif
-
-#if ( ipconfigETHERNET_AUTO_CROSS_ENABLE == 0 )
-    #ifndef ipconfigETHERNET_CROSSED_LINK
-        #define ipconfigETHERNET_CROSSED_LINK 0
-    #endif
-#endif
-
-#ifndef ipconfigUSE_RMII
-    #define ipconfigUSE_RMII 1
+/* TODO: This should be made moved from FreeRTOS_IP.c to FreeRTOS_IP_Private.h
+ * so that all the network interfaces don't have to keep defining it. */
+#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
+#else
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 /*-----------------------------------------------------------*/
 
-/* TODO: Verify this size */
-#define NETWORK_BUFFER_SIZE ( ( ( ETH_RX_BUF_SIZE + ipBUFFER_PADDING ) + 7 ) & ~0x7UL )
+#define EMAC_DATA_BUFFER_SIZE    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
+#define EMAC_TOTAL_BUFFER_SIZE    ( ( EMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING + 31U ) & ~0x1FuL )
 
-#define EMAC_IF_RX_EVENT 1UL
-#define EMAC_IF_TX_EVENT 2UL
-#define EMAC_IF_ERR_EVENT 4UL
-#define EMAC_IF_ALL_EVENT ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
+#define EMAC_IF_RX_EVENT    1UL
+#define EMAC_IF_TX_EVENT    2UL
+#define EMAC_IF_TX_ERR_EVENT    4UL
+#define EMAC_IF_RX_ERR_EVENT    8UL
+#define EMAC_IF_DMA_ERR_EVENT    16UL
+#define EMAC_IF_ETH_ERR_EVENT    32UL
+#define EMAC_IF_MAC_ERR_EVENT    64UL
+#define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_TX_ERR_EVENT | EMAC_IF_RX_ERR_EVENT | EMAC_IF_DMA_ERR_EVENT | EMAC_IF_ETH_ERR_EVENT | EMAC_IF_MAC_ERR_EVENT )
 
 typedef enum
 {
-    eMACInit,
-    eMACPass,
-    eMACFailed
+    eMACEthInit,
+    eMACPhyInit,
+    eMACPhyStart,
+    eMACTaskStart,
+    eMACEthStart,
+    eMACInitComplete
 } eMAC_INIT_STATUS_TYPE;
 
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvNetworkInterfaceInput( void );
+static BaseType_t xSTM32_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-static void prvEMACHandlerTask( void * pvParameters ) __attribute__((__noreturn__));
+NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, NetworkInterface_t * pxInterface );
 
-static BaseType_t prvAcceptPacket( const uint8_t * const pucEthernetBuffer );
+static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+static BaseType_t xSTM32_NetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend );
+
+static UBaseType_t prvNetworkInterfaceInput( void );
+
+static void prvEMACHandlerTask( void * pvParameters ) __attribute__( ( __noreturn__ ) );
+
+static BaseType_t prvAcceptPacket( NetworkBufferDescriptor_t * pxDescriptor );
 
 static BaseType_t prvPhyReadReg( BaseType_t xAddress, BaseType_t xRegister, uint32_t * pulValue );
 
@@ -124,74 +118,46 @@ static BaseType_t prvPhyWriteReg( BaseType_t xAddress, BaseType_t xRegister, uin
 
 static void prvEthernetUpdateConfig( void );
 
+/* static void prvMACAddressConfig( ETH_HandleTypeDef * heth, uint32_t ulIndex, uint8_t * Addr ); */
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex, NetworkInterface_t * pxInterface )
+    {
+        return pxSTM32_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+#endif
+
 /*-----------------------------------------------------------*/
 
 static ETH_HandleTypeDef xEthHandle;
 
-static ETH_DMADescTypeDef DMARxDscrTab[ ETH_RX_DESC_CNT ] __attribute__( ( section( ".RxDescripSection" ) ) );
+static ETH_MACConfigTypeDef xMACConfig;
 
-/* TODO: implement ( ipconfigZERO_COPY_RX_DRIVER == 0 ) */
-/*#if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
-    __ALIGN_BEGIN uint8_t Rx_Buff[ ETH_RX_DESC_CNT ][ ETH_RX_BUF_SIZE ] __ALIGN_END;
-#endif*/
+static ETH_DMADescTypeDef DMARxDscrTab[ ETH_RX_DESC_CNT ] __attribute__( ( section( ".RxDescripSection" ), aligned( 4 ) ) );
 
-static ETH_DMADescTypeDef DMATxDscrTab[ ETH_TX_DESC_CNT ] __attribute__( ( section( ".TxDescripSection" ) ) );
+static ETH_DMADescTypeDef DMATxDscrTab[ ETH_TX_DESC_CNT ] __attribute__( ( section( ".TxDescripSection" ), aligned( 4 ) ) );
 
-/* TODO: implement ( ipconfigZERO_COPY_TX_DRIVER == 0 ) */
-/*#if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
-    __ALIGN_BEGIN uint8_t Tx_Buff[ ETH_TX_DESC_CNT ][ ETH_TX_BUF_SIZE ] __ALIGN_END;
-#endif*/
-
-static ETH_TxPacketConfig xTxConfig;
-
-/* TODO: implement ( ipconfigUSE_LLMNR != 0 ) */
-/*#if ( ipconfigUSE_LLMNR != 0 )
-    static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
-#endif*/
+static NetworkInterface_t * pxMyInterface = NULL;
 
 static TaskHandle_t xEMACTaskHandle;
 
 static SemaphoreHandle_t xTxMutex;
 
-/* TODO: uncomment this after chaining Tx Buffers */
-/* xTxDescSem is not useful unless xTxBuffer.next != NULL */
-/* static SemaphoreHandle_t xTxDescSem; */
+static SemaphoreHandle_t xTxDescSem;
 
 static EthernetPhy_t xPhyObject;
 
-static const PhyProperties_t xPHYProperties =
-{
-    #if ( ipconfigETHERNET_AN_ENABLE != 0 )
-        .ucSpeed      = PHY_SPEED_AUTO,
-        .ucDuplex     = PHY_DUPLEX_AUTO,
-    #else
-        #if ( ipconfigETHERNET_USE_100MB != 0 )
-            .ucSpeed  = PHY_SPEED_100,
-        #else
-            .ucSpeed  = PHY_SPEED_10,
-        #endif
-
-        #if ( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
-            .ucDuplex = PHY_DUPLEX_FULL,
-        #else
-            .ucDuplex = PHY_DUPLEX_HALF,
-        #endif
-    #endif
-
-    #if ( ipconfigETHERNET_AN_ENABLE != 0 ) && ( ipconfigETHERNET_AUTO_CROSS_ENABLE != 0 )
-        .ucMDI_X      = PHY_MDIX_AUTO,
-    #elif ( ipconfigETHERNET_CROSSED_LINK != 0 )
-        .ucMDI_X      = PHY_MDIX_CROSSED,
-    #else
-        .ucMDI_X      = PHY_MDIX_DIRECT,
-    #endif
+static const PhyProperties_t xPHYProperties = {
+    .ucSpeed = PHY_SPEED_AUTO,
+    .ucDuplex = PHY_DUPLEX_AUTO,
+    .ucMDI_X = PHY_MDIX_AUTO,
 };
 
 /*-----------------------------------------------------------*/
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ NETWORK_BUFFER_SIZE ] __attribute__( ( aligned( 4 ), section( ".EthBuffersSection" ) ) );
+    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ EMAC_TOTAL_BUFFER_SIZE ] __attribute__( ( section( ".EthBuffersSection" ), aligned( 32 ) ) );
 
     for( size_t ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
@@ -202,8 +168,10 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( void )
+static BaseType_t xSTM32_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
+    ( void ) pxInterface;
+
     BaseType_t xReturn = pdFAIL;
 
     if( xPhyObject.ulLinkStatusMask != 0U )
@@ -213,166 +181,278 @@ BaseType_t xGetPhyLinkStatus( void )
 
     return xReturn;
 }
+
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceInitialise( void )
+NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, NetworkInterface_t * pxInterface )
 {
-    BaseType_t xResult = pdFAIL;
-    BaseType_t xPhyResult;
+    static char pcName[ 17 ];
+
+    snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;
+    pxInterface->pvArgument = ( void * ) xEMACIndex;
+    pxInterface->pfInitialise = xSTM32_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xSTM32_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xSTM32_GetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+
+/*-----------------------------------------------------------*/
+
+static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+{
+    BaseType_t xInitResult = pdFAIL;
+    BaseType_t xResult;
     HAL_StatusTypeDef xHalResult;
+    NetworkEndPoint_t * pxEndPoint;
+    /* BaseType_t xMACEntry = ETH_MAC_ADDRESS1; */ /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
-    static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
+    static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACEthInit;
 
-    if( xMacInitStatus == eMACInit )
+    switch( xMacInitStatus )
     {
-        if( xEMACTaskHandle == NULL )
-        {
-            #if ( configSUPPORT_STATIC_ALLOCATION != 0 )
-                static StaticSemaphore_t xTxMutexBuf;
-                xTxMutex = xSemaphoreCreateMutexStatic( &xTxMutexBuf );
+        default:
+            configASSERT( pdFALSE );
+            break;
 
-                /* TODO: uncomment this after chaining Tx Buffers */
-                /* static StaticSemaphore_t xTxDescSemBuf;
-                xTxDescSem = xSemaphoreCreateCountingStatic( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT, &xTxDescSemBuf ); */
+        case eMACEthInit:
+            pxMyInterface = pxInterface;
 
-                static StackType_t uxEMACTaskStack[ ( 2 * configMINIMAL_STACK_SIZE ) ];
-                static StaticTask_t xEMACTaskTCB;
-                /* TODO: Allow stack size & priority to be defined */
-                xEMACTaskHandle = xTaskCreateStatic(
-                    prvEMACHandlerTask,
-                    "EMAC",
-                    ( 2 * configMINIMAL_STACK_SIZE ),
-                    NULL,
-                    ( configMAX_PRIORITIES - 1 ),
-                    uxEMACTaskStack,
-                    &xEMACTaskTCB
-                );
-            #else
-                xTxMutex = xSemaphoreCreateMutex();
+            pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+            configASSERT( pxEndPoint != NULL );
 
-                /* TODO: uncomment this after chaining Tx Buffers */
-                /*xTxDescSem = xSemaphoreCreateCounting(
-                    ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
-                    ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
-                );*/
-
-                /* TODO: Allow stack size & priority to be defined */
-                ( void ) xTaskCreate(
-                    prvEMACHandlerTask,
-                    "EMAC",
-                    ( 2 * configMINIMAL_STACK_SIZE ),
-                    NULL,
-                    ( configMAX_PRIORITIES - 1 ),
-                    &xEMACTaskHandle
-                );
-            #endif
-            configASSERT( xTxMutex );
-            vQueueAddToRegistry( xTxMutex, "TXMutex" );
-
-            /* TODO: uncomment this after chaining Tx Buffers */
-            /*configASSERT( xTxDescSem );
-            vQueueAddToRegistry( xTxDescSem, "xTxDescSem" );*/
-
-            configASSERT( xEMACTaskHandle );
-        }
-
-        if( xEthHandle.Instance == NULL )
-        {
             xEthHandle.Instance = ETH;
-            xEthHandle.Init.MACAddr = ( uint8_t * ) FreeRTOS_GetMACAddress();
-            xEthHandle.Init.MediaInterface = ( ipconfigUSE_RMII != 0 ) ? HAL_ETH_RMII_MODE : HAL_ETH_MII_MODE;
+            xEthHandle.Init.MACAddr = ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes; /* FreeRTOS_GetMACAddress(); */
+            xEthHandle.Init.MediaInterface = HAL_ETH_RMII_MODE;
             xEthHandle.Init.TxDesc = DMATxDscrTab;
             xEthHandle.Init.RxDesc = DMARxDscrTab;
-            /* TODO: Verify RxBuffLen size */
-            xEthHandle.Init.RxBuffLen = ETH_RX_BUF_SIZE;
+            xEthHandle.Init.RxBuffLen = EMAC_DATA_BUFFER_SIZE;
 
             memset( &DMATxDscrTab, 0, sizeof( DMATxDscrTab ) );
             memset( &DMARxDscrTab, 0, sizeof( DMARxDscrTab ) );
 
-            #if defined(STM32F7) || defined(STM32F4)
+            #if defined( STM32F7 ) || defined( STM32F4 )
                 /* This function doesn't get called in Fxx driver */
                 HAL_ETH_SetMDIOClockRange( &xEthHandle );
             #endif
 
             xHalResult = HAL_ETH_Init( &xEthHandle );
-            configASSERT( xHalResult == HAL_OK );
+            if( xHalResult != HAL_OK )
+            {
+                break;
+            }
             configASSERT( xEthHandle.ErrorCode == HAL_ETH_ERROR_NONE );
             configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
 
-            /* TODO: uncomment & test these */
-            /*#if ( ipconfigUSE_LLMNR != 0 ) || ( ipconfigUSE_MDNS != 0 )
-                BaseType_t xMACEntry = ETH_MAC_ADDRESS1;
-                uint8_t pMACAddr[6];
-                memset( &pMACAddr, 0, sizeof( pMACAddr ) );
-                xHalResult = HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, xMACEntry, pMACAddr );
-                configASSERT( xHalResult == HAL_OK );
-            #endif
+            xMacInitStatus = eMACPhyInit;
+            /* Fallthrough */
 
-            #if ( ipconfigUSE_MDNS != 0 )
-                xHalResult = HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv4 );
-                configASSERT( xHalResult == HAL_OK );
-                xMACEntry += 8;
-            #endif
-            #if ( ipconfigUSE_LLMNR != 0 )
-                xHalResult = HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MACAddress );
-                configASSERT( xHalResult == HAL_OK );
-                xMACEntry += 8;
-            #endif*/
+        case eMACPhyInit:
+            vPhyInitialise( &xPhyObject, ( xApplicationPhyReadHook_t ) prvPhyReadReg, ( xApplicationPhyWriteHook_t ) prvPhyWriteReg );
 
-            memset( &xTxConfig, 0, sizeof( xTxConfig ) );
-            xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
-            xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
-            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
-                xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
-                xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
-            #else
-                xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
-            #endif
-            xMacInitStatus = eMACPass;
-        }
+            xResult = xPhyDiscover( &xPhyObject );
+            if( xResult == 0 )
+            {
+                break;
+            }
+
+            xResult = xPhyConfigure( &xPhyObject, &xPHYProperties );
+            if( xResult != 0 )
+            {
+                break;
+            }
+
+            xMacInitStatus = eMACPhyStart;
+            /* Fallthrough */
+
+        case eMACPhyStart:
+            if ( xSTM32_GetPhyLinkStatus( pxInterface ) == pdFAIL )
+            {
+                xResult = xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+                /* TODO: xPhyStartAutoNegotiation always returns 0, Should return -1 if xPhyGetMask == 0 ? */
+                configASSERT( xResult == 0 );
+                if ( xSTM32_GetPhyLinkStatus( pxMyInterface ) == pdFAIL )
+                {
+                    break;
+                }
+            }
+
+            xHalResult = HAL_ETH_GetMACConfig( &xEthHandle , &xMACConfig );
+            configASSERT( xHalResult == HAL_OK );
+            if( xHalResult != HAL_OK )
+            {
+                break;
+            }
+            xMACConfig.DuplexMode = ( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
+            xMACConfig.Speed = ( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
+            xMACConfig.ChecksumOffload = ( FunctionalState ) ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 );
+            xHalResult = HAL_ETH_SetMACConfig( &xEthHandle, &xMACConfig );
+            configASSERT( xHalResult == HAL_OK );
+            if( xHalResult != HAL_OK )
+            {
+                break;
+            }
+
+            xMacInitStatus = eMACTaskStart;
+            /* Fallthrough */
+
+        case eMACTaskStart:
+            if( xTxMutex == NULL )
+            {
+                #if ( configSUPPORT_STATIC_ALLOCATION != 0 )
+                {
+                    static StaticSemaphore_t xTxMutexBuf;
+                    xTxMutex = xSemaphoreCreateMutexStatic( &xTxMutexBuf );
+                }
+                #else
+                    xTxMutex = xSemaphoreCreateMutex();
+                #endif
+                configASSERT( xTxMutex != NULL );
+                if( xTxMutex == NULL )
+                {
+                    break;
+                }
+                vQueueAddToRegistry( xTxMutex, "TXMutex" );
+            }
+
+            if( xTxDescSem == NULL )
+            {
+                #if ( configSUPPORT_STATIC_ALLOCATION != 0 )
+                {
+                    static StaticSemaphore_t xTxDescSemBuf;
+                    xTxDescSem = xSemaphoreCreateCountingStatic( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT, &xTxDescSemBuf );
+                }
+                #else
+                    xTxDescSem = xSemaphoreCreateCounting(
+                        ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
+                        ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
+                    );
+                #endif
+                configASSERT( xTxDescSem != NULL );
+                if( xTxDescSem == NULL )
+                {
+                    break;
+                }
+                vQueueAddToRegistry( xTxDescSem, "xTxDescSem" );
+            }
+
+            if( xEMACTaskHandle == NULL )
+            {
+                #if ( configSUPPORT_STATIC_ALLOCATION != 0 )
+                {
+                    static StackType_t uxEMACTaskStack[ ( 2 * configMINIMAL_STACK_SIZE ) ];
+                    static StaticTask_t xEMACTaskTCB;
+                    xEMACTaskHandle = xTaskCreateStatic(
+                        prvEMACHandlerTask,
+                        "EMAC",
+                        ( 2 * configMINIMAL_STACK_SIZE ),
+                        NULL,
+                        ( configMAX_PRIORITIES - 1 ),
+                        uxEMACTaskStack,
+                        &xEMACTaskTCB
+                    );
+                }
+                #else
+                    xResult = xTaskCreate(
+                        prvEMACHandlerTask,
+                        "EMAC",
+                        ( 2 * configMINIMAL_STACK_SIZE ),
+                        NULL,
+                        ( configMAX_PRIORITIES - 1 ),
+                        &xEMACTaskHandle
+                    );
+                    configASSERT( xResult == pdPASS );
+                #endif
+                configASSERT( xEMACTaskHandle != NULL );
+                if( xEMACTaskHandle == NULL )
+                {
+                    break;
+                }
+            }
+
+            xMacInitStatus = eMACEthStart;
+            /* Fallthrough */
+
+        case eMACEthStart:
+            if( xEthHandle.gState != HAL_ETH_STATE_STARTED )
+            {
+                xHalResult = HAL_ETH_Start_IT( &xEthHandle );
+                configASSERT( xHalResult == HAL_OK );
+                if( xHalResult != HAL_OK )
+                {
+                    break;
+                }
+            }
+            configASSERT( xEthHandle.gState == HAL_ETH_STATE_STARTED );
+            configASSERT( xEthHandle.RxDescList.ItMode == 1U);
+
+            xMacInitStatus = eMACInitComplete;
+            /* Fallthrough */
+
+        case eMACInitComplete:
+            configASSERT( xEthHandle.gState != HAL_ETH_STATE_ERROR );
+            xInitResult = pdPASS;
     }
 
-    if( xMacInitStatus == eMACPass )
-    {
-        vPhyInitialise( &xPhyObject, ( xApplicationPhyReadHook_t ) prvPhyReadReg, ( xApplicationPhyWriteHook_t ) prvPhyWriteReg );
-        xPhyResult = xPhyDiscover( &xPhyObject );
-        configASSERT( xPhyResult > 0 );
-        xPhyResult = xPhyConfigure( &xPhyObject, &xPHYProperties );
-        configASSERT( xPhyResult == 0 );
-        xPhyResult = xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
-        configASSERT( xPhyResult == 0 );
-    }
-
-    if ( xGetPhyLinkStatus() != pdFAIL )
-    {
-        ETH_MACConfigTypeDef MACConf;
-        xHalResult = HAL_ETH_GetMACConfig( &xEthHandle , &MACConf );
-        configASSERT( xHalResult == HAL_OK );
-        MACConf.DuplexMode = ( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
-        MACConf.Speed = ( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
-        MACConf.ChecksumOffload = ( FunctionalState ) ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 );
-        xHalResult = HAL_ETH_SetMACConfig( &xEthHandle, &MACConf );
-        configASSERT( xHalResult == HAL_OK );
-        xHalResult = HAL_ETH_Start_IT( &xEthHandle );
-        configASSERT( xHalResult == HAL_OK );
-        xResult = pdPASS;
-    }
-
-    return xResult;
+    return xInitResult;
 }
 
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend )
+static BaseType_t xSTM32_NetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFAIL;
-    /* TODO: ipconfigZERO_COPY_TX_DRIVER */
+    configASSERT( pxDescriptor != NULL );
+    /* Zero-Copy Only */
+    configASSERT( xReleaseAfterSend != pdFALSE );
 
-    if( pxDescriptor != NULL )
+    if( ( pxDescriptor != NULL ) && ( pxDescriptor->pucEthernetBuffer != NULL ) && ( pxDescriptor->xDataLength <= EMAC_DATA_BUFFER_SIZE ) )
     {
-        if( xGetPhyLinkStatus() != pdFAIL )
+        if( xSTM32_GetPhyLinkStatus( pxInterface ) != pdFAIL )
         {
-            /* TODO: Tx Optimization by setting .next? */
+            static ETH_TxPacketConfig xTxConfig = {
+                .CRCPadCtrl = ETH_CRC_PAD_INSERT,
+                #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+                    .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD | ETH_TX_PACKETS_FEATURES_CSUM,
+                    .ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC,
+                #else
+                    .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD,
+                    .ChecksumCtrl = ETH_CHECKSUM_DISABLE,
+                #endif
+            };
+
+            /*ETH_BufferTypeDef xTxBuffer[ ETH_TX_DESC_CNT ];
+            memset( &xTxBuffer, 0, sizeof( xTxBuffer ) );
+            NetworkBufferDescriptor_t * pxCurDescriptor = pxDescriptor;
+            xTxConfig.Length = 0;
+            for( size_t i = 0; i < ETH_TX_DESC_CNT; i++ )
+            {
+                if( pxCurDescriptor == NULL )
+                {
+                    break;
+                }
+                xTxBuffer[ i ].buffer = ( uint8_t * ) pxCurDescriptor->pucEthernetBuffer;
+                xTxBuffer[ i ].len = pxCurDescriptor->xDataLength;
+                xTxConfig.Length += pxCurDescriptor->xDataLength;
+                if( i > 0 )
+                {
+                    xTxBuffer[ i - 1 ].next = &xTxBuffer[ i ];
+                }
+                if( pxCurDescriptor->pxNextBuffer == NULL )
+                {
+                    xTxBuffer[ i ].next = NULL;
+                }
+                pxCurDescriptor = pxDescriptor->pxNextBuffer;
+            }
+
+            xTxConfig.TxBuffer = xTxBuffer;
+            xTxConfig.pData = pxDescriptor;*/
+
             ETH_BufferTypeDef xTxBuffer = {
                 .buffer = ( uint8_t * ) pxDescriptor->pucEthernetBuffer,
                 .len = pxDescriptor->xDataLength,
@@ -383,78 +463,138 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
             xTxConfig.TxBuffer = &xTxBuffer;
             xTxConfig.pData = pxDescriptor;
 
-            if( xTxConfig.Length <= ETH_TX_BUF_SIZE - ipBUFFER_PADDING )
+            if( xSemaphoreTake( xTxDescSem, pdMS_TO_TICKS( 200U ) ) != pdFALSE )
             {
-                /* TODO: uncomment this after chaining Tx Buffers */
-                /* if( xSemaphoreTake( xTxDescSem, pdMS_TO_TICKS( 100U ) ) != pdFALSE )
-                { */
-                    if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 20U ) ) != pdFALSE )
+                if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 50U ) ) != pdFALSE )
+                {
+                    HAL_StatusTypeDef xHalResult = HAL_ETH_Transmit_IT( &xEthHandle, &xTxConfig );
+                    xSemaphoreGive( xTxMutex );
+                    if( xHalResult == HAL_OK )
                     {
+                        /* Released later in deferred task by calling HAL_ETH_ReleaseTxPacket */
                         xReleaseAfterSend = pdFALSE;
-                        if( HAL_ETH_Transmit_IT( &xEthHandle, &xTxConfig ) == HAL_OK )
-                        {
-                            xResult = pdPASS;
-                        }
-                        else
-                        {
-                            configASSERT( xEthHandle.ErrorCode != HAL_ETH_ERROR_PARAM );
-                            configASSERT( xEthHandle.gState == HAL_ETH_STATE_STARTED );
-                        }
-                        xSemaphoreGive( xTxMutex );
+                        xResult = pdPASS;
                     }
-                    /* TODO: uncomment this after chaining Tx Buffers */
-                    /* else
+                    else
                     {
                         xSemaphoreGive( xTxDescSem );
+                        configASSERT( xEthHandle.ErrorCode != HAL_ETH_ERROR_PARAM );
+                        if( xEthHandle.gState != HAL_ETH_STATE_STARTED )
+                        {
+                            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Eth Not Started\n" ) );
+                        }
+                        if( xEthHandle.ErrorCode & HAL_ETH_ERROR_BUSY )
+                        {
+                            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Tx Busy\n" ) );
+                            HAL_ETH_ReleaseTxPacket( &xEthHandle );
+                        }
                     }
-                } */
+                }
+                else
+                {
+                    xSemaphoreGive( xTxDescSem );
+                    FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Process Busy\n" ) );
+                }
+            }
+            else
+            {
+                FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: No Descriptors Available\n" ) );
             }
         }
-
-        if( xReleaseAfterSend != pdFALSE )
+        else
         {
-            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Link Down\n" ) );
         }
     }
+    else
+    {
+        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Invalid Buffer\n" ) );
+    }
+
+    if( xReleaseAfterSend != pdFALSE )
+    {
+        vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+    }
+
+    /*if( xResult == pdFAIL )
+    {
+        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Failed\n" ) );
+        xTaskNotify( xEMACTaskHandle, EMAC_IF_TX_ERR_EVENT, eSetBits );
+    }*/
 
     return xResult;
 }
 
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvNetworkInterfaceInput( void )
+static UBaseType_t prvNetworkInterfaceInput( void )
 {
-    /* TODO: ipconfigZERO_COPY_RX_DRIVER */
-    BaseType_t xResult = 0;
-    NetworkBufferDescriptor_t * pStartDescriptor = NULL;
-    while ( HAL_ETH_ReadData( &xEthHandle, ( void ** ) &pStartDescriptor ) == HAL_OK )
+    UBaseType_t xResult = 0;
+    #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+        NetworkBufferDescriptor_t * pxStartDescriptor = NULL;
+        NetworkBufferDescriptor_t * pxEndDescriptor = NULL;
+    #endif
+    NetworkBufferDescriptor_t * pxCurDescriptor = NULL;
+    IPStackEvent_t xRxEvent = {
+        .eEventType = eNetworkRxEvent,
+        .pvData = NULL
+    };
+    while ( ( HAL_ETH_ReadData( &xEthHandle, ( void ** ) &pxCurDescriptor ) == HAL_OK ) )
     {
+        /*configASSERT( xEthHandle.RxDescList.RxDataLength <= EMAC_DATA_BUFFER_SIZE );*/
         xResult++;
-        if ( pStartDescriptor != NULL )
-        {
-            const IPStackEvent_t xRxEvent = {
-                .eEventType = eNetworkRxEvent,
-                .pvData = ( void * ) pStartDescriptor
-            };
-
-            if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 0U ) != pdPASS )
+        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            if ( pxStartDescriptor == NULL )
+            {
+                pxStartDescriptor = pxCurDescriptor;
+            }
+            else if ( pxEndDescriptor != NULL )
+            {
+                pxEndDescriptor->pxNextBuffer = pxCurDescriptor;
+            }
+            pxEndDescriptor = pxCurDescriptor;
+        #else
+            xRxEvent.pvData = ( void * ) pxCurDescriptor;
+            if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 20U ) != pdPASS )
             {
                 iptraceETHERNET_RX_EVENT_LOST();
-                NetworkBufferDescriptor_t * pxDescriptorToClear = pStartDescriptor;
+                FreeRTOS_debug_printf( ( "prvNetworkInterfaceInput: xSendEventStructToIPTask failed\n" ) );
+                vReleaseNetworkBufferAndDescriptor( pxStartDescriptor );
+            }
+        #endif
+    }
+
+
+    #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+        if( xResult > 0 )
+        {
+            pxStartDescriptor->pxInterface = pxMyInterface;
+            pxStartDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxStartDescriptor->pucEthernetBuffer );
+            xRxEvent.pvData = ( void * ) pxStartDescriptor;
+            if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 100U ) != pdPASS )
+            {
+                iptraceETHERNET_RX_EVENT_LOST();
+                FreeRTOS_debug_printf( ( "prvNetworkInterfaceInput: xSendEventStructToIPTask failed\n" ) );
+                NetworkBufferDescriptor_t * pxDescriptorToClear = pxStartDescriptor;
                 do {
-                    #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                        NetworkBufferDescriptor_t * pxNext = pxDescriptorToClear->pxNextBuffer;
-                    #else
-                        NetworkBufferDescriptor_t * pxNext = NULL;
-                    #endif
+                    NetworkBufferDescriptor_t * pxNext = pxDescriptorToClear->pxNextBuffer;
                     vReleaseNetworkBufferAndDescriptor( pxDescriptorToClear );
                     pxDescriptorToClear = pxNext;
                 } while( pxDescriptorToClear != NULL );
             }
         }
+    #endif
+
+    if( xResult == 0 )
+    {
+        xTaskNotify( xEMACTaskHandle, EMAC_IF_RX_ERR_EVENT, eSetBits );
     }
+
     configASSERT( xEthHandle.ErrorCode != HAL_ETH_ERROR_PARAM );
-    configASSERT( xEthHandle.gState == HAL_ETH_STATE_STARTED );
+    if( xEthHandle.gState != HAL_ETH_STATE_STARTED )
+    {
+        xTaskNotify( xEMACTaskHandle, EMAC_IF_ETH_ERR_EVENT, eSetBits );
+    }
     return ( BaseType_t ) ( xResult > 0 );
 }
 
@@ -467,125 +607,129 @@ static void prvEMACHandlerTask( void * pvParameters )
     for( ;; )
     {
         BaseType_t xResult = 0U;
-
         uint32_t ulISREvents = 0U;
 
-        if ( xTaskNotifyWait( 0U, EMAC_IF_ALL_EVENT, &ulISREvents, pdMS_TO_TICKS( 500UL ) ) == pdTRUE )
+        if ( xTaskNotifyWait( 0U, EMAC_IF_ALL_EVENT, &ulISREvents, pdMS_TO_TICKS( 100UL ) ) == pdTRUE )
         {
+            HAL_StatusTypeDef xHalResult;
+
             if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )
             {
                 iptraceNETWORK_INTERFACE_RECEIVE();
-                xResult = prvNetworkInterfaceInput();
+                xResult = ( prvNetworkInterfaceInput() > 0 );
             }
 
             if( ( ulISREvents & EMAC_IF_TX_EVENT ) != 0 )
             {
                 iptraceNETWORK_INTERFACE_TRANSMIT();
-                if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 100U ) ) != pdFALSE )
+                if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 1000U ) ) != pdFALSE )
                 {
-                    HAL_StatusTypeDef xHalResult = HAL_ETH_ReleaseTxPacket( &xEthHandle );
+                    xHalResult = HAL_ETH_ReleaseTxPacket( &xEthHandle );
                     configASSERT( xHalResult == HAL_OK );
                     xSemaphoreGive( xTxMutex );
                 }
             }
+            if( ( ulISREvents & EMAC_IF_TX_ERR_EVENT ) != 0 )
+            {
+                if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 1000U ) ) != pdFALSE )
+                {
+                    xHalResult = HAL_ETH_ReleaseTxPacket( &xEthHandle );
+                    configASSERT( xHalResult == HAL_OK );
+                    while( ETH_TX_DESC_CNT - uxQueueMessagesWaiting( ( QueueHandle_t ) xTxDescSem ) > xEthHandle.TxDescList.BuffersInUse )
+                    {
+                        xSemaphoreGive( xTxDescSem );
+                    }
+                }
+            }
 
-            if( ( ulISREvents & EMAC_IF_ERR_EVENT ) != 0 )
+            if( ( ulISREvents & EMAC_IF_RX_ERR_EVENT ) != 0 )
+            {
+                /*do {
+                    xResult = ( prvNetworkInterfaceInput() > 0 );
+                } while ( xResult != pdFALSE );
+                xResult = pdTRUE;*/
+            }
+
+            if( ( ulISREvents & EMAC_IF_ETH_ERR_EVENT ) != 0 )
+            {
+                /* xEthHandle.gState */
+                /* xEthHandle.ErrorCode */
+            }
+
+            if( ( ulISREvents & EMAC_IF_MAC_ERR_EVENT ) != 0 )
+            {
+                /* xEthHandle.MACErrorCode */
+            }
+
+            if( ( ulISREvents & EMAC_IF_DMA_ERR_EVENT ) != 0 )
             {
                 /* TODO: Does this recover from fatal bus error? */
-                HAL_ETH_Stop_IT( &xEthHandle );
-                /* FreeRTOS_NetworkDown()
-                if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 100U ) ) != pdFALSE )
+                if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 5000U ) ) != pdFALSE )
                 {
-                    configASSERT( HAL_ETH_ReleaseTxPacket( &xEthHandle ) == HAL_OK );
+                    /* xEthHandle.DMAErrorCode */
+                    xEthHandle.gState = HAL_ETH_STATE_STARTED;
+                    xHalResult = HAL_ETH_Stop_IT( &xEthHandle );
+                    configASSERT( xHalResult == HAL_OK );
+                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
+                    configASSERT( xEthHandle.RxDescList.ItMode == 0U);
+                    xHalResult = HAL_ETH_DeInit( &xEthHandle );
+                    configASSERT( xHalResult == HAL_OK );
+                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_RESET );
+                    xHalResult = HAL_ETH_Init( &xEthHandle );
+                    configASSERT( xHalResult == HAL_OK );
+                    configASSERT( xEthHandle.ErrorCode == HAL_ETH_ERROR_NONE );
+                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
+                    xHalResult = HAL_ETH_Start_IT( &xEthHandle );
+                    configASSERT( xHalResult == HAL_OK );
+                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_STARTED );
+                    configASSERT( xEthHandle.RxDescList.ItMode == 1U);
                     xSemaphoreGive( xTxMutex );
-                }*/
-                HAL_ETH_Start_IT( &xEthHandle );
+                }
             }
         }
 
-        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != 0 )
+        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
             prvEthernetUpdateConfig();
+
+            /*
+             #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+                {
+                    if( xGetPhyLinkStatus() == pdFALSE )
+                    {
+                        FreeRTOS_NetworkDown();
+                    }
+                }
+            */
         }
     }
 }
 
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvAcceptPacket( const uint8_t * const pucEthernetBuffer )
+static BaseType_t prvAcceptPacket( NetworkBufferDescriptor_t * pxDescriptor )
 {
     BaseType_t xResult = pdFALSE;
 
-    do {
-        uint32_t pErrorCode = 0;
-        HAL_StatusTypeDef xHalResult = HAL_ETH_GetRxDataErrorCode( &xEthHandle, &pErrorCode );
-        configASSERT( xHalResult == HAL_OK );
-        if ( pErrorCode != 0 )
+    uint32_t pErrorCode = 0;
+    HAL_StatusTypeDef xHalResult = HAL_ETH_GetRxDataErrorCode( &xEthHandle, &pErrorCode );
+    configASSERT( xHalResult == HAL_OK );
+    /* Fxx - ETH_DMARXDESC_DBE | ETH_DMARXDESC_RE | ETH_DMARXDESC_OE  | ETH_DMARXDESC_RWT | ETH_DMARXDESC_LC | ETH_DMARXDESC_CE | ETH_DMARXDESC_DE | ETH_DMARXDESC_IPV4HCE */
+    /* Hxx - ETH_DMARXNDESCWBF_DE | ETH_DMARXNDESCWBF_RE | ETH_DMARXNDESCWBF_OE | ETH_DMARXNDESCWBF_RWT | ETH_DMARXNDESCWBF_GP | ETH_DMARXNDESCWBF_CE */
+
+    if ( pErrorCode == 0 )
+    {
+        eFrameProcessingResult_t xFrameProcessingResult = ipCONSIDER_FRAME_FOR_PROCESSING( pxDescriptor->pucEthernetBuffer );
+        if( xFrameProcessingResult == eProcessBuffer )
         {
-            break;
+            xResult = pdTRUE;
         }
-
-        const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * ) pucEthernetBuffer;
-
-        const uint16_t usFrameType = pxProtPacket->xTCPPacket.xEthernetHeader.usFrameType;
-
-        #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES != 0 )
-            if( usFrameType != ipARP_FRAME_TYPE && usFrameType != ipIPv4_FRAME_TYPE)
-            {
-                break;
-            }
-        #endif
-        #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS != 0 )
-            if( usFrameType == ipIPv4_FRAME_TYPE )
-            {
-                const IPHeader_t * pxIPHeader = &( pxProtPacket->xTCPPacket.xIPHeader );
-
-                if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
-                {
-                    break;
-                }
-
-                if( ( pxIPHeader->ucVersionHeaderLength < 0x45 ) || ( pxIPHeader->ucVersionHeaderLength > 0x4F ) )
-                {
-                    break;
-                }
-
-                const uint32_t ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
-
-                if( ( *ipLOCAL_IP_ADDRESS_POINTER != 0 ) && ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) && ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xff ) != 0xff ) )
-                {
-                    break;
-                }
-
-                if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
-                {
-                    if( ( xPortHasUDPSocket( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort ) == pdFALSE ))
-                    {
-                        break;
-                    }
-                    /* TODO: uncomment these & test */
-                    /*#if ipconfigUSE_LLMNR == 1
-                        && ( usDestinationPort != ipLLMNR_PORT ) &&
-                        ( usSourcePort != ipLLMNR_PORT )
-                    #endif
-                    #if ipconfigUSE_MDNS == 1
-                        && ( usDestinationPort != ipMDNS_PORT ) &&
-                        ( usSourcePort != ipMDNS_PORT )
-                    #endif
-                    #if ipconfigUSE_NBNS == 1
-                        && ( usDestinationPort != ipNBNS_PORT ) &&
-                        ( usSourcePort != ipNBNS_PORT )
-                    #endif
-                    #if ipconfigUSE_DNS == 1
-                        && ( usSourcePort != ipDNS_PORT )
-                    #endif
-                    )*/
-                }
-            }
-        #endif
-
-        xResult = pdTRUE;
-    } while( ipFALSE_BOOL );
+        else
+        {
+            /* Other Enum Values Are Invalid */
+            configASSERT( xFrameProcessingResult == eReleaseBuffer );
+        }
+    }
 
     return xResult;
 }
@@ -594,76 +738,74 @@ static BaseType_t prvAcceptPacket( const uint8_t * const pucEthernetBuffer )
 
 static BaseType_t prvPhyReadReg( BaseType_t xAddress, BaseType_t xRegister, uint32_t * pulValue )
 {
-    BaseType_t iResult = -1;
+    BaseType_t xResult = -1;
     if( HAL_ETH_ReadPHYRegister( &xEthHandle, ( uint32_t ) xAddress, ( uint32_t ) xRegister, pulValue ) == HAL_OK )
     {
-        iResult = 0;
+        xResult = 0;
     }
-    return iResult;
+    return xResult;
 }
 
 /*-----------------------------------------------------------*/
 
 static BaseType_t prvPhyWriteReg( BaseType_t xAddress, BaseType_t xRegister, uint32_t ulValue )
 {
-    BaseType_t iResult = -1;
+    BaseType_t xResult = -1;
     if( HAL_ETH_WritePHYRegister( &xEthHandle, ( uint32_t ) xAddress, ( uint32_t ) xRegister, ulValue ) == HAL_OK )
     {
-        iResult = 0;
+        xResult = 0;
     }
-    return iResult;
+    return xResult;
 }
 
 /*-----------------------------------------------------------*/
 
 static void prvEthernetUpdateConfig( void )
 {
-    BaseType_t xPhyResult;
+    BaseType_t xResult;
     HAL_StatusTypeDef xHalResult;
-    /* TODO: xEthHandle.gState == Check HAL_ETH_STATE_STARTED */
 
-    if( xGetPhyLinkStatus() != pdFAIL )
+    if( xSTM32_GetPhyLinkStatus( pxMyInterface ) != pdFAIL )
     {
-        ETH_MACConfigTypeDef MACConf;
-        xHalResult = HAL_ETH_GetMACConfig( &xEthHandle , &MACConf );
+        xResult = xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+        configASSERT( xResult == 0 );
+
+        xHalResult = HAL_ETH_GetMACConfig( &xEthHandle , &xMACConfig );
         configASSERT( xHalResult == HAL_OK );
 
-        #if ( ipconfigETHERNET_AN_ENABLE != 0 )
-            xPhyResult = xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
-            configASSERT( xPhyResult == 0 );
+        xMACConfig.DuplexMode = ( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
+        xMACConfig.Speed = ( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
 
-            MACConf.DuplexMode = ( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
-            MACConf.Speed = ( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
+        xHalResult = HAL_ETH_SetMACConfig( &xEthHandle, &xMACConfig );
+        configASSERT( xHalResult == HAL_OK );
 
-            xHalResult = HAL_ETH_SetMACConfig( &xEthHandle, &MACConf );
-            configASSERT( xHalResult == HAL_OK );
-        #else
-            xPhyObject.xPhyPreferences.ucDuplex = ( MACConf.DuplexMode == ETH_FULLDUPLEX_MODE ) ? PHY_DUPLEX_FULL : PHY_DUPLEX_HALF;
-            xPhyObject.xPhyPreferences.ucSpeed = ( MACConf.Speed == ETH_SPEED_10M ) ? PHY_SPEED_10 : PHY_SPEED_100;
-            xPhyObject.xPhyPreferences.ucMDI_X = PHY_MDIX_AUTO;
-            xPhyFixedValue( &xPhyObject, xPhyGetMask( &xPhyObject ) );
-        #endif
-
-        if( xGetPhyLinkStatus() != pdFAIL )
-        {
-            ( void ) HAL_ETH_Start_IT( &xEthHandle );
-        }
+        xHalResult = HAL_ETH_Start_IT( &xEthHandle );
+        configASSERT( xHalResult == HAL_OK );
     }
     else
     {
-        if( HAL_ETH_Stop_IT( &xEthHandle ) == HAL_OK )
-        {
-            /* iptraceNETWORK_INTERFACE_STATUS_CHANGE(); */
-            if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 100U ) ) != pdFALSE )
-            {
-                xHalResult = HAL_ETH_ReleaseTxPacket( &xEthHandle );
-                configASSERT( xHalResult == HAL_OK );
-                memset( &DMATxDscrTab, 0, sizeof( DMATxDscrTab ) );
-                ( void ) xSemaphoreGive( xTxMutex );
-            }
-        }
+        /* iptraceNETWORK_INTERFACE_STATUS_CHANGE(); */
+        xHalResult = HAL_ETH_Stop_IT( &xEthHandle );
+        configASSERT( xHalResult == HAL_OK );
     }
 }
+
+/*-----------------------------------------------------------*/
+
+/*static void prvMACAddressConfig( ETH_HandleTypeDef * heth, uint32_t ulIndex, uint8_t * addr )
+{
+    uint32_t ulTempReg;
+
+    ( void ) heth;
+
+    ulTempReg = 0x80000000ul | ( ( uint32_t ) addr[ 5 ] << 8 ) | ( uint32_t ) addr[ 4 ];
+
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+
+    ulTempReg = ( ( uint32_t ) addr[ 3 ] << 24 ) | ( ( uint32_t ) addr[ 2 ] << 16 ) | ( ( uint32_t ) addr[ 1 ] << 8 ) | addr[ 0 ];
+
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+}*/
 
 /*-----------------------------------------------------------*/
 
@@ -685,12 +827,9 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * heth )
         uxMostRXDescsUsed = uxRxUsed;
     }
 
-    if( xEMACTaskHandle != NULL )
-    {
-        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_RX_EVENT, eSetBits, &xHigherPriorityTaskWoken );
-        portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
-    }
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_RX_EVENT, eSetBits, &xHigherPriorityTaskWoken );
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
 /*-----------------------------------------------------------*/
@@ -707,6 +846,7 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
     }
 
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+//  vTaskNotifyGiveIndexedFromISR( xEMACTaskHandle, TX_INDEX, &xHigherPriorityTaskWoken );
     xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_TX_EVENT, eSetBits, &xHigherPriorityTaskWoken );
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
@@ -715,6 +855,8 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
 
 void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
 {
+    // volatile uint32_t errs = heth->Instance->DMASR;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     if( HAL_ETH_GetError( heth ) & HAL_ETH_ERROR_DMA )
     {
         if( HAL_ETH_GetDMAError( heth ) )
@@ -722,50 +864,53 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
             if( heth->gState == HAL_ETH_STATE_ERROR )
             {
                 /* fatal bus error occurred */
-                /* F7 - ETH_DMASR_FBES | ETH_DMASR_TPS | ETH_DMASR_RPS */
-                /* H7 - ETH_DMACSR_FBE | ETH_DMACSR_TPS | ETH_DMACSR_RPS */
-                BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-                xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_ERR_EVENT, eSetBits, &xHigherPriorityTaskWoken );
-                portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+                /* Fxx - ETH_DMASR_FBES | ETH_DMASR_TPS | ETH_DMASR_RPS */
+                /* Hxx - ETH_DMACSR_FBE | ETH_DMACSR_TPS | ETH_DMACSR_RPS */
+                xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_DMA_ERR_EVENT, eSetBits, &xHigherPriorityTaskWoken );
             }
             else
             {
-                /* F7 - ETH_DMASR_ETS | ETH_DMASR_RWTS | ETH_DMASR_RBUS | ETH_DMASR_AIS */
-                /* H7 - ETH_DMACSR_CDE | ETH_DMACSR_ETI | ETH_DMACSR_RWT | ETH_DMACSR_RBU | ETH_DMACSR_AIS */
-                /* TODO: Check if allocated in HAL_ETH_RxAllocateCallback before error interrupt, then release in task */
-                /*if( ( HAL_ETH_GetDMAError(heth) & ETH_DMACSR_RBU ) == ETH_DMACSR_RBU )
-                {
+                /* Fxx - ETH_DMASR_ETS | ETH_DMASR_RWTS | ETH_DMASR_RBUS | ETH_DMASR_AIS */
+                /* Hxx - ETH_DMACSR_CDE | ETH_DMACSR_ETI | ETH_DMACSR_RWT | ETH_DMACSR_RBU | ETH_DMACSR_AIS */
+                #if defined( STM32F4 ) || defined ( STM32F7 )
+                    if((HAL_ETH_GetDMAError(heth) & ETH_DMASR_TBUS) == ETH_DMASR_TBUS)
+                    {
+                        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_TX_ERR_EVENT, eSetBits, &xHigherPriorityTaskWoken );
+                    }
 
-                }*/
-                /* TODO: same as above but for Tx */
-                /*if( ( HAL_ETH_GetDMAError(heth) & ETH_DMACSR_TBU ) == ETH_DMACSR_TBU )
-                {
-                    xSemaphoreGiveFromISR( xTxDescSem );
-                }*/
+                    if((HAL_ETH_GetDMAError(heth) & ETH_DMASR_RBUS) == ETH_DMASR_RBUS)
+                    {
+                        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_RX_ERR_EVENT, eSetBits, &xHigherPriorityTaskWoken );
+                    }
+                #endif
             }
         }
     }
 
-    #ifdef STM32H7
+    #if defined( STM32H7 ) || defined ( STM32H5 )
         if( HAL_ETH_GetError( heth ) & HAL_ETH_ERROR_MAC )
         {
             if( HAL_ETH_GetMACError( heth ) )
             {
-
+                xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_MAC_ERR_EVENT, eSetBits, &xHigherPriorityTaskWoken );
             }
         }
     #endif
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
 /*-----------------------------------------------------------*/
 
 void HAL_ETH_RxAllocateCallback( uint8_t **buff )
 {
-    /* TODO: Verify this size */
-    NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( ETH_RX_BUF_SIZE, pdMS_TO_TICKS( 20U ) );
+    NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( EMAC_DATA_BUFFER_SIZE, pdMS_TO_TICKS( 200U ) );
     if( pxBufferDescriptor != NULL )
     {
         *buff = pxBufferDescriptor->pucEthernetBuffer;
+    }
+    else
+    {
+        FreeRTOS_debug_printf( ( "HAL_ETH_RxAllocateCallback: failed\n" ) );
     }
 }
 
@@ -773,34 +918,42 @@ void HAL_ETH_RxAllocateCallback( uint8_t **buff )
 
 void HAL_ETH_RxLinkCallback( void **pStart, void **pEnd, uint8_t *buff, uint16_t Length )
 {
+    NetworkBufferDescriptor_t ** pStartDescriptor = ( NetworkBufferDescriptor_t ** ) pStart;
+    NetworkBufferDescriptor_t ** pEndDescriptor = ( NetworkBufferDescriptor_t ** ) pEnd;
     NetworkBufferDescriptor_t * pxCurDescriptor = pxPacketBuffer_to_NetworkBuffer( ( const void * ) buff );
-    if( pxCurDescriptor != NULL )
+    if ( Length <= EMAC_DATA_BUFFER_SIZE && prvAcceptPacket( pxCurDescriptor ) == pdTRUE )
     {
-        if ( prvAcceptPacket( pxCurDescriptor->pucEthernetBuffer ) == pdTRUE )
+        pxCurDescriptor->xDataLength = Length;
+        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            pxCurDescriptor->pxNextBuffer = NULL;
+        #endif
+        if( *pStartDescriptor == NULL )
         {
-            NetworkBufferDescriptor_t ** pStartDescriptor = ( NetworkBufferDescriptor_t ** ) pStart;
-            NetworkBufferDescriptor_t ** pEndDescriptor = ( NetworkBufferDescriptor_t ** ) pEnd;
-
-            pxCurDescriptor->xDataLength = Length;
-            #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                pxCurDescriptor->pxNextBuffer = NULL;
-            #endif
-            if( *pStartDescriptor == NULL )
+            *pStartDescriptor = pxCurDescriptor;
+        }
+        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            else if( pEndDescriptor != NULL )
             {
-                *pStartDescriptor = pxCurDescriptor;
+                ( *pEndDescriptor )->pxNextBuffer = pxCurDescriptor;
             }
+        #endif
+        *pEndDescriptor = pxCurDescriptor;
+        /* Only single buffer packets are supported */
+        configASSERT( *pStartDescriptor == *pEndDescriptor );
+    }
+    else
+    {
+        FreeRTOS_debug_printf( ( "HAL_ETH_RxLinkCallback: Buffer Dropped\n" ) );
+        NetworkBufferDescriptor_t * pxDescriptorToClear = pxCurDescriptor;
+        do {
             #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                else if( pEndDescriptor != NULL )
-                {
-                    ( *pEndDescriptor )->pxNextBuffer = pxCurDescriptor;
-                }
+                NetworkBufferDescriptor_t * pxNext = pxDescriptorToClear->pxNextBuffer;
+            #else
+                NetworkBufferDescriptor_t * pxNext = NULL;
             #endif
-            *pEndDescriptor = pxCurDescriptor;
-        }
-        else
-        {
-            vReleaseNetworkBufferAndDescriptor( pxCurDescriptor );
-        }
+            vReleaseNetworkBufferAndDescriptor( pxDescriptorToClear );
+            pxDescriptorToClear = pxNext;
+        } while( pxDescriptorToClear != NULL );
     }
 }
 
@@ -810,8 +963,7 @@ void HAL_ETH_TxFreeCallback( uint32_t *buff )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) buff;
     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-    /* TODO: uncomment this after chaining Tx Buffers */
-    /* xSemaphoreGive( xTxDescSem ); */
+    xSemaphoreGive( xTxDescSem );
 }
 
 /*-----------------------------------------------------------*/
