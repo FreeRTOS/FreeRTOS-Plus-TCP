@@ -43,9 +43,9 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ICMP.h"
 #include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
@@ -74,7 +74,8 @@
 /**
  * @brief Process an ICMP packet. Only echo requests and echo replies are recognised and handled.
  *
- * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+ * @param[in,out] pxNetworkBuffer The pointer to the network buffer descriptor
+ *  that contains the ICMP message.
  *
  * @return eReleaseBuffer when the message buffer should be released, or eReturnEthernetFrame
  *                        when the packet should be returned.
@@ -132,13 +133,16 @@
 /**
  * @brief Process an ICMP echo request.
  *
- * @param[in,out] pxICMPPacket: The IP packet that contains the ICMP message.
+ * @param[in,out] pxICMPPacket The IP packet that contains the ICMP message.
+ * @param pxNetworkBuffer Pointer to the network buffer containing the ICMP packet.
+ * @returns Function returns eReturnEthernetFrame.
  */
     static eFrameProcessingResult_t prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
                                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer )
     {
         ICMPHeader_t * pxICMPHeader;
         IPHeader_t * pxIPHeader;
+        uint32_t ulIPAddress;
 
         pxICMPHeader = &( pxICMPPacket->xICMPHeader );
         pxIPHeader = &( pxICMPPacket->xIPHeader );
@@ -151,8 +155,9 @@
          * tell that the ping was received - even if the ping reply contains
          * invalid data. */
         pxICMPHeader->ucTypeOfMessage = ( uint8_t ) ipICMP_ECHO_REPLY;
+        ulIPAddress = pxIPHeader->ulDestinationIPAddress;
         pxIPHeader->ulDestinationIPAddress = pxIPHeader->ulSourceIPAddress;
-        pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+        pxIPHeader->ulSourceIPAddress = ulIPAddress;
         /* Update the TTL field. */
         pxIPHeader->ucTimeToLive = ipconfigICMP_TIME_TO_LIVE;
 
@@ -169,7 +174,7 @@
             {
                 /* calculate the IP header checksum, in case the driver won't do that. */
                 pxIPHeader->usHeaderChecksum = 0x00U;
-                pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
+                pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSizePacket( pxNetworkBuffer ) );
                 pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
                 /* calculate the ICMP checksum for an outgoing packet. */
@@ -197,7 +202,7 @@
 /**
  * @brief Process an ICMP echo reply.
  *
- * @param[in] pxICMPPacket: The IP packet that contains the ICMP message.
+ * @param[in] pxICMPPacket The IP packet that contains the ICMP message.
  */
     static void prvProcessICMPEchoReply( ICMPPacket_t * const pxICMPPacket )
     {
@@ -215,7 +220,7 @@
 
         /* Remove the length of the ICMP header, to obtain the length of
          * data contained in the ping. */
-        usDataLength = ( uint16_t ) ( ( ( uint32_t ) usDataLength ) - ipSIZE_OF_ICMP_HEADER );
+        usDataLength = ( uint16_t ) ( ( ( uint32_t ) usDataLength ) - ipSIZE_OF_ICMPv4_HEADER );
 
         /* Checksum has already been checked before in prvProcessIPPacket */
 

@@ -116,6 +116,8 @@ void test_ProcessICMPPacket_EchoRequest( void )
 
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REQUEST;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
+
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0xAA );
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0 );
@@ -169,7 +171,7 @@ void test_ProcessICMPPacket_ICMPEchoReply_NULLData( void )
 
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER );
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER );
 
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
@@ -197,7 +199,7 @@ void test_ProcessICMPPacket_ICMPEchoReply_ProperData( void )
 
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER + 10 );
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 10 );
 
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
@@ -229,7 +231,7 @@ void test_ProcessICMPPacket_ICMPEchoReply_ImproperData( void )
 
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMP_HEADER + 10 );
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 10 );
 
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;

@@ -82,6 +82,22 @@ static void prvSetMACAddress( void );
 
 /*-----------------------------------------------------------*/
 
+/*
+ * A pointer to the network interface is needed later when receiving packets.
+ */
+static NetworkInterface_t * pxMyInterface;
+
+static BaseType_t xMPS2_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t bReleaseAfterSend );
+static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxMPS2_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                     NetworkInterface_t * pxInterface );
+
+/*-----------------------------------------------------------*/
+
 static const struct smsc9220_eth_dev_cfg_t SMSC9220_ETH_DEV_CFG =
 {
     .base = SMSC9220_BASE
@@ -144,6 +160,10 @@ static void prvRxTask( void * pvParameters )
         while( ( ulDataRead = prvLowLevelInput( &pxNetworkBuffer ) ) != 0UL )
         {
             xRxEvent.pvData = ( void * ) pxNetworkBuffer;
+
+            pxNetworkBuffer->pxInterface = pxMyInterface;
+            pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNetworkBuffer->pucEthernetBuffer );
+            pxNetworkBuffer->pxEndPoint = pxNetworkEndPoints; /*temporary change for single end point */
 
             if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 0 ) == pdFAIL )
             {
@@ -218,12 +238,14 @@ void EthernetISR( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceInitialise( void )
+static BaseType_t xMPS2_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     const uint32_t ulEthernetIRQ = 13UL;
     BaseType_t xReturn = pdFAIL;
     enum smsc9220_error_t err;
+
+    ( void ) pxInterface;
 
     if( xRxTaskHandle == NULL )
     {
@@ -296,12 +318,15 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     enum smsc9220_error_t error = SMSC9220_ERROR_NONE;
     BaseType_t xReturn = pdFAIL, x;
+
+    ( void ) pxInterface;
 
     for( x = 0; x < niMAX_TX_ATTEMPTS; x++ )
     {
@@ -355,12 +380,14 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xGetPhyLinkStatus( void )
+
+static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     uint32_t ulPHYBasicStatusValue;
     BaseType_t xLinkStatusUp;
 
+    ( void ) pxInterface;
     /* Get current status */
     smsc9220_phy_regread( dev, SMSC9220_PHY_REG_OFFSET_BSTATUS,
                           &ulPHYBasicStatusValue );
@@ -368,3 +395,45 @@ BaseType_t xGetPhyLinkStatus( void )
                                ( 1ul << ( PHY_REG_BSTATUS_LINK_STATUS_INDEX ) ) );
     return xLinkStatusUp;
 }
+
+/*-----------------------------------------------------------*/
+
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        pxMPS2_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif
+/*-----------------------------------------------------------*/
+
+NetworkInterface_t * pxMPS2_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                     NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+/* This function pxFillInterfaceDescriptor() adds a network-interface.
+ * Make sure that the object pointed to by 'pxInterface'
+ * is declared static or global, and that it will remain to exist. */
+
+    pxMyInterface = pxInterface;
+
+    snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xMPS2_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xMPS2_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xMPS2_GetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+/*-----------------------------------------------------------*/

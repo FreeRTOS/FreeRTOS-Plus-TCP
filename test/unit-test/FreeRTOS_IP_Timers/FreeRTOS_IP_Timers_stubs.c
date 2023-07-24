@@ -46,6 +46,9 @@ NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 BaseType_t xProcessedTCPMessage;
 
+struct xNetworkEndPoint * pxNetworkEndPoints;
+struct xNetworkInterface * pxNetworkInterfaces;
+
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 

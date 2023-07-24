@@ -124,13 +124,15 @@ void test_prvCheckOptions_No_Option( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 64;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
@@ -145,14 +147,16 @@ void test_prvCheckOptions_Invalid_Data_Length( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
     pxNetworkBuffer->xDataLength = 50;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
@@ -167,14 +171,16 @@ void test_prvCheckOptions_Invalid_Option_Length( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
     pxNetworkBuffer->xDataLength = 60;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
@@ -189,10 +195,10 @@ void test_prvCheckOptions_MSS_WSF( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -202,7 +208,10 @@ void test_prvCheckOptions_MSS_WSF( void )
     TCPWindow_t tcpWindow;
     tcpWindow.usMSS = 536;
     pxSocket->u.xTCP.usMSS = 1400;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( 500 );
+
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
@@ -216,10 +225,10 @@ void test_prvCheckOptions_MSS_WSF_Bad_Option( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -229,7 +238,10 @@ void test_prvCheckOptions_MSS_WSF_Bad_Option( void )
     TCPWindow_t tcpWindow;
     tcpWindow.usMSS = 536;
     pxSocket->u.xTCP.usMSS = 1400;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( 500 );
+
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -243,10 +255,10 @@ void test_prvCheckOptions_MSS_WSF_Without_END( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -256,6 +268,7 @@ void test_prvCheckOptions_MSS_WSF_Without_END( void )
     TCPWindow_t tcpWindow;
     tcpWindow.usMSS = 536;
     pxSocket->u.xTCP.usMSS = 1400;
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( 500 );
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
@@ -270,10 +283,10 @@ void test_prvCheckOptions_MSS_WSF_SYN_on( void )
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -284,6 +297,7 @@ void test_prvCheckOptions_MSS_WSF_SYN_on( void )
     TCPWindow_t tcpWindow;
     tcpWindow.usMSS = 536;
     pxSocket->u.xTCP.usMSS = 1400;
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( 500 );
     xReturn = prvCheckOptions( pxSocket, pxNetworkBuffer );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
@@ -297,7 +311,7 @@ void test_prvSingleStepTCPHeaderOptions_SACK( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                              &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
@@ -329,7 +343,7 @@ void test_prvSingleStepTCPHeaderOptions_TS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
                                              &( pxNetworkBuffer->pucEthernetBuffer[ uxTCPHeaderOffset ] ) );
@@ -363,7 +377,7 @@ void test_prvSingleStepTCPHeaderOptions_END_NOOP( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -401,10 +415,10 @@ void test_prvSingleStepTCPHeaderOptions_MSS_Invalid_Length( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -448,10 +462,10 @@ void test_prvSingleStepTCPHeaderOptions_Zero_Length_MSS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -477,9 +491,9 @@ void test_prvSingleStepTCPHeaderOptions_Same_MSS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -508,10 +522,10 @@ void test_prvSingleStepTCPHeaderOptions_Invalid_Length_WS( void )
     /* Setup TCP option for tests */
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer );
+    size_t uxTCPHeaderOffset = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER;
 
     ProtocolHeaders_t * pxProtocolHeader = ( ( ProtocolHeaders_t * )
-                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                             &( pxNetworkBuffer->pucEthernetBuffer[ ( size_t ) ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &( pxProtocolHeader->xTCPHeader );
 
     pxTCPHeader->ucTCPOffset = 0x80;
@@ -655,8 +669,11 @@ uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ] =
     0x81, 0xe7, 0x65, 0x1e, 0xb1, 0x77, 0xcc, 0x72, 0x11
 };
 
-/* Test for prvCheckRxData function. */
-void test_prvCheckRxData( void )
+/**
+ * @brief This function validates getting the TCP payload data
+ *        and check the length of this data when frame type is IPv4.
+ */
+void test_prvCheckRxData_IPv4( void )
 {
     int32_t result;
 
@@ -666,10 +683,72 @@ void test_prvCheckRxData( void )
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     uint8_t * pData;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
     TEST_ASSERT_EQUAL( 14, result );
 }
+
+/**
+ * @brief This function validates getting the TCP payload data
+ *        and check the length of this data when frame type is IPv6.
+ */
+void test_prvCheckRxData_IPv6( void )
+{
+    int32_t result;
+    uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * px_ethHeader;
+    uint8_t * pData;
+    IPHeader_IPv6_t * pxIPHeader;
+
+    /* Setup TCP option for tests */
+    memset( EthernetBuffer, 0, sizeof( EthernetBuffer ) );
+    pxNetworkBuffer = &xNetworkBuffer;
+
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    pxNetworkBuffer->xDataLength = 0x50;
+    px_ethHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    px_ethHeader->usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPHeader = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) );
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+
+    result = prvCheckRxData( pxNetworkBuffer, &pData );
+
+    TEST_ASSERT_EQUAL( ( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ) ), result );
+}
+
+/**
+ * @brief This function validates getting the TCP payload data
+ *        and check the length of this data when frame type is incorrect.
+ */
+void test_prvCheckRxData_IncorrectFrameType( void )
+{
+    int32_t result;
+    uint8_t EthernetBuffer[ ipconfigNETWORK_MTU ];
+    EthernetHeader_t * px_ethHeader;
+    uint8_t * pData;
+
+    /* Setup TCP option for tests */
+    memset( EthernetBuffer, 0, sizeof( EthernetBuffer ) );
+    pxNetworkBuffer = &xNetworkBuffer;
+
+    pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
+    px_ethHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    px_ethHeader->usFrameType = 0;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( 0 );
+
+    result = prvCheckRxData( pxNetworkBuffer, &pData );
+
+    TEST_ASSERT_EQUAL( 0, result );
+}
+
 
 /* Test for prvCheckRxData function. */
 void test_prvCheckRxData_URG_On( void )
@@ -693,8 +772,10 @@ void test_prvCheckRxData_URG_On( void )
 
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_urg;
     uint8_t * pData;
-    FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 10 );
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 10 );
 
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
@@ -712,6 +793,9 @@ void test_prvStoreRxData_Happy_Path( void )
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     uint8_t * pData;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
     TEST_ASSERT_EQUAL( 14, result );
@@ -724,6 +808,7 @@ void test_prvStoreRxData_Happy_Path( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     pxTCPWindow->ulUserDataLength = 14;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferGetSpace_ExpectAnyArgsAndReturn( 100 );
     lTCPWindowRxCheck_ExpectAnyArgsAndReturn( 20 );
     lTCPAddRxdata_ExpectAnyArgsAndReturn( 14 );
@@ -749,6 +834,9 @@ void test_prvStoreRxData_Wrong_State( void )
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     uint8_t * pData;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
     TEST_ASSERT_EQUAL( 14, result );
@@ -756,6 +844,8 @@ void test_prvStoreRxData_Wrong_State( void )
     BaseType_t xResult = 0;
     xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
     pxSocket = &xSocket;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xResult = prvStoreRxData( pxSocket,
                               pData,
@@ -785,6 +875,9 @@ void test_prvStoreRxData_Zero_Length( void )
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer_zl;
     uint8_t * pData;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
     TEST_ASSERT_EQUAL( 0, result );
@@ -792,6 +885,8 @@ void test_prvStoreRxData_Zero_Length( void )
     BaseType_t xResult = 0;
     xSocket.u.xTCP.eTCPState = eESTABLISHED;
     pxSocket = &xSocket;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     xResult = prvStoreRxData( pxSocket,
                               pData,
@@ -813,6 +908,9 @@ void test_prvStoreRxData_Null_RxStream( void )
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     uint8_t * pData;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
     TEST_ASSERT_EQUAL( 14, result );
@@ -823,6 +921,7 @@ void test_prvStoreRxData_Null_RxStream( void )
     xSocket.u.xTCP.rxStream = NULL;
     pxSocket = &xSocket;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     lTCPWindowRxCheck_ExpectAnyArgsAndReturn( 20 );
     lTCPAddRxdata_ExpectAnyArgsAndReturn( 14 );
     prvTCPSendReset_IgnoreAndReturn( pdTRUE );
@@ -846,6 +945,9 @@ void test_prvStoreRxData_Negative_Offset( void )
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
     uint8_t * pData;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
     TEST_ASSERT_EQUAL( 14, result );
@@ -858,6 +960,7 @@ void test_prvStoreRxData_Negative_Offset( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
     pxTCPWindow->ulUserDataLength = 0;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     lTCPWindowRxCheck_ExpectAnyArgsAndReturn( -1 );
 
     xResult = prvStoreRxData( pxSocket,
@@ -878,9 +981,12 @@ void test_prvStoreRxData_None_Zero_Skipcount( void )
     pxNetworkBuffer->pucEthernetBuffer = EthernetBuffer;
 
     ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * )
-                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+                                              &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
     TCPHeader_t * pxTCPHeader = &pxProtocolHeaders->xTCPHeader;
     uint8_t * pData;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     result = prvCheckRxData( pxNetworkBuffer, &pData );
 
@@ -898,6 +1004,7 @@ void test_prvStoreRxData_None_Zero_Skipcount( void )
     uint32_t * pSkipCount = &SkipCount;
     *( pSkipCount ) = 10;
 
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     lTCPWindowRxCheck_ExpectAndReturn(
         pxTCPWindow,
         FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber ),

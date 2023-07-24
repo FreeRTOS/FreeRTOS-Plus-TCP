@@ -68,7 +68,7 @@
     #endif
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* NETWORK_BUFFER_MANAGEMENT_H */

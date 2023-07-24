@@ -137,7 +137,9 @@
 #endif
 
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 ) || ( ipconfigZERO_COPY_TX_DRIVER == 0 )
-    #warning It is adviced to enable both macros
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning It is adviced to enable both macros
+    #endif
 #endif
 
 #ifndef configPLACE_IN_SECTION_RAM
@@ -275,7 +277,11 @@ BaseType_t xNetworkInterfaceInitialise( void )
         }
     #else
         {
-            #warning This path has not been tested.
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+                {
+                    #warning This path has not been tested.
+                }
+            #endif
 
             if( lpc_phy_init( pdFALSE, prvDelay ) != SUCCESS )
             {

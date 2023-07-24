@@ -63,44 +63,35 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 
 #include "Zynq/x_emacpsif.h"
 #include "xparameters_ps.h"
 #include "xparameters.h"
 
+#define ETH0_PHY_ADDRESS    ( 1 ) /* Hardwired in WFI PCB */
+#define ETH1_PHY_ADDRESS    ( 2 ) /* Hardwired in WFI PCB */
+int phy_detected[ 2 ] = { ETH0_PHY_ADDRESS, ETH1_PHY_ADDRESS };
 
-int phy_detected = 0;
-
-/*** IMPORTANT: Define PEEP in xemacpsif.h and sys_arch_raw.c
- *** to run it on a PEEP board
- ***/
 
 /* Advertisement control register. */
-#define ADVERTISE_10HALF     0x0020     /* Try for 10mbps half-duplex  */
-#define ADVERTISE_10FULL     0x0040     /* Try for 10mbps full-duplex  */
-#define ADVERTISE_100HALF    0x0080     /* Try for 100mbps half-duplex */
-#define ADVERTISE_100FULL    0x0100     /* Try for 100mbps full-duplex */
+#define ADVERTISE_10HALF                       0x0020 /* Try for 10mbps half-duplex  */
+#define ADVERTISE_10FULL                       0x0040 /* Try for 10mbps full-duplex  */
+#define ADVERTISE_100HALF                      0x0080 /* Try for 100mbps half-duplex */
+#define ADVERTISE_100FULL                      0x0100 /* Try for 100mbps full-duplex */
 
 #define ADVERTISE_100_AND_10                 \
     ( ADVERTISE_10FULL | ADVERTISE_100FULL | \
       ADVERTISE_10HALF | ADVERTISE_100HALF )
-#define ADVERTISE_100        ( ADVERTISE_100FULL | ADVERTISE_100HALF )
-#define ADVERTISE_10         ( ADVERTISE_10FULL | ADVERTISE_10HALF )
+#define ADVERTISE_100                          ( ADVERTISE_100FULL | ADVERTISE_100HALF )
+#define ADVERTISE_10                           ( ADVERTISE_10FULL | ADVERTISE_10HALF )
 
-#define ADVERTISE_1000       0x0300
+#define ADVERTISE_1000                         0x0300
 
-
-/*#define PHY_REG_00_BMCR            0x00 // Basic mode control register */
-/*#define PHY_REG_01_BMSR            0x01 // Basic mode status register */
-/*#define PHY_REG_02_PHYSID1         0x02 // PHYS ID 1 */
-/*#define PHY_REG_03_PHYSID2         0x03 // PHYS ID 2 */
-/*#define PHY_REG_04_ADVERTISE       0x04 // Advertisement control reg */
 
 #define IEEE_CONTROL_REG_OFFSET                0
 #define IEEE_STATUS_REG_OFFSET                 1
-#define IEEE_PHYSID1_OFFSET                    2
-#define IEEE_PHYSID2_OFFSET                    3
 #define IEEE_AUTONEGO_ADVERTISE_REG            4
 #define IEEE_PARTNER_ABILITIES_1_REG_OFFSET    5
 #define IEEE_1000_ADVERTISE_REG_OFFSET         9
@@ -137,6 +128,9 @@ int phy_detected = 0;
 #define IEEE_PAUSE_MASK                        0x0400
 #define IEEE_AUTONEG_ERROR_MASK                0x8000
 
+#define PHY_DETECT_REG                         1
+#define PHY_DETECT_MASK                        0x1808
+
 #define XEMACPS_GMII2RGMII_SPEED1000_FD        0x140
 #define XEMACPS_GMII2RGMII_SPEED100_FD         0x2100
 #define XEMACPS_GMII2RGMII_SPEED10_FD          0x100
@@ -168,18 +162,18 @@ int phy_detected = 0;
 static int detect_phy( XEmacPs * xemacpsp )
 {
     u16 id_lower, id_upper;
-    u32 phy_addr, id;
+    u32 phy_addr;
 
     for( phy_addr = 0; phy_addr < PHY_ADDRESS_COUNT; phy_addr++ )
     {
-        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PHYSID1_OFFSET, &id_lower );
+        XEmacPs_PhyRead( xemacpsp, phy_addr, PHY_DETECT_REG, &id_lower );
 
-        if( ( id_lower != ( u16 ) 0xFFFFu ) && ( id_lower != ( u16 ) 0x0u ) )
+        if( ( id_lower != 0xFFFF ) &&
+            ( ( id_lower & PHY_DETECT_MASK ) == PHY_DETECT_MASK ) )
         {
-            XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_PHYSID2_OFFSET, &id_upper );
-            id = ( ( ( uint32_t ) id_upper ) << 16 ) | ( id_lower & 0xFFF0 );
-            FreeRTOS_printf( ( "XEmacPs detect_phy: %04lX at address %u.\n", id, ( unsigned ) phy_addr ) );
-            phy_detected = phy_addr;
+            /* Found a valid PHY address */
+            FreeRTOS_printf( ( "XEmacPs detect_phy: PHY detected at address %d.\n", ( unsigned ) phy_addr ) );
+            phy_detected[ xemacpsp->Config.DeviceId ] = phy_addr;
             return phy_addr;
         }
     }
@@ -297,6 +291,7 @@ static int detect_phy( XEmacPs * xemacpsp )
         #if XPAR_GIGE_PCS_PMA_CORE_PRESENT == 1
             u32 phy_addr = XPAR_PCSPMA_SGMII_PHYADDR;
         #else
+            /* PHY addresses hardcoded ETH0=1 and ETH1=2. */
             u32 phy_addr = detect_phy( xemacpsp );
         #endif
         FreeRTOS_printf( ( "Start PHY autonegotiation \n" ) );
@@ -435,66 +430,73 @@ static int detect_phy( XEmacPs * xemacpsp )
             }
         #endif /* if XPAR_GIGE_PCS_PMA_CORE_PRESENT == 1 */
     }
-#endif /* ifdef PEEP */
+#endif /* Zynq */
 
 unsigned configure_IEEE_phy_speed( XEmacPs * xemacpsp,
                                    unsigned speed )
 {
     u16 control;
-    u32 phy_addr = detect_phy( xemacpsp );
+    u32 phy_addr;
+    int i;
 
-    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_PAGE_ADDRESS_REGISTER, 2 );
-    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_MAC, &control );
-    control |= IEEE_RGMII_TXRX_CLOCK_DELAYED_MASK;
-    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_MAC, control );
-
-    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_PAGE_ADDRESS_REGISTER, 0 );
-
-    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, &control );
-    control |= IEEE_ASYMMETRIC_PAUSE_MASK;
-    control |= IEEE_PAUSE_MASK;
-    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, control );
-
-    XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
-    control &= ~IEEE_CTRL_LINKSPEED_1000M;
-    control &= ~IEEE_CTRL_LINKSPEED_100M;
-    control &= ~IEEE_CTRL_LINKSPEED_10M;
-
-    if( speed == 1000 )
+    for( i = 0; i < 2; i++ )
     {
-        control |= IEEE_CTRL_LINKSPEED_1000M;
-    }
+        phy_addr = phy_detected[ i ]; /* Both PHYs are connected to ETH0 */
 
-    else if( speed == 100 )
-    {
-        control |= IEEE_CTRL_LINKSPEED_100M;
-        /* Dont advertise PHY speed of 1000 Mbps */
-        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET, 0 );
-        /* Dont advertise PHY speed of 10 Mbps */
-        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG,
-                          ADVERTISE_100 );
-    }
+        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_PAGE_ADDRESS_REGISTER, 2 );
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_MAC, &control );
+        control |= IEEE_RGMII_TXRX_CLOCK_DELAYED_MASK;
+        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_MAC, control );
 
-    else if( speed == 10 )
-    {
-        control |= IEEE_CTRL_LINKSPEED_10M;
-        /* Dont advertise PHY speed of 1000 Mbps */
-        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET,
-                          0 );
-        /* Dont advertise PHY speed of 100 Mbps */
-        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG,
-                          ADVERTISE_10 );
-    }
+        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_PAGE_ADDRESS_REGISTER, 0 );
 
-    XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET,
-                      control | IEEE_CTRL_RESET_MASK );
-    {
-        volatile int wait;
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, &control );
+        control |= IEEE_ASYMMETRIC_PAUSE_MASK;
+        control |= IEEE_PAUSE_MASK;
+        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG, control );
 
-        for( wait = 0; wait < 100000; wait++ )
+        XEmacPs_PhyRead( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET, &control );
+        control &= ~IEEE_CTRL_LINKSPEED_1000M;
+        control &= ~IEEE_CTRL_LINKSPEED_100M;
+        control &= ~IEEE_CTRL_LINKSPEED_10M;
+
+        if( speed == 1000 )
         {
+            control |= IEEE_CTRL_LINKSPEED_1000M;
+        }
+
+        else if( speed == 100 )
+        {
+            control |= IEEE_CTRL_LINKSPEED_100M;
+            /* Dont advertise PHY speed of 1000 Mbps */
+            XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET, 0 );
+            /* Dont advertise PHY speed of 10 Mbps */
+            XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG,
+                              ADVERTISE_100 );
+        }
+
+        else if( speed == 10 )
+        {
+            control |= IEEE_CTRL_LINKSPEED_10M;
+            /* Dont advertise PHY speed of 1000 Mbps */
+            XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_1000_ADVERTISE_REG_OFFSET,
+                              0 );
+            /* Dont advertise PHY speed of 100 Mbps */
+            XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_AUTONEGO_ADVERTISE_REG,
+                              ADVERTISE_10 );
+        }
+
+        XEmacPs_PhyWrite( xemacpsp, phy_addr, IEEE_CONTROL_REG_OFFSET,
+                          control | IEEE_CTRL_RESET_MASK );
+        {
+            volatile int wait;
+
+            for( wait = 0; wait < 100000; wait++ )
+            {
+            }
         }
     }
+
     return 0;
 }
 
