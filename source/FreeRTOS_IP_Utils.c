@@ -997,7 +997,7 @@ void vPreCheckConfigs( void )
             #endif
             /* LCOV_EXCL_BR_STOP */
 
-            /* ipIP_TYPE_OFFSET is used like so: 
+            /* ipIP_TYPE_OFFSET is used like so:
              * pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = IP-Version-Byte
              * It's value MUST be > 0. Otherwise, storing the IPv4 version byte
              * will overwrite the Ethernet header. */

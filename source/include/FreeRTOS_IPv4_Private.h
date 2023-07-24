@@ -36,14 +36,14 @@
 #include "FreeRTOS_IP_Private.h"
 
 /* The maximum UDP payload length. */
-#define ipMAX_UDP_PAYLOAD_LENGTH     ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
+#define ipMAX_UDP_PAYLOAD_LENGTH        ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )
 
-#define TCP_PACKET_SIZE              ( sizeof( TCPPacket_t ) )
+#define TCP_PACKET_SIZE                 ( sizeof( TCPPacket_t ) )
 
 /* The offset into an IP packet into which the IP data (payload) starts. */
-#define ipIP_PAYLOAD_OFFSET          ( sizeof( IPPacket_t ) )
+#define ipIP_PAYLOAD_OFFSET             ( sizeof( IPPacket_t ) )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
-#define ipUDP_PAYLOAD_OFFSET_IPv4    ( sizeof( UDPPacket_t ) )
+#define ipUDP_PAYLOAD_OFFSET_IPv4       ( sizeof( UDPPacket_t ) )
 /* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 42 + 6 = 48 bytes. */
 #define ipUDP_PAYLOAD_IP_TYPE_OFFSET    ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) )
 
