@@ -1116,12 +1116,12 @@
 #endif
 
 /*#if ( ipconfigIP_TASK_STACK_SIZE_WORDS < 0 )
-    #error ipconfigIP_TASK_STACK_SIZE_WORDS must be at least configMINIMAL_STACK_SIZE
-#endif
-
-#if ( ipconfigIP_TASK_STACK_SIZE_WORDS > SIZE_MAX )
-    #error ipconfigIP_TASK_STACK_SIZE_WORDS overflows a size_t
-#endif*/
+ #error ipconfigIP_TASK_STACK_SIZE_WORDS must be at least configMINIMAL_STACK_SIZE
+ #endif
+ *
+ #if ( ipconfigIP_TASK_STACK_SIZE_WORDS > SIZE_MAX )
+ #error ipconfigIP_TASK_STACK_SIZE_WORDS overflows a size_t
+ #endif*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -2109,8 +2109,8 @@
 #endif
 
 /*#if ( ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 0 ) && ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 1 ) )
-    #error ipconfigIS_VALID_PROG_ADDRESS() should equate to pdFALSE or pdTRUE
-#endif*/
+ #error ipconfigIS_VALID_PROG_ADDRESS() should equate to pdFALSE or pdTRUE
+ #endif*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2386,10 +2386,6 @@
 
 #if ( ( ipconfigUSE_DNS_CACHE != ipconfigDISABLE ) && ( ipconfigUSE_DNS_CACHE != ipconfigENABLE ) )
     #error Invalid ipconfigUSE_DNS_CACHE configuration
-#endif
-
-#if ( ( ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) ) )
-    #error IPv4 (ipconfigUSE_IPv4) needs to be enabled to use DNS
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -3140,7 +3136,7 @@
 
 #ifndef FreeRTOS_debug_printf
     #ifdef configPRINTF
-        #define FreeRTOS_debug_printf( MSG )    if( ipconfigHAS_DEBUG_PRINTF ) configPRINTF
+        #define FreeRTOS_debug_printf( MSG )    if( ipconfigHAS_DEBUG_PRINTF ) configPRINTF( MSG )
     #else
         #define FreeRTOS_debug_printf( MSG )    do {} while( pdFALSE )
     #endif
@@ -3174,7 +3170,7 @@
 
 #ifndef FreeRTOS_printf
     #ifdef configPRINTF
-        #define FreeRTOS_printf( MSG )    if( ipconfigHAS_PRINTF ) configPRINTF
+        #define FreeRTOS_printf( MSG )    if( ipconfigHAS_PRINTF ) configPRINTF( MSG )
     #else
         #define FreeRTOS_printf( MSG )    do {} while( pdFALSE )
     #endif

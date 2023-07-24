@@ -417,9 +417,7 @@ BaseType_t xIsNetworkDownEventPending( void );
  * Socket has had activity, reset the timer so it will not be closed
  * because of inactivity
  */
-#if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
-    const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
-#endif
+const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
 
 #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 
