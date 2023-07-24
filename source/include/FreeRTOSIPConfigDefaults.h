@@ -109,9 +109,9 @@
  * temporary kernel version check. To be removed in a future version.
  */
 
-#ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
+/*#ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
     #error Missing pdFREERTOS_ERRNO_EAFNOSUPPORT definition, please update FreeRTOS-Kernel
-#endif
+#endif*/
 
 /*---------------------------------------------------------------------------*/
 
