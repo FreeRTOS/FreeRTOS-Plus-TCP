@@ -696,6 +696,10 @@ void test_eARPProcessPacket_Request_SenderAndTargetSame( void )
     /* =================================================== */
 }
 
+/**
+ * @brief This function verify receiving Gratuitous ARP packet
+ *        and updating the ARP cache with respect to the new ARP request.
+ */
 void test_eARPProcessPacket_Request_GratuitousARP( void )
 {
     ARPPacket_t xARPFrame = { 0 };
@@ -753,6 +757,12 @@ void test_eARPProcessPacket_Request_GratuitousARP( void )
     /* =================================================== */
 }
 
+/**
+ * @brief This function verify receiving Gratuitous ARP packet
+ *        and updating the ARP cache with respect to the new ARP request
+ *        where there is no change in the MAC address compared to what is present
+ *        in the ARP cache.
+ */
 void test_eARPProcessPacket_Request_GratuitousARP_MACUnchanged( void )
 {
     ARPPacket_t xARPFrame = { 0 };
@@ -810,6 +820,12 @@ void test_eARPProcessPacket_Request_GratuitousARP_MACUnchanged( void )
     /* =================================================== */
 }
 
+/**
+ * @brief This function verify receiving Gratuitous ARP packet
+ *        but the packet is received in a different endpoint compared
+ *        to the entry present in the ARP cache. Hence its supposed to
+ *        be not updated in the ARP cache.
+ */
 void test_eARPProcessPacket_Request_GratuitousARP_NonMatchingEndpoint( void )
 {
     ARPPacket_t xARPFrame = { 0 };
@@ -868,6 +884,11 @@ void test_eARPProcessPacket_Request_GratuitousARP_NonMatchingEndpoint( void )
     /* =================================================== */
 }
 
+/**
+ * @brief This function verify receiving Gratuitous ARP packet
+ *        but the ARP cache doesn't have an entry for the IP in the
+ *        ARP request.
+ */
 void test_eARPProcessPacket_Request_GratuitousARP_NonMatchingIP( void )
 {
     ARPPacket_t xARPFrame = { 0 };
