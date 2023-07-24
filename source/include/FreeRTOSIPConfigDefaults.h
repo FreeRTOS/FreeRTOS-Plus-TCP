@@ -209,7 +209,7 @@
  */
 
 #ifndef ipconfigND_CACHE_ENTRIES
-    #define ipconfigND_CACHE_ENTRIES    24U
+    #define ipconfigND_CACHE_ENTRIES    24
 #endif
 
 #if ( ipconfigND_CACHE_ENTRIES < 1 )
@@ -255,7 +255,7 @@
  */
 
 #ifndef ipconfigRA_SEARCH_COUNT
-    #define ipconfigRA_SEARCH_COUNT    3U
+    #define ipconfigRA_SEARCH_COUNT    3
 #endif
 
 #if ( ipconfigRA_SEARCH_COUNT < 0 )
@@ -281,7 +281,7 @@
  */
 
 #ifndef ipconfigRA_SEARCH_TIME_OUT_MSEC
-    #define ipconfigRA_SEARCH_TIME_OUT_MSEC    10000U
+    #define ipconfigRA_SEARCH_TIME_OUT_MSEC    10000
 #endif
 
 #if ( ipconfigRA_SEARCH_TIME_OUT_MSEC < 0 )
@@ -306,7 +306,7 @@
  */
 
 #ifndef ipconfigRA_IP_TEST_COUNT
-    #define ipconfigRA_IP_TEST_COUNT    3U
+    #define ipconfigRA_IP_TEST_COUNT    3
 #endif
 
 #if ( ipconfigRA_IP_TEST_COUNT < 0 )
@@ -331,7 +331,7 @@
  */
 
 #ifndef ipconfigRA_IP_TEST_TIME_OUT_MSEC
-    #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    1500U
+    #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    1500
 #endif
 
 #if ( ipconfigRA_IP_TEST_TIME_OUT_MSEC < 0 )
@@ -368,7 +368,7 @@
  */
 
 #ifndef ipconfigENDPOINT_DNS_ADDRESS_COUNT
-    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    UINT8_C( 2 )
+    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    2
 #endif
 
 #if ( ipconfigENDPOINT_DNS_ADDRESS_COUNT < 1 )
@@ -441,7 +441,7 @@
  */
 
 #ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
-    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
+    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000 ) )
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -492,7 +492,7 @@
  */
 
 #ifndef ipconfigBUFFER_PADDING
-    #define ipconfigBUFFER_PADDING    0U
+    #define ipconfigBUFFER_PADDING    0
 #endif
 
 #if ( ipconfigBUFFER_PADDING < 0 )
@@ -522,7 +522,7 @@
  */
 
 #ifndef ipconfigPACKET_FILLER_SIZE
-    #define ipconfigPACKET_FILLER_SIZE    2U
+    #define ipconfigPACKET_FILLER_SIZE    2
 #endif
 
 #if ( ipconfigPACKET_FILLER_SIZE < 0 )
@@ -734,7 +734,7 @@
  */
 
 #ifndef ipconfigETHERNET_MINIMUM_PACKET_BYTES
-    #define ipconfigETHERNET_MINIMUM_PACKET_BYTES    0U
+    #define ipconfigETHERNET_MINIMUM_PACKET_BYTES    0
 #endif
 
 #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES < 0 )
@@ -828,7 +828,7 @@
  */
 
 #ifndef ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS
-    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45U
+    #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    45
 #endif
 
 #if ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS < 1 )
@@ -959,7 +959,7 @@
  */
 
 #ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -974,7 +974,7 @@
  */
 
 #ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -1001,7 +1001,7 @@
  */
 
 #ifndef ipconfigPHY_MAX_PORTS
-    #define ipconfigPHY_MAX_PORTS    4U
+    #define ipconfigPHY_MAX_PORTS    4
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -1039,10 +1039,10 @@
  */
 
 #ifndef ipconfigEVENT_QUEUE_LENGTH
-    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U )
+    #define ipconfigEVENT_QUEUE_LENGTH    ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 )
 #endif
 
-#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5U ) )
+#if ( ipconfigEVENT_QUEUE_LENGTH < ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5 ) )
     #error ipconfigEVENT_QUEUE_LENGTH must be at least ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 5
 #endif
 
@@ -1084,7 +1084,7 @@
  */
 
 #ifndef ipconfigIP_TASK_PRIORITY
-    #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2U )
+    #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
 #endif
 
 #if ( ipconfigIP_TASK_PRIORITY < 0 )
@@ -1115,13 +1115,13 @@
     #define ipconfigIP_TASK_STACK_SIZE_WORDS    configMINIMAL_STACK_SIZE
 #endif
 
-#if ( ipconfigIP_TASK_STACK_SIZE_WORDS < configMINIMAL_STACK_SIZE )
+/*#if ( ipconfigIP_TASK_STACK_SIZE_WORDS < 0 )
     #error ipconfigIP_TASK_STACK_SIZE_WORDS must be at least configMINIMAL_STACK_SIZE
 #endif
 
 #if ( ipconfigIP_TASK_STACK_SIZE_WORDS > SIZE_MAX )
     #error ipconfigIP_TASK_STACK_SIZE_WORDS overflows a size_t
-#endif
+#endif*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -1238,7 +1238,6 @@
     #error Invalid ipconfigIGNORE_UNKNOWN_PACKETS configuration
 #endif
 
-
 /*-----------------------------------------------------------------------*/
 
 /*
@@ -1261,7 +1260,6 @@
 #if ( ( ipconfigTCP_HANG_PROTECTION != ipconfigDISABLE ) && ( ipconfigTCP_HANG_PROTECTION != ipconfigENABLE ) )
     #error Invalid ipconfigTCP_HANG_PROTECTION configuration
 #endif
-
 
 /*-----------------------------------------------------------------------*/
 
@@ -1446,7 +1444,7 @@
  */
 
 #ifndef ipconfigTCP_RX_BUFFER_LENGTH
-    #define ipconfigTCP_RX_BUFFER_LENGTH    ( 4U * ipconfigTCP_MSS )
+    #define ipconfigTCP_RX_BUFFER_LENGTH    ( 4 * ipconfigTCP_MSS )
 #endif
 
 #if ( ipconfigTCP_RX_BUFFER_LENGTH < 0 )
@@ -1470,7 +1468,7 @@
  */
 
 #ifndef ipconfigTCP_TX_BUFFER_LENGTH
-    #define ipconfigTCP_TX_BUFFER_LENGTH    ( 4U * ipconfigTCP_MSS )
+    #define ipconfigTCP_TX_BUFFER_LENGTH    ( 4 * ipconfigTCP_MSS )
 #endif
 
 #if ( ipconfigTCP_TX_BUFFER_LENGTH < 0 )
@@ -1496,7 +1494,7 @@
  */
 
 #ifndef ipconfigTCP_TIME_TO_LIVE
-    #define ipconfigTCP_TIME_TO_LIVE    UINT8_C( 128 )
+    #define ipconfigTCP_TIME_TO_LIVE    128
 #endif
 
 #if ( ipconfigTCP_TIME_TO_LIVE < 0 )
@@ -1554,7 +1552,7 @@
 /*
  * ipconfigTCP_SRTT_MINIMUM_VALUE_MS
  *
- * Type: uint32_t
+ * Type: int32_t
  * Unit: milliseconds
  * Minimum: 0
  *
@@ -1566,7 +1564,7 @@
  */
 
 #ifndef ipconfigTCP_SRTT_MINIMUM_VALUE_MS
-    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    UINT32_C( 50 )
+    #define ipconfigTCP_SRTT_MINIMUM_VALUE_MS    50
 #endif
 
 #if ( ipconfigTCP_SRTT_MINIMUM_VALUE_MS < 0 )
@@ -1607,7 +1605,7 @@
  */
 
 #ifndef ipconfigTCP_WIN_SEG_COUNT
-    #define ipconfigTCP_WIN_SEG_COUNT    256U
+    #define ipconfigTCP_WIN_SEG_COUNT    256
 #endif
 
 #if ( ipconfigTCP_WIN_SEG_COUNT < 1 )
@@ -1673,7 +1671,7 @@
  */
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
-    #define ipconfigUDP_MAX_RX_PACKETS    0U
+    #define ipconfigUDP_MAX_RX_PACKETS    0
 #endif
 
 #if ( ipconfigUDP_MAX_RX_PACKETS < 0 )
@@ -1754,7 +1752,7 @@
  */
 
 #ifndef ipconfigUDP_TIME_TO_LIVE
-    #define ipconfigUDP_TIME_TO_LIVE    UINT8_C( 128 )
+    #define ipconfigUDP_TIME_TO_LIVE    128
 #endif
 
 #if ( ipconfigUDP_TIME_TO_LIVE < 0 )
@@ -2110,9 +2108,9 @@
     #define ipconfigIS_VALID_PROG_ADDRESS( pxAddress )    ( pxAddress != 0 )
 #endif
 
-#if ( ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 0 ) && ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 1 ) )
+/*#if ( ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 0 ) && ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 1 ) )
     #error ipconfigIS_VALID_PROG_ADDRESS() should equate to pdFALSE or pdTRUE
-#endif
+#endif*/
 
 /*-----------------------------------------------------------------------*/
 
@@ -2158,7 +2156,9 @@
  * Allows DHCP to be enabled by setting by setting `endpoint->bits.bWantDHCP`.
  *
  * When successful, DHCP will assign an IP-address, a netmask, a gateway
- * address, and one or more DNS addresses to the endpoint.
+ * address, and one or more DNS addresses to the endpoint. DHCP must be able to
+ * receive an options field of 312 bytes, the fixed part of the DHCP packet is
+ * 240 bytes, and the IP/UDP headers take 28 bytes.
  */
 
 #ifndef ipconfigUSE_DHCP
@@ -2169,10 +2169,8 @@
     #error Invalid ipconfigUSE_DHCP configuration
 #endif
 
-#if ( ( ipconfigUSE_DHCP != ipconfigDISABLE ) && ( ipconfigNETWORK_MTU < 586U ) )
+#if ( ( ipconfigUSE_DHCP != ipconfigDISABLE ) && ( ipconfigNETWORK_MTU < 586 ) )
 
-/* DHCP must be able to receive an options field of 312 bytes, the fixed
- * part of the DHCP packet is 240 bytes, and the IP/UDP headers take 28 bytes. */
     #error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
 #endif
 
@@ -2413,7 +2411,7 @@
  */
 
 #ifndef ipconfigDNS_CACHE_ENTRIES
-    #define ipconfigDNS_CACHE_ENTRIES    1U
+    #define ipconfigDNS_CACHE_ENTRIES    1
 #endif
 
 #if ( ipconfigDNS_CACHE_ENTRIES < 1 )
@@ -2447,7 +2445,7 @@
  */
 
 #ifndef ipconfigDNS_CACHE_NAME_LENGTH
-    #define ipconfigDNS_CACHE_NAME_LENGTH    254U
+    #define ipconfigDNS_CACHE_NAME_LENGTH    254
 #endif
 
 #if ( ipconfigDNS_CACHE_NAME_LENGTH < 1 )
@@ -2477,7 +2475,7 @@
  */
 
 #ifndef ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY
-    #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY    1U
+    #define ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY    1
 #endif
 
 #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY < 1 )
@@ -2506,7 +2504,7 @@
  */
 
 #ifndef ipconfigDNS_REQUEST_ATTEMPTS
-    #define ipconfigDNS_REQUEST_ATTEMPTS    5U
+    #define ipconfigDNS_REQUEST_ATTEMPTS    5
 #endif
 
 #if ( ipconfigDNS_REQUEST_ATTEMPTS < 1 )
@@ -2697,7 +2695,7 @@
  */
 
 #ifndef ipconfigARP_CACHE_ENTRIES
-    #define ipconfigARP_CACHE_ENTRIES    10U
+    #define ipconfigARP_CACHE_ENTRIES    10
 #endif
 
 #if ( ipconfigARP_CACHE_ENTRIES < 1 )
@@ -2809,7 +2807,7 @@
  */
 
 #ifndef ipconfigMAX_ARP_AGE
-    #define ipconfigMAX_ARP_AGE    UINT8_C( 150 )
+    #define ipconfigMAX_ARP_AGE    150
 #endif
 
 #if ( ipconfigMAX_ARP_AGE < 0 )
@@ -2836,7 +2834,7 @@
  */
 
 #ifndef ipconfigMAX_ARP_RETRANSMISSIONS
-    #define ipconfigMAX_ARP_RETRANSMISSIONS    UINT8_C( 5 )
+    #define ipconfigMAX_ARP_RETRANSMISSIONS    5
 #endif
 
 #if ( ipconfigMAX_ARP_RETRANSMISSIONS < 0 )
@@ -2956,7 +2954,7 @@
  */
 
 #ifndef ipconfigICMP_TIME_TO_LIVE
-    #define ipconfigICMP_TIME_TO_LIVE    UINT8_C( 64 )
+    #define ipconfigICMP_TIME_TO_LIVE    64
 #endif
 
 #if ( ipconfigICMP_TIME_TO_LIVE < 0 )
@@ -3067,10 +3065,6 @@
 
 #if ( ( ipconfigMULTI_INTERFACE != ipconfigDISABLE ) && ( ipconfigMULTI_INTERFACE != ipconfigENABLE ) )
     #error Invalid ipconfigMULTI_INTERFACE configuration
-#endif
-
-#if ( ipconfigIS_DISABLED( ipconfigMULTI_INTERFACE ) )
-    #error ipconfigMULTI_INTERFACE must be enabled
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -3241,7 +3235,7 @@
  */
 
 #ifndef ipconfigTCP_MAY_LOG_PORT
-    #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( xPort != 23U )
+    #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( xPort != 23 )
 #endif
 
 #if ( ( ipconfigTCP_MAY_LOG_PORT( 0 ) != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( 0 ) != 1 ) )
@@ -3333,7 +3327,7 @@
  */
 
 #ifndef ipconfigTCP_MEM_STATS_MAX_ALLOCATION
-    #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128U
+    #define ipconfigTCP_MEM_STATS_MAX_ALLOCATION    128
 #endif
 
 #if ( ipconfigTCP_MEM_STATS_MAX_ALLOCATION < 1 )
