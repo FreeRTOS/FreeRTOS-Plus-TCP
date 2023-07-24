@@ -574,7 +574,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 
                 if( pxSocket->u.xTCP.usMSS > usDifference )
                 {
-                    pxSocket->u.xTCP.usMSS -= ( uint16_t ) usDifference;
+                    pxSocket->u.xTCP.usMSS = ( uint16_t ) ( pxSocket->u.xTCP.usMSS - usDifference );
                 }
             }
         #endif /* ipconfigUSE_IPv6 != 0 */
@@ -2843,7 +2843,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                 if( pvOptionValue == NULL )
                 {
-                    pxSocket->ucSocketOptions &= ~( ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
+                    pxSocket->ucSocketOptions &= ( uint8_t ) ( ~FREERTOS_SO_UDPCKSUM_OUT );
                 }
                 else
                 {
@@ -2956,7 +2956,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 static uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol )
 {
     const uint16_t usEphemeralPortCount =
-        socketAUTO_PORT_ALLOCATION_MAX_NUMBER - ( socketAUTO_PORT_ALLOCATION_START_NUMBER - 1U );
+        socketAUTO_PORT_ALLOCATION_MAX_NUMBER - ( uint16_t ) ( socketAUTO_PORT_ALLOCATION_START_NUMBER - 1U );
     uint16_t usIterations = usEphemeralPortCount;
     uint32_t ulRandomSeed = 0;
     uint16_t usResult = 0;
@@ -3266,23 +3266,23 @@ uint8_t ucASCIIToHex( char cChar )
 
     if( ( cValue >= '0' ) && ( cValue <= '9' ) )
     {
-        cValue -= ( char ) '0';
+        cValue = ( char ) ( cValue - '0' );
         /* The value will be between 0 and 9. */
         ucNew = ( uint8_t ) cValue;
     }
     else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
     {
-        cValue -= ( char ) 'a';
+        cValue = ( char ) ( cValue - 'a' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
-        ucNew += ( uint8_t ) 10;
+        ucNew = ( uint8_t ) ( ucNew + 10 );
     }
     else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
     {
-        cValue -= ( char ) 'A';
+        cValue = ( char ) ( cValue - 'A' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
-        ucNew += ( uint8_t ) 10;
+        ucNew = ( uint8_t ) ( ucNew + 10 );
     }
     else
     {
@@ -3339,7 +3339,7 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
             else
             {
                 cResult = cTen; /* Either 'a' or 'A' */
-                cResult = ( char ) ( cResult + ( ucNibble - 10U ) );
+                cResult = ( char ) ( cResult + ucNibble - ( ( char ) 10U ) );
             }
 
             pcTarget[ uxTarget ] = cResult;

@@ -165,12 +165,12 @@ char cHexToChar( uint16_t usValue )
 
     if( usValue <= 9U )
     {
-        cReturn += usValue;
+        cReturn = ( char ) ( cReturn + usValue );
     }
     else if( usValue <= 15U )
     {
         cReturn = 'a';
-        cReturn += ( usValue - 10U );
+        cReturn = ( char ) ( cReturn + ( char ) ( usValue - 10U ) );
     }
     else
     {
@@ -223,10 +223,10 @@ socklen_t uxHexPrintShort( char * pcBuffer,
             uxIndex++;
         }
 
-        usShifter <<= 4;
+        usShifter = ( uint16_t ) ( usShifter << 4 );
     }
 
-    return uxIndex;
+    return( ( socklen_t ) uxIndex );
 }
 /*-----------------------------------------------------------*/
 

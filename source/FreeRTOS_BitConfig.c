@@ -200,8 +200,8 @@ uint16_t usBitConfig_read_16( BitConfig_t * pxConfig )
 
     if( xBitConfig_read_uc( pxConfig, pucData, uxNeeded ) != pdFALSE )
     {
-        usResult = ( ( ( uint16_t ) pucData[ 0 ] ) << 8 ) |
-                   ( ( ( uint16_t ) pucData[ 1 ] ) );
+        usResult = ( uint16_t ) ( ( ( ( uint16_t ) pucData[ 0 ] ) << 8 ) |
+                                  ( ( ( uint16_t ) pucData[ 1 ] ) ) );
     }
 
     return usResult;
