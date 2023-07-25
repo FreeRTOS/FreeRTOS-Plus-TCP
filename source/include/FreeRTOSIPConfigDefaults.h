@@ -110,8 +110,8 @@
  */
 
 /*#ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
-    #error Missing pdFREERTOS_ERRNO_EAFNOSUPPORT definition, please update FreeRTOS-Kernel
-#endif*/
+ #error Missing pdFREERTOS_ERRNO_EAFNOSUPPORT definition, please update FreeRTOS-Kernel
+ #endif*/
 
 /*---------------------------------------------------------------------------*/
 
