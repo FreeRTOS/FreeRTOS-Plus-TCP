@@ -26,11 +26,7 @@
  */
 
 #ifndef FREERTOS_SOCKETS_H
-    #define FREERTOS_SOCKETS_H
-
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+#define FREERTOS_SOCKETS_H
 
 /* Standard includes. */
     #include <string.h>
@@ -51,6 +47,10 @@
 
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
+
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
     #ifndef INC_FREERTOS_H
         #error FreeRTOS.h must be included before FreeRTOS_Sockets.h.
