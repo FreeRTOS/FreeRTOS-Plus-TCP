@@ -293,10 +293,10 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
          * has been received.  */
-        if( xBytesReceived <= 0 )
-        {
+        //if( xBytesReceived <= 0 )
+        //{
             ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
-        }
+        //}
 
         /* See how much data was received.  */
         xBytesReceived = R_ETHER_Read_ZC2( ETHER_CHANNEL_0, ( void ** ) &buffer_pointer );
@@ -427,6 +427,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
  * Arguments    : pxNetworkBuffers
  * Return Value : none
  **********************************************************************************************************************/
+#if 0
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint32_t ul;
@@ -445,7 +446,26 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
         pxNetworkBuffers[ ul ].pucEthernetBuffer = ( buffer_address + ( ETHER_CFG_BUFSIZE * ul ) );
     }
 } /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
+#endif
 
+void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    uint32_t ul;
+    uint8_t * buffer_address;
+
+    R_BSP_SECTION_OPERATORS_INIT( B_ETHERNET_BUFFERS_1 )
+
+    buffer_address = R_BSP_SECTOP( B_ETHERNET_BUFFERS_1 );
+
+    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+    {
+        //pxNetworkBuffers[ ul ].pucEthernetBuffer = ( buffer_address + ( ETHER_CFG_BUFSIZE * ul ) );
+
+        pxNetworkBuffers[ ul ].pucEthernetBuffer = buffer_address + ipBUFFER_PADDING;
+        *( ( unsigned * ) buffer_address ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+        buffer_address += ETHER_CFG_BUFSIZE;
+    }
+} /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
 
 /***********************************************************************************************************************
  * Function Name: prvLinkStatusChange ()
@@ -470,7 +490,7 @@ void prvLinkStatusChange( BaseType_t xStatus )
  **********************************************************************************************************************/
 static int InitializeNetwork( void )
 {
-    ether_return_t eth_ret;
+    ether_return_t ret;
     BaseType_t return_code = pdFALSE;
     ether_param_t param;
 
@@ -481,24 +501,32 @@ static int InitializeNetwork( void )
     configASSERT(pxMyInterface);
     const uint8_t * myethaddr = &pxMyInterface->pxEndPoint->xMACAddress.ucBytes[0];
 
+    R_Pins_Create();
+
     R_ETHER_PinSet_CHANNEL_0();
     R_ETHER_Initial();
     callback_ether_regist();
 
     param.channel = ETHER_CHANNEL_0;
-    eth_ret = R_ETHER_Control( CONTROL_POWER_ON, param ); /* PHY mode settings, module stop cancellation */
+    R_ETHER_Control(CONTROL_POWER_ON, param);
+#if (ETHER_CHANNEL_MAX >= 2)
+    param.channel = ETHER_CHANNEL_1;
+    R_ETHER_Control(CONTROL_POWER_ON, param);
+#endif
 
-    if( ETHER_SUCCESS != eth_ret )
+    //memset(&t4_stat[0], 0, sizeof(T4_STATISTICS));
+    ret = R_ETHER_Open_ZC2(0, (const uint8_t *) myethaddr, false);
+    if (ETHER_SUCCESS != ret)
     {
-        return pdFALSE;
+        return -1;
     }
-
-    eth_ret = R_ETHER_Open_ZC2( ETHER_CHANNEL_0, myethaddr, ETHER_FLAG_OFF );
-
-    if( ETHER_SUCCESS != eth_ret )
+#if (ETHER_CHANNEL_MAX >= 2)
+    ret = R_ETHER_Open_ZC2(1, (const uint8_t *) myethaddr, false);
+    if (ETHER_SUCCESS != ret)
     {
-        return pdFALSE;
+        return -1;
     }
+#endif
 
     return_code = xTaskCreate( prvEMACDeferredInterruptHandlerTask,
                                "ETHER_RECEIVE_CHECK_TASK",
@@ -571,6 +599,8 @@ void EINT_Trig_isr( void * ectrl )
 {
     ether_cb_arg_t * pdecode;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    R_BSP_InterruptsEnable();
 
     pdecode = ( ether_cb_arg_t * ) ectrl;
 
