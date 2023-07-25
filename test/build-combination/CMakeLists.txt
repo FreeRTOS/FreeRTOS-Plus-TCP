@@ -103,7 +103,7 @@ else()
         $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
         $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-variable>
     )
-    
+
     target_link_libraries(freertos_plus_tcp_build_test
       PRIVATE
         freertos_plus_tcp

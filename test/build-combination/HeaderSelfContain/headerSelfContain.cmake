@@ -1,4 +1,4 @@
-set( COMPILE_OPTIONS 
+set( COMPILE_OPTIONS
      $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
      $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-format-nonliteral>
      $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-function-declaration>
