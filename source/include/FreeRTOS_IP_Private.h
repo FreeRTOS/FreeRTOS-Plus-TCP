@@ -409,7 +409,7 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 
 /** @brief Macro calculates the number of elements in an array as a size_t. */
 #ifndef ARRAY_SIZE_X
-    #ifndef _WINDOWS_
+    #if !defined(_WINDOWS_) && !defined(__CCRX__)
         #define ARRAY_SIZE_X( x )                            \
     ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
         BaseType_t xCount = ( BaseType_t ) uxCount;          \
