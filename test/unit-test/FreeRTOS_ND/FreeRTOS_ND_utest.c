@@ -722,6 +722,8 @@ void test_vNDAgeCache_NSIncorrectDataLen( void )
 
     pxDuplicateNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+
     vNDAgeCache();
 
     TEST_ASSERT_EQUAL( xNDCache[ xUseEntry ].ucAge, xAgeDefault - 1 );
@@ -1803,6 +1805,8 @@ void test_FreeRTOS_OutputAdvertiseIPv6_HappyPath( void )
     ( void ) memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+
+    pxICMPHeader_IPv6->usChecksum = 0U;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( pxNetworkBuffer );
     usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );

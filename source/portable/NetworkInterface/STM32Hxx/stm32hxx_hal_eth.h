@@ -545,16 +545,16 @@
                                                     *    This parameter can be a value of @ref ETHEx_LPI_Event */
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    void ( *TxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Tx Complete Callback */
-                    void ( *RxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Rx  Complete Callback     */
-                    void ( *DMAErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH DMA Error Callback   */
-                    void ( *MACErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH MAC Error Callback     */
-                    void ( *PMTCallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH Power Management Callback            */
-                    void ( *EEECallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH EEE Callback   */
-                    void ( *WakeUpCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Wake UP Callback   */
+                    void ( * TxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Tx Complete Callback */
+                    void ( * RxCpltCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Rx  Complete Callback     */
+                    void ( * DMAErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH DMA Error Callback   */
+                    void ( * MACErrorCallback )( struct __ETH_HandleTypeDef * heth );  /*!< ETH MAC Error Callback     */
+                    void ( * PMTCallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH Power Management Callback            */
+                    void ( * EEECallback )( struct __ETH_HandleTypeDef * heth );       /*!< ETH EEE Callback   */
+                    void ( * WakeUpCallback )( struct __ETH_HandleTypeDef * heth );    /*!< ETH Wake UP Callback   */
 
-                    void ( *MspInitCallback )( struct __ETH_HandleTypeDef * heth );   /*!< ETH Msp Init callback              */
-                    void ( *MspDeInitCallback )( struct __ETH_HandleTypeDef * heth ); /*!< ETH Msp DeInit callback            */
+                    void ( * MspInitCallback )( struct __ETH_HandleTypeDef * heth );   /*!< ETH Msp Init callback              */
+                    void ( * MspDeInitCallback )( struct __ETH_HandleTypeDef * heth ); /*!< ETH Msp DeInit callback            */
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
             } ETH_HandleTypeDef;
 
@@ -1866,7 +1866,7 @@
     #endif /* ETH */
 
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* STM32Hxx_HAL_ETH_H */

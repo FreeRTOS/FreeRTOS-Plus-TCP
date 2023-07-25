@@ -3356,6 +3356,21 @@
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigPORT_SUPPRESS_WARNING
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * For some use cases, users set configurations that issue warning messages.
+ * This suppresses warnings in portable layers to make compilation clean.
+ */
+
+#ifndef ipconfigPORT_SUPPRESS_WARNING
+    #define ipconfigPORT_SUPPRESS_WARNING    ipconfigDISABLE
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )

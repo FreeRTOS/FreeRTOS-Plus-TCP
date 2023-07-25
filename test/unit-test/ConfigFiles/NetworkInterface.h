@@ -40,7 +40,7 @@
     BaseType_t xGetPhyLinkStatus( void );
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* NETWORK_INTERFACE_H */

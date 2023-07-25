@@ -547,7 +547,7 @@ static void prvChecksumProtocolCalculate( BaseType_t xOutgoingPacket,
 
             pulHeader[ 0 ] = ( uint32_t ) pxSet->usProtocolBytes;
             pulHeader[ 0 ] = FreeRTOS_htonl( pulHeader[ 0 ] );
-            pulHeader[ 1 ] = ( uint32_t ) pxSet->pxIPPacket_IPv6->ucNextHeader;
+            pulHeader[ 1 ] = ( uint32_t ) pxSet->ucProtocol;
             pulHeader[ 1 ] = FreeRTOS_htonl( pulHeader[ 1 ] );
 
             pxSet->usChecksum = usGenerateChecksum( 0U,

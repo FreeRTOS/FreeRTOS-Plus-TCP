@@ -77,76 +77,92 @@ extern void vMBuffNetifBackendDeInit( void * pvBackendContext );
 
 static void vNetifReceiveTask( void * pvParameters );
 
-MBuffNetDriverContext_t xDriverCtx = { 0 };
-
 /**
  * @brief Initialize the MessageBuffer backed network interface.
  *
  * @return BaseType_t pdTRUE on success
  */
-BaseType_t xNetworkInterfaceInitialise( void )
+BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
 {
     BaseType_t xResult = pdTRUE;
 
-    if( xDriverCtx.xInterfaceState == pdFALSE )
+    pxNetif->pvArgument = pvPortMalloc( sizeof( MBuffNetDriverContext_t ) );
+
+    if( pxNetif->pvArgument == NULL )
     {
-        xDriverCtx.xInterfaceState = pdFALSE;
+        FreeRTOS_printf( ( "Failed to allocate memory for pxNetif->pvArgument" ) );
+        configASSERT( 0 );
+    }
+
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+
+    if( pxDriverCtx->xInterfaceState == pdFALSE )
+    {
+        pxDriverCtx->xInterfaceState = pdFALSE;
 
         #if defined( _WIN32 )
-            xDriverCtx.pvSendEvent = CreateEvent( NULL, FALSE, TRUE, NULL );
+            pxDriverCtx->pvSendEvent = CreateEvent( NULL, FALSE, TRUE, NULL );
         #else
-            xDriverCtx.pvSendEvent = ( void * ) event_create();
+            pxDriverCtx->pvSendEvent = ( void * ) event_create();
         #endif
 
-        if( xDriverCtx.pvSendEvent == NULL )
+        if( pxDriverCtx->pvSendEvent == NULL )
         {
             xResult = pdFALSE;
         }
         else
         {
-            vMBuffNetifBackendInit( &( xDriverCtx.xSendMsgBuffer ),
-                                    &( xDriverCtx.xRecvMsgBuffer ),
-                                    xDriverCtx.pvSendEvent,
-                                    &( xDriverCtx.pvBackendContext ) );
+            vMBuffNetifBackendInit( &( pxDriverCtx->xSendMsgBuffer ),
+                                    &( pxDriverCtx->xRecvMsgBuffer ),
+                                    pxDriverCtx->pvSendEvent,
+                                    &( pxDriverCtx->pvBackendContext ) );
 
-            if( xDriverCtx.pvBackendContext == NULL )
+            if( pxDriverCtx->pvBackendContext == NULL )
             {
                 xResult = pdFALSE;
                 #if defined( _WIN32 )
-                    ( void ) CloseHandle( xDriverCtx.pvSendEvent );
+                    ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
                 #else
-                    ( void ) event_delete( xDriverCtx.pvSendEvent );
+                    ( void ) event_delete( pxDriverCtx->pvSendEvent );
                 #endif
             }
         }
 
-        if( xResult == pdTRUE )
+        static BaseType_t xReceiveTaskCreated = pdFALSE;
+
+        if( ( xResult == pdTRUE ) && ( xReceiveTaskCreated == pdFALSE ) )
         {
             xResult = xTaskCreate( vNetifReceiveTask, "NetRX",
-                                   configMINIMAL_STACK_SIZE, NULL,
+                                   configMINIMAL_STACK_SIZE,
+                                   pxNetif,
                                    tskIDLE_PRIORITY,
-                                   &( xDriverCtx.xRecvTask ) );
+                                   &( pxDriverCtx->xRecvTask ) );
+
+            if( xResult == pdPASS )
+            {
+                xReceiveTaskCreated = pdTRUE;
+            }
         }
 
         /* Cleanup on failure */
         if( xResult != pdTRUE )
         {
-            if( xDriverCtx.pvSendEvent != NULL )
+            if( pxDriverCtx->pvSendEvent != NULL )
             {
                 #if defined( _WIN32 )
-                    ( void ) CloseHandle( xDriverCtx.pvSendEvent );
+                    ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
                 #else
-                    event_delete( xDriverCtx.pvSendEvent );
+                    event_delete( pxDriverCtx->pvSendEvent );
                 #endif
             }
 
-            if( xDriverCtx.pvBackendContext != NULL )
+            if( pxDriverCtx->pvBackendContext != NULL )
             {
-                vMBuffNetifBackendDeInit( xDriverCtx.pvBackendContext );
+                vMBuffNetifBackendDeInit( pxDriverCtx->pvBackendContext );
             }
         }
 
-        xDriverCtx.xInterfaceState = xResult;
+        pxDriverCtx->xInterfaceState = xResult;
     }
 
     return xResult;
@@ -157,15 +173,21 @@ BaseType_t xNetworkInterfaceInitialise( void )
  *
  * @return BaseType_t pdTRUE
  */
-BaseType_t xNetworkInterfaceDeInitialise( void )
+BaseType_t xNetworkInterfaceDeInitialise( NetworkInterface_t * pxNetif )
 {
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+
     #if defined( _WIN32 )
-        ( void ) CloseHandle( xDriverCtx.pvSendEvent );
+        ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
     #else
-        event_delete( xDriverCtx.pvSendEvent );
+        event_delete( pxDriverCtx->pvSendEvent );
     #endif
 
-    vTaskDelete( xDriverCtx.xRecvTask );
+    vTaskDelete( pxDriverCtx->xRecvTask );
+
+    vMBuffNetifBackendDeInit( pxDriverCtx->pvBackendContext );
+
+    vPortFree( pxNetif->pvArgument );
 
     return pdTRUE;
 }
@@ -177,8 +199,9 @@ BaseType_t xNetworkInterfaceDeInitialise( void )
 static void vNetifReceiveTask( void * pvParameters )
 {
     NetworkBufferDescriptor_t * pxDescriptor = NULL;
+    NetworkInterface_t * pxNetif = ( NetworkInterface_t * ) pvParameters;
 
-    ( void ) pvParameters;
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
 
     for( ; ; )
     {
@@ -192,7 +215,7 @@ static void vNetifReceiveTask( void * pvParameters )
         }
 
         /* Read an incoming frame */
-        uxMessageLen = xMessageBufferReceive( xDriverCtx.xRecvMsgBuffer,
+        uxMessageLen = xMessageBufferReceive( pxDriverCtx->xRecvMsgBuffer,
                                               pxDescriptor->pucEthernetBuffer,
                                               pxDescriptor->xDataLength,
                                               portMAX_DELAY );
@@ -212,6 +235,9 @@ static void vNetifReceiveTask( void * pvParameters )
                 FreeRTOS_debug_printf( ( "Dropping RX frame of length: %lu. eConsiderFrameForProcessing returned %lu.\n",
                                          uxMessageLen, xFrameProcess ) );
             }
+
+            pxDescriptor->pxInterface = pxNetif;
+            pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxNetif, pxDescriptor->pucEthernetBuffer );
 
             xRxEvent.eEventType = eNetworkRxEvent;
             xRxEvent.pvData = ( void * ) pxDescriptor;
@@ -241,25 +267,30 @@ static void vNetifReceiveTask( void * pvParameters )
 }
 
 /*!
- * @brief API call, called from reeRTOS_IP.c to send a network packet over the
+ * @brief API call, called from FreeRTOS_IP.c to send a network packet over the
  *        selected interface
  * @return pdTRUE if successful else pdFALSE
  */
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxNetif,
+                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFALSE;
 
-    configASSERT( pxNetworkBuffer != NULL );
-    configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-    configASSERT( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) );
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
 
-    if( xDriverCtx.xInterfaceState == pdTRUE )
+    FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: %p:%p\n", pxNetworkBuffer, pxNetworkBuffer->pucEthernetBuffer ) );
+
+    if( pxDriverCtx->xInterfaceState == pdTRUE )
     {
-        if( xMessageBufferSpacesAvailable( xDriverCtx.xSendMsgBuffer ) > pxNetworkBuffer->xDataLength + 4U )
+        configASSERT( pxNetworkBuffer != NULL );
+        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+        configASSERT( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) );
+
+        if( xMessageBufferSpacesAvailable( pxDriverCtx->xSendMsgBuffer ) > pxNetworkBuffer->xDataLength + 4U )
         {
             size_t uxBytesSent;
-            uxBytesSent = xMessageBufferSend( xDriverCtx.xSendMsgBuffer,
+            uxBytesSent = xMessageBufferSend( pxDriverCtx->xSendMsgBuffer,
                                               pxNetworkBuffer->pucEthernetBuffer,
                                               pxNetworkBuffer->xDataLength,
                                               0U );
@@ -283,9 +314,9 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
         if( xResult == pdTRUE )
         {
             #if defined( _WIN32 )
-                SetEvent( xDriverCtx.pvSendEvent );
+                SetEvent( pxDriverCtx->pvSendEvent );
             #else
-                event_signal( xDriverCtx.pvSendEvent );
+                event_signal( pxDriverCtx->pvSendEvent );
             #endif
         }
     }
@@ -334,4 +365,39 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
             pxNetworkBuffers[ uxIndex ].pucEthernetBuffer = &( pucNetworkPacketBuffers[ uxOffset + ipBUFFER_PADDING ] );
         }
     }
+}
+
+BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxNetif )
+{
+    BaseType_t xResult = pdFALSE;
+
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+
+    if( pxDriverCtx->xInterfaceState == pdTRUE )
+    {
+        xResult = pdTRUE;
+    }
+
+    return xResult;
+}
+
+NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                NetworkInterface_t * pxInterface )
+{
+    configASSERT( pxInterface != NULL );
+    static char pcName[ 17 ];
+
+    snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
+
+    memset( pxInterface, 0, sizeof( NetworkInterface_t ) );
+
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xNetworkInterfaceInitialise;
+    pxInterface->pfOutput = xNetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
 }

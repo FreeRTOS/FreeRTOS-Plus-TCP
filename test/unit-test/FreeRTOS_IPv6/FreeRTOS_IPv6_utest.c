@@ -38,6 +38,7 @@
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IPv6_Utils.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv6.h"
@@ -302,12 +303,18 @@ void test_prvAllowIPPacketIPv6_EndpointDifferentAddress()
 void test_eHandleIPv6ExtensionHeaders_TCPHappyPath()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_TCP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
     TCPHeader_t * pxProtocolHeader = ( TCPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
+
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -329,12 +336,18 @@ void test_eHandleIPv6ExtensionHeaders_TCPHappyPath()
 void test_eHandleIPv6ExtensionHeaders_UDPHappyPath()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_UDP );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_UDP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
     UDPHeader_t * pxProtocolHeader = ( UDPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
+
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -356,12 +369,18 @@ void test_eHandleIPv6ExtensionHeaders_UDPHappyPath()
 void test_eHandleIPv6ExtensionHeaders_ICMPv6HappyPath()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_ICMP_IPv6 );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_ICMP_IPv6;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
     ICMPHeader_IPv6_t * pxProtocolHeader = ( ICMPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
+
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -384,42 +403,22 @@ void test_eHandleIPv6ExtensionHeaders_ICMPv6HappyPath()
 void test_eHandleIPv6ExtensionHeaders_TCPHappyPathNotRemove()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_TCP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
     TCPHeader_t * pxProtocolHeader = ( TCPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
 
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
+
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdFALSE );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     TEST_ASSERT_EQUAL( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + sizeof( TCPHeader_t ) + 1U, pxNetworkBuffer->xDataLength );
-}
-
-/**
- * @brief Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to release it.
- *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
- *         - ipPROTOCOL_TCP
- */
-void test_eHandleIPv6ExtensionHeaders_HopByHopInWrongOrder()
-{
-    eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-
-    /* Modify the extension header */
-    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_HOP_BY_HOP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 /**
@@ -428,9 +427,13 @@ void test_eHandleIPv6ExtensionHeaders_HopByHopInWrongOrder()
 void test_eHandleIPv6ExtensionHeaders_ShortBufferLength()
 {
     eFrameProcessingResult_t eResult;
+    uint8_t ucExtHeaderNum = 7U;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
 
     pxNetworkBuffer->xDataLength = 0;
+
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
@@ -442,71 +445,18 @@ void test_eHandleIPv6ExtensionHeaders_ShortBufferLength()
 void test_eHandleIPv6ExtensionHeaders_SmallIPPayloadLength()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_TCP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
     IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( 20 ); /* Need to remove 56 bytes extension header but only 20 bytes length set in IP header. */
 
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
-}
-
-/**
- * @brief Prepare a packet with large extension header length. Check if eHandleIPv6ExtensionHeaders determines to release it.
- */
-void test_eHandleIPv6ExtensionHeaders_LargeExtensionHeader()
-{
-    eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-
-    /* Modify the extension header */
-    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 200U; /* Extension header length is set to 200*8 + 8, which is larger than buffer size. */
-    uxIndex += 8;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
-}
-
-/**
- * @brief Prepare a packet with unknown extension header. Check if eHandleIPv6ExtensionHeaders can skip it and process it.
- */
-void test_eHandleIPv6ExtensionHeaders_UnknownExtensionHeader()
-{
-    eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-
-    /* Modify the extension header to 0x7F (unknown) */
-    pxIPv6Header->ucNextHeader = 0x7F;
-
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
-}
-
-/**
- * @brief Prepare a packet with specific extension header order - destination -> routing.
- *        Check if eHandleIPv6ExtensionHeaders determines to process it.
- */
-void test_eHandleIPv6ExtensionHeaders_DestThenRouting()
-{
-    eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-
-    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_DESTINATION_OPTIONS;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0U;
-
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
 /**
@@ -730,4 +680,39 @@ void test_xCompareIPv6_Address_SameRegionPrefix44()
 
     xReturn = xCompareIPv6_Address( &xIPAddressFive, &xIPAddressTen, 44 );
     TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief Test xGetExtensionOrder.
+ */
+void test_xGetExtensionOrder()
+{
+    BaseType_t xReturn;
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U );
+    TEST_ASSERT_EQUAL( 1, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 0U );
+    TEST_ASSERT_EQUAL( 7, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_ROUTING_HEADER );
+    TEST_ASSERT_EQUAL( 2, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_ROUTING_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 3, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 4, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_AUTHEN_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 5, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 0U );
+    TEST_ASSERT_EQUAL( 6, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_MOBILITY_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 8, xReturn );
+
+    xReturn = xGetExtensionOrder( ipPROTOCOL_TCP, 0U );
+    TEST_ASSERT_EQUAL( -1, xReturn );
 }
