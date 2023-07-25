@@ -36,7 +36,6 @@
 #include "task.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Common.h"
-#include "FreeRTOS_IPv6_Private.h"
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
@@ -83,11 +82,6 @@ extern const struct xIPv6_Address FreeRTOS_in6addr_loopback;
  * as the last +TCP header file. */
 struct xNetworkEndPoint;
 struct xNetworkInterface;
-
-/* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
-eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
-                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                               UBaseType_t uxHeaderLength );
 
 
 /** @brief Handle the IPv6 extension headers. */
