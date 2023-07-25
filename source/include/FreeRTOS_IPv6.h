@@ -83,6 +83,10 @@ extern const struct xIPv6_Address FreeRTOS_in6addr_loopback;
 struct xNetworkEndPoint;
 struct xNetworkInterface;
 
+/* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
+eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
+                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                               UBaseType_t uxHeaderLength );
 
 /** @brief Handle the IPv6 extension headers. */
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,

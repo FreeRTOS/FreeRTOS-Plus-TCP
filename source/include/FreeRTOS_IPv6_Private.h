@@ -260,11 +260,6 @@ struct xTCP_PACKET_IPv6
 #include "pack_struct_end.h"
 typedef struct xTCP_PACKET_IPv6 TCPPacket_IPv6_t;
 
-/* The function 'prvAllowIPPacket()' checks if a IPv6 packets should be processed. */
-eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
-                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                               UBaseType_t uxHeaderLength );
-
 /* prvProcessICMPMessage_IPv6() is declared in FreeRTOS_routing.c
  * It handles all ICMP messages except the PING requests. */
 eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer );

@@ -26,11 +26,11 @@
 #ifndef FREERTOS_ROUTING_H
     #define FREERTOS_ROUTING_H
 
-    #include "FreeRTOS_IP.h"
-
     #ifdef __cplusplus
         extern "C" {
     #endif
+
+    #include "FreeRTOS_IP.h"
 
     #if ( ipconfigUSE_DHCP != 0 )
         #include "FreeRTOS_DHCP.h"
