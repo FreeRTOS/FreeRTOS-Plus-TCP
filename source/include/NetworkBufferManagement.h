@@ -34,6 +34,8 @@
 #endif
 /* *INDENT-ON* */
 
+#include "FreeRTOS_IP.h"
+
 /* _HT_ Two macro's needed while debugging/testing, please ignore. */
 
 #define BUFFER_FROM_WHERE_DECL
