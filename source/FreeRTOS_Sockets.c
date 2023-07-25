@@ -758,6 +758,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             pxSocket->xSendBlockTime = ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME;
             pxSocket->ucSocketOptions = ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT;
             pxSocket->ucProtocol = ( uint8_t ) xProtocolCpy; /* protocol: UDP or TCP */
+            #if ( ipconfigPACKET_PRIORITIES > 1 )
+                pxSocket->ucPriority = ipconfigPACKET_PRIORITY_DEFAULT;
+            #endif
 
             xReturn = pxSocket;
         }
@@ -1431,6 +1434,9 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
     pxNetworkBuffer->xDataLength = uxTotalDataLength + uxPayloadOffset;
     pxNetworkBuffer->usPort = pxDestinationAddress->sin_port;
     pxNetworkBuffer->usBoundPort = ( uint16_t ) socketGET_SOCKET_PORT( pxSocket );
+    #if ipconfigPACKET_PRIORITIES > 1
+        pxNetworkBuffer->ucPriority = pxSocket->ucPriority;
+    #endif
 
     /* The socket options are passed to the IP layer in the
      * space that will eventually get used by the Ethernet header. */
@@ -2928,6 +2934,24 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         xReturn = prvSetOptionStopRX( pxSocket, pvOptionValue );
                         break;
                 #endif /* ipconfigUSE_TCP == 1 */
+                #if ( ipconfigPACKET_PRIORITIES > 1 )
+                    case FREERTOS_SO_PRIORITY:
+                       {
+                           BaseType_t * pxValue = ( BaseType_t * ) pvOptionValue;
+
+                           if( ( pxValue == NULL ) || ( *pxValue >= ipconfigPACKET_PRIORITIES ) )
+                           {
+                               xReturn = pdFREERTOS_ERRNO_EINVAL;
+                           }
+                           else
+                           {
+                               pxSocket->ucPriority = *pxValue;
+                               xReturn = pdPASS;
+                           }
+
+                           break;
+                       }
+                #endif /* if ( ipconfigPACKET_PRIORITIES > 1 ) */
 
             default:
                 /* No other options are handled. */

@@ -715,6 +715,10 @@ struct xSOCKET
      */
     void * pvSocketID;
 
+    #if ( ipconfigPACKET_PRIORITIES > 1 )
+        uint8_t ucPriority; /**< Priority of the socket */
+    #endif
+
     /* TCP/UDP specific fields: */
     /* Before accessing any member of this structure, it should be confirmed */
     /* that the protocol corresponds with the type of structure */

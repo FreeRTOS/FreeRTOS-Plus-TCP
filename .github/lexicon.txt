@@ -1349,6 +1349,7 @@ ucpeerwinscalefactor
 ucpreference
 ucprefix
 ucprefixlength
+ucpriority
 ucprotocol
 ucprotocoladdresslength
 ucprotocolheadersize

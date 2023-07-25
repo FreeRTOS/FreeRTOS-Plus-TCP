@@ -148,8 +148,13 @@
     #endif
 
     #if ( ipconfigUSE_TCP == 1 )
-        #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
+        #define FREERTOS_SO_SET_LOW_HIGH_WATER    ( 18 )
     #endif
+
+    #if ( ipconfigPACKET_PRIORITIES > 1 )
+        #define FREERTOS_SO_PRIORITY                      ( 19 )
+    #endif
+
     #define FREERTOS_INADDR_ANY                           ( 0U ) /* The 0.0.0.0 IPv4 address. */
 
     #if ( 0 )                                                    /* Not Used */
