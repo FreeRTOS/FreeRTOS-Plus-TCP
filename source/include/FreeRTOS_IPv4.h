@@ -42,6 +42,8 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 
+typedef struct xNETWORK_BUFFER NetworkBufferDescriptor_t;
+
 typedef enum eFrameProcessingResult eFrameProcessingResult_t;
 typedef struct xIP_PACKET IPPacket_t;
 
