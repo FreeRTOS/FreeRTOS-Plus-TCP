@@ -26,7 +26,7 @@
  */
 
 #ifndef FREERTOS_SOCKETS_H
-#define FREERTOS_SOCKETS_H
+    #define FREERTOS_SOCKETS_H
 
 /* Standard includes. */
     #include <string.h>
