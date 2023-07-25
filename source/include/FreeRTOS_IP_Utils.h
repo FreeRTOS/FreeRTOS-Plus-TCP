@@ -65,6 +65,9 @@
 #include "FreeRTOS_IPv4_Utils.h"
 #include "FreeRTOS_IPv6_Utils.h"
 
+/* Forward declaration of 'NetworkInterface_t'. */
+typedef struct xNetworkInterface NetworkInterface_t;
+
 #if ( ipconfigUSE_DHCP != 0 )
 
 /**

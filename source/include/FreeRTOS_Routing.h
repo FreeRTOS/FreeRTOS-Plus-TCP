@@ -26,6 +26,8 @@
 #ifndef FREERTOS_ROUTING_H
     #define FREERTOS_ROUTING_H
 
+    #include "FreeRTOS_IP.h"
+
     #ifdef __cplusplus
         extern "C" {
     #endif
@@ -39,9 +41,6 @@
     #endif
 
 /* Every NetworkInterface needs a set of access functions: */
-
-/* Forward declaration of 'struct xNetworkInterface'. */
-    struct xNetworkInterface;
 
 /* Initialise the interface. */
     typedef BaseType_t ( * NetworkInterfaceInitialiseFunction_t ) ( struct xNetworkInterface * pxDescriptor );
