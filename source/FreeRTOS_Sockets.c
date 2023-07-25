@@ -2987,9 +2987,8 @@ static uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol )
         }
 
         /* Map the random to a candidate port. */
-        usResult =
-            socketAUTO_PORT_ALLOCATION_START_NUMBER +
-            ( ( ( uint16_t ) ulRandomSeed ) % usEphemeralPortCount );
+        usResult = ( uint16_t ) ( socketAUTO_PORT_ALLOCATION_START_NUMBER +
+                                  ( ( ( uint16_t ) ulRandomSeed ) % usEphemeralPortCount ) );
 
         /* Check if there's already an open socket with the same protocol
          * and port. */
