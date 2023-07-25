@@ -43,9 +43,9 @@
 #include "IPTraceMacroDefaults.h"
 
 /* Forward declarations. */
-typedef struct xNETWORK_BUFFER NetworkBufferDescriptor_t;
-typedef enum eFrameProcessingResult eFrameProcessingResult_t;
-typedef struct xIP_PACKET IPPacket_t;
+typedef struct xNETWORK_BUFFER        NetworkBufferDescriptor_t;
+typedef enum eFrameProcessingResult   eFrameProcessingResult_t;
+typedef struct xIP_PACKET             IPPacket_t;
 
 #define ipSIZE_OF_IPv4_HEADER               20U
 #define ipSIZE_OF_IPv4_ADDRESS              4U

@@ -32,7 +32,6 @@
 
 /* FreeRTOS include. */
 #include <FreeRTOS.h>
-#include "task.h"
 
 /* System application includes. */
 #if defined TEST_HEADER_INC_ONLY_DHCP
@@ -51,7 +50,7 @@
     #include "NetworkBufferManagement.h"
 #elif defined TEST_HEADER_INC_ONLY_NETWORKINTERFACE
     #include "NetworkInterface.h"
-#endif
+#endif /* if defined TEST_HEADER_INC_ONLY_DHCP */
 
 /*-----------------------------------------------------------*/
 int main( void )
