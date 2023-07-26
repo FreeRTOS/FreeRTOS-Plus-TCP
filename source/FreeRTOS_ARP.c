@@ -637,8 +637,8 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  * @brief Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
  *        is found then no action will be taken.
  *
- * @param[in] pxMACAddress: Pointer to the MAC address whose entry needs to be updated.
- * @param[in] ulIPAddress: the IP address whose corresponding entry needs to be updated.
+ * @param[in] pxMACAddress Pointer to the MAC address whose entry needs to be updated.
+ * @param[in] ulIPAddress the IP address whose corresponding entry needs to be updated.
  */
 void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
                                const uint32_t ulIPAddress )

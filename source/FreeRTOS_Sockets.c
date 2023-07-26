@@ -5764,8 +5764,6 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
  * @brief A helper function of vTCPNetStat(), see below.
  *
  * @param[in] pxSocket The socket that needs logging.
- *
- * @return
  */
     static void vTCPNetStat_TCPSocket( const FreeRTOS_Socket_t * pxSocket )
     {

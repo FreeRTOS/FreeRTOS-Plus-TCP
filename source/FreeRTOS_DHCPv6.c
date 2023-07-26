@@ -172,9 +172,9 @@ eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
 /**
  * @brief Check if option length is less than buffer size and larger than minimum requirement.
  *
- * @param[in] usOption: The option code.
- * @param[in] uxOptionLength: The option length to check.
- * @param[in] uxRemainingSize: Remaining size in the buffer.
+ * @param[in] usOption The option code.
+ * @param[in] uxOptionLength The option length to check.
+ * @param[in] uxRemainingSize Remaining size in the buffer.
  *
  * @return pdTRUE if the length is valid, otherwise pdFALSE.
  */
@@ -254,8 +254,8 @@ static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
 
 /**
  * @brief A DHCP packet has a list of options, one of them is Status Code. This function is used to parse it.
- * @param[in] uxLength: Total length for status code.
- * @param[in] pxMessage: The raw packet as it was received.
+ * @param[in] uxLength Total length for status code.
+ * @param[in] pxMessage The raw packet as it was received.
  *
  * @return pdTRUE if status is success, otherwise pdFALSE.
  */
