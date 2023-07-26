@@ -44,7 +44,7 @@
 #define ipIP_PAYLOAD_OFFSET             ( sizeof( IPPacket_t ) )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
 #define ipUDP_PAYLOAD_OFFSET_IPv4       ( sizeof( UDPPacket_t ) )
-/* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 42 + 6 = 48 bytes. */
+/* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 8 + 40 = 48 bytes. */
 #define ipUDP_PAYLOAD_IP_TYPE_OFFSET    ( sizeof( UDPHeader_t ) + sizeof( IPHeader_IPv6_t ) )
 
 /* ipIP_TYPE_OFFSET is involved in some sorcery. pxUDPPayloadBuffer_to_NetworkBuffer() must be able to convert
