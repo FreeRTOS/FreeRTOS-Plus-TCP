@@ -567,10 +567,12 @@
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
- * If the network driver or network hardware is calculating the IP, TCP and UDP
- * checksums of incoming packets, and discarding packets that are found to
- * contain invalid checksums, then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM
- * to 1, otherwise set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 0.
+ * When ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM is enabled, the network interface
+ * is responsible for checking the checksums of the incoming packets. If hardware
+ * supports checking TCP checksum only, the network interface layer should handle
+ * the same for other protocols, such as IP/UDP/ICMP/etc, and give the checksum
+ * verified packets to the FreeRTOS-plus-TCP stack. otherwise set 
+ * ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to ipconfigDISABLE.
  *
  * Throughput and processor load are greatly improved by implementing drivers
  * that make use of hardware checksum calculations, so-called "checksum offloading".
