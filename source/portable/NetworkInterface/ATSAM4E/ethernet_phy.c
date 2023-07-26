@@ -508,7 +508,7 @@ uint8_t ethernet_phy_reset( Gmac * p_gmac,
 /*/ @cond 0 */
 /**INDENT-OFF**/
 #ifdef __cplusplus
-    }
+}
 #endif
 /**INDENT-ON**/
 /*/ @endcond */

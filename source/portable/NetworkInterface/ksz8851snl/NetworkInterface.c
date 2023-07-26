@@ -425,7 +425,11 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 1 )
-        #warning Please ipconfigZERO_COPY_TX_DRIVER as 1
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+                {
+                    #warning Please ipconfigZERO_COPY_TX_DRIVER as 1
+                }
+            #endif
         #endif
         configASSERT( bReleaseAfterSend != pdFALSE );
         xResult = pdTRUE;
@@ -758,7 +762,6 @@ static void ksz8851snl_update()
                {
                    int rxHead = xMicrelDevice.us_rx_head;
                    NetworkBufferDescriptor_t * pxNetworkBuffer;
-                   #warning try
                    xMicrelDevice.ul_had_intn_interrupt = 0;
 
                    if( xMicrelDevice.us_pending_frame == 0 )
@@ -785,7 +788,6 @@ static void ksz8851snl_update()
                        }
                    }
 
-                   #warning try
                    xMicrelDevice.ul_had_intn_interrupt = 0;
 
                    /* Now xMicrelDevice.us_pending_frame != 0 */
@@ -937,13 +939,15 @@ static void ksz8851snl_update()
         case SPI_PDC_RX_COMPLETE:
            {
                int rxHead = xMicrelDevice.us_rx_head;
-               /* RX step18-19: pad with dummy data to keep dword alignment. */
-               /* Packet lengths will be rounded up to a multiple of "sizeof size_t". */
-/*			xLength = xMicrelDevice.rx_buffers[ rxHead ]->xDataLength & 3; */
-/*			if( xLength != 0 ) */
-/*			{ */
-/*				ksz8851_fifo_dummy( 4 - xLength ); */
-/*			} */
+
+               /* RX step18-19: pad with dummy data to keep dword alignment.
+                * Packet lengths will be rounded up to a multiple of "sizeof size_t". */
+
+               /* xLength = xMicrelDevice.rx_buffers[ rxHead ]->xDataLength & 3;
+                * if( xLength != 0 )
+                * {
+                * ksz8851_fifo_dummy( 4 - xLength );
+                * } */
 
                /* RX step20: end RX transfer. */
                gpio_set_pin_high( KSZ8851SNL_CSN_GPIO );
@@ -1016,7 +1020,7 @@ static void ksz8851snl_update()
                ksz8851_reg_setbits( REG_TXQ_CMD, TXQ_ENQUEUE );
 
                /* RX step13: enable INT_RX flag. */
-/*			ksz8851_reg_write( REG_INT_MASK, INT_RX ); */
+               /* ksz8851_reg_write( REG_INT_MASK, INT_RX ); */
                /* Buffer sent, free the corresponding buffer and mark descriptor as owned by software. */
                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 
@@ -1037,7 +1041,7 @@ static void ksz8851snl_update()
                    xTaskNotifyGive( xTransmitHandle );
                }
 
-               #warning moved downward
+               /* moved downward */
                /* RX step13: enable INT_RX flag. */
                ksz8851_reg_write( REG_INT_MASK, INT_RX );
                /* Prevent the EMAC task from sleeping a single time. */

@@ -978,7 +978,11 @@
 
 /* When ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM is enabled,
  * the network interface is responsible for checking the checksums
- * of the incoming packets.
+ * of the incoming packets. If hardware supports checking TCP checksum only,
+ * the network interface layer should handle the same for other protocols,
+ * such as IP/UDP/ICMP/etc, and give the checksum verified packets to the
+ * FreeRTOS-plus-TCP stack.
+ *
  * This can be either done in hardware, or by calling the checksum
  * functions.
  */
@@ -1159,6 +1163,13 @@
 
 #ifndef ipconfigRA_IP_TEST_TIME_OUT_MSEC
     #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    ( 1500U )
+#endif
+
+/* For some use cases, users set the configurations that issues warning messages.
+ * This configuration is used to suppress warning in portable layers to make compilation clean.
+ */
+#ifndef ipconfigPORT_SUPPRESS_WARNING
+    #define ipconfigPORT_SUPPRESS_WARNING    ( 0 )
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

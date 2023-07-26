@@ -100,7 +100,11 @@
 
 #if ( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE )
     #include "core_cm7.h"
-    #warning This driver assumes the presence of DCACHE
+
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning This driver assumes the presence of DCACHE
+    #endif
+
     #define     CACHE_LINE_SIZE               32
     #define     NETWORK_BUFFER_HEADER_SIZE    ( ipconfigPACKET_FILLER_SIZE + 8 )
 
@@ -128,7 +132,10 @@
     /*-----------------------------------------------------------*/
 
 #else /* The DMA buffers are located in non-cached RAM. */
-    #warning Sure there is no caching?
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning Sure there is no caching?
+    #endif
+
     #define     cache_clean_invalidate()                        do {} while( 0 )
     #define     cache_clean_invalidate_by_addr( addr, size )    do {} while( 0 )
     #define     cache_invalidate_by_addr( addr, size )          do {} while( 0 )

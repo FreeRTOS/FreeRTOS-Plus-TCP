@@ -33,7 +33,7 @@
     int emacps_check_errors( xemacpsif_s * xemacps );
 
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* ifndef __XEMACPSIF_HW_H_ */
