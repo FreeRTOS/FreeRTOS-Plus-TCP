@@ -474,7 +474,7 @@ void prvLinkStatusChange( BaseType_t xStatus )
  **********************************************************************************************************************/
 static int InitializeNetwork( void )
 {
-    ether_return_t ret;
+    ether_return_t eth_ret;
     BaseType_t return_code = pdFALSE;
     ether_param_t param;
 
@@ -484,8 +484,6 @@ static int InitializeNetwork( void )
      */
     configASSERT(pxMyInterface);
     const uint8_t * myethaddr = &pxMyInterface->pxEndPoint->xMACAddress.ucBytes[0];
-
-    R_Pins_Create();
 
     R_ETHER_PinSet_CHANNEL_0();
     R_ETHER_Initial();
@@ -498,17 +496,16 @@ static int InitializeNetwork( void )
     R_ETHER_Control(CONTROL_POWER_ON, param);
 #endif
 
-    //memset(&t4_stat[0], 0, sizeof(T4_STATISTICS));
-    ret = R_ETHER_Open_ZC2(0, (const uint8_t *) myethaddr, false);
-    if (ETHER_SUCCESS != ret)
+    eth_ret = R_ETHER_Open_ZC2(0, (const uint8_t *) myethaddr, false);
+    if (ETHER_SUCCESS != eth_ret)
     {
-        return -1;
+        return pdFALSE;
     }
 #if (ETHER_CHANNEL_MAX >= 2)
-    ret = R_ETHER_Open_ZC2(1, (const uint8_t *) myethaddr, false);
-    if (ETHER_SUCCESS != ret)
+    eth_ret = R_ETHER_Open_ZC2(1, (const uint8_t *) myethaddr, false);
+    if (ETHER_SUCCESS != eth_ret)
     {
-        return -1;
+        return pdFALSE;
     }
 #endif
 
@@ -590,8 +587,6 @@ void EINT_Trig_isr( void * ectrl )
 {
     ether_cb_arg_t * pdecode;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-    R_BSP_InterruptsEnable();
 
     pdecode = ( ether_cb_arg_t * ) ectrl;
 
