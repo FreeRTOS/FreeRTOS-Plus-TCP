@@ -332,6 +332,7 @@ static void prvProcessIPEventsAndTimers( void )
             /* The network hardware driver has received a new packet.  A
              * pointer to the received buffer is located in the pvData member
              * of the received event structure. */
+
             prvHandleEthernetPacket( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData );
             break;
 
@@ -1247,7 +1248,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
     configASSERT( pxNetworkBuffer != NULL );
 
     iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-
+    FreeRTOS_debug_printf(("\n Inside Process Ethernet Packet \r\n"));
     /* Interpret the Ethernet frame. */
     if( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) )
     {

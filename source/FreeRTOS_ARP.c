@@ -1073,8 +1073,8 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     ARPPacket_t * pxARPPacket;
 
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-    const void * pvCopySource;
-    void * pvCopyDest;
+     const void  *pvCopySource;
+     void * pvCopyDest;
 
     /* Buffer allocation ensures that buffers always have space
      * for an ARP packet. See buffer allocation implementations 1
@@ -1106,7 +1106,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
      */
     pvCopySource = xDefaultPartARPPacketHeader;
     pvCopyDest = pxARPPacket;
-    ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xDefaultPartARPPacketHeader ) );
+    memcpy( pvCopyDest, pvCopySource, sizeof( xDefaultPartARPPacketHeader ) );
 
     pvCopySource = ipLOCAL_MAC_ADDRESS;
     pvCopyDest = pxARPPacket->xEthernetHeader.xSourceAddress.ucBytes;
