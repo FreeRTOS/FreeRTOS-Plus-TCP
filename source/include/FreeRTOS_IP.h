@@ -317,7 +317,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void );
 
 struct xNetworkInterface;
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialise the interface and end-point
@@ -349,7 +349,7 @@ struct xNetworkInterface;
     void * FreeRTOS_GetUDPPayloadBuffer( size_t uxRequestedSizeBytes,
                                          TickType_t uxBlockTimeTicks );
 
-#endif /* if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
 /*
  * Returns the addresses stored in an end-point structure.
@@ -385,7 +385,7 @@ const uint8_t * FreeRTOS_GetMACAddress( void );
 void FreeRTOS_UpdateMACAddress( const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
     /* This function shall be defined by the application. */
-    #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
         void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent );
     #else
         void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
@@ -417,7 +417,9 @@ BaseType_t xIsNetworkDownEventPending( void );
  * Socket has had activity, reset the timer so it will not be closed
  * because of inactivity
  */
-const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
+#if ( ( ipconfigHAS_DEBUG_PRINTF != 0 ) || ( ipconfigHAS_PRINTF != 0 ) )
+    const char * FreeRTOS_GetTCPStateName( UBaseType_t ulState );
+#endif
 
 #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
 
@@ -447,12 +449,6 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber );
  *  is defined in FreeRTOS_IP.c.
  *  This pointer is for internal use only. */
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
-
-/* For backward compatibility define old structure names to the newer equivalent
- * structure name. */
-#ifndef ipconfigENABLE_BACKWARD_COMPATIBILITY
-    #define ipconfigENABLE_BACKWARD_COMPATIBILITY    1
-#endif
 
 #if ( ipconfigENABLE_BACKWARD_COMPATIBILITY == 1 )
     #define xIPStackEvent_t               IPStackEvent_t
