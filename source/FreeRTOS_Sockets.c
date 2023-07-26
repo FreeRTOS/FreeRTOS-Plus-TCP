@@ -2843,7 +2843,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                 if( pvOptionValue == NULL )
                 {
-                    pxSocket->ucSocketOptions &= ( uint8_t ) ( ~FREERTOS_SO_UDPCKSUM_OUT );
+                    pxSocket->ucSocketOptions &= ( ( uint8_t ) ~( ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT ) );
                 }
                 else
                 {
@@ -3265,23 +3265,23 @@ uint8_t ucASCIIToHex( char cChar )
 
     if( ( cValue >= '0' ) && ( cValue <= '9' ) )
     {
-        cValue = ( char ) ( cValue - '0' );
+        cValue = ( char ) ( cValue - ( char ) '0' );
         /* The value will be between 0 and 9. */
         ucNew = ( uint8_t ) cValue;
     }
     else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
     {
-        cValue = ( char ) ( cValue - 'a' );
+        cValue = ( char ) ( cValue - ( char ) 'a' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
-        ucNew = ( uint8_t ) ( ucNew + 10 );
+        ucNew = ( uint8_t ) ( ucNew + ( uint8_t ) 10 );
     }
     else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
     {
-        cValue = ( char ) ( cValue - 'A' );
+        cValue = ( char ) ( cValue - ( char ) 'A' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
-        ucNew = ( uint8_t ) ( ucNew + 10 );
+        ucNew = ( uint8_t ) ( ucNew + ( uint8_t ) 10 );
     }
     else
     {
@@ -3338,7 +3338,8 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
             else
             {
                 cResult = cTen; /* Either 'a' or 'A' */
-                cResult = ( char ) ( cResult + ucNibble - ( ( char ) 10U ) );
+                cResult = ( char ) ( cResult + ucNibble );
+                cResult = ( char ) ( cResult - ( char ) 10U );
             }
 
             pcTarget[ uxTarget ] = cResult;
