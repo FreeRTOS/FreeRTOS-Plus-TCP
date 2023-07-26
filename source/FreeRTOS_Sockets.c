@@ -3265,20 +3265,20 @@ uint8_t ucASCIIToHex( char cChar )
 
     if( ( cValue >= '0' ) && ( cValue <= '9' ) )
     {
-        cValue = ( char ) ( cValue - ( char ) '0' );
+        cValue = ( char ) ( cValue - ( uint8_t ) '0' );
         /* The value will be between 0 and 9. */
         ucNew = ( uint8_t ) cValue;
     }
     else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
     {
-        cValue = ( char ) ( cValue - ( char ) 'a' );
+        cValue = ( char ) ( cValue - ( uint8_t ) 'a' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
         ucNew = ( uint8_t ) ( ucNew + ( uint8_t ) 10 );
     }
     else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
     {
-        cValue = ( char ) ( cValue - ( char ) 'A' );
+        cValue = ( char ) ( cValue - ( uint8_t ) 'A' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
         ucNew = ( uint8_t ) ( ucNew + ( uint8_t ) 10 );
@@ -3339,7 +3339,7 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
             {
                 cResult = cTen; /* Either 'a' or 'A' */
                 cResult = ( char ) ( cResult + ucNibble );
-                cResult = ( char ) ( cResult - ( char ) 10U );
+                cResult = ( char ) ( cResult - ( uint8_t ) 10U );
             }
 
             pcTarget[ uxTarget ] = cResult;

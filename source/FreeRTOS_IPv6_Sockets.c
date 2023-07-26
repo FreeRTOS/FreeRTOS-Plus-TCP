@@ -170,7 +170,7 @@ char cHexToChar( uint16_t usValue )
     else if( usValue <= 15U )
     {
         cReturn = 'a';
-        cReturn = ( char ) ( cReturn + usValue - ( uint16_t ) 10 );
+        cReturn = ( char ) ( cReturn + ( usValue - ( uint16_t ) 10 ) );
     }
     else
     {
