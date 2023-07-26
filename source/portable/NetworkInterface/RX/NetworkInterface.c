@@ -293,10 +293,10 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
          * has been received.  */
-        //if( xBytesReceived <= 0 )
-        //{
+        if( xBytesReceived <= 0 )
+        {
             ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
-        //}
+        }
 
         /* See how much data was received.  */
         xBytesReceived = R_ETHER_Read_ZC2( ETHER_CHANNEL_0, ( void ** ) &buffer_pointer );
@@ -304,7 +304,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
         if( xBytesReceived < 0 )
         {
             /* This is an error. Logged. */
-            FreeRTOS_printf( ( "R_ETHER_Read_ZC2: rc = %d\n", xBytesReceived ) );
+            FreeRTOS_debug_printf( ( "R_ETHER_Read_ZC2: rc = %d\n", xBytesReceived ) );
         }
         else if( xBytesReceived > 0 )
         {
@@ -427,40 +427,24 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
  * Arguments    : pxNetworkBuffers
  * Return Value : none
  **********************************************************************************************************************/
-#if 0
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint32_t ul;
-    uint8_t * buffer_address;
-
-    // R_BSP_SECTION_OPERATORS_INIT( B_ETHERNET_BUFFERS_1 )
-
-    // buffer_address = R_BSP_SECTOP( B_ETHERNET_BUFFERS_1 );
-
-    static uint8_t ETH_BUFFERS[ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETHER_CFG_BUFSIZE];
-
-    buffer_address = &ETH_BUFFERS[0];
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ( buffer_address + ( ETHER_CFG_BUFSIZE * ul ) );
-    }
-} /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
-#endif
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint32_t ul;
     uint8_t * buffer_address;
+    portPOINTER_SIZE_TYPE uxStartAddress;
 
-    R_BSP_SECTION_OPERATORS_INIT( B_ETHERNET_BUFFERS_1 )
+    static uint8_t ETH_BUFFERS[(ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETHER_CFG_BUFSIZE) + portBYTE_ALIGNMENT];
 
-    buffer_address = R_BSP_SECTOP( B_ETHERNET_BUFFERS_1 );
+    /* Align the buffer start address to portBYTE_ALIGNMENT bytes */
+    uxStartAddress = (portPOINTER_SIZE_TYPE) &ETH_BUFFERS[0];
+    uxStartAddress += portBYTE_ALIGNMENT;
+    uxStartAddress &= ~((portPOINTER_SIZE_TYPE) portBYTE_ALIGNMENT_MASK);
+
+    buffer_address = (uint8_t *) uxStartAddress;
 
     for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
-        //pxNetworkBuffers[ ul ].pucEthernetBuffer = ( buffer_address + ( ETHER_CFG_BUFSIZE * ul ) );
-
         pxNetworkBuffers[ ul ].pucEthernetBuffer = buffer_address + ipBUFFER_PADDING;
         *( ( unsigned * ) buffer_address ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
         buffer_address += ETHER_CFG_BUFSIZE;
