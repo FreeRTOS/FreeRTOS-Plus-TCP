@@ -496,13 +496,13 @@ static int InitializeNetwork( void )
     R_ETHER_Control(CONTROL_POWER_ON, param);
 #endif
 
-    eth_ret = R_ETHER_Open_ZC2(0, (const uint8_t *) myethaddr, false);
+    eth_ret = R_ETHER_Open_ZC2(ETHER_CHANNEL_0, (const uint8_t *) myethaddr, false);
     if (ETHER_SUCCESS != eth_ret)
     {
         return pdFALSE;
     }
 #if (ETHER_CHANNEL_MAX >= 2)
-    eth_ret = R_ETHER_Open_ZC2(1, (const uint8_t *) myethaddr, false);
+    eth_ret = R_ETHER_Open_ZC2(ETHER_CHANNEL_1, (const uint8_t *) myethaddr, false);
     if (ETHER_SUCCESS != eth_ret)
     {
         return pdFALSE;
