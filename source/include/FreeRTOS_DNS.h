@@ -28,16 +28,16 @@
 #ifndef FREERTOS_DNS_H
 #define FREERTOS_DNS_H
 
+/* Application level configuration options. */
+#include "FreeRTOS_DNS_Globals.h"
+#include "FreeRTOS_DNS_Callback.h"
+#include "FreeRTOS_DNS_Cache.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-/* Application level configuration options. */
-#include "FreeRTOS_DNS_Globals.h"
-#include "FreeRTOS_DNS_Callback.h"
-#include "FreeRTOS_DNS_Cache.h"
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
