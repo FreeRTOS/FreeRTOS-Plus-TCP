@@ -28,12 +28,6 @@
 #ifndef FREERTOS_IPV6_UTILS_H
 #define FREERTOS_IPV6_UTILS_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /**
  * @file FreeRTOS_IPv6_Utils.h
  * @brief Implements the utility functions for FreeRTOS_IP.c
@@ -48,6 +42,13 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* Set the MAC-address that belongs to a given IPv6 multi-cast address. */
 void vSetMultiCastIPv6MacAddress( const IPv6_Address_t * pxAddress,

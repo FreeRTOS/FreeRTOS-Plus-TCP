@@ -28,11 +28,11 @@
 #ifndef PORTMACRO_H
     #define PORTMACRO_H
 
+    #include <limits.h>
+
     #ifdef __cplusplus
         extern "C" {
     #endif
-
-    #include <limits.h>
 
 /*-----------------------------------------------------------
  * Port specific definitions.
