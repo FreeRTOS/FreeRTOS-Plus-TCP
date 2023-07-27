@@ -140,7 +140,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                           pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                           ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
         if( pxNetworkBuffer->pxEndPoint == NULL )

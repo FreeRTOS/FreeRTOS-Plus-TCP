@@ -657,7 +657,7 @@
                             if( ( ppxAddressInfo != NULL ) && ( ( *ppxAddressInfo )->ai_family == FREERTOS_AF_INET6 ) )
                             {
                                 FreeRTOS_printf( ( "prvPrepareLookup: found '%s' in cache: %pip\n",
-                                                   pcHostName, ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
+                                                   pcHostName, ( void * ) ( *ppxAddressInfo )->xPrivateStorage.sockaddr.sin_address.xIP_IPv6.ucBytes ) );
                             }
                             else
                         #endif

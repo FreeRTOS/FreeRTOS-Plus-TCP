@@ -554,7 +554,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
                        ( ucNextHeader == ipPROTOCOL_UDP ) )
                    {
                        IPv6_Type_t eType = xIPv6_GetIPType( ( const IPv6_Address_t * ) pxIPAddress );
-                       FreeRTOS_printf( ( "xCheckRequiresARPResolution: %pip type %s\n", pxIPAddress->ucBytes, ( eType == eIPv6_Global ) ? "Global" : ( eType == eIPv6_LinkLocal ) ? "LinkLocal" : "other" ) );
+                       FreeRTOS_printf( ( "xCheckRequiresARPResolution: %pip type %s\n", ( void * ) pxIPAddress->ucBytes, ( eType == eIPv6_Global ) ? "Global" : ( eType == eIPv6_LinkLocal ) ? "LinkLocal" : "other" ) );
 
                        if( eType == eIPv6_LinkLocal )
                        {

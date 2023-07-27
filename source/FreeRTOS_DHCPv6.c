@@ -1159,7 +1159,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                 ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 pxDHCPMessage->ulPreferredLifeTime = ulBitConfig_read_32( pxMessage );
                 pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
-                FreeRTOS_printf( ( "IP Address %pip\n", pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes ) );
+                FreeRTOS_printf( ( "IP Address %pip\n", ( void * ) pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes ) );
                 break;
 
             case DHCPv6_Option_IA_Prefix:
@@ -1167,7 +1167,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                 pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
                 pxDHCPMessage->ucprefixLength = ucBitConfig_read_8( pxMessage );
                 ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                FreeRTOS_printf( ( "Address prefix: %pip length %d\n", pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, pxDHCPMessage->ucprefixLength ) );
+                FreeRTOS_printf( ( "Address prefix: %pip length %d\n", ( void * ) pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, pxDHCPMessage->ucprefixLength ) );
                 break;
 
             case DHCPv6_Option_Status_Code:
