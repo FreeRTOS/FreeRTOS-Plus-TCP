@@ -3703,7 +3703,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                             pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
                             FreeRTOS_printf( ( "FreeRTOS_connect: %u to %pip port %u\n",
                                                pxSocket->usLocalPort, ( void * ) pxAddress->sin_address.xIP_IPv6.ucBytes,
-					       FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                                               FreeRTOS_ntohs( pxAddress->sin_port ) ) );
                             ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */

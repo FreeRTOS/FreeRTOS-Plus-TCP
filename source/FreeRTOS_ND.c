@@ -257,7 +257,7 @@
 
                         if( *ppxEndPoint != NULL )
                         {
-                            FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( void * )  ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
+                            FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( void * ) ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
                         }
 
                         *( ppxEndPoint ) = pxEndPoint;
