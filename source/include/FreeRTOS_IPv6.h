@@ -26,16 +26,16 @@
 #ifndef FREERTOS_IPV6_H
 #define FREERTOS_IPV6_H
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Common.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-#include "FreeRTOS.h"
-#include "task.h"
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Common.h"
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */

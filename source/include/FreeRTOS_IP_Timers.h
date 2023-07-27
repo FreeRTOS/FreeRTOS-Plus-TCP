@@ -33,12 +33,6 @@
 #ifndef FREERTOS_IP_TIMERS_H
 #define FREERTOS_IP_TIMERS_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -60,6 +54,12 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /*
  * Checks the ARP, DHCP and TCP timers to see if any periodic or timeout

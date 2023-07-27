@@ -28,12 +28,6 @@
 #ifndef FREERTOS_IPV4_H
 #define FREERTOS_IPV4_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -41,6 +35,12 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* Forward declarations. */
 typedef struct xNETWORK_BUFFER        NetworkBufferDescriptor_t;
