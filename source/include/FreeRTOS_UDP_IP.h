@@ -28,17 +28,17 @@
 #ifndef FREERTOS_UDP_IP_H
 #define FREERTOS_UDP_IP_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_IP.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /*
  * Called when the application has generated a UDP packet to send.
