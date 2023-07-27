@@ -491,27 +491,19 @@ static int InitializeNetwork( void )
     callback_ether_regist();
 
     param.channel = ETHER_CHANNEL_0;
-    R_ETHER_Control( CONTROL_POWER_ON, param );
-    #if ( ETHER_CHANNEL_MAX >= 2 )
-        param.channel = ETHER_CHANNEL_1;
-        R_ETHER_Control( CONTROL_POWER_ON, param );
-    #endif
-
-    eth_ret = R_ETHER_Open_ZC2( ETHER_CHANNEL_0, ( const uint8_t * ) myethaddr, false );
+    eth_ret = R_ETHER_Control( CONTROL_POWER_ON, param ); /* PHY mode settings, module stop cancellation */
 
     if( ETHER_SUCCESS != eth_ret )
     {
         return pdFALSE;
     }
 
-    #if ( ETHER_CHANNEL_MAX >= 2 )
-        eth_ret = R_ETHER_Open_ZC2( ETHER_CHANNEL_1, ( const uint8_t * ) myethaddr, false );
+    eth_ret = R_ETHER_Open_ZC2( ETHER_CHANNEL_0, myethaddr, ETHER_FLAG_OFF );
 
-        if( ETHER_SUCCESS != eth_ret )
-        {
-            return pdFALSE;
-        }
-    #endif
+    if( ETHER_SUCCESS != eth_ret )
+    {
+        return pdFALSE;
+    }
 
     if( ether_receive_check_task_handle == NULL )
     {
