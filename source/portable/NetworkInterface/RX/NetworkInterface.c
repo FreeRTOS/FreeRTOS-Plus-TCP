@@ -119,25 +119,25 @@ void prvLinkStatusChange( BaseType_t xStatus );
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxRX_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                        NetworkInterface_t * pxInterface );
+                                                   NetworkInterface_t * pxInterface );
 
 /* Function to initialise the network interface */
 BaseType_t xRX_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 
 BaseType_t xRX_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                            NetworkBufferDescriptor_t * const pxDescriptor,
-                                            BaseType_t bReleaseAfterSend );
+                                       NetworkBufferDescriptor_t * const pxDescriptor,
+                                       BaseType_t bReleaseAfterSend );
 
 static inline BaseType_t xRX_PHYGetLinkStatus( NetworkInterface_t * pxInterface );
 
 NetworkInterface_t * pxRX_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                        NetworkInterface_t * pxInterface )
+                                                   NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
     /* This function pxRX_FillInterfaceDescriptor() adds a network-interface.
-    * Make sure that the object pointed to by 'pxInterface'
-    * is declared static or global, and that it will remain to exist. */
+     * Make sure that the object pointed to by 'pxInterface'
+     * is declared static or global, and that it will remain to exist. */
 
     snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
 
@@ -166,6 +166,7 @@ BaseType_t xRX_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
     if( xMacInitStatus == eMACInit )
     {
         pxMyInterface = pxInterface;
+
         /*
          * Perform the hardware specific network initialization here using the Ethernet driver library to initialize the
          * Ethernet hardware, initialize DMA descriptors, and perform a PHY auto-negotiation to obtain a network link.
@@ -207,8 +208,8 @@ BaseType_t xRX_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
  * Return Value : pdTRUE, pdFALSE
  **********************************************************************************************************************/
 BaseType_t xRX_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                    NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
+                                       NetworkBufferDescriptor_t * const pxDescriptor,
+                                       BaseType_t xReleaseAfterSend )
 {
     BaseType_t xReturn = pdFALSE;
 
@@ -434,14 +435,14 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
     uint8_t * buffer_address;
     portPOINTER_SIZE_TYPE uxStartAddress;
 
-    static uint8_t ETH_BUFFERS[(ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETHER_CFG_BUFSIZE) + portBYTE_ALIGNMENT];
+    static uint8_t ETH_BUFFERS[ ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETHER_CFG_BUFSIZE ) + portBYTE_ALIGNMENT ];
 
     /* Align the buffer start address to portBYTE_ALIGNMENT bytes */
-    uxStartAddress = (portPOINTER_SIZE_TYPE) &ETH_BUFFERS[0];
+    uxStartAddress = ( portPOINTER_SIZE_TYPE ) & ETH_BUFFERS[ 0 ];
     uxStartAddress += portBYTE_ALIGNMENT;
-    uxStartAddress &= ~((portPOINTER_SIZE_TYPE) portBYTE_ALIGNMENT_MASK);
+    uxStartAddress &= ~( ( portPOINTER_SIZE_TYPE ) portBYTE_ALIGNMENT_MASK );
 
-    buffer_address = (uint8_t *) uxStartAddress;
+    buffer_address = ( uint8_t * ) uxStartAddress;
 
     for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
@@ -454,7 +455,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 /***********************************************************************************************************************
  * Function Name: prvLinkStatusChange ()
  * Description  : Function will be called when the Link Status of the phy has changed ( see ether_callback.c )
- * Arguments    : xStatus : true when statyus has become high
+ * Arguments    : xStatus : true when status has become high
  * Return Value : void
  **********************************************************************************************************************/
 void prvLinkStatusChange( BaseType_t xStatus )
@@ -482,32 +483,35 @@ static int InitializeNetwork( void )
      * as the mac address is usually read from the EEPROM, and it might be different to the mac address in
      * the defines, especially in production environments
      */
-    configASSERT(pxMyInterface);
-    const uint8_t * myethaddr = &pxMyInterface->pxEndPoint->xMACAddress.ucBytes[0];
+    configASSERT( pxMyInterface );
+    const uint8_t * myethaddr = &pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 0 ];
 
     R_ETHER_PinSet_CHANNEL_0();
     R_ETHER_Initial();
     callback_ether_regist();
 
     param.channel = ETHER_CHANNEL_0;
-    R_ETHER_Control(CONTROL_POWER_ON, param);
-#if (ETHER_CHANNEL_MAX >= 2)
-    param.channel = ETHER_CHANNEL_1;
-    R_ETHER_Control(CONTROL_POWER_ON, param);
-#endif
+    R_ETHER_Control( CONTROL_POWER_ON, param );
+    #if ( ETHER_CHANNEL_MAX >= 2 )
+        param.channel = ETHER_CHANNEL_1;
+        R_ETHER_Control( CONTROL_POWER_ON, param );
+    #endif
 
-    eth_ret = R_ETHER_Open_ZC2(ETHER_CHANNEL_0, (const uint8_t *) myethaddr, false);
-    if (ETHER_SUCCESS != eth_ret)
+    eth_ret = R_ETHER_Open_ZC2( ETHER_CHANNEL_0, ( const uint8_t * ) myethaddr, false );
+
+    if( ETHER_SUCCESS != eth_ret )
     {
         return pdFALSE;
     }
-#if (ETHER_CHANNEL_MAX >= 2)
-    eth_ret = R_ETHER_Open_ZC2(ETHER_CHANNEL_1, (const uint8_t *) myethaddr, false);
-    if (ETHER_SUCCESS != eth_ret)
-    {
-        return pdFALSE;
-    }
-#endif
+
+    #if ( ETHER_CHANNEL_MAX >= 2 )
+        eth_ret = R_ETHER_Open_ZC2( ETHER_CHANNEL_1, ( const uint8_t * ) myethaddr, false );
+
+        if( ETHER_SUCCESS != eth_ret )
+        {
+            return pdFALSE;
+        }
+    #endif
 
     if( ether_receive_check_task_handle == NULL )
     {
