@@ -199,7 +199,7 @@ socklen_t uxHexPrintShort( char * pcBuffer,
 {
     const size_t uxNibbleCount = 4U;
     size_t uxNibble;
-    size_t uxIndex = 0U;
+    socklen_t uxIndex = 0U;
     uint16_t usShifter = usValue;
     BaseType_t xHadNonZero = pdFALSE;
 
@@ -226,7 +226,7 @@ socklen_t uxHexPrintShort( char * pcBuffer,
         usShifter = ( uint16_t ) ( usShifter << 4 );
     }
 
-    return( ( socklen_t ) uxIndex );
+    return uxIndex;
 }
 /*-----------------------------------------------------------*/
 

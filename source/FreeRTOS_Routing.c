@@ -1504,7 +1504,7 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
                                                  ( const void * ) &( pxEndPoint->ipv4_settings.ulIPAddress ),
                                                  pcBuffer,
-                                                 ( uint32_t ) uxSize );
+                                                 ( socklen_t ) uxSize );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1513,7 +1513,7 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
                                                  pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                                  pcBuffer,
-                                                 ( uint32_t ) uxSize );
+                                                 ( socklen_t ) uxSize );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
