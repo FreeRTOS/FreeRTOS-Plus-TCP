@@ -321,6 +321,10 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     }
                                 }
                             }
+                            else
+                            {
+                                /* do nothing, coverity happy */
+                            }
 
                             break;
 

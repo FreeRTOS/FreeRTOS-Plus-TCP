@@ -1862,7 +1862,7 @@
                 if( ( pxSegment->u.bits.ucTransmitCount == MAX_TRANSMIT_COUNT_USING_LARGE_WINDOW ) &&
                     ( pxWindow->xSize.ulTxWindowLength > ( 2U * ( ( uint32_t ) pxWindow->usMSS ) ) ) )
                 {
-                    uint16_t usMSS2 = pxWindow->usMSS * 2U;
+                    uint16_t usMSS2 = ( uint16_t ) ( pxWindow->usMSS * 2U );
                     FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u - %u]: Change Tx window: %u -> %u\n",
                                              pxWindow->usPeerPortNumber,
                                              pxWindow->usOurPortNumber,
