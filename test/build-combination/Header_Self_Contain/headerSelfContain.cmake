@@ -19,8 +19,8 @@ foreach( header IN LISTS headerList )
     # In header self contain test, we include headers one by one (by "-include ${header}.h")
     # to make sure all header files are able to include separately.
     target_compile_options(freertos_plus_tcp_build_test_${header}
-        PRIVATE
-        -include ${header}.h 
+      PRIVATE
+        -include ${header}.h
         $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
         $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-format-nonliteral>
         $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-function-declaration>
