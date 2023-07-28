@@ -1,7 +1,3 @@
-option(TEST_HEADER_SELF_CONTAINED "Start header self contain test" OFF)
-
-# -------------------------------------------------------------------
-
 add_library( freertos_plus_tcp_config_common INTERFACE )
 target_include_directories(freertos_plus_tcp_config_common INTERFACE Common )
 
@@ -41,14 +37,14 @@ target_include_directories(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFAC
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_header_self_contain INTERFACE)
+target_include_directories(freertos_plus_tcp_config_header_self_contain INTERFACE Header_Self_Contain)
+target_link_libraries(freertos_plus_tcp_config_header_self_contain INTERFACE freertos_plus_tcp_config_common)
+
+# -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_default INTERFACE)
 target_include_directories(freertos_plus_tcp_config_default INTERFACE DefaultConf)
 target_link_libraries(freertos_plus_tcp_config_default INTERFACE freertos_plus_tcp_config_common)
-
-# -------------------------------------------------------------------
-add_library( freertos_plus_tcp_header_self_contain INTERFACE)
-target_include_directories(freertos_plus_tcp_header_self_contain INTERFACE HeaderSelfContain)
-target_link_libraries(freertos_plus_tcp_header_self_contain INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
 # Configuration for FreeRTOS-Kernel
@@ -71,42 +67,39 @@ elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV6_TCP" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_ipv6_tcp)
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV4_IPV6" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_ipv4_ipv6)
+elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "HEADER_SELF_CONTAIN" )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_header_self_contain)
+    include( Header_Self_Contain/headerSelfContain.cmake )
 else()
     add_library( freertos_config ALIAS freertos_plus_tcp_config_default)
 endif()
 
-# In header self contain test, we include headers one by one
-# to make sure all header files are able to include separately.
-if( TEST_HEADER_SELF_CONTAINED )
-    include( HeaderSelfContain/headerSelfContain.cmake )
-else()
-    # Common build combination test.
-    add_executable(freertos_plus_tcp_build_test EXCLUDE_FROM_ALL)
+# Common build combination test.
+add_executable(freertos_plus_tcp_build_test EXCLUDE_FROM_ALL)
 
-    target_sources(freertos_plus_tcp_build_test
+target_sources(freertos_plus_tcp_build_test
+PRIVATE
+    Common/main.c
+)
+
+target_compile_options(freertos_plus_tcp_build_test
     PRIVATE
-        Common/main.c
-    )
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-format-nonliteral>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-prototypes>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-reserved-identifier>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-parameter>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-variable>
+)
 
-    target_compile_options(freertos_plus_tcp_build_test
-      PRIVATE
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-format-nonliteral>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-function-declaration>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-prototypes>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-reserved-identifier>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-shorten-64-to-32>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-sign-conversion>
-        $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-parameter>
-        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
-        $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-variable>
-    )
-
-    target_link_libraries(freertos_plus_tcp_build_test
-      PRIVATE
-        freertos_plus_tcp
-        freertos_kernel
-    )
-endif()
+target_link_libraries(freertos_plus_tcp_build_test
+    PRIVATE
+    freertos_plus_tcp
+    freertos_kernel
+)

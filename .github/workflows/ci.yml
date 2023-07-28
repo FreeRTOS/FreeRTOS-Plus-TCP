@@ -132,16 +132,16 @@ jobs:
           cmake --build build --target freertos_plus_tcp_build_test
       - name: Build checks (Header Self Contain)
         run: |
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL -DTEST_HEADER_SELF_CONTAINED=ON
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=HEADER_SELF_CONTAIN
           cmake --build build --target clean
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_DHCP
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_DNS
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_IP
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_ND
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_ROUTING
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_SOCKETS
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_NETWORKBUFFERMANAGEMENT
-          cmake --build build --target freertos_plus_tcp_build_test_TEST_HEADER_INC_ONLY_NETWORKINTERFACE
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DHCP
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DNS
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_IP
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_ND
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_Routing
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_Sockets
+          cmake --build build --target freertos_plus_tcp_build_test_NetworkBufferManagement
+          cmake --build build --target freertos_plus_tcp_build_test_NetworkInterface
 
   complexity:
     runs-on: ubuntu-latest

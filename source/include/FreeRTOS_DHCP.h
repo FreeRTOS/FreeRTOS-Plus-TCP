@@ -28,6 +28,8 @@
 #ifndef FREERTOS_DHCP_H
 #define FREERTOS_DHCP_H
 
+#include "FreeRTOS.h"
+
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "IPTraceMacroDefaults.h"

@@ -26,6 +26,7 @@
 #ifndef FREERTOS_ROUTING_H
     #define FREERTOS_ROUTING_H
 
+    #include "FreeRTOS.h"
     #include "FreeRTOS_IP.h"
 
     #if ( ipconfigUSE_DHCP != 0 )
