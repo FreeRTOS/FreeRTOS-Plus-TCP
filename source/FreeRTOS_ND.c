@@ -202,7 +202,7 @@
 
         if( eReturn == eARPCacheMiss )
         {
-            FreeRTOS_printf( ( "eNDGetCacheEntry: lookup %pip miss\n", pxIPAddress->ucBytes ) );
+            FreeRTOS_printf( ( "eNDGetCacheEntry: lookup %pip miss\n", ( void * ) pxIPAddress->ucBytes ) );
         }
 
         if( eReturn == eARPCacheMiss )
@@ -219,8 +219,8 @@
                 }
 
                 FreeRTOS_printf( ( "eNDGetCacheEntry: FindEndPointOnIP failed for %pip (endpoint %pip)\n",
-                                   pxIPAddress->ucBytes,
-                                   pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                                   ( void * ) pxIPAddress->ucBytes,
+                                   ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
             }
             else
             {
@@ -239,7 +239,7 @@
                         }
                     }
 
-                    FreeRTOS_printf( ( "eNDGetCacheEntry: LinkLocal %pip \"%s\"\n", pxIPAddress->ucBytes,
+                    FreeRTOS_printf( ( "eNDGetCacheEntry: LinkLocal %pip \"%s\"\n", ( void * ) pxIPAddress->ucBytes,
                                        ( eReturn == eARPCacheHit ) ? "hit" : "miss" ) );
                 }
                 else
@@ -249,15 +249,15 @@
                     if( pxEndPoint != NULL )
                     {
                         ( void ) memcpy( pxIPAddress->ucBytes, pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip\n", pxIPAddress->ucBytes ) );
-                        FreeRTOS_printf( ( "eNDGetCacheEntry: From addr %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                        FreeRTOS_printf( ( "eNDGetCacheEntry: Using gw %pip\n", ( void * ) pxIPAddress->ucBytes ) );
+                        FreeRTOS_printf( ( "eNDGetCacheEntry: From addr %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
                         /* See if the gateway has an entry in the cache. */
                         eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
 
                         if( *ppxEndPoint != NULL )
                         {
-                            FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
+                            FreeRTOS_printf( ( "eNDGetCacheEntry: found end-point %pip\n", ( void * ) ( *ppxEndPoint )->ipv6_settings.xIPAddress.ucBytes ) );
                         }
 
                         *( ppxEndPoint ) = pxEndPoint;
@@ -325,7 +325,7 @@
         }
         else
         {
-            FreeRTOS_printf( ( "vNDRefreshCacheEntry: %pip not found\n", pxIPAddress->ucBytes ) );
+            FreeRTOS_printf( ( "vNDRefreshCacheEntry: %pip not found\n", ( void * ) pxIPAddress->ucBytes ) );
         }
     }
 /*-----------------------------------------------------------*/
@@ -442,7 +442,7 @@
 
                 FreeRTOS_debug_printf( ( "prvCacheLookup6[ %d ] %pip with %02x:%02x:%02x:%02x:%02x:%02x\n",
                                          ( int ) x,
-                                         pxAddressToLookup->ucBytes,
+                                         ( void * ) pxAddressToLookup->ucBytes,
                                          pxMACAddress->ucBytes[ 0 ],
                                          pxMACAddress->ucBytes[ 1 ],
                                          pxMACAddress->ucBytes[ 2 ],
@@ -459,7 +459,7 @@
 
         if( eReturn == eARPCacheMiss )
         {
-            FreeRTOS_printf( ( "prvNDCacheLookup %pip Miss\n", pxAddressToLookup->ucBytes ) );
+            FreeRTOS_printf( ( "prvNDCacheLookup %pip Miss\n", ( void * ) pxAddressToLookup->ucBytes ) );
 
             if( ppxEndPoint != NULL )
             {
@@ -491,7 +491,7 @@
                     FreeRTOS_printf( ( "ND %2d: age %3u - %pip MAC %02x-%02x-%02x-%02x-%02x-%02x endPoint %s\n",
                                        ( int ) x,
                                        xNDCache[ x ].ucAge,
-                                       xNDCache[ x ].xIPAddress.ucBytes,
+                                       ( void * ) xNDCache[ x ].xIPAddress.ucBytes,
                                        xNDCache[ x ].xMACAddress.ucBytes[ 0 ],
                                        xNDCache[ x ].xMACAddress.ucBytes[ 1 ],
                                        xNDCache[ x ].xMACAddress.ucBytes[ 2 ],
@@ -729,7 +729,7 @@
             {
                 /* No endpoint found for the target IP-address. */
                 FreeRTOS_printf( ( "SendPingRequestIPv6: no end-point found for %pip\n",
-                                   pxIPAddress->ucBytes ) );
+                                   ( void * ) pxIPAddress->ucBytes ) );
             }
             else if( ( uxGetNumberOfFreeNetworkBuffers() >= 3U ) && ( uxNumberOfBytesToSend >= 1U ) && ( xEnoughSpace != pdFALSE ) )
             {
@@ -761,7 +761,7 @@
                     pxICMPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( sizeof( ICMPEcho_IPv6_t ) + uxNumberOfBytesToSend );
                     ( void ) memcpy( pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     ( void ) memcpy( pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                    FreeRTOS_printf( ( "ICMP send from %pip\n", pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
+                    FreeRTOS_printf( ( "ICMP send from %pip\n", ( void * ) pxICMPPacket->xIPHeader.xSourceAddress.ucBytes ) );
 
                     /* Fill in the basic header information. */
                     pxICMPHeader->ucTypeOfMessage = ipICMP_PING_REQUEST_IPv6;
@@ -949,8 +949,8 @@
                     FreeRTOS_printf( ( "ICMPv6_recv %d (%s) from %pip to %pip end-point = %s\n",
                                        pxICMPHeader_IPv6->ucTypeOfMessage,
                                        pcMessageType( ( BaseType_t ) pxICMPHeader_IPv6->ucTypeOfMessage ),
-                                       pxICMPPacket->xIPHeader.xSourceAddress.ucBytes,
-                                       pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes,
+                                       ( void * ) pxICMPPacket->xIPHeader.xSourceAddress.ucBytes,
+                                       ( void * ) pxICMPPacket->xIPHeader.xDestinationAddress.ucBytes,
                                        pcEndpointName( pxEndPoint, pcAddress, sizeof( pcAddress ) ) ) );
                 }
             }
@@ -1032,7 +1032,7 @@
                        char pcName[ 40 ];
                        ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
                        FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",
-                                          pxICMPHeader_IPv6->xIPv6Address.ucBytes,
+                                          ( void * ) pxICMPHeader_IPv6->xIPv6Address.ucBytes,
                                           pcEndpointName( pxEndPointFound, pcName, sizeof( pcName ) ) ) );
 
                        if( pxEndPointFound != NULL )
@@ -1055,8 +1055,8 @@
                        xCompare = memcmp( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
                        FreeRTOS_printf( ( "ND NS for %pip endpoint %pip %s\n",
-                                          pxICMPHeader_IPv6->xIPv6Address.ucBytes,
-                                          pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                          ( void * ) pxICMPHeader_IPv6->xIPv6Address.ucBytes,
+                                          ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                           ( xCompare == 0 ) ? "Reply" : "Ignore" ) );
 
                        if( xCompare == 0 )
@@ -1086,7 +1086,7 @@
                                           &( pxICMPHeader_IPv6->xIPv6Address ),
                                           pxEndPoint );
                     FreeRTOS_printf( ( "NEIGHBOR_ADV from %pip\n",
-                                       pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
+                                       ( void * ) pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
 
                     #if ( ipconfigUSE_RA != 0 )
 

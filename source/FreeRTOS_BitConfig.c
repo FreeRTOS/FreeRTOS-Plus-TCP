@@ -132,9 +132,9 @@ BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
 /**
  * @brief Peek the last byte from a bit-config struct.
  *
- * @param[in] pxConfig: The structure containing a copy of the bits.
- * @param[in] pucData: The buffer to stored peeked data.
- * @param[in] uxSize: The length of the binary data stream.
+ * @param[in] pxConfig The structure containing a copy of the bits.
+ * @param[in] pucData The buffer to stored peeked data.
+ * @param[in] uxSize The length of the binary data stream.
  *
  * @return pdTRUE if the malloc was OK, otherwise pdFALSE.
  */
