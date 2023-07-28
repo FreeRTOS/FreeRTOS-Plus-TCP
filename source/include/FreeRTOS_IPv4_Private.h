@@ -27,13 +27,14 @@
 
 #ifndef FREERTOS_IPV4_PRIVATE_H
 #define FREERTOS_IPV4_PRIVATE_H
+
+#include "FreeRTOS_IP_Private.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-#include "FreeRTOS_IP_Private.h"
 
 /* The maximum UDP payload length. */
 #define ipMAX_UDP_PAYLOAD_LENGTH        ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv4_HEADER ) - ipSIZE_OF_UDP_HEADER )

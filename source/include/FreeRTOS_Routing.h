@@ -26,16 +26,16 @@
 #ifndef FREERTOS_ROUTING_H
     #define FREERTOS_ROUTING_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
     #if ( ipconfigUSE_DHCP != 0 )
         #include "FreeRTOS_DHCP.h"
     #endif
 
     #if ( ipconfigUSE_IPv6 != 0 )
         #include "FreeRTOS_DHCPv6.h"
+    #endif
+
+    #ifdef __cplusplus
+        extern "C" {
     #endif
 
 /* Every NetworkInterface needs a set of access functions: */

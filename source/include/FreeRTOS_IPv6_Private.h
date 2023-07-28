@@ -27,11 +27,6 @@
 
 #ifndef FREERTOS_IPV6_PRIVATE_H
 #define FREERTOS_IPV6_PRIVATE_H
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
@@ -48,6 +43,12 @@
 #include "semphr.h"
 
 #include "event_groups.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* MISRA Ref 20.5.1 [Use of undef] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */

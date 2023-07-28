@@ -23,13 +23,12 @@
 
     #define STM32H7xx_HAL_ETH_H
 
+/* Includes ------------------------------------------------------------------*/
+    #include "stm32h7xx_hal_def.h"
+
     #ifdef __cplusplus
         extern "C" {
     #endif
-
-
-/* Includes ------------------------------------------------------------------*/
-    #include "stm32h7xx_hal_def.h"
 
     #if defined( ETH )
 

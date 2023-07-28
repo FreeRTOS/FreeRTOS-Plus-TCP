@@ -28,15 +28,15 @@
 #ifndef FREERTOS_IPV4_SOCKETS_H
     #define FREERTOS_IPV4_SOCKETS_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
 /* Standard includes. */
     #include <string.h>
 
 /* FreeRTOS includes. */
     #include "FreeRTOS.h"
+
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 
 /* Translate from 192.168.1.1 to a 32-bit number. */
