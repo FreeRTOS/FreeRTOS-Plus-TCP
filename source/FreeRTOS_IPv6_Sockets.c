@@ -165,12 +165,12 @@ char cHexToChar( uint16_t usValue )
 
     if( usValue <= 9U )
     {
-        cReturn += usValue;
+        cReturn = ( char ) ( cReturn + usValue );
     }
     else if( usValue <= 15U )
     {
         cReturn = 'a';
-        cReturn += ( usValue - 10U );
+        cReturn = ( char ) ( cReturn + ( usValue - ( uint16_t ) 10 ) );
     }
     else
     {
@@ -199,7 +199,7 @@ socklen_t uxHexPrintShort( char * pcBuffer,
 {
     const size_t uxNibbleCount = 4U;
     size_t uxNibble;
-    size_t uxIndex = 0U;
+    socklen_t uxIndex = 0U;
     uint16_t usShifter = usValue;
     BaseType_t xHadNonZero = pdFALSE;
 
@@ -223,7 +223,7 @@ socklen_t uxHexPrintShort( char * pcBuffer,
             uxIndex++;
         }
 
-        usShifter <<= 4;
+        usShifter = ( uint16_t ) ( usShifter << 4 );
     }
 
     return uxIndex;
