@@ -1106,7 +1106,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
      */
     pvCopySource = xDefaultPartARPPacketHeader;
     pvCopyDest = pxARPPacket;
-    memcpy( pvCopyDest, pvCopySource, sizeof( xDefaultPartARPPacketHeader ) );
+    ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( xDefaultPartARPPacketHeader ) );
 
     pvCopySource = ipLOCAL_MAC_ADDRESS;
     pvCopyDest = pxARPPacket->xEthernetHeader.xSourceAddress.ucBytes;

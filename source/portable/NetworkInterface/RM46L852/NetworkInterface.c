@@ -35,20 +35,16 @@ TaskHandle_t receiveTaskHandle = NULL;
 
 void prvEMACHandlerTask( void * pvParameters  );
 void prvProcessFrame( uint32 length, uint32 bufptr );
-//struct hdkif_t xHdkif;
-//struct pbuf_t xpbuf;
 uint8   emacAddress[6U] =   {0x00U, 0x08U, 0xEEU, 0x03U, 0xA6U, 0x6CU};
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
-//    xHdkif.inst_num = 0;
-//    hdkif_inst_config();
     BaseType_t xFirstCall = pdTRUE;
     BaseType_t xTaskCreated;
 
     if (EMACHWInit(emacAddress) == EMAC_ERR_OK)
     {
-        //sci_print("\n network initialise successful\n");
+       // sci_print("\n network initialise successful\n");
         if( ( xFirstCall == pdTRUE ) || ( receiveTaskHandle == NULL ) )
         {
             xTaskCreated = xTaskCreate( prvEMACHandlerTask,
@@ -68,13 +64,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 xFirstCall = pdFALSE;
         }
 
-//        xTaskCreate( prvEMACHandlerTask,
-//                        "EMAC-Handler",
-//                        configMINIMAL_STACK_SIZE * 3,
-//                        NULL,
-//                        configMAX_PRIORITIES - 1,
-//                        NULL);
-//
         return pdPASS;
     }
     else
@@ -115,11 +104,6 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
       }
       taskEXIT_CRITICAL();
 
-//      if (EMACTransmit(&xHdkif,&xpbuf) == TRUE)
-////          sci_print("\nnetwork output success\n");
-//      else
-//          sci_print("\nnetwork output fail\n");
-
       if( xReleaseAfterSend == pdTRUE )
           {
               vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
@@ -132,32 +116,19 @@ void prvEMACHandlerTask( void * pvParameters  )
 
 
     /* Wait for the driver to finish starting. */
-    ( void ) ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+   // ( void ) ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
     while( pdTRUE )
     {
         ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) );
-//        {
-  //          sci_print("\ninside emac handler task\r\n");
-//        }
-//        else
-//        {
-            //BaseType_t receiving = pdTRUE;
 
-            /* A packet was received, the link must be up. */
-//            if( length )
-//            {
-//                prvProcessFrame( length,bufptr );
-//            }
-//            else
-//                sci_print("\nPacket with zero length\n");
         taskENTER_CRITICAL();
-              {
+        {
             EMACReceive(&hdkif_data[0U]);
-              }
-              taskEXIT_CRITICAL();
+        }
+        taskEXIT_CRITICAL();
 
-        //}
+
     }
 }
 
@@ -169,22 +140,19 @@ void prvProcessFrame( uint32 length, uint32 bufptr)
 
     if( pxBufferDescriptor != NULL )
     {
-       // ENET_ReadFrame( ethernetifLocal->base, &( ethernetifLocal->handle ), pxBufferDescriptor->pucEthernetBuffer, length, 0, NULL );
+
         pxBufferDescriptor->xDataLength = length;
-//        taskENTER_CRITICAL();
-//        {
-            ( void ) memcpy( pxBufferDescriptor->pucEthernetBuffer,
-                         bufptr,
+
+        ( void ) memcpy( pxBufferDescriptor->pucEthernetBuffer,
+                         (uint8_t *)bufptr,
                          length );
-//        }
-//        taskEXIT_CRITICAL();
 
         if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
             IPStackEvent_t xRxEvent;
             xRxEvent.eEventType = eNetworkRxEvent;
             xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-            sci_print("\r\nsending event struct to IP\n");
+            //sci_print("\r\nsending event struct to IP\n");
             if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
             {
                 vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
@@ -216,7 +184,7 @@ void prvProcessFrame( uint32 length, uint32 bufptr)
         #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( FreeRTOS_debug_printf ) )
             FreeRTOS_debug_printf( ( "No Buffer Available: dropping incoming frame!!" ) );
         #endif
-        //ENET_ReadFrame( ENET, &( ethernetifLocal->handle ), NULL, length, 0, NULL );
+
 
         /* No buffer available to receive this message */
         iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
@@ -248,10 +216,7 @@ void EMACReceive(hdkif_t *hdkif)
   /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
   while((curr_bd->flags_pktlen & EMAC_BUF_DESC_SOP) == EMAC_BUF_DESC_SOP) {
 
-     //prvProcessFrame(curr_bd->flags_pktlen,curr_bd->bufptr);
-     //prvProcessFrame(curr_bd->bufoff_len, curr_bd->bufptr);
 
-      //prvProcessFrame(curr_bd->bufoff_len,curr_bd->bufptr);
 
     /* Start processing once the packet is loaded */
     /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
@@ -352,25 +317,4 @@ void taskHandleYield()
     vTaskNotifyGiveFromISR( receiveTaskHandle, &needsToYield );
     portYIELD_FROM_ISR( needsToYield );
 }
-
-//#define BUFFER_SIZE_ALLOC1               ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
-//#define BUFFER_SIZE_ALLOC1_ROUNDED_UP    ( ( BUFFER_SIZE_ALLOC1 + 7 ) & ~0x07UL )
-//static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ BUFFER_SIZE_ALLOC1_ROUNDED_UP ];
-//
-//void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-//{
-//    BaseType_t x;
-//
-//    for( x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
-//    {
-//        /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from the
-//         * beginning of the allocated buffer. */
-//        pxNetworkBuffers[ x ].pucEthernetBuffer = &( ucBuffers[ x ][ ipBUFFER_PADDING ] );
-//
-//        /* The following line is also required, but will not be required in
-//         * future versions. */
-//        *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
-//    }
-//}
-
 

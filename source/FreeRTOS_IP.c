@@ -1248,7 +1248,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
     configASSERT( pxNetworkBuffer != NULL );
 
     iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-    FreeRTOS_debug_printf(("\n Inside Process Ethernet Packet \r\n"));
+
     /* Interpret the Ethernet frame. */
     if( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) )
     {
