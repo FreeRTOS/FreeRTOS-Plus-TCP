@@ -30,7 +30,6 @@
 
 /* Standard includes. */
 #include <stdio.h>
-#include <time.h>
 #include <ctype.h>
 
 /* FreeRTOS includes. */
