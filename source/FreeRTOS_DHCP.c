@@ -1654,8 +1654,8 @@
 
             ( void ) xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
             ( void ) xApplicationGetRandomNumber( &( ulNumbers[ 1 ] ) );
-            ucLinkLayerIPAddress[ 0 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 0 ] % 0xFDU ); /* get value 1..254 for IP-address 3rd byte of IP address to try. */
-            ucLinkLayerIPAddress[ 1 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 1 ] % 0xFDU ); /* get value 1..254 for IP-address 4th byte of IP address to try. */
+            ucLinkLayerIPAddress[ 0 ] = ( uint8_t ) ( 1 + ( ulNumbers[ 0 ] % 0xFDU ) ); /* get value 1..254 for IP-address 3rd byte of IP address to try. */
+            ucLinkLayerIPAddress[ 1 ] = ( uint8_t ) ( 1 + ( ulNumbers[ 1 ] % 0xFDU ) ); /* get value 1..254 for IP-address 4th byte of IP address to try. */
 
             EP_IPv4_SETTINGS.ulGatewayAddress = 0U;
 

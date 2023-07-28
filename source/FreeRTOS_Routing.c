@@ -1459,8 +1459,8 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
         for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
         {
             uint16_t usAddress =
-                ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
-                ( ( uint16_t ) pxAddress->ucBytes[ 1 ] );
+                ( uint16_t ) ( ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
+                               ( ( uint16_t ) pxAddress->ucBytes[ 1 ] ) );
 
             if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
             {
@@ -1504,7 +1504,7 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
                                                  ( const void * ) &( pxEndPoint->ipv4_settings.ulIPAddress ),
                                                  pcBuffer,
-                                                 uxSize );
+                                                 ( socklen_t ) uxSize );
                     break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1513,7 +1513,7 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
                     ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
                                                  pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                                  pcBuffer,
-                                                 uxSize );
+                                                 ( socklen_t ) uxSize );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 

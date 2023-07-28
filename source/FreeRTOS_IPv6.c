@@ -145,7 +145,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
             {
                 pxExtHeader = ( const IPExtHeader_IPv6_t * ) ( &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength ] ) );
                 /* The definition of length in extension header - Length of this header in 8-octet units, not including the first 8 octets. */
-                uxExtHeaderLength += ( 8 * pxExtHeader->ucHeaderExtLength ) + 8;
+                uxExtHeaderLength += ( size_t ) ( ( 8 * pxExtHeader->ucHeaderExtLength ) + 8 );
 
                 ucNextHeader = pxExtHeader->ucNextHeader;
 
@@ -656,7 +656,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
             ( void ) memmove( pucTo, pucFrom, xMoveLen );
             pxNetworkBuffer->xDataLength -= uxRemovedBytes;
 
-            usPayloadLength -= ( uint16_t ) uxRemovedBytes;
+            usPayloadLength = ( uint16_t ) ( usPayloadLength - uxRemovedBytes );
             pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
             eResult = eProcessBuffer;
         }

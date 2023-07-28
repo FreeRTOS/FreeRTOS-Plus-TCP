@@ -93,7 +93,7 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
                 }
             #endif
 
-            ulMSS -= uxDifference;
+            ulMSS = ( uint32_t ) ( ulMSS - uxDifference );
             IPv6_Type_t eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
 
             if( eType == eIPv6_Global )
