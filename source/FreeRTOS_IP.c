@@ -1824,9 +1824,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     eReturn = prvAllowIPPacketIPv6( ( ( const IPHeader_IPv6_t * ) &( pxIPPacket->xIPHeader ) ), pxNetworkBuffer, uxHeaderLength );
 
-                    /* The IP-header type is copied to a location 6 bytes before the messages
-                     * starts.  It might be needed later on when a UDP-payload buffer is being
-                     * used. */
+                    /* The IP-header type is copied to a special reserved location a few bytes before the message
+                     * starts. In the case of IPv6, this value is never actually used and the line below can safely be removed
+                     * with no ill effects. We only store it to help with debugging. */
                     pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader_IPv6->ucVersionTrafficClass;
                 }
                 break;
@@ -1854,7 +1854,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                        eReturn = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
                        {
-                           /* The IP-header type is copied to a location 6 bytes before the
+                           /* The IP-header type is copied to a special reserved location a few bytes before the
                             * messages starts.  It might be needed later on when a UDP-payload
                             * buffer is being used. */
                            pxNetworkBuffer->pucEthernetBuffer[ 0 - ( BaseType_t ) ipIP_TYPE_OFFSET ] = pxIPHeader->ucVersionHeaderLength;
