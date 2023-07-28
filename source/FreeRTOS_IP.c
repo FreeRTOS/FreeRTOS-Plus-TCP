@@ -1789,7 +1789,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn;
-    UBaseType_t uxHeaderLength;
+    UBaseType_t uxHeaderLength = ipSIZE_OF_IPv4_HEADER;
     uint8_t ucProtocol = 0U;
 
     #if ( ipconfigUSE_IPv6 != 0 )

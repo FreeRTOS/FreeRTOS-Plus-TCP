@@ -336,7 +336,7 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
     ( void ) memset( xRemoteIP.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xRemoteIP.xIP_IPv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     eReturned = eNDGetCacheEntry( &( xRemoteIP.xIP_IPv6 ), &( xEthAddress ), &( pxEndPoint ) );
-    FreeRTOS_printf( ( "eNDGetCacheEntry: %d with end-point %p\n", eReturned, pxEndPoint ) );
+    FreeRTOS_printf( ( "eNDGetCacheEntry: %d with end-point %p\n", eReturned, ( void * ) pxEndPoint ) );
 
     if( pxEndPoint != NULL )
     {
@@ -360,7 +360,7 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
             /* Count the number of times it could not find the ARP address. */
             pxSocket->u.xTCP.ucRepCount++;
 
-            FreeRTOS_printf( ( "Looking up %pip with%s end-point\n", xRemoteIP.xIP_IPv6.ucBytes, ( pxEndPoint != NULL ) ? "" : "out" ) );
+            FreeRTOS_printf( ( "Looking up %pip with%s end-point\n", ( void * ) xRemoteIP.xIP_IPv6.ucBytes, ( pxEndPoint != NULL ) ? "" : "out" ) );
 
             if( pxEndPoint != NULL )
             {

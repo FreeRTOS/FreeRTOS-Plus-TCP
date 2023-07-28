@@ -2199,9 +2199,9 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE_UNSIGNED:
                             ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ), "%pip port %u to %pip port %u",
-                                               pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
+                                               ( void * ) pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
                                                pxSocket->usLocalPort,
-                                               pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                               ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
                                                pxSocket->u.xTCP.usRemotePort );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -2231,7 +2231,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     case pdTRUE_UNSIGNED:
                         ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ),
                                            "%pip port %u",
-                                           pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
+                                           ( void * ) pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
                                            pxSocket->usLocalPort );
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -3702,7 +3702,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                         case FREERTOS_AF_INET6:
                             pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
                             FreeRTOS_printf( ( "FreeRTOS_connect: %u to %pip port %u\n",
-                                               pxSocket->usLocalPort, pxAddress->sin_address.xIP_IPv6.ucBytes, FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                                               pxSocket->usLocalPort, ( void * ) pxAddress->sin_address.xIP_IPv6.ucBytes,
+                                               FreeRTOS_ntohs( pxAddress->sin_port ) ) );
                             ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -5764,8 +5765,6 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
  * @brief A helper function of vTCPNetStat(), see below.
  *
  * @param[in] pxSocket The socket that needs logging.
- *
- * @return
  */
     static void vTCPNetStat_TCPSocket( const FreeRTOS_Socket_t * pxSocket )
     {
@@ -5809,7 +5808,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
                 case pdTRUE_UNSIGNED:
                     ( void ) snprintf( pcRemoteIp,
                                        sizeof( pcRemoteIp ),
-                                       "%pip", pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes );
+                                       "%pip", ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
