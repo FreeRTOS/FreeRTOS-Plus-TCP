@@ -28,12 +28,6 @@
 #ifndef FREERTOS_IPV4_H
 #define FREERTOS_IPV4_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 #include "FreeRTOS.h"
 #include "task.h"
 #include "FreeRTOS_IP.h"
@@ -41,6 +35,12 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 #define ipSIZE_OF_IPv4_HEADER               20U
 #define ipSIZE_OF_IPv4_ADDRESS              4U

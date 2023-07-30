@@ -457,8 +457,8 @@ eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * c
             pxIPHeader->usLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader->usLength ) - optlen );
 
             /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
-            pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
-                                                ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
+            pxIPHeader->ucVersionHeaderLength = ( uint8_t ) ( ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
+                                                              ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU ) );
         }
     #else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
         {

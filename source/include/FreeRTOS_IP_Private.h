@@ -27,11 +27,6 @@
 
 #ifndef FREERTOS_IP_PRIVATE_H
 #define FREERTOS_IP_PRIVATE_H
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
@@ -48,6 +43,12 @@
 #include "semphr.h"
 
 #include "event_groups.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 #ifdef TEST
     int ipFOREVER( void );
@@ -409,11 +410,7 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 /** @brief Macro calculates the number of elements in an array as a size_t. */
 #ifndef ARRAY_SIZE_X
     #ifndef _WINDOWS_
-        #define ARRAY_SIZE_X( x )                            \
-    ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
-        BaseType_t xCount = ( BaseType_t ) uxCount;          \
-        xCount; }                                            \
-    )
+        #define ARRAY_SIZE_X( x )    ( ( BaseType_t ) sizeof( x ) / ( BaseType_t ) sizeof( x[ 0 ] ) )
     #else
         #define ARRAY_SIZE_X( x )    ( sizeof( x ) / sizeof( x[ 0 ] ) )
     #endif

@@ -772,8 +772,8 @@
                         if( pxNetworkBuffer->pxEndPoint == NULL )
                         {
                             FreeRTOS_printf( ( "prvTCPReturnPacket: no such end-point %pip => %pip\n",
-                                               pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                               pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
+                                               ( void * ) pxIPHeader_IPv6->xSourceAddress.ucBytes,
+                                               ( void * ) pxIPHeader_IPv6->xDestinationAddress.ucBytes ) );
                         }
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */

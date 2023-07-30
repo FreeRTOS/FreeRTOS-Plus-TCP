@@ -184,7 +184,7 @@
                                                          ( unsigned ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ) ) );
                             }
 
-                            prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+                            prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, ( uint32_t ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ), ipconfigZERO_COPY_TX_DRIVER );
 
                             #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
                                 {

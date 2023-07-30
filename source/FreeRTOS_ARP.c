@@ -321,6 +321,10 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     }
                                 }
                             }
+                            else
+                            {
+                                /* do nothing, coverity happy */
+                            }
 
                             break;
 
@@ -550,7 +554,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
                        ( ucNextHeader == ipPROTOCOL_UDP ) )
                    {
                        IPv6_Type_t eType = xIPv6_GetIPType( ( const IPv6_Address_t * ) pxIPAddress );
-                       FreeRTOS_printf( ( "xCheckRequiresARPResolution: %pip type %s\n", pxIPAddress->ucBytes, ( eType == eIPv6_Global ) ? "Global" : ( eType == eIPv6_LinkLocal ) ? "LinkLocal" : "other" ) );
+                       FreeRTOS_printf( ( "xCheckRequiresARPResolution: %pip type %s\n", ( void * ) pxIPAddress->ucBytes, ( eType == eIPv6_Global ) ? "Global" : ( eType == eIPv6_LinkLocal ) ? "LinkLocal" : "other" ) );
 
                        if( eType == eIPv6_LinkLocal )
                        {
@@ -633,8 +637,8 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  * @brief Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
  *        is found then no action will be taken.
  *
- * @param[in] pxMACAddress: Pointer to the MAC address whose entry needs to be updated.
- * @param[in] ulIPAddress: the IP address whose corresponding entry needs to be updated.
+ * @param[in] pxMACAddress Pointer to the MAC address whose entry needs to be updated.
+ * @param[in] ulIPAddress the IP address whose corresponding entry needs to be updated.
  */
 void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
                                const uint32_t ulIPAddress )

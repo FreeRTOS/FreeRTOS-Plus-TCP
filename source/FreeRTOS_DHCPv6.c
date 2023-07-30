@@ -30,7 +30,6 @@
 
 /* Standard includes. */
 #include <stdio.h>
-#include <time.h>
 #include <ctype.h>
 
 /* FreeRTOS includes. */
@@ -172,9 +171,9 @@ eDHCPState_t eGetDHCPv6State( struct xNetworkEndPoint * pxEndPoint )
 /**
  * @brief Check if option length is less than buffer size and larger than minimum requirement.
  *
- * @param[in] usOption: The option code.
- * @param[in] uxOptionLength: The option length to check.
- * @param[in] uxRemainingSize: Remaining size in the buffer.
+ * @param[in] usOption The option code.
+ * @param[in] uxOptionLength The option length to check.
+ * @param[in] uxRemainingSize Remaining size in the buffer.
  *
  * @return pdTRUE if the length is valid, otherwise pdFALSE.
  */
@@ -254,8 +253,8 @@ static BaseType_t prvIsOptionLengthValid( uint16_t usOption,
 
 /**
  * @brief A DHCP packet has a list of options, one of them is Status Code. This function is used to parse it.
- * @param[in] uxLength: Total length for status code.
- * @param[in] pxMessage: The raw packet as it was received.
+ * @param[in] uxLength Total length for status code.
+ * @param[in] pxMessage The raw packet as it was received.
  *
  * @return pdTRUE if status is success, otherwise pdFALSE.
  */
@@ -1011,7 +1010,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                     uint16_t usLength = ( uint16_t ) pxDHCPMessage->xServerID.uxLength;
                     /* DHCPv6_Option_Server_Identifier */
                     vBitConfig_write_16( &( xMessage ), DHCPv6_Option_Server_Identifier );     /* Option is 1: Server Identifier */
-                    vBitConfig_write_16( &( xMessage ), usLength + 4U );                       /* The length is 14 */
+                    vBitConfig_write_16( &( xMessage ), ( uint16_t ) ( usLength + 4U ) );      /* The length is 14 */
                     vBitConfig_write_16( &( xMessage ), pxDHCPMessage->xServerID.usDUIDType ); /* The type of DUID: 1, 2, or 3. */
                     vBitConfig_write_16( &( xMessage ), pxDHCPMessage->xServerID.usHardwareType );
                     vBitConfig_write_uc( &( xMessage ), pxDHCPMessage->xServerID.pucID, pxDHCPMessage->xServerID.uxLength );
@@ -1159,7 +1158,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                 ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 pxDHCPMessage->ulPreferredLifeTime = ulBitConfig_read_32( pxMessage );
                 pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
-                FreeRTOS_printf( ( "IP Address %pip\n", pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes ) );
+                FreeRTOS_printf( ( "IP Address %pip\n", ( void * ) pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes ) );
                 break;
 
             case DHCPv6_Option_IA_Prefix:
@@ -1167,7 +1166,7 @@ static BaseType_t prvDHCPv6_subOption( uint16_t usOption,
                 pxDHCPMessage->ulValidLifeTime = ulBitConfig_read_32( pxMessage );
                 pxDHCPMessage->ucprefixLength = ucBitConfig_read_8( pxMessage );
                 ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                FreeRTOS_printf( ( "Address prefix: %pip length %d\n", pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, pxDHCPMessage->ucprefixLength ) );
+                FreeRTOS_printf( ( "Address prefix: %pip length %d\n", ( void * ) pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, pxDHCPMessage->ucprefixLength ) );
                 break;
 
             case DHCPv6_Option_Status_Code:
@@ -1263,7 +1262,7 @@ static BaseType_t prvDHCPv6_handleOption( struct xNetworkEndPoint * pxEndPoint,
                          *  - the message does not include a Client Identifier option.
                          *  - the contents of the Client Identifier option does not match the client's DUID.
                          *  - the "transaction-id" field value does not match the value the client used in its Solicit message. */
-                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, lIDSize ); /* Link Layer address, 6 bytes */
+                        ( void ) xBitConfig_read_uc( pxMessage, pxDHCPMessage->xClientID.pucID, ( size_t ) lIDSize ); /* Link Layer address, 6 bytes */
 
                         /* Check client DUID. */
                         if( ( pxSet->uxOptionLength != dhcpIPv6_CLIENT_DUID_LENGTH ) ||
