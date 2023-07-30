@@ -42,7 +42,7 @@
 
 #define ipconfigUSE_RA                            ( 1 )
 
-#define ipconfigUSE_DHCPv6                        ( 1 )
+#define ipconfigUSE_DHCPv6                        ( 0 )
 
 #define ipconfigCOMPATIBLE_WITH_SINGLE            ( 0 )
 
