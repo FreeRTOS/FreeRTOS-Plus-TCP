@@ -574,7 +574,7 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
 
                 if( pxSocket->u.xTCP.usMSS > usDifference )
                 {
-                    pxSocket->u.xTCP.usMSS -= ( uint16_t ) usDifference;
+                    pxSocket->u.xTCP.usMSS = ( uint16_t ) ( pxSocket->u.xTCP.usMSS - usDifference );
                 }
             }
         #endif /* ipconfigUSE_IPv6 != 0 */
@@ -2198,9 +2198,9 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE_UNSIGNED:
                             ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ), "%pip port %u to %pip port %u",
-                                               pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
+                                               ( void * ) pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
                                                pxSocket->usLocalPort,
-                                               pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                               ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
                                                pxSocket->u.xTCP.usRemotePort );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -2230,7 +2230,7 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
                     case pdTRUE_UNSIGNED:
                         ( void ) snprintf( pucSocketProps, sizeof( pucSocketProps ),
                                            "%pip port %u",
-                                           pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
+                                           ( void * ) pxSocket->xLocalAddress.xIP_IPv6.ucBytes,
                                            pxSocket->usLocalPort );
                         break;
                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -2842,7 +2842,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 
                 if( pvOptionValue == NULL )
                 {
-                    pxSocket->ucSocketOptions &= ~( ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT );
+                    pxSocket->ucSocketOptions &= ( ( uint8_t ) ~( ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT ) );
                 }
                 else
                 {
@@ -2955,7 +2955,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 static uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol )
 {
     const uint16_t usEphemeralPortCount =
-        socketAUTO_PORT_ALLOCATION_MAX_NUMBER - ( socketAUTO_PORT_ALLOCATION_START_NUMBER - 1U );
+        socketAUTO_PORT_ALLOCATION_MAX_NUMBER - ( uint16_t ) ( socketAUTO_PORT_ALLOCATION_START_NUMBER - 1U );
     uint16_t usIterations = usEphemeralPortCount;
     uint32_t ulRandomSeed = 0;
     uint16_t usResult = 0;
@@ -2986,9 +2986,8 @@ static uint16_t prvGetPrivatePortNumber( BaseType_t xProtocol )
         }
 
         /* Map the random to a candidate port. */
-        usResult =
-            socketAUTO_PORT_ALLOCATION_START_NUMBER +
-            ( ( ( uint16_t ) ulRandomSeed ) % usEphemeralPortCount );
+        usResult = ( uint16_t ) ( socketAUTO_PORT_ALLOCATION_START_NUMBER +
+                                  ( ( ( uint16_t ) ulRandomSeed ) % usEphemeralPortCount ) );
 
         /* Check if there's already an open socket with the same protocol
          * and port. */
@@ -3265,23 +3264,23 @@ uint8_t ucASCIIToHex( char cChar )
 
     if( ( cValue >= '0' ) && ( cValue <= '9' ) )
     {
-        cValue -= ( char ) '0';
+        cValue = ( char ) ( cValue - ( uint8_t ) '0' );
         /* The value will be between 0 and 9. */
         ucNew = ( uint8_t ) cValue;
     }
     else if( ( cValue >= 'a' ) && ( cValue <= 'f' ) )
     {
-        cValue -= ( char ) 'a';
+        cValue = ( char ) ( cValue - ( uint8_t ) 'a' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
-        ucNew += ( uint8_t ) 10;
+        ucNew = ( uint8_t ) ( ucNew + ( uint8_t ) 10 );
     }
     else if( ( cValue >= 'A' ) && ( cValue <= 'F' ) )
     {
-        cValue -= ( char ) 'A';
+        cValue = ( char ) ( cValue - ( uint8_t ) 'A' );
         ucNew = ( uint8_t ) cValue;
         /* The value will be between 10 and 15. */
-        ucNew += ( uint8_t ) 10;
+        ucNew = ( uint8_t ) ( ucNew + ( uint8_t ) 10 );
     }
     else
     {
@@ -3338,7 +3337,8 @@ void FreeRTOS_EUI48_ntop( const uint8_t * pucSource,
             else
             {
                 cResult = cTen; /* Either 'a' or 'A' */
-                cResult = ( char ) ( cResult + ( ucNibble - 10U ) );
+                cResult = ( char ) ( cResult + ucNibble );
+                cResult = ( char ) ( cResult - ( uint8_t ) 10U );
             }
 
             pcTarget[ uxTarget ] = cResult;
@@ -3701,7 +3701,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                         case FREERTOS_AF_INET6:
                             pxSocket->bits.bIsIPv6 = pdTRUE_UNSIGNED;
                             FreeRTOS_printf( ( "FreeRTOS_connect: %u to %pip port %u\n",
-                                               pxSocket->usLocalPort, pxAddress->sin_address.xIP_IPv6.ucBytes, FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+                                               pxSocket->usLocalPort, ( void * ) pxAddress->sin_address.xIP_IPv6.ucBytes,
+                                               FreeRTOS_ntohs( pxAddress->sin_port ) ) );
                             ( void ) memcpy( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -5763,8 +5764,6 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
  * @brief A helper function of vTCPNetStat(), see below.
  *
  * @param[in] pxSocket The socket that needs logging.
- *
- * @return
  */
     static void vTCPNetStat_TCPSocket( const FreeRTOS_Socket_t * pxSocket )
     {
@@ -5808,7 +5807,7 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
                 case pdTRUE_UNSIGNED:
                     ( void ) snprintf( pcRemoteIp,
                                        sizeof( pcRemoteIp ),
-                                       "%pip", pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes );
+                                       "%pip", ( void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes );
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 

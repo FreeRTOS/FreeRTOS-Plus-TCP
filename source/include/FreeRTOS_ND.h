@@ -26,17 +26,17 @@
 #ifndef FREERTOS_ND_H
 #define FREERTOS_ND_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
 #include "FreeRTOS_ARP.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 #if ( ipconfigUSE_IPv6 != 0 )
 /*-----------------------------------------------------------*/

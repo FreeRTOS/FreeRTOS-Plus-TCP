@@ -331,14 +331,14 @@
                          */
                         if( pucPtr[ 0U ] == tcpTCP_OPT_SACK_A )
                         {
-                            ucLen -= 2U;
+                            ucLen = ( uint8_t ) ( ucLen - 2U );
                             lIndex += 2;
 
                             while( ucLen >= ( uint8_t ) 8U )
                             {
                                 prvReadSackOption( pucPtr, ( size_t ) lIndex, pxSocket );
                                 lIndex += 8;
-                                ucLen -= 8U;
+                                ucLen = ( uint8_t ) ( ucLen - 8U );
                             }
 
                             /* ucLen should be 0 by now. */
