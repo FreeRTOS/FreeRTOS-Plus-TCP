@@ -135,10 +135,6 @@ foreach( file ${TCP_INCLUDES} )
     # Use this tool to process all conditional declarations.
     if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Routing" OR ${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
         execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT
-                            -UpdTRUE_SIGNED
-                            -UpdFALSE_SIGNED
-                            -UpdTRUE_UNSIGNED
-                            -UpdFALSE_UNSIGNED
                             -UipTRUE_BOOL
                             -UipFALSE_BOOL
                             -UFreeRTOS_htonl
@@ -158,10 +154,6 @@ foreach( file ${TCP_INCLUDES} )
                         ERROR_QUIET  )
     else()
         execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT
-                            -UpdTRUE_SIGNED
-                            -UpdFALSE_SIGNED
-                            -UpdTRUE_UNSIGNED
-                            -UpdFALSE_UNSIGNED
                             -UipTRUE_BOOL
                             -UipFALSE_BOOL
                             -UFreeRTOS_htonl
@@ -308,7 +300,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission_IPV6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils_IPV6/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS/ut.cmake )
+# include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_ConfigDriverCheckChecksum/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
@@ -355,7 +347,7 @@ add_custom_target( coverage
     FreeRTOS_TCP_IP
     FreeRTOS_TCP_Utils
     FreeRTOS_TCP_Utils_IPV6_utest
-    FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS_utest
+    # FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS_utest
     FreeRTOS_Sockets_GenericAPI_utest
     FreeRTOS_Sockets_privates_utest
     FreeRTOS_Sockets_TCP_API_utest

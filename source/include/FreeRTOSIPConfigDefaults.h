@@ -1383,7 +1383,7 @@
  *
  * Type: size_t
  * Unit: bytes
- * Minimum: 1
+ * Minimum: 536 ( tcpMINIMUM_SEGMENT_LENGTH )
  *
  * Sets the MSS value (in bytes) for all TCP packets.
  *
@@ -1403,8 +1403,8 @@
     #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - 40 )
 #endif
 
-#if ( ipconfigTCP_MSS < 1 )
-    #error ipconfigTCP_MSS must be at least 1
+#if ( ipconfigTCP_MSS < 536 )
+    #error ipconfigTCP_MSS must be at least 536 ( tcpMINIMUM_SEGMENT_LENGTH )
 #endif
 
 #if ( ipconfigTCP_MSS > SIZE_MAX )
