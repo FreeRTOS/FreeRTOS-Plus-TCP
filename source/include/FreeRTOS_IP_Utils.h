@@ -65,6 +65,9 @@
 #endif
 /* *INDENT-ON* */
 
+/* Forward declaration of 'NetworkInterface_t'. */
+typedef struct xNetworkInterface NetworkInterface_t;
+
 #if ( ipconfigUSE_DHCP != 0 )
 
 /**

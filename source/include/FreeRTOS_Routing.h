@@ -26,6 +26,9 @@
 #ifndef FREERTOS_ROUTING_H
     #define FREERTOS_ROUTING_H
 
+    #include "FreeRTOS.h"
+    #include "FreeRTOS_IP.h"
+
     #if ( ipconfigUSE_DHCP != 0 )
         #include "FreeRTOS_DHCP.h"
     #endif
@@ -39,9 +42,6 @@
     #endif
 
 /* Every NetworkInterface needs a set of access functions: */
-
-/* Forward declaration of 'struct xNetworkInterface'. */
-    struct xNetworkInterface;
 
 /* Initialise the interface. */
     typedef BaseType_t ( * NetworkInterfaceInitialiseFunction_t ) ( struct xNetworkInterface * pxDescriptor );

@@ -28,6 +28,8 @@
 #ifndef FREERTOS_DNS_H
 #define FREERTOS_DNS_H
 
+#include "FreeRTOS.h"
+
 /* Application level configuration options. */
 #include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_DNS_Callback.h"

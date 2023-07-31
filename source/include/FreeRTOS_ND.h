@@ -26,6 +26,8 @@
 #ifndef FREERTOS_ND_H
 #define FREERTOS_ND_H
 
+#include "FreeRTOS.h"
+
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
