@@ -786,15 +786,7 @@
                         {
                             BaseType_t xCallbackResult;
 
-                            #if ( ipconfigUSE_IPv6 != 0 )
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
-                                }
-                            #else
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, pxSet->ulIPAddress );
-                                }
-                            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                            xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
 
                             /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
                             if( xCallbackResult != pdFALSE )
