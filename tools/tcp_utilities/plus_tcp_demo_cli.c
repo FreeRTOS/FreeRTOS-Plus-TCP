@@ -146,9 +146,9 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                                                BaseType_t xAsynchronous,
                                                BaseType_t xDoClear );
 
-    static void vDNSEvent( const char * pcName,
-                           void * pvSearchID,
-                           struct freertos_addrinfo * pxAddrInfo );
+static void vDNSEvent( const char * pcName,
+                       void * pvSearchID,
+                       struct freertos_addrinfo * pxAddrInfo );
 
 #if ( ipconfigMULTI_INTERFACE != 0 )
     /* Defined in FreeRTOS_DNS.c */
@@ -1479,8 +1479,8 @@ void xHandleTesting()
 
 
 static void vDNSEvent( const char * pcName,
-                        void * pvSearchID,
-                        struct freertos_addrinfo * pxAddrInfo )
+                       void * pvSearchID,
+                       struct freertos_addrinfo * pxAddrInfo )
 {
     ( void ) pvSearchID;
 
@@ -1496,45 +1496,45 @@ static void vDNSEvent( const char * pcName,
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case FREERTOS_AF_INET:
-                    {
-                        uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
+                   {
+                       uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
 
-                        if( ulIPaddress == 0uL )
-                        {
-                            FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
-                        }
-                        else
-                        {
-                            FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
-                        }
-                    }
-                    break;
+                       if( ulIPaddress == 0uL )
+                       {
+                           FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
+                       }
+                       else
+                       {
+                           FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
+                       }
+                   }
+                   break;
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
             #if ( ipconfigUSE_IPv6 != 0 )
                 case FREERTOS_AF_INET6:
-                    {
-                        BaseType_t xIsEmpty = pdTRUE, xIndex;
+                   {
+                       BaseType_t xIsEmpty = pdTRUE, xIndex;
 
-                        for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
-                        {
-                            if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
-                            {
-                                xIsEmpty = pdFALSE;
-                                break;
-                            }
-                        }
+                       for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
+                       {
+                           if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
+                           {
+                               xIsEmpty = pdFALSE;
+                               break;
+                           }
+                       }
 
-                        if( xIsEmpty )
-                        {
-                            FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
-                        }
-                        else
-                        {
-                            FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
-                        }
-                    }
-                    break;
+                       if( xIsEmpty )
+                       {
+                           FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
+                       }
+                       else
+                       {
+                           FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
+                       }
+                   }
+                   break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             default:
