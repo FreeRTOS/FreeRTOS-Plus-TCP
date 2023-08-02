@@ -60,8 +60,8 @@
 #define ipconfigSELECT_USES_NOTIFY                 1
 #define ipconfigSUPPORT_SIGNALS                    1
 #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES     1
-#define ipconfigDNS_USE_CALLBACKS                  0 
-#define ipconfigIGNORE_UNKNOWN_PACKETS             1 
+#define ipconfigDNS_USE_CALLBACKS                  0
+#define ipconfigIGNORE_UNKNOWN_PACKETS             1
 #define ipconfigCHECK_IP_QUEUE_SPACE               1
 #define ipconfigUDP_MAX_RX_PACKETS                 1
 #define ipconfigETHERNET_MINIMUM_PACKET_BYTES      1
