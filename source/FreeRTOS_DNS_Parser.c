@@ -989,7 +989,7 @@
                         /* Calculate the IP header checksum. */
                         pxIPHeader->usHeaderChecksum = 0U;
                         pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderLength );
-                        pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+                        pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
                     }
 
                     /* calculate the UDP checksum for outgoing package */
