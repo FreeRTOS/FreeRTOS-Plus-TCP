@@ -75,10 +75,12 @@ extern "C" {
 #define PHY_REG_05_LPA       0x05 /* Link partner ability reg */
 #define PHY_REG_06_ANER \
     0x06 /*	6	RW		Auto-Negotiation Expansion Register */
-#define PHY_REG_07_ANNPTR    0x07 /*	7	RW		Auto-Negotiation Next Page TX \
-                                   */
-#define PHY_REG_08_RESERVED0 0x08 /* 0x08..0x0Fh	8-15	RW		RESERVED \
-                                   */
+#define PHY_REG_07_ANNPTR                       \
+    0x07 /*	7	RW		Auto-Negotiation Next Page TX \
+          */
+#define PHY_REG_08_RESERVED0              \
+    0x08 /* 0x08..0x0Fh	8-15	RW		RESERVED \
+          */
 
 #define PHY_REG_10_PHYSTS    0x10 /* 16	RO		PHY Status Register */
 #define PHY_REG_11_MICR      0x11 /* 17	RW		MII Interrupt Control Register */

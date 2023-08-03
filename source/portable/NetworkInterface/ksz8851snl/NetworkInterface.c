@@ -193,12 +193,14 @@
 #define PHY_REG_05_LPA       0x05 /* Link partner ability reg */
 #define PHY_REG_06_ANER \
     0x06 /*	6	RW		Auto-Negotiation Expansion Register */
-#define PHY_REG_07_ANNPTR    0x07 /*	7	RW		Auto-Negotiation Next Page TX \
-                                   */
-#define PHY_REG_08_RESERVED0 0x08 /* 0x08..0x0Fh	8-15	RW		RESERVED \
-                                   */
+#define PHY_REG_07_ANNPTR                       \
+    0x07 /*	7	RW		Auto-Negotiation Next Page TX \
+          */
+#define PHY_REG_08_RESERVED0              \
+    0x08 /* 0x08..0x0Fh	8-15	RW		RESERVED \
+          */
 
-#define BMSR_LINK_STATUS     0x0004 /*!< Link status */
+#define BMSR_LINK_STATUS 0x0004 /*!< Link status */
 
 #if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
     #error please use the new defines with 'ipconfig' prefix

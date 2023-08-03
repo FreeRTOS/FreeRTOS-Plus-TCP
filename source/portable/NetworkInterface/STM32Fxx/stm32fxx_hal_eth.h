@@ -984,7 +984,8 @@ typedef struct
     #define ETH_DMATXDESC_IC \
         ( ( uint32_t ) 0x40000000U ) /*!< Interrupt on Completion */
     #define ETH_DMATXDESC_LS ( ( uint32_t ) 0x20000000U ) /*!< Last Segment */
-    #define ETH_DMATXDESC_FS ( ( uint32_t ) 0x10000000U ) /*!< First Segment \
+    #define ETH_DMATXDESC_FS                                                 \
+        ( ( uint32_t ) 0x10000000U )                      /*!< First Segment \
                                                            */
     #define ETH_DMATXDESC_DC ( ( uint32_t ) 0x08000000U ) /*!< Disable CRC */
     #define ETH_DMATXDESC_DP \
@@ -1017,8 +1018,9 @@ typedef struct
         ( ( uint32_t ) 0x00008000U ) /*!< Error summary: OR of the following \
                                         bits: UE || ED || EC || LCO || NC || \
                                         LCA || FF || JT */
-    #define ETH_DMATXDESC_JT ( ( uint32_t ) 0x00004000U ) /*!< Jabber Timeout \
-                                                           */
+    #define ETH_DMATXDESC_JT                             \
+        ( ( uint32_t ) 0x00004000U ) /*!< Jabber Timeout \
+                                      */
     #define ETH_DMATXDESC_FF                                                 \
         ( ( uint32_t ) 0x00002000U ) /*!< Frame Flushed: DMA/MTL flushed the \
                                         frame due to SW flush */
@@ -1199,8 +1201,9 @@ typedef struct
  * --------------------------------------------------------------------------------------------------------------------*/
 
 /* Bit definition of RDES4 register */
-    #define ETH_DMAPTPRXDESC_PTPV ( ( uint32_t ) 0x00002000U ) /* PTP Version \
-                                                                */
+    #define ETH_DMAPTPRXDESC_PTPV                   \
+        ( ( uint32_t ) 0x00002000U ) /* PTP Version \
+                                      */
     #define ETH_DMAPTPRXDESC_PTPFT \
         ( ( uint32_t ) 0x00001000U ) /* PTP Frame Type */
     #define ETH_DMAPTPRXDESC_PTPMT \
@@ -2184,8 +2187,9 @@ typedef struct
         ( ( uint32_t ) 0x00000100U ) /*!< Receive process stopped flag */
     #define ETH_DMA_FLAG_RBU \
         ( ( uint32_t ) 0x00000080U ) /*!< Receive buffer unavailable flag */
-    #define ETH_DMA_FLAG_R  ( ( uint32_t ) 0x00000040U ) /*!< Receive flag */
-    #define ETH_DMA_FLAG_TU ( ( uint32_t ) 0x00000020U ) /*!< Underflow flag \
+    #define ETH_DMA_FLAG_R ( ( uint32_t ) 0x00000040U ) /*!< Receive flag */
+    #define ETH_DMA_FLAG_TU                                                  \
+        ( ( uint32_t ) 0x00000020U )                     /*!< Underflow flag \
                                                           */
     #define ETH_DMA_FLAG_RO ( ( uint32_t ) 0x00000010U ) /*!< Overflow flag */
     #define ETH_DMA_FLAG_TJT \
@@ -2247,8 +2251,9 @@ typedef struct
     #define ETH_DMA_IT_RBU                                                     \
         ( ( uint32_t ) 0x00000080U ) /*!< Receive buffer unavailable interrupt \
                                       */
-    #define ETH_DMA_IT_R ( ( uint32_t ) 0x00000040U ) /*!< Receive interrupt \
-                                                       */
+    #define ETH_DMA_IT_R                                    \
+        ( ( uint32_t ) 0x00000040U ) /*!< Receive interrupt \
+                                      */
     #define ETH_DMA_IT_TU \
         ( ( uint32_t ) 0x00000020U ) /*!< Underflow interrupt */
     #define ETH_DMA_IT_RO \
@@ -2261,8 +2266,9 @@ typedef struct
     #define ETH_DMA_IT_TPS                                                   \
         ( ( uint32_t ) 0x00000002U ) /*!< Transmit process stopped interrupt \
                                       */
-    #define ETH_DMA_IT_T ( ( uint32_t ) 0x00000001U ) /*!< Transmit interrupt \
-                                                       */
+    #define ETH_DMA_IT_T                                     \
+        ( ( uint32_t ) 0x00000001U ) /*!< Transmit interrupt \
+                                      */
 
 /**
  * @}

@@ -1367,12 +1367,13 @@ uint8_t HAL_ETH_IsRxDataAvailable( ETH_HandleTypeDef * heth )
     /*			/ * Increment rx descriptor index * / */
     /*			INCR_RX_DESC_INDEX(desc_index, 1U); */
     /*			/ * Get descriptor address * / */
-    /*			dmarxdesc = (ETH_DMADescTypeDef *)dmarxdesclist->RxDesc[desc_index];
+    /*			dmarxdesc = (ETH_DMADescTypeDef
+     * *)dmarxdesclist->RxDesc[desc_index];
      */
     /*		} */
     /* */
-    /*		/ * Set the Tail pointer address to the last rx descriptor hold by the
-     * app * / */
+    /*		/ * Set the Tail pointer address to the last rx descriptor hold by
+     * the app * / */
     /*		WRITE_REG(heth->Instance->DMACRDTPR, (uint32_t)dmarxdesc); */
     /*	} */
 

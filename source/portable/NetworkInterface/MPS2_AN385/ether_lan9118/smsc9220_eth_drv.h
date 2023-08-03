@@ -42,7 +42,8 @@ struct smsc9220_eth_dev_data_t
     uint32_t state;                 /*!< Indicates if the SMSC9220 driver
                                      *   is initialized and enabled */
     void ( *wait_ms )( uint32_t );  /*!< function pointer to system's millisec
-                                     * delay  function, will be used for delays */
+                                     * delay  function, will be used for delays
+                                     */
     uint32_t ongoing_packet_length; /*!< size in bytes of the packet
                                      *       is being sent */
     uint32_t ongoing_packet_length_sent; /*!< size in bytes of the packet

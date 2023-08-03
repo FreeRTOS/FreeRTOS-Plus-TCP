@@ -107,31 +107,34 @@
 #define REG_EEPROM_CTRL        ( 0x22 ) /* EEPCR */
 #define EEPROM_ACCESS_ENABLE \
     ( 0x0010 ) /* Enable software to access EEPROM through bit 3 to bit 0 */
-#define EEPROM_DATA_IN           ( 0x0008 ) /* Data receive from EEPROM (EEDI pin) */
-#define EEPROM_DATA_OUT          ( 0x0004 ) /* Data transmit to EEPROM (EEDO pin) */
-#define EEPROM_SERIAL_CLOCK      ( 0x0002 ) /* Serial clock (EESK pin) */
-#define EEPROM_CHIP_SELECT       ( 0x0001 ) /* EEPROM chip select (EECS pin) */
+#define EEPROM_DATA_IN       ( 0x0008 ) /* Data receive from EEPROM (EEDI pin) */
+#define EEPROM_DATA_OUT      ( 0x0004 ) /* Data transmit to EEPROM (EEDO pin) */
+#define EEPROM_SERIAL_CLOCK  ( 0x0002 ) /* Serial clock (EESK pin) */
+#define EEPROM_CHIP_SELECT   ( 0x0001 ) /* EEPROM chip select (EECS pin) */
 
-#define REG_MEM_BIST_INFO        ( 0x24 )   /* MBIR */
-#define TX_MEM_TEST_FINISHED     ( 0x1000 ) /* TX memeory BIST test finish */
-#define TX_MEM_TEST_FAILED       ( 0x0800 ) /* TX memory BIST test fail */
-#define TX_MEM_TEST_FAILED_COUNT ( 0x0700 ) /* TX memory BIST test fail count \
-                                             */
-#define RX_MEM_TEST_FINISHED     ( 0x0010 ) /* RX memory BIST test finish */
-#define RX_MEM_TEST_FAILED       ( 0x0008 ) /* RX memory BIST test fail */
-#define RX_MEM_TEST_FAILED_COUNT ( 0x0003 ) /* RX memory BIST test fail count \
-                                             */
+#define REG_MEM_BIST_INFO    ( 0x24 )   /* MBIR */
+#define TX_MEM_TEST_FINISHED ( 0x1000 ) /* TX memeory BIST test finish */
+#define TX_MEM_TEST_FAILED   ( 0x0800 ) /* TX memory BIST test fail */
+#define TX_MEM_TEST_FAILED_COUNT                                          \
+    ( 0x0700 )                          /* TX memory BIST test fail count \
+                                         */
+#define RX_MEM_TEST_FINISHED ( 0x0010 ) /* RX memory BIST test finish */
+#define RX_MEM_TEST_FAILED   ( 0x0008 ) /* RX memory BIST test fail */
+#define RX_MEM_TEST_FAILED_COUNT                 \
+    ( 0x0003 ) /* RX memory BIST test fail count \
+                */
 
-#define REG_RESET_CTRL           ( 0x26 )   /* GRR */
-#define QMU_SOFTWARE_RESET       ( 0x0002 ) /* QMU soft reset (clear TxQ, RxQ) */
-#define GLOBAL_SOFTWARE_RESET    ( 0x0001 ) /* Global soft reset (PHY, MAC, QMU) \
-                                             */
+#define REG_RESET_CTRL     ( 0x26 )   /* GRR */
+#define QMU_SOFTWARE_RESET ( 0x0002 ) /* QMU soft reset (clear TxQ, RxQ) */
+#define GLOBAL_SOFTWARE_RESET                       \
+    ( 0x0001 ) /* Global soft reset (PHY, MAC, QMU) \
+                */
 
 /*
  * Wake On Lan Control Registers
  * (Offset 0x2A - 0x6B)
  */
-#define REG_WOL_CTRL             ( 0x2A ) /* WFCR */
+#define REG_WOL_CTRL ( 0x2A ) /* WFCR */
 #define WOL_MAGIC_ENABLE \
     ( 0x0080 ) /* Enable the magic packet pattern detection */
 #define WOL_FRAME3_ENABLE \
@@ -187,8 +190,9 @@
     ( 0x0080 ) /* Enable UDP frame checksum generation */
 #define TX_CTRL_TCP_CHECKSUM \
     ( 0x0040 ) /* Enable TCP frame checksum generation */
-#define TX_CTRL_IP_CHECKSUM ( 0x0020 ) /* Enable IP frame checksum generation \
-                                        */
+#define TX_CTRL_IP_CHECKSUM                           \
+    ( 0x0020 ) /* Enable IP frame checksum generation \
+                */
 #define TX_CTRL_FLUSH_QUEUE \
     ( 0x0010 ) /* Clear transmit queue, reset tx frame pointer */
 #define TX_CTRL_FLOW_ENABLE ( 0x0008 ) /* Enable transmit flow control */
@@ -274,13 +278,15 @@
 #define RX_MULTICAST      ( 0x0040 ) /* Received frame is a multicast frame */
 #define RX_UNICAST        ( 0x0020 ) /* Received frame is a unicast frame */
 #define RX_PHY_ERROR      ( 0x0010 ) /* Received frame has runt error */
-#define RX_FRAME_ETHER    ( 0x0008 ) /* Received frame is an Ethernet-type frame \
-                                      */
+#define RX_FRAME_ETHER                                     \
+    ( 0x0008 ) /* Received frame is an Ethernet-type frame \
+                */
 #define RX_TOO_LONG \
     ( 0x0004 ) /* Received frame length exceeds max size 0f 2048 bytes */
-#define RX_RUNT_ERROR ( 0x0002 ) /* Received frame was damaged by a collision \
-                                  */
-#define RX_BAD_CRC    ( 0x0001 ) /* Received frame has a CRC error */
+#define RX_RUNT_ERROR                                                      \
+    ( 0x0002 )                /* Received frame was damaged by a collision \
+                               */
+#define RX_BAD_CRC ( 0x0001 ) /* Received frame has a CRC error */
 #define RX_ERRORS                                               \
     ( RX_BAD_CRC | RX_TOO_LONG | RX_RUNT_ERROR | RX_PHY_ERROR | \
       RX_ICMP_ERROR | RX_IP_ERROR | RX_TCP_ERROR | RX_UDP_ERROR )
@@ -329,31 +335,36 @@
 #define RX_TIME_THRESHOLD_MASK \
     ( 0xFFFF ) /* Set receive timer duration threshold */
 
-#define REG_RX_BYTE_CNT_THRES  ( 0x8E )   /* RXDBCTR */
-#define RX_BYTE_THRESHOLD_MASK ( 0xFFFF ) /* Set receive byte count threshold \
-                                           */
+#define REG_RX_BYTE_CNT_THRES ( 0x8E ) /* RXDBCTR */
+#define RX_BYTE_THRESHOLD_MASK                     \
+    ( 0xFFFF ) /* Set receive byte count threshold \
+                */
 
-#define REG_INT_MASK           ( 0x90 )   /* IER */
-#define INT_PHY                ( 0x8000 ) /* Enable link change interrupt */
-#define INT_TX                 ( 0x4000 ) /* Enable transmit done interrupt */
-#define INT_RX                 ( 0x2000 ) /* Enable receive interrupt */
-#define INT_RX_OVERRUN         ( 0x0800 ) /* Enable receive overrun interrupt */
+#define REG_INT_MASK   ( 0x90 )   /* IER */
+#define INT_PHY        ( 0x8000 ) /* Enable link change interrupt */
+#define INT_TX         ( 0x4000 ) /* Enable transmit done interrupt */
+#define INT_RX         ( 0x2000 ) /* Enable receive interrupt */
+#define INT_RX_OVERRUN ( 0x0800 ) /* Enable receive overrun interrupt */
 #define INT_TX_STOPPED \
     ( 0x0200 ) /* Enable transmit process stopped interrupt */
-#define INT_RX_STOPPED ( 0x0100 ) /* Enable receive process stopped interrupt \
-                                   */
-#define INT_TX_SPACE   ( 0x0040 ) /* Enable transmit space available interrupt \
-                                   */
+#define INT_RX_STOPPED                                     \
+    ( 0x0100 ) /* Enable receive process stopped interrupt \
+                */
+#define INT_TX_SPACE                                        \
+    ( 0x0040 ) /* Enable transmit space available interrupt \
+                */
 #define INT_RX_WOL_FRAME \
     ( 0x0020 ) /* Enable WOL on receive wake-up frame detect interrupt */
 #define INT_RX_WOL_MAGIC \
     ( 0x0010 ) /* Enable WOL on receive magic packet detect interrupt */
 #define INT_RX_WOL_LINKUP \
     ( 0x0008 ) /* Enable WOL on link up detect interrupt */
-#define INT_RX_WOL_ENERGY ( 0x0004 ) /* Enable WOL on energy detect interrupt \
-                                      */
-#define INT_RX_SPI_ERROR  ( 0x0002 ) /* Enable receive SPI bus error interrupt \
-                                      */
+#define INT_RX_WOL_ENERGY                               \
+    ( 0x0004 ) /* Enable WOL on energy detect interrupt \
+                */
+#define INT_RX_SPI_ERROR                                 \
+    ( 0x0002 ) /* Enable receive SPI bus error interrupt \
+                */
 #define INT_RX_WOL_DELAY_ENERGY \
     ( 0x0001 ) /* Enable WOL on delay energy detect interrupt */
 #define INT_MASK               ( INT_RX | INT_TX | INT_PHY )
@@ -373,28 +384,29 @@
  * MAC Address Hash Table Control Registers
  * (Offset 0xA0 - 0xA7)
  */
-#define REG_MAC_HASH_0           ( 0xA0 ) /* MAHTR0 */
-#define REG_MAC_HASH_1           ( 0xA1 )
+#define REG_MAC_HASH_0        ( 0xA0 ) /* MAHTR0 */
+#define REG_MAC_HASH_1        ( 0xA1 )
 
-#define REG_MAC_HASH_2           ( 0xA2 ) /* MAHTR1 */
-#define REG_MAC_HASH_3           ( 0xA3 )
+#define REG_MAC_HASH_2        ( 0xA2 ) /* MAHTR1 */
+#define REG_MAC_HASH_3        ( 0xA3 )
 
-#define REG_MAC_HASH_4           ( 0xA4 ) /* MAHTR2 */
-#define REG_MAC_HASH_5           ( 0xA5 )
+#define REG_MAC_HASH_4        ( 0xA4 ) /* MAHTR2 */
+#define REG_MAC_HASH_5        ( 0xA5 )
 
-#define REG_MAC_HASH_6           ( 0xA6 ) /* MAHTR3 */
-#define REG_MAC_HASH_7           ( 0xA7 )
+#define REG_MAC_HASH_6        ( 0xA6 ) /* MAHTR3 */
+#define REG_MAC_HASH_7        ( 0xA7 )
 
 /*
  * QMU Receive Queue Watermark Control Registers
  * (Offset 0xB0 - 0xB5)
  */
-#define REG_RX_LOW_WATERMARK     ( 0xB0 )   /* FCLWR */
-#define RX_LOW_WATERMARK_MASK    ( 0x0FFF ) /* Set QMU RxQ low watermark mask */
+#define REG_RX_LOW_WATERMARK  ( 0xB0 )   /* FCLWR */
+#define RX_LOW_WATERMARK_MASK ( 0x0FFF ) /* Set QMU RxQ low watermark mask */
 
-#define REG_RX_HIGH_WATERMARK    ( 0xB2 )   /* FCHWR */
-#define RX_HIGH_WATERMARK_MASK   ( 0x0FFF ) /* Set QMU RxQ high watermark mask \
-                                             */
+#define REG_RX_HIGH_WATERMARK ( 0xB2 ) /* FCHWR */
+#define RX_HIGH_WATERMARK_MASK                    \
+    ( 0x0FFF ) /* Set QMU RxQ high watermark mask \
+                */
 
 #define REG_RX_OVERRUN_WATERMARK ( 0xB4 ) /* FCOWR */
 #define RX_OVERRUN_WATERMARK_MASK \
@@ -445,7 +457,8 @@
     ( 0x0020 ) /* Wake-up from wake-up frame event detected */
 #define WAKEUP_FROM_MAGIC \
     ( 0x0010 ) /* Wake-up from magic packet event detected */
-#define WAKEUP_FROM_LINKUP ( 0x0008 ) /* Wake-up from link up event detected \
+#define WAKEUP_FROM_LINKUP                                                   \
+    ( 0x0008 )                        /* Wake-up from link up event detected \
                                        */
 #define WAKEUP_FROM_ENERGY ( 0x0004 ) /* Wake-up from energy event detected */
 #define WAKEUP_EVENT_MASK  ( 0x003C ) /* Wake-up event mask */
@@ -513,9 +526,10 @@
 #define PHY_REMOTE_100BTX \
     ( 0x0080 ) /* Link partner 100 half-duplex capability */
 #define PHY_REMOTE_10BT_FD \
-    ( 0x0040 )                      /* Link partner 10 full-duplex capability */
-#define PHY_REMOTE_10BT  ( 0x0020 ) /* Link partner 10 half-duplex capability \
-                                     */
+    ( 0x0040 ) /* Link partner 10 full-duplex capability */
+#define PHY_REMOTE_10BT                                  \
+    ( 0x0020 ) /* Link partner 10 half-duplex capability \
+                */
 
 #define REG_PORT_LINK_MD ( 0xF4 ) /* P1SCLMD */
 #define PORT_CABLE_10M_SHORT \
@@ -553,8 +567,9 @@
     ( 0x0004 ) /* Advertise 100 half-duplex capability */
 #define PORT_AUTO_NEG_10BT_FD \
     ( 0x0002 ) /* Advertise 10 full-duplex capability */
-#define PORT_AUTO_NEG_10BT     ( 0x0001 ) /* Advertise 10 half-duplex capability \
-                                           */
+#define PORT_AUTO_NEG_10BT                            \
+    ( 0x0001 ) /* Advertise 10 half-duplex capability \
+                */
 
 #define REG_PORT_STATUS        ( 0xF8 )   /* P1SR */
 #define PORT_HP_MDIX           ( 0x8000 ) /* Set PHY in HP auto MDI-X mode */
@@ -574,8 +589,9 @@
 #define PORT_REMOTE_100BTX \
     ( 0x0004 ) /* Link partner 100 half-duplex capability */
 #define PORT_REMOTE_10BT_FD \
-    ( 0x0002 )                      /* Link partner 10 full-duplex capability */
-#define PORT_REMOTE_10BT ( 0x0001 ) /* Link partner 10 half-duplex capability \
-                                     */
+    ( 0x0002 ) /* Link partner 10 full-duplex capability */
+#define PORT_REMOTE_10BT                                 \
+    ( 0x0001 ) /* Link partner 10 half-duplex capability \
+                */
 
 #endif /* KSZ8851SNL_REG_H_INCLUDED */

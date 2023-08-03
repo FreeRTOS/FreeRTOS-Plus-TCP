@@ -909,13 +909,13 @@ typedef struct
         #define ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT                      \
             ( ( uint32_t ) 0x00020000U ) /*!< IP header checksum and payload   \
                                           * checksum calculation and insertion \
-                                          * are enabled, but pseudo header                                                    \
+                                          * are enabled, but pseudo header     \
                                           * checksum is not calculated in      \
                                           * hardware */
         #define ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC            \
             ( ( uint32_t ) 0x00030000U ) /*!< IP Header checksum and payload   \
                                           * checksum calculation and insertion \
-                                          * are enabled, and pseudo header                                                    \
+                                          * are enabled, and pseudo header     \
                                           * checksum is calculated in          \
                                           * hardware. */
         #define ETH_DMATXNDESCRF_TPL \
@@ -1073,8 +1073,9 @@ typedef struct
             ( ( uint32_t ) 0x00020000U ) /*!< Inner VLAN Tag Valid */
         #define ETH_DMATXCDESC_VLTV \
             ( ( uint32_t ) 0x00010000U ) /*!< VLAN Tag Valid */
-        #define ETH_DMATXCDESC_VT ( ( uint32_t ) 0x0000FFFFU ) /*!< VLAN Tag \
-                                                                */
+        #define ETH_DMATXCDESC_VT                      \
+            ( ( uint32_t ) 0x0000FFFFU ) /*!< VLAN Tag \
+                                          */
 
     /**
      * @}
@@ -1337,8 +1338,9 @@ typedef struct
     /**
      * @brief  Bit definition of Rx context descriptor register 3
      */
-        #define ETH_DMARXCDESC_OWN ( ( uint32_t ) 0x80000000U ) /*!< Own Bit \
-                                                                 */
+        #define ETH_DMARXCDESC_OWN                    \
+            ( ( uint32_t ) 0x80000000U ) /*!< Own Bit \
+                                          */
         #define ETH_DMARXCDESC_CTXT \
             ( ( uint32_t ) 0x40000000U ) /*!< Receive Context Descriptor  */
 

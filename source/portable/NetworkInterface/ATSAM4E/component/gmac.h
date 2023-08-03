@@ -284,8 +284,9 @@ typedef struct
 #define GMAC_NCR_TXPBPF                                                     \
     ( 0x1u << 17 ) /**< \brief (GMAC_NCR) Transmit PFC Priority-based Pause \
                       Frame */
-#define GMAC_NCR_FNP   ( 0x1u << 18 ) /**< \brief (GMAC_NCR) Flush Next Packet \
-                                       */
+#define GMAC_NCR_FNP                                        \
+    ( 0x1u << 18 ) /**< \brief (GMAC_NCR) Flush Next Packet \
+                    */
 /* -------- GMAC_NCFGR : (GMAC Offset: 0x004) Network Configuration Register
  * -------- */
 #define GMAC_NCFGR_SPD ( 0x1u << 0 ) /**< \brief (GMAC_NCFGR) Speed */
@@ -294,7 +295,8 @@ typedef struct
     ( 0x1u << 2 ) /**< \brief (GMAC_NCFGR) Discard Non-VLAN FRAMES */
 #define GMAC_NCFGR_JFRAME \
     ( 0x1u << 3 ) /**< \brief (GMAC_NCFGR) Jumbo Frame Size */
-#define GMAC_NCFGR_CAF ( 0x1u << 4 ) /**< \brief (GMAC_NCFGR) Copy All Frames \
+#define GMAC_NCFGR_CAF                                                        \
+    ( 0x1u << 4 )                    /**< \brief (GMAC_NCFGR) Copy All Frames \
                                       */
 #define GMAC_NCFGR_NBC ( 0x1u << 5 ) /**< \brief (GMAC_NCFGR) No Broadcast */
 #define GMAC_NCFGR_MTIHEN \
@@ -370,8 +372,9 @@ typedef struct
 #define GMAC_NCFGR_IRXER \
     ( 0x1u << 30 ) /**< \brief (GMAC_NCFGR) Ignore IPG rx_er */
 /* -------- GMAC_NSR : (GMAC Offset: 0x008) Network Status Register -------- */
-#define GMAC_NSR_MDIO ( 0x1u << 1 ) /**< \brief (GMAC_NSR) MDIO Input Status \
-                                     */
+#define GMAC_NSR_MDIO                                      \
+    ( 0x1u << 1 ) /**< \brief (GMAC_NSR) MDIO Input Status \
+                   */
 #define GMAC_NSR_IDLE \
     ( 0x1u << 2 ) /**< \brief (GMAC_NSR) PHY Management Logic Idle */
 /* -------- GMAC_UR : (GMAC Offset: 0x00C) User Register -------- */
@@ -432,8 +435,9 @@ typedef struct
     ( 0x1u << 24 ) /**< \brief (GMAC_DCFGR) DMA Discard Receive Packets */
 /* -------- GMAC_TSR : (GMAC Offset: 0x014) Transmit Status Register -------- */
 #define GMAC_TSR_UBR ( 0x1u << 0 ) /**< \brief (GMAC_TSR) Used Bit Read */
-#define GMAC_TSR_COL ( 0x1u << 1 ) /**< \brief (GMAC_TSR) Collision Occurred \
-                                    */
+#define GMAC_TSR_COL                                        \
+    ( 0x1u << 1 ) /**< \brief (GMAC_TSR) Collision Occurred \
+                   */
 #define GMAC_TSR_RLE \
     ( 0x1u << 2 ) /**< \brief (GMAC_TSR) Retry Limit Exceeded */
 #define GMAC_TSR_TXGO ( 0x1u << 3 ) /**< \brief (GMAC_TSR) Transmit Go */
@@ -441,9 +445,10 @@ typedef struct
     ( 0x1u << 4 ) /**< \brief (GMAC_TSR) Transmit Frame Corruption due to AHB \
                      error */
 #define GMAC_TSR_TXCOMP \
-    ( 0x1u << 5 )                  /**< \brief (GMAC_TSR) Transmit Complete */
-#define GMAC_TSR_UND ( 0x1u << 6 ) /**< \brief (GMAC_TSR) Transmit Under Run \
-                                    */
+    ( 0x1u << 5 ) /**< \brief (GMAC_TSR) Transmit Complete */
+#define GMAC_TSR_UND                                        \
+    ( 0x1u << 6 ) /**< \brief (GMAC_TSR) Transmit Under Run \
+                   */
 #define GMAC_TSR_LCO \
     ( 0x1u << 7 ) /**< \brief (GMAC_TSR) Late Collision Occurred */
 #define GMAC_TSR_HRESP     ( 0x1u << 8 ) /**< \brief (GMAC_TSR) HRESP Not OK */
@@ -473,21 +478,26 @@ typedef struct
  */
 #define GMAC_ISR_MFS \
     ( 0x1u << 0 ) /**< \brief (GMAC_ISR) Management Frame Sent */
-#define GMAC_ISR_RCOMP ( 0x1u << 1 ) /**< \brief (GMAC_ISR) Receive Complete \
-                                      */
-#define GMAC_ISR_RXUBR ( 0x1u << 2 ) /**< \brief (GMAC_ISR) RX Used Bit Read \
-                                      */
-#define GMAC_ISR_TXUBR ( 0x1u << 3 ) /**< \brief (GMAC_ISR) TX Used Bit Read \
-                                      */
-#define GMAC_ISR_TUR   ( 0x1u << 4 ) /**< \brief (GMAC_ISR) Transmit Under Run \
-                                      */
+#define GMAC_ISR_RCOMP                                    \
+    ( 0x1u << 1 ) /**< \brief (GMAC_ISR) Receive Complete \
+                   */
+#define GMAC_ISR_RXUBR                                    \
+    ( 0x1u << 2 ) /**< \brief (GMAC_ISR) RX Used Bit Read \
+                   */
+#define GMAC_ISR_TXUBR                                    \
+    ( 0x1u << 3 ) /**< \brief (GMAC_ISR) TX Used Bit Read \
+                   */
+#define GMAC_ISR_TUR                                        \
+    ( 0x1u << 4 ) /**< \brief (GMAC_ISR) Transmit Under Run \
+                   */
 #define GMAC_ISR_RLEX                                                 \
     ( 0x1u << 5 ) /**< \brief (GMAC_ISR) Retry Limit Exceeded or Late \
                      Collision */
 #define GMAC_ISR_TFC                                                          \
     ( 0x1u << 6 ) /**< \brief (GMAC_ISR) Transmit Frame Corruption due to AHB \
                      error */
-#define GMAC_ISR_TCOMP ( 0x1u << 7 )  /**< \brief (GMAC_ISR) Transmit Complete \
+#define GMAC_ISR_TCOMP                                                         \
+    ( 0x1u << 7 )                     /**< \brief (GMAC_ISR) Transmit Complete \
                                        */
 #define GMAC_ISR_ROVR  ( 0x1u << 10 ) /**< \brief (GMAC_ISR) Receive Overrun */
 #define GMAC_ISR_HRESP ( 0x1u << 11 ) /**< \brief (GMAC_ISR) HRESP Not OK */
@@ -523,21 +533,26 @@ typedef struct
  */
 #define GMAC_IER_MFS \
     ( 0x1u << 0 ) /**< \brief (GMAC_IER) Management Frame Sent */
-#define GMAC_IER_RCOMP ( 0x1u << 1 ) /**< \brief (GMAC_IER) Receive Complete \
-                                      */
-#define GMAC_IER_RXUBR ( 0x1u << 2 ) /**< \brief (GMAC_IER) RX Used Bit Read \
-                                      */
-#define GMAC_IER_TXUBR ( 0x1u << 3 ) /**< \brief (GMAC_IER) TX Used Bit Read \
-                                      */
-#define GMAC_IER_TUR   ( 0x1u << 4 ) /**< \brief (GMAC_IER) Transmit Under Run \
-                                      */
+#define GMAC_IER_RCOMP                                    \
+    ( 0x1u << 1 ) /**< \brief (GMAC_IER) Receive Complete \
+                   */
+#define GMAC_IER_RXUBR                                    \
+    ( 0x1u << 2 ) /**< \brief (GMAC_IER) RX Used Bit Read \
+                   */
+#define GMAC_IER_TXUBR                                    \
+    ( 0x1u << 3 ) /**< \brief (GMAC_IER) TX Used Bit Read \
+                   */
+#define GMAC_IER_TUR                                        \
+    ( 0x1u << 4 ) /**< \brief (GMAC_IER) Transmit Under Run \
+                   */
 #define GMAC_IER_RLEX                                                 \
     ( 0x1u << 5 ) /**< \brief (GMAC_IER) Retry Limit Exceeded or Late \
                      Collision */
 #define GMAC_IER_TFC                                                          \
     ( 0x1u << 6 ) /**< \brief (GMAC_IER) Transmit Frame Corruption due to AHB \
                      error */
-#define GMAC_IER_TCOMP ( 0x1u << 7 )  /**< \brief (GMAC_IER) Transmit Complete \
+#define GMAC_IER_TCOMP                                                         \
+    ( 0x1u << 7 )                     /**< \brief (GMAC_IER) Transmit Complete \
                                        */
 #define GMAC_IER_ROVR  ( 0x1u << 10 ) /**< \brief (GMAC_IER) Receive Overrun */
 #define GMAC_IER_HRESP ( 0x1u << 11 ) /**< \brief (GMAC_IER) HRESP Not OK */
@@ -573,21 +588,26 @@ typedef struct
  */
 #define GMAC_IDR_MFS \
     ( 0x1u << 0 ) /**< \brief (GMAC_IDR) Management Frame Sent */
-#define GMAC_IDR_RCOMP ( 0x1u << 1 ) /**< \brief (GMAC_IDR) Receive Complete \
-                                      */
-#define GMAC_IDR_RXUBR ( 0x1u << 2 ) /**< \brief (GMAC_IDR) RX Used Bit Read \
-                                      */
-#define GMAC_IDR_TXUBR ( 0x1u << 3 ) /**< \brief (GMAC_IDR) TX Used Bit Read \
-                                      */
-#define GMAC_IDR_TUR   ( 0x1u << 4 ) /**< \brief (GMAC_IDR) Transmit Under Run \
-                                      */
+#define GMAC_IDR_RCOMP                                    \
+    ( 0x1u << 1 ) /**< \brief (GMAC_IDR) Receive Complete \
+                   */
+#define GMAC_IDR_RXUBR                                    \
+    ( 0x1u << 2 ) /**< \brief (GMAC_IDR) RX Used Bit Read \
+                   */
+#define GMAC_IDR_TXUBR                                    \
+    ( 0x1u << 3 ) /**< \brief (GMAC_IDR) TX Used Bit Read \
+                   */
+#define GMAC_IDR_TUR                                        \
+    ( 0x1u << 4 ) /**< \brief (GMAC_IDR) Transmit Under Run \
+                   */
 #define GMAC_IDR_RLEX                                                 \
     ( 0x1u << 5 ) /**< \brief (GMAC_IDR) Retry Limit Exceeded or Late \
                      Collision */
 #define GMAC_IDR_TFC                                                          \
     ( 0x1u << 6 ) /**< \brief (GMAC_IDR) Transmit Frame Corruption due to AHB \
                      error */
-#define GMAC_IDR_TCOMP ( 0x1u << 7 )  /**< \brief (GMAC_IDR) Transmit Complete \
+#define GMAC_IDR_TCOMP                                                         \
+    ( 0x1u << 7 )                     /**< \brief (GMAC_IDR) Transmit Complete \
                                        */
 #define GMAC_IDR_ROVR  ( 0x1u << 10 ) /**< \brief (GMAC_IDR) Receive Overrun */
 #define GMAC_IDR_HRESP ( 0x1u << 11 ) /**< \brief (GMAC_IDR) HRESP Not OK */
@@ -622,21 +642,26 @@ typedef struct
 /* -------- GMAC_IMR : (GMAC Offset: 0x030) Interrupt Mask Register -------- */
 #define GMAC_IMR_MFS \
     ( 0x1u << 0 ) /**< \brief (GMAC_IMR) Management Frame Sent */
-#define GMAC_IMR_RCOMP ( 0x1u << 1 ) /**< \brief (GMAC_IMR) Receive Complete \
-                                      */
-#define GMAC_IMR_RXUBR ( 0x1u << 2 ) /**< \brief (GMAC_IMR) RX Used Bit Read \
-                                      */
-#define GMAC_IMR_TXUBR ( 0x1u << 3 ) /**< \brief (GMAC_IMR) TX Used Bit Read \
-                                      */
-#define GMAC_IMR_TUR   ( 0x1u << 4 ) /**< \brief (GMAC_IMR) Transmit Under Run \
-                                      */
+#define GMAC_IMR_RCOMP                                    \
+    ( 0x1u << 1 ) /**< \brief (GMAC_IMR) Receive Complete \
+                   */
+#define GMAC_IMR_RXUBR                                    \
+    ( 0x1u << 2 ) /**< \brief (GMAC_IMR) RX Used Bit Read \
+                   */
+#define GMAC_IMR_TXUBR                                    \
+    ( 0x1u << 3 ) /**< \brief (GMAC_IMR) TX Used Bit Read \
+                   */
+#define GMAC_IMR_TUR                                        \
+    ( 0x1u << 4 ) /**< \brief (GMAC_IMR) Transmit Under Run \
+                   */
 #define GMAC_IMR_RLEX                                                 \
     ( 0x1u << 5 ) /**< \brief (GMAC_IMR) Retry Limit Exceeded or Late \
                      Collision */
 #define GMAC_IMR_TFC                                                          \
     ( 0x1u << 6 ) /**< \brief (GMAC_IMR) Transmit Frame Corruption due to AHB \
                      error */
-#define GMAC_IMR_TCOMP ( 0x1u << 7 )  /**< \brief (GMAC_IMR) Transmit Complete \
+#define GMAC_IMR_TCOMP                                                         \
+    ( 0x1u << 7 )                     /**< \brief (GMAC_IMR) Transmit Complete \
                                        */
 #define GMAC_IMR_ROVR  ( 0x1u << 10 ) /**< \brief (GMAC_IMR) Receive Overrun */
 #define GMAC_IMR_HRESP ( 0x1u << 11 ) /**< \brief (GMAC_IMR) HRESP Not OK */
