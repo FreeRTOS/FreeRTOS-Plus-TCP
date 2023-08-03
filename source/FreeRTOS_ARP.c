@@ -305,6 +305,30 @@ static TickType_t xLastGratuitousARPTime = 0U;
                             else if( ulSenderProtocolAddress == ulTargetProtocolAddress ) /* Gratuitous ARP request? */
                             {
                                 MACAddress_t xGARPBroadcastAddress = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
+
+                                FreeRTOS_printf(( "Gratuitous ARP ulSenderProtocolAddress: %xip \n", ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ) ));
+                                FreeRTOS_printf(( "Gratuitous ARP xTargetHardwareAddress: %x:%x:%x:%x:%x:%x\n",
+                                pxARPHeader->xTargetHardwareAddress.ucBytes[0],
+                                pxARPHeader->xTargetHardwareAddress.ucBytes[1],
+                                pxARPHeader->xTargetHardwareAddress.ucBytes[2],
+                                pxARPHeader->xTargetHardwareAddress.ucBytes[3],
+                                pxARPHeader->xTargetHardwareAddress.ucBytes[4],
+                                pxARPHeader->xTargetHardwareAddress.ucBytes[5]));
+                                FreeRTOS_printf(( "Gratuitous ARP xTargetEndPoint->xMACAddress.ucBytes: %x:%x:%x:%x:%x:%x\n",
+                                pxTargetEndPoint->xMACAddress.ucBytes[0],
+                                pxTargetEndPoint->xMACAddress.ucBytes[1],
+                                pxTargetEndPoint->xMACAddress.ucBytes[2],
+                                pxTargetEndPoint->xMACAddress.ucBytes[3],
+                                pxTargetEndPoint->xMACAddress.ucBytes[4],
+                                pxTargetEndPoint->xMACAddress.ucBytes[5]));
+                                FreeRTOS_printf(( "Gratuitous ARP pxARPHeader->xSenderHardwareAddress.ucBytes: %x:%x:%x:%x:%x:%x\n",
+                                pxARPHeader->xSenderHardwareAddress.ucBytes[0],
+                                pxARPHeader->xSenderHardwareAddress.ucBytes[1],
+                                pxARPHeader->xSenderHardwareAddress.ucBytes[2],
+                                pxARPHeader->xSenderHardwareAddress.ucBytes[3],
+                                pxARPHeader->xSenderHardwareAddress.ucBytes[4],
+                                pxARPHeader->xSenderHardwareAddress.ucBytes[5]));
+
                                 if ((memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPBroadcastAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES) == 0) &&
                                 ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ))
                                 {
