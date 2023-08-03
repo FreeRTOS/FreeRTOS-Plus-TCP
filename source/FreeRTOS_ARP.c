@@ -304,7 +304,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
                             }
                             else if( ulSenderProtocolAddress == ulTargetProtocolAddress ) /* Gratuitous ARP request? */
                             {
-                                MACAddress_t xGARPBroadcastAddress = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
+                                MACAddress_t xGARPBroadcastAddress_1 = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
+                                MACAddress_t xGARPBroadcastAddress_2 = {{0, 0, 0, 0, 0, 0}};
 
                                 FreeRTOS_printf(( "Gratuitous ARP ulSenderProtocolAddress: %xip \n", ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ) ));
                                 FreeRTOS_printf(( "Gratuitous ARP xTargetHardwareAddress: %x:%x:%x:%x:%x:%x\n",
@@ -329,7 +330,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                 pxARPHeader->xSenderHardwareAddress.ucBytes[4],
                                 pxARPHeader->xSenderHardwareAddress.ucBytes[5]));
 
-                                if ((memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPBroadcastAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES) == 0) &&
+                                if (((memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPBroadcastAddress_1.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES) == 0) ||
+                                ((memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPBroadcastAddress_2.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES) == 0))) &&
                                 ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ))
                                 {
                                     MACAddress_t xHardwareAddress;
