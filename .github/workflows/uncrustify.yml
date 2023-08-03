@@ -7,7 +7,9 @@ on:
 jobs:
   Uncrustify:
     name: Run_Uncrustify
-    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/bot run uncrustify' }}
+    if:
+      ${{ github.event.issue.pull_request && github.event.comment.body == '/bot
+      run uncrustify' }}
     runs-on: ubuntu-20.04
     steps:
       - name: Dump GitHub context
@@ -37,8 +39,8 @@ jobs:
       - name: Checkout upstream repo
         uses: actions/checkout@v3
         with:
-           repository: ${{ steps.upstreamrepo.outputs.RemoteRepo }}
-           ref: ${{ steps.upstreambranch.outputs.branchname }}
+          repository: ${{ steps.upstreamrepo.outputs.RemoteRepo }}
+          ref: ${{ steps.upstreambranch.outputs.branchname }}
       - name: Install Uncrustify
         run: |
           : # Install Uncrustify

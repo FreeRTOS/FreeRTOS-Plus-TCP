@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       commit_id:
-        description: 'Commit ID to tag and create a release for'
+        description: "Commit ID to tag and create a release for"
         required: true
       version_number:
-        description: 'Release Version Number (Eg, v1.0.0)'
+        description: "Release Version Number (Eg, v1.0.0)"
         required: true
 
 jobs:
@@ -24,7 +24,9 @@ jobs:
           git config --global user.name ${{ github.actor }}
           git config --global user.email ${{ github.actor }}@users.noreply.github.com
       - name: create a new branch that references commit id
-        run: git checkout -b ${{ github.event.inputs.version_number }} ${{ github.event.inputs.commit_id }}
+        run:
+          git checkout -b ${{ github.event.inputs.version_number }} ${{
+          github.event.inputs.commit_id }}
       - name: Generate SBOM
         uses: FreeRTOS/CI-CD-Github-Actions/sbom-generator@main
         with:
@@ -95,7 +97,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
-          path: zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+          path:
+            zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number
+            }}.zip
   deploy-doxygen:
     needs: tag-commit
     name: Deploy doxygen documentation
@@ -121,7 +125,9 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.version_number }}
           release_name: ${{ github.event.inputs.version_number }}
-          body: Release ${{ github.event.inputs.version_number }} of the FreeRTOS-Plus-TCP Library.
+          body:
+            Release ${{ github.event.inputs.version_number }} of the
+            FreeRTOS-Plus-TCP Library.
           draft: false
           prerelease: false
       - name: Download ZIP artifact
@@ -135,6 +141,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
-          asset_name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+          asset_path:
+            ./FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
+          asset_name:
+            FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           asset_content_type: application/zip

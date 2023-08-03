@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       commit_id:
-        description: 'Commit ID to tag'
+        description: "Commit ID to tag"
         required: true
       version_number:
-        description: 'Release Version Number (Eg, v1.0.0-rc1)'
+        description: "Release Version Number (Eg, v1.0.0-rc1)"
         required: true
 
 jobs:

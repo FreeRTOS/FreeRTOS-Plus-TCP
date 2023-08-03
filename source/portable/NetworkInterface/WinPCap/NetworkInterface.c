@@ -599,9 +599,9 @@ static int prvOpenInterface( const char * pucName,
                                       * IP address is going to be "simulated", and
                                       * not be the real MAC and IP address.  This
                                       * allows   traffic to the simulated IP
-                                      * address   to be routed   to uIP, and traffic
-                                      * to the   real IP address to be   routed to
-                                      * the   Windows TCP/IP stack. */
+                                      * address   to be routed   to uIP, and
+                                      * traffic   to the   real IP address to be
+                                      * routed to   the   Windows TCP/IP stack. */
         100,
         NULL, /* No authentication is required as this is
                * not a remote capture session. */

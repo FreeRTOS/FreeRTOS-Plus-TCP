@@ -1,5 +1,5 @@
-{ "expected-missing-functions":
-  [
+{
+  "expected-missing-functions": [
     "vLoggingPrintf",
     "xApplicationGetRandomNumber",
     "xTaskGetTickCount"

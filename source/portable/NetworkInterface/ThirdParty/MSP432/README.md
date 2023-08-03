@@ -1,6 +1,7 @@
 # Scope
-This is a driver and network middleware for the MSP432E401Y microcontroller
-with built-in Ethernet MAC.
+
+This is a driver and network middleware for the MSP432E401Y microcontroller with
+built-in Ethernet MAC.
 
 # Prerequisites
 
@@ -8,27 +9,30 @@ Ensure that driverlib for the MSP432E4 is installed and added to the include
 path for the project.
 
 # Recommendation
-When a MAC address changes or when there is a change in the network setup,
-it is recommended to perform a hard reset of the microcontroller in lieu
-of resetting only the MAC hardware.
+
+When a MAC address changes or when there is a change in the network setup, it is
+recommended to perform a hard reset of the microcontroller in lieu of resetting
+only the MAC hardware.
 
 # List of Tasks
 
-The tasks listed in the table below are implemented internally by the driver (NetworkInterface.c).
+The tasks listed in the table below are implemented internally by the driver
+(NetworkInterface.c).
 
 | Task Name                             | Purpose                                                           |
-|---------------------------------------|-------------------------------------------------------------------|
+| ------------------------------------- | ----------------------------------------------------------------- |
 | prvEMACDeferredInterruptHandlerTaskRX | RX Task                                                           |
 | prvEMACDeferredInterfaceOutputTaskTX  | TX Task                                                           |
 | prvCheckLinkUpOrDownNetStateTask      | Network State Checking Task (link up/down, network state & reset) |
 
-The tasks listed in the table below are implemented by additional code provided as an example
-related to how the driver might be used in an application (NetworkMiddleware.c).
-The additional code does not have to be used and is only provided to be useful.
+The tasks listed in the table below are implemented by additional code provided
+as an example related to how the driver might be used in an application
+(NetworkMiddleware.c). The additional code does not have to be used and is only
+provided to be useful.
 
-| Task Name                             | Purpose                                                           |
-|---------------------------------------|-------------------------------------------------------------------|
-| prvNetworkResetTask                   | Task to periodically reset the network (if required)
+| Task Name           | Purpose                                              |
+| ------------------- | ---------------------------------------------------- |
+| prvNetworkResetTask | Task to periodically reset the network (if required) |
 
 # Example Code
 
@@ -71,5 +75,7 @@ void setup_wired_ethernet()
 }
 
 ```
+
 # Contact
+
 Nicholas J. Kinar (n.kinar@usask.ca) or FreeRTOS Forums
