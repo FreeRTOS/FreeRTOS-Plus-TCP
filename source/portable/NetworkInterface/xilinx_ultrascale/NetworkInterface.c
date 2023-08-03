@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -32,33 +33,33 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
 /* Xilinx library files. */
-#include <xemacps.h>
-#include "x_topology.h"
 #include "x_emacpsif.h"
 #include "x_emacpsif_hw.h"
+#include "x_topology.h"
+#include <xemacps.h>
 
 /* Provided memory configured as uncached. */
 #include "uncached_memory.h"
 
 #ifndef niEMAC_HANDLER_TASK_PRIORITY
     /* Define the priority of the task prvEMACHandlerTask(). */
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
+    #define niEMAC_HANDLER_TASK_PRIORITY configMAX_PRIORITIES - 1
 #endif
 
-#define niBMSR_LINK_STATUS                  0x0004uL
+#define niBMSR_LINK_STATUS 0x0004uL
 
 #if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
     #error please use the new defines with 'ipconfig' prefix
@@ -68,50 +69,55 @@
 
 /* Check if the LinkStatus in the PHY is still high after 15 seconds of not
  * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS 15000U
 #endif
 
 #ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
     /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS 1000U
 #endif
 
-
-#if ( ipconfigNETWORK_MTU > 1526 )
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+#if( ipconfigNETWORK_MTU > 1526 )
+    #if( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning the use of Jumbo Frames has not been tested sufficiently yet.
     #endif
-    #define USE_JUMBO_FRAMES    1
+    #define USE_JUMBO_FRAMES 1
 #endif
 
 /* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#if ( USE_JUMBO_FRAMES == 1 )
-    #define niBUFFER_1_PACKET_SIZE    10240
+ * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
+ */
+#if( USE_JUMBO_FRAMES == 1 )
+    #define niBUFFER_1_PACKET_SIZE 10240
 #else
-    #define niBUFFER_1_PACKET_SIZE    1536
+    #define niBUFFER_1_PACKET_SIZE 1536
 #endif
 
 /* Naming and numbering of PHY registers. */
-#define PHY_REG_01_BMSR    0x01         /* Basic mode status register */
+#define PHY_REG_01_BMSR 0x01 /* Basic mode status register */
 
 #ifndef iptraceEMAC_TASK_STARTING
-    #define iptraceEMAC_TASK_STARTING()    do {} while( 0 )
+    #define iptraceEMAC_TASK_STARTING() \
+        do                              \
+        {                               \
+        } while( 0 )
 #endif
 
 /* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
+ * the size of the stack used by the idle task - but allow this to be overridden
+ * in FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant.
+ */
 #ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 8 * configMINIMAL_STACK_SIZE )
+    #define configEMAC_TASK_STACK_SIZE ( 8 * configMINIMAL_STACK_SIZE )
 #endif
 
-#if ( ipconfigZERO_COPY_RX_DRIVER == 0 || ipconfigZERO_COPY_TX_DRIVER == 0 )
+#if( ipconfigZERO_COPY_RX_DRIVER == 0 || ipconfigZERO_COPY_TX_DRIVER == 0 )
     #error Please define both 'ipconfigZERO_COPY_RX_DRIVER' and 'ipconfigZERO_COPY_TX_DRIVER' as 1
 #endif
 
-#if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 || ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+#if( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 || \
+     ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
+    #if( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
     #endif
 #endif
@@ -122,7 +128,7 @@
  * Don't use cached memory for network buffer, which is more efficient than
  * using cached memory.
  */
-    #define nicUSE_UNCACHED_MEMORY    0
+    #define nicUSE_UNCACHED_MEMORY 0
 #endif
 
 /*-----------------------------------------------------------*/
@@ -142,33 +148,34 @@ static void prvEMACHandlerTask( void * pvParameters );
 
 /* EMAC data/descriptions. */
 static xemacpsif_s xEMACpsif;
-struct xtopology_t xXTopology =
-{
-    .emac_baseaddr    = XPAR_XEMACPS_0_BASEADDR,
-    .emac_type        = xemac_type_emacps,
-    .intc_baseaddr    = 0x0,
-    .intc_emac_intr   = 0x0,
-    .scugic_baseaddr  = XPAR_SCUGIC_0_CPU_BASEADDR,
+struct xtopology_t xXTopology = {
+    .emac_baseaddr = XPAR_XEMACPS_0_BASEADDR,
+    .emac_type = xemac_type_emacps,
+    .intc_baseaddr = 0x0,
+    .intc_emac_intr = 0x0,
+    .scugic_baseaddr = XPAR_SCUGIC_0_CPU_BASEADDR,
     .scugic_emac_intr = XPAR_XEMACPS_3_INTR,
 };
 
-XEmacPs_Config mac_config =
-{
-    .DeviceId        = XPAR_PSU_ETHERNET_3_DEVICE_ID, /**< Unique ID  of device */
-    .BaseAddress     = XPAR_PSU_ETHERNET_3_BASEADDR,  /**< Physical base address of IPIF registers */
+XEmacPs_Config mac_config = {
+    .DeviceId = XPAR_PSU_ETHERNET_3_DEVICE_ID,   /**< Unique ID  of device */
+    .BaseAddress = XPAR_PSU_ETHERNET_3_BASEADDR, /**< Physical base address of
+                                                    IPIF registers */
     .IsCacheCoherent = XPAR_PSU_ETHERNET_3_IS_CACHE_COHERENT
 };
 
 /* A copy of PHY register 1: 'PHY_REG_01_BMSR' */
 static uint32_t ulPHYLinkStatus = 0uL;
 
-#if ( ipconfigUSE_LLMNR == 1 )
-    static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+#if( ipconfigUSE_LLMNR == 1 )
+static const uint8_t xLLMNR_MACAddress[] = {
+    0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC
+};
 #endif
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
- * handle is used so direct notifications can be sent to the task for all EMAC/DMA
- * related interrupts. */
+ * handle is used so direct notifications can be sent to the task for all
+ * EMAC/DMA related interrupts. */
 TaskHandle_t xEMACTaskHandle = NULL;
 
 /* The PHY index where a PHY was found. */
@@ -205,34 +212,42 @@ BaseType_t xNetworkInterfaceInitialise( void )
             ulPHYLinkStatus = 0U;
             memset( &xEMACpsif, '\0', sizeof( xEMACpsif ) );
 
-            xStatus = XEmacPs_CfgInitialize( pxEMAC_PS, &mac_config, mac_config.BaseAddress );
+            xStatus = XEmacPs_CfgInitialize( pxEMAC_PS,
+                                             &mac_config,
+                                             mac_config.BaseAddress );
 
             if( xStatus != XST_SUCCESS )
             {
-                FreeRTOS_printf( ( "xEMACInit: EmacPs Configuration Failed....\n" ) );
+                FreeRTOS_printf(
+                    ( "xEMACInit: EmacPs Configuration Failed....\n" ) );
                 eEMACState = xEMAC_Fatal;
                 break;
             }
 
-/* _HT_ : the use of jumbo frames has not been tested sufficiently yet. */
+            /* _HT_ : the use of jumbo frames has not been tested sufficiently
+             * yet. */
 
             if( pxEMAC_PS->Version > 2 )
             {
-                #if ( USE_JUMBO_FRAMES == 1 )
-                    /* Enable jumbo frames for zynqmp */
-                    XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
-                #endif
+#if( USE_JUMBO_FRAMES == 1 )
+                /* Enable jumbo frames for zynqmp */
+                XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
+#endif
             }
 
             /* Initialize the mac and set the MAC address. */
-            XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
+            XEmacPs_SetMacAddress( pxEMAC_PS,
+                                   ( void * ) ipLOCAL_MAC_ADDRESS,
+                                   1 );
 
-            #if ( ipconfigUSE_LLMNR == 1 )
-                {
-                    /* Also add LLMNR multicast MAC address. */
-                    XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
-                }
-            #endif /* ipconfigUSE_LLMNR == 1 */
+#if( ipconfigUSE_LLMNR == 1 )
+            {
+                /* Also add LLMNR multicast MAC address. */
+                XEmacPs_SetMacAddress( pxEMAC_PS,
+                                       ( void * ) xLLMNR_MACAddress,
+                                       2 );
+            }
+#endif /* ipconfigUSE_LLMNR == 1 */
 
             XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
             ulPHYIndex = ulDetecPHY( pxEMAC_PS );
@@ -246,7 +261,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
             eEMACState = xEMAC_SetupPHY;
 
-        /* Fall through. */
+            /* Fall through. */
 
         case xEMAC_SetupPHY:
             ulLinkSpeed = Phy_Setup_US( pxEMAC_PS, ulPHYIndex );
@@ -266,21 +281,25 @@ BaseType_t xNetworkInterfaceInitialise( void )
             /* Setting the operating speed of the MAC needs a delay. */
             vTaskDelay( pdMS_TO_TICKS( 25UL ) );
 
-            ulDMAReg = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET );
+            ulDMAReg = XEmacPs_ReadReg( pxEMAC_PS->Config.BaseAddress,
+                                        XEMACPS_DMACR_OFFSET );
             /* Enable 16-bytes AHB bursts */
             ulDMAReg = ulDMAReg | XEMACPS_DMACR_INCR16_AHB_BURST;
 
-            /* DISC_WHEN_NO_AHB: when set, the GEM DMA will automatically discard receive
-             * packets from the receiver packet buffer memory when no AHB resource is available. */
-            XEmacPs_WriteReg( pxEMAC_PS->Config.BaseAddress, XEMACPS_DMACR_OFFSET,
-                              ulDMAReg /*| XEMACPS_DMACR_DISC_WHEN_NO_AHB_MASK*/ );
+            /* DISC_WHEN_NO_AHB: when set, the GEM DMA will automatically
+             * discard receive packets from the receiver packet buffer memory
+             * when no AHB resource is available. */
+            XEmacPs_WriteReg(
+                pxEMAC_PS->Config.BaseAddress,
+                XEMACPS_DMACR_OFFSET,
+                ulDMAReg /*| XEMACPS_DMACR_DISC_WHEN_NO_AHB_MASK*/ );
 
             setup_isr( &xEMACpsif );
             init_dma( &xEMACpsif );
             start_emacps( &xEMACpsif );
             eEMACState = xEMAC_WaitPHY;
 
-        /* Fall through. */
+            /* Fall through. */
 
         case xEMAC_WaitPHY:
             prvGMACWaitLS( xWaitLinkDelay );
@@ -294,10 +313,16 @@ BaseType_t xNetworkInterfaceInitialise( void )
             if( xEMACTaskHandle == NULL )
             {
                 /* The deferred interrupt handler task is created at the highest
-                 * possible priority to ensure the interrupt handler can return directly
-                 * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
-                 * notify the task when there is something to process. */
-                xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+                 * possible priority to ensure the interrupt handler can return
+                 * directly to it.  The task's handle is stored in
+                 * xEMACTaskHandle so interrupts can notify the task when there
+                 * is something to process. */
+                xTaskCreate( prvEMACHandlerTask,
+                             "EMAC",
+                             configEMAC_TASK_STACK_SIZE,
+                             NULL,
+                             niEMAC_HANDLER_TASK_PRIORITY,
+                             &xEMACTaskHandle );
 
                 if( xEMACTaskHandle == NULL )
                 {
@@ -308,7 +333,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
             eEMACState = xEMAC_Ready;
 
-        /* Fall through. */
+            /* Fall through. */
 
         case xEMAC_Ready:
             /* The network driver is operational. */
@@ -329,25 +354,28 @@ BaseType_t xNetworkInterfaceInitialise( void )
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
-    #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+    {
+        ProtocolPacket_t * pxPacket;
+
+        /* If the peripheral must calculate the checksum, it wants
+         * the protocol checksum to have a value of zero. */
+        pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
+
+        if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType ==
+              ipIPv4_FRAME_TYPE ) &&
+            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
+            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
         {
-            ProtocolPacket_t * pxPacket;
-
-            /* If the peripheral must calculate the checksum, it wants
-             * the protocol checksum to have a value of zero. */
-            pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
-
-            if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
-                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
-            {
-                /* The EMAC will calculate the checksum of the IP-header.
-                 * It can only calculate protocol checksums of UDP and TCP,
-                 * so for ICMP and other protocols it must be done manually. */
-                usGenerateProtocolChecksum( ( uint8_t * ) &( pxPacket->xUDPPacket ), pxBuffer->xDataLength, pdTRUE );
-            }
+            /* The EMAC will calculate the checksum of the IP-header.
+             * It can only calculate protocol checksums of UDP and TCP,
+             * so for ICMP and other protocols it must be done manually. */
+            usGenerateProtocolChecksum( ( uint8_t * ) &( pxPacket->xUDPPacket ),
+                                        pxBuffer->xDataLength,
+                                        pdTRUE );
         }
-    #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
+    }
+#endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
     if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0UL )
     {
@@ -381,7 +409,7 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 
     xStartTime = xTaskGetTickCount();
 
-    for( ; ; )
+    for( ;; )
     {
         xEndTime = xTaskGetTickCount();
 
@@ -406,43 +434,54 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 }
 /*-----------------------------------------------------------*/
 
-#if ( nicUSE_UNCACHED_MEMORY == 0 )
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-    {
-        static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-        uint8_t * ucRAMBuffer = ucNetworkPackets;
-        uint32_t ul;
+#if( nicUSE_UNCACHED_MEMORY == 0 )
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS *
+                                     niBUFFER_1_PACKET_SIZE ]
+        __attribute__( ( aligned( 32 ) ) );
+    uint8_t * ucRAMBuffer = ucNetworkPackets;
+    uint32_t ul;
 
-        for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-        {
-            pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-            *( ( uintptr_t * ) ucRAMBuffer ) = ( uintptr_t ) &( pxNetworkBuffers[ ul ] );
-            ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-        }
+    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+    {
+        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer +
+                                                   ipBUFFER_PADDING;
+        *( ( uintptr_t * ) ucRAMBuffer ) = ( uintptr_t ) &
+                                           ( pxNetworkBuffers[ ul ] );
+        ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
     }
-#else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+}
+#else  /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    static uint8_t * pucNetworkPackets = NULL;
+
+    if( pucNetworkPackets == NULL )
     {
-        static uint8_t * pucNetworkPackets = NULL;
+        pucNetworkPackets = pucGetUncachedMemory(
+            ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
 
-        if( pucNetworkPackets == NULL )
+        if( pucNetworkPackets != NULL )
         {
-            pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
+            uint8_t * ucRAMBuffer = pucNetworkPackets;
+            uint32_t ul;
 
-            if( pucNetworkPackets != NULL )
+            for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
             {
-                uint8_t * ucRAMBuffer = pucNetworkPackets;
-                uint32_t ul;
-
-                for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-                {
-                    pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-                    *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-                    ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-                }
+                pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer +
+                                                           ipBUFFER_PADDING;
+                *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &(
+                    pxNetworkBuffers[ ul ] ) );
+                ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
             }
         }
     }
+}
 #endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
 /*-----------------------------------------------------------*/
 
@@ -481,16 +520,16 @@ static void prvEMACHandlerTask( void * pvParameters )
     vTaskSetTimeOutState( &xPhyTime );
     xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
 
-    for( ; ; )
+    for( ;; )
     {
-        #if ( ipconfigHAS_PRINTF != 0 )
-            {
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-            }
-        #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+#if( ipconfigHAS_PRINTF != 0 )
+        {
+            /* Call a function that monitors resources: the amount of free
+             * network buffers and the amount of free space on the heap.  See
+             * FreeRTOS_IP.c for more detailed comments. */
+            vPrintResourceStats();
+        }
+#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( ( xEMACpsif.isr_events & EMAC_IF_ALL_EVENT ) == 0 )
         {
@@ -536,17 +575,21 @@ static void prvEMACHandlerTask( void * pvParameters )
         {
             xStatus = ulReadMDIO( PHY_REG_01_BMSR );
 
-            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != ( xStatus & niBMSR_LINK_STATUS ) )
+            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) !=
+                ( xStatus & niBMSR_LINK_STATUS ) )
             {
                 ulPHYLinkStatus = xStatus;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL ) );
+                FreeRTOS_printf(
+                    ( "prvEMACHandlerTask: PHY LS now %d\n",
+                      ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL ) );
             }
 
             vTaskSetTimeOutState( &xPhyTime );
 
             if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL )
             {
-                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS(
+                    ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }
             else
             {

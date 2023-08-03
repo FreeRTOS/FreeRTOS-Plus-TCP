@@ -4,38 +4,38 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
@@ -50,7 +50,22 @@
 /* ============================ EXTERN VARIABLES ============================ */
 
 /* 2001::1 */
-static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+static IPv6_Address_t xIPv6Address = { { 0x20,
+                                         0x01,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x01 } };
 
 /* =============================== Test Cases =============================== */
 
@@ -60,7 +75,7 @@ static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x0
  */
 void test_FreeRTOS_accept_ReuseIPv6Socket( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength = 0;
 
@@ -76,7 +91,9 @@ void test_FreeRTOS_accept_ReuseIPv6Socket( void )
     xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
     xServerSocket.u.xTCP.usRemotePort = 0x1234;
     xServerSocket.bits.bIsIPv6 = pdTRUE;
-    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdFALSE );

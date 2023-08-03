@@ -4,38 +4,38 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
@@ -53,7 +53,22 @@
 /* ============================ EXTERN VARIABLES ============================ */
 
 /* 2001::1 */
-static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+static IPv6_Address_t xIPv6Address = { { 0x20,
+                                         0x01,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x01 } };
 
 /* ============================== Test Cases ============================== */
 
@@ -73,7 +88,9 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_UseTempDestinationAddress( void )
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn(
+        &( xSocket.xBoundSocketListItem ),
+        ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
 
@@ -96,7 +113,9 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_IPv6DestinationAddress( void )
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn(
+        &( xSocket.xBoundSocketListItem ),
+        ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
 
@@ -119,7 +138,9 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_IPv4DestinationAddress( void )
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn(
+        &( xSocket.xBoundSocketListItem ),
+        ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     xReturn = FreeRTOS_bind( &xSocket, &xAddress, xAddressLength );
 
@@ -138,7 +159,9 @@ void test_FreeRTOS_bind_SocketIsAlreadyBound_NullDestinationAddress( void )
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn(
+        &( xSocket.xBoundSocketListItem ),
+        ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     xReturn = FreeRTOS_bind( &xSocket, NULL, xAddressLength );
 
@@ -238,7 +261,9 @@ void test_prvSocketProps_UDPv6()
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
     xSocket.bits.bIsIPv6 = pdTRUE;
-    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes,
+            pxIPv6SrcAddress->ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
     xSocket.usLocalPort = usSrcPort;
 
     pcReturn = prvSocketProps( &xSocket );
@@ -251,8 +276,23 @@ void test_prvSocketProps_UDPv6()
 void test_prvSocketProps_TCPv6()
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address;                                                                                          /* 2001::1 */
-    IPv6_Address_t xIPv6RemoteAddress = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 } }; /* 2001::2 */
+    IPv6_Address_t * pxIPv6SrcAddress = &xIPv6Address; /* 2001::1 */
+    IPv6_Address_t xIPv6RemoteAddress = { { 0x20,
+                                            0x01,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x00,
+                                            0x02 } }; /* 2001::2 */
     uint16_t usSrcPort = 1024U;
     uint16_t usRemotePort = 2048U;
     const char * pcReturn;
@@ -260,9 +300,13 @@ void test_prvSocketProps_TCPv6()
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.bits.bIsIPv6 = pdTRUE;
-    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, pxIPv6SrcAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes,
+            pxIPv6SrcAddress->ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
     xSocket.usLocalPort = usSrcPort;
-    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6RemoteAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+            xIPv6RemoteAddress.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
     xSocket.u.xTCP.usRemotePort = usRemotePort;
 
     pcReturn = prvSocketProps( &xSocket );
@@ -284,7 +328,9 @@ void test_FreeRTOS_GetLocalAddress_IPv6( void )
 
     xSocket.bits.bIsIPv6 = pdTRUE;
     xSocket.usLocalPort = 0xAB12;
-    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xSocket.xLocalAddress.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     uxReturn = FreeRTOS_GetLocalAddress( &xSocket, &xAddress );
 
@@ -306,7 +352,9 @@ void test_FreeRTOS_GetRemoteAddress_IPv6HappyPath( void )
 
     xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
     xSocket.u.xTCP.usRemotePort = 0x1234;
 
     xReturn = FreeRTOS_GetRemoteAddress( &xSocket, &xAddress );

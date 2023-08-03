@@ -4,30 +4,31 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
 /* FreeRTOS includes. */
-#include "LPC54018.h"
 #include "FreeRTOS.h"
+#include "LPC54018.h"
 #include "list.h"
 
 #include <stdbool.h>
@@ -41,24 +42,26 @@
 #include "fsl_enet.h"
 #include "fsl_phy.h"
 
+#include "fsl_debug_console.h"
 #include "fsl_enet_mdio.h"
 #include "fsl_phylan8720a.h"
-#include "fsl_debug_console.h"
 
-#define PHY_ADDRESS         ( 0x00U )
+#define PHY_ADDRESS             ( 0x00U )
 /* MDIO operations. */
-#define EXAMPLE_MDIO_OPS    lpc_enet_ops
+#define EXAMPLE_MDIO_OPS        lpc_enet_ops
 /* PHY operations. */
-#define EXAMPLE_PHY_OPS     phylan8720a_ops
-#define ENET_RXBD_NUM       ( 4 )
-#define ENET_TXBD_NUM       ( 4 )
-#define ENET_RXBUFF_SIZE    ( ENET_FRAME_MAX_FRAMELEN )
-#define ENET_BuffSizeAlign( n )    ENET_ALIGN( n, ENET_BUFF_ALIGNMENT )
-#define ENET_ALIGN( x, align )     ( ( unsigned int ) ( ( x ) + ( ( align ) - 1 ) ) & ( unsigned int ) ( ~( unsigned int ) ( ( align ) - 1 ) ) )
+#define EXAMPLE_PHY_OPS         phylan8720a_ops
+#define ENET_RXBD_NUM           ( 4 )
+#define ENET_TXBD_NUM           ( 4 )
+#define ENET_RXBUFF_SIZE        ( ENET_FRAME_MAX_FRAMELEN )
+#define ENET_BuffSizeAlign( n ) ENET_ALIGN( n, ENET_BUFF_ALIGNMENT )
+#define ENET_ALIGN( x, align )                        \
+    ( ( unsigned int ) ( ( x ) + ( ( align ) -1 ) ) & \
+      ( unsigned int ) ( ~( unsigned int ) ( ( align ) -1 ) ) )
 
 #if defined( __GNUC__ )
     #ifndef __ALIGN_END
-        #define __ALIGN_END    __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
+        #define __ALIGN_END __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
     #endif
     #ifndef __ALIGN_BEGIN
         #define __ALIGN_BEGIN
@@ -69,7 +72,8 @@
     #endif
     #ifndef __ALIGN_BEGIN
         #if defined( __CC_ARM ) || defined( __ARMCC_VERSION )
-            #define __ALIGN_BEGIN    __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
+            #define __ALIGN_BEGIN \
+                __attribute__( ( aligned( ENET_BUFF_ALIGNMENT ) ) )
         #elif defined( __ICCARM__ )
             #define __ALIGN_BEGIN
         #endif
@@ -79,14 +83,15 @@
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
+#if( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eProcessBuffer
 #else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) \
+        eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 #ifndef NETWORK_INTERFACE_RX_PRIORITY
-    #define NETWORK_INTERFACE_RX_PRIORITY    ( configMAX_PRIORITIES - 1 )
+    #define NETWORK_INTERFACE_RX_PRIORITY ( configMAX_PRIORITIES - 1 )
 #endif
 
 /*******************************************************************************
@@ -109,9 +114,13 @@ bool g_linkStatus = false;
 
 /*! @brief Enet PHY and MDIO interface handler. */
 static mdio_handle_t mdioHandle = { .ops = &EXAMPLE_MDIO_OPS };
-static phy_handle_t phyHandle = { .phyAddr = PHY_ADDRESS, .mdioHandle = &mdioHandle, .ops = &EXAMPLE_PHY_OPS };
+static phy_handle_t phyHandle = { .phyAddr = PHY_ADDRESS,
+                                  .mdioHandle = &mdioHandle,
+                                  .ops = &EXAMPLE_PHY_OPS };
 
-__ALIGN_BEGIN uint32_t receiveBuffer[ ENET_RXBD_NUM ][ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ] __ALIGN_END;
+__ALIGN_BEGIN uint32_t
+    receiveBuffer[ ENET_RXBD_NUM ]
+                 [ ENET_RXBUFF_SIZE / sizeof( uint32_t ) + 1 ] __ALIGN_END;
 uint32_t rxbuffer[ ENET_RXBD_NUM ];
 
 TaskHandle_t receiveTaskHandle;
@@ -141,14 +150,20 @@ void ENET_IntCallback( ENET_Type * base,
 
 static void prvProcessFrame( int length )
 {
-    NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+    NetworkBufferDescriptor_t *
+        pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
     if( pxBufferDescriptor != NULL )
     {
-        ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
+        ENET_ReadFrame( ENET,
+                        &g_handle,
+                        pxBufferDescriptor->pucEthernetBuffer,
+                        length,
+                        0 );
         pxBufferDescriptor->xDataLength = length;
 
-        if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+        if( ipCONSIDER_FRAME_FOR_PROCESSING(
+                pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
             IPStackEvent_t xRxEvent;
             xRxEvent.eEventType = eNetworkRxEvent;
@@ -165,7 +180,8 @@ static void prvProcessFrame( int length )
         {
             PRINTF( "RX Event not to be considered\n" );
             vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-            /* Not sure if a trace is required.  The stack did not want this message */
+            /* Not sure if a trace is required.  The stack did not want this
+             * message */
         }
     }
     else
@@ -181,7 +197,8 @@ static void rx_task( void * parameter )
 {
     while( pdTRUE )
     {
-        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */
+        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) ==
+            pdFALSE ) /* no RX packets for a bit so check for a link */
         {
             PHY_GetLinkStatus( &phyHandle, &g_linkStatus );
         }
@@ -192,7 +209,10 @@ static void rx_task( void * parameter )
             while( receiving == pdTRUE )
             {
                 uint32_t length;
-                const status_t status = ENET_GetRxFrameSize( ENET, &g_handle, &length, 0 );
+                const status_t status = ENET_GetRxFrameSize( ENET,
+                                                             &g_handle,
+                                                             &length,
+                                                             0 );
 
                 switch( status )
                 {
@@ -205,14 +225,17 @@ static void rx_task( void * parameter )
 
                         break;
 
-                    case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.  Ignore it */
+                    case kStatus_ENET_RxFrameEmpty: /* Received an empty frame.
+                                                       Ignore it */
                         receiving = pdFALSE;
                         break;
 
-                    case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
+                    case kStatus_ENET_RxFrameError: /* Received an error frame.
+                                                       Read & drop it */
                         PRINTF( "RX Receive Error\n" );
                         ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
-                        /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
+                        /* Not sure if a trace is required.  The MAC had an
+                         * error and needed to dump bytes */
                         break;
 
                     default:
@@ -229,15 +252,16 @@ BaseType_t xGetPhyLinkStatus( void )
     return g_linkStatus ? pdTRUE : pdFALSE;
 }
 
-
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     BaseType_t returnValue = pdFAIL;
     static enum
     {
-        initPhy, waitForLink, startReceiver, configurePhy
-    }
-    networkInitialisePhase = initPhy;
+        initPhy,
+        waitForLink,
+        startReceiver,
+        configurePhy
+    } networkInitialisePhase = initPhy;
 
     switch( networkInitialisePhase )
     {
@@ -246,25 +270,31 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* fall through */
         case initPhy:
-           {
-               phy_config_t phyConfig;
-               phyConfig.phyAddr = PHY_ADDRESS;
-               phyConfig.autoNeg = true;
-               mdioHandle.resource.base = ENET;
+        {
+            phy_config_t phyConfig;
+            phyConfig.phyAddr = PHY_ADDRESS;
+            phyConfig.autoNeg = true;
+            mdioHandle.resource.base = ENET;
 
-               status_t status = PHY_Init( &phyHandle, &phyConfig );
+            status_t status = PHY_Init( &phyHandle, &phyConfig );
 
-               if( status == kStatus_PHY_AutoNegotiateFail )
-               {
-                   PRINTF( "\nPHY Auto-negotiation failed. Please check the cable connection and link partner setting.\n" );
-                   break;
-               }
-           }
+            if( status == kStatus_PHY_AutoNegotiateFail )
+            {
+                PRINTF( "\nPHY Auto-negotiation failed. Please check the cable "
+                        "connection and link partner setting.\n" );
+                break;
+            }
+        }
 
         case startReceiver:
             networkInitialisePhase = startReceiver;
 
-            if( xTaskCreate( rx_task, "rx_task", 512, NULL, NETWORK_INTERFACE_RX_PRIORITY, &receiveTaskHandle ) != pdPASS )
+            if( xTaskCreate( rx_task,
+                             "rx_task",
+                             512,
+                             NULL,
+                             NETWORK_INTERFACE_RX_PRIORITY,
+                             &receiveTaskHandle ) != pdPASS )
             {
                 PRINTF( "Network Receive Task creation failed!.\n" );
                 break;
@@ -283,53 +313,63 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* fall through */
         case configurePhy:
-           {
-               networkInitialisePhase = configurePhy;
-               enet_config_t config;
-               phy_speed_t speed;
-               phy_duplex_t duplex;
-               PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
-               /* Get default configuration 100M RMII. */
-               ENET_GetDefaultConfig( &config );
+        {
+            networkInitialisePhase = configurePhy;
+            enet_config_t config;
+            phy_speed_t speed;
+            phy_duplex_t duplex;
+            PHY_GetLinkSpeedDuplex( &phyHandle, &speed, &duplex );
+            /* Get default configuration 100M RMII. */
+            ENET_GetDefaultConfig( &config );
 
-               /* Use the actual speed and duplex when phy success to finish the autonegotiation. */
-               config.miiSpeed = ( enet_mii_speed_t ) speed;
-               config.miiDuplex = ( enet_mii_duplex_t ) duplex;
+            /* Use the actual speed and duplex when phy success to finish the
+             * autonegotiation. */
+            config.miiSpeed = ( enet_mii_speed_t ) speed;
+            config.miiDuplex = ( enet_mii_duplex_t ) duplex;
 
-               /* Initialize ENET. */
-               uint32_t refClock = 50000000; /* 50MHZ for rmii reference clock. */
-               ENET_Init( ENET, &config, g_macAddr, refClock );
+            /* Initialize ENET. */
+            uint32_t refClock = 50000000; /* 50MHZ for rmii reference clock. */
+            ENET_Init( ENET, &config, g_macAddr, refClock );
 
-               /* Enable the rx interrupt. */
-               ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
+            /* Enable the rx interrupt. */
+            ENET_EnableInterrupts( ENET, ( kENET_DmaRx ) );
 
-               /* Initialize Descriptor. */
-               int bufferIndex;
+            /* Initialize Descriptor. */
+            int bufferIndex;
 
-               for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
-               {
-                   rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer[ bufferIndex ];
-               }
+            for( bufferIndex = 0; bufferIndex < ENET_RXBD_NUM; bufferIndex++ )
+            {
+                rxbuffer[ bufferIndex ] = ( uint32_t ) &receiveBuffer
+                    [ bufferIndex ];
+            }
 
-               /* prepare the buffer configuration. */
-               enet_buffer_config_t buffConfig[ 1 ] =
-               {
-                   {
-                       ENET_RXBD_NUM, ENET_TXBD_NUM,
-                       &g_txBuffDescrip[ 0 ], &g_txBuffDescrip[ 0 ],
-                       &g_rxBuffDescrip[ 0 ], &g_rxBuffDescrip[ ENET_RXBD_NUM ],
-                       &rxbuffer[ 0 ], ENET_BuffSizeAlign( ENET_RXBUFF_SIZE ),
-                   }
-               };
-               ENET_DescriptorInit( ENET, &config, &buffConfig[ 0 ] );
+            /* prepare the buffer configuration. */
+            enet_buffer_config_t buffConfig[ 1 ] = { {
+                ENET_RXBD_NUM,
+                ENET_TXBD_NUM,
+                &g_txBuffDescrip[ 0 ],
+                &g_txBuffDescrip[ 0 ],
+                &g_rxBuffDescrip[ 0 ],
+                &g_rxBuffDescrip[ ENET_RXBD_NUM ],
+                &rxbuffer[ 0 ],
+                ENET_BuffSizeAlign( ENET_RXBUFF_SIZE ),
+            } };
+            ENET_DescriptorInit( ENET, &config, &buffConfig[ 0 ] );
 
-               /* Create the handler. */
-               ENET_CreateHandler( ENET, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
-               NVIC_SetPriority( 65 - 16, 4 ); /* TODO this is a hack and I would expect a nice ENET API for priority. */
+            /* Create the handler. */
+            ENET_CreateHandler( ENET,
+                                &g_handle,
+                                &config,
+                                &buffConfig[ 0 ],
+                                ENET_IntCallback,
+                                NULL );
+            NVIC_SetPriority( 65 - 16, 4 ); /* TODO this is a hack and I would
+                                               expect a nice ENET API for
+                                               priority. */
 
-               /* Active TX/RX. */
-               ENET_StartRxTx( ENET, 1, 1 );
-           }
+            /* Active TX/RX. */
+            ENET_StartRxTx( ENET, 1, 1 );
+        }
             returnValue = pdPASS;
             break;
     }
@@ -337,15 +377,19 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return returnValue;
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
     BaseType_t response = pdFALSE;
     status_t status;
 
     if( xGetPhyLinkStatus() )
     {
-        status = ENET_SendFrame( ENET, &g_handle, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+        status = ENET_SendFrame( ENET,
+                                 &g_handle,
+                                 pxNetworkBuffer->pucEthernetBuffer,
+                                 pxNetworkBuffer->xDataLength );
 
         switch( status )
         {
@@ -370,13 +414,21 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 }
 
 /* statically allocate the buffers */
-/* allocating them as uint32_t's to force them into word alignment, a requirement of the DMA. */
-__ALIGN_BEGIN static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __ALIGN_END;
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+/* allocating them as uint32_t's to force them into word alignment, a
+ * requirement of the DMA. */
+__ALIGN_BEGIN static uint32_t
+    buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ]
+           [ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) +
+             1 ] __ALIGN_END;
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
     {
-        pxNetworkBuffers[ x ].pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] + ipBUFFER_PADDING;
+        pxNetworkBuffers[ x ]
+            .pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] +
+                                 ipBUFFER_PADDING;
         buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
     }
 }

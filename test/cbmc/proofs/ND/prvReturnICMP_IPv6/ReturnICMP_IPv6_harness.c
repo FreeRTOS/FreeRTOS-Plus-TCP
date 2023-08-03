@@ -33,8 +33,8 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_ND.h"
+#include "FreeRTOS_TCP_IP.h"
 
 /* CBMC includes. */
 #include "../../utility/memory_assignments.c"
@@ -50,35 +50,45 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 {
     uint16_t usReturn;
 
-    __CPROVER_assert( pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL" );
-    __CPROVER_assert( __CPROVER_r_ok( pucEthernetBuffer, uxBufferLength ), "pucEthernetBuffer should be readable." );
+    __CPROVER_assert( pucEthernetBuffer != NULL,
+                      "The ethernet buffer cannot be NULL" );
+    __CPROVER_assert( __CPROVER_r_ok( pucEthernetBuffer, uxBufferLength ),
+                      "pucEthernetBuffer should be readable." );
 
     /* Return an indeterminate value. */
     return usReturn;
 }
 
-/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+/* This function has been tested separately. Therefore, we assume that the
+ * implementation is correct. */
 void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
                            BaseType_t xReleaseAfterSend )
 {
-    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
-    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL,
+                      "The Ethernet buffer cannot be NULL." );
 }
 
-/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+/* This function has been tested separately. Therefore, we assume that the
+ * implementation is correct. */
 void vReceiveNA( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
-    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL,
+                      "The Ethernet buffer cannot be NULL." );
 }
 
-/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+/* This function has been tested separately. Therefore, we assume that the
+ * implementation is correct. */
 BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                                      TickType_t uxTimeout )
 {
     BaseType_t xReturn;
 
-    __CPROVER_assert( pxEvent != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxEvent != NULL,
+                      "The network buffer descriptor cannot be NULL." );
     __CPROVER_assume( xReturn == pdPASS || xReturn == pdFAIL );
 
     return xReturn;
@@ -86,33 +96,42 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 
 /* This is an output function implemented by a third party and
  * need not be tested with this proof. */
-BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub(
+    struct xNetworkInterface * pxDescriptor,
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
-    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
-    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
-    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
+    __CPROVER_assert( pxDescriptor != NULL,
+                      "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL,
+                      "The Ethernet buffer cannot be NULL." );
     return 0;
 }
 
-/* Abstraction of this functions creates and return an endpoint, real endpoint doesn't matter in this test. */
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
+/* Abstraction of this functions creates and return an endpoint, real endpoint
+ * doesn't matter in this test. */
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6(
+    const IPv6_Address_t * pxIPAddress )
 {
     NetworkEndPoint_t * pxEndPoints = NULL;
 
     __CPROVER_assert( pxIPAddress != NULL, "The pxIPAddress cannot be NULL." );
 
-    pxEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxEndPoints = ( NetworkEndPoint_t * ) safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
 
     if( ensure_memory_is_valid( pxEndPoints, sizeof( NetworkEndPoint_t ) ) )
     {
         /* Interface init. */
-        pxEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+        pxEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc(
+            sizeof( NetworkInterface_t ) );
         __CPROVER_assume( pxEndPoints->pxNetworkInterface != NULL );
 
         pxEndPoints->pxNext = NULL;
-        pxEndPoints->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
+        pxEndPoints->pxNetworkInterface
+            ->pfOutput = NetworkInterfaceOutputFunction_Stub;
     }
 
     return pxEndPoints;
@@ -120,28 +139,34 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPA
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     uint32_t ulLen;
     NetworkBufferDescriptor_t xLocalBuffer;
     uint16_t usEthernetBufferSize;
 
-    /* The code does not expect both of these to be equal to NULL at the same time. */
+    /* The code does not expect both of these to be equal to NULL at the same
+     * time. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
+    __CPROVER_assume( ( ulLen >= sizeof( ICMPPacket_IPv6_t ) ) &&
+                      ( ulLen < ipconfigNETWORK_MTU ) );
 
     pxNetworkBuffer->xDataLength = ulLen;
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer );
 
     /* Add an end point to the network buffer present. Its assumed that the
-     * network interface layer correctly assigns the end point to the generated buffer. */
-    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+     * network interface layer correctly assigns the end point to the generated
+     * buffer. */
+    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
 
-    /* This assumption is made because the function is validating IPv6 related functionality
-     * which is validated only when bIPv6 is set*/
-    __CPROVER_assume( ( pxNetworkBuffer->pxEndPoint != NULL ) && ( pxNetworkBuffer->pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) );
-
+    /* This assumption is made because the function is validating IPv6 related
+     * functionality which is validated only when bIPv6 is set*/
+    __CPROVER_assume(
+        ( pxNetworkBuffer->pxEndPoint != NULL ) &&
+        ( pxNetworkBuffer->pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) );
 
     /* Initializing pxARPWaitingNetworkBuffer */
 

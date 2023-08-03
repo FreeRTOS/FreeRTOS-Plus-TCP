@@ -2,12 +2,12 @@
 #include <unity.h>
 
 /* Include standard libraries */
+#include "FreeRTOS.h"
+#include "list.h"
+#include "task.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
@@ -18,20 +18,22 @@ BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
 /* ======================== Stub Callback Functions ========================= */
 
-BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub(
+    struct xNetworkInterface * pxDescriptor,
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
 }
 
 /**
- * @brief Called by prvTCPReturnPacket(), this function makes sure that the network buffer
- *        has 'pxEndPoint' set properly.
+ * @brief Called by prvTCPReturnPacket(), this function makes sure that the
+ * network buffer has 'pxEndPoint' set properly.
  * @param[in] pxSocket The socket on which the packet is being sent.
  * @param[in] pxNetworkBuffer The network buffer carrying the outgoing message.
- * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the IP-type.
+ * @param[in] uxIPHeaderSize The size of the IP-header, which depends on the
+ * IP-type.
  */
 void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
                                NetworkBufferDescriptor_t * pxNetworkBuffer,
@@ -54,20 +56,22 @@ void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
  * Called by prvTCPReturnPacket(), this function will set the the window
  * size on this side: 'xTCPHeader.usWindow'.
  */
-void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
-                                  const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                  size_t uxIPHeaderSize )
+void prvTCPReturn_CheckTCPWindow(
+    FreeRTOS_Socket_t * pxSocket,
+    const NetworkBufferDescriptor_t * pxNetworkBuffer,
+    size_t uxIPHeaderSize )
 {
 }
 
 /*
- * Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
- * in the TCP-header.
+ * Called by prvTCPReturnPacket(), this function sets the sequence and ack
+ * numbers in the TCP-header.
  */
-void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
-                                     const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                     size_t uxIPHeaderSize,
-                                     uint32_t ulLen )
+void prvTCPReturn_SetSequenceNumber(
+    FreeRTOS_Socket_t * pxSocket,
+    const NetworkBufferDescriptor_t * pxNetworkBuffer,
+    size_t uxIPHeaderSize,
+    uint32_t ulLen )
 {
 }
 

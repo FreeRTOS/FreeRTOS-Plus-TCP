@@ -4,54 +4,54 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
 #include "mock_IP_Utils_list_macros.h"
-#include "mock_queue.h"
 #include "mock_event_groups.h"
+#include "mock_queue.h"
 
-#include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_ARP.h"
 #include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_DHCPv6.h"
-#include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_IPv4_Utils.h"
 #include "mock_FreeRTOS_IPv6_Utils.h"
+#include "mock_FreeRTOS_Routing.h"
 #include "mock_NetworkBufferManagement.h"
 
 #include "FreeRTOS_IP_Utils.h"
@@ -63,19 +63,20 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-#define TEST_UDP_PAYLOAD_LENGTH    ( 10U )
+#define TEST_UDP_PAYLOAD_LENGTH ( 10U )
 
 extern NetworkInterface_t xInterfaces[ 1 ];
 
-#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-    extern BaseType_t xCallEventHook;
+#if( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+extern BaseType_t xCallEventHook;
 #endif
 
 extern UBaseType_t uxLastMinBufferCount;
 extern size_t uxMinLastSize;
 
-extern NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
-                                                                     size_t uxOffset );
+extern NetworkBufferDescriptor_t * prvPacketBuffer_to_NetworkBuffer(
+    const void * pvBuffer,
+    size_t uxOffset );
 extern uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
 extern void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
                                     uint16_t usChecksum );
@@ -108,27 +109,28 @@ void test_xSendDHCPEvent( void )
 void test_pxDuplicateNetworkBufferWithDescriptor_NULLReturned( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     size_t uxNewLength;
 
     pxNetworkBuffer = &xNetworkBuffer;
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, NULL );
 
-    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
+    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                       uxNewLength );
 
     TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
 /**
  * @brief test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned
- * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network buffer
- * with larger content size.
+ * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network
+ * buffer with larger content size.
  */
 void test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
     size_t uxNewLength = 0x345;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     uint8_t ucEthBuffer2[ ipconfigTCP_MSS ];
@@ -146,28 +148,35 @@ void test_pxDuplicateNetworkBufferWithDescriptor_LargerBufferReturned( void )
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, &xNetworkBuffer2 );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength,
+                                                      0,
+                                                      &xNetworkBuffer2 );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
+    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                       uxNewLength );
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.ulIP_IPv4, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.ulIP_IPv4,
+                       pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
-    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort,
+                       pxNetworkBuffer->usBoundPort );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer,
+                              xNetworkBuffer2.pucEthernetBuffer,
+                              pxNetworkBuffer->xDataLength );
 }
 
 /**
  * @brief test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned
- * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network buffer
- * with smaller content size.
+ * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network
+ * buffer with smaller content size.
  */
 void test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
     size_t uxNewLength = 0x34;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     uint8_t ucEthBuffer2[ ipconfigTCP_MSS ];
@@ -185,28 +194,35 @@ void test_pxDuplicateNetworkBufferWithDescriptor_SmallerBufferReturned( void )
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, &xNetworkBuffer2 );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength,
+                                                      0,
+                                                      &xNetworkBuffer2 );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
+    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                       uxNewLength );
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.ulIP_IPv4, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.xIPAddress.ulIP_IPv4,
+                       pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
-    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, uxNewLength );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort,
+                       pxNetworkBuffer->usBoundPort );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer,
+                              xNetworkBuffer2.pucEthernetBuffer,
+                              uxNewLength );
 }
 
 /**
  * @brief test_pxDuplicateNetworkBufferWithDescriptor_NullBufferReturned
- * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network buffer
- * with NULL content pointer.
+ * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network
+ * buffer with NULL content pointer.
  */
 void test_pxDuplicateNetworkBufferWithDescriptor_NullBufferReturned( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
     size_t uxNewLength = 0x34;
 
     pxNetworkBuffer = &xNetworkBuffer;
@@ -219,25 +235,43 @@ void test_pxDuplicateNetworkBufferWithDescriptor_NullBufferReturned( void )
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength,
+                                                      0,
+                                                      pxNetworkBuffer );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    catch_assert( pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength ) );
+    catch_assert( pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                          uxNewLength ) );
 }
 
 /**
  * @brief test_pxDuplicateNetworkBufferWithDescriptor_IPv6
- * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network buffer
- * for IPv6 packet.
+ * To validate if pxDuplicateNetworkBufferWithDescriptor returns a network
+ * buffer for IPv6 packet.
  */
 void test_pxDuplicateNetworkBufferWithDescriptor_IPv6( void )
 {
     NetworkBufferDescriptor_t * pxReturn;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
     size_t uxNewLength = ipconfigTCP_MSS;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     uint8_t ucEthBuffer2[ ipconfigTCP_MSS ];
-    IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+    IPv6_Address_t xIPv6Address = { { 0x20,
+                                      0x01,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x01 } };
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( &xNetworkBuffer2, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -248,21 +282,31 @@ void test_pxDuplicateNetworkBufferWithDescriptor_IPv6( void )
     memset( ucEthBuffer2, 0x00, ipconfigTCP_MSS );
 
     pxNetworkBuffer->xDataLength = uxNewLength;
-    memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
     pxNetworkBuffer->usPort = 0x1234;
     pxNetworkBuffer->usBoundPort = 0xFFAA;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength, 0, &xNetworkBuffer2 );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNewLength,
+                                                      0,
+                                                      &xNetworkBuffer2 );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
 
-    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
+    pxReturn = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                       uxNewLength );
 
     TEST_ASSERT_EQUAL( &xNetworkBuffer2, pxReturn );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.xDataLength, uxNewLength );
-    TEST_ASSERT_EQUAL_MEMORY( &xIPv6Address, &pxNetworkBuffer->xIPAddress.xIP_IPv6, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( &xIPv6Address,
+                              &pxNetworkBuffer->xIPAddress.xIP_IPv6,
+                              ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL( xNetworkBuffer2.usPort, pxNetworkBuffer->usPort );
-    TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort, pxNetworkBuffer->usBoundPort );
-    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer, xNetworkBuffer2.pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( xNetworkBuffer2.usBoundPort,
+                       pxNetworkBuffer->usBoundPort );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pucEthernetBuffer,
+                              xNetworkBuffer2.pucEthernetBuffer,
+                              pxNetworkBuffer->xDataLength );
 }
 
 /**
@@ -283,18 +327,20 @@ void test_prvPacketBuffer_to_NetworkBuffer_NULLParam( void )
 
 /**
  * @brief test_prvPacketBuffer_to_NetworkBuffer_Unalligned
- * To validate if prvPacketBuffer_to_NetworkBuffer returns NULL when byte not aligned.
+ * To validate if prvPacketBuffer_to_NetworkBuffer returns NULL when byte not
+ * aligned.
  */
 void test_prvPacketBuffer_to_NetworkBuffer_Unalligned( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetBufferToReturn;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetBufferToReturn;
     const void * pvBuffer;
     size_t uxOffset = 12;
     uint8_t ucEthBuf[ ipconfigTCP_MSS ];
     uintptr_t uxAddrOfNetBuffer = ( uintptr_t ) &xNetBufferToReturn;
 
     memcpy( ucEthBuf, &uxAddrOfNetBuffer, sizeof( uintptr_t ) );
-    pvBuffer = ( const void * ) ( uxAddrOfNetBuffer + uxOffset + ipBUFFER_PADDING + 1 );
+    pvBuffer = ( const void * ) ( uxAddrOfNetBuffer + uxOffset +
+                                  ipBUFFER_PADDING + 1 );
 
     pxNetworkBuffer = prvPacketBuffer_to_NetworkBuffer( pvBuffer, uxOffset );
 
@@ -303,11 +349,12 @@ void test_prvPacketBuffer_to_NetworkBuffer_Unalligned( void )
 
 /**
  * @brief test_prvPacketBuffer_to_NetworkBuffer_Unalligned
- * To validate if prvPacketBuffer_to_NetworkBuffer moves offset&padding correctly.
+ * To validate if prvPacketBuffer_to_NetworkBuffer moves offset&padding
+ * correctly.
  */
 void test_prvPacketBuffer_to_NetworkBuffer_Alligned( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetBufferToReturn;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetBufferToReturn;
     const void * pvBuffer;
     size_t uxOffset = 20;
     uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
@@ -315,23 +362,26 @@ void test_prvPacketBuffer_to_NetworkBuffer_Alligned( void )
 
     pxAddrOfNetBuffer->pucEthernetBuffer = ucEthBuf;
 
-    *( ( NetworkBufferDescriptor_t ** ) pxAddrOfNetBuffer->pucEthernetBuffer ) = pxAddrOfNetBuffer;
+    *( ( NetworkBufferDescriptor_t ** )
+           pxAddrOfNetBuffer->pucEthernetBuffer ) = pxAddrOfNetBuffer;
 
     pxAddrOfNetBuffer->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
 
-    pxNetworkBuffer = prvPacketBuffer_to_NetworkBuffer( pxAddrOfNetBuffer->pucEthernetBuffer, uxOffset );
+    pxNetworkBuffer = prvPacketBuffer_to_NetworkBuffer( pxAddrOfNetBuffer
+                                                            ->pucEthernetBuffer,
+                                                        uxOffset );
 
     TEST_ASSERT_EQUAL_PTR( pxAddrOfNetBuffer, pxNetworkBuffer );
 }
 
 /**
  * @brief test_pxUDPPayloadBuffer_to_NetworkBuffer
- * To validate if pxUDPPayloadBuffer_to_NetworkBuffer returns correct network buffer pointer
- * for an IPv4 UDP packet.
+ * To validate if pxUDPPayloadBuffer_to_NetworkBuffer returns correct network
+ * buffer pointer for an IPv4 UDP packet.
  */
 void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetBufferToReturn;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetBufferToReturn;
     const void * pvBuffer;
     size_t uxOffset = sizeof( UDPPacket_t );
     uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
@@ -340,21 +390,25 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer( void )
 
     pxAddrOfNetBuffer->pucEthernetBuffer = ucEthBuf;
 
-    *( ( NetworkBufferDescriptor_t ** ) pxAddrOfNetBuffer->pucEthernetBuffer ) = pxAddrOfNetBuffer;
+    *( ( NetworkBufferDescriptor_t ** )
+           pxAddrOfNetBuffer->pucEthernetBuffer ) = pxAddrOfNetBuffer;
 
     pxAddrOfNetBuffer->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
 
-    pucIPType = ( pxAddrOfNetBuffer->pucEthernetBuffer ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    pucIPType = ( pxAddrOfNetBuffer->pucEthernetBuffer ) -
+                ipUDP_PAYLOAD_IP_TYPE_OFFSET;
     *pucIPType = ( uint8_t ) ipTYPE_IPv4;
 
-    pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer( pxAddrOfNetBuffer->pucEthernetBuffer );
+    pxNetworkBuffer = pxUDPPayloadBuffer_to_NetworkBuffer(
+        pxAddrOfNetBuffer->pucEthernetBuffer );
 
     TEST_ASSERT_EQUAL_PTR( pxAddrOfNetBuffer, pxNetworkBuffer );
 }
 
 /**
  * @brief test_pxUDPPayloadBuffer_to_NetworkBuffer_NullInput
- * To validate if pxUDPPayloadBuffer_to_NetworkBuffer returns NULL when input is NULL.
+ * To validate if pxUDPPayloadBuffer_to_NetworkBuffer returns NULL when input is
+ * NULL.
  */
 void test_pxUDPPayloadBuffer_to_NetworkBuffer_NullInput( void )
 {
@@ -367,11 +421,12 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_NullInput( void )
 
 /**
  * @brief test_pxUDPPayloadBuffer_to_NetworkBuffer_UnknownIPType
- * To validate if pxUDPPayloadBuffer_to_NetworkBuffer triggers assertion when IP type of buffer is unknown.
+ * To validate if pxUDPPayloadBuffer_to_NetworkBuffer triggers assertion when IP
+ * type of buffer is unknown.
  */
 void test_pxUDPPayloadBuffer_to_NetworkBuffer_UnknownIPType( void )
 {
-    NetworkBufferDescriptor_t * pxNetBufferToReturn, xNetBufferToReturn;
+    NetworkBufferDescriptor_t *pxNetBufferToReturn, xNetBufferToReturn;
     size_t uxOffset = sizeof( UDPPacket_t );
     uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
     uint8_t * pucIPType;
@@ -383,23 +438,27 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_UnknownIPType( void )
 
     pxNetBufferToReturn->pucEthernetBuffer = ucEthBuf;
 
-    *( ( NetworkBufferDescriptor_t ** ) pxNetBufferToReturn->pucEthernetBuffer ) = pxNetBufferToReturn;
+    *( ( NetworkBufferDescriptor_t ** )
+           pxNetBufferToReturn->pucEthernetBuffer ) = pxNetBufferToReturn;
 
     pxNetBufferToReturn->pucEthernetBuffer += ( uxOffset + ipBUFFER_PADDING );
 
-    pucIPType = ( pxNetBufferToReturn->pucEthernetBuffer ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+    pucIPType = ( pxNetBufferToReturn->pucEthernetBuffer ) -
+                ipUDP_PAYLOAD_IP_TYPE_OFFSET;
     *pucIPType = 0xFF;
 
-    catch_assert( pxUDPPayloadBuffer_to_NetworkBuffer( pxNetBufferToReturn->pucEthernetBuffer ) );
+    catch_assert( pxUDPPayloadBuffer_to_NetworkBuffer(
+        pxNetBufferToReturn->pucEthernetBuffer ) );
 }
 
 /**
  * @brief test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6
- * To validate if pxUDPPayloadBuffer_to_NetworkBuffer returns correct pointer to the network buffer.
+ * To validate if pxUDPPayloadBuffer_to_NetworkBuffer returns correct pointer to
+ * the network buffer.
  */
 void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
 {
-    NetworkBufferDescriptor_t * pxNetBufferToReturn, xNetBufferToReturn;
+    NetworkBufferDescriptor_t *pxNetBufferToReturn, xNetBufferToReturn;
     size_t uxOffset = sizeof( UDPPacket_IPv6_t );
     uint8_t ucEthBuf[ ipBUFFER_PADDING + ipconfigTCP_MSS ];
     uint8_t * pucIPType;
@@ -413,7 +472,8 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
 
     pxNetBufferToReturn->pucEthernetBuffer = ucEthBuf;
 
-    *( ( NetworkBufferDescriptor_t ** ) pxNetBufferToReturn->pucEthernetBuffer ) = pxNetBufferToReturn;
+    *( ( NetworkBufferDescriptor_t ** )
+           pxNetBufferToReturn->pucEthernetBuffer ) = pxNetBufferToReturn;
 
     pucPayloadBuffer = &ucEthBuf[ uxOffset + ipBUFFER_PADDING ];
 
@@ -427,12 +487,14 @@ void test_pxUDPPayloadBuffer_to_NetworkBuffer_IPv6( void )
 
 /**
  * @brief test_xIsCallingFromIPTask_NotCallingFromIPTask
- * To validate if xIsCallingFromIPTask returns pdFALSE when task handles are different.
+ * To validate if xIsCallingFromIPTask returns pdFALSE when task handles are
+ * different.
  */
 void test_xIsCallingFromIPTask_NotCallingFromIPTask( void )
 {
     BaseType_t xReturn;
-    TaskHandle_t xHandleOfIPTask = ( TaskHandle_t ) 0xAABBCCDD, xHandleOfNotIPTask = ( TaskHandle_t ) 0xAABBCCDE;
+    TaskHandle_t xHandleOfIPTask = ( TaskHandle_t ) 0xAABBCCDD,
+                 xHandleOfNotIPTask = ( TaskHandle_t ) 0xAABBCCDE;
 
     xTaskGetCurrentTaskHandle_ExpectAndReturn( xHandleOfNotIPTask );
     FreeRTOS_GetIPTaskHandle_ExpectAndReturn( xHandleOfIPTask );
@@ -444,7 +506,8 @@ void test_xIsCallingFromIPTask_NotCallingFromIPTask( void )
 
 /**
  * @brief test_xIsCallingFromIPTask_IsCallingFromIPTask
- * To validate if xIsCallingFromIPTask returns pdTRUE when task handles are same.
+ * To validate if xIsCallingFromIPTask returns pdTRUE when task handles are
+ * same.
  */
 void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
 {
@@ -462,8 +525,8 @@ void test_xIsCallingFromIPTask_IsCallingFromIPTask( void )
 /**
  * @brief test_prvProcessNetworkDownEvent_Pass
  * First prvProcessNetworkDownEvent call to validate if network down event reset
- * endpoint's state. And second prvProcessNetworkDownEvent call to validate if it calls
- * user's hook.
+ * endpoint's state. And second prvProcessNetworkDownEvent call to validate if
+ * it calls user's hook.
  */
 void test_prvProcessNetworkDownEvent_Pass( void )
 {
@@ -642,7 +705,22 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
 {
     NetworkInterface_t xInterface;
     NetworkEndPoint_t xEndPoint = { 0 };
-    IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+    IPv6_Address_t xIPv6Address = { { 0x20,
+                                      0x01,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x01 } };
 
     xCallEventHook = pdFALSE;
     xInterface.pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
@@ -650,7 +728,9 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
     xEndPoint.bits.bWantRA = pdFALSE_UNSIGNED;
     xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
     xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
-    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
@@ -663,7 +743,9 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
 
     prvProcessNetworkDownEvent( &xInterface );
 
-    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes,
+                              xEndPoint.ipv6_settings.xIPAddress.ucBytes,
+                              ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -679,7 +761,8 @@ void test_vPreCheckConfigs_CatchAssertTaskNotReady( void )
 
 /**
  * @brief test_vPreCheckConfigs_CatchAssertNonEmptyEventQueue
- * To validate if vPreCheckConfigs triggers assertion when network event queue is not NULL.
+ * To validate if vPreCheckConfigs triggers assertion when network event queue
+ * is not NULL.
  */
 void test_vPreCheckConfigs_CatchAssertNonEmptyEventQueue( void )
 {
@@ -691,7 +774,8 @@ void test_vPreCheckConfigs_CatchAssertNonEmptyEventQueue( void )
 
 /**
  * @brief test_vPreCheckConfigs_CatchAssertNonNullTaskHandle
- * To validate if vPreCheckConfigs triggers assertion when task handle is not NULL.
+ * To validate if vPreCheckConfigs triggers assertion when task handle is not
+ * NULL.
  */
 void test_vPreCheckConfigs_CatchAssertNonNullTaskHandle( void )
 {
@@ -717,7 +801,8 @@ void test_vPreCheckConfigs( void )
 
 /**
  * @brief test_usGenerateProtocolChecksum_UnknownProtocol
- * To validate usGenerateProtocolChecksum returns ipUNHANDLED_PROTOCOL if no valid protocol in IP header.
+ * To validate usGenerateProtocolChecksum returns ipUNHANDLED_PROTOCOL if no
+ * valid protocol in IP header.
  */
 void test_usGenerateProtocolChecksum_UnknownProtocol( void )
 {
@@ -732,11 +817,13 @@ void test_usGenerateProtocolChecksum_UnknownProtocol( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
 
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
@@ -745,14 +832,17 @@ void test_usGenerateProtocolChecksum_UnknownProtocol( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_UnknownProtocol );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipUNHANDLED_PROTOCOL, usReturn );
 }
 
 /**
  * @brief test_usGenerateProtocolChecksum_InvalidLength
- * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if prvChecksumIPv4Checks returns non-zero.
+ * To validate usGenerateProtocolChecksum returns ipINVALID_LENGTH if
+ * prvChecksumIPv4Checks returns non-zero.
  */
 void test_usGenerateProtocolChecksum_InvalidLength( void )
 {
@@ -762,11 +852,14 @@ void test_usGenerateProtocolChecksum_InvalidLength( void )
     BaseType_t xOutgoingPacket;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
-    ( ( IPPacket_t * ) pucEthernetBuffer )->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+    ( ( IPPacket_t * ) pucEthernetBuffer )
+        ->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_InvalidLength );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( usReturn, ipINVALID_LENGTH );
 }
@@ -784,12 +877,14 @@ void test_usGenerateProtocolChecksum_UDPInvalidLength( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = ucVersionHeaderLength;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER - 1;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_UDP_HEADER - 1;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -797,7 +892,9 @@ void test_usGenerateProtocolChecksum_UDPInvalidLength( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -814,13 +911,16 @@ void test_usGenerateProtocolChecksum_UDPWrongCRCIncomingPacket( void )
     BaseType_t xOutgoingPacket = pdFALSE;
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
-    uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_UDP_HEADER + TEST_UDP_PAYLOAD_LENGTH;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
+    uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_UDP_HEADER +
+                        TEST_UDP_PAYLOAD_LENGTH;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_UDP_HEADER;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -828,7 +928,9 @@ void test_usGenerateProtocolChecksum_UDPWrongCRCIncomingPacket( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
 }
@@ -846,12 +948,14 @@ void test_usGenerateProtocolChecksum_UDPOutgoingPacketLessProtocolLength( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = 10;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_UDP_HEADER;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -859,7 +963,9 @@ void test_usGenerateProtocolChecksum_UDPOutgoingPacketLessProtocolLength( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -876,16 +982,20 @@ void test_usGenerateProtocolChecksum_UDPNonZeroChecksum( void )
     BaseType_t xOutgoingPacket = pdFALSE;
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
-    uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_UDP_HEADER + TEST_UDP_PAYLOAD_LENGTH;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER;
+    uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_UDP_HEADER +
+                        TEST_UDP_PAYLOAD_LENGTH;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_UDP_HEADER;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -895,7 +1005,9 @@ void test_usGenerateProtocolChecksum_UDPNonZeroChecksum( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
 }
@@ -903,7 +1015,8 @@ void test_usGenerateProtocolChecksum_UDPNonZeroChecksum( void )
 /**
  * @brief test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket
  * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
- * it's a outgoing packet. And set the checksum to 0xFFFF because the calculated checksum was zero.
+ * it's a outgoing packet. And set the checksum to 0xFFFF because the calculated
+ * checksum was zero.
  */
 void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 {
@@ -918,13 +1031,17 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    /* This is the checksum with zeroed out data. Fill it in to make the checksum 0. */
-    *( ( uint32_t * ) &pucEthernetBuffer[ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xFF9E );
+    /* This is the checksum with zeroed out data. Fill it in to make the
+     * checksum 0. */
+    *( ( uint32_t * ) &pucEthernetBuffer
+           [ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xFF9E );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -934,7 +1051,9 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRCOutgoingPacket( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0xFFFF, pxProtPack->xUDPPacket.xUDPHeader.usChecksum );
@@ -953,15 +1072,18 @@ void test_usGenerateProtocolChecksum_UDPLessBufferSizeOutgoingPacket( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = 100;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ucVersionHeaderLength + ipSIZE_OF_UDP_HEADER - 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ucVersionHeaderLength +
+                            ipSIZE_OF_UDP_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -971,7 +1093,9 @@ void test_usGenerateProtocolChecksum_UDPLessBufferSizeOutgoingPacket( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -994,10 +1118,12 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRC( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1007,7 +1133,9 @@ void test_usGenerateProtocolChecksum_UDPCorrectCRC( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -1030,10 +1158,12 @@ void test_usGenerateProtocolChecksum_UDPIncorrectCRC( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1043,7 +1173,9 @@ void test_usGenerateProtocolChecksum_UDPIncorrectCRC( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
 }
@@ -1066,10 +1198,12 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1080,7 +1214,9 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRC( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -1103,13 +1239,17 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacket( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    /* This is the checksum with zeroed out data. Fill it in to make the checksum 0. */
-    *( ( uint32_t * ) &pucEthernetBuffer[ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xFFA9 );
+    /* This is the checksum with zeroed out data. Fill it in to make the
+     * checksum 0. */
+    *( ( uint32_t * ) &pucEthernetBuffer
+           [ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xFFA9 );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1120,17 +1260,21 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacket( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
 
 /**
- * @brief test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum
- * To validate usGenerateProtocolChecksum returns ipCORRECT_CRC if
- * it's a TCP outgoing packet. And the checksum is zero.
+ * @brief
+ * test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum To
+ * validate usGenerateProtocolChecksum returns ipCORRECT_CRC if it's a TCP
+ * outgoing packet. And the checksum is zero.
  */
-void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( void )
+void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum(
+    void )
 {
     uint16_t usReturn;
     uint8_t pucEthernetBuffer[ ipconfigTCP_MSS ];
@@ -1143,13 +1287,17 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( vo
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    /* This is the checksum with zeroed out data. Fill it in to make the checksum 0. */
-    *( ( uint32_t * ) &pucEthernetBuffer[ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xAFA9 );
+    /* This is the checksum with zeroed out data. Fill it in to make the
+     * checksum 0. */
+    *( ( uint32_t * ) &pucEthernetBuffer
+           [ usLength - sizeof( uint32_t ) ] ) = FreeRTOS_htonl( 0xAFA9 );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1160,7 +1308,9 @@ void test_usGenerateProtocolChecksum_TCPCorrectCRCOutgoingPacketZeroChecksum( vo
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0, pxProtPack->xTCPPacket.xTCPHeader.usChecksum );
@@ -1184,10 +1334,12 @@ void test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1198,7 +1350,9 @@ void test_usGenerateProtocolChecksum_TCPIncorrectCRC_IncomingPacket( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
 }
@@ -1216,15 +1370,18 @@ void test_usGenerateProtocolChecksum_TCPLessBufferSize_OutgoingPacket( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = 100;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ucVersionHeaderLength + ipSIZE_OF_TCP_HEADER - 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ucVersionHeaderLength +
+                            ipSIZE_OF_TCP_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1235,7 +1392,9 @@ void test_usGenerateProtocolChecksum_TCPLessBufferSize_OutgoingPacket( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1258,10 +1417,12 @@ void test_usGenerateProtocolChecksum_TCPLessOffset_OutgoingPacket( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1272,7 +1433,9 @@ void test_usGenerateProtocolChecksum_TCPLessOffset_OutgoingPacket( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1290,15 +1453,18 @@ void test_usGenerateProtocolChecksum_TCPLessBufferSize( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_TCP_HEADER - 1;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER - 1;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_TCP_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1309,7 +1475,9 @@ void test_usGenerateProtocolChecksum_TCPLessBufferSize( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1327,15 +1495,18 @@ void test_usGenerateProtocolChecksum_TCPLessHeaderLength( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = ucVersionHeaderLength;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_TCP_HEADER;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1346,7 +1517,9 @@ void test_usGenerateProtocolChecksum_TCPLessHeaderLength( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1369,10 +1542,12 @@ void test_usGenerateProtocolChecksum_TCPLargeBufferSize( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1383,7 +1558,9 @@ void test_usGenerateProtocolChecksum_TCPLargeBufferSize( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1406,10 +1583,12 @@ void test_usGenerateProtocolChecksum_ICMPLargeBufferSize( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1419,7 +1598,9 @@ void test_usGenerateProtocolChecksum_ICMPLargeBufferSize( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1437,15 +1618,18 @@ void test_usGenerateProtocolChecksum_ICMPLessBufferSize( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = ucVersionHeaderLength + ipSIZE_OF_ICMPv4_HEADER;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_ICMPv4_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1455,7 +1639,9 @@ void test_usGenerateProtocolChecksum_ICMPLessBufferSize( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1478,10 +1664,12 @@ void test_usGenerateProtocolChecksum_ICMPOutgoingChecksum( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1491,7 +1679,9 @@ void test_usGenerateProtocolChecksum_ICMPOutgoingChecksum( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
     TEST_ASSERT_EQUAL( 65535, pxProtPack->xICMPPacket.xICMPHeader.usChecksum );
@@ -1515,10 +1705,12 @@ void test_usGenerateProtocolChecksum_ICMPIncomingIncorrectCRC( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1528,7 +1720,9 @@ void test_usGenerateProtocolChecksum_ICMPIncomingIncorrectCRC( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0, pxProtPack->xICMPPacket.xICMPHeader.usChecksum );
@@ -1552,10 +1746,12 @@ void test_usGenerateProtocolChecksum_ICMPIncomingCorrectCRC( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1566,7 +1762,9 @@ void test_usGenerateProtocolChecksum_ICMPIncomingCorrectCRC( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -1589,10 +1787,12 @@ void test_usGenerateProtocolChecksum_IGMPLargeBufferSize( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1600,7 +1800,9 @@ void test_usGenerateProtocolChecksum_IGMPLargeBufferSize( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1618,15 +1820,18 @@ void test_usGenerateProtocolChecksum_IGMPLessBufferSize( void )
     uint8_t ucVersionHeaderLength = 20;
     IPPacket_t * pxIPPacket;
     uint16_t usLength = ucVersionHeaderLength;
-    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_ICMPv4_HEADER - 1;
+    size_t uxBufferLength = ucVersionHeaderLength + ipSIZE_OF_ETH_HEADER +
+                            ipSIZE_OF_ICMPv4_HEADER - 1;
     ProtocolPacket_t * pxProtPack;
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1634,7 +1839,9 @@ void test_usGenerateProtocolChecksum_IGMPLessBufferSize( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -1657,10 +1864,12 @@ void test_usGenerateProtocolChecksum_IGMPOutgoingChecksum( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1668,7 +1877,9 @@ void test_usGenerateProtocolChecksum_IGMPOutgoingChecksum( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
     TEST_ASSERT_EQUAL( 65535, pxProtPack->xICMPPacket.xICMPHeader.usChecksum );
@@ -1692,10 +1903,12 @@ void test_usGenerateProtocolChecksum_IGMPIncomingIncorrectCRC( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1704,7 +1917,9 @@ void test_usGenerateProtocolChecksum_IGMPIncomingIncorrectCRC( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0, pxProtPack->xICMPPacket.xICMPHeader.usChecksum );
@@ -1728,10 +1943,12 @@ void test_usGenerateProtocolChecksum_IGMPIncomingCorrectCRC( void )
 
     memset( pucEthernetBuffer, 0, ipconfigTCP_MSS );
 
-    pxProtPack = ( ProtocolPacket_t * ) &( pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
+    pxProtPack = ( ProtocolPacket_t * ) &(
+        pucEthernetBuffer[ ucVersionHeaderLength - ipSIZE_OF_IPv4_HEADER ] );
 
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
-    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >> 2 );
+    pxIPPacket->xIPHeader.ucVersionHeaderLength = ( ucVersionHeaderLength >>
+                                                    2 );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     pxIPPacket->xIPHeader.usLength = FreeRTOS_htons( usLength );
 
@@ -1742,7 +1959,9 @@ void test_usGenerateProtocolChecksum_IGMPIncomingCorrectCRC( void )
 
     prvChecksumIPv4Checks_Stub( prvChecksumIPv4Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -1766,7 +1985,9 @@ void test_usGenerateProtocolChecksum_UnknownEthernetType( void )
     pxIPPacket = ( IPPacket_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = 0xFF;
 
-    catch_assert( usGenerateProtocolChecksum( pucEthernetBuffer, ipconfigTCP_MSS, xOutgoingPacket ) );
+    catch_assert( usGenerateProtocolChecksum( pucEthernetBuffer,
+                                              ipconfigTCP_MSS,
+                                              xOutgoingPacket ) );
 }
 
 /**
@@ -1791,14 +2012,17 @@ void test_usGenerateProtocolChecksum_ICMPv6IncomingCorrectCRC( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0x89FF;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
     prvChecksumICMPv6Checks_Stub( prvChecksumICMPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -1825,14 +2049,17 @@ void test_usGenerateProtocolChecksum_ICMPv6IncomingIncorrectCRC( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
     prvChecksumICMPv6Checks_Stub( prvChecksumICMPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0, pxICMPv6Packet->xICMPHeaderIPv6.usChecksum );
@@ -1860,13 +2087,16 @@ void test_usGenerateProtocolChecksum_UDPv6IncomingCorrectCRC( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
     pxUDPv6Packet->xUDPHeader.usChecksum = 0xB2FF;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -1893,13 +2123,16 @@ void test_usGenerateProtocolChecksum_UDPv6IncomingIncorrectCRC( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1111;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0x1111, pxUDPv6Packet->xUDPHeader.usChecksum );
@@ -1927,14 +2160,17 @@ void test_usGenerateProtocolChecksum_TCPv6IncomingCorrectCRC( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
     pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
     pxTCPv6Packet->xTCPHeader.usChecksum = 0xBDAF;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -1961,14 +2197,17 @@ void test_usGenerateProtocolChecksum_TCPv6IncomingIncorrectCRC( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
     pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
     pxTCPv6Packet->xTCPHeader.usChecksum = 0x1111;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipWRONG_CRC, usReturn );
     TEST_ASSERT_EQUAL( 0x1111, pxTCPv6Packet->xTCPHeader.usChecksum );
@@ -1996,13 +2235,16 @@ void test_usGenerateProtocolChecksum_TCPv6OutgoingCorrectCRC( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
     pxTCPv6Packet->xTCPHeader.ucTCPOffset = 0x50;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipCORRECT_CRC, usReturn );
 }
@@ -2029,12 +2271,15 @@ void test_usGenerateProtocolChecksum_IPv6UnknownProtocol( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = 0xFF;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipUNHANDLED_PROTOCOL, usReturn );
 }
@@ -2061,14 +2306,17 @@ void test_usGenerateProtocolChecksum_ICMPv6LessHeaderLength( void )
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( usLength - ipSIZE_OF_IPv6_HEADER );
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons(
+        usLength - ipSIZE_OF_IPv6_HEADER );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxICMPv6Packet->xICMPHeaderIPv6.usChecksum = 0;
 
     prvChecksumIPv6Checks_Stub( prvChecksumIPv6Checks_Valid );
     prvChecksumICMPv6Checks_Stub( prvChecksumICMPv6Checks_BigHeaderLength );
 
-    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    usReturn = usGenerateProtocolChecksum( pucEthernetBuffer,
+                                           uxBufferLength,
+                                           xOutgoingPacket );
 
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, usReturn );
 }
@@ -2095,14 +2343,17 @@ void test_usGenerateChecksum_UnallignedAccess( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 0x5A5A, usResult );
 }
 
 /**
  * @brief test_usGenerateChecksum_OneByteToChecksum
- * To toggle address that is not aligned in usGenerateChecksum with one byte length.
+ * To toggle address that is not aligned in usGenerateChecksum with one byte
+ * length.
  */
 void test_usGenerateChecksum_OneByteToChecksum( void )
 {
@@ -2122,7 +2373,9 @@ void test_usGenerateChecksum_OneByteToChecksum( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 0xAB00, usResult );
 }
@@ -2149,7 +2402,9 @@ void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 0, usResult );
 }
@@ -2176,7 +2431,9 @@ void test_usGenerateChecksum_TwoByteAlligned( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 43776, usResult );
 }
@@ -2203,7 +2460,9 @@ void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 43947, usResult );
 }
@@ -2230,7 +2489,9 @@ void test_usGenerateChecksum_FourByteAlligned( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 43947, usResult );
 }
@@ -2257,7 +2518,9 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 2484, usResult );
 }
@@ -2284,7 +2547,9 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum,
+                                   &pucNextData[ uxUnalligned ],
+                                   uxByteCount );
 
     TEST_ASSERT_EQUAL( 21759, usResult );
 }
@@ -2296,7 +2561,8 @@ void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
  */
 void test_vPrintResourceStats_BufferCountMore( void )
 {
-    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 2 );
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn(
+        ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS + 2 );
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
 
     vPrintResourceStats();
@@ -2309,11 +2575,13 @@ void test_vPrintResourceStats_BufferCountMore( void )
  */
 void test_vPrintResourceStats_BufferCountLess( void )
 {
-    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn(
+        ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
 
     vPrintResourceStats();
-    TEST_ASSERT_EQUAL( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2, uxLastMinBufferCount );
+    TEST_ASSERT_EQUAL( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2,
+                       uxLastMinBufferCount );
 }
 
 /**
@@ -2326,7 +2594,8 @@ void test_vPrintResourceStats_LastBuffer_NE_0( void )
     uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
     uxMinLastSize = 10u;
 
-    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn(
+        ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 2 );
 
     vPrintResourceStats();
@@ -2344,7 +2613,8 @@ void test_vPrintResourceStats_MinSizeIsBigger( void )
     uxLastMinBufferCount = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
     uxMinLastSize = 10u;
 
-    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
+    uxGetMinimumFreeNetworkBuffers_ExpectAndReturn(
+        ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS - 2 );
     xPortGetMinimumEverFreeHeapSize_ExpectAndReturn( 1024U * 1025U );
 
     vPrintResourceStats();

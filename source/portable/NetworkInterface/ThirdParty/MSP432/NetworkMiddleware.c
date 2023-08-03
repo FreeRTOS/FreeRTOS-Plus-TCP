@@ -5,26 +5,29 @@
  * SPDX-License-Identifier: MIT
  *
  * Driver code:
- * Copyright (C) Nicholas J. Kinar <n.kinar@usask.ca>, Centre for Hydrology, University of Saskatchewan
+ * Copyright (C) Nicholas J. Kinar <n.kinar@usask.ca>, Centre for Hydrology,
+ * University of Saskatchewan
  *
- * MSP432 Driverlib (C) 2017-2019 Texas Instruments Incorporated <https://www.ti.com/>
+ * MSP432 Driverlib (C) 2017-2019 Texas Instruments Incorporated
+ * <https://www.ti.com/>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -37,14 +40,14 @@
 #include "FreeRTOS_IP_private.h"
 #include "FreeRTOS_Sockets.h"
 
-#include "NetworkMiddleware.h"
 #include "NetworkInterface.h"
+#include "NetworkMiddleware.h"
 
 /* Waiting time between network EMAC hardware up and down */
-#define TIME_TO_WAIT_BETWEEN_NETUP_DOWN    2000
+#define TIME_TO_WAIT_BETWEEN_NETUP_DOWN 2000
 
 /* Stack for up and down thread */
-#define NETWORK_TASK_MIDDLEWARE_STACK      1000
+#define NETWORK_TASK_MIDDLEWARE_STACK   1000
 
 /* Holds the device name used for LLMNR */
 static char DEV_NAME[ MAX_NAME_LLMNR ];
@@ -58,15 +61,16 @@ static uint32_t xDelay;
 
 static void prvNetworkResetTask( void * pvParameters );
 
-
-/*  Call this function before starting the scheduler and after the MAC address and device name has been loaded.
- *  The function can only be called once to set up the tasks. */
+/*  Call this function before starting the scheduler and after the MAC address
+ * and device name has been loaded. The function can only be called once to set
+ * up the tasks. */
 void vPublicSetupFreeRTOSTasks( const struct InternalNetworkMiddlewareData data )
 {
     /* setup a device name */
     vPublicSetupDeviceName( data.deviceName );
 
-    /* get the MAC address from the driver code (assuming this is also set up) */
+    /* get the MAC address from the driver code (assuming this is also set up)
+     */
     uint8_t uc8MACAddr[ ipMAC_ADDRESS_LENGTH_BYTES ];
     vPublicGetMACAddr( uc8MACAddr );
 
@@ -91,8 +95,8 @@ void vPublicSetupFreeRTOSTasks( const struct InternalNetworkMiddlewareData data 
                      uc8MACAddr );
 }
 
-
-/* Helper function to assign bytes to an array used to indicate the IP address */
+/* Helper function to assign bytes to an array used to indicate the IP address
+ */
 void vConvertOctetsToAddr( uint8_t arr[ ipIP_ADDRESS_LENGTH_BYTES ],
                            uint8_t b0,
                            uint8_t b1,
@@ -105,7 +109,6 @@ void vConvertOctetsToAddr( uint8_t arr[ ipIP_ADDRESS_LENGTH_BYTES ],
     arr[ 3 ] = b3;
 } /* end */
 
-
 /* Task that resets the network every so often */
 void prvNetworkResetTask( void * pvParameters )
 {
@@ -113,7 +116,7 @@ void prvNetworkResetTask( void * pvParameters )
 
     cnt = 0;
 
-    for( ; ; )
+    for( ;; )
     {
         vTaskDelay( pdMS_TO_TICKS( 1000 ) );
         cnt++;
@@ -131,8 +134,8 @@ void prvNetworkResetTask( void * pvParameters )
     }
 }
 
-
-/* Call this function from a task to prevent a network reset during a critical section of the code */
+/* Call this function from a task to prevent a network reset during a critical
+ * section of the code */
 BaseType_t publicPreventNetworkReset( const BaseType_t preventReset,
                                       const uint32_t waitTime )
 {
@@ -155,10 +158,10 @@ BaseType_t publicPreventNetworkReset( const BaseType_t preventReset,
     return pdTRUE;
 }
 
-
 /*  CALLED BY FREERTOS
  *  Function that sets pulNumber to a random number, and then returns pdTRUE.
- *  If the random number could not be obtained, then the function will return pdFALSE. */
+ *  If the random number could not be obtained, then the function will return
+ * pdFALSE. */
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 {
     *pulNumber = 0;
@@ -174,7 +177,8 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 }
 
 /*  CALLED BY FREERTOS
- *  Function that returns a random number for TCP.  This is taken to be a random number. */
+ *  Function that returns a random number for TCP.  This is taken to be a random
+ * number. */
 uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
                                              uint16_t usSourcePort,
                                              uint32_t ulDestinationAddress,
@@ -186,7 +190,6 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     return pulNumber;
 }
 
-
 /*  CALLED BY FREERTOS
  *  Function to obtain random number */
 UBaseType_t uxRand()
@@ -195,7 +198,6 @@ UBaseType_t uxRand()
 
     return num;
 }
-
 
 /*  CALLED BY FREERTOS
  *   Function called when the network connects or disconnects */
@@ -210,7 +212,8 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
         if( xNetworkTasksAlreadyCreated == pdFALSE )
         {
             /*  Unblock any necessary tasks here when the network is up
-             *  Set a flag to indicate that the tasks do not need to be created again */
+             *  Set a flag to indicate that the tasks do not need to be created
+             * again */
             xNetworkTasksAlreadyCreated = pdTRUE;
         }
 
@@ -233,11 +236,12 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
     } /* end if */
     else if( eNetworkEvent == eNetworkDown )
     {
-        xNetworkTasksAlreadyCreated = pdFALSE; /* clear a flag to indicate that the tasks needs to be created again */
+        xNetworkTasksAlreadyCreated = pdFALSE; /* clear a flag to indicate that
+                                                  the tasks needs to be created
+                                                  again */
         /* Stop or block any running tasks here */
     } /* end if */
 } /* end */
-
 
 /*  CALLED BY FREERTOS
  *  Function that indicates there is a ping response
@@ -253,13 +257,12 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
  */
 void pingReply( uint32_t ulIPAddress )
 {
-    #ifdef SEND_PING_PRINT_REPLY
-        char cBuffer[ 16 ];
-        FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
-        vLoggingPrintf( "Ping response to: %s\r\n", cBuffer );
-    #endif
+#ifdef SEND_PING_PRINT_REPLY
+    char cBuffer[ 16 ];
+    FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
+    vLoggingPrintf( "Ping response to: %s\r\n", cBuffer );
+#endif
 }
-
 
 /*  CALLED BY FREERTOS when conducting a DNS query
  *  Function that returns pdTRUE if the pcName matches the LLMNR node name */
@@ -273,7 +276,6 @@ BaseType_t xApplicationDNSQueryHook( const char * pcName )
     return pdFALSE;
 }
 
-
 /*  CALLED BY FREERTOS
  *  Hook to return a human-readable name */
 const char * pcApplicationHostnameHook( void )
@@ -283,7 +285,6 @@ const char * pcApplicationHostnameHook( void )
     name = DEV_NAME;
     return name;
 }
-
 
 /* Call this function to assign a device name before the stack is up */
 void vPublicSetupDeviceName( const char * deviceName )

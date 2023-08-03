@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -27,7 +28,8 @@
 
 /**
  * @file FreeRTOS_IPv6_Utils.c
- * @brief Implements the basic functionality for the FreeRTOS+TCP network stack functions for IPv6.
+ * @brief Implements the basic functionality for the FreeRTOS+TCP network stack
+ * functions for IPv6.
  */
 
 /* Standard includes. */
@@ -82,7 +84,8 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
 
     pxSet->uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
 
-    /* Check for minimum packet size: ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER (54 bytes) */
+    /* Check for minimum packet size: ipSIZE_OF_ETH_HEADER +
+     * ipSIZE_OF_IPv6_HEADER (54 bytes) */
     if( uxBufferLength < sizeof( IPPacket_IPv6_t ) )
     {
         pxSet->usChecksum = ipINVALID_LENGTH;
@@ -90,7 +93,10 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
     }
     else
     {
-        uxExtensionHeaderLength = usGetExtensionHeaderLength( pucEthernetBuffer, uxBufferLength, &pxSet->ucProtocol );
+        uxExtensionHeaderLength = usGetExtensionHeaderLength(
+            pucEthernetBuffer,
+            uxBufferLength,
+            &pxSet->ucProtocol );
 
         if( uxExtensionHeaderLength >= uxBufferLength )
         {
@@ -101,12 +107,18 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
         else
         {
             /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at:
+             * https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113
+             */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ] ) );
-            pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
+            pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+                pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                                   uxExtensionHeaderLength ] ) );
+            pxSet->usPayloadLength = FreeRTOS_ntohs(
+                pxSet->pxIPPacket_IPv6->usPayloadLength );
             /* For IPv6, the number of bytes in the protocol is indicated. */
-            pxSet->usProtocolBytes = pxSet->usPayloadLength - ( uint16_t ) uxExtensionHeaderLength;
+            pxSet->usProtocolBytes = pxSet->usPayloadLength -
+                                     ( uint16_t ) uxExtensionHeaderLength;
 
             size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
             uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
@@ -152,7 +164,8 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
             break;
     }
 
-    if( uxBufferLength < ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + xICMPLength ) )
+    if( uxBufferLength <
+        ( ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength + xICMPLength ) )
     {
         pxSet->usChecksum = ipINVALID_LENGTH;
         xReturn = 10;
@@ -161,11 +174,11 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
     if( xReturn == 0 )
     {
         pxSet->uxProtocolHeaderLength = xICMPLength;
-        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            {
-                pxSet->pcType = "ICMP_IPv6";
-            }
-        #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
+    #if( ipconfigHAS_DEBUG_PRINTF != 0 )
+        {
+            pxSet->pcType = "ICMP_IPv6";
+        }
+    #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
     }
 
     return xReturn;
@@ -179,7 +192,8 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
  * @param[in] uxBufferLength The number of bytes to be sent or received.
  * @param[out] pucProtocol The L4 protocol, such as TCP/UDP/ICMPv6.
  *
- * @return The total length of all extension headers, or whole buffer length when error detected.
+ * @return The total length of all extension headers, or whole buffer length
+ * when error detected.
  */
 size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
                                    size_t uxBufferLength,
@@ -197,7 +211,9 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
     if( ( pucEthernetBuffer != NULL ) && ( pucProtocol != NULL ) )
     {
         /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at:
+         * https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113
+         */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxIPPacket_IPv6 = ( ( const IPPacket_IPv6_t * ) pucEthernetBuffer );
         ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
@@ -209,7 +225,8 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
             {
                 ucNextHeader = pucEthernetBuffer[ uxIndex ];
 
-                xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
+                xCurrentOrder = xGetExtensionOrder( ucCurrentHeader,
+                                                    ucNextHeader );
 
                 /* To avoid compile warning if debug print is disabled. */
                 ( void ) xCurrentOrder;
@@ -221,7 +238,12 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
 
                 if( ( uxIndex + uxHopSize ) >= uxBufferLength )
                 {
-                    FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxBufferLength ) );
+                    FreeRTOS_debug_printf(
+                        ( "The length %lu + %lu of extension header is larger "
+                          "than buffer size %lu \n",
+                          uxIndex,
+                          uxHopSize,
+                          uxBufferLength ) );
                     break;
                 }
 
@@ -231,36 +253,44 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
                     ( ucNextHeader == ipPROTOCOL_UDP ) ||
                     ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
                 {
-                    FreeRTOS_debug_printf( ( "Stop at header %u\n", ucNextHeader ) );
+                    FreeRTOS_debug_printf(
+                        ( "Stop at header %u\n", ucNextHeader ) );
 
-                    uxReturn = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+                    uxReturn = uxIndex -
+                               ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
                     *pucProtocol = ucNextHeader;
                     break;
                 }
 
-                xNextOrder = xGetExtensionOrder( ucNextHeader, pucEthernetBuffer[ uxIndex ] );
+                xNextOrder = xGetExtensionOrder( ucNextHeader,
+                                                 pucEthernetBuffer[ uxIndex ] );
 
-                FreeRTOS_debug_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
-                                         ucCurrentHeader,
-                                         ( int ) xCurrentOrder,
-                                         ucNextHeader,
-                                         ( int ) xNextOrder ) );
+                FreeRTOS_debug_printf(
+                    ( "Going from header %2u (%d) to %2u (%d)\n",
+                      ucCurrentHeader,
+                      ( int ) xCurrentOrder,
+                      ucNextHeader,
+                      ( int ) xNextOrder ) );
 
                 /*
-                 * IPv6 nodes must accept and attempt to process extension headers in
-                 * any order and occurring any number of times in the same packet,
-                 * except for the Hop-by-Hop Options header which is restricted to
-                 * appear immediately after an IPv6 header only. Outlined
-                 * by RFC 2460 section 4.1  Extension Header Order.
+                 * IPv6 nodes must accept and attempt to process extension
+                 * headers in any order and occurring any number of times in the
+                 * same packet, except for the Hop-by-Hop Options header which
+                 * is restricted to appear immediately after an IPv6 header
+                 * only. Outlined by RFC 2460 section 4.1  Extension Header
+                 * Order.
                  */
                 if( xNextOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
                 {
-                    FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
+                    FreeRTOS_printf(
+                        ( "Wrong order. Hop-by-Hop Options header restricted "
+                          "to appear immediately after an IPv6 header\n" ) );
                     break;
                 }
                 else if( xNextOrder < 0 )
                 {
-                    FreeRTOS_printf( ( "Invalid extension header detected\n" ) );
+                    FreeRTOS_printf(
+                        ( "Invalid extension header detected\n" ) );
                     break;
                 }
                 else

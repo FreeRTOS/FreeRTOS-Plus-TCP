@@ -37,8 +37,9 @@
 /* CBMC includes. */
 #include "cbmc.h"
 
-NetworkBufferDescriptor_t * __CPROVER_file_local_FreeRTOS_IP_Utils_c_prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
-                                                                                                       size_t uxOffset );
+NetworkBufferDescriptor_t * __CPROVER_file_local_FreeRTOS_IP_Utils_c_prvPacketBuffer_to_NetworkBuffer(
+    const void * pvBuffer,
+    size_t uxOffset );
 
 void harness()
 {
@@ -46,14 +47,21 @@ void harness()
     size_t uxOffset;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-    __CPROVER_assume( ( uxBufferLength > ipBUFFER_PADDING ) && ( uxBufferLength < ipBUFFER_PADDING + ipconfigNETWORK_MTU ) );
+    __CPROVER_assume(
+        ( uxBufferLength > ipBUFFER_PADDING ) &&
+        ( uxBufferLength < ipBUFFER_PADDING + ipconfigNETWORK_MTU ) );
     __CPROVER_assume( uxOffset <= uxBufferLength - ipBUFFER_PADDING );
 
-    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc(
+        sizeof( NetworkBufferDescriptor_t ) );
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( uxBufferLength );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    ( void ) __CPROVER_file_local_FreeRTOS_IP_Utils_c_prvPacketBuffer_to_NetworkBuffer( &( pxNetworkBuffer->pucEthernetBuffer[ ipBUFFER_PADDING + uxOffset ] ), uxOffset );
+    ( void )
+        __CPROVER_file_local_FreeRTOS_IP_Utils_c_prvPacketBuffer_to_NetworkBuffer(
+            &( pxNetworkBuffer
+                   ->pucEthernetBuffer[ ipBUFFER_PADDING + uxOffset ] ),
+            uxOffset );
 }

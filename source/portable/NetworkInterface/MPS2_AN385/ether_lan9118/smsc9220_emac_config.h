@@ -18,25 +18,25 @@
 #ifndef SMSC9220_EMAC_CONFIG_H
 #define SMSC9220_EMAC_CONFIG_H
 
-#define SMSC9220_HWADDR_SIZE            6U
-#define SMSC9220_BUFF_ALIGNMENT         4U
+#define SMSC9220_HWADDR_SIZE         6U
+#define SMSC9220_BUFF_ALIGNMENT      4U
 
 /*
  * Maximum Transfer Unit
  * The IEEE 802.3 specification limits the data portion of the 802.3 frame
  * to a minimum of 46 and a maximum of 1522 bytes, this is on L2 level.
  */
-#define SMSC9220_ETH_MTU_SIZE           1500U
-#define SMSC9220_ETH_IF_NAME            "smsc9220"
-#define SMSC9220_ETH_MAX_FRAME_SIZE     1522U
+#define SMSC9220_ETH_MTU_SIZE        1500U
+#define SMSC9220_ETH_IF_NAME         "smsc9220"
+#define SMSC9220_ETH_MAX_FRAME_SIZE  1522U
 
 /** \brief Defines for receiver thread */
-#define FLAG_RX                         1U
-#define LINK_STATUS_THREAD_PRIORITY     ( osPriorityNormal )
-#define LINK_STATUS_THREAD_STACKSIZE    512U
-#define LINK_STATUS_TASK_PERIOD_MS      200U
-#define PHY_STATE_LINK_DOWN             false
-#define PHY_STATE_LINK_UP               true
-#define CRC_LENGTH_BYTES                4U
+#define FLAG_RX                      1U
+#define LINK_STATUS_THREAD_PRIORITY  ( osPriorityNormal )
+#define LINK_STATUS_THREAD_STACKSIZE 512U
+#define LINK_STATUS_TASK_PERIOD_MS   200U
+#define PHY_STATE_LINK_DOWN          false
+#define PHY_STATE_LINK_UP            true
+#define CRC_LENGTH_BYTES             4U
 
 #endif /* SMSC9220_EMAC_CONFIG_H */

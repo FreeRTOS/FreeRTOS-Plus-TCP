@@ -39,15 +39,17 @@
 #include "../../utility/memory_assignments.c"
 
 /****************************************************************
-* Declare the IP Header Size external to the harness so it can be
-* accessed by uxIPHeaderSizePacket.
-****************************************************************/
+ * Declare the IP Header Size external to the harness so it can be
+ * accessed by uxIPHeaderSizePacket.
+ ****************************************************************/
 size_t uxIPHeaderSizePacket_uxResult;
 
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer shouldnt be NULL" );
-    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "pucEthernetBuffer should not be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "pxNetworkBuffer shouldnt be NULL" );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL,
+                      "pucEthernetBuffer should not be NULL" );
 
     return uxIPHeaderSizePacket_uxResult;
 }
@@ -55,7 +57,8 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 void harness()
 {
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     uint32_t ulReceiveLength;
     BaseType_t xByteCount;
     size_t buf_size; /* Give buffer_size an unconstrained value */
@@ -73,7 +76,9 @@ void harness()
         uxIPHeaderSizePacket_uxResult = ipSIZE_OF_IPv4_HEADER;
     }
 
-    __CPROVER_assume( buf_size > ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket_uxResult + sizeof( TCPHeader_t ) ) );
+    __CPROVER_assume( buf_size >
+                      ( ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket_uxResult +
+                        sizeof( TCPHeader_t ) ) );
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( buf_size );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );

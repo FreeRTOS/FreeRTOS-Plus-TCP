@@ -39,8 +39,9 @@
 #include "cbmc.h"
 
 /* Abstraction of FreeRTOS_FindEndPointOnMAC */
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddress,
-                                                const NetworkInterface_t * pxInterface )
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC(
+    const MACAddress_t * pxMACAddress,
+    const NetworkInterface_t * pxInterface )
 {
     NetworkEndPoint_t * pxEndPoint;
 
@@ -53,13 +54,15 @@ NetworkEndPoint_t * FreeRTOS_FindEndPointOnMAC( const MACAddress_t * pxMACAddres
     return pxEndPoint;
 }
 
-/* The harness test proceeds to call eConsiderFrameForProcessing with an unconstrained buffer */
+/* The harness test proceeds to call eConsiderFrameForProcessing with an
+ * unconstrained buffer */
 void harness()
 {
     BaseType_t uBuffSize;
 
     /* Assume minimum and maximum buffer size expected */
-    __CPROVER_assume( uBuffSize >= sizeof( EthernetHeader_t ) && uBuffSize < ipconfigNETWORK_MTU );
+    __CPROVER_assume( uBuffSize >= sizeof( EthernetHeader_t ) &&
+                      uBuffSize < ipconfigNETWORK_MTU );
     const uint8_t * const pucEthernetBuffer = safeMalloc( uBuffSize );
 
     eConsiderFrameForProcessing( pucEthernetBuffer );

@@ -4,35 +4,35 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 #include "mock_FreeRTOS_Sockets.h"
 
@@ -83,68 +83,94 @@ void test_FreeRTOS_inet_pton4( void )
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString1, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse1, ulIPAddress, "Could not convert string 1 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse1,
+                               ulIPAddress,
+                               "Could not convert string 1 correctly." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString2, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse2, ulIPAddress, "Could not convert string 2 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse2,
+                               ulIPAddress,
+                               "Could not convert string 2 correctly." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString3, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse3, ulIPAddress, "Could not convert string 3 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse3,
+                               ulIPAddress,
+                               "Could not convert string 3 correctly." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString4, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse4, ulIPAddress, "Could not convert string 4 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse4,
+                               ulIPAddress,
+                               "Could not convert string 4 correctly." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucValidString5, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdPASS, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse5, ulIPAddress, "Could not convert string 5 correctly." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulValidResponse5,
+                               ulIPAddress,
+                               "Could not convert string 5 correctly." );
 
     /* Invalid test cases. */
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString1, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 1." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 1." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString2, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 2." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 2." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString3, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 3." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 3." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString4, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 4." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 4." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString5, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 5." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 5." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString6, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 6." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 6." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString7, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 7." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 7." );
 
     ulIPAddress = 0xABABABAB;
     xResult = FreeRTOS_inet_pton4( pucInvalidString8, &ulIPAddress );
     TEST_ASSERT_EQUAL( pdFAIL, xResult );
-    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse, ulIPAddress, "Incorrectly converted string 8." );
+    TEST_ASSERT_EQUAL_MESSAGE( ulInValidResponse,
+                               ulIPAddress,
+                               "Incorrectly converted string 8." );
 }
 
 /**
@@ -157,7 +183,9 @@ void test_FreeRTOS_inet_ntop4_LessBufferLength( void )
     const socklen_t uxSize = 15;
     char pcDestination[ uxSize ];
 
-    pucReturn = ( char * ) FreeRTOS_inet_ntop4( &ulSource, pcDestination, uxSize );
+    pucReturn = ( char * ) FreeRTOS_inet_ntop4( &ulSource,
+                                                pcDestination,
+                                                uxSize );
 
     TEST_ASSERT_EQUAL( NULL, pucReturn );
 }
@@ -219,7 +247,8 @@ void test_xSend_UDP_Update_IPv4_HappyCase( void )
     pxReturn = xSend_UDP_Update_IPv4( &xNetworkBuffer, &xDestinationAddress );
 
     TEST_ASSERT_EQUAL( ulExpectIP, xNetworkBuffer.xIPAddress.ulIP_IPv4 );
-    TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxUDPPacket->xEthernetHeader.usFrameType );
+    TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE,
+                       pxUDPPacket->xEthernetHeader.usFrameType );
 }
 
 /**

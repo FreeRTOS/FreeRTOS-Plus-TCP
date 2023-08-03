@@ -1,9 +1,9 @@
 #include "cbmc.h"
 
 /****************************************************************
-* Model a malloc that can fail (CBMC malloc does not fail) and
-* check that CBMC can model an object of the requested size.
-****************************************************************/
+ * Model a malloc that can fail (CBMC malloc does not fail) and
+ * check that CBMC can model an object of the requested size.
+ ****************************************************************/
 
 void * safeMalloc( size_t size )
 {

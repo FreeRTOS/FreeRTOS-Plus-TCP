@@ -31,9 +31,9 @@
 #include "queue.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DNS_Parser.h"
+#include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
 #include "cbmc.h"
@@ -43,9 +43,11 @@ NetworkEndPoint_t * pxNetworkEndPoint_Temp;
 
 /* Stub FreeRTOS_FindEndPointOnNetMask_IPv6 as its not relevant to the
  * correctness of the proof */
-NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
+NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6(
+    const IPv6_Address_t * pxIPv6Address )
 {
-    __CPROVER_assert( pxIPv6Address != NULL, "Precondition: pxIPv6Address != NULL" );
+    __CPROVER_assert( pxIPv6Address != NULL,
+                      "Precondition: pxIPv6Address != NULL" );
 
     /* Assume at least one end-point is available */
     return pxNetworkEndPoint_Temp;
@@ -82,7 +84,8 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
 {
     uint16_t usReturn;
 
-    __CPROVER_assert( pucEthernetBuffer != NULL, "Ethernet buffer cannot be NULL" );
+    __CPROVER_assert( pucEthernetBuffer != NULL,
+                      "Ethernet buffer cannot be NULL" );
 
     /* Return an indeterminate value. */
     return usReturn;
@@ -94,21 +97,25 @@ void harness()
     uint16_t usLength;
 
     /* Assume at least 1 valid endpoint */
-    pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
     BaseType_t xDataSize;
 
     /* The pucEthernetBuffer is re adjusted to the following size before the
-     * call to prepareReplyDNSMessage by pxResizeNetworkBufferWithDescriptor. If buffer allocation
-     * scheme #1 (BufferAllocation_1.c) is used we assert if the needed size is actually present
-     * in the buffer.  */
-    __CPROVER_assume( ( xDataSize > ( sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) && ( xDataSize < ipconfigNETWORK_MTU ) );
+     * call to prepareReplyDNSMessage by pxResizeNetworkBufferWithDescriptor. If
+     * buffer allocation scheme #1 (BufferAllocation_1.c) is used we assert if
+     * the needed size is actually present in the buffer.  */
+    __CPROVER_assume(
+        ( xDataSize > ( sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) +
+                        sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) &&
+        ( xDataSize < ipconfigNETWORK_MTU ) );
 
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
 
-    /* xNetworkBuffer.pucEthernetBuffer is checked if its valid before the call to
-     * prepareReplyDNSMessage() */
+    /* xNetworkBuffer.pucEthernetBuffer is checked if its valid before the call
+     * to prepareReplyDNSMessage() */
     __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
 
     xNetworkBuffer.xDataLength = xDataSize;

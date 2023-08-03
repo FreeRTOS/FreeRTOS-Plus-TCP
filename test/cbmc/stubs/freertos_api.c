@@ -4,34 +4,34 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
 #include "NetworkBufferManagement.h"
 
 #include "cbmc.h"
 
 /****************************************************************
-* This is a collection of abstractions of methods in the FreeRTOS TCP
-* API.  The abstractions simply perform minimal validation of
-* function arguments, and return unconstrained values of the
-* appropriate type.
-****************************************************************/
+ * This is a collection of abstractions of methods in the FreeRTOS TCP
+ * API.  The abstractions simply perform minimal validation of
+ * function arguments, and return unconstrained values of the
+ * appropriate type.
+ ****************************************************************/
 
 /****************************************************************
-* Abstract FreeRTOS_socket.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/socket.html
-*
-* We stub out this function to do nothing but allocate space for a
-* socket containing unconstrained data or return an error.
-****************************************************************/
+ * Abstract FreeRTOS_socket.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/socket.html
+ *
+ * We stub out this function to do nothing but allocate space for a
+ * socket containing unconstrained data or return an error.
+ ****************************************************************/
 
 Socket_t FreeRTOS_socket( BaseType_t xDomain,
                           BaseType_t xType,
@@ -50,9 +50,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_setsockopt.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/setsockopt.html
-****************************************************************/
+ * Abstract FreeRTOS_setsockopt.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/setsockopt.html
+ ****************************************************************/
 
 BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                                 int32_t lLevel,
@@ -68,9 +68,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_closesocket.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/close.html
-****************************************************************/
+ * Abstract FreeRTOS_closesocket.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/close.html
+ ****************************************************************/
 
 BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
 {
@@ -80,9 +80,9 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
 }
 
 /****************************************************************
-* Abstract FreeRTOS_bind.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/bind.html
-****************************************************************/
+ * Abstract FreeRTOS_bind.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/bind.html
+ ****************************************************************/
 
 BaseType_t FreeRTOS_bind( Socket_t xSocket,
                           struct freertos_sockaddr * pxAddress,
@@ -96,9 +96,9 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_inet_addr.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/inet_addr.html
-****************************************************************/
+ * Abstract FreeRTOS_inet_addr.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/inet_addr.html
+ ****************************************************************/
 
 uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 {
@@ -108,13 +108,13 @@ uint32_t FreeRTOS_inet_addr( const char * pcIPAddress )
 }
 
 /****************************************************************
-* Abstract FreeRTOS_recvfrom.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/recvfrom.html
-*
-* We stub out this function to do nothing but allocate a buffer of
-* unconstrained size containing unconstrained data and return the
-* size (or return the size 0 if the allocation fails).
-****************************************************************/
+ * Abstract FreeRTOS_recvfrom.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/recvfrom.html
+ *
+ * We stub out this function to do nothing but allocate a buffer of
+ * unconstrained size containing unconstrained data and return the
+ * size (or return the size 0 if the allocation fails).
+ ****************************************************************/
 
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            void * pvBuffer,
@@ -125,44 +125,44 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 
 {
     /****************************************************************
-    * "If the zero copy calling semantics are used (the ulFlags
-    * parameter does not have the FREERTOS_ZERO_COPY bit set) then
-    * pvBuffer does not point to a buffer and xBufferLength is not
-    * used."  This is from the documentation.
-    ****************************************************************/
+     * "If the zero copy calling semantics are used (the ulFlags
+     * parameter does not have the FREERTOS_ZERO_COPY bit set) then
+     * pvBuffer does not point to a buffer and xBufferLength is not
+     * used."  This is from the documentation.
+     ****************************************************************/
     __CPROVER_assert( xFlags & FREERTOS_ZERO_COPY, "I can only do ZERO_COPY" );
 
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
 
-    /****************************************************************
-    * TODO: We need to check this out.
-    *
-    * The code calls recvfrom with these parameters NULL, it is not
-    * clear from the documentation that this is allowed.
-    ****************************************************************/
-    #if 0
+/****************************************************************
+ * TODO: We need to check this out.
+ *
+ * The code calls recvfrom with these parameters NULL, it is not
+ * clear from the documentation that this is allowed.
+ ****************************************************************/
+#if 0
         __CPROVER_assert( pxSourceAddress != NULL,
                           "FreeRTOS precondition: pxSourceAddress != NULL" );
         __CPROVER_assert( pxSourceAddressLength != NULL,
                           "FreeRTOS precondition: pxSourceAddress != NULL" );
-    #endif
+#endif
 
     size_t payload_size;
-    __CPROVER_assume( payload_size + sizeof( UDPPacket_t )
-                      < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( payload_size + sizeof( UDPPacket_t ) <
+                      CBMC_MAX_OBJECT_SIZE );
 
     /****************************************************************
-    * TODO: We need to make this lower bound explicit in the Makefile.json
-    *
-    * DNSMessage_t is a typedef in FreeRTOS_DNS.c
-    * sizeof(DNSMessage_t) = 6 * sizeof(uint16_t)
-    ****************************************************************/
+     * TODO: We need to make this lower bound explicit in the Makefile.json
+     *
+     * DNSMessage_t is a typedef in FreeRTOS_DNS.c
+     * sizeof(DNSMessage_t) = 6 * sizeof(uint16_t)
+     ****************************************************************/
     __CPROVER_assume( payload_size >= 6 * sizeof( uint16_t ) );
 
-    #ifdef CBMC_FREERTOS_RECVFROM_BUFFER_BOUND
-        __CPROVER_assume( payload_size <= CBMC_FREERTOS_RECVFROM_BUFFER_BOUND );
-    #endif
+#ifdef CBMC_FREERTOS_RECVFROM_BUFFER_BOUND
+    __CPROVER_assume( payload_size <= CBMC_FREERTOS_RECVFROM_BUFFER_BOUND );
+#endif
 
     uint32_t buffer_size = payload_size + sizeof( UDPPacket_t );
     uint8_t * buffer = safeMalloc( buffer_size );
@@ -182,9 +182,9 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_recvfrom.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/sendto.html
-****************************************************************/
+ * Abstract FreeRTOS_recvfrom.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/sendto.html
+ ****************************************************************/
 
 int32_t FreeRTOS_sendto( Socket_t xSocket,
                          const void * pvBuffer,
@@ -203,13 +203,13 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_GetUDPPayloadBuffer
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/FreeRTOS_GetUDPPayloadBuffer.html
-*
-* We stub out this function to do nothing but allocate a buffer of
-* unconstrained size containing unconstrained data and return a
-* pointer to the buffer (or NULL).
-****************************************************************/
+ * Abstract FreeRTOS_GetUDPPayloadBuffer
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/FreeRTOS_GetUDPPayloadBuffer.html
+ *
+ * We stub out this function to do nothing but allocate a buffer of
+ * unconstrained size containing unconstrained data and return a
+ * pointer to the buffer (or NULL).
+ ****************************************************************/
 
 void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
                                            TickType_t uxBlockTimeTicks,
@@ -226,36 +226,37 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 }
 
 /****************************************************************
-* Abstract FreeRTOS_ReleaseUDPPayloadBuffer
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/FreeRTOS_ReleaseUDPPayloadBuffer.html
-****************************************************************/
+ * Abstract FreeRTOS_ReleaseUDPPayloadBuffer
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/FreeRTOS_ReleaseUDPPayloadBuffer.html
+ ****************************************************************/
 
 void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 {
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
-    __CPROVER_assert( __CPROVER_POINTER_OFFSET( pvBuffer )
-                      == sizeof( UDPPacket_t ),
+    __CPROVER_assert( __CPROVER_POINTER_OFFSET( pvBuffer ) ==
+                          sizeof( UDPPacket_t ),
                       "FreeRTOS precondition: pvBuffer offset" );
 
     free( pvBuffer - sizeof( UDPPacket_t ) );
 }
 
 /****************************************************************
-* Abstract pxGetNetworkBufferWithDescriptor.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/pxGetNetworkBufferWithDescriptor.html
-*
-* The real allocator take buffers off a list.
-****************************************************************/
+ * Abstract pxGetNetworkBufferWithDescriptor.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/pxGetNetworkBufferWithDescriptor.html
+ *
+ * The real allocator take buffers off a list.
+ ****************************************************************/
 
 uint32_t GetNetworkBuffer_failure_count;
 
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor(
+    size_t xRequestedSizeBytes,
+    TickType_t xBlockTimeTicks )
 {
-    __CPROVER_assert(
-        xRequestedSizeBytes + ipBUFFER_PADDING < CBMC_MAX_OBJECT_SIZE,
-        "pxGetNetworkBufferWithDescriptor: request too big" );
+    __CPROVER_assert( xRequestedSizeBytes + ipBUFFER_PADDING <
+                          CBMC_MAX_OBJECT_SIZE,
+                      "pxGetNetworkBufferWithDescriptor: request too big" );
 
     /*
      * The semantics of this function is to wait until a buffer with
@@ -266,27 +267,26 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     NetworkBufferDescriptor_t * desc = safeMalloc( sizeof( *desc ) );
 
-    #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
+#ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
 
-        /*
-         * This interprets the failure bound as being one greater than the
-         * actual number of times GetNetworkBuffer should be allowed to
-         * fail.
-         *
-         * This makes it possible to use the same bound for loop unrolling
-         * which must be one greater than the actual number of times the
-         * loop should be unwound.
-         *
-         * NOTE: Using this bound with --nondet-static requires setting
-         * (or assuming) GetNetworkBuffer_failure_count to a value (like 0)
-         * in the proof harness that won't induce an integer overflow.
-         */
-        GetNetworkBuffer_failure_count++;
-        __CPROVER_assume(
-            IMPLIES(
-                GetNetworkBuffer_failure_count >= CBMC_GETNETWORKBUFFER_FAILURE_BOUND,
-                desc != NULL ) );
-    #endif
+    /*
+     * This interprets the failure bound as being one greater than the
+     * actual number of times GetNetworkBuffer should be allowed to
+     * fail.
+     *
+     * This makes it possible to use the same bound for loop unrolling
+     * which must be one greater than the actual number of times the
+     * loop should be unwound.
+     *
+     * NOTE: Using this bound with --nondet-static requires setting
+     * (or assuming) GetNetworkBuffer_failure_count to a value (like 0)
+     * in the proof harness that won't induce an integer overflow.
+     */
+    GetNetworkBuffer_failure_count++;
+    __CPROVER_assume( IMPLIES( GetNetworkBuffer_failure_count >=
+                                   CBMC_GETNETWORKBUFFER_FAILURE_BOUND,
+                               desc != NULL ) );
+#endif
 
     if( desc != NULL )
     {
@@ -301,10 +301,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         desc->pucEthernetBuffer = safeMalloc( size );
         desc->xDataLength = desc->pucEthernetBuffer == NULL ? 0 : size;
 
-        #ifdef CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL
-            /* This may be implied by the semantics of the function. */
-            __CPROVER_assume( desc->pucEthernetBuffer != NULL );
-        #endif
+#ifdef CBMC_REQUIRE_NETWORKBUFFER_ETHERNETBUFFER_NONNULL
+        /* This may be implied by the semantics of the function. */
+        __CPROVER_assume( desc->pucEthernetBuffer != NULL );
+#endif
 
         /* Allow method to fail again next time */
         GetNetworkBuffer_failure_count = 0;
@@ -314,11 +314,12 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 }
 
 /****************************************************************
-* Abstract pxGetNetworkBufferWithDescriptor.
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/vReleaseNetworkBufferAndDescriptor.html
-****************************************************************/
+ * Abstract pxGetNetworkBufferWithDescriptor.
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/vReleaseNetworkBufferAndDescriptor.html
+ ****************************************************************/
 
-void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+void vReleaseNetworkBufferAndDescriptor(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL,
                       "Precondition: pxNetworkBuffer != NULL" );
@@ -332,9 +333,9 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 }
 
 /****************************************************************
-* Abstract FreeRTOS_GetAddressConfiguration
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/FreeRTOS_GetAddressConfiguration.html
-****************************************************************/
+ * Abstract FreeRTOS_GetAddressConfiguration
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/FreeRTOS_GetAddressConfiguration.html
+ ****************************************************************/
 
 void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
                                        uint32_t * pulNetMask,
@@ -365,23 +366,23 @@ void FreeRTOS_GetAddressConfiguration( uint32_t * pulIPAddress,
 /****************************************************************/
 
 /****************************************************************
-* This is a collection of methods that are defined by the user
-* application but are invoked by the FreeRTOS API.
-****************************************************************/
+ * This is a collection of methods that are defined by the user
+ * application but are invoked by the FreeRTOS API.
+ ****************************************************************/
 
 /****************************************************************
-* Abstract FreeRTOS_GetAddressConfiguration
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/vApplicationIPNetworkEventHook.html
-****************************************************************/
+ * Abstract FreeRTOS_GetAddressConfiguration
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/API/vApplicationIPNetworkEventHook.html
+ ****************************************************************/
 
 void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
 {
 }
 
 /****************************************************************
-* Abstract pcApplicationHostnameHook
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html
-****************************************************************/
+ * Abstract pcApplicationHostnameHook
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html
+ ****************************************************************/
 
 const char * pcApplicationHostnameHook( void )
 {
@@ -390,15 +391,16 @@ const char * pcApplicationHostnameHook( void )
 
 /****************************************************************/
 
-
 /****************************************************************
-* Abstract xNetworkInterfaceOutput
-* https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Porting.html#xNetworkInterfaceOutput
-****************************************************************/
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
+ * Abstract xNetworkInterfaceOutput
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Porting.html#xNetworkInterfaceOutput
+ ****************************************************************/
+BaseType_t xNetworkInterfaceOutput(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t bReleaseAfterSend )
 {
-    __CPROVER_assert( pxNetworkBuffer != NULL, "The networkbuffer cannot be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "The networkbuffer cannot be NULL" );
 
     BaseType_t xReturn;
 

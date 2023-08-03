@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -32,60 +33,58 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
 #include "wifi-decl.h"
-#include "wmerrno.h"
 #include "wifi.h"
+#include "wmerrno.h"
 
 #include <wmlog.h>
 
-#define net_e( ... ) \
-    wmlog_e( "freertos_tcp", ## __VA_ARGS__ )
-#define net_w( ... ) \
-    wmlog_w( "freertos_tcp", ## __VA_ARGS__ )
-#define net_d( ... ) \
-    wmlog( "freertos_tcp", ## __VA_ARGS__ )
+#define net_e( ... ) wmlog_e( "freertos_tcp", ##__VA_ARGS__ )
+#define net_w( ... ) wmlog_w( "freertos_tcp", ##__VA_ARGS__ )
+#define net_d( ... ) wmlog( "freertos_tcp", ##__VA_ARGS__ )
 
 #if 0 /*this is lwip structure. */
-    #define MAX_INTERFACES_SUPPORTED    3
+    #define MAX_INTERFACES_SUPPORTED 3
     static struct netif * netif_arr[ MAX_INTERFACES_SUPPORTED ];
 #endif
 
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
+#if( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eProcessBuffer
 #else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) \
+        eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
-#define IP_ADDR_ANY          ( ( ip_addr_t * ) &ip_addr_any )
-#define IP_ADDR_BROADCAST    ( ( ip_addr_t * ) &ip_addr_broadcast )
+#define IP_ADDR_ANY       ( ( ip_addr_t * ) &ip_addr_any )
+#define IP_ADDR_BROADCAST ( ( ip_addr_t * ) &ip_addr_broadcast )
 
 /** 255.255.255.255 */
-#define IPADDR_NONE          ( ( u32_t ) 0xffffffffUL )
+#define IPADDR_NONE       ( ( u32_t ) 0xffffffffUL )
 /** 127.0.0.1 */
-#define IPADDR_LOOPBACK      ( ( u32_t ) 0x7f000001UL )
+#define IPADDR_LOOPBACK   ( ( u32_t ) 0x7f000001UL )
 /** 0.0.0.0 */
-#define IPADDR_ANY           ( ( u32_t ) 0x00000000UL )
+#define IPADDR_ANY        ( ( u32_t ) 0x00000000UL )
 /** 255.255.255.255 */
-#define IPADDR_BROADCAST     ( ( u32_t ) 0xffffffffUL )
+#define IPADDR_BROADCAST  ( ( u32_t ) 0xffffffffUL )
 
 /** 255.255.255.255 */
-#define INADDR_NONE          IPADDR_NONE
+#define INADDR_NONE       IPADDR_NONE
 /** 127.0.0.1 */
-#define INADDR_LOOPBACK      IPADDR_LOOPBACK
+#define INADDR_LOOPBACK   IPADDR_LOOPBACK
 /** 0.0.0.0 */
-#define INADDR_ANY           IPADDR_ANY
+#define INADDR_ANY        IPADDR_ANY
 /** 255.255.255.255 */
-#define INADDR_BROADCAST     IPADDR_BROADCAST
+#define INADDR_BROADCAST  IPADDR_BROADCAST
 
 enum if_state_t
 {
@@ -97,7 +96,7 @@ struct ip_addr
     u32_t addr;
 };
 
-#define MLAN_BSS_TYPE_STA    0
+#define MLAN_BSS_TYPE_STA 0
 
 extern uint8_t outbuf[ 2048 ];
 extern bool mlan_is_amsdu( const t_u8 * rcvdata );
@@ -106,13 +105,13 @@ extern t_u8 * mlan_get_payload( const t_u8 * rcvdata,
                                 int * interface );
 extern int wrapper_wlan_handle_amsdu_rx_packet( const t_u8 * rcvdata,
                                                 const t_u16 datalen );
-extern int wrapper_wlan_handle_rx_packet( const t_u16 datalen,
-                                          const t_u8 * rcvdata,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+extern int wrapper_wlan_handle_rx_packet(
+    const t_u16 datalen,
+    const t_u8 * rcvdata,
+    NetworkBufferDescriptor_t * pxNetworkBuffer );
 static volatile uint32_t xInterfaceState = INTERFACE_DOWN;
 
-static int process_data_packet( const t_u8 * databuf,
-                                const t_u16 datalen )
+static int process_data_packet( const t_u8 * databuf, const t_u16 datalen )
 {
     int interface = BSS_TYPE_STA;
     t_u8 * payload = NULL;
@@ -130,7 +129,8 @@ static int process_data_packet( const t_u8 * databuf,
         return WM_SUCCESS;
     }
 
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( /*payload_len*/ datalen, xDescriptorWaitTime );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( /*payload_len*/ datalen,
+                                                        xDescriptorWaitTime );
 
     if( pxNetworkBuffer != NULL )
     {
@@ -142,9 +142,12 @@ static int process_data_packet( const t_u8 * databuf,
 
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
-        if( xSendEventStructToIPTask( &xRxEvent, xDescriptorWaitTime ) == pdFAIL )
+        if( xSendEventStructToIPTask( &xRxEvent, xDescriptorWaitTime ) ==
+            pdFAIL )
         {
-            wmprintf( "Failed to enqueue packet to network stack %p, len %d", payload, payload_len );
+            wmprintf( "Failed to enqueue packet to network stack %p, len %d",
+                      payload,
+                      payload_len );
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             return WM_FAIL;
         }
@@ -178,10 +181,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     FreeRTOS_UpdateMACAddress( mac_addr.mac );
 
-    return ( xInterfaceState == INTERFACE_UP && ret == WM_SUCCESS ) ? pdTRUE : pdFALSE;
+    return ( xInterfaceState == INTERFACE_UP && ret == WM_SUCCESS ) ? pdTRUE
+                                                                    : pdFALSE;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     /* FIX ME. */
 }
@@ -214,8 +220,9 @@ void vNetworkNotifyIFUp()
     xInterfaceState = INTERFACE_UP;
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
     uint8_t pkt_len;
 
@@ -229,13 +236,19 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
 
     memset( outbuf, 0x00, sizeof( outbuf ) );
     pkt_len = 22 + 4; /* sizeof(TxPD) + INTF_HEADER_LEN */
-    memcpy( ( u8_t * ) outbuf + pkt_len, ( u8_t * ) pxNetworkBuffer->pucEthernetBuffer,
+    memcpy( ( u8_t * ) outbuf + pkt_len,
+            ( u8_t * ) pxNetworkBuffer->pucEthernetBuffer,
             pxNetworkBuffer->xDataLength );
-    int ret = wifi_low_level_output( BSS_TYPE_STA, outbuf + pkt_len, pxNetworkBuffer->xDataLength );
+    int ret = wifi_low_level_output( BSS_TYPE_STA,
+                                     outbuf + pkt_len,
+                                     pxNetworkBuffer->xDataLength );
 
     if( ret != WM_SUCCESS )
     {
-        net_e( "Failed output %p, length %d, error %d \r\n", pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, ret );
+        net_e( "Failed output %p, length %d, error %d \r\n",
+               pxNetworkBuffer->pucEthernetBuffer,
+               pxNetworkBuffer->xDataLength,
+               ret );
     }
 
     if( xReleaseAfterSend != pdFALSE )

@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -27,9 +28,9 @@
 
 /**
  * @file FreeRTOS_IPv6_Sockets.c
- * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
- *        Sockets are used by the application processes to interact with the IP-task which in turn
- *        interacts with the hardware.
+ * @brief Implements the Sockets API based on Berkeley sockets for the
+ * FreeRTOS+TCP network stack. Sockets are used by the application processes to
+ * interact with the IP-task which in turn interacts with the hardware.
  */
 
 /* Standard includes. */
@@ -47,7 +48,7 @@
 #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
 
-#if ( ipconfigUSE_TCP == 1 )
+    #if( ipconfigUSE_TCP == 1 )
 
 /**
  * @brief Called by pxTCPSocketLookup(), this function will check if a socket
@@ -57,43 +58,46 @@
  * @param[in] pxAddress The IPv4/IPv6 address.
  * @return The socket in case it is connected to the remote IP-address.
  */
-    FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                const IPv46_Address_t * pxAddress )
-    {
-        FreeRTOS_Socket_t * pxResult = NULL;
+FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
+                                            const IPv46_Address_t * pxAddress )
+{
+    FreeRTOS_Socket_t * pxResult = NULL;
 
-        if( ( pxSocket != NULL ) && ( pxAddress != NULL ) )
+    if( ( pxSocket != NULL ) && ( pxAddress != NULL ) )
+    {
+        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
         {
-            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            if( pxAddress->xIs_IPv6 != pdFALSE )
             {
-                if( pxAddress->xIs_IPv6 != pdFALSE )
+                if( memcmp( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                            pxAddress->xIPAddress.xIP_IPv6.ucBytes,
+                            ipSIZE_OF_IPv6_ADDRESS ) == 0 )
                 {
-                    if( memcmp( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
-                    {
-                        /* For sockets not in listening mode, find a match with
-                         * uxLocalPort, ulRemoteIP AND uxRemotePort. */
-                        pxResult = pxSocket;
-                    }
-                }
-            }
-            else
-            {
-                if( pxAddress->xIs_IPv6 == pdFALSE )
-                {
-                    if( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 == pxAddress->xIPAddress.ulIP_IPv4 )
-                    {
-                        /* For sockets not in listening mode, find a match with
-                         * uxLocalPort, ulRemoteIP AND uxRemotePort. */
-                        pxResult = pxSocket;
-                    }
+                    /* For sockets not in listening mode, find a match with
+                     * uxLocalPort, ulRemoteIP AND uxRemotePort. */
+                    pxResult = pxSocket;
                 }
             }
         }
-
-        return pxResult;
+        else
+        {
+            if( pxAddress->xIs_IPv6 == pdFALSE )
+            {
+                if( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 ==
+                    pxAddress->xIPAddress.ulIP_IPv4 )
+                {
+                    /* For sockets not in listening mode, find a match with
+                     * uxLocalPort, ulRemoteIP AND uxRemotePort. */
+                    pxResult = pxSocket;
+                }
+            }
+        }
     }
 
-#endif /* if ( ( ipconfigUSE_TCP == 1 ) */
+    return pxResult;
+}
+
+    #endif /* if ( ( ipconfigUSE_TCP == 1 ) */
 
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet
@@ -102,19 +106,28 @@
  * @param[in] pxDestinationAddress The IPv4 socket address.
  * @return  Returns NULL, always.
  */
-void * xSend_UDP_Update_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                              const struct freertos_sockaddr * pxDestinationAddress )
+void * xSend_UDP_Update_IPv6(
+    NetworkBufferDescriptor_t * pxNetworkBuffer,
+    const struct freertos_sockaddr * pxDestinationAddress )
 {
     /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at:
+     * https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113
+     */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    UDPPacket_IPv6_t * pxUDPPacket_IPv6 = ( ( UDPPacket_IPv6_t * )
+                                                pxNetworkBuffer
+                                                    ->pucEthernetBuffer );
 
     pxNetworkBuffer->xIPAddress.ulIP_IPv4 = 0U;
 
     configASSERT( pxDestinationAddress != NULL );
-    ( void ) memcpy( pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes, pxDestinationAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxDestinationAddress->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxUDPPacket_IPv6->xIPHeader.xDestinationAddress.ucBytes,
+                     pxDestinationAddress->sin_address.xIP_IPv6.ucBytes,
+                     ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                     pxDestinationAddress->sin_address.xIP_IPv6.ucBytes,
+                     ipSIZE_OF_IPv6_ADDRESS );
     pxUDPPacket_IPv6->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
     return NULL;
@@ -131,18 +144,23 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
                           struct freertos_sockaddr * pxSourceAddress )
 {
     /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* More details at:
+     * https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113
+     */
     /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( const UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    const UDPPacket_IPv6_t * pxUDPPacketV6 = ( ( const UDPPacket_IPv6_t * )
+                                                   pxNetworkBuffer
+                                                       ->pucEthernetBuffer );
     size_t uxPayloadOffset = 0;
 
     if( pxUDPPacketV6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
     {
         if( pxSourceAddress != NULL )
         {
-            ( void ) memcpy( ( void * ) pxSourceAddress->sin_address.xIP_IPv6.ucBytes,
-                             ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
-                             ipSIZE_OF_IPv6_ADDRESS );
+            ( void ) memcpy(
+                ( void * ) pxSourceAddress->sin_address.xIP_IPv6.ucBytes,
+                ( const void * ) pxUDPPacketV6->xIPHeader.xSourceAddress.ucBytes,
+                ipSIZE_OF_IPv6_ADDRESS );
             pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET6;
             pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
         }
@@ -153,9 +171,9 @@ size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
     return uxPayloadOffset;
 }
 
-
 /**
- * @brief Converts a 4 bit (nibble) value to a readable hex character, e.g. 14 becomes 'e'.
+ * @brief Converts a 4 bit (nibble) value to a readable hex character, e.g. 14
+ * becomes 'e'.
  * @param usValue  The value to be converted, must be between 0 and 15.
  * @return The character, between '0' and '9', or between 'a' and 'f'.
  */
@@ -212,7 +230,8 @@ socklen_t uxHexPrintShort( char * pcBuffer,
             xHadNonZero = pdTRUE;
         }
 
-        if( ( xHadNonZero != pdFALSE ) || ( uxNibble == ( uxNibbleCount - 1U ) ) )
+        if( ( xHadNonZero != pdFALSE ) ||
+            ( uxNibble == ( uxNibbleCount - 1U ) ) )
         {
             if( uxIndex >= ( uxBufferSize - 1U ) )
             {
@@ -231,16 +250,18 @@ socklen_t uxHexPrintShort( char * pcBuffer,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Scan the binary IPv6 address and find the longest train of consecutive zero's.
- *        The result of this search will be stored in 'xZeroStart' and 'xZeroLength'.
+ * @brief Scan the binary IPv6 address and find the longest train of consecutive
+ * zero's. The result of this search will be stored in 'xZeroStart' and
+ * 'xZeroLength'.
  * @param pxSet the set of parameters as used by FreeRTOS_inet_ntop6().
  */
 void prv_ntop6_search_zeros( struct sNTOP6_Set * pxSet )
 {
-    BaseType_t xIndex = 0;            /* The index in the IPv6 address: 0..7. */
-    BaseType_t xCurStart = 0;         /* The position of the first zero found so far. */
+    BaseType_t xIndex = 0;    /* The index in the IPv6 address: 0..7. */
+    BaseType_t xCurStart = 0; /* The position of the first zero found so far. */
     BaseType_t xCurLength = 0;        /* The number of zero's seen so far. */
-    const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts. */
+    const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts.
+                                       */
 
     /* Default: when xZeroStart is negative, it won't match with any xIndex. */
     pxSet->xZeroStart = -1;
@@ -295,7 +316,8 @@ static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
                                          struct sNTOP6_Set * pxSet )
 {
     BaseType_t xReturn = pdPASS;
-    const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts. */
+    const BaseType_t xShortCount = 8; /* An IPv6 address consists of 8 shorts.
+                                       */
 
     if( pxSet->uxTargetIndex <= ( uxSize - 1U ) )
     {
@@ -318,7 +340,8 @@ static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
         }
         else
         {
-            /* Otherwise the function prv_ntop6_write_short() will places the second colon. */
+            /* Otherwise the function prv_ntop6_write_short() will places the
+             * second colon. */
         }
     }
     else
@@ -332,8 +355,8 @@ static BaseType_t prv_ntop6_write_zeros( char * pcDestination,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Write a short value, as a hex number with at most 4 characters. E.g. the
- *        value 15 will be printed as "f".
+ * @brief Write a short value, as a hex number with at most 4 characters. E.g.
+ * the value 15 will be printed as "f".
  * @param pcDestination the output buffer where the hex number is to be printed.
  * @param uxSize the remaining length of the output buffer.
  * @param pxSet the set of parameters as used by FreeRTOS_inet_ntop6().
@@ -368,9 +391,10 @@ static BaseType_t prv_ntop6_write_short( char * pcDestination,
         if( pxSet->uxTargetIndex <= ( uxSize - uxBytesPerShortValue ) )
         {
             /* Write hex value of short. at most 4 + 1 bytes. */
-            uxLength = uxHexPrintShort( &( pcDestination[ pxSet->uxTargetIndex ] ),
-                                        uxBytesPerShortValue + 1U,
-                                        FreeRTOS_ntohs( pxSet->pusAddress[ pxSet->xIndex ] ) );
+            uxLength = uxHexPrintShort(
+                &( pcDestination[ pxSet->uxTargetIndex ] ),
+                uxBytesPerShortValue + 1U,
+                FreeRTOS_ntohs( pxSet->pusAddress[ pxSet->xIndex ] ) );
 
             /* uxLength will be non zero and positive always. */
             pxSet->uxTargetIndex += uxLength;
@@ -386,7 +410,8 @@ static BaseType_t prv_ntop6_write_short( char * pcDestination,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief This function converts a binary IPv6 address to a human readable notation.
+ * @brief This function converts a binary IPv6 address to a human readable
+ * notation.
  *
  * @param[in] pvSource The binary address, 16 bytes long..
  * @param[out] pcDestination The human-readable ( hexadecimal ) notation of the
@@ -399,8 +424,10 @@ const char * FreeRTOS_inet_ntop6( const void * pvSource,
                                   char * pcDestination,
                                   socklen_t uxSize )
 {
-    const char * pcReturn;  /* The return value, which is either 'pcDestination' or NULL. */
-    struct sNTOP6_Set xSet; /* A set of values for easy exchange with the helper functions prv_ntop6_xxx(). */
+    const char * pcReturn;  /* The return value, which is either 'pcDestination'
+                               or NULL. */
+    struct sNTOP6_Set xSet; /* A set of values for easy exchange with the helper
+                               functions prv_ntop6_xxx(). */
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
 
@@ -418,7 +445,8 @@ const char * FreeRTOS_inet_ntop6( const void * pvSource,
         {
             if( xSet.xIndex == xSet.xZeroStart )
             {
-                if( prv_ntop6_write_zeros( pcDestination, uxSize, &( xSet ) ) == pdFAIL )
+                if( prv_ntop6_write_zeros( pcDestination, uxSize, &( xSet ) ) ==
+                    pdFAIL )
                 {
                     break;
                 }
@@ -427,7 +455,8 @@ const char * FreeRTOS_inet_ntop6( const void * pvSource,
             }
             else
             {
-                if( prv_ntop6_write_short( pcDestination, uxSize, &( xSet ) ) == pdFAIL )
+                if( prv_ntop6_write_short( pcDestination, uxSize, &( xSet ) ) ==
+                    pdFAIL )
                 {
                     break;
                 }
@@ -488,14 +517,16 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
     {
         if( pxSet->xHadDigit == pdFALSE )
         {
-            /* A "::" sequence has been received. Check if it is not a third colon. */
+            /* A "::" sequence has been received. Check if it is not a third
+             * colon. */
             if( pxSet->xColon >= 0 )
             {
                 xReturn = pdFAIL;
             }
             else
             {
-                /* Two or more zero's are expected, starting at position 'xColon'. */
+                /* Two or more zero's are expected, starting at position
+                 * 'xColon'. */
                 pxSet->xColon = pxSet->xTargetIndex;
             }
         }
@@ -504,8 +535,12 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
             if( pxSet->xTargetIndex <= pxSet->xHighestIndex )
             {
                 /* Store a short value at position 'xTargetIndex'. */
-                pxSet->pucTarget[ pxSet->xTargetIndex ] = ( uint8_t ) ( ( pxSet->ulValue >> 8 ) & 0xffU );
-                pxSet->pucTarget[ pxSet->xTargetIndex + 1 ] = ( uint8_t ) ( pxSet->ulValue & 0xffU );
+                pxSet->pucTarget
+                    [ pxSet->xTargetIndex ] = ( uint8_t ) ( ( pxSet->ulValue >>
+                                                              8 ) &
+                                                            0xffU );
+                pxSet->pucTarget[ pxSet->xTargetIndex +
+                                  1 ] = ( uint8_t ) ( pxSet->ulValue & 0xffU );
                 pxSet->xTargetIndex += 2;
                 pxSet->xHadDigit = pdFALSE;
                 pxSet->ulValue = 0U;
@@ -518,7 +553,8 @@ static BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
     }
     else
     {
-        /* When an IPv4 address or rubbish is provided, this statement will be reached. */
+        /* When an IPv4 address or rubbish is provided, this statement will be
+         * reached. */
         xReturn = pdFAIL;
     }
 
@@ -554,15 +590,15 @@ static void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Convert an IPv6 address in hexadecimal notation to a binary format of 16 bytes.
+ * @brief Convert an IPv6 address in hexadecimal notation to a binary format of
+ * 16 bytes.
  *
  * @param[in] pcSource The address in hexadecimal notation.
  * @param[out] pvDestination The address in binary format, 16 bytes long.
  *
  * @return The 32-bit representation of IP(v4) address.
  */
-BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                void * pvDestination )
+BaseType_t FreeRTOS_inet_pton6( const char * pcSource, void * pvDestination )
 {
     char ch;
     uint8_t ucNew;
@@ -599,7 +635,7 @@ BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
         xSet.xHadDigit = pdFALSE;
         xSet.ulValue = 0U;
 
-        for( ; ; )
+        for( ;; )
         {
             ch = *( pcIterator );
             pcIterator++;
@@ -611,9 +647,14 @@ BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
                 if( ( xSet.xHadDigit != pdFALSE ) &&
                     ( xSet.xTargetIndex <= xSet.xHighestIndex ) )
                 {
-                    /* Add the last value seen, network byte order ( MSB first ). */
-                    xSet.pucTarget[ xSet.xTargetIndex ] = ( uint8_t ) ( ( xSet.ulValue >> 8 ) & 0xffU );
-                    xSet.pucTarget[ xSet.xTargetIndex + 1 ] = ( uint8_t ) ( xSet.ulValue & 0xffU );
+                    /* Add the last value seen, network byte order ( MSB first
+                     * ). */
+                    xSet.pucTarget
+                        [ xSet.xTargetIndex ] = ( uint8_t ) ( ( xSet.ulValue >>
+                                                                8 ) &
+                                                              0xffU );
+                    xSet.pucTarget[ xSet.xTargetIndex +
+                                    1 ] = ( uint8_t ) ( xSet.ulValue & 0xffU );
                     xSet.xTargetIndex += 2;
                 }
 

@@ -4,43 +4,43 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "mock_queue.h"
 #include "mock_event_groups.h"
+#include "mock_queue.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IPv6.h"
@@ -54,26 +54,26 @@
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 #ifndef ipconfigTCPv6_MSS
-    #define ipconfigTCPv6_MSS    ( ipconfigNETWORK_MTU - ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
+    #define ipconfigTCPv6_MSS   \
+        ( ipconfigNETWORK_MTU - \
+          ( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER ) )
 #endif
 
 /* Setting IPv6 address as "fe80::7009" */
-const IPv6_Address_t xDefaultIPAddress =
-{
-    0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70, 0x09
-};
+const IPv6_Address_t xDefaultIPAddress = { 0xfe, 0x80, 0x00, 0x00, 0x00, 0x00,
+                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                           0x00, 0x00, 0x70, 0x09 };
 
-#define ipSIZE_OF_IPv6_PAYLOAD_LEN    20
+#define ipSIZE_OF_IPv6_PAYLOAD_LEN 20
 
-#define ipICMP_INCORRECT_MSG_IPv6     0
+#define ipICMP_INCORRECT_MSG_IPv6  0
 
 /* Buffer length check of ICMPv6 packet failed. */
-#define ipFAIL_INVALID_LENGTH         10
+#define ipFAIL_INVALID_LENGTH      10
 /* Non Zero failure for prvChecksumIPv6Checks  */
-#define ipFAIL_LEN_CHECK              1
-#define ipFAIL_PACKET_CHECK           2
-#define ipPASS_IPv6Checks             0
+#define ipFAIL_LEN_CHECK           1
+#define ipFAIL_PACKET_CHECK        2
+#define ipPASS_IPv6Checks          0
 
 /* =============================== Test Cases =============================== */
 
@@ -114,7 +114,9 @@ void test_prvChecksumIPv6Checks_InvalidLength( void )
     memset( pucEthernetBuffer, 0, ipconfigTCPv6_MSS );
     xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pucEthernetBuffer );
 
-    usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
+    usReturn = prvChecksumIPv6Checks( pucEthernetBuffer,
+                                      uxBufferLength,
+                                      &xSet );
 
     /* Return value other than zero implies length check fail */
     TEST_ASSERT_EQUAL( ipFAIL_LEN_CHECK, usReturn );
@@ -141,7 +143,9 @@ void test_prvChecksumIPv6Checks_IncompleteIPv6Packet( void )
 
     xGetExtensionOrder_ExpectAndReturn( 0, 0, -1 );
 
-    usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
+    usReturn = prvChecksumIPv6Checks( pucEthernetBuffer,
+                                      uxBufferLength,
+                                      &xSet );
 
     TEST_ASSERT_EQUAL( ipFAIL_PACKET_CHECK, usReturn );
     TEST_ASSERT_EQUAL( ipINVALID_LENGTH, xSet.usChecksum );
@@ -166,7 +170,9 @@ void test_prvChecksumIPv6Checks_Success( void )
 
     xGetExtensionOrder_ExpectAndReturn( 0, 0, -1 );
 
-    usReturn = prvChecksumIPv6Checks( pucEthernetBuffer, uxBufferLength, &xSet );
+    usReturn = prvChecksumIPv6Checks( pucEthernetBuffer,
+                                      uxBufferLength,
+                                      &xSet );
 
     TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
 }
@@ -181,25 +187,39 @@ void test_prvChecksumIPv6Checks_LargeExtensionHeader( void )
 {
     BaseType_t usReturn;
     struct xPacketSummary xSet;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader(
+            ipPROTOCOL_TCP );
+    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
     size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
 
     /* Modify the extension header */
     pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 200U; /* Extension header length is set to 200*8 + 8, which is larger than buffer size. */
+    pxNetworkBuffer
+        ->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
+    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 200U; /* Extension
+                                                                 header length
+                                                                 is set to 200*8
+                                                                 + 8, which is
+                                                                 larger than
+                                                                 buffer size. */
     uxIndex += 8;
     pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
     pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
     uxIndex += 8;
 
-    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * )
+                                 pxNetworkBuffer->pucEthernetBuffer );
 
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 1 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 1 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP,
+                                        ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        1 );
 
-    usReturn = prvChecksumIPv6Checks( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &xSet );
+    usReturn = prvChecksumIPv6Checks( pxNetworkBuffer->pucEthernetBuffer,
+                                      pxNetworkBuffer->xDataLength,
+                                      &xSet );
 
     TEST_ASSERT_EQUAL( 3, usReturn );
 }
@@ -207,15 +227,19 @@ void test_prvChecksumIPv6Checks_LargeExtensionHeader( void )
 /**
  * @brief Prepare a packet have extension with following order.
  *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *         - ipIPv6_EXT_HEADER_HOP_BY_HOP (Hop by hop must be set in first place)
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP (Hop by hop must be set in first
+ * place)
  *         - ipPROTOCOL_TCP
  */
 void test_prvChecksumIPv6Checks_HopByHopInWrongOrder( void )
 {
     BaseType_t usReturn;
     struct xPacketSummary xSet;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader(
+            ipPROTOCOL_TCP );
+    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
     size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
 
     /* Modify the extension header */
@@ -227,13 +251,22 @@ void test_prvChecksumIPv6Checks_HopByHopInWrongOrder( void )
     pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
     uxIndex += 8;
 
-    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    xSet.pxIPPacket_IPv6 = ( ( const IPHeader_IPv6_t * )
+                                 pxNetworkBuffer->pucEthernetBuffer );
 
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, 0U, 7 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_HOP_BY_HOP, 1 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipPROTOCOL_TCP, 1 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        0U,
+                                        7 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_HOP_BY_HOP,
+                                        1 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP,
+                                        ipPROTOCOL_TCP,
+                                        1 );
 
-    usReturn = prvChecksumIPv6Checks( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &xSet );
+    usReturn = prvChecksumIPv6Checks( pxNetworkBuffer->pucEthernetBuffer,
+                                      pxNetworkBuffer->xDataLength,
+                                      &xSet );
 
     TEST_ASSERT_EQUAL( 3, usReturn );
 }
@@ -244,7 +277,8 @@ void test_prvChecksumIPv6Checks_HopByHopInWrongOrder( void )
 void test_prvChecksumICMPv6Checks_Default_InvalidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_ICMPv6_HEADER - 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            ipSIZE_OF_ICMPv6_HEADER - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -267,7 +301,8 @@ void test_prvChecksumICMPv6Checks_Default_InvalidLength( void )
 void test_prvChecksumICMPv6Checks_Default_ValidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_ICMPv6_HEADER + 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            ipSIZE_OF_ICMPv6_HEADER + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -291,7 +326,8 @@ void test_prvChecksumICMPv6Checks_Default_ValidLength( void )
 void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) - 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            sizeof( ICMPEcho_IPv6_t ) - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -315,7 +351,8 @@ void test_prvChecksumICMPv6Checks_PingReq_InvalidLength( void )
 void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) + 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            sizeof( ICMPEcho_IPv6_t ) + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -339,7 +376,8 @@ void test_prvChecksumICMPv6Checks_PingReq_ValidLength( void )
 void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) - 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            sizeof( ICMPEcho_IPv6_t ) - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -363,7 +401,8 @@ void test_prvChecksumICMPv6Checks_PingReply_InvalidLength( void )
 void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPEcho_IPv6_t ) + 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            sizeof( ICMPEcho_IPv6_t ) + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -387,7 +426,8 @@ void test_prvChecksumICMPv6Checks_PingReply_ValidLength( void )
 void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) - 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            sizeof( ICMPRouterSolicitation_IPv6_t ) - 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -411,7 +451,8 @@ void test_prvChecksumICMPv6Checks_RS_InvalidLength( void )
 void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
 {
     BaseType_t usReturn;
-    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPRouterSolicitation_IPv6_t ) + 1;
+    size_t uxBufferLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER +
+                            sizeof( ICMPRouterSolicitation_IPv6_t ) + 1;
     struct xPacketSummary xSet;
     ICMPHeader_IPv6_t xICMPHeaderIPv6;
     ProtocolHeaders_t xProtocolHeaders;
@@ -425,7 +466,8 @@ void test_prvChecksumICMPv6Checks_RS_ValidLength( void )
     usReturn = prvChecksumICMPv6Checks( uxBufferLength, &xSet );
 
     TEST_ASSERT_EQUAL( ipPASS_IPv6Checks, usReturn );
-    TEST_ASSERT_EQUAL( sizeof( ICMPRouterSolicitation_IPv6_t ), xSet.uxProtocolHeaderLength );
+    TEST_ASSERT_EQUAL( sizeof( ICMPRouterSolicitation_IPv6_t ),
+                       xSet.uxProtocolHeaderLength );
 }
 
 /**
@@ -472,24 +514,54 @@ void test_usGetExtensionHeaderLength_TCPExtensionSuccess( void )
 {
     BaseType_t xReturn;
     uint8_t ucProtocol = 0;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader(
+            ipPROTOCOL_TCP );
 
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_TCP, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_TCP, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP,
+                                        ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        ipPROTOCOL_TCP,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        ipPROTOCOL_TCP,
+                                        2 );
 
-    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer,
+                                          pxNetworkBuffer->xDataLength,
+                                          &ucProtocol );
 
     TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
     TEST_ASSERT_EQUAL( ipPROTOCOL_TCP, ucProtocol );
@@ -511,24 +583,54 @@ void test_usGetExtensionHeaderLength_UDPExtensionSuccess( void )
 {
     BaseType_t xReturn;
     uint8_t ucProtocol = 0;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_UDP );
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader(
+            ipPROTOCOL_UDP );
 
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_UDP, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_UDP, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP,
+                                        ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        ipPROTOCOL_UDP,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        ipPROTOCOL_UDP,
+                                        2 );
 
-    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer,
+                                          pxNetworkBuffer->xDataLength,
+                                          &ucProtocol );
 
     TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, ucProtocol );
@@ -550,31 +652,62 @@ void test_usGetExtensionHeaderLength_ICMPv6ExtensionSuccess( void )
 {
     BaseType_t xReturn;
     uint8_t ucProtocol = 0;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_ICMP_IPv6 );
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader(
+            ipPROTOCOL_ICMP_IPv6 );
 
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_ICMP_IPv6, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_ICMP_IPv6, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP,
+                                        ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        ipPROTOCOL_ICMP_IPv6,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        ipPROTOCOL_ICMP_IPv6,
+                                        2 );
 
-    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer,
+                                          pxNetworkBuffer->xDataLength,
+                                          &ucProtocol );
 
     TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
     TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP_IPv6, ucProtocol );
 }
 
 /**
- * @brief Prepare a TCP packet with extension header but the length is not enough for extension headers.
+ * @brief Prepare a TCP packet with extension header but the length is not
+ * enough for extension headers.
  *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
  *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
  *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
@@ -589,31 +722,63 @@ void test_usGetExtensionHeaderLength_ShortBufferLength( void )
 {
     BaseType_t xReturn;
     uint8_t ucProtocol = 0;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader(
+            ipPROTOCOL_TCP );
 
-    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH - 1 );
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER +
+                                   ipSIZE_OF_IPv6_HEADER +
+                                   ( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH -
+                                     1 );
 
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER, ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, ipIPv6_EXT_HEADER_AUTHEN_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER, ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_MOBILITY_HEADER, 2 );
-    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER, ipPROTOCOL_TCP, 2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP,
+                                        ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_ROUTING_HEADER,
+                                        ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_FRAGMENT_HEADER,
+                                        ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_SECURE_PAYLOAD,
+                                        ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_AUTHEN_HEADER,
+                                        ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS,
+                                        ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        2 );
+    xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_MOBILITY_HEADER,
+                                        ipPROTOCOL_TCP,
+                                        2 );
 
-    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer,
+                                          pxNetworkBuffer->xDataLength,
+                                          &ucProtocol );
 
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength, xReturn );
 }
 
 /**
- * @brief Prepare a TCP packet with extension header but one of them in the middle is invalid.
+ * @brief Prepare a TCP packet with extension header but one of them in the
+ * middle is invalid.
  *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
  *         - 0xFF (invalid)
  */
@@ -621,8 +786,11 @@ void test_usGetExtensionHeaderLength_InvalidHeader( void )
 {
     BaseType_t xReturn;
     uint8_t ucProtocol = 0;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader(
+            ipPROTOCOL_TCP );
+    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
     size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
 
     /* Modify the extension header */
@@ -638,7 +806,9 @@ void test_usGetExtensionHeaderLength_InvalidHeader( void )
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0xFF, 2 );
     xGetExtensionOrder_ExpectAndReturn( 0xFF, ipPROTOCOL_TCP, -1 );
 
-    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
+    xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer,
+                                          pxNetworkBuffer->xDataLength,
+                                          &ucProtocol );
 
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength, xReturn );
 }

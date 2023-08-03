@@ -38,12 +38,14 @@
 #include "cbmc.h"
 
 /* Abstraction of pxGetNetworkBufferWithDescriptor. */
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor(
+    size_t xRequestedSizeBytes,
+    TickType_t xBlockTimeTicks )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc(
+        sizeof( NetworkBufferDescriptor_t ) );
 
     if( pxNetworkBuffer )
     {
@@ -61,8 +63,10 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     size_t xReturn;
 
-    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer shouldnt be NULL" );
-    __CPROVER_assume( ( xReturn == ipSIZE_OF_IPv4_HEADER ) || ( xReturn == ipSIZE_OF_IPv6_HEADER ) );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "pxNetworkBuffer shouldnt be NULL" );
+    __CPROVER_assume( ( xReturn == ipSIZE_OF_IPv4_HEADER ) ||
+                      ( xReturn == ipSIZE_OF_IPv6_HEADER ) );
 
     return xReturn;
 }
@@ -76,7 +80,8 @@ void harness()
     __CPROVER_assume( uxBufferLength < ipconfigNETWORK_MTU );
     __CPROVER_assume( uxNewLength < ipconfigNETWORK_MTU );
 
-    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc(
+        sizeof( NetworkBufferDescriptor_t ) );
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( uxBufferLength );
@@ -85,5 +90,6 @@ void harness()
     /* The data length of buffer must be set correctly in buffer management. */
     pxNetworkBuffer->xDataLength = uxBufferLength;
 
-    ( void ) pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, uxNewLength );
+    ( void ) pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer,
+                                                     uxNewLength );
 }

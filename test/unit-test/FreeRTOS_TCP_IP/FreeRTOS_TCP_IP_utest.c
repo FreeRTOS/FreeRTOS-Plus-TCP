@@ -4,82 +4,82 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 /*#include "mock_task.h" */
 #include "mock_TCP_IP_list_macros.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "mock_queue.h"
-#include "mock_task.h"
 #include "mock_event_groups.h"
 #include "mock_list.h"
+#include "mock_queue.h"
+#include "mock_task.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Utils.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
-#include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_TCP_State_Handling.h"
-#include "mock_FreeRTOS_UDP_IP.h"
-#include "mock_FreeRTOS_TCP_Transmission.h"
 #include "mock_FreeRTOS_TCP_Reception.h"
+#include "mock_FreeRTOS_TCP_State_Handling.h"
+#include "mock_FreeRTOS_TCP_Transmission.h"
+#include "mock_FreeRTOS_TCP_WIN.h"
+#include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_NetworkBufferManagement.h"
+#include "mock_NetworkInterface.h"
 #include "mock_TCP_IP_list_macros.h"
 
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
 
-#include "FreeRTOS_TCP_IP_stubs.c"
 #include "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_TCP_IP_stubs.c"
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-FreeRTOS_Socket_t xSocket, * pxSocket;
-NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+FreeRTOS_Socket_t xSocket, *pxSocket;
+NetworkBufferDescriptor_t xNetworkBuffer, *pxNetworkBuffer;
 
 extern BaseType_t xTCPWindowLoggingLevel;
 extern FreeRTOS_Socket_t * xSocketToClose;
 extern FreeRTOS_Socket_t * xSocketToListen;
 
-uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] =
-{
-    0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x00, 0x45, 0x00,
-    0x00, 0x34, 0x15, 0xc2, 0x40, 0x00, 0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9,
-    0x0e, 0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96, 0x95, 0x7a, 0x80, 0x10,
-    0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01, 0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce,
-    0xc3, 0x17
+uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ] = {
+    0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x01, 0x02, 0x03, 0x04, 0x05,
+    0x06, 0x08, 0x00, 0x45, 0x00, 0x00, 0x34, 0x15, 0xc2, 0x40, 0x00,
+    0x40, 0x06, 0xa8, 0x8e, 0xc0, 0xa8, 0x00, 0x08, 0xac, 0xd9, 0x0e,
+    0xea, 0xea, 0xfe, 0x01, 0xbb, 0x8b, 0xaf, 0x8a, 0x24, 0xdc, 0x96,
+    0x95, 0x7a, 0x80, 0x10, 0x01, 0xf5, 0x7c, 0x9a, 0x00, 0x00, 0x01,
+    0x01, 0x08, 0x0a, 0xb8, 0x53, 0x57, 0x27, 0xb2, 0xce, 0xc3, 0x17
 };
 
 /* ============================== Test Cases ============================== */
@@ -152,7 +152,9 @@ void test_vSocketListenNextTime1( void )
 
     xSocketToListen = &xSocket;
 
-    FreeRTOS_listen_ExpectAndReturn( ( Socket_t ) xSocketToListen, xSocketToListen->u.xTCP.usBacklog, 0 );
+    FreeRTOS_listen_ExpectAndReturn( ( Socket_t ) xSocketToListen,
+                                     xSocketToListen->u.xTCP.usBacklog,
+                                     0 );
     vSocketListenNextTime( NULL );
 
     TEST_ASSERT_EQUAL( NULL, xSocketToListen );
@@ -275,7 +277,10 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1( void )
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+    prvTCPReturnPacket_Expect( &xSocket,
+                               xSocket.u.xTCP.pxAckMessage,
+                               ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER,
+                               ipconfigZERO_COPY_TX_DRIVER );
 
     xTCPWindowTxHasData_ExpectAnyArgsAndReturn( pdTRUE );
     xTCPWindowTxHasData_ReturnThruPtr_pulDelay( &xDelayReturn );
@@ -334,7 +339,8 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull_BufferFreed( void )
  * @brief Test functionality when the stream is non-NULL and the
  *        time out is non-zero.
  */
-void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void )
+void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout(
+    void )
 {
     BaseType_t xReturn, xToReturn = 0;
     FreeRTOS_Socket_t xSocket = { 0 };
@@ -351,7 +357,10 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+    prvTCPReturnPacket_Expect( &xSocket,
+                               xSocket.u.xTCP.pxAckMessage,
+                               ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER,
+                               ipconfigZERO_COPY_TX_DRIVER );
 
     vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
 
@@ -367,7 +376,8 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout( void
  *        time out is non-zero. The port number cannot be allowed to issue log
  *        messages.
  */
-void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout_NoLogPort( void )
+void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout_NoLogPort(
+    void )
 {
     BaseType_t xReturn, xToReturn = 0, xBackup;
     FreeRTOS_Socket_t xSocket = { 0 };
@@ -388,7 +398,10 @@ void test_xTCPSocketCheck_StateEstablished_TxStreamNonNull1_NonZeroTimeout_NoLog
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
-    prvTCPReturnPacket_Expect( &xSocket, xSocket.u.xTCP.pxAckMessage, ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER, ipconfigZERO_COPY_TX_DRIVER );
+    prvTCPReturnPacket_Expect( &xSocket,
+                               xSocket.u.xTCP.pxAckMessage,
+                               ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER,
+                               ipconfigZERO_COPY_TX_DRIVER );
 
     vReleaseNetworkBufferAndDescriptor_Expect( xSocket.u.xTCP.pxAckMessage );
 
@@ -594,7 +607,8 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Set( void )
  *        when tcp state is eESTABLISHED and an active
  *        time out is not set but has timeout delay.
  */
-void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_With_Delay( void )
+void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_With_Delay(
+    void )
 {
     TickType_t Return = 0;
 
@@ -618,7 +632,8 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Wi
  *        when tcp state is eESTABLISHED valid with TX data
  *        and no timeout delay.
  */
-void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Without_Delay( void )
+void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Without_Delay(
+    void )
 {
     TickType_t Return = 0;
 
@@ -642,7 +657,8 @@ void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_Has_Data_Wi
  *        when tcp state is eESTABLISHED valid with no
  *        TX data and no timeout delay.
  */
-void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_No_Data_Without_Delay( void )
+void test_prvTCPNextTimeout_Established_State_Active_Timeout_Not_Set_No_Data_Without_Delay(
+    void )
 {
     TickType_t Return = 0;
 
@@ -766,7 +782,8 @@ void test_vTCPStateChange_ClosedWaitState_PrvStateSynFirst( void )
  * @brief Test functionality when the state to be reached is closed wait
  *        and current state is equal to syn first.
  */
-void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait( void )
+void test_vTCPStateChange_ClosedWaitState_CurrentStateSynFirstNextStateCloseWait(
+    void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
     enum eTCP_STATE eTCPState;
@@ -1096,8 +1113,8 @@ void test_vTCPStateChange_ClosedWaitState_ReuseSocket( void )
 
 /**
  * @brief Test functionality when the state to be reached and the
- *        current state equal to established state. Additionally, the pass accept
- *        and reuse socket bits are set.
+ *        current state equal to established state. Additionally, the pass
+ * accept and reuse socket bits are set.
  */
 void test_vTCPStateChange_EstablishedState_ReuseSocket( void )
 {
@@ -1229,9 +1246,11 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive( void )
 
 /**
  * @brief Test functionality when the state to be reached is closed and the
- *        current state is established state. Socket select bit is set to select except.
+ *        current state is established state. Socket select bit is set to select
+ * except.
  */
-void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( void )
+void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept(
+    void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
     enum eTCP_STATE eTCPState;
@@ -1271,7 +1290,9 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( vo
     TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
     TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
     TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
-    TEST_ASSERT_EQUAL( eSOCKET_CLOSED | ( eSELECT_EXCEPT << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+    TEST_ASSERT_EQUAL( eSOCKET_CLOSED |
+                           ( eSELECT_EXCEPT << SOCKET_EVENT_BIT_COUNT ),
+                       xSocket.xEventBits );
 
     xTCPWindowLoggingLevel = xBackup;
 }
@@ -1280,7 +1301,8 @@ void test_vTCPStateChange_EstablishedToClosedState_SocketActive_SelectExcept( vo
  * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select except.
  */
-void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept( void )
+void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept(
+    void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
     enum eTCP_STATE eTCPState;
@@ -1324,7 +1346,8 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectExcept( vo
  * @brief Test functionality when the state to be reached is established and the
  *        current state is closed. Socket select bit is set to select write.
  */
-void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite( void )
+void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite(
+    void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
     enum eTCP_STATE eTCPState;
@@ -1361,16 +1384,19 @@ void test_vTCPStateChange_ClosedToEstablishedState_SocketActive_SelectWrite( voi
     TEST_ASSERT_EQUAL( 0, xSocket.u.xTCP.ucKeepRepCount );
     TEST_ASSERT_EQUAL( xTickCountAlive, xSocket.u.xTCP.xLastAliveTime );
     TEST_ASSERT_EQUAL( 100, xSocket.u.xTCP.usTimeout );
-    TEST_ASSERT_EQUAL( eSOCKET_CONNECT | ( eSELECT_WRITE << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+    TEST_ASSERT_EQUAL( eSOCKET_CONNECT |
+                           ( eSELECT_WRITE << SOCKET_EVENT_BIT_COUNT ),
+                       xSocket.xEventBits );
 }
 
 /**
  * @brief Test functionality when the state to be reached is established and the
- *        current state is closed. Socket select bit is set to select write. Also, this socket
- *        is an orphan. Since parent socket is NULL and reuse bit is not set, it will hit an
- *        assertion.
+ *        current state is closed. Socket select bit is set to select write.
+ * Also, this socket is an orphan. Since parent socket is NULL and reuse bit is
+ * not set, it will hit an assertion.
  */
-void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( void )
+void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet(
+    void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
     enum eTCP_STATE eTCPState;
@@ -1384,7 +1410,8 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( voi
 
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.xSelectBits = eSELECT_WRITE;
-    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    /* if bPassQueued is true, this socket is an orphan until it gets connected.
+     */
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
 
     catch_assert( vTCPStateChange( &xSocket, eTCPState ) );
@@ -1392,10 +1419,12 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet( voi
 
 /**
  * @brief Test functionality when the state to be reached is established and the
- *        current state is closed. Socket select bit is set to select write. Also, this socket
- *        is an orphan. Parent socket is non-NULL and reuse bit is not set.
+ *        current state is closed. Socket select bit is set to select write.
+ * Also, this socket is an orphan. Parent socket is non-NULL and reuse bit is
+ * not set.
  */
-void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_ParentNonNULL( void )
+void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_ParentNonNULL(
+    void )
 {
     FreeRTOS_Socket_t xSocket, xParentSock;
     enum eTCP_STATE eTCPState;
@@ -1411,7 +1440,8 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_Pare
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = ( FOnConnected_t ) HandleConnected;
     xSocket.xSelectBits = eSELECT_WRITE;
-    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    /* if bPassQueued is true, this socket is an orphan until it gets connected.
+     */
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
     xSocket.u.xTCP.pxPeerSocket = &xParentSock;
 
@@ -1445,11 +1475,12 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectWrite_QueuedBitSet_Pare
 
 /**
  * @brief Test functionality when the state to be reached is established and the
- *        current state is closed. Socket select bit is set to select write. Also, this socket
- *        is an orphan. Parent socket is non-NULL and reuse bit is not set. Additionally, the
- *        parent socket has a connected handler.
+ *        current state is closed. Socket select bit is set to select write.
+ * Also, this socket is an orphan. Parent socket is non-NULL and reuse bit is
+ * not set. Additionally, the parent socket has a connected handler.
  */
-void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_HasHandler( void )
+void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_HasHandler(
+    void )
 {
     FreeRTOS_Socket_t xSocket, xParentSock;
     enum eTCP_STATE eTCPState;
@@ -1464,7 +1495,8 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
 
     xSocket.u.xTCP.usTimeout = 100;
     xParentSock.u.xTCP.pxHandleConnected = ( FOnConnected_t ) HandleConnected;
-    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    /* if bPassQueued is true, this socket is an orphan until it gets connected.
+     */
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
     xSocket.u.xTCP.pxPeerSocket = &xParentSock;
 
@@ -1498,11 +1530,12 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
 
 /**
  * @brief Test functionality when the state to be reached is established and the
- *        current state is closed. Socket select bit is set to select write. Also, this socket
- *        is an orphan. Parent socket is non-NULL and reuse bit is not set. Additionally, the
- *        parent socket has a connected handler.
+ *        current state is closed. Socket select bit is set to select write.
+ * Also, this socket is an orphan. Parent socket is non-NULL and reuse bit is
+ * not set. Additionally, the parent socket has a connected handler.
  */
-void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_HasHandler1( void )
+void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_HasHandler1(
+    void )
 {
     FreeRTOS_Socket_t xSocket, xParentSock;
     enum eTCP_STATE eTCPState;
@@ -1518,7 +1551,8 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
     xSocket.u.xTCP.usTimeout = 100;
     xParentSock.u.xTCP.pxHandleConnected = ( FOnConnected_t ) HandleConnected;
     xSocket.u.xTCP.pxHandleConnected = ( FOnConnected_t ) HandleConnected;
-    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    /* if bPassQueued is true, this socket is an orphan until it gets connected.
+     */
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
     xSocket.u.xTCP.pxPeerSocket = &xParentSock;
     xParentSock.u.xTCP.pxPeerSocket = &xSocket;
@@ -1553,10 +1587,11 @@ void test_vTCPStateChange_ClosedToEstablishedState_QueuedBitSet_ParentNonNULL_Ha
 
 /**
  * @brief Test functionality when the state to be reached is established and the
- *        current state is closed. Socket select bit is set to select read. Also, this socket
- *        is an orphan. Parent socket is NULL and reuse bit is set.
+ *        current state is closed. Socket select bit is set to select read.
+ * Also, this socket is an orphan. Parent socket is NULL and reuse bit is set.
  */
-void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_ParentNULLReuse( void )
+void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_ParentNULLReuse(
+    void )
 {
     FreeRTOS_Socket_t xSocket = { 0 };
     enum eTCP_STATE eTCPState;
@@ -1572,7 +1607,8 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_Paren
     xSocket.u.xTCP.usTimeout = 100;
     xSocket.u.xTCP.pxHandleConnected = ( FOnConnected_t ) HandleConnected;
     xSocket.xSelectBits = eSELECT_READ;
-    /* if bPassQueued is true, this socket is an orphan until it gets connected. */
+    /* if bPassQueued is true, this socket is an orphan until it gets connected.
+     */
     xSocket.u.xTCP.bits.bPassQueued = pdTRUE_UNSIGNED;
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
 
@@ -1600,7 +1636,9 @@ void test_vTCPStateChange_ClosedToEstablishedState_SelectRead_QueuedBitSet_Paren
     TEST_ASSERT_EQUAL( NULL, xSocket.u.xTCP.pxPeerSocket );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xSocket.u.xTCP.bits.bPassQueued );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xSocket.u.xTCP.bits.bPassAccept );
-    TEST_ASSERT_EQUAL( eSOCKET_ACCEPT | ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+    TEST_ASSERT_EQUAL( eSOCKET_ACCEPT |
+                           ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ),
+                       xSocket.xEventBits );
 }
 
 /**
@@ -1707,7 +1745,9 @@ void test_xProcessReceivedTCPPacket_No_Socket( void )
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
@@ -1731,7 +1771,9 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
@@ -1757,11 +1799,14 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket_Send_Reset( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
-    pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
+    pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK |
+                                               tcpTCP_FLAG_FIN;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
@@ -1784,7 +1829,9 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_No_Rst( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1810,7 +1857,9 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_Rst( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1837,7 +1886,9 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_Null_Socket( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1864,7 +1915,9 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_Something( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1898,7 +1951,9 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_None( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1932,7 +1987,9 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -1953,12 +2010,12 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void 
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-
 /**
  * @brief This function validates success in processing received TCP
  *        packet when tcp state is eTCP_LISTEN.
  */
-void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buffer_Gone( void )
+void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buffer_Gone(
+    void )
 {
     BaseType_t Return = pdFALSE;
     NetworkBufferDescriptor_t * pNullBuffer = NULL;
@@ -1966,7 +2023,9 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buff
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
@@ -2001,7 +2060,9 @@ void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -2027,7 +2088,9 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
@@ -2063,7 +2126,9 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_SeqNo_Wrong( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
@@ -2091,7 +2156,9 @@ void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eSYN_RECEIVED;
@@ -2116,7 +2183,6 @@ void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
     TEST_ASSERT_EQUAL( pdTRUE, Return );
 }
 
-
 /**
  * @brief This function validates failure in processing received TCP
  *        packet when tcp state is eESTABLISHED.
@@ -2128,7 +2194,9 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -2166,7 +2234,9 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_InRange( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -2198,7 +2268,9 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange1( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -2229,7 +2301,9 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -2248,7 +2322,6 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
     TEST_ASSERT_EQUAL( pdFALSE, Return );
 }
 
-
 /**
  * @brief This function validates success in processing received TCP
  *        packet when tcp state is eESTABLISHED.
@@ -2260,7 +2333,9 @@ void test_xProcessReceivedTCPPacket_Establish_State_Ack( void )
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxSocket = &xSocket;
-    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] ) );
+    ProtocolHeaders_t * pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                            ipSIZE_OF_IPv4_HEADER ] ) );
 
     pxNetworkBuffer->xDataLength = 100;
     pxSocket->u.xTCP.eTCPState = eESTABLISHED;
@@ -2289,7 +2364,10 @@ static void test_Helper_ListInitialise( List_t * const pxList )
     /* The list structure contains a list item which is used to mark the
      * end of the list.  To initialise the list the list end is inserted
      * as the only list entry. */
-    pxList->pxIndex = ( ListItem_t * ) &( pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+    pxList->pxIndex = ( ListItem_t * ) &(
+        pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is
+                               used as the list end to save RAM.  This is
+                               checked and valid. */
 
     /* The list end value is the highest possible value in the list to
      * ensure it remains at the end of the list. */
@@ -2297,8 +2375,14 @@ static void test_Helper_ListInitialise( List_t * const pxList )
 
     /* The list end next and previous pointers point to itself so we know
      * when the list is empty. */
-    pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );     /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
-    pxList->xListEnd.pxPrevious = ( ListItem_t * ) &( pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+    pxList->xListEnd.pxNext = ( ListItem_t * ) &(
+        pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is
+                               used as the list end to save RAM.  This is
+                               checked and valid. */
+    pxList->xListEnd.pxPrevious = ( ListItem_t * ) &(
+        pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is
+                               used as the list end to save RAM.  This is
+                               checked and valid. */
 
     pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
 
@@ -2314,8 +2398,9 @@ static void test_Helper_ListInsertEnd( List_t * const pxList,
     ListItem_t * const pxIndex = pxList->pxIndex;
 
     /* Only effective when configASSERT() is also defined, these tests may catch
-     * the list data structures being overwritten in memory.  They will not catch
-     * data errors caused by incorrect configuration or use of FreeRTOS. */
+     * the list data structures being overwritten in memory.  They will not
+     * catch data errors caused by incorrect configuration or use of FreeRTOS.
+     */
     listTEST_LIST_INTEGRITY( pxList );
     listTEST_LIST_ITEM_INTEGRITY( pxNewListItem );
 
@@ -2372,7 +2457,8 @@ void test_xTCPCheckNewClient_Not_Found_No_Port( void )
     pxSocket->xBoundSocketListItem.xItemValue = 443;
 
     test_Helper_ListInitialise( pSocketList );
-    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList,
+                               &( pxSocket->xBoundSocketListItem ) );
 
     pxSocket->usLocalPort = FreeRTOS_ntohs( 40000 );
     Return = xTCPCheckNewClient( pxSocket );
@@ -2397,9 +2483,9 @@ void test_xTCPCheckNewClient_Not_Found_Not_TCP( void )
     pxSocket->ucProtocol = FREERTOS_IPPROTO_UDP;
     pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
 
-
     test_Helper_ListInitialise( pSocketList );
-    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList,
+                               &( pxSocket->xBoundSocketListItem ) );
 
     pxSocket->usLocalPort = FreeRTOS_ntohs( 40000 );
     Return = xTCPCheckNewClient( pxSocket );
@@ -2424,9 +2510,9 @@ void test_xTCPCheckNewClient_Not_Found_Not_Aceept( void )
     pxSocket->ucProtocol = FREERTOS_IPPROTO_TCP;
     pxSocket->u.xTCP.bits.bPassAccept = pdFALSE;
 
-
     test_Helper_ListInitialise( pSocketList );
-    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList,
+                               &( pxSocket->xBoundSocketListItem ) );
 
     pxSocket->usLocalPort = FreeRTOS_ntohs( 40000 );
     Return = xTCPCheckNewClient( pxSocket );
@@ -2452,7 +2538,8 @@ void test_xTCPCheckNewClient_Found( void )
     pxSocket->u.xTCP.bits.bPassAccept = pdTRUE;
 
     test_Helper_ListInitialise( pSocketList );
-    test_Helper_ListInsertEnd( &xBoundTCPSocketsList, &( pxSocket->xBoundSocketListItem ) );
+    test_Helper_ListInsertEnd( &xBoundTCPSocketsList,
+                               &( pxSocket->xBoundSocketListItem ) );
 
     pxSocket->usLocalPort = FreeRTOS_ntohs( 40000 );
     Return = xTCPCheckNewClient( pxSocket );

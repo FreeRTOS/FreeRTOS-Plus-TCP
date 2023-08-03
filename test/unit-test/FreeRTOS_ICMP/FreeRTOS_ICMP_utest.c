@@ -4,59 +4,59 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
 #include "mock_ICMP_list_macros.h"
-#include "mock_queue.h"
 #include "mock_event_groups.h"
+#include "mock_queue.h"
 
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP_Utils.h"
-#include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_NetworkInterface.h"
 #include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_DNS.h"
+#include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IP_Timers.h"
+#include "mock_FreeRTOS_IP_Utils.h"
+#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
+#include "mock_FreeRTOS_TCP_IP.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
 #include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_NetworkBufferManagement.h"
+#include "mock_NetworkInterface.h"
 
 #include "FreeRTOS_ICMP.h"
 
@@ -68,7 +68,7 @@
 void test_ProcessICMPPacket_CatchAssert( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->xDataLength = sizeof( ICMPPacket_t ) - 1;
@@ -79,7 +79,7 @@ void test_ProcessICMPPacket_CatchAssert( void )
 void test_ProcessICMPPacket_AllZeroData( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
 
     pxNetworkBuffer = &xNetworkBuffer;
@@ -98,7 +98,7 @@ void test_ProcessICMPPacket_AllZeroData( void )
 void test_ProcessICMPPacket_EchoRequest( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     ICMPPacket_t * pxICMPPacket;
@@ -125,18 +125,22 @@ void test_ProcessICMPPacket_EchoRequest( void )
     eResult = ProcessICMPPacket( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
-    TEST_ASSERT_EQUAL( ( uint8_t ) ipICMP_ECHO_REPLY, pxICMPHeader->ucTypeOfMessage );
-    TEST_ASSERT_EQUAL( pxIPHeader->ulSourceIPAddress, pxIPHeader->ulDestinationIPAddress );
-    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, pxIPHeader->ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( ( uint8_t ) ipICMP_ECHO_REPLY,
+                       pxICMPHeader->ucTypeOfMessage );
+    TEST_ASSERT_EQUAL( pxIPHeader->ulSourceIPAddress,
+                       pxIPHeader->ulDestinationIPAddress );
+    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER,
+                       pxIPHeader->ulSourceIPAddress );
     TEST_ASSERT_EQUAL( ipconfigICMP_TIME_TO_LIVE, pxIPHeader->ucTimeToLive );
     TEST_ASSERT_EQUAL( 0, pxIPHeader->usFragmentOffset );
-    TEST_ASSERT_EQUAL( ( uint16_t ) ~FreeRTOS_htons( 0xAA ), pxIPHeader->usHeaderChecksum );
+    TEST_ASSERT_EQUAL( ( uint16_t ) ~FreeRTOS_htons( 0xAA ),
+                       pxIPHeader->usHeaderChecksum );
 }
 
 void test_ProcessICMPPacket_UnknownICMPPacket( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
 
@@ -159,7 +163,7 @@ void test_ProcessICMPPacket_UnknownICMPPacket( void )
 void test_ProcessICMPPacket_ICMPEchoReply_NULLData( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
 
@@ -171,7 +175,8 @@ void test_ProcessICMPPacket_ICMPEchoReply_NULLData( void )
 
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER );
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons(
+        ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER );
 
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
@@ -186,7 +191,7 @@ void test_ProcessICMPPacket_ICMPEchoReply_NULLData( void )
 void test_ProcessICMPPacket_ICMPEchoReply_ProperData( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
     uint8_t * pucByte;
@@ -199,7 +204,8 @@ void test_ProcessICMPPacket_ICMPEchoReply_ProperData( void )
 
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 10 );
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons(
+        ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 10 );
 
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;
@@ -218,7 +224,7 @@ void test_ProcessICMPPacket_ICMPEchoReply_ProperData( void )
 void test_ProcessICMPPacket_ICMPEchoReply_ImproperData( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     ICMPPacket_t * pxICMPPacket;
     uint8_t * pucByte;
@@ -231,7 +237,8 @@ void test_ProcessICMPPacket_ICMPEchoReply_ImproperData( void )
 
     pxICMPPacket = ( ICMPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons( ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 10 );
+    pxICMPPacket->xIPHeader.usLength = FreeRTOS_htons(
+        ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ICMPv4_HEADER + 10 );
 
     /* ICMP Reply. */
     pxICMPPacket->xICMPHeader.ucTypeOfMessage = ipICMP_ECHO_REPLY;

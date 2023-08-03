@@ -4,22 +4,22 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 #include "cbmc.h"
 
 /****************************************************************
-* This is a collection of abstractions of methods in the FreeRTOS Kernel
-* API.  The abstractions simply perform minimal validation of
-* function arguments, and return unconstrained values of the
-* appropriate type.
-****************************************************************/
+ * This is a collection of abstractions of methods in the FreeRTOS Kernel
+ * API.  The abstractions simply perform minimal validation of
+ * function arguments, and return unconstrained values of the
+ * appropriate type.
+ ****************************************************************/
 
 /****************************************************************
-* Abstract vTaskSuspendAll
-****************************************************************/
+ * Abstract vTaskSuspendAll
+ ****************************************************************/
 void vTaskSuspendAll( void )
 {
 }
@@ -27,8 +27,8 @@ void vTaskSuspendAll( void )
 /****************************************************************/
 
 /****************************************************************
-* Abstract vPortEnterCritical
-****************************************************************/
+ * Abstract vPortEnterCritical
+ ****************************************************************/
 void vPortEnterCritical( void )
 {
 }
@@ -36,18 +36,17 @@ void vPortEnterCritical( void )
 /****************************************************************/
 
 /****************************************************************
-* Abstract vListInsertEnd
-****************************************************************/
-void vListInsertEnd( List_t * const pxList,
-                     ListItem_t * const pxNewListItem )
+ * Abstract vListInsertEnd
+ ****************************************************************/
+void vListInsertEnd( List_t * const pxList, ListItem_t * const pxNewListItem )
 {
 }
 
 /****************************************************************/
 
 /****************************************************************
-* Abstract vPortExitCritical
-****************************************************************/
+ * Abstract vPortExitCritical
+ ****************************************************************/
 void vPortExitCritical( void )
 {
 }
@@ -55,8 +54,8 @@ void vPortExitCritical( void )
 /****************************************************************/
 
 /****************************************************************
-* Abstract xTaskResumeAll
-****************************************************************/
+ * Abstract xTaskResumeAll
+ ****************************************************************/
 BaseType_t xTaskResumeAll( void )
 {
     BaseType_t xReturn;
@@ -69,8 +68,8 @@ BaseType_t xTaskResumeAll( void )
 /****************************************************************/
 
 /****************************************************************
-* Abstract xEventGroupSetBits
-****************************************************************/
+ * Abstract xEventGroupSetBits
+ ****************************************************************/
 EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
                                 const EventBits_t uxBitsToSet )
 {

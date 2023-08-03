@@ -40,9 +40,11 @@
 /* Global variables. */
 BaseType_t xIsIPv6;
 
-/* Abstraction of prvPacketBuffer_to_NetworkBuffer. This function is proven separately. */
-NetworkBufferDescriptor_t * __CPROVER_file_local_FreeRTOS_IP_Utils_c_prvPacketBuffer_to_NetworkBuffer( const void * pvBuffer,
-                                                                                                       size_t uxOffset )
+/* Abstraction of prvPacketBuffer_to_NetworkBuffer. This function is proven
+ * separately. */
+NetworkBufferDescriptor_t * __CPROVER_file_local_FreeRTOS_IP_Utils_c_prvPacketBuffer_to_NetworkBuffer(
+    const void * pvBuffer,
+    size_t uxOffset )
 {
     __CPROVER_assert( pvBuffer != NULL, "pvBuffer shouldn't be NULL" );
 }
@@ -59,16 +61,19 @@ void harness()
     /* Reserve the buffer with ipconfigBUFFER_PADDING to store IP type. */
     if( xIsIPv6 )
     {
-        __CPROVER_assume( uxBufferLength > sizeof( UDPPacket_IPv6_t ) + ipconfigBUFFER_PADDING );
+        __CPROVER_assume( uxBufferLength >
+                          sizeof( UDPPacket_IPv6_t ) + ipconfigBUFFER_PADDING );
     }
     else
     {
-        __CPROVER_assume( uxBufferLength > sizeof( UDPPacket_t ) + ipconfigBUFFER_PADDING );
+        __CPROVER_assume( uxBufferLength >
+                          sizeof( UDPPacket_t ) + ipconfigBUFFER_PADDING );
     }
 
     __CPROVER_assume( uxBufferLength < ipconfigNETWORK_MTU );
 
-    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc(
+        sizeof( NetworkBufferDescriptor_t ) );
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( uxBufferLength );
@@ -76,16 +81,26 @@ void harness()
 
     if( xIsIPv6 )
     {
-        pucIPType = &pxNetworkBuffer->pucEthernetBuffer[ ipconfigBUFFER_PADDING + sizeof( UDPPacket_IPv6_t ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET ];
-        pvBuffer = &pxNetworkBuffer->pucEthernetBuffer[ ipconfigBUFFER_PADDING + sizeof( UDPPacket_IPv6_t ) ];
+        pucIPType = &pxNetworkBuffer
+                         ->pucEthernetBuffer[ ipconfigBUFFER_PADDING +
+                                              sizeof( UDPPacket_IPv6_t ) -
+                                              ipUDP_PAYLOAD_IP_TYPE_OFFSET ];
+        pvBuffer = &pxNetworkBuffer
+                        ->pucEthernetBuffer[ ipconfigBUFFER_PADDING +
+                                             sizeof( UDPPacket_IPv6_t ) ];
     }
     else
     {
-        pucIPType = &pxNetworkBuffer->pucEthernetBuffer[ ipconfigBUFFER_PADDING + sizeof( UDPPacket_t ) - ipUDP_PAYLOAD_IP_TYPE_OFFSET ];
-        pvBuffer = &pxNetworkBuffer->pucEthernetBuffer[ ipconfigBUFFER_PADDING + sizeof( UDPPacket_t ) ];
+        pucIPType = &pxNetworkBuffer
+                         ->pucEthernetBuffer[ ipconfigBUFFER_PADDING +
+                                              sizeof( UDPPacket_t ) -
+                                              ipUDP_PAYLOAD_IP_TYPE_OFFSET ];
+        pvBuffer = &pxNetworkBuffer->pucEthernetBuffer[ ipconfigBUFFER_PADDING +
+                                                        sizeof( UDPPacket_t ) ];
     }
 
-    __CPROVER_assume( ( ( *pucIPType ) & 0xf0 == ipTYPE_IPv4 ) || ( ( *pucIPType ) & 0xf0 == ipTYPE_IPv6 ) );
+    __CPROVER_assume( ( ( *pucIPType ) & 0xf0 == ipTYPE_IPv4 ) ||
+                      ( ( *pucIPType ) & 0xf0 == ipTYPE_IPv6 ) );
 
     ( void ) pxUDPPayloadBuffer_to_NetworkBuffer( pvBuffer );
 }

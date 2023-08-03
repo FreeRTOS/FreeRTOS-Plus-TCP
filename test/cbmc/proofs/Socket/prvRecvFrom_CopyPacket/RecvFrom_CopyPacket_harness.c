@@ -15,14 +15,15 @@
 #include "memory_assignments.c"
 
 /****************************************************************
-* Signature of function under test
-****************************************************************/
+ * Signature of function under test
+ ****************************************************************/
 
-int32_t __CPROVER_file_local_FreeRTOS_Sockets_c_prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
-                                                                        void * pvBuffer,
-                                                                        size_t uxBufferLength,
-                                                                        BaseType_t xFlags,
-                                                                        int32_t lDataLength );
+int32_t __CPROVER_file_local_FreeRTOS_Sockets_c_prvRecvFrom_CopyPacket(
+    uint8_t * pucEthernetBuffer,
+    void * pvBuffer,
+    size_t uxBufferLength,
+    BaseType_t xFlags,
+    int32_t lDataLength );
 
 void harness()
 {
@@ -36,17 +37,24 @@ void harness()
     pucEthernetBuffer = safeMalloc( lDataLength );
     __CPROVER_assume( pucEthernetBuffer != NULL );
 
-    __CPROVER_assume( uxBufferLength > 0 && uxBufferLength < ipconfigNETWORK_MTU );
+    __CPROVER_assume( uxBufferLength > 0 &&
+                      uxBufferLength < ipconfigNETWORK_MTU );
 
     if( nondet_bool() )
     {
         /* This is to validate case when zero copy flag is not set*/
         __CPROVER_assume( xFlags == 0U );
 
-        /* When zero flag is not set, need to provide a buffer in which received data will be copied. */
+        /* When zero flag is not set, need to provide a buffer in which received
+         * data will be copied. */
         pvBuffer = safeMalloc( uxBufferLength );
         __CPROVER_assume( pvBuffer != NULL );
-        __CPROVER_file_local_FreeRTOS_Sockets_c_prvRecvFrom_CopyPacket( pucEthernetBuffer, pvBuffer, uxBufferLength, xFlags, lDataLength );
+        __CPROVER_file_local_FreeRTOS_Sockets_c_prvRecvFrom_CopyPacket(
+            pucEthernetBuffer,
+            pvBuffer,
+            uxBufferLength,
+            xFlags,
+            lDataLength );
     }
     else
     {
@@ -57,7 +65,12 @@ void harness()
          * point to the buffer in which the received data has already been
          * placed. */
         __CPROVER_assume( xFlags == FREERTOS_ZERO_COPY );
-        __CPROVER_file_local_FreeRTOS_Sockets_c_prvRecvFrom_CopyPacket( pucEthernetBuffer, &pvBuffer, uxBufferLength, xFlags, lDataLength );
+        __CPROVER_file_local_FreeRTOS_Sockets_c_prvRecvFrom_CopyPacket(
+            pucEthernetBuffer,
+            &pvBuffer,
+            uxBufferLength,
+            xFlags,
+            lDataLength );
 
         /* Postconditions */
         __CPROVER_assert( pvBuffer != NULL, "pvBuffer can not be NULL" );

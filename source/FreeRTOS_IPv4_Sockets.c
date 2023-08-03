@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -27,9 +28,9 @@
 
 /**
  * @file FreeRTOS_IPv4_Sockets.c
- * @brief Implements the Sockets API based on Berkeley sockets for the FreeRTOS+TCP network stack.
- *        Sockets are used by the application processes to interact with the IP-task which in turn
- *        interacts with the hardware.
+ * @brief Implements the Sockets API based on Berkeley sockets for the
+ * FreeRTOS+TCP network stack. Sockets are used by the application processes to
+ * interact with the IP-task which in turn interacts with the hardware.
  */
 
 /* Standard includes. */
@@ -38,36 +39,35 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv4_Sockets.h"
-
+#include "FreeRTOS_UDP_IP.h"
 
 /** @brief The number of octets that make up an IP address. */
-#define socketMAX_IP_ADDRESS_OCTETS    ( 4U )
+#define socketMAX_IP_ADDRESS_OCTETS ( 4U )
 
 /* Just make sure the contents doesn't get compiled if IPv4 is not enabled. */
 /* *INDENT-OFF* */
-    #if( ipconfigUSE_IPv4 != 0 )
+#if( ipconfigUSE_IPv4 != 0 )
 /* *INDENT-ON* */
 
 /**
- * @brief This function converts the character string pcSource into a network address
- *        structure, then copies the network address structure to pvDestination.
- *        pvDestination is written in network byte order.
+ * @brief This function converts the character string pcSource into a network
+ * address structure, then copies the network address structure to
+ * pvDestination. pvDestination is written in network byte order.
  *
  * @param[in] pcSource The character string in holding the IP address.
- * @param[out] pvDestination The returned network address in 32-bit network-endian format.
+ * @param[out] pvDestination The returned network address in 32-bit
+ * network-endian format.
  *
  * @return pdPASS if the translation was successful or else pdFAIL.
  */
-BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
-                                void * pvDestination )
+BaseType_t FreeRTOS_inet_pton4( const char * pcSource, void * pvDestination )
 {
     const uint32_t ulDecimalBase = 10U;
     uint8_t ucOctet[ socketMAX_IP_ADDRESS_OCTETS ];
@@ -80,16 +80,19 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     ( void ) memset( pvDestination, 0, sizeof( ulReturn ) );
 
     /* Translate "192.168.2.100" to a 32-bit number, network-endian. */
-    for( uxOctetNumber = 0U; uxOctetNumber < socketMAX_IP_ADDRESS_OCTETS; uxOctetNumber++ )
+    for( uxOctetNumber = 0U; uxOctetNumber < socketMAX_IP_ADDRESS_OCTETS;
+         uxOctetNumber++ )
     {
         ulValue = 0U;
 
         if( pcIPAddress[ 0 ] == '0' )
         {
-            /* Test for the sequence "0[0-9]", which would make it an octal representation. */
+            /* Test for the sequence "0[0-9]", which would make it an octal
+             * representation. */
             if( ( pcIPAddress[ 1 ] >= '0' ) && ( pcIPAddress[ 1 ] <= '9' ) )
             {
-                FreeRTOS_printf( ( "Octal representation of IP-addresses is not supported." ) );
+                FreeRTOS_printf( ( "Octal representation of IP-addresses is "
+                                   "not supported." ) );
                 /* Don't support octal numbers. */
                 xResult = pdFAIL;
                 break;
@@ -165,7 +168,10 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
     if( xResult == pdPASS )
     {
         /* lint: ucOctet has been set because xResult == pdPASS. */
-        ulReturn = FreeRTOS_inet_addr_quick( ucOctet[ 0 ], ucOctet[ 1 ], ucOctet[ 2 ], ucOctet[ 3 ] );
+        ulReturn = FreeRTOS_inet_addr_quick( ucOctet[ 0 ],
+                                             ucOctet[ 1 ],
+                                             ucOctet[ 2 ],
+                                             ucOctet[ 3 ] );
     }
     else
     {
@@ -183,17 +189,19 @@ BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Convert the 32-bit representation of the IP-address to the dotted decimal format.
+ * @brief Convert the 32-bit representation of the IP-address to the dotted
+ * decimal format.
  *
- * @param[in] pvSource The pointer to the 32-bit representation of the IP-address.
- * @param[out] pcDestination The pointer to a character array where the string of the
- *                           dotted decimal IP format.
- * @param[in] uxSize Size of the character array. This value makes sure that the code
- *                    doesn't write beyond it's bounds.
+ * @param[in] pvSource The pointer to the 32-bit representation of the
+ * IP-address.
+ * @param[out] pcDestination The pointer to a character array where the string
+ * of the dotted decimal IP format.
+ * @param[in] uxSize Size of the character array. This value makes sure that the
+ * code doesn't write beyond it's bounds.
  *
- * @return The pointer to the string holding the dotted decimal format of the IP-address. If
- *         everything passes correctly, then the pointer being returned is the same as
- *         pcDestination, else a NULL is returned.
+ * @return The pointer to the string holding the dotted decimal format of the
+ * IP-address. If everything passes correctly, then the pointer being returned
+ * is the same as pcDestination, else a NULL is returned.
  */
 const char * FreeRTOS_inet_ntop4( const void * pvSource,
                                   char * pcDestination,
@@ -226,19 +234,23 @@ const char * FreeRTOS_inet_ntop4( const void * pvSource,
  * @param[in] pxDestinationAddress The IPv4 socket address.
  * @return  Returns NULL, always.
  */
-void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                              const struct freertos_sockaddr * pxDestinationAddress )
+void * xSend_UDP_Update_IPv4(
+    NetworkBufferDescriptor_t * pxNetworkBuffer,
+    const struct freertos_sockaddr * pxDestinationAddress )
 {
     UDPPacket_t * pxUDPPacket;
 
     if( ( pxNetworkBuffer != NULL ) && ( pxDestinationAddress != NULL ) )
     {
         /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at:
+         * https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113
+         */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-        pxNetworkBuffer->xIPAddress.ulIP_IPv4 = pxDestinationAddress->sin_address.ulIP_IPv4;
+        pxNetworkBuffer->xIPAddress.ulIP_IPv4 = pxDestinationAddress
+                                                    ->sin_address.ulIP_IPv4;
         /* Map the UDP packet onto the start of the frame. */
         pxUDPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
     }
@@ -261,7 +273,8 @@ size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
     if( ( pxNetworkBuffer != NULL ) && ( pxSourceAddress != NULL ) )
     {
         pxSourceAddress->sin_family = ( uint8_t ) FREERTOS_AF_INET;
-        pxSourceAddress->sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+        pxSourceAddress->sin_address.ulIP_IPv4 = pxNetworkBuffer->xIPAddress
+                                                     .ulIP_IPv4;
         pxSourceAddress->sin_port = pxNetworkBuffer->usPort;
     }
 
@@ -273,5 +286,5 @@ size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
 /*-----------------------------------------------------------*/
 
 /* *INDENT-OFF* */
-    #endif /* ipconfigUSE_IPv4 != 0 ) */
+#endif /* ipconfigUSE_IPv4 != 0 ) */
 /* *INDENT-ON* */

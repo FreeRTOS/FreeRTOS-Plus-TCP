@@ -9,22 +9,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -37,27 +38,27 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_DNS.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_DNS.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Routing.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "phyHandling.h"
-#include "FreeRTOS_Routing.h"
 
 #include "stm32fxx_hal_eth.h"
 
 /* ST includes. */
 #if defined( STM32F7xx )
     #include "stm32f7xx_hal.h"
-    #define CACHE_LINE_SIZE    32u
+    #define CACHE_LINE_SIZE 32u
 #elif defined( STM32F4xx )
     #include "stm32f4xx_hal.h"
 #elif defined( STM32F2xx )
@@ -68,17 +69,18 @@
     #error What part?
 #endif /* if defined( STM32F7xx ) */
 
-
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future
  * expansion. */
-#define EMAC_IF_RX_EVENT        1UL
-#define EMAC_IF_TX_EVENT        2UL
-#define EMAC_IF_ERR_EVENT       4UL
-#define EMAC_IF_ALL_EVENT       ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
+#define EMAC_IF_RX_EVENT  1UL
+#define EMAC_IF_TX_EVENT  2UL
+#define EMAC_IF_ERR_EVENT 4UL
+#define EMAC_IF_ALL_EVENT \
+    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
 /* Calculate the maximum packet size that the DMA can receive. */
-#define EMAC_DMA_BUFFER_SIZE    ( ( uint32_t ) ( ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING ) )
+#define EMAC_DMA_BUFFER_SIZE \
+    ( ( uint32_t ) ( ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING ) )
 
 #define ETH_DMA_ALL_INTS                                                  \
     ( ETH_DMA_IT_TST | ETH_DMA_IT_PMT | ETH_DMA_IT_MMC | ETH_DMA_IT_NIS | \
@@ -87,21 +89,22 @@
       ETH_DMA_IT_RO | ETH_DMA_IT_TJT | ETH_DMA_IT_TPS | ETH_DMA_IT_T )
 
 #ifndef NETWORK_BUFFER_HEADER_SIZE
-    #define NETWORK_BUFFER_HEADER_SIZE    ( ipBUFFER_PADDING )
+    #define NETWORK_BUFFER_HEADER_SIZE ( ipBUFFER_PADDING )
 #endif
 
 #ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
+    #define niEMAC_HANDLER_TASK_PRIORITY configMAX_PRIORITIES - 1
 #endif
 
-#if ( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+#if( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || \
+     ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
+    #if( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning Consider enabling checksum offloading
     #endif
 #endif
 
 #ifndef niDESCRIPTOR_WAIT_TIME_MS
-    #define niDESCRIPTOR_WAIT_TIME_MS    250uL
+    #define niDESCRIPTOR_WAIT_TIME_MS 250uL
 #endif
 
 /*
@@ -113,54 +116,55 @@
 
 #if !defined( ipconfigETHERNET_AN_ENABLE )
     /* Enable auto-negotiation */
-    #define ipconfigETHERNET_AN_ENABLE    1
+    #define ipconfigETHERNET_AN_ENABLE 1
 #endif
 
 #if !defined( ipconfigETHERNET_AUTO_CROSS_ENABLE )
-    #define ipconfigETHERNET_AUTO_CROSS_ENABLE    1
+    #define ipconfigETHERNET_AUTO_CROSS_ENABLE 1
 #endif
 
-#if ( ipconfigETHERNET_AN_ENABLE == 0 )
+#if( ipconfigETHERNET_AN_ENABLE == 0 )
 
 /*
  * The following three defines are only used in case there
  * is no auto-negotiation.
  */
     #if !defined( ipconfigETHERNET_CROSSED_LINK )
-        #define ipconfigETHERNET_CROSSED_LINK    1
+        #define ipconfigETHERNET_CROSSED_LINK 1
     #endif
 
     #if !defined( ipconfigETHERNET_USE_100MB )
-        #define ipconfigETHERNET_USE_100MB    1
+        #define ipconfigETHERNET_USE_100MB 1
     #endif
 
     #if !defined( ipconfigETHERNET_USE_FULL_DUPLEX )
-        #define ipconfigETHERNET_USE_FULL_DUPLEX    1
+        #define ipconfigETHERNET_USE_FULL_DUPLEX 1
     #endif
 #endif /* ipconfigETHERNET_AN_ENABLE == 0 */
 
 /* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
+ * the size of the stack used by the idle task - but allow this to be overridden
+ * in FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant.
+ */
 #ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
+    #define configEMAC_TASK_STACK_SIZE ( 2 * configMINIMAL_STACK_SIZE )
 #endif
 
 /* Two choices must be made: RMII versus MII,
  * and the index of the PHY in use ( between 0 and 31 ). */
 #ifndef ipconfigUSE_RMII
     #ifdef STM32F7xx
-        #define ipconfigUSE_RMII    1
-        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #define ipconfigUSE_RMII 1
+        #if( ipconfigPORT_SUPPRESS_WARNING == 0 )
             #warning Using RMII, make sure if this is correct
         #endif
     #else
-        #define ipconfigUSE_RMII    0
-        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #define ipconfigUSE_RMII 0
+        #if( ipconfigPORT_SUPPRESS_WARNING == 0 )
             #warning Using MII, make sure if this is correct
         #endif
     #endif /* STM32F7xx */
-#endif /* ipconfigUSE_RMII */
+#endif     /* ipconfigUSE_RMII */
 
 typedef enum
 {
@@ -188,7 +192,6 @@ static void prvEthernetUpdateConfig( BaseType_t xForce );
  */
 static BaseType_t prvNetworkInterfaceInput( void );
 
-
 /*
  * For LLMNR, an extra MAC-address must be configured to
  * be able to receive the multicast messages.
@@ -206,16 +209,19 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
  * will be stored in struct NetworkInterface_t.  The latter will be done in
  * the function pxSTM32Fxx_FillInterfaceDescriptor(). */
 
-static BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xSTM32F_NetworkInterfaceInitialise(
+    NetworkInterface_t * pxInterface );
 
-static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                  NetworkBufferDescriptor_t * const pxBuffer,
-                                                  BaseType_t bReleaseAfterSend );
+static BaseType_t xSTM32F_NetworkInterfaceOutput(
+    NetworkInterface_t * pxInterface,
+    NetworkBufferDescriptor_t * const pxBuffer,
+    BaseType_t bReleaseAfterSend );
 
 static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface );
+NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface );
 
 /*
  * Check if a given packet should be accepted.
@@ -238,12 +244,15 @@ static void vClearTXBuffers( void );
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_LLMNR == 1 )
-    static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+#if( ipconfigUSE_LLMNR == 1 )
+static const uint8_t xLLMNR_MACAddress[] = {
+    0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC
+};
 #endif
 
-#if ( ipconfigUSE_MDNS == 1 )
-    static const uint8_t xMDNS_MACAddressIPv4[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
+#if( ipconfigUSE_MDNS == 1 )
+static const uint8_t xMDNS_MACAddressIPv4[] = { 0x01, 0x00, 0x5e,
+                                                0x00, 0x00, 0xfb };
 #endif
 
 static EthernetPhy_t xPhyObject;
@@ -278,25 +287,25 @@ static SemaphoreHandle_t xTXDescriptorSemaphore = NULL;
 /* Ethernet Rx MA Descriptor */
 __attribute__( ( aligned( 32 ) ) )
 #if defined( STM32F7xx )
-    __attribute__( ( section( ".first_data" ) ) )
+__attribute__( ( section( ".first_data" ) ) )
 #endif
 ETH_DMADescTypeDef DMARxDscrTab[ ETH_RXBUFNB ];
 
-#if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
-    /* Ethernet Receive Buffer */
-    __ALIGN_BEGIN uint8_t Rx_Buff[ ETH_RXBUFNB ][ ETH_RX_BUF_SIZE ] __ALIGN_END;
+#if( ipconfigZERO_COPY_RX_DRIVER == 0 )
+/* Ethernet Receive Buffer */
+__ALIGN_BEGIN uint8_t Rx_Buff[ ETH_RXBUFNB ][ ETH_RX_BUF_SIZE ] __ALIGN_END;
 #endif
 
 /* Ethernet Tx DMA Descriptor */
 __attribute__( ( aligned( 32 ) ) )
 #if defined( STM32F7xx )
-    __attribute__( ( section( ".first_data" ) ) )
+__attribute__( ( section( ".first_data" ) ) )
 #endif
 ETH_DMADescTypeDef DMATxDscrTab[ ETH_TXBUFNB ];
 
-#if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
-    /* Ethernet Transmit Buffer */
-    __ALIGN_BEGIN uint8_t Tx_Buff[ ETH_TXBUFNB ][ ETH_TX_BUF_SIZE ] __ALIGN_END;
+#if( ipconfigZERO_COPY_TX_DRIVER == 0 )
+/* Ethernet Transmit Buffer */
+__ALIGN_BEGIN uint8_t Tx_Buff[ ETH_TXBUFNB ][ ETH_TX_BUF_SIZE ] __ALIGN_END;
 #endif
 
 /* DMATxDescToClear points to the next TX DMA descriptor
@@ -306,37 +315,37 @@ static __IO ETH_DMADescTypeDef * DMATxDescToClear;
 static NetworkInterface_t * pxMyInterface = NULL;
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
- * handle is used so direct notifications can be sent to the task for all EMAC/DMA
- * related interrupts. */
+ * handle is used so direct notifications can be sent to the task for all
+ * EMAC/DMA related interrupts. */
 static TaskHandle_t xEMACTaskHandle = NULL;
 
 /* For local use only: describe the PHY's properties: */
-const PhyProperties_t xPHYProperties =
-{
-    #if ( ipconfigETHERNET_AN_ENABLE != 0 )
-        .ucSpeed      = PHY_SPEED_AUTO,
-        .ucDuplex     = PHY_DUPLEX_AUTO,
+const PhyProperties_t xPHYProperties = {
+#if( ipconfigETHERNET_AN_ENABLE != 0 )
+    .ucSpeed = PHY_SPEED_AUTO,
+    .ucDuplex = PHY_DUPLEX_AUTO,
+#else
+    #if( ipconfigETHERNET_USE_100MB != 0 )
+    .ucSpeed = PHY_SPEED_100,
     #else
-        #if ( ipconfigETHERNET_USE_100MB != 0 )
-            .ucSpeed  = PHY_SPEED_100,
-        #else
-            .ucSpeed  = PHY_SPEED_10,
-        #endif
-
-        #if ( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
-            .ucDuplex = PHY_DUPLEX_FULL,
-        #else
-            .ucDuplex = PHY_DUPLEX_HALF,
-        #endif
-    #endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
-
-    #if ( ipconfigETHERNET_AN_ENABLE != 0 ) && ( ipconfigETHERNET_AUTO_CROSS_ENABLE != 0 )
-        .ucMDI_X      = PHY_MDIX_AUTO,
-    #elif ( ipconfigETHERNET_CROSSED_LINK != 0 )
-        .ucMDI_X      = PHY_MDIX_CROSSED,
-    #else
-        .ucMDI_X      = PHY_MDIX_DIRECT,
+    .ucSpeed = PHY_SPEED_10,
     #endif
+
+    #if( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
+    .ucDuplex = PHY_DUPLEX_FULL,
+    #else
+    .ucDuplex = PHY_DUPLEX_HALF,
+    #endif
+#endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+
+#if( ipconfigETHERNET_AN_ENABLE != 0 ) && \
+    ( ipconfigETHERNET_AUTO_CROSS_ENABLE != 0 )
+    .ucMDI_X = PHY_MDIX_AUTO,
+#elif( ipconfigETHERNET_CROSSED_LINK != 0 )
+    .ucMDI_X = PHY_MDIX_CROSSED,
+#else
+    .ucMDI_X = PHY_MDIX_DIRECT,
+#endif
 };
 
 /*-----------------------------------------------------------*/
@@ -350,20 +359,25 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                     NetworkBufferDescriptor_t * const pxBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
-    return xSTM32F_NetworkInterfaceOutput( pxInterface, pxBuffer, bReleaseAfterSend );
+    return xSTM32F_NetworkInterfaceOutput( pxInterface,
+                                           pxBuffer,
+                                           bReleaseAfterSend );
 }
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && \
+    ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
-/* Do not call the following function directly. It is there for downward compatibility.
- * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
- * objects.  See the description in FreeRTOS_Routing.h. */
+/* Do not call the following function directly. It is there for downward
+ * compatibility. The function FreeRTOS_IPInit() will call it to initialice the
+ * interface and end-point objects.  See the description in FreeRTOS_Routing.h.
+ */
 
-    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                    NetworkInterface_t * pxInterface )
-    {
-        return pxSTM32Fxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
-    }
+NetworkInterface_t * pxFillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface )
+{
+    return pxSTM32Fxx_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+}
 
 #endif
 
@@ -381,7 +395,10 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * heth )
     /* Pass an RX-event and wakeup the prvEMACHandlerTask. */
     if( xEMACTaskHandle != NULL )
     {
-        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_RX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
+        xTaskNotifyFromISR( xEMACTaskHandle,
+                            EMAC_IF_RX_EVENT,
+                            eSetBits,
+                            &( xHigherPriorityTaskWoken ) );
         portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
     }
 }
@@ -396,7 +413,10 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
     /* Pass a TX-event and wakeup the prvEMACHandlerTask. */
     if( xEMACTaskHandle != NULL )
     {
-        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_TX_EVENT, eSetBits, &( xHigherPriorityTaskWoken ) );
+        xTaskNotifyFromISR( xEMACTaskHandle,
+                            EMAC_IF_TX_EVENT,
+                            eSetBits,
+                            &( xHigherPriorityTaskWoken ) );
         portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
     }
 }
@@ -405,46 +425,52 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
 static void vClearTXBuffers()
 {
     __IO ETH_DMADescTypeDef * txLastDescriptor = xETH.TxDesc;
-    size_t uxCount = ( ( UBaseType_t ) ETH_TXBUFNB ) - uxSemaphoreGetCount( xTXDescriptorSemaphore );
+    size_t uxCount = ( ( UBaseType_t ) ETH_TXBUFNB ) -
+                     uxSemaphoreGetCount( xTXDescriptorSemaphore );
 
-    #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-        NetworkBufferDescriptor_t * pxNetworkBuffer;
-        uint8_t * ucPayLoad;
-    #endif
+#if( ipconfigZERO_COPY_TX_DRIVER != 0 )
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    uint8_t * ucPayLoad;
+#endif
 
     /* This function is called after a TX-completion interrupt.
      * It will release each Network Buffer used in xNetworkInterfaceOutput().
-     * 'uxCount' represents the number of descriptors given to DMA for transmission.
-     * After sending a packet, the DMA will clear the 'ETH_DMATXDESC_OWN' bit. */
-    while( ( uxCount > 0 ) && ( ( DMATxDescToClear->Status & ETH_DMATXDESC_OWN ) == 0 ) )
+     * 'uxCount' represents the number of descriptors given to DMA for
+     * transmission. After sending a packet, the DMA will clear the
+     * 'ETH_DMATXDESC_OWN' bit. */
+    while( ( uxCount > 0 ) &&
+           ( ( DMATxDescToClear->Status & ETH_DMATXDESC_OWN ) == 0 ) )
     {
-        if( ( DMATxDescToClear == txLastDescriptor ) && ( uxCount != ETH_TXBUFNB ) )
+        if( ( DMATxDescToClear == txLastDescriptor ) &&
+            ( uxCount != ETH_TXBUFNB ) )
         {
             break;
         }
 
-        #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+#if( ipconfigZERO_COPY_TX_DRIVER != 0 )
+        {
+            ucPayLoad = ( uint8_t * ) DMATxDescToClear->Buffer1Addr;
+
+            if( ucPayLoad != NULL )
             {
-                ucPayLoad = ( uint8_t * ) DMATxDescToClear->Buffer1Addr;
+                pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
 
-                if( ucPayLoad != NULL )
+                if( pxNetworkBuffer != NULL )
                 {
-                    pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
-
-                    if( pxNetworkBuffer != NULL )
-                    {
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    }
-
-                    DMATxDescToClear->Buffer1Addr = ( uint32_t ) 0u;
+                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                 }
-            }
-        #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
-        DMATxDescToClear = ( ETH_DMADescTypeDef * ) ( DMATxDescToClear->Buffer2NextDescAddr );
+                DMATxDescToClear->Buffer1Addr = ( uint32_t ) 0u;
+            }
+        }
+#endif /* ipconfigZERO_COPY_TX_DRIVER */
+
+        DMATxDescToClear = ( ETH_DMADescTypeDef * ) ( DMATxDescToClear
+                                                          ->Buffer2NextDescAddr );
 
         uxCount--;
-        /* Tell the counting semaphore that one more TX descriptor is available. */
+        /* Tell the counting semaphore that one more TX descriptor is available.
+         */
         xSemaphoreGive( xTXDescriptorSemaphore );
     }
 }
@@ -456,11 +482,14 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     BaseType_t xResult;
     NetworkEndPoint_t * pxEndPoint;
 
-    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
+    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for
+                                                the primary MAC-address. */
 
     if( xMacInitStatus == eMACInit )
     {
-        xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ETH_TXBUFNB, ( UBaseType_t ) ETH_TXBUFNB );
+        xTXDescriptorSemaphore = xSemaphoreCreateCounting(
+            ( UBaseType_t ) ETH_TXBUFNB,
+            ( UBaseType_t ) ETH_TXBUFNB );
 
         if( xTXDescriptorSemaphore == NULL )
         {
@@ -483,28 +512,28 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             xETH.Init.MACAddr = ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes;
             xETH.Init.RxMode = ETH_RXINTERRUPT_MODE;
 
-            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
-                {
-                    /* using the ETH_CHECKSUM_BY_HARDWARE option:
-                     * both the IP and the protocol checksums will be calculated
-                     * by the peripheral. */
-                    xETH.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
-                }
-            #else
-                {
-                    xETH.Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
-                }
-            #endif
+#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+            {
+                /* using the ETH_CHECKSUM_BY_HARDWARE option:
+                 * both the IP and the protocol checksums will be calculated
+                 * by the peripheral. */
+                xETH.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
+            }
+#else
+            {
+                xETH.Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
+            }
+#endif
 
-            #if ( ipconfigUSE_RMII != 0 )
-                {
-                    xETH.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
-                }
-            #else
-                {
-                    xETH.Init.MediaInterface = ETH_MEDIA_INTERFACE_MII;
-                }
-            #endif /* ipconfigUSE_RMII */
+#if( ipconfigUSE_RMII != 0 )
+            {
+                xETH.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
+            }
+#else
+            {
+                xETH.Init.MediaInterface = ETH_MEDIA_INTERFACE_MII;
+            }
+#endif /* ipconfigUSE_RMII */
 
             hal_eth_init_status = HAL_ETH_Init( &xETH );
 
@@ -528,90 +557,116 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             /* Initialise RX-descriptors. */
             prvDMARxDescListInit();
 
-            #if ( ipconfigUSE_MDNS == 1 )
-                {
-                    /* Program the MDNS address. */
-                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv4 );
-                    xMACEntry += 8;
-                }
-            #endif
-            #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-                {
-                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
-                    xMACEntry += 8;
-                }
-            #endif
-            #if ( ipconfigUSE_LLMNR == 1 )
-                {
-                    /* Program the LLMNR address. */
-                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MACAddress );
-                    xMACEntry += 8;
-                }
-            #endif
-            #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-                {
-                    prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
-                    xMACEntry += 8;
-                }
-            #endif
+#if( ipconfigUSE_MDNS == 1 )
+            {
+                /* Program the MDNS address. */
+                prvMACAddressConfig( &xETH,
+                                     xMACEntry,
+                                     ( uint8_t * ) xMDNS_MACAddressIPv4 );
+                xMACEntry += 8;
+            }
+#endif
+#if( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            {
+                prvMACAddressConfig( &xETH,
+                                     xMACEntry,
+                                     ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+                xMACEntry += 8;
+            }
+#endif
+#if( ipconfigUSE_LLMNR == 1 )
+            {
+                /* Program the LLMNR address. */
+                prvMACAddressConfig( &xETH,
+                                     xMACEntry,
+                                     ( uint8_t * ) xLLMNR_MACAddress );
+                xMACEntry += 8;
+            }
+#endif
+#if( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            {
+                prvMACAddressConfig( &xETH,
+                                     xMACEntry,
+                                     ( uint8_t * )
+                                         xLLMNR_MacAdressIPv6.ucBytes );
+                xMACEntry += 8;
+            }
+#endif
 
             {
-                /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
-                for( ;
-                     pxEndPoint != NULL;
-                     pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
+                /* The EMAC address of the first end-point has been registered
+                 * in HAL_ETH_Init(). */
+                for( ; pxEndPoint != NULL;
+                     pxEndPoint =
+                         FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
                 {
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                        {
-                            uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
-
-                            ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                            ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                            ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                            prvMACAddressConfig( &xETH, xMACEntry, ucMACAddress );
-                            xMACEntry += 8;
-                        }
-                        else
-                    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-                        {
-                            if( xETH.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
-                            {
-                                prvMACAddressConfig( &xETH, xMACEntry, pxEndPoint->xMACAddress.ucBytes );
-                                xMACEntry += 8;
-                            }
-                        }
-                    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
-                    if( xMACEntry > ( BaseType_t ) ETH_MAC_ADDRESS3 )
+#if( ipconfigUSE_IPv6 != 0 )
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                     {
-                        /* No more locations available. */
-                        break;
-                    }
-                }
-            }
-            #if ( ipconfigUSE_IPv6 != 0 )
-                {
-                    if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
-                    {
-                        /* 33:33:00:00:00:01 */
-                        uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+                        uint8_t ucMACAddress[ 6 ] = {
+                            0x33, 0x33, 0xff, 0, 0, 0
+                        };
 
+                        ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress
+                                                .ucBytes[ 13 ];
+                        ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress
+                                                .ucBytes[ 14 ];
+                        ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress
+                                                .ucBytes[ 15 ];
                         prvMACAddressConfig( &xETH, xMACEntry, ucMACAddress );
                         xMACEntry += 8;
                     }
+                    else
+#else  /* if ( ipconfigUSE_IPv6 != 0 ) */
+                    {
+                        if( xETH.Init.MACAddr !=
+                            ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
+                        {
+                            prvMACAddressConfig( &xETH,
+                                                 xMACEntry,
+                                                 pxEndPoint->xMACAddress
+                                                     .ucBytes );
+                            xMACEntry += 8;
+                        }
+                    }
+#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+                        if( xMACEntry > ( BaseType_t ) ETH_MAC_ADDRESS3 )
+                        {
+                            /* No more locations available. */
+                            break;
+                        }
                 }
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            }
+#if( ipconfigUSE_IPv6 != 0 )
+            {
+                if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
+                {
+                    /* 33:33:00:00:00:01 */
+                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+
+                    prvMACAddressConfig( &xETH, xMACEntry, ucMACAddress );
+                    xMACEntry += 8;
+                }
+            }
+#endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
             /* Force a negotiation with the Switch or Router and wait for LS. */
             prvEthernetUpdateConfig( pdTRUE );
 
             /* The deferred interrupt handler task is created at the highest
-             * possible priority to ensure the interrupt handler can return directly
-             * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
-             * notify the task when there is something to process. */
-            if( xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle ) == pdPASS )
+             * possible priority to ensure the interrupt handler can return
+             * directly to it.  The task's handle is stored in xEMACTaskHandle
+             * so interrupts can notify the task when there is something to
+             * process. */
+            if( xTaskCreate( prvEMACHandlerTask,
+                             "EMAC",
+                             configEMAC_TASK_STACK_SIZE,
+                             NULL,
+                             niEMAC_HANDLER_TASK_PRIORITY,
+                             &xEMACTaskHandle ) == pdPASS )
             {
-                /* The xTXDescriptorSemaphore and the task are created successfully. */
+                /* The xTXDescriptorSemaphore and the task are created
+                 * successfully. */
                 xMacInitStatus = eMACPass;
             }
             else
@@ -636,8 +691,9 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
         }
         else
         {
-            /* For now pdFAIL will be returned. But prvEMACHandlerTask() is running
-             * and it will keep on checking the PHY and set 'ulLinkStatusMask' when necessary. */
+            /* For now pdFAIL will be returned. But prvEMACHandlerTask() is
+             * running and it will keep on checking the PHY and set
+             * 'ulLinkStatusMask' when necessary. */
             xResult = pdFAIL;
         }
     }
@@ -662,32 +718,38 @@ static void prvDMATxDescListInit()
         /* Set Second Address Chained bit */
         pxDMADescriptor->Status = ETH_DMATXDESC_TCH;
 
-        #if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
-            {
-                /* Set Buffer1 address pointer */
-                pxDMADescriptor->Buffer1Addr = ( uint32_t ) ( Tx_Buff[ xIndex ] );
-            }
-        #endif
+#if( ipconfigZERO_COPY_TX_DRIVER == 0 )
+        {
+            /* Set Buffer1 address pointer */
+            pxDMADescriptor->Buffer1Addr = ( uint32_t ) ( Tx_Buff[ xIndex ] );
+        }
+#endif
 
         if( xETH.Init.ChecksumMode == ETH_CHECKSUM_BY_HARDWARE )
         {
-            /* Set the DMA Tx descriptors checksum insertion for TCP, UDP, and ICMP */
+            /* Set the DMA Tx descriptors checksum insertion for TCP, UDP, and
+             * ICMP */
             pxDMADescriptor->Status |= ETH_DMATXDESC_CHECKSUMTCPUDPICMPFULL;
         }
         else
         {
-            pxDMADescriptor->Status &= ~( ( uint32_t ) ETH_DMATXDESC_CHECKSUMTCPUDPICMPFULL );
+            pxDMADescriptor->Status &= ~(
+                ( uint32_t ) ETH_DMATXDESC_CHECKSUMTCPUDPICMPFULL );
         }
 
-        /* Initialize the next descriptor with the Next Descriptor Polling Enable */
+        /* Initialize the next descriptor with the Next Descriptor Polling
+         * Enable */
         if( xIndex < ETH_TXBUFNB - 1 )
         {
-            /* Set next descriptor address register with next descriptor base address */
-            pxDMADescriptor->Buffer2NextDescAddr = ( uint32_t ) ( pxDMADescriptor + 1 );
+            /* Set next descriptor address register with next descriptor base
+             * address */
+            pxDMADescriptor
+                ->Buffer2NextDescAddr = ( uint32_t ) ( pxDMADescriptor + 1 );
         }
         else
         {
-            /* For last descriptor, set next descriptor address register equal to the first descriptor base address */
+            /* For last descriptor, set next descriptor address register equal
+             * to the first descriptor base address */
             pxDMADescriptor->Buffer2NextDescAddr = ( uint32_t ) DMATxDscrTab;
         }
     }
@@ -713,43 +775,51 @@ static void prvDMARxDescListInit()
     for( xIndex = 0; xIndex < ETH_RXBUFNB; xIndex++, pxDMADescriptor++ )
     {
         /* Set Buffer1 size and Second Address Chained bit */
-        pxDMADescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | EMAC_DMA_BUFFER_SIZE;
+        pxDMADescriptor->ControlBufferSize = ETH_DMARXDESC_RCH |
+                                             EMAC_DMA_BUFFER_SIZE;
 
-        #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+#if( ipconfigZERO_COPY_RX_DRIVER != 0 )
+        {
+            /* Set Buffer1 address pointer */
+            NetworkBufferDescriptor_t * pxBuffer;
+
+            pxBuffer = pxGetNetworkBufferWithDescriptor( EMAC_DMA_BUFFER_SIZE,
+                                                         100ul );
+
+            /* If the assert below fails, make sure that there are at least
+             * 'ETH_RXBUFNB' Network Buffers available during start-up (
+             * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) */
+            configASSERT( pxBuffer != NULL );
+
+            if( pxBuffer != NULL )
             {
-                /* Set Buffer1 address pointer */
-                NetworkBufferDescriptor_t * pxBuffer;
-
-                pxBuffer = pxGetNetworkBufferWithDescriptor( EMAC_DMA_BUFFER_SIZE, 100ul );
-
-                /* If the assert below fails, make sure that there are at least 'ETH_RXBUFNB'
-                 * Network Buffers available during start-up ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ) */
-                configASSERT( pxBuffer != NULL );
-
-                if( pxBuffer != NULL )
-                {
-                    pxDMADescriptor->Buffer1Addr = ( uint32_t ) pxBuffer->pucEthernetBuffer;
-                    pxDMADescriptor->Status = ETH_DMARXDESC_OWN;
-                }
-            }
-        #else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
-            {
-                /* Set Buffer1 address pointer */
-                pxDMADescriptor->Buffer1Addr = ( uint32_t ) ( Rx_Buff[ xIndex ] );
-                /* Set Own bit of the Rx descriptor Status */
+                pxDMADescriptor->Buffer1Addr = ( uint32_t )
+                                                   pxBuffer->pucEthernetBuffer;
                 pxDMADescriptor->Status = ETH_DMARXDESC_OWN;
             }
-        #endif /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+        }
+#else  /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+        {
+            /* Set Buffer1 address pointer */
+            pxDMADescriptor->Buffer1Addr = ( uint32_t ) ( Rx_Buff[ xIndex ] );
+            /* Set Own bit of the Rx descriptor Status */
+            pxDMADescriptor->Status = ETH_DMARXDESC_OWN;
+        }
+#endif /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 
-        /* Initialize the next descriptor with the Next Descriptor Polling Enable */
+        /* Initialize the next descriptor with the Next Descriptor Polling
+         * Enable */
         if( xIndex < ETH_RXBUFNB - 1 )
         {
-            /* Set next descriptor address register with next descriptor base address */
-            pxDMADescriptor->Buffer2NextDescAddr = ( uint32_t ) ( pxDMADescriptor + 1 );
+            /* Set next descriptor address register with next descriptor base
+             * address */
+            pxDMADescriptor
+                ->Buffer2NextDescAddr = ( uint32_t ) ( pxDMADescriptor + 1 );
         }
         else
         {
-            /* For last descriptor, set next descriptor address register equal to the first descriptor base address */
+            /* For last descriptor, set next descriptor address register equal
+             * to the first descriptor base address */
             pxDMADescriptor->Buffer2NextDescAddr = ( uint32_t ) DMARxDscrTab;
         }
     }
@@ -758,7 +828,6 @@ static void prvDMARxDescListInit()
     xETH.Instance->DMARDLAR = ( uint32_t ) DMARxDscrTab;
 }
 /*-----------------------------------------------------------*/
-
 
 static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
                                  uint32_t ulIndex,
@@ -769,31 +838,38 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
     ( void ) heth;
 
     /* Calculate the selected MAC address high register. */
-    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+    ulTempReg = 0x80000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) |
+                ( uint32_t ) Addr[ 4 ];
 
     /* Load the selected MAC address high register. */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE +
+                                            ulIndex ) ) ) = ulTempReg;
 
     /* Calculate the selected MAC address low register. */
-    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) |
+                ( ( uint32_t ) Addr[ 2 ] << 16 ) |
+                ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
 
     /* Load the selected MAC address low register */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE +
+                                            ulIndex ) ) ) = ulTempReg;
 }
 
 /*-----------------------------------------------------------*/
 
-static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                  NetworkBufferDescriptor_t * const pxDescriptor,
-                                                  BaseType_t bReleaseAfterSend )
+static BaseType_t xSTM32F_NetworkInterfaceOutput(
+    NetworkInterface_t * pxInterface,
+    NetworkBufferDescriptor_t * const pxDescriptor,
+    BaseType_t bReleaseAfterSend )
 {
     BaseType_t xReturn = pdFAIL;
     uint32_t ulTransmitSize = 0;
     __IO ETH_DMADescTypeDef * pxDmaTxDesc;
-/* Do not wait too long for a free TX DMA buffer. */
+    /* Do not wait too long for a free TX DMA buffer. */
     const TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 50u );
 
-    /* As there is only a single instance of the EMAC, there is only one pxInterface object. */
+    /* As there is only a single instance of the EMAC, there is only one
+     * pxInterface object. */
     ( void ) pxInterface;
 
     /* Open a do {} while ( 0 ) loop to be able to call break. */
@@ -808,52 +884,64 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
             break;
         }
 
-        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+        {
+            const IPPacket_t * pxIPPacket;
+
+            pxIPPacket = ( const IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
+    #if( ipconfigUSE_IPv6 != 0 )
+            if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
             {
-                const IPPacket_t * pxIPPacket;
+                const IPHeader_IPv6_t * pxIPPacket_IPv6;
 
-                pxIPPacket = ( const IPPacket_t * ) pxDescriptor->pucEthernetBuffer;
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                    {
-                        const IPHeader_IPv6_t * pxIPPacket_IPv6;
+                pxIPPacket_IPv6 = ( const IPHeader_IPv6_t * ) &(
+                    pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
 
-                        pxIPPacket_IPv6 = ( const IPHeader_IPv6_t * ) &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-
-                        if( pxIPPacket_IPv6->ucNextHeader == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
-                        {
-                            ICMPHeader_IPv6_t * pxICMPHeader_IPv6;
-
-                            pxICMPHeader_IPv6 = ( ICMPHeader_IPv6_t * ) &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] );
-                            pxICMPHeader_IPv6->usChecksum = 0U;
-                        }
-                    }
-                    else
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
-
-                if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+                if( pxIPPacket_IPv6->ucNextHeader ==
+                    ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
                 {
-                    if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
+                    ICMPHeader_IPv6_t * pxICMPHeader_IPv6;
+
+                    pxICMPHeader_IPv6 = ( ICMPHeader_IPv6_t * ) &(
+                        pxDescriptor
+                            ->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER ] );
+                    pxICMPHeader_IPv6->usChecksum = 0U;
+                }
+            }
+            else
+    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+
+                if( pxIPPacket->xEthernetHeader.usFrameType ==
+                    ipIPv4_FRAME_TYPE )
+                {
+                    if( pxIPPacket->xIPHeader.ucProtocol ==
+                        ( uint8_t ) ipPROTOCOL_ICMP )
                     {
                         ICMPHeader_t * pxICMPHeader;
 
-                        pxICMPHeader = ( ICMPHeader_t * ) &( pxDescriptor->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER ] );
+                        pxICMPHeader = ( ICMPHeader_t * ) &(
+                            pxDescriptor
+                                ->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER +
+                                                     ipSIZE_OF_IPv4_HEADER ] );
                         pxICMPHeader->usChecksum = ( uint16_t ) 0U;
                     }
                 }
-            }
-        #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
+        }
+#endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
         if( xPhyObject.ulLinkStatusMask != 0 )
         {
-            if( xSemaphoreTake( xTXDescriptorSemaphore, xBlockTimeTicks ) != pdPASS )
+            if( xSemaphoreTake( xTXDescriptorSemaphore, xBlockTimeTicks ) !=
+                pdPASS )
             {
                 /* Time-out waiting for a free TX descriptor. */
                 break;
             }
 
-            /* This function does the actual transmission of the packet. The packet is
-             * contained in 'pxDescriptor' that is passed to the function. */
+            /* This function does the actual transmission of the packet. The
+             * packet is contained in 'pxDescriptor' that is passed to the
+             * function. */
             pxDmaTxDesc = xETH.TxDesc;
 
             /* Is this buffer available? */
@@ -869,56 +957,72 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
                     ulTransmitSize = EMAC_DMA_BUFFER_SIZE;
                 }
 
-                #if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
-                    {
-                        /* Copy the bytes. */
-                        memcpy( ( void * ) pxDmaTxDesc->Buffer1Addr, pxDescriptor->pucEthernetBuffer, ulTransmitSize );
-                    }
-                #else
-                    {
-                        configASSERT( bReleaseAfterSend != 0 );
+#if( ipconfigZERO_COPY_TX_DRIVER == 0 )
+                {
+                    /* Copy the bytes. */
+                    memcpy( ( void * ) pxDmaTxDesc->Buffer1Addr,
+                            pxDescriptor->pucEthernetBuffer,
+                            ulTransmitSize );
+                }
+#else
+                {
+                    configASSERT( bReleaseAfterSend != 0 );
 
-                        /* Move the buffer. */
-                        pxDmaTxDesc->Buffer1Addr = ( uint32_t ) pxDescriptor->pucEthernetBuffer;
-                        /* The Network Buffer has been passed to DMA, no need to release it. */
-                        bReleaseAfterSend = pdFALSE_UNSIGNED;
-                    }
-                #endif /* ipconfigZERO_COPY_TX_DRIVER */
+                    /* Move the buffer. */
+                    pxDmaTxDesc->Buffer1Addr = ( uint32_t ) pxDescriptor
+                                                   ->pucEthernetBuffer;
+                    /* The Network Buffer has been passed to DMA, no need to
+                     * release it. */
+                    bReleaseAfterSend = pdFALSE_UNSIGNED;
+                }
+#endif /* ipconfigZERO_COPY_TX_DRIVER */
 
-                /* Ask to set the IPv4 checksum.
-                 * Also need an Interrupt on Completion so that 'vClearTXBuffers()' will be called.. */
-                #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
-                    {
-                        pxDmaTxDesc->Status |= ETH_DMATXDESC_CIC_TCPUDPICMP_FULL | ETH_DMATXDESC_IC;
-                    }
-                #else
-                    {
-                        pxDmaTxDesc->Status &= ~( ( uint32_t ) ETH_DMATXDESC_CIC );
-                        pxDmaTxDesc->Status |= ETH_DMATXDESC_IC;
-                    }
-                #endif
-
+/* Ask to set the IPv4 checksum.
+ * Also need an Interrupt on Completion so that 'vClearTXBuffers()' will be
+ * called.. */
+#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+                {
+                    pxDmaTxDesc->Status |= ETH_DMATXDESC_CIC_TCPUDPICMP_FULL |
+                                           ETH_DMATXDESC_IC;
+                }
+#else
+                {
+                    pxDmaTxDesc->Status &= ~( ( uint32_t ) ETH_DMATXDESC_CIC );
+                    pxDmaTxDesc->Status |= ETH_DMATXDESC_IC;
+                }
+#endif
 
                 /* Prepare transmit descriptors to give to DMA. */
 
                 /* Set LAST and FIRST segment */
                 pxDmaTxDesc->Status |= ETH_DMATXDESC_FS | ETH_DMATXDESC_LS;
                 /* Set frame size */
-                pxDmaTxDesc->ControlBufferSize = ( ulTransmitSize & ETH_DMATXDESC_TBS1 );
+                pxDmaTxDesc->ControlBufferSize = ( ulTransmitSize &
+                                                   ETH_DMATXDESC_TBS1 );
 
-                #if ( NETWORK_BUFFERS_CACHED != 0 )
-                    {
-                        BaseType_t xlength = CACHE_LINE_SIZE * ( ( ulTransmitSize + NETWORK_BUFFER_HEADER_SIZE + CACHE_LINE_SIZE - 1 ) / CACHE_LINE_SIZE );
-                        uint32_t * pulBuffer = ( uint32_t ) ( pxDescriptor->pucEthernetBuffer - NETWORK_BUFFER_HEADER_SIZE );
-                        cache_clean_invalidate_by_addr( pulBuffer, xlength );
-                    }
-                #endif
+#if( NETWORK_BUFFERS_CACHED != 0 )
+                {
+                    BaseType_t xlength = CACHE_LINE_SIZE *
+                                         ( ( ulTransmitSize +
+                                             NETWORK_BUFFER_HEADER_SIZE +
+                                             CACHE_LINE_SIZE - 1 ) /
+                                           CACHE_LINE_SIZE );
+                    uint32_t *
+                        pulBuffer = ( uint32_t ) ( pxDescriptor
+                                                       ->pucEthernetBuffer -
+                                                   NETWORK_BUFFER_HEADER_SIZE );
+                    cache_clean_invalidate_by_addr( pulBuffer, xlength );
+                }
+#endif
 
-                /* Set Own bit of the Tx descriptor Status: gives the buffer back to ETHERNET DMA */
+                /* Set Own bit of the Tx descriptor Status: gives the buffer
+                 * back to ETHERNET DMA */
                 pxDmaTxDesc->Status |= ETH_DMATXDESC_OWN;
 
                 /* Point to next descriptor */
-                xETH.TxDesc = ( ETH_DMADescTypeDef * ) ( xETH.TxDesc->Buffer2NextDescAddr );
+                xETH.TxDesc =
+                    ( ETH_DMADescTypeDef * ) ( xETH.TxDesc
+                                                   ->Buffer2NextDescAddr );
                 /* Ensure completion of memory access */
                 __DSB();
                 /* Resume DMA transmission*/
@@ -945,7 +1049,8 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
 
 static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 {
-    const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * ) pucEthernetBuffer;
+    const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * )
+        pucEthernetBuffer;
 
     switch( pxProtPacket->xTCPPacket.xEthernetHeader.usFrameType )
     {
@@ -953,11 +1058,11 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
             /* Check it later. */
             return pdTRUE;
 
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case ipIPv6_FRAME_TYPE:
-                    /* Check it later. */
-                    return pdTRUE;
-            #endif
+#if( ipconfigUSE_IPv6 != 0 )
+        case ipIPv6_FRAME_TYPE:
+            /* Check it later. */
+            return pdTRUE;
+#endif
         case ipIPv4_FRAME_TYPE:
             /* Check it here. */
             break;
@@ -967,75 +1072,86 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
             return pdFALSE;
     }
 
-    #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
+#if( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
+    {
+        const IPHeader_t * pxIPHeader = &( pxProtPacket->xTCPPacket.xIPHeader );
+        uint32_t ulDestinationIPAddress;
+
+        /* Ensure that the incoming packet is not fragmented (only outgoing
+         * packets can be fragmented) as these are the only handled IP frames
+         * currently. */
+        if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) !=
+            0U )
         {
-            const IPHeader_t * pxIPHeader = &( pxProtPacket->xTCPPacket.xIPHeader );
-            uint32_t ulDestinationIPAddress;
+            return pdFALSE;
+        }
 
-            /* Ensure that the incoming packet is not fragmented (only outgoing packets
-             * can be fragmented) as these are the only handled IP frames currently. */
-            if( ( pxIPHeader->usFragmentOffset & ipFRAGMENT_OFFSET_BIT_MASK ) != 0U )
+        /* HT: Might want to make the following configurable because
+         * most IP messages have a standard length of 20 bytes */
+
+        /* 0x45 means: IPv4 with an IP header of 5 x 4 = 20 bytes
+         * 0x47 means: IPv4 with an IP header of 7 x 4 = 28 bytes */
+        if( ( pxIPHeader->ucVersionHeaderLength < 0x45 ) ||
+            ( pxIPHeader->ucVersionHeaderLength > 0x4F ) )
+        {
+            return pdFALSE;
+        }
+
+        ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+
+        /* Is the packet for this node? */
+        if( ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) &&
+            /* Is it a broadcast address x.x.x.255 ? */
+            ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xff ) != 0xff ) &&
+    #if( ipconfigUSE_LLMNR == 1 )
+            ( ulDestinationIPAddress != ipLLMNR_IP_ADDR ) &&
+    #endif
+            ( *ipLOCAL_IP_ADDRESS_POINTER != 0 ) )
+        {
+            FreeRTOS_debug_printf(
+                ( "Drop IP %lxip\n",
+                  FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
+            return pdFALSE;
+        }
+
+        if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
+        {
+    #if( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) || \
+        ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_DNS == 1 )
+            uint16_t usSourcePort = FreeRTOS_ntohs(
+                pxProtPacket->xUDPPacket.xUDPHeader.usSourcePort );
+            uint16_t usDestinationPort = FreeRTOS_ntohs(
+                pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort );
+    #endif
+
+            if( ( xPortHasUDPSocket(
+                      pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort ) ==
+                  pdFALSE )
+    #if ipconfigUSE_LLMNR == 1
+                && ( usDestinationPort != ipLLMNR_PORT ) &&
+                ( usSourcePort != ipLLMNR_PORT )
+    #endif
+    #if ipconfigUSE_MDNS == 1
+                && ( usDestinationPort != ipMDNS_PORT ) &&
+                ( usSourcePort != ipMDNS_PORT )
+    #endif
+    #if ipconfigUSE_NBNS == 1
+                && ( usDestinationPort != ipNBNS_PORT ) &&
+                ( usSourcePort != ipNBNS_PORT )
+    #endif
+    #if ipconfigUSE_DNS == 1
+                && ( usSourcePort != ipDNS_PORT )
+    #endif
+            )
             {
+                /* Drop this packet, not for this device. */
+                /* FreeRTOS_printf( ( "Drop: UDP port %d -> %d\n", usSourcePort,
+                 * usDestinationPort ) ); */
                 return pdFALSE;
-            }
-
-            /* HT: Might want to make the following configurable because
-             * most IP messages have a standard length of 20 bytes */
-
-            /* 0x45 means: IPv4 with an IP header of 5 x 4 = 20 bytes
-             * 0x47 means: IPv4 with an IP header of 7 x 4 = 28 bytes */
-            if( ( pxIPHeader->ucVersionHeaderLength < 0x45 ) || ( pxIPHeader->ucVersionHeaderLength > 0x4F ) )
-            {
-                return pdFALSE;
-            }
-
-            ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
-
-            /* Is the packet for this node? */
-            if( ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) &&
-                /* Is it a broadcast address x.x.x.255 ? */
-                ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xff ) != 0xff ) &&
-                #if ( ipconfigUSE_LLMNR == 1 )
-                    ( ulDestinationIPAddress != ipLLMNR_IP_ADDR ) &&
-                #endif
-                ( *ipLOCAL_IP_ADDRESS_POINTER != 0 ) )
-            {
-                FreeRTOS_debug_printf( ( "Drop IP %lxip\n", FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
-                return pdFALSE;
-            }
-
-            if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
-            {
-                #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_DNS == 1 )
-                    uint16_t usSourcePort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usSourcePort );
-                    uint16_t usDestinationPort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort );
-                #endif
-
-                if( ( xPortHasUDPSocket( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort ) == pdFALSE )
-                    #if ipconfigUSE_LLMNR == 1
-                        && ( usDestinationPort != ipLLMNR_PORT ) &&
-                        ( usSourcePort != ipLLMNR_PORT )
-                    #endif
-                    #if ipconfigUSE_MDNS == 1
-                        && ( usDestinationPort != ipMDNS_PORT ) &&
-                        ( usSourcePort != ipMDNS_PORT )
-                    #endif
-                    #if ipconfigUSE_NBNS == 1
-                        && ( usDestinationPort != ipNBNS_PORT ) &&
-                        ( usSourcePort != ipNBNS_PORT )
-                    #endif
-                    #if ipconfigUSE_DNS == 1
-                        && ( usSourcePort != ipDNS_PORT )
-                    #endif
-                    )
-                {
-                    /* Drop this packet, not for this device. */
-                    /* FreeRTOS_printf( ( "Drop: UDP port %d -> %d\n", usSourcePort, usDestinationPort ) ); */
-                    return pdFALSE;
-                }
             }
         }
-    #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
+    }
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
     return pdTRUE;
 }
 /*-----------------------------------------------------------*/
@@ -1049,25 +1165,26 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
 
     if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 1000 ) != pdPASS )
     {
-        /* The buffer could not be sent to the stack so must be released again.
-         * This is a deferred handler task, not a real interrupt, so it is ok to
-         * use the task level function here. */
-        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+/* The buffer could not be sent to the stack so must be released again.
+ * This is a deferred handler task, not a real interrupt, so it is ok to
+ * use the task level function here. */
+#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+        {
+            do
             {
-                do
-                {
-                    NetworkBufferDescriptor_t * pxNext = pxDescriptor->pxNextBuffer;
-                    vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-                    pxDescriptor = pxNext;
-                } while( pxDescriptor != NULL );
-            }
-        #else
-            {
+                NetworkBufferDescriptor_t * pxNext = pxDescriptor->pxNextBuffer;
                 vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-            }
-        #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
+                pxDescriptor = pxNext;
+            } while( pxDescriptor != NULL );
+        }
+#else
+        {
+            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+        }
+#endif /* ipconfigUSE_LINKED_RX_MESSAGES */
         iptraceETHERNET_RX_EVENT_LOST();
-        FreeRTOS_printf( ( "prvPassEthMessages: Can not queue return packet!\n" ) );
+        FreeRTOS_printf(
+            ( "prvPassEthMessages: Can not queue return packet!\n" ) );
     }
     else
     {
@@ -1077,13 +1194,14 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
 
 static BaseType_t prvNetworkInterfaceInput( void )
 {
-    #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-        NetworkBufferDescriptor_t * pxFirstDescriptor = NULL;
-        NetworkBufferDescriptor_t * pxLastDescriptor = NULL;
-    #endif
+#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+    NetworkBufferDescriptor_t * pxFirstDescriptor = NULL;
+    NetworkBufferDescriptor_t * pxLastDescriptor = NULL;
+#endif
     BaseType_t xReceivedLength = 0;
     __IO ETH_DMADescTypeDef * pxDMARxDescriptor;
-    const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( niDESCRIPTOR_WAIT_TIME_MS );
+    const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS(
+        niDESCRIPTOR_WAIT_TIME_MS );
     uint8_t * pucBuffer;
 
     pxDMARxDescriptor = xETH.RxDesc;
@@ -1094,23 +1212,30 @@ static BaseType_t prvNetworkInterfaceInput( void )
         NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
         BaseType_t xAccepted = pdTRUE;
 
-        /* Get the Frame Length of the received packet: subtract 4 bytes of the CRC */
-        xReceivedLength = ( ( pxDMARxDescriptor->Status & ETH_DMARXDESC_FL ) >> ETH_DMARXDESC_FRAMELENGTHSHIFT ) - 4;
+        /* Get the Frame Length of the received packet: subtract 4 bytes of the
+         * CRC */
+        xReceivedLength = ( ( pxDMARxDescriptor->Status & ETH_DMARXDESC_FL ) >>
+                            ETH_DMARXDESC_FRAMELENGTHSHIFT ) -
+                          4;
 
         pucBuffer = ( uint8_t * ) pxDMARxDescriptor->Buffer1Addr;
 
-        /* Update the ETHERNET DMA global Rx descriptor with next Rx descriptor */
+        /* Update the ETHERNET DMA global Rx descriptor with next Rx descriptor
+         */
         /* Chained Mode */
         /* Selects the next DMA Rx descriptor list for next buffer to read */
-        xETH.RxDesc = ( ETH_DMADescTypeDef * ) pxDMARxDescriptor->Buffer2NextDescAddr;
+        xETH.RxDesc = ( ETH_DMADescTypeDef * )
+                          pxDMARxDescriptor->Buffer2NextDescAddr;
 
-        /* In order to make the code easier and faster, only packets in a single buffer
-         * will be accepted.  This can be done by making the buffers large enough to
-         * hold a complete Ethernet packet, minus ipBUFFER_PADDING.
-         * Therefore, two sanity checks: */
+        /* In order to make the code easier and faster, only packets in a single
+         * buffer will be accepted.  This can be done by making the buffers
+         * large enough to hold a complete Ethernet packet, minus
+         * ipBUFFER_PADDING. Therefore, two sanity checks: */
         configASSERT( xReceivedLength <= EMAC_DMA_BUFFER_SIZE );
 
-        if( ( pxDMARxDescriptor->Status & ( ETH_DMARXDESC_CE | ETH_DMARXDESC_IPV4HCE | ETH_DMARXDESC_FT ) ) != ETH_DMARXDESC_FT )
+        if( ( pxDMARxDescriptor->Status &
+              ( ETH_DMARXDESC_CE | ETH_DMARXDESC_IPV4HCE |
+                ETH_DMARXDESC_FT ) ) != ETH_DMARXDESC_FT )
         {
             /* Not an Ethernet frame-type or a checksum error. */
             xAccepted = pdFALSE;
@@ -1123,86 +1248,97 @@ static BaseType_t prvNetworkInterfaceInput( void )
 
         if( xAccepted != pdFALSE )
         {
-            /* The packet will be accepted, but check first if a new Network Buffer can
-             * be obtained. If not, the packet will still be dropped. */
-            pxNewDescriptor = pxGetNetworkBufferWithDescriptor( EMAC_DMA_BUFFER_SIZE, xDescriptorWaitTime );
+            /* The packet will be accepted, but check first if a new Network
+             * Buffer can be obtained. If not, the packet will still be dropped.
+             */
+            pxNewDescriptor = pxGetNetworkBufferWithDescriptor(
+                EMAC_DMA_BUFFER_SIZE,
+                xDescriptorWaitTime );
 
             if( pxNewDescriptor == NULL )
             {
-                /* A new descriptor can not be allocated now. This packet will be dropped. */
+                /* A new descriptor can not be allocated now. This packet will
+                 * be dropped. */
                 xAccepted = pdFALSE;
             }
         }
 
-        #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-            {
-                /* Find out which Network Buffer was originally passed to the descriptor. */
-                pxCurDescriptor = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
-                configASSERT( pxCurDescriptor != NULL );
-                configASSERT( pxCurDescriptor->pucEthernetBuffer != NULL );
-            }
-        #else
-            {
-                /* In this mode, the two descriptors are the same. */
-                pxCurDescriptor = pxNewDescriptor;
+#if( ipconfigZERO_COPY_RX_DRIVER != 0 )
+        {
+            /* Find out which Network Buffer was originally passed to the
+             * descriptor. */
+            pxCurDescriptor = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
+            configASSERT( pxCurDescriptor != NULL );
+            configASSERT( pxCurDescriptor->pucEthernetBuffer != NULL );
+        }
+#else
+        {
+            /* In this mode, the two descriptors are the same. */
+            pxCurDescriptor = pxNewDescriptor;
 
-                if( pxNewDescriptor != NULL )
-                {
-                    /* The packet is accepted and a new Network Buffer was created,
-                     * copy data to the Network Buffer. */
-                    memcpy( pxNewDescriptor->pucEthernetBuffer, pucBuffer, xReceivedLength );
-                }
+            if( pxNewDescriptor != NULL )
+            {
+                /* The packet is accepted and a new Network Buffer was created,
+                 * copy data to the Network Buffer. */
+                memcpy( pxNewDescriptor->pucEthernetBuffer,
+                        pucBuffer,
+                        xReceivedLength );
             }
-        #endif /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+        }
+#endif /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 
         if( xAccepted != pdFALSE )
         {
             pxCurDescriptor->xDataLength = xReceivedLength;
             pxCurDescriptor->pxInterface = pxMyInterface;
-            pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxCurDescriptor->pucEthernetBuffer );
+            pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint(
+                pxMyInterface,
+                pxCurDescriptor->pucEthernetBuffer );
 
-            #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            {
+                pxCurDescriptor->pxNextBuffer = NULL;
+
+                if( pxFirstDescriptor == NULL )
                 {
-                    pxCurDescriptor->pxNextBuffer = NULL;
-
-                    if( pxFirstDescriptor == NULL )
-                    {
-                        /* Becomes the first message */
-                        pxFirstDescriptor = pxCurDescriptor;
-                    }
-                    else if( pxLastDescriptor != NULL )
-                    {
-                        /* Add to the tail */
-                        pxLastDescriptor->pxNextBuffer = pxCurDescriptor;
-                    }
-
-                    pxLastDescriptor = pxCurDescriptor;
+                    /* Becomes the first message */
+                    pxFirstDescriptor = pxCurDescriptor;
                 }
-            #else /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
+                else if( pxLastDescriptor != NULL )
                 {
-                    prvPassEthMessages( pxCurDescriptor );
+                    /* Add to the tail */
+                    pxLastDescriptor->pxNextBuffer = pxCurDescriptor;
                 }
-            #endif /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
+
+                pxLastDescriptor = pxCurDescriptor;
+            }
+#else  /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
+            {
+                prvPassEthMessages( pxCurDescriptor );
+            }
+#endif /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
         }
 
-        /* Release descriptors to DMA */
-        #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+/* Release descriptors to DMA */
+#if( ipconfigZERO_COPY_RX_DRIVER != 0 )
+        {
+            /* Set Buffer1 address pointer */
+            if( pxNewDescriptor != NULL )
             {
-                /* Set Buffer1 address pointer */
-                if( pxNewDescriptor != NULL )
-                {
-                    pxDMARxDescriptor->Buffer1Addr = ( uint32_t ) pxNewDescriptor->pucEthernetBuffer;
-                }
-                else
-                {
-                    /* The packet was dropped and the same Network
-                     * Buffer will be used to receive a new packet. */
-                }
+                pxDMARxDescriptor->Buffer1Addr = ( uint32_t ) pxNewDescriptor
+                                                     ->pucEthernetBuffer;
             }
-        #endif /* ipconfigZERO_COPY_RX_DRIVER */
+            else
+            {
+                /* The packet was dropped and the same Network
+                 * Buffer will be used to receive a new packet. */
+            }
+        }
+#endif /* ipconfigZERO_COPY_RX_DRIVER */
 
         /* Set Buffer1 size and Second Address Chained bit */
-        pxDMARxDescriptor->ControlBufferSize = ETH_DMARXDESC_RCH | EMAC_DMA_BUFFER_SIZE;
+        pxDMARxDescriptor->ControlBufferSize = ETH_DMARXDESC_RCH |
+                                               EMAC_DMA_BUFFER_SIZE;
         pxDMARxDescriptor->Status = ETH_DMARXDESC_OWN;
 
         /* Ensure completion of memory access */
@@ -1222,19 +1358,18 @@ static BaseType_t prvNetworkInterfaceInput( void )
         pxDMARxDescriptor = xETH.RxDesc;
     }
 
-    #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+#if( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+    {
+        if( pxFirstDescriptor != NULL )
         {
-            if( pxFirstDescriptor != NULL )
-            {
-                prvPassEthMessages( pxFirstDescriptor );
-            }
+            prvPassEthMessages( pxFirstDescriptor );
         }
-    #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
+    }
+#endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
-    return( xReceivedLength > 0 );
+    return ( xReceivedLength > 0 );
 }
 /*-----------------------------------------------------------*/
-
 
 BaseType_t xSTM32_PhyRead( BaseType_t xAddress,
                            BaseType_t xRegister,
@@ -1245,7 +1380,9 @@ BaseType_t xSTM32_PhyRead( BaseType_t xAddress,
     HAL_StatusTypeDef xHALResult;
 
     xETH.Init.PhyAddress = xAddress;
-    xHALResult = HAL_ETH_ReadPHYRegister( &xETH, ( uint16_t ) xRegister, pulValue );
+    xHALResult = HAL_ETH_ReadPHYRegister( &xETH,
+                                          ( uint16_t ) xRegister,
+                                          pulValue );
     xETH.Init.PhyAddress = usPrevAddress;
 
     if( xHALResult == HAL_OK )
@@ -1270,7 +1407,9 @@ BaseType_t xSTM32_PhyWrite( BaseType_t xAddress,
     HAL_StatusTypeDef xHALResult;
 
     xETH.Init.PhyAddress = xAddress;
-    xHALResult = HAL_ETH_WritePHYRegister( &xETH, ( uint16_t ) xRegister, ulValue );
+    xHALResult = HAL_ETH_WritePHYRegister( &xETH,
+                                           ( uint16_t ) xRegister,
+                                           ulValue );
     xETH.Init.PhyAddress = usPrevAddress;
 
     if( xHALResult == HAL_OK )
@@ -1362,10 +1501,10 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
         /* ETHERNET MAC Re-Configuration */
         HAL_ETH_ConfigMAC( &xETH, ( ETH_MACInitTypeDef * ) NULL );
 
-        /* Optionally, pass all mutlicast */
-        #if 0
+/* Optionally, pass all mutlicast */
+#if 0
             xETH.Instance->MACFFR |= ETH_MACFFR_PAM;
-        #endif
+#endif
 
         /* Restart MAC interface */
         HAL_ETH_Start( &xETH );
@@ -1399,40 +1538,48 @@ static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /* Uncomment this in case BufferAllocation_1.c is used. */
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     static
-    #if defined( STM32F7xx )
+#if defined( STM32F7xx )
         __attribute__( ( section( ".first_data" ) ) )
-    #endif
-    uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETH_MAX_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
+#endif
+        uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS *
+                                  ETH_MAX_PACKET_SIZE ]
+        __attribute__( ( aligned( 32 ) ) );
     uint8_t * ucRAMBuffer = ucNetworkPackets;
     uint32_t ul;
 
     for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer +
+                                                   ipBUFFER_PADDING;
+        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &(
+            pxNetworkBuffers[ ul ] ) );
         ucRAMBuffer += ETH_MAX_PACKET_SIZE;
     }
 }
 
 /*-----------------------------------------------------------*/
 
-NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                         NetworkInterface_t * pxInterface )
+NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
-/* This function pxSTM32Fxx_FillInterfaceDescriptor() adds a network-interface.
- * Make sure that the object pointed to by 'pxInterface'
- * is declared static or global, and that it will remain to exist. */
+    /* This function pxSTM32Fxx_FillInterfaceDescriptor() adds a
+     * network-interface. Make sure that the object pointed to by 'pxInterface'
+     * is declared static or global, and that it will remain to exist. */
 
     snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
 
     memset( pxInterface, '\0', sizeof( *pxInterface ) );
-    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
-    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pcName = pcName; /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the
+                                                        driver functions. */
     pxInterface->pfInitialise = xSTM32F_NetworkInterfaceInitialise;
     pxInterface->pfOutput = xSTM32F_NetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = xSTM32F_GetPhyLinkStatus;
@@ -1453,29 +1600,31 @@ static void prvEMACHandlerTask( void * pvParameters )
     /* Remove compiler warnings about unused parameters. */
     ( void ) pvParameters;
 
-    for( ; ; )
+    for( ;; )
     {
         xResult = 0;
 
-        #if ( ipconfigHAS_PRINTF != 0 )
-            {
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-            }
-        #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+#if( ipconfigHAS_PRINTF != 0 )
+        {
+            /* Call a function that monitors resources: the amount of free
+             * network buffers and the amount of free space on the heap.  See
+             * FreeRTOS_IP.c for more detailed comments. */
+            vPrintResourceStats();
+        }
+#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( xTXDescriptorSemaphore != NULL )
         {
-            static UBaseType_t uxLowestSemCount = ( UBaseType_t ) ETH_TXBUFNB - 1;
+            static UBaseType_t uxLowestSemCount = ( UBaseType_t ) ETH_TXBUFNB -
+                                                  1;
 
             uxCurrentCount = uxSemaphoreGetCount( xTXDescriptorSemaphore );
 
             if( uxLowestSemCount > uxCurrentCount )
             {
                 uxLowestSemCount = uxCurrentCount;
-                FreeRTOS_printf( ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
+                FreeRTOS_printf(
+                    ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
             }
         }
 
@@ -1507,14 +1656,14 @@ static void prvEMACHandlerTask( void * pvParameters )
             /* Something has changed to a Link Status, need re-check. */
             prvEthernetUpdateConfig( pdFALSE );
 
-            #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+#if( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+            {
+                if( xGetPhyLinkStatus( pxMyInterface ) == pdFALSE )
                 {
-                    if( xGetPhyLinkStatus( pxMyInterface ) == pdFALSE )
-                    {
-                        FreeRTOS_NetworkDown( pxMyInterface );
-                    }
+                    FreeRTOS_NetworkDown( pxMyInterface );
                 }
-            #endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
+            }
+#endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
         }
     }
 }

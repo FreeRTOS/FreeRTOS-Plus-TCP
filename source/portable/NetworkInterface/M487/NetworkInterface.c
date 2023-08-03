@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -34,30 +35,30 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
-
 
 #include "m480_eth.h"
 
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
+#if( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eProcessBuffer
 #else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) \
+        eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 /* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
+ * the size of the stack used by the idle task - but allow this to be overridden
+ * in FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant.
+ */
 #ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
+    #define configEMAC_TASK_STACK_SIZE ( 2 * configMINIMAL_STACK_SIZE )
 #endif
-
 
 static SemaphoreHandle_t xTXMutex = NULL;
 
@@ -73,17 +74,22 @@ static void prvEMACHandlerTask( void * pvParameters );
 static void prvPhyTmrCallback( TimerHandle_t xTimer );
 
 /* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
+ * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
+ */
 
-#define niBUFFER_1_PACKET_SIZE    1536
+#define niBUFFER_1_PACKET_SIZE 1536
 #ifdef __ICCARM__
-    #pragma data_alignment=4
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ]
+    #pragma data_alignment = 4
+static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS *
+                                 niBUFFER_1_PACKET_SIZE ]
 #else
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 4 ) ) );
+static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS *
+                                 niBUFFER_1_PACKET_SIZE ]
+    __attribute__( ( aligned( 4 ) ) );
 #endif
 
-BaseType_t xNetworkInterfaceInitialise( void )
+    BaseType_t
+    xNetworkInterfaceInitialise( void )
 {
     uint8_t hwaddr[ 6 ];
     BaseType_t xReturn = pdPASS;
@@ -91,7 +97,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
     /* Init ETH */
     numaker_mac_address( hwaddr );
     FreeRTOS_UpdateMACAddress( hwaddr );
-    FreeRTOS_printf( ( "mac address %02x-%02x-%02x-%02x-%02x-%02x \r\n", hwaddr[ 0 ], hwaddr[ 1 ], hwaddr[ 2 ], hwaddr[ 3 ], hwaddr[ 4 ], hwaddr[ 5 ] ) );
+    FreeRTOS_printf( ( "mac address %02x-%02x-%02x-%02x-%02x-%02x \r\n",
+                       hwaddr[ 0 ],
+                       hwaddr[ 1 ],
+                       hwaddr[ 2 ],
+                       hwaddr[ 3 ],
+                       hwaddr[ 4 ],
+                       hwaddr[ 5 ] ) );
 
     /* Enable clock & set EMAC configuration         */
     /* Enable MAC and DMA transmission and reception */
@@ -108,7 +120,11 @@ BaseType_t xNetworkInterfaceInitialise( void )
         /* Timer task to monitor PHY Link status */
         if( xPhyHandlerTask == NULL )
         {
-            xPhyHandlerTask = xTimerCreate( "TimerPhy", pdMS_TO_TICKS( 1000 ), pdTRUE, 0, prvPhyTmrCallback );
+            xPhyHandlerTask = xTimerCreate( "TimerPhy",
+                                            pdMS_TO_TICKS( 1000 ),
+                                            pdTRUE,
+                                            0,
+                                            prvPhyTmrCallback );
             configASSERT( xPhyHandlerTask );
             xReturn = xTimerStart( xPhyHandlerTask, 0 );
             configASSERT( xReturn );
@@ -117,7 +133,12 @@ BaseType_t xNetworkInterfaceInitialise( void )
         /* Rx task */
         if( xRxHanderTask == NULL )
         {
-            xReturn = xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, &xRxHanderTask );
+            xReturn = xTaskCreate( prvEMACHandlerTask,
+                                   "EMAC",
+                                   configEMAC_TASK_STACK_SIZE,
+                                   NULL,
+                                   configMAX_PRIORITIES - 1,
+                                   &xRxHanderTask );
             configASSERT( xReturn );
         }
 
@@ -133,19 +154,23 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     numaker_eth_enable_interrupts();
 
-    FreeRTOS_printf( ( "ETH-RX priority:%d\n", NVIC_GetPriority( EMAC_RX_IRQn ) ) );
+    FreeRTOS_printf(
+        ( "ETH-RX priority:%d\n", NVIC_GetPriority( EMAC_RX_IRQn ) ) );
 
     return xReturn;
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput(
+    NetworkBufferDescriptor_t * const pxDescriptor,
+    BaseType_t xReleaseAfterSend )
 {
     uint8_t * buffer = NULL;
 
     if( pxDescriptor->xDataLength >= PACKET_BUFFER_SIZE )
     {
-        FreeRTOS_printf( ( "TX buffer length %d over %d\n", pxDescriptor->xDataLength, PACKET_BUFFER_SIZE ) );
+        FreeRTOS_printf( ( "TX buffer length %d over %d\n",
+                           pxDescriptor->xDataLength,
+                           PACKET_BUFFER_SIZE ) );
         return pdFALSE;
     }
 
@@ -160,17 +185,20 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
     /* Get exclusive access */
     xSemaphoreTake( xTXMutex, portMAX_DELAY );
     NU_DEBUGF( ( "%s ... buffer=0x%x\r\n", __FUNCTION__, buffer ) );
-    /*SendData: pt = pxDescriptor->pucBuffer, length = pxDescriptor->xDataLength */
-    memcpy( buffer, pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
+    /*SendData: pt = pxDescriptor->pucBuffer, length = pxDescriptor->xDataLength
+     */
+    memcpy( buffer,
+            pxDescriptor->pucEthernetBuffer,
+            pxDescriptor->xDataLength );
     numaker_eth_trigger_tx( pxDescriptor->xDataLength, NULL );
     /* Call the standard trace macro to log the send event. */
     iptraceNETWORK_INTERFACE_TRANSMIT();
 
     if( xReleaseAfterSend != pdFALSE )
     {
-        /* It is assumed SendData() copies the data out of the FreeRTOS+TCP Ethernet
-         * buffer.  The Ethernet buffer is therefore no longer needed, and must be
-         * freed for re-use. */
+        /* It is assumed SendData() copies the data out of the FreeRTOS+TCP
+         * Ethernet buffer.  The Ethernet buffer is therefore no longer needed,
+         * and must be freed for re-use. */
         vReleaseNetworkBufferAndDescriptor( pxDescriptor );
     }
 
@@ -179,20 +207,22 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
     return pdTRUE;
 }
 
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint8_t * ucRAMBuffer = ucNetworkPackets;
     uint32_t ul;
 
     for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer +
+                                                   ipBUFFER_PADDING;
+        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &(
+            pxNetworkBuffers[ ul ] ) );
         ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
     }
 }
-
 
 BaseType_t xGetPhyLinkStatus( void )
 {
@@ -230,7 +260,6 @@ static void prvPhyTmrCallback( TimerHandle_t xTimer )
     }
 }
 
-
 static void prvEMACHandlerTask( void * pvParameters )
 {
     TimeOut_t xPhyTime;
@@ -249,7 +278,7 @@ static void prvEMACHandlerTask( void * pvParameters )
     ( void ) pvParameters;
     /* A possibility to set some additional task properties. */
 
-    for( ; ; )
+    for( ;; )
     {
         uxCurrentCount = uxGetMinimumFreeNetworkBuffers();
 
@@ -259,7 +288,8 @@ static void prvEMACHandlerTask( void * pvParameters )
              * while tuning +TCP: see how many buffers are in use. */
             uxLastMinBufferCount = uxCurrentCount;
             FreeRTOS_printf( ( "Network buffers: %lu lowest %lu\n",
-                               uxGetNumberOfFreeNetworkBuffers(), uxCurrentCount ) );
+                               uxGetNumberOfFreeNetworkBuffers(),
+                               uxCurrentCount ) );
         }
 
         /* No events to process now, wait for the next. */
@@ -270,22 +300,27 @@ static void prvEMACHandlerTask( void * pvParameters )
             /* get received frame */
             if( numaker_eth_get_rx_buf( &dataLength, &buffer ) != 0 )
             {
-                /* The event was lost because a network buffer was not available.
-                 * Call the standard trace macro to log the occurrence. */
+                /* The event was lost because a network buffer was not
+                 * available. Call the standard trace macro to log the
+                 * occurrence. */
                 iptraceETHERNET_RX_EVENT_LOST();
                 break;
             }
 
             /* Allocate a network buffer descriptor that points to a buffer
              * large enough to hold the received frame.  As this is the simple
-             * rather than efficient example the received data will just be copied
-             * into this buffer. */
+             * rather than efficient example the received data will just be
+             * copied into this buffer. */
 
-            pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( PACKET_BUFFER_SIZE, 0 );
+            pxBufferDescriptor = pxGetNetworkBufferWithDescriptor(
+                PACKET_BUFFER_SIZE,
+                0 );
 
             if( pxBufferDescriptor != NULL )
             {
-                memcpy( pxBufferDescriptor->pucEthernetBuffer, buffer, dataLength );
+                memcpy( pxBufferDescriptor->pucEthernetBuffer,
+                        buffer,
+                        dataLength );
                 pxBufferDescriptor->xDataLength = dataLength;
             }
             else
@@ -317,7 +352,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             else
             {
                 /* The message was successfully sent to the TCP/IP stack.
-                * Call the standard trace macro to log the occurrence. */
+                 * Call the standard trace macro to log the occurrence. */
                 iptraceNETWORK_INTERFACE_RECEIVE();
             }
 
@@ -339,7 +374,8 @@ void xNetworkCallback( char event )
             /* Wakeup the prvEMACHandlerTask. */
             if( xRxHanderTask != NULL )
             {
-                vTaskNotifyGiveFromISR( xRxHanderTask, &xHigherPriorityTaskWoken );
+                vTaskNotifyGiveFromISR( xRxHanderTask,
+                                        &xHigherPriorityTaskWoken );
                 portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
             }
 

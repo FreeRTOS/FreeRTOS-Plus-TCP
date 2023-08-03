@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -28,43 +29,42 @@
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 #include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_task.h"
-#include "mock_queue.h"
+#include "mock_FreeRTOS_Sockets.h"
 #include "mock_portable.h"
+#include "mock_queue.h"
+#include "mock_task.h"
 
 #include "FreeRTOS_DNS_Callback.h"
 
-#include "mock_list.h"
 #include "mock_Sockets_list_macros.h"
+#include "mock_list.h"
 
+#include "FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_DNS_Parser.h"
 #include "mock_NetworkBufferManagement.h"
-#include "FreeRTOS_DNS.h"
 
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
 
-#define LLMNR_ADDRESS     "freertos"
-#define GOOD_ADDRESS      "www.freertos.org"
-#define BAD_ADDRESS       "this is a bad address"
-#define DOTTED_ADDRESS    "192.268.0.1"
+#define LLMNR_ADDRESS  "freertos"
+#define GOOD_ADDRESS   "www.freertos.org"
+#define BAD_ADDRESS    "this is a bad address"
+#define DOTTED_ADDRESS "192.268.0.1"
 
-typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
-                                void * /* pvSearchID */,
-                                struct freertos_addrinfo * /* pxAddressInfo */ );
+typedef void ( *FOnDNSEvent )( const char * /* pcName */,
+                               void * /* pvSearchID */,
+                               struct freertos_addrinfo * /* pxAddressInfo */ );
 
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
-
 
 /* ===========================  STATIC FUNCTIONS  =========================== */
 static void dns_callback( const char * pcName,
@@ -73,7 +73,6 @@ static void dns_callback( const char * pcName,
 {
     callback_called = 1;
 }
-
 
 static DNSCallback_t dnsCallback;
 /* ============================  TEST FIXTURES  ============================= */
@@ -269,7 +268,6 @@ void test_vDNSSetCallback_malloc_failed( void )
     /* API Call */
     vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 }
-
 
 /**
  * @brief Happy path

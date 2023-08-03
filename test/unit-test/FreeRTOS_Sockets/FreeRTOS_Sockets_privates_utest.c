@@ -4,56 +4,55 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
 #include "mock_Sockets_list_macros.h"
-#include "mock_queue.h"
 #include "mock_event_groups.h"
 #include "mock_portable.h"
+#include "mock_queue.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_NetworkBufferManagement.h"
+#include "mock_FreeRTOS_IPv6_Sockets.h"
+#include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
 #include "mock_FreeRTOS_TCP_WIN.h"
-#include "mock_FreeRTOS_Routing.h"
-#include "mock_FreeRTOS_IPv6_Sockets.h"
+#include "mock_NetworkBufferManagement.h"
 
 #include "FreeRTOS_Sockets.h"
-
 
 #include "FreeRTOS_Sockets_stubs.c"
 #include "catch_assert.h"
@@ -84,8 +83,7 @@ const ListItem_t * pxListFindListItemWithValue( const List_t * pxList,
 BaseType_t prvTCPConnectStart( FreeRTOS_Socket_t * pxSocket,
                                struct freertos_sockaddr const * pxAddress );
 
-int32_t prvTCPSendCheck( FreeRTOS_Socket_t * pxSocket,
-                         size_t uxDataLength );
+int32_t prvTCPSendCheck( FreeRTOS_Socket_t * pxSocket, size_t uxDataLength );
 
 StreamBuffer_t * prvTCPCreateStream( FreeRTOS_Socket_t * pxSocket,
                                      BaseType_t xIsInputStream );
@@ -99,7 +97,22 @@ BaseType_t bMayConnect( FreeRTOS_Socket_t const * pxSocket );
 extern List_t xBoundUDPSocketsList;
 extern List_t xBoundTCPSocketsList;
 
-static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+static IPv6_Address_t xIPv6Address = { { 0x20,
+                                         0x01,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x01 } };
 
 /* ============================== Test Cases ============================== */
 
@@ -110,7 +123,9 @@ void test_prvFindSelectedSocket_SendFail( void )
 {
     SocketSelect_t xSocketSet;
 
-    xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, ( BaseType_t ) eSELECT_CALL_IP, pdFALSE );
+    xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup,
+                                          ( BaseType_t ) eSELECT_CALL_IP,
+                                          pdFALSE );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdFAIL );
 
@@ -124,11 +139,18 @@ void test_prvFindSelectedSocket_SendSuccess( void )
 {
     SocketSelect_t xSocketSet;
 
-    xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup, ( BaseType_t ) eSELECT_CALL_IP, pdFALSE );
+    xEventGroupClearBits_ExpectAndReturn( xSocketSet.xSelectGroup,
+                                          ( BaseType_t ) eSELECT_CALL_IP,
+                                          pdFALSE );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocketSet.xSelectGroup, ( BaseType_t ) eSELECT_CALL_IP, pdTRUE, pdFALSE, portMAX_DELAY, pdTRUE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocketSet.xSelectGroup,
+                                         ( BaseType_t ) eSELECT_CALL_IP,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         portMAX_DELAY,
+                                         pdTRUE );
 
     prvFindSelectedSocket( &xSocketSet );
 }
@@ -139,7 +161,8 @@ void test_prvFindSelectedSocket_SendSuccess( void )
 void test_prvValidSocket_InvalidOrNULLSocket( void )
 {
     BaseType_t xReturn;
-    FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) FREERTOS_INVALID_SOCKET;
+    FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * )
+        FREERTOS_INVALID_SOCKET;
     BaseType_t xProtocol = FREERTOS_IPPROTO_UDP, xIsBound = pdFALSE;
 
     xReturn = prvValidSocket( NULL, xProtocol, xIsBound );
@@ -162,7 +185,8 @@ void test_prvValidSocket_SocketBoundSetButNotBound( void )
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xReturn = prvValidSocket( &xSocket, xProtocol, xIsBound );
 
@@ -198,7 +222,9 @@ void test_prvValidSocket_InvalidProtocol( void )
 
     memset( &xSocket, 0, sizeof( FreeRTOS_Socket_t ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn(
+        &( xSocket.xBoundSocketListItem ),
+        ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     xSocket.ucProtocol = xProtocol + 1;
 
@@ -208,7 +234,8 @@ void test_prvValidSocket_InvalidProtocol( void )
 }
 
 /**
- * @brief This function is a wrapper expected to call only the initialisation functions for the bound sockets lists.
+ * @brief This function is a wrapper expected to call only the initialisation
+ * functions for the bound sockets lists.
  */
 void test_vNetworkSocketsInit( void )
 {
@@ -224,7 +251,8 @@ void test_vNetworkSocketsInit( void )
 void test_prvDetermineSocketSize_IPTaskNotInit( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM,
+               xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
@@ -239,13 +267,15 @@ void test_prvDetermineSocketSize_IPTaskNotInit( void )
  */
 void test_prvDetermineSocketSize_CatchAssert( void )
 {
-    BaseType_t xDomain = FREERTOS_AF_INET + 1, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET + 1, xType = FREERTOS_SOCK_DGRAM,
+               xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
     /* Assertion when the domain is anything except FREERTOS_AF_INET. */
-    catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
+    catch_assert(
+        prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
 /**
@@ -254,7 +284,8 @@ void test_prvDetermineSocketSize_CatchAssert( void )
 void test_prvDetermineSocketSize_CatchAssert2( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM,
+               xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -264,7 +295,8 @@ void test_prvDetermineSocketSize_CatchAssert2( void )
     memset( &xBoundUDPSocketsList, 0, sizeof( xBoundUDPSocketsList ) );
 
     /* Assertion that the UDP socket list must be initialized. */
-    catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
+    catch_assert(
+        prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
 /**
@@ -273,7 +305,8 @@ void test_prvDetermineSocketSize_CatchAssert2( void )
 void test_prvDetermineSocketSize_CatchAssert3( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM,
+               xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -288,7 +321,8 @@ void test_prvDetermineSocketSize_CatchAssert3( void )
     xBoundUDPSocketsList.xListEnd.xItemValue = portMAX_DELAY;
 
     /* Assertion that the TCP socket list must be initialized. */
-    catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
+    catch_assert(
+        prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
 /**
@@ -297,7 +331,8 @@ void test_prvDetermineSocketSize_CatchAssert3( void )
 void test_prvDetermineSocketSize_CatchAssert4( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = ~( FREERTOS_IPPROTO_UDP | FREERTOS_IPPROTO_TCP );
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM,
+               xProtocol = ~( FREERTOS_IPPROTO_UDP | FREERTOS_IPPROTO_TCP );
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -313,7 +348,8 @@ void test_prvDetermineSocketSize_CatchAssert4( void )
     xBoundTCPSocketsList.xListEnd.xItemValue = portMAX_DELAY;
 
     /* Assertion that the protocol must be either TCP or UDP. */
-    catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
+    catch_assert(
+        prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
 /**
@@ -322,7 +358,8 @@ void test_prvDetermineSocketSize_CatchAssert4( void )
 void test_prvDetermineSocketSize_CatchAssert5( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM + 1, xProtocol = FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM + 1,
+               xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
@@ -338,7 +375,8 @@ void test_prvDetermineSocketSize_CatchAssert5( void )
     xBoundTCPSocketsList.xListEnd.xItemValue = portMAX_DELAY;
 
     /* Assertion that the protocol type and the socket type must match. */
-    catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
+    catch_assert(
+        prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
 /**
@@ -347,7 +385,8 @@ void test_prvDetermineSocketSize_CatchAssert5( void )
 void test_prvDetermineSocketSize_UDPSocket( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_UDP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM,
+               xProtocol = FREERTOS_IPPROTO_UDP;
     size_t xSocketSize;
     FreeRTOS_Socket_t const * pxSocket = NULL;
 
@@ -365,7 +404,9 @@ void test_prvDetermineSocketSize_UDPSocket( void )
     xReturn = prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
-    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xUDP ), xSocketSize );
+    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) +
+                           sizeof( pxSocket->u.xUDP ),
+                       xSocketSize );
 }
 
 /**
@@ -374,7 +415,8 @@ void test_prvDetermineSocketSize_UDPSocket( void )
 void test_prvDetermineSocketSize_CatchAssert6( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_DGRAM,
+               xProtocol = FREERTOS_IPPROTO_TCP;
     size_t xSocketSize;
     FreeRTOS_Socket_t const * pxSocket = NULL;
 
@@ -390,7 +432,8 @@ void test_prvDetermineSocketSize_CatchAssert6( void )
     xBoundTCPSocketsList.xListEnd.xItemValue = portMAX_DELAY;
 
     /* Assertion that the protocol type and the socket type must match. */
-    catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
+    catch_assert(
+        prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
 
 /**
@@ -399,7 +442,8 @@ void test_prvDetermineSocketSize_CatchAssert6( void )
 void test_prvDetermineSocketSize_TCPSocket( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    BaseType_t xDomain = FREERTOS_AF_INET, xType = FREERTOS_SOCK_STREAM,
+               xProtocol = FREERTOS_IPPROTO_TCP;
     size_t xSocketSize;
     FreeRTOS_Socket_t const * pxSocket = NULL;
 
@@ -411,7 +455,9 @@ void test_prvDetermineSocketSize_TCPSocket( void )
     xReturn = prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
-    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), xSocketSize );
+    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) +
+                           sizeof( pxSocket->u.xTCP ),
+                       xSocketSize );
 }
 
 /**
@@ -420,7 +466,8 @@ void test_prvDetermineSocketSize_TCPSocket( void )
 void test_prvDetermineSocketSize_TCPv6Socket( void )
 {
     BaseType_t xReturn;
-    BaseType_t xDomain = FREERTOS_AF_INET6, xType = FREERTOS_SOCK_STREAM, xProtocol = FREERTOS_IPPROTO_TCP;
+    BaseType_t xDomain = FREERTOS_AF_INET6, xType = FREERTOS_SOCK_STREAM,
+               xProtocol = FREERTOS_IPPROTO_TCP;
     size_t xSocketSize;
     FreeRTOS_Socket_t const * pxSocket = NULL;
 
@@ -432,7 +479,9 @@ void test_prvDetermineSocketSize_TCPv6Socket( void )
     xReturn = prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
-    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) + sizeof( pxSocket->u.xTCP ), xSocketSize );
+    TEST_ASSERT_EQUAL( ( sizeof( *pxSocket ) - sizeof( pxSocket->u ) ) +
+                           sizeof( pxSocket->u.xTCP ),
+                       xSocketSize );
 }
 
 /**
@@ -472,7 +521,9 @@ void test_prvMakeSureSocketIsBound_SocketAlreadyBound( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn(
+        &( xSocket.xBoundSocketListItem ),
+        ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     xResult = prvMakeSureSocketIsBound( &xSocket );
 
@@ -489,11 +540,13 @@ void test_prvMakeSureSocketIsBound_SocketNotBound_BindingFails( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdFAIL );
 
@@ -512,17 +565,26 @@ void test_prvMakeSureSocketIsBound_SocketNotBound_BindingSuccess( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_UDP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, ( EventBits_t ) eSOCKET_BOUND, pdTRUE, pdFALSE, portMAX_DELAY, pdTRUE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         ( EventBits_t ) eSOCKET_BOUND,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         portMAX_DELAY,
+                                         pdTRUE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn(
+        &( xSocket.xBoundSocketListItem ),
+        ( struct xLIST * ) ( uintptr_t ) 0x11223344 );
 
     xResult = prvMakeSureSocketIsBound( &xSocket );
 
@@ -539,7 +601,8 @@ void test_vSocketBind_CatchAssert1( void )
     size_t uxAddressLength = 0;
     BaseType_t xInternal = 0;
 
-    catch_assert( vSocketBind( NULL, &xBindAddress, uxAddressLength, xInternal ) );
+    catch_assert(
+        vSocketBind( NULL, &xBindAddress, uxAddressLength, xInternal ) );
 }
 
 /**
@@ -553,7 +616,10 @@ void test_vSocketBind_CatchAssert2( void )
     size_t uxAddressLength;
     BaseType_t xInternal;
 
-    catch_assert( vSocketBind( FREERTOS_INVALID_SOCKET, &xBindAddress, uxAddressLength, xInternal ) );
+    catch_assert( vSocketBind( FREERTOS_INVALID_SOCKET,
+                               &xBindAddress,
+                               uxAddressLength,
+                               xInternal ) );
 }
 
 /**
@@ -574,14 +640,13 @@ void test_vSocketBind_TCP( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
 
-    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ),
+                                    xBindAddress.sin_port );
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();
-
-
 
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
@@ -655,7 +720,8 @@ void test_vSocketBind_NonZeroPortNumber( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdFALSE );
 
-    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ),
+                                    xBindAddress.sin_port );
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
@@ -693,9 +759,11 @@ void test_vSocketBind_GotNULLItem( void )
 
     listGET_NEXT_ExpectAnyArgsAndReturn( xListStart );
 
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( xListStart, xBindAddress.sin_port );
+    listGET_LIST_ITEM_VALUE_ExpectAndReturn( xListStart,
+                                             xBindAddress.sin_port );
 
-    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ),
+                                    xBindAddress.sin_port );
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
@@ -705,7 +773,8 @@ void test_vSocketBind_GotNULLItem( void )
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ),
+                       xSocket.usLocalPort );
 }
 
 /**
@@ -734,7 +803,8 @@ void test_vSocketBind_GotANonNULLValue( void )
 
     listGET_NEXT_ExpectAnyArgsAndReturn( xListStart );
 
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( xListStart, xBindAddress.sin_port );
+    listGET_LIST_ITEM_VALUE_ExpectAndReturn( xListStart,
+                                             xBindAddress.sin_port );
 
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
@@ -760,7 +830,8 @@ void test_vSocketBind_TCPGotAProperValue( void )
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
-    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ),
+                                    xBindAddress.sin_port );
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
@@ -770,7 +841,8 @@ void test_vSocketBind_TCPGotAProperValue( void )
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ),
+                       xSocket.usLocalPort );
 }
 
 /**
@@ -798,9 +870,13 @@ void test_vSocketBind_TCPGotAProperValuePortZero( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), FreeRTOS_htons( 1024 ) );
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ),
+                                    FreeRTOS_htons( 1024 ) );
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
@@ -810,7 +886,8 @@ void test_vSocketBind_TCPGotAProperValuePortZero( void )
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ),
+                       xSocket.usLocalPort );
 }
 
 /**
@@ -825,7 +902,22 @@ void test_vSocketBind_TCPv6GotAProperValue( void )
     BaseType_t xInternal = pdTRUE;
     ListItem_t xLocalList;
     ListItem_t * xListStart = &xLocalList;
-    IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } }; /* 2001::1 */
+    IPv6_Address_t xIPv6Address = { { 0x20,
+                                      0x01,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x00,
+                                      0x01 } }; /* 2001::1 */
     NetworkEndPoint_t xEndPoint;
 
     memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
@@ -835,12 +927,17 @@ void test_vSocketBind_TCPv6GotAProperValue( void )
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
     xEndPoint.bits.bIPv6 = pdTRUE;
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     xBindAddress.sin_family = FREERTOS_AF_INET6;
-    memcpy( xBindAddress.sin_address.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xBindAddress.sin_address.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
-    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ),
+                                    xBindAddress.sin_port );
 
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();
@@ -848,8 +945,11 @@ void test_vSocketBind_TCPv6GotAProperValue( void )
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
-    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xSocket.xLocalAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ),
+                       xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes,
+                              xSocket.xLocalAddress.xIP_IPv6.ucBytes,
+                              ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -875,7 +975,8 @@ void test_vSocketBind_TCPBindAnyAddress( void )
     xBindAddress.sin_family = FREERTOS_AF_INET4;
     xBindAddress.sin_address.ulIP_IPv4 = FREERTOS_INADDR_ANY;
 
-    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ), xBindAddress.sin_port );
+    listSET_LIST_ITEM_VALUE_Expect( &( xSocket.xBoundSocketListItem ),
+                                    xBindAddress.sin_port );
 
     vListInsertEnd_Expect( NULL, &( xSocket.xBoundSocketListItem ) );
     vListInsertEnd_IgnoreArg_pxList();
@@ -883,8 +984,11 @@ void test_vSocketBind_TCPBindAnyAddress( void )
     xReturn = vSocketBind( &xSocket, &xBindAddress, uxAddressLength, xInternal );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ), xSocket.usLocalPort );
-    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xSocket.xLocalAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xBindAddress.sin_port ),
+                       xSocket.usLocalPort );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes,
+                              xSocket.xLocalAddress.xIP_IPv6.ucBytes,
+                              ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -897,7 +1001,8 @@ void test_vSocketClose_UnknownProtocol_NotBound( void )
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     vEventGroupDelete_Expect( xSocket.xEventGroup );
 
@@ -909,7 +1014,8 @@ void test_vSocketClose_UnknownProtocol_NotBound( void )
 }
 
 /**
- * @brief Closing unbound socket having a NULL event group with unknown protocol.
+ * @brief Closing unbound socket having a NULL event group with unknown
+ * protocol.
  */
 void test_vSocketClose_UnknownProtocol_NotBound_EventGroupNULL( void )
 {
@@ -920,7 +1026,8 @@ void test_vSocketClose_UnknownProtocol_NotBound_EventGroupNULL( void )
 
     xSocket.xEventGroup = NULL;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     vPortFree_Expect( &xSocket );
 
@@ -951,9 +1058,13 @@ void test_vSocketClose_TCP_EverythingNonNULL( void )
 
     vPortFree_Expect( xSocket.u.xTCP.txStream );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     vPortFree_Expect( &xSocket );
 
@@ -963,7 +1074,8 @@ void test_vSocketClose_TCP_EverythingNonNULL( void )
 }
 
 /**
- * @brief TCP socket being closed where there is still a pointer to last acknowledged packet.
+ * @brief TCP socket being closed where there is still a pointer to last
+ * acknowledged packet.
  */
 void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
 {
@@ -984,9 +1096,13 @@ void test_vSocketClose_TCP_LastAckMessageNonNULL( void )
 
     vPortFree_Expect( xSocket.u.xTCP.txStream );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     vPortFree_Expect( &xSocket );
 
@@ -1015,9 +1131,13 @@ void test_vSocketClose_TCP_AllFieldsNonNULL( void )
 
     vTCPWindowDestroy_Expect( &( xSocket.u.xTCP.xTCPWindow ) );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), ( struct xLIST * ) 0x12345678 );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             ( struct xLIST * ) 0x12345678 );
 
     uxListRemove_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), 0 );
 
@@ -1042,9 +1162,12 @@ void test_vSocketClose_UDP_NoWaitingPackets( void )
     xSocket.xEventGroup = NULL;
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_UDP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), 0 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP
+                                                    .xWaitingPacketsList ),
+                                             0 );
 
     vPortFree_Expect( &xSocket );
 
@@ -1068,19 +1191,27 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
     xSocket.xEventGroup = NULL;
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_UDP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
-    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), 5 );
+    listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP
+                                                    .xWaitingPacketsList ),
+                                             5 );
 
     for( int i = 0; i < 5; i++ )
     {
-        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn(
+            &( xSocket.u.xUDP.xWaitingPacketsList ),
+            &xNetworkBuffer );
 
-        uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), pdPASS );
+        uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ),
+                                      pdPASS );
 
         vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
-        listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), 4 - i );
+        listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP
+                                                        .xWaitingPacketsList ),
+                                                 4 - i );
     }
 
     vPortFree_Expect( &xSocket );
@@ -1102,7 +1233,10 @@ void test_prvTCPSetSocketCount_ListeningSocketNoChildren( void )
     xSocketToDelete.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
     xSocketToDelete.u.xTCP.eTCPState = eTCP_LISTEN;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 }
@@ -1123,11 +1257,15 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren1( void )
 
     xChildSocket.u.xTCP.eTCPState = eTCP_LISTEN;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 }
@@ -1151,11 +1289,15 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren2( void )
     xChildSocket.u.xTCP.eTCPState = eCONNECT_SYN;
     xChildSocket.usLocalPort = usLocalPort + 1;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 }
@@ -1181,11 +1323,15 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren3( void )
     xChildSocket.u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
     xChildSocket.u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 }
@@ -1211,11 +1357,15 @@ void test_prvTCPSetSocketCount_ListeningSocketNonZeroChildren4( void )
     xChildSocket.u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
     xChildSocket.u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 }
@@ -1244,17 +1394,26 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath1( void )
     xChildSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
     xChildSocket.u.xTCP.pxAckMessage = NULL;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     vTCPWindowDestroy_Expect( &( xChildSocket.u.xTCP.xTCPWindow ) );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket
+                                                    .xBoundSocketListItem ),
+                                             NULL );
 
     vPortFree_Expect( &xChildSocket );
 
@@ -1285,17 +1444,26 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath2( void )
     xChildSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
     xChildSocket.u.xTCP.pxAckMessage = NULL;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     vTCPWindowDestroy_Expect( &( xChildSocket.u.xTCP.xTCPWindow ) );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket
+                                                    .xBoundSocketListItem ),
+                                             NULL );
 
     vPortFree_Expect( &xChildSocket );
 
@@ -1326,17 +1494,26 @@ void test_prvTCPSetSocketCount_ListeningSock_HappyPath3( void )
     xChildSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
     xChildSocket.u.xTCP.pxAckMessage = NULL;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     vTCPWindowDestroy_Expect( &( xChildSocket.u.xTCP.xTCPWindow ) );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xChildSocket
+                                                    .xBoundSocketListItem ),
+                                             NULL );
 
     vPortFree_Expect( &xChildSocket );
 
@@ -1362,11 +1539,15 @@ void test_prvTCPSetSocketCount_NotListeningSock_1( void )
     xChildSocket.u.xTCP.eTCPState = eCONNECT_SYN;
     xChildSocket.u.xTCP.usChildCount = 100;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 
@@ -1393,11 +1574,15 @@ void test_prvTCPSetSocketCount_NotListeningSock_2( void )
     xChildSocket.usLocalPort = usLocalPort + 1;
     xChildSocket.u.xTCP.usChildCount = 100;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 
@@ -1424,11 +1609,15 @@ void test_prvTCPSetSocketCount_NotListeningSock_3( void )
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.usChildCount = 0;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
-    listGET_NEXT_ExpectAndReturn( &( xIterator ), ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &( xIterator ),
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     prvTCPSetSocketCount( &xSocketToDelete );
 
@@ -1455,7 +1644,9 @@ void test_prvTCPSetSocketCount_NotListeningSock_HappyPath( void )
     xChildSocket.usLocalPort = usLocalPort;
     xChildSocket.u.xTCP.usChildCount = 100;
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &( xIterator ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &( xIterator ) );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xIterator, &xChildSocket );
 
@@ -1499,7 +1690,9 @@ void test_prvSockopt_so_buffer_InvalidOption1( void )
     xSocket.u.xTCP.txStream = NULL;
     xSocket.u.xTCP.usMSS = 0x12;
 
-    FreeRTOS_round_up_ExpectAndReturn( vOptionValue, xSocket.u.xTCP.usMSS, 0xAB );
+    FreeRTOS_round_up_ExpectAndReturn( vOptionValue,
+                                       xSocket.u.xTCP.usMSS,
+                                       0xAB );
 
     xReturn = prvSockopt_so_buffer( &xSocket, lOptionName, &vOptionValue );
 
@@ -1626,7 +1819,9 @@ void test_prvGetPrivatePortNumber_TCP_Found( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xIterator );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &xIterator );
 
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &xIterator, xWantedItemValue );
 
@@ -1689,7 +1884,9 @@ void test_prvGetPrivatePortNumber_UDP_Found( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundUDPSocketsList.xListEnd ), &xIterator );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundUDPSocketsList.xListEnd ),
+                                  &xIterator );
 
     listGET_LIST_ITEM_VALUE_ExpectAndReturn( &xIterator, xWantedItemValue );
 
@@ -1772,7 +1969,8 @@ void test_pxListFindListItemWithValue_ListLengthZero( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xList.xListEnd ), ( ListItem_t * ) &( xList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xList.xListEnd ),
+                                  ( ListItem_t * ) &( xList.xListEnd ) );
 
     pxReturn = pxListFindListItemWithValue( &xList, xWantedItemValue );
 
@@ -1791,11 +1989,14 @@ void test_pxListFindListItemWithValue_NotFound( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xList.xListEnd ), ( ListItem_t * ) &( xLocalListItem ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xList.xListEnd ),
+                                  ( ListItem_t * ) &( xLocalListItem ) );
 
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xLocalListItem ), xWantedItemValue - 1 );
+    listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xLocalListItem ),
+                                             xWantedItemValue - 1 );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xLocalListItem ), ( ListItem_t * ) &( xList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xLocalListItem ),
+                                  ( ListItem_t * ) &( xList.xListEnd ) );
 
     pxReturn = pxListFindListItemWithValue( &xList, xWantedItemValue );
 
@@ -1814,9 +2015,11 @@ void test_pxListFindListItemWithValue_Found( void )
 
     xIPIsNetworkTaskReady_ExpectAndReturn( pdTRUE );
 
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xList.xListEnd ), &( xLocalListItem ) );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xList.xListEnd ),
+                                  &( xLocalListItem ) );
 
-    listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xLocalListItem ), xWantedItemValue );
+    listGET_LIST_ITEM_VALUE_ExpectAndReturn( &( xLocalListItem ),
+                                             xWantedItemValue );
 
     pxReturn = pxListFindListItemWithValue( &xList, xWantedItemValue );
 
@@ -1847,7 +2050,9 @@ void test_pxUDPSocketLookup_FoundNULLSocket( void )
     UBaseType_t uxLocalPort = 0xBCDEF;
     ListItem_t xListItem;
 
-    vpxListFindListItemWithValue_Found( &xBoundUDPSocketsList, uxLocalPort, &xListItem );
+    vpxListFindListItemWithValue_Found( &xBoundUDPSocketsList,
+                                        uxLocalPort,
+                                        &xListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xListItem, NULL );
 
@@ -1864,7 +2069,9 @@ void test_pxUDPSocketLookup_Found( void )
     ListItem_t xListItem;
     FreeRTOS_Socket_t xLocalSocket;
 
-    vpxListFindListItemWithValue_Found( &xBoundUDPSocketsList, uxLocalPort, &xListItem );
+    vpxListFindListItemWithValue_Found( &xBoundUDPSocketsList,
+                                        uxLocalPort,
+                                        &xListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xListItem, &xLocalSocket );
 
@@ -1908,7 +2115,7 @@ void test_ucASCIIToHex( void )
         TEST_ASSERT_EQUAL( IdealValue + i, ucHex );
     }
 
-    for( char i = 0; ; i++ )
+    for( char i = 0;; i++ )
     {
         if( !( ( ( i >= 'a' ) && ( i <= 'f' ) ) ||
                ( ( i >= 'A' ) && ( i <= 'F' ) ) ||
@@ -1957,7 +2164,11 @@ void test_vSocketWakeUpUser_AllNonNULL( void )
     xSocket.pxSocketSet = ( SocketSelect_t * ) xLocalSocketSet;
     xSocket.xEventGroup = ( EventGroupHandle_t ) xLocalEventGroup;
 
-    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore,
+                                       NULL,
+                                       semGIVE_BLOCK_TIME,
+                                       queueSEND_TO_BACK,
+                                       pdPASS );
 
     vSocketWakeUpUser( &xSocket );
 
@@ -1983,12 +2194,21 @@ void test_vSocketWakeUpUser_AllNonNULL_EventBitsSet( void )
     xSocket.pxSocketSet = ( SocketSelect_t * ) xLocalSocketSet;
     xSocket.xEventGroup = ( EventGroupHandle_t ) xLocalEventGroup;
 
-    xSocket.xEventBits = ( eSOCKET_ALL << SOCKET_EVENT_BIT_COUNT ) | eSOCKET_ALL;
+    xSocket.xEventBits = ( eSOCKET_ALL << SOCKET_EVENT_BIT_COUNT ) |
+                         eSOCKET_ALL;
 
-    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore,
+                                       NULL,
+                                       semGIVE_BLOCK_TIME,
+                                       queueSEND_TO_BACK,
+                                       pdPASS );
 
-    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSOCKET_ALL & eSELECT_ALL, pdPASS );
-    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_ALL, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup,
+                                        eSOCKET_ALL & eSELECT_ALL,
+                                        pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup,
+                                        eSOCKET_ALL,
+                                        pdPASS );
 
     vSocketWakeUpUser( &xSocket );
 
@@ -2123,17 +2343,20 @@ void test_prvTCPConnectStart_SocketNotBound_Success( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
 
     xEventGroupWaitBits_ExpectAnyArgsAndReturn( pdPASS );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), &xBoundTCPSocketsList );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             &xBoundTCPSocketsList );
 
     vTCPStateChange_Expect( &xSocket, eCONNECT_SYN );
 
@@ -2159,17 +2382,20 @@ void test_prvTCPConnectStart_IPv6SocketNotBound_Success( void )
     xAddress.sin_family = FREERTOS_AF_INET6;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
 
     xEventGroupWaitBits_ExpectAnyArgsAndReturn( pdPASS );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), &xBoundTCPSocketsList );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             &xBoundTCPSocketsList );
 
     vTCPStateChange_Expect( &xSocket, eCONNECT_SYN );
 
@@ -2195,17 +2421,20 @@ void test_prvTCPConnectStart_SocketNotBound_Failure( void )
 
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
 
     xEventGroupWaitBits_ExpectAnyArgsAndReturn( pdPASS );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), &xBoundTCPSocketsList );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             &xBoundTCPSocketsList );
 
     vTCPStateChange_Expect( &xSocket, eCONNECT_SYN );
 
@@ -2231,17 +2460,20 @@ void test_prvTCPConnectStart_SocketNotBound_Failure2( void )
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), NULL );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             NULL );
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( pdPASS );
 
     xEventGroupWaitBits_ExpectAnyArgsAndReturn( pdPASS );
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), &xBoundTCPSocketsList );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             &xBoundTCPSocketsList );
 
     xReturn = prvTCPConnectStart( &xSocket, &xAddress );
 
@@ -2263,7 +2495,8 @@ void test_prvTCPConnectStart_SocketBound_Failure( void )
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.eTCPState = eCONNECT_SYN;
 
-    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ), &xBoundTCPSocketsList );
+    listLIST_ITEM_CONTAINER_ExpectAndReturn( &( xSocket.xBoundSocketListItem ),
+                                             &xBoundTCPSocketsList );
 
     xReturn = prvTCPConnectStart( &xSocket, &xAddress );
 
@@ -2306,7 +2539,8 @@ void test_prvTCPSendCheck_InvalidValues( void )
     xSocket.u.xTCP.bits.bMallocError = pdFALSE;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    for( unsigned int i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t ); i++ )
+    for( unsigned int i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t );
+         i++ )
     {
         xSocket.u.xTCP.eTCPState = array[ i ];
         listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
@@ -2346,11 +2580,15 @@ void test_prvTCPSendCheck_InvalidValues( void )
     xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
     uxDataLength = 10;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    size_t xSizeOfBufferRequested = ( ( sizeof( size_t ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xLocalStreamBuffer ) ) - sizeof( xLocalStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( sizeof( size_t ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xLocalStreamBuffer ) ) -
+                                    sizeof( xLocalStreamBuffer.ucArray );
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
     lReturn = prvTCPSendCheck( &xSocket, uxDataLength );
     TEST_ASSERT_EQUAL( 1, lReturn );
-    TEST_ASSERT_EQUAL( ( sizeof( size_t ) & ( ~( sizeof( size_t ) - 1U ) ) ), ( ( StreamBuffer_t * ) ucStream )->LENGTH );
+    TEST_ASSERT_EQUAL( ( sizeof( size_t ) & ( ~( sizeof( size_t ) - 1U ) ) ),
+                       ( ( StreamBuffer_t * ) ucStream )->LENGTH );
     TEST_ASSERT_EQUAL( ucStream, xSocket.u.xTCP.txStream );
 
     /* Already allocated a stream. */
@@ -2375,7 +2613,9 @@ void test_xTCPTimerCheck_EmptyList( void )
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList,
+                                        ( ListItem_t * ) &(
+                                            xBoundTCPSocketsList.xListEnd ) );
 
     xReturn = xTCPTimerCheck( xWillSleep );
 
@@ -2397,11 +2637,14 @@ void test_xTCPTimerCheck_NonEmptyList_SocketCheckError( void )
 
     xTaskGetTickCount_ExpectAndReturn( 100 );
 
-    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList,
+                                        &xLocalListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     xTCPSocketCheck_ExpectAndReturn( &xSocket, -1 );
 
@@ -2426,11 +2669,14 @@ void test_xTCPTimerCheck_NonEmptyList_NoError( void )
 
     xTaskGetTickCount_ExpectAndReturn( 100 );
 
-    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList,
+                                        &xLocalListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     xTCPSocketCheck_ExpectAndReturn( &xSocket, 0 );
 
@@ -2456,15 +2702,19 @@ void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout( void )
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList,
+                                        &xLocalListItem );
 
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xTimeOutZeroSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xTimeOutZeroSocket );
 
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     xReturn = xTCPTimerCheck( xWillSleep );
 
@@ -2489,15 +2739,19 @@ void test_xTCPTimerCheck_NonEmptyList_DeltaLessThanTimeout1( void )
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList,
+                                        &xLocalListItem );
 
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xTimeOutZeroSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xTimeOutZeroSocket );
 
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     xReturn = xTCPTimerCheck( xWillSleep );
 
@@ -2523,15 +2777,19 @@ void test_xTCPTimerCheck_EventBitsNonZeroWontSleep( void )
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList,
+                                        &xLocalListItem );
 
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xTimeOutZeroSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xTimeOutZeroSocket );
 
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     xReturn = xTCPTimerCheck( xWillSleep );
 
@@ -2557,15 +2815,19 @@ void test_xTCPTimerCheck_EventBitsNonZeroWillSleep( void )
 
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList, &xLocalListItem );
+    listGET_HEAD_ENTRY_ExpectAndReturn( &xBoundTCPSocketsList,
+                                        &xLocalListItem );
 
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xTimeOutZeroSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xTimeOutZeroSocket );
 
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
 
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
     xReturn = xTCPTimerCheck( xWillSleep );
 
@@ -2578,7 +2840,7 @@ void test_xTCPTimerCheck_EventBitsNonZeroWillSleep( void )
  */
 void test_pxTCPSocketLookup_FoundAMatch( void )
 {
-    FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
+    FreeRTOS_Socket_t *pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IPv46_Address_t xRemoteIP;
@@ -2596,14 +2858,20 @@ void test_pxTCPSocketLookup_FoundAMatch( void )
     xMatchingSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = xRemoteIP.xIPAddress.ulIP_IPv4;
 
     /* First iteration, no match. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     /* Second iteration and we have a match. */
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xMatchingSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xMatchingSocket );
 
-    pxReturn = pxTCPSocketLookup( ulLocalIP, uxLocalPort, xRemoteIP, uxRemotePort );
+    pxReturn = pxTCPSocketLookup( ulLocalIP,
+                                  uxLocalPort,
+                                  xRemoteIP,
+                                  uxRemotePort );
 
     TEST_ASSERT_EQUAL_PTR( &xMatchingSocket, pxReturn );
 }
@@ -2613,7 +2881,7 @@ void test_pxTCPSocketLookup_FoundAMatch( void )
  */
 void test_pxTCPSocketLookup_NoMatch( void )
 {
-    FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
+    FreeRTOS_Socket_t *pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IPv46_Address_t xRemoteIP;
@@ -2628,30 +2896,40 @@ void test_pxTCPSocketLookup_NoMatch( void )
 
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort;
-    xMatchingSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = xRemoteIP.xIPAddress.ulIP_IPv4 + 1;
+    xMatchingSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = xRemoteIP.xIPAddress.ulIP_IPv4 +
+                                                 1;
 
     /* First iteration, no match. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     /* Second iteration and we have a match. */
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xMatchingSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xMatchingSocket );
 
     /* Third iteration. */
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    pxReturn = pxTCPSocketLookup( ulLocalIP, uxLocalPort, xRemoteIP, uxRemotePort );
+    pxReturn = pxTCPSocketLookup( ulLocalIP,
+                                  uxLocalPort,
+                                  xRemoteIP,
+                                  uxRemotePort );
 
     TEST_ASSERT_EQUAL_PTR( NULL, pxReturn );
 }
 
 /**
- * @brief No match found while looking up a socket. IP and port number doesn't match.
+ * @brief No match found while looking up a socket. IP and port number doesn't
+ * match.
  */
 void test_pxTCPSocketLookup_NoMatch2( void )
 {
-    FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
+    FreeRTOS_Socket_t *pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IPv46_Address_t xRemoteIP;
@@ -2666,20 +2944,29 @@ void test_pxTCPSocketLookup_NoMatch2( void )
 
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort + 1;
-    xMatchingSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = xRemoteIP.xIPAddress.ulIP_IPv4 + 1;
+    xMatchingSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = xRemoteIP.xIPAddress.ulIP_IPv4 +
+                                                 1;
 
     /* First iteration, no match. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     /* Second iteration and we have a match. */
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xMatchingSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xMatchingSocket );
 
     /* Third iteration. */
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    pxReturn = pxTCPSocketLookup( ulLocalIP, uxLocalPort, xRemoteIP, uxRemotePort );
+    pxReturn = pxTCPSocketLookup( ulLocalIP,
+                                  uxLocalPort,
+                                  xRemoteIP,
+                                  uxRemotePort );
 
     TEST_ASSERT_EQUAL_PTR( NULL, pxReturn );
 }
@@ -2689,7 +2976,7 @@ void test_pxTCPSocketLookup_NoMatch2( void )
  */
 void test_pxTCPSocketLookup_FoundAPartialMatch( void )
 {
-    FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
+    FreeRTOS_Socket_t *pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IPv46_Address_t xRemoteIP;
@@ -2708,17 +2995,25 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
     xMatchingSocket.u.xTCP.eTCPState = eTCP_LISTEN;
 
     /* First iteration, no match. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     /* Second iteration and we have a partial match. */
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xMatchingSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xMatchingSocket );
 
     /* Third iteration. */
-    listGET_NEXT_ExpectAndReturn( &xLocalListItem, ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+    listGET_NEXT_ExpectAndReturn( &xLocalListItem,
+                                  ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ) );
 
-    pxReturn = pxTCPSocketLookup( ulLocalIP, uxLocalPort, xRemoteIP, uxRemotePort );
+    pxReturn = pxTCPSocketLookup( ulLocalIP,
+                                  uxLocalPort,
+                                  xRemoteIP,
+                                  uxRemotePort );
 
     TEST_ASSERT_EQUAL_PTR( &xMatchingSocket, pxReturn );
 }
@@ -2728,7 +3023,7 @@ void test_pxTCPSocketLookup_FoundAPartialMatch( void )
  */
 void test_pxTCPSocketLookup_IPv6Match( void )
 {
-    FreeRTOS_Socket_t * pxReturn, xSocket, xMatchingSocket;
+    FreeRTOS_Socket_t *pxReturn, xSocket, xMatchingSocket;
     uint32_t ulLocalIP = 0xAABBCCDD;
     UBaseType_t uxLocalPort = 0x1234;
     IPv46_Address_t xRemoteIP;
@@ -2740,23 +3035,35 @@ void test_pxTCPSocketLookup_IPv6Match( void )
     memset( &xMatchingSocket, 0, sizeof( xMatchingSocket ) );
 
     xRemoteIP.xIs_IPv6 = pdTRUE;
-    memcpy( xRemoteIP.xIPAddress.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xRemoteIP.xIPAddress.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     xMatchingSocket.usLocalPort = uxLocalPort;
     xMatchingSocket.u.xTCP.usRemotePort = uxRemotePort;
-    memcpy( xMatchingSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xMatchingSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     /* First iteration, no match. */
-    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ), &xLocalListItem );
+    listGET_NEXT_ExpectAndReturn( ( ListItem_t * ) &(
+                                      xBoundTCPSocketsList.xListEnd ),
+                                  &xLocalListItem );
     listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xSocket );
 
     /* Second iteration and we have a match. */
     listGET_NEXT_ExpectAndReturn( &xLocalListItem, &xLocalListItem );
-    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem, &xMatchingSocket );
-    pxTCPSocketLookup_IPv6_ExpectAndReturn( &xMatchingSocket, NULL, &xMatchingSocket );
+    listGET_LIST_ITEM_OWNER_ExpectAndReturn( &xLocalListItem,
+                                             &xMatchingSocket );
+    pxTCPSocketLookup_IPv6_ExpectAndReturn( &xMatchingSocket,
+                                            NULL,
+                                            &xMatchingSocket );
     pxTCPSocketLookup_IPv6_IgnoreArg_pxAddress();
 
-    pxReturn = pxTCPSocketLookup( ulLocalIP, uxLocalPort, xRemoteIP, uxRemotePort );
+    pxReturn = pxTCPSocketLookup( ulLocalIP,
+                                  uxLocalPort,
+                                  xRemoteIP,
+                                  uxRemotePort );
 
     TEST_ASSERT_EQUAL_PTR( &xMatchingSocket, pxReturn );
 }
@@ -2775,9 +3082,14 @@ void test_prvTCPCreateStream( void )
 
     xSocket.u.xTCP.uxRxStreamSize = 20;
     xSocket.u.xTCP.usMSS = 2;
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( *pxReturn ) ) - sizeof( pxReturn->ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( *pxReturn ) ) -
+                                    sizeof( pxReturn->ucArray );
 
-    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ( StreamBuffer_t * ) ucStream );
+    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested,
+                                  ( StreamBuffer_t * ) ucStream );
 
     pxReturn = prvTCPCreateStream( &xSocket, xIsInputStream );
 
@@ -2800,9 +3112,14 @@ void test_prvTCPCreateStream1( void )
 
     xSocket.u.xTCP.uxRxStreamSize = 0;
     xSocket.u.xTCP.usMSS = 2;
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( *pxReturn ) ) - sizeof( pxReturn->ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( *pxReturn ) ) -
+                                    sizeof( pxReturn->ucArray );
 
-    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ( StreamBuffer_t * ) ucStream );
+    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested,
+                                  ( StreamBuffer_t * ) ucStream );
 
     pxReturn = prvTCPCreateStream( &xSocket, xIsInputStream );
 
@@ -2828,9 +3145,14 @@ void test_prvTCPCreateStream_LowAndHighFieldsDefined( void )
     xSocket.u.xTCP.uxEnoughSpace = 17;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( *pxReturn ) ) - sizeof( pxReturn->ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( *pxReturn ) ) -
+                                    sizeof( pxReturn->ucArray );
 
-    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ( StreamBuffer_t * ) ucStream );
+    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested,
+                                  ( StreamBuffer_t * ) ucStream );
 
     pxReturn = prvTCPCreateStream( &xSocket, xIsInputStream );
 
@@ -2858,7 +3180,11 @@ void test_lTCPAddRxdata_StreamCannotBeAllocated( void )
     xSocket.u.xTCP.uxEnoughSpace = 17;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, NULL );
 
@@ -2890,13 +3216,23 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesAdded( void )
     xSocket.u.xTCP.uxEnoughSpace = 17;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
-    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ( StreamBuffer_t * ) ucStream );
+    pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested,
+                                  ( StreamBuffer_t * ) ucStream );
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, pcData, ulByteCount, ulByteCount );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       pcData,
+                                       ulByteCount,
+                                       ulByteCount );
 
-    uxStreamBufferFrontSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 10 );
+    uxStreamBufferFrontSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                              10 );
 
     lReturn = lTCPAddRxdata( &xSocket, uxOffset, pcData, ulByteCount );
 
@@ -2925,13 +3261,22 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesNotAdded( void )
     xSocket.u.xTCP.uxEnoughSpace = 17;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, pcData, ulByteCount, ulByteCount - 10 );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       pcData,
+                                       ulByteCount,
+                                       ulByteCount - 10 );
 
-    uxStreamBufferFrontSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 10 );
+    uxStreamBufferFrontSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                              10 );
 
     lReturn = lTCPAddRxdata( &xSocket, uxOffset, pcData, ulByteCount );
 
@@ -2941,7 +3286,8 @@ void test_lTCPAddRxdata_SteamCreationSuccessful_AllBytesNotAdded( void )
 }
 
 /**
- * @brief Space in the front of the stream buffer is less than the low space value.
+ * @brief Space in the front of the stream buffer is less than the low space
+ * value.
  */
 void test_lTCPAddRxdata_FrontSpaceLessThanLowMark( void )
 {
@@ -2961,13 +3307,22 @@ void test_lTCPAddRxdata_FrontSpaceLessThanLowMark( void )
     xSocket.xSelectBits = eSELECT_READ;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, pcData, ulByteCount, ulByteCount - 10 );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       pcData,
+                                       ulByteCount,
+                                       ulByteCount - 10 );
 
-    uxStreamBufferFrontSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 10 );
+    uxStreamBufferFrontSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                              10 );
 
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
 
@@ -2975,7 +3330,9 @@ void test_lTCPAddRxdata_FrontSpaceLessThanLowMark( void )
 
     TEST_ASSERT_EQUAL( ulByteCount - 10, lReturn );
     TEST_ASSERT_EQUAL( pdFALSE, xSocket.u.xTCP.bits.bMallocError );
-    TEST_ASSERT_EQUAL( eSOCKET_RECEIVE | ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+    TEST_ASSERT_EQUAL( eSOCKET_RECEIVE |
+                           ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ),
+                       xSocket.xEventBits );
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bLowWater );
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bWinChange );
     TEST_ASSERT_EQUAL( 1U, xSocket.u.xTCP.usTimeout );
@@ -3004,13 +3361,19 @@ void test_lTCPAddRxdata_LowWaterTrue( void )
     xSocket.u.xTCP.bits.bLowWater = pdTRUE;
     xSocket.u.xTCP.usMSS = 10;
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, pcData, ulByteCount, ulByteCount - 10 );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       pcData,
+                                       ulByteCount,
+                                       ulByteCount - 10 );
 
     lReturn = lTCPAddRxdata( &xSocket, uxOffset, pcData, ulByteCount );
 
     TEST_ASSERT_EQUAL( ulByteCount - 10, lReturn );
     TEST_ASSERT_EQUAL( pdFALSE, xSocket.u.xTCP.bits.bMallocError );
-    TEST_ASSERT_EQUAL( eSOCKET_RECEIVE | ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ), xSocket.xEventBits );
+    TEST_ASSERT_EQUAL( eSOCKET_RECEIVE |
+                           ( eSELECT_READ << SOCKET_EVENT_BIT_COUNT ),
+                       xSocket.xEventBits );
 }
 
 /**
@@ -3037,15 +3400,28 @@ void test_lTCPAddRxdata_HasValidHandler( void )
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
 
     uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0U );
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, NULL, ulByteCount, ulByteCount - 10 );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       NULL,
+                                       ulByteCount,
+                                       ulByteCount - 10 );
 
-    uxStreamBufferGet_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0U, NULL, ulByteCount, pdFALSE, pdTRUE );
+    uxStreamBufferGet_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       0U,
+                                       NULL,
+                                       ulByteCount,
+                                       pdFALSE,
+                                       pdTRUE );
 
     uxStreamBufferGetPtr_ExpectAnyArgsAndReturn( 0U );
 
@@ -3083,13 +3459,21 @@ void test_lTCPAddRxdata_HasValidHandler_DataNULL( void )
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
 
     uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0U );
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, NULL, ulByteCount, ulByteCount - 10 );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       NULL,
+                                       ulByteCount,
+                                       ulByteCount - 10 );
 
     uxStreamBufferGetPtr_ExpectAnyArgsAndReturn( 0U );
 
@@ -3128,13 +3512,21 @@ void test_lTCPAddRxdata_HasValidHandler_NonZeroOffset( void )
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
 
     uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0U );
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, pcData, ulByteCount, ulByteCount - 10 );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       pcData,
+                                       ulByteCount,
+                                       ulByteCount - 10 );
 
     lReturn = lTCPAddRxdata( &xSocket, uxOffset, pcData, ulByteCount );
 
@@ -3171,13 +3563,21 @@ void test_lTCPAddRxdata_HasValidHandlerWithNonZeroSize( void )
     xSocket.u.xTCP.pxHandleReceive = xLocalReceiveCallback;
     xSocket.u.xTCP.usMSS = 10;
 
-    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) + xSocket.u.xTCP.uxRxStreamSize ) & ( ~( sizeof( size_t ) - 1U ) ) ) + sizeof( xStreamBuffer ) ) - sizeof( xStreamBuffer.ucArray );
+    size_t xSizeOfBufferRequested = ( ( ( sizeof( size_t ) +
+                                          xSocket.u.xTCP.uxRxStreamSize ) &
+                                        ( ~( sizeof( size_t ) - 1U ) ) ) +
+                                      sizeof( xStreamBuffer ) ) -
+                                    sizeof( xStreamBuffer.ucArray );
 
     pvPortMalloc_ExpectAndReturn( xSizeOfBufferRequested, ucStream );
 
     uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 10U );
 
-    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxOffset, pcData, ulByteCount, ulByteCount - 10 );
+    uxStreamBufferAdd_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                       uxOffset,
+                                       pcData,
+                                       ulByteCount,
+                                       ulByteCount - 10 );
 
     uxStreamBufferGetPtr_ExpectAnyArgsAndReturn( 0U );
 
@@ -3214,12 +3614,14 @@ void test_xSocketValid( void )
 }
 
 /**
- * @brief This function just prints out some data. It is expected to make call to the
- *        below function. Nothing more.
+ * @brief This function just prints out some data. It is expected to make call
+ * to the below function. Nothing more.
  */
 void test_FreeRTOS_netstat( void )
 {
-    xSendEventStructToIPTask_ExpectAndReturn( NULL, pdMS_TO_TICKS( 1000U ), pdPASS );
+    xSendEventStructToIPTask_ExpectAndReturn( NULL,
+                                              pdMS_TO_TICKS( 1000U ),
+                                              pdPASS );
     xSendEventStructToIPTask_IgnoreArg_pxEvent();
     FreeRTOS_netstat();
 }

@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -62,27 +63,34 @@ void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket )
 
     if( pxEndPoint != NULL )
     {
-        /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
-        #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-            {
-                ulMSS = ipconfigTCP_MSS;
-            }
-        #else
-            {
-                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-            }
-        #endif
+    /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
+    #if( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
+        {
+            ulMSS = ipconfigTCP_MSS;
+        }
+    #else
+        {
+            ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+        }
+    #endif
 
         /* Check if the remote IP-address belongs to the same netmask. */
-        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 ) ^ pxEndPoint->ipv4_settings.ulIPAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) != 0U )
+        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 ) ^
+                pxEndPoint->ipv4_settings.ulIPAddress ) &
+              pxEndPoint->ipv4_settings.ulNetMask ) != 0U )
         {
             /* Data for this peer will pass through a router, and maybe through
              * the internet.  Limit the MSS to 1400 bytes or less. */
-            ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+            ulMSS = FreeRTOS_min_uint32( ( uint32_t )
+                                             tcpREDUCED_MSS_THROUGH_INTERNET,
+                                         ulMSS );
         }
     }
 
-    FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip port %u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, pxSocket->u.xTCP.usRemotePort ) );
+    FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip port %u\n",
+                             ( unsigned ) ulMSS,
+                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
+                             pxSocket->u.xTCP.usRemotePort ) );
 
     pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
 }

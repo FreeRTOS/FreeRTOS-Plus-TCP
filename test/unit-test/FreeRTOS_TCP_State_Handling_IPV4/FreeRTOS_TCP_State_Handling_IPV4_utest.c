@@ -4,42 +4,42 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_Sockets.h"
+#include "mock_FreeRTOS_TCP_IP.h"
 #include "mock_FreeRTOS_TCP_Transmission.h"
 #include "mock_FreeRTOS_TCP_Utils.h"
-#include "mock_FreeRTOS_TCP_IP.h"
 #include "mock_TCP_State_Handling_IPV4_list_macros.h"
 
 #include "catch_assert.h"
@@ -48,11 +48,12 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer );
+FreeRTOS_Socket_t * prvHandleListen_IPV4(
+    FreeRTOS_Socket_t * pxSocket,
+    NetworkBufferDescriptor_t * pxNetworkBuffer );
 
-FreeRTOS_Socket_t xSocket, * pxSocket;
-NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+FreeRTOS_Socket_t xSocket, *pxSocket;
+NetworkBufferDescriptor_t xNetworkBuffer, *pxNetworkBuffer;
 
 uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
 
@@ -114,13 +115,15 @@ void test_prvHandleListen_IPV4_ReuseSocket( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * )
+                                      pxNetworkBuffer->pucEthernetBuffer );
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdTRUE;
 
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
-    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer,
+                                          ipSIZE_OF_IPv4_HEADER );
     prvSocketSetMSS_ExpectAnyArgs();
     prvTCPCreateWindow_ExpectAnyArgs();
     vTCPStateChange_Ignore();
@@ -147,7 +150,8 @@ void test_prvHandleListen_IPV4_NewSocketExceedLimit( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * )
+                                      pxNetworkBuffer->pucEthernetBuffer );
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -179,7 +183,8 @@ void test_prvHandleListen_IPV4_NewSocketGood( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * )
+                                      pxNetworkBuffer->pucEthernetBuffer );
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -189,7 +194,8 @@ void test_prvHandleListen_IPV4_NewSocketGood( void )
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
     prvTCPSocketCopy_ExpectAndReturn( &MockReturnSocket, pxSocket, pdTRUE );
-    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer,
+                                          ipSIZE_OF_IPv4_HEADER );
     prvSocketSetMSS_ExpectAnyArgs();
     prvTCPCreateWindow_ExpectAnyArgs();
     vTCPStateChange_ExpectAnyArgs();
@@ -218,7 +224,8 @@ void test_prvHandleListen_IPV4_NewSocketGoodValidDataLength( void )
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->xDataLength = TCP_PACKET_SIZE + 1;
 
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * )
+                                      pxNetworkBuffer->pucEthernetBuffer );
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -228,7 +235,8 @@ void test_prvHandleListen_IPV4_NewSocketGoodValidDataLength( void )
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
     FreeRTOS_socket_ExpectAnyArgsAndReturn( &MockReturnSocket );
     prvTCPSocketCopy_ExpectAndReturn( &MockReturnSocket, pxSocket, pdTRUE );
-    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer, ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( pxNetworkBuffer,
+                                          ipSIZE_OF_IPv4_HEADER );
     prvSocketSetMSS_ExpectAnyArgs();
     prvTCPCreateWindow_ExpectAnyArgs();
     vTCPStateChange_ExpectAnyArgs();
@@ -256,7 +264,8 @@ void test_prvHandleListen_IPV4_NewSocketNULLSocket( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * )
+                                      pxNetworkBuffer->pucEthernetBuffer );
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -289,7 +298,8 @@ void test_prvHandleListen_IPV4_NewSocketInvalidSocket( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * )
+                                      pxNetworkBuffer->pucEthernetBuffer );
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;
@@ -322,7 +332,8 @@ void test_prvHandleListen_IPV4_NewSocketSocketCopyFailure( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * )
+                                      pxNetworkBuffer->pucEthernetBuffer );
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x0800a8c0;
 
     pxSocket->u.xTCP.bits.bReuseSocket = pdFALSE;

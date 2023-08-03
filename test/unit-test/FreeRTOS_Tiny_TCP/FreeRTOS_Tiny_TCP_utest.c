@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -28,11 +29,10 @@
 #include "unity.h"
 
 /* Include standard libraries */
-#include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <string.h>
 
 #include "FreeRTOS.h"
 
@@ -78,8 +78,10 @@ void test_lTCPWindowRxCheck_diff_seq_numbers( void )
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber + 1;
 
-    lReturn = lTCPWindowRxCheck( &xWindow, ulSequenceNumber,
-                                 ulLength, ulSpace,
+    lReturn = lTCPWindowRxCheck( &xWindow,
+                                 ulSequenceNumber,
+                                 ulLength,
+                                 ulSpace,
                                  &ulSkipCount );
     TEST_ASSERT_EQUAL( -1, lReturn );
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
@@ -96,8 +98,10 @@ void test_lTCPWindowRxCheck_space_lt_length( void )
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
 
-    lReturn = lTCPWindowRxCheck( &xWindow, ulSequenceNumber,
-                                 ulLength, ulSpace,
+    lReturn = lTCPWindowRxCheck( &xWindow,
+                                 ulSequenceNumber,
+                                 ulLength,
+                                 ulSpace,
                                  &ulSkipCount );
     TEST_ASSERT_EQUAL( -1, lReturn );
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
@@ -114,8 +118,10 @@ void test_lTCPWindowRxCheck_seq_num_eq( void )
 
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
 
-    lReturn = lTCPWindowRxCheck( &xWindow, ulSequenceNumber,
-                                 ulLength, ulSpace,
+    lReturn = lTCPWindowRxCheck( &xWindow,
+                                 ulSequenceNumber,
+                                 ulLength,
+                                 ulSpace,
                                  &ulSkipCount );
     TEST_ASSERT_EQUAL( 0, lReturn );
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
@@ -134,10 +140,7 @@ void test_lTCPWindowTxAdd_length_gt_zero( void )
 
     xWindow.xTxSegment = xSegment;
 
-    lResult = lTCPWindowTxAdd( &xWindow,
-                               ulLength,
-                               lPosition,
-                               lMax );
+    lResult = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 0, lResult );
 }
@@ -157,10 +160,7 @@ void test_lTCPWindowTxAdd_length_eq_zero( void )
     /* ->vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    lResult = lTCPWindowTxAdd( &xWindow,
-                               ulLength,
-                               lPosition,
-                               lMax );
+    lResult = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 0, lResult );
 }
@@ -183,10 +183,7 @@ void test_lTCPWindowTxAdd_length_eq_zero_with_logging( void )
     /* ->vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    lResult = lTCPWindowTxAdd( &xWindow,
-                               ulLength,
-                               lPosition,
-                               lMax );
+    lResult = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     xTCPWindowLoggingLevel = xBackup;
 
@@ -209,10 +206,7 @@ void test_lTCPWindowTxAdd_length_gt_maxlen( void )
     /* ->vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    lResult = lTCPWindowTxAdd( &xWindow,
-                               ulLength,
-                               lPosition,
-                               lMax );
+    lResult = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 200, lResult );
 }
@@ -236,10 +230,7 @@ void test_lTCPWindowTxAdd_length_gt_maxlen_with_logging( void )
     /* ->vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 0 );
 
-    lResult = lTCPWindowTxAdd( &xWindow,
-                               ulLength,
-                               lPosition,
-                               lMax );
+    lResult = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     xTCPWindowLoggingLevel = xBackup;
 
@@ -257,9 +248,7 @@ void test_ulTCPWindowTxGet_length_eq_zero( void )
     xSegment.lDataLength = 0;
     xWindow.xTxSegment = xSegment;
 
-    ulLength = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &plPosition );
+    ulLength = ulTCPWindowTxGet( &xWindow, ulWindowSize, &plPosition );
     TEST_ASSERT_EQUAL( 0, ulLength );
 }
 
@@ -276,9 +265,7 @@ void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_false( void )
     xWindow.xTxSegment = xSegment;
     /* ->vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 2 );
-    ulLength = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &plPosition );
+    ulLength = ulTCPWindowTxGet( &xWindow, ulWindowSize, &plPosition );
     TEST_ASSERT_EQUAL( 3, ulLength );
 }
 
@@ -301,13 +288,12 @@ void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_true( void )
     /* <ulTCPWindowTxGet */
     /* ->vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 500000 );
-    ulLength = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &plPosition );
+    ulLength = ulTCPWindowTxGet( &xWindow, ulWindowSize, &plPosition );
     TEST_ASSERT_EQUAL( 3, ulLength );
 }
 
-void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_true_timer_ne_expired( void )
+void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_true_timer_ne_expired(
+    void )
 {
     uint32_t ulLength;
     TCPWindow_t xWindow = { 0 };
@@ -324,9 +310,7 @@ void test_ulTCPWindowTxGet_length_ne_zero_bit_outstanding_eq_true_timer_ne_expir
     /* ->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 10 );
 
-    ulLength = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &plPosition );
+    ulLength = ulTCPWindowTxGet( &xWindow, ulWindowSize, &plPosition );
     TEST_ASSERT_EQUAL( 0, ulLength );
 }
 
@@ -354,7 +338,6 @@ void test_xTCPWindowTxDone_seg_datalength_ne_zero( void )
     TEST_ASSERT_FALSE( xReturn );
 }
 
-
 void test_xTCPWindowTxHasData( void )
 {
     BaseType_t xReturn;
@@ -365,9 +348,7 @@ void test_xTCPWindowTxHasData( void )
     xWindow.xTxSegment.lDataLength = 5;
     xWindow.xTxSegment.u.bits.bOutstanding = pdFALSE_UNSIGNED;
 
-    xReturn = xTCPWindowTxHasData( &xWindow,
-                                   ulWindowSize,
-                                   &ulDelay );
+    xReturn = xTCPWindowTxHasData( &xWindow, ulWindowSize, &ulDelay );
     TEST_ASSERT_TRUE( xReturn );
 }
 
@@ -380,9 +361,7 @@ void test_xTCPWindowTxHasData_txData_eq_zero( void )
 
     xWindow.xTxSegment.lDataLength = 0;
 
-    xReturn = xTCPWindowTxHasData( &xWindow,
-                                   ulWindowSize,
-                                   &ulDelay );
+    xReturn = xTCPWindowTxHasData( &xWindow, ulWindowSize, &ulDelay );
     TEST_ASSERT_FALSE( xReturn );
 }
 
@@ -401,9 +380,7 @@ void test_xTCPWindowTxHasData_outstanding_bits( void )
 
     /* ->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 23 );
-    xReturn = xTCPWindowTxHasData( &xWindow,
-                                   ulWindowSize,
-                                   &ulDelay );
+    xReturn = xTCPWindowTxHasData( &xWindow, ulWindowSize, &ulDelay );
     TEST_ASSERT_TRUE( xReturn );
     TEST_ASSERT_EQUAL( 0, ulDelay );
 }
@@ -423,11 +400,11 @@ void test_xTCPWindowTxHasData_outstanding_bits_2( void )
 
     /* ->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 23 );
-    xReturn = xTCPWindowTxHasData( &xWindow,
-                                   ulWindowSize,
-                                   &ulDelay );
+    xReturn = xTCPWindowTxHasData( &xWindow, ulWindowSize, &ulDelay );
     TEST_ASSERT_TRUE( xReturn );
-    uint32_t age_diff = ( ( 1U << xWindow.xTxSegment.u.bits.ucTransmitCount ) * ( uint32_t ) xWindow.lSRTT ) - 23;
+    uint32_t age_diff = ( ( 1U << xWindow.xTxSegment.u.bits.ucTransmitCount ) *
+                          ( uint32_t ) xWindow.lSRTT ) -
+                        23;
     TEST_ASSERT_EQUAL( age_diff, ulDelay );
 }
 
@@ -442,9 +419,7 @@ void test_xTCPWindowTxHasData_tx_window_no_space( void )
     xWindow.xTxSegment.u.bits.bOutstanding = pdFALSE_UNSIGNED;
     xWindow.usMSSInit = 300;
 
-    xReturn = xTCPWindowTxHasData( &xWindow,
-                                   ulWindowSize,
-                                   &ulDelay );
+    xReturn = xTCPWindowTxHasData( &xWindow, ulWindowSize, &ulDelay );
     TEST_ASSERT_FALSE( xReturn );
 }
 
@@ -456,8 +431,7 @@ void test_ulTCPWindowTxAck_datalen_eq_zero( void )
 
     xWindow.xTxSegment.lDataLength = 0;
 
-    ulDataLength = ulTCPWindowTxAck( &xWindow,
-                                     ulSequenceNumber );
+    ulDataLength = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
     TEST_ASSERT_EQUAL( 0, ulDataLength );
 }
 
@@ -470,8 +444,7 @@ void test_ulTCPWindowTxAck_datalen_neq( void )
     xWindow.xTxSegment.lDataLength = 20;
     xWindow.tx.ulCurrentSequenceNumber = 10;
 
-    ulDataLength = ulTCPWindowTxAck( &xWindow,
-                                     ulSequenceNumber );
+    ulDataLength = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
     TEST_ASSERT_EQUAL( 0, ulDataLength );
 }
 
@@ -484,8 +457,7 @@ void test_ulTCPWindowTxAck_nothing_to_send( void )
     xWindow.xTxSegment.lDataLength = 20;
     xWindow.tx.ulCurrentSequenceNumber = 10;
 
-    ulDataLength = ulTCPWindowTxAck( &xWindow,
-                                     ulSequenceNumber );
+    ulDataLength = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
     TEST_ASSERT_EQUAL( 0, ulDataLength );
 }
 
@@ -498,8 +470,7 @@ void test_ulTCPWindowTxAck_seq_gt_current_plus_length( void )
     xWindow.xTxSegment.lDataLength = 20;
     xWindow.tx.ulCurrentSequenceNumber = 10;
 
-    ulDataLength = ulTCPWindowTxAck( &xWindow,
-                                     ulSequenceNumber );
+    ulDataLength = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
     TEST_ASSERT_EQUAL( 20, ulDataLength );
     TEST_ASSERT_EQUAL( 0, xWindow.xTxSegment.lDataLength );
 }
@@ -516,8 +487,7 @@ void test_ulTCPWindowTxAck_seq_gt_current_plus_length_w_logging( void )
 
     xTCPWindowLoggingLevel = 2;
 
-    ulDataLength = ulTCPWindowTxAck( &xWindow,
-                                     ulSequenceNumber );
+    ulDataLength = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
 
     xTCPWindowLoggingLevel = xBackup;
 

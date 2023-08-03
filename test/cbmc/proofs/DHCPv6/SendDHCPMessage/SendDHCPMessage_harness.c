@@ -31,39 +31,42 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_UDP_IP.h"
+#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_DHCPv6.h"
-#include "FreeRTOS_ARP.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
 
 /* CBMC includes. */
 #include "cbmc.h"
 
-
-
-void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint );
-
+void __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage(
+    NetworkEndPoint_t * pxEndPoint );
 
 void harness()
 {
-    NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
 
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
 
-    /* The application provides the random number and time hook in a memory safe manner. */
+    /* The application provides the random number and time hook in a memory safe
+     * manner. */
 
-    pxNetworkEndPoint_Temp->pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
+    pxNetworkEndPoint_Temp->pxDHCPMessage = safeMalloc(
+        sizeof( DHCPMessage_IPv6_t ) );
 
-    /* All calls to prvSendDHCPMessage are after asserts to make sure pxDHCPMessage
-     * is never NULL. [xDHCPv6ProcessEndPoint_HandleState(): configASSERT( pxDHCPMessage != NULL );] */
+    /* All calls to prvSendDHCPMessage are after asserts to make sure
+     * pxDHCPMessage is never NULL. [xDHCPv6ProcessEndPoint_HandleState():
+     * configASSERT( pxDHCPMessage != NULL );] */
     __CPROVER_assume( pxNetworkEndPoint_Temp->pxDHCPMessage != NULL );
 
-    __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage( pxNetworkEndPoint_Temp );
+    __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvSendDHCPMessage(
+        pxNetworkEndPoint_Temp );
 }

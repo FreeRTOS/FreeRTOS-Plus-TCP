@@ -181,6 +181,7 @@ jobs:
           git-secrets --register-aws
           git-secrets --scan
   proof_ci:
+    if: ${{ github.event.pull_request }}
     runs-on: cbmc_ubuntu-latest_16-core
     steps:
       - name: Set up CBMC runner

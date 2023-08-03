@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -30,7 +31,7 @@
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 /* *INDENT-ON* */
 
@@ -57,18 +58,20 @@ void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
  * Called by prvTCPReturnPacket(), this function will set the the window
  * size on this side: 'xTCPHeader.usWindow'.
  */
-void prvTCPReturn_CheckTCPWindow( FreeRTOS_Socket_t * pxSocket,
-                                  const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                  size_t uxIPHeaderSize );
+void prvTCPReturn_CheckTCPWindow(
+    FreeRTOS_Socket_t * pxSocket,
+    const NetworkBufferDescriptor_t * pxNetworkBuffer,
+    size_t uxIPHeaderSize );
 
 /*
- * Called by prvTCPReturnPacket(), this function sets the sequence and ack numbers
- * in the TCP-header.
+ * Called by prvTCPReturnPacket(), this function sets the sequence and ack
+ * numbers in the TCP-header.
  */
-void prvTCPReturn_SetSequenceNumber( FreeRTOS_Socket_t * pxSocket,
-                                     const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                     size_t uxIPHeaderSize,
-                                     uint32_t ulLen );
+void prvTCPReturn_SetSequenceNumber(
+    FreeRTOS_Socket_t * pxSocket,
+    const NetworkBufferDescriptor_t * pxNetworkBuffer,
+    size_t uxIPHeaderSize,
+    uint32_t ulLen );
 
 /*
  * Return or send a packet to the other party.
@@ -157,16 +160,17 @@ BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer )
 BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
- *  Check if the size of a network buffer is big enough to hold the outgoing message.
- *  Allocate a new bigger network buffer when necessary.
+ *  Check if the size of a network buffer is big enough to hold the outgoing
+ * message. Allocate a new bigger network buffer when necessary.
  */
-NetworkBufferDescriptor_t * prvTCPBufferResize( const FreeRTOS_Socket_t * pxSocket,
-                                                NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                int32_t lDataLen,
-                                                UBaseType_t uxOptionsLength );
+NetworkBufferDescriptor_t * prvTCPBufferResize(
+    const FreeRTOS_Socket_t * pxSocket,
+    NetworkBufferDescriptor_t * pxNetworkBuffer,
+    int32_t lDataLen,
+    UBaseType_t uxOptionsLength );
 /* *INDENT-OFF* */
 #ifdef __cplusplus
-    } /* extern "C" */
+} /* extern "C" */
 #endif
 /* *INDENT-ON* */
 

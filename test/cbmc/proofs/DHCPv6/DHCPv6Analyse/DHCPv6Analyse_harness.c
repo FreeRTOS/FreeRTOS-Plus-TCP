@@ -31,26 +31,27 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_BitConfig.h"
+#include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
 
 /* CBMC includes. */
 #include "cbmc.h"
 
-#define DHCPv6_PAYLOAD_LENGTH_MAX    ( 100 )
+#define DHCPv6_PAYLOAD_LENGTH_MAX ( 100 )
 
-BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6Analyse( struct xNetworkEndPoint * pxEndPoint,
-                                                                    const uint8_t * pucAnswer,
-                                                                    size_t uxTotalLength,
-                                                                    DHCPMessage_IPv6_t * pxDHCPMessage );
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6Analyse(
+    struct xNetworkEndPoint * pxEndPoint,
+    const uint8_t * pucAnswer,
+    size_t uxTotalLength,
+    DHCPMessage_IPv6_t * pxDHCPMessage );
 
 void harness()
 {
@@ -66,12 +67,17 @@ void harness()
     pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
     __CPROVER_assume( pxDHCPMessage != NULL );
 
-    /* Limit the total length to be less than DHCPv6_PAYLOAD_LENGTH_MAX to decrease the verification time. */
+    /* Limit the total length to be less than DHCPv6_PAYLOAD_LENGTH_MAX to
+     * decrease the verification time. */
     __CPROVER_assume( ( uxTotalLength > 0 ) &&
                       ( uxTotalLength <= DHCPv6_PAYLOAD_LENGTH_MAX ) );
 
     pucAnswer = safeMalloc( uxTotalLength );
     __CPROVER_assume( pucAnswer != NULL );
 
-    xResult = __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6Analyse( pxNetworkEndPoint_Temp, pucAnswer, uxTotalLength, pxDHCPMessage );
+    xResult = __CPROVER_file_local_FreeRTOS_DHCPv6_c_prvDHCPv6Analyse(
+        pxNetworkEndPoint_Temp,
+        pucAnswer,
+        uxTotalLength,
+        pxDHCPMessage );
 }

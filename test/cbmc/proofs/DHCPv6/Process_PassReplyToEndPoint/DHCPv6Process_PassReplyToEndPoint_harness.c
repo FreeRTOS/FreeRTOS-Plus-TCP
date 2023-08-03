@@ -26,21 +26,20 @@
  * http://www.FreeRTOS.org
  */
 
-
 /* Standard includes. */
 #include <stdint.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
 
 /* CBMC includes. */
 #include "cbmc.h"
@@ -48,16 +47,19 @@
 /* Extern variables. */
 extern DHCPMessage_IPv6_t __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPMessage;
 
-void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint( BaseType_t xReset,
-                                                                    NetworkEndPoint_t * pxEndPoint,
-                                                                    DHCPMessage_IPv6_t * pxDHCPMessage );
+void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint(
+    BaseType_t xReset,
+    NetworkEndPoint_t * pxEndPoint,
+    DHCPMessage_IPv6_t * pxDHCPMessage );
 
-BaseType_t xDHCPv6Process_PassReplyToEndPoint( struct xNetworkEndPoint * pxEndPoint );
+BaseType_t xDHCPv6Process_PassReplyToEndPoint(
+    struct xNetworkEndPoint * pxEndPoint );
 
 /* vDHCPv6ProcessEndPoint proved to be memory safe else where */
-static void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint( BaseType_t xReset,
-                                                                           NetworkEndPoint_t * pxEndPoint,
-                                                                           DHCPMessage_IPv6_t * pxDHCPMessage )
+static void __CPROVER_file_local_FreeRTOS_DHCPv6_c_vDHCPv6ProcessEndPoint(
+    BaseType_t xReset,
+    NetworkEndPoint_t * pxEndPoint,
+    DHCPMessage_IPv6_t * pxDHCPMessage )
 {
     __CPROVER_assert( pxEndPoint != NULL, "pxEndPoint != NULL" );
     __CPROVER_assert( pxDHCPMessage != NULL, "pxDHCPMessage != NULL" );
@@ -69,13 +71,15 @@ void harness()
 
     pxNetworkEndPoints = safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
-    pxNetworkEndPoints->pxDHCPMessage = &__CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPMessage;
+    pxNetworkEndPoints
+        ->pxDHCPMessage = &__CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPMessage;
 
     if( nondet_bool() )
     {
         pxNetworkEndPoints->pxNext = safeMalloc( sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
-        pxNetworkEndPoints->pxNext->pxDHCPMessage = &__CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPMessage;
+        pxNetworkEndPoints->pxNext
+            ->pxDHCPMessage = &__CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPMessage;
         pxNetworkEndPoints->pxNext->pxNext = NULL;
     }
     else
@@ -83,23 +87,30 @@ void harness()
         pxNetworkEndPoints->pxNext = NULL;
     }
 
-    NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc( sizeof( NetworkEndPoint_t ) );
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
     pxNetworkEndPoint_Temp->pxNext = NULL;
 
-    pxNetworkEndPoint_Temp->pxDHCPMessage = safeMalloc( sizeof( DHCPMessage_IPv6_t ) );
+    pxNetworkEndPoint_Temp->pxDHCPMessage = safeMalloc(
+        sizeof( DHCPMessage_IPv6_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp->pxDHCPMessage != NULL );
 
     /* Randomize DHCPMsg as input for different scenarios. */
-    __CPROVER_havoc_object( &__CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPMessage );
+    __CPROVER_havoc_object(
+        &__CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPMessage );
 
     /* vDHCPv6ProcessEndPoint is checked separately. */
     if( nondet_bool() )
     {
-        xResult = __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6Process_PassReplyToEndPoint( pxNetworkEndPoint_Temp );
+        xResult =
+            __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6Process_PassReplyToEndPoint(
+                pxNetworkEndPoint_Temp );
     }
     else
     {
-        xResult = __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6Process_PassReplyToEndPoint( pxNetworkEndPoints );
+        xResult =
+            __CPROVER_file_local_FreeRTOS_DHCPv6_c_xDHCPv6Process_PassReplyToEndPoint(
+                pxNetworkEndPoints );
     }
 }

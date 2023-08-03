@@ -4,38 +4,38 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include <unity.h>
 
 /* Include standard libraries */
+#include "FreeRTOS.h"
+#include "list.h"
+#include "task.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
@@ -46,37 +46,52 @@ NetworkInterface_t xInterfaces[ 1 ];
 
 BaseType_t xCallEventHook;
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+/** @brief The expected IP version and header length coded into the IP header
+ * itself. */
+#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE ( ( uint8_t ) 0x45 )
 
 QueueHandle_t xNetworkEventQueue;
 
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
+UDPPacketHeader_t xDefaultPartUDPPacketHeader = {
     /* .ucBytes : */
     {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
+        0x11,
+        0x22,
+        0x33,
+        0x44,
+        0x55,
+        0x66, /* Ethernet source MAC address. */
+        0x08,
+        0x00,                                /* Ethernet frame type. */
         ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
         0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
+        0x00,
+        0x00, /* usLength. */
+        0x00,
+        0x00, /* usIdentification. */
+        0x00,
+        0x00,                     /* usFragmentOffset. */
+        ipconfigUDP_TIME_TO_LIVE, /* ucTimeToLive */
+        ipPROTOCOL_UDP,           /* ucProtocol. */
+        0x00,
+        0x00, /* usHeaderChecksum. */
+        0x00,
+        0x00,
+        0x00,
+        0x00 /* Source IP address. */
     }
 };
 
 /* ============================ Stubs Functions =========================== */
 
-BaseType_t xNetworkInterfaceInitialise_returnTrue( NetworkInterface_t * xInterface )
+BaseType_t xNetworkInterfaceInitialise_returnTrue(
+    NetworkInterface_t * xInterface )
 {
     return pdTRUE;
 }
 
-BaseType_t xNetworkInterfaceInitialise_returnFalse( NetworkInterface_t * xInterface )
+BaseType_t xNetworkInterfaceInitialise_returnFalse(
+    NetworkInterface_t * xInterface )
 {
     return pdFALSE;
 }
@@ -89,9 +104,10 @@ BaseType_t prvChecksumICMPv6Checks_Valid( size_t uxBufferLength,
     return 0;
 }
 
-BaseType_t prvChecksumICMPv6Checks_BigHeaderLength( size_t uxBufferLength,
-                                                    struct xPacketSummary * pxSet,
-                                                    int NumCalls )
+BaseType_t prvChecksumICMPv6Checks_BigHeaderLength(
+    size_t uxBufferLength,
+    struct xPacketSummary * pxSet,
+    int NumCalls )
 {
     pxSet->uxProtocolHeaderLength = 0xFF;
     return 0;
@@ -109,9 +125,11 @@ BaseType_t prvChecksumIPv6Checks_Valid( uint8_t * pucEthernetBuffer,
     pxSet->xIsIPv6 = pdTRUE;
 
     pxSet->uxIPHeaderLength = ipSIZE_OF_IPv6_HEADER;
-    pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
+    pxSet->usPayloadLength = FreeRTOS_ntohs(
+        pxSet->pxIPPacket_IPv6->usPayloadLength );
     pxSet->ucProtocol = pxIPPacket->xIPHeader.ucNextHeader;
-    pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
+    pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &(
+        pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] ) );
     pxSet->usProtocolBytes = pxSet->usPayloadLength;
 
     return 0;
@@ -128,10 +146,13 @@ BaseType_t prvChecksumIPv4Checks_Valid( uint8_t * pucEthernetBuffer,
 
     pxSet->xIsIPv6 = pdFALSE;
 
-    pxSet->uxIPHeaderLength = ( pxIPPacket->xIPHeader.ucVersionHeaderLength & 0x0F ) * 4;
+    pxSet->uxIPHeaderLength = ( pxIPPacket->xIPHeader.ucVersionHeaderLength &
+                                0x0F ) *
+                              4;
     pxSet->usPayloadLength = FreeRTOS_ntohs( pxIPPacket->xIPHeader.usLength );
     pxSet->ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
-    pxSet->pxProtocolHeaders = ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] );
+    pxSet->pxProtocolHeaders = ( ProtocolHeaders_t * ) &(
+        pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + pxSet->uxIPHeaderLength ] );
     pxSet->usProtocolBytes = pxSet->usPayloadLength - ipSIZE_OF_IPv4_HEADER;
 
     return 0;
@@ -142,7 +163,10 @@ BaseType_t prvChecksumIPv4Checks_UnknownProtocol( uint8_t * pucEthernetBuffer,
                                                   struct xPacketSummary * pxSet,
                                                   int NumCalls )
 {
-    prvChecksumIPv4Checks_Valid( pucEthernetBuffer, uxBufferLength, pxSet, NumCalls );
+    prvChecksumIPv4Checks_Valid( pucEthernetBuffer,
+                                 uxBufferLength,
+                                 pxSet,
+                                 NumCalls );
 
     pxSet->ucProtocol = 0xFF;
 
@@ -156,7 +180,10 @@ BaseType_t prvChecksumIPv4Checks_InvalidLength( uint8_t * pucEthernetBuffer,
 {
     BaseType_t xReturn = 0;
 
-    prvChecksumIPv4Checks_Valid( pucEthernetBuffer, uxBufferLength, pxSet, NumCalls );
+    prvChecksumIPv4Checks_Valid( pucEthernetBuffer,
+                                 uxBufferLength,
+                                 pxSet,
+                                 NumCalls );
 
     if( uxBufferLength < sizeof( IPPacket_t ) )
     {

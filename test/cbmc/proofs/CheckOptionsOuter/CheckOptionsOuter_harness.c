@@ -4,46 +4,48 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_DHCP.h"
-#include "NetworkInterface.h"
-#include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
+#include "NetworkBufferManagement.h"
+#include "NetworkInterface.h"
 
 #include "cbmc.h"
 
 /****************************************************************
-* Signature of the function under test
-****************************************************************/
+ * Signature of the function under test
+ ****************************************************************/
 
-int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
-                                                                                     size_t uxTotalLength,
-                                                                                     FreeRTOS_Socket_t * const pxSocket,
-                                                                                     BaseType_t xHasSYNFlag );
+int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions(
+    const uint8_t * const pucPtr,
+    size_t uxTotalLength,
+    FreeRTOS_Socket_t * const pxSocket,
+    BaseType_t xHasSYNFlag );
 
 /****************************************************************
-* Declare the buffer size external to the harness so it can be
-* accessed by the preconditions of prvReadSackOption, and give the
-* buffer size an unconstrained value in the harness itself.
-****************************************************************/
+ * Declare the buffer size external to the harness so it can be
+ * accessed by the preconditions of prvReadSackOption, and give the
+ * buffer size an unconstrained value in the harness itself.
+ ****************************************************************/
 
 size_t buffer_size;
 
 /****************************************************************
-* Function contract proved correct by CheckOptionsInner
-****************************************************************/
+ * Function contract proved correct by CheckOptionsInner
+ ****************************************************************/
 
-void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( const uint8_t * const pucPtr,
-                                                                      size_t uxIndex,
-                                                                      FreeRTOS_Socket_t * const pxSocket )
+void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption(
+    const uint8_t * const pucPtr,
+    size_t uxIndex,
+    FreeRTOS_Socket_t * const pxSocket )
 {
     /* Preconditions */
     __CPROVER_assert( buffer_size < CBMC_MAX_OBJECT_SIZE,
@@ -52,17 +54,15 @@ void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( const uint
                       "prvReadSackOption: uxIndex <= buffer_size" );
     __CPROVER_assert( uxIndex + 8 <= buffer_size,
                       "prvReadSackOption: uxIndex + 8 <= buffer_size" );
-    __CPROVER_assert( pucPtr != NULL,
-                      "prvReadSackOption: pucPtr != NULL" );
-    __CPROVER_assert( pxSocket != NULL,
-                      "prvReadSackOption: pxSocket != NULL" );
+    __CPROVER_assert( pucPtr != NULL, "prvReadSackOption: pucPtr != NULL" );
+    __CPROVER_assert( pxSocket != NULL, "prvReadSackOption: pxSocket != NULL" );
 
     /* No postconditions required */
 }
 
 /****************************************************************
-* Proof of prvSingleStepTCPHeaderOptions function contract
-****************************************************************/
+ * Proof of prvSingleStepTCPHeaderOptions function contract
+ ****************************************************************/
 
 void harness()
 {
@@ -77,8 +77,8 @@ void harness()
     BaseType_t xHasSYNFlag;
 
     /****************************************************************
-    * Specification and proof of CheckOptions outer loop
-    ****************************************************************/
+     * Specification and proof of CheckOptions outer loop
+     ****************************************************************/
 
     /* CBMC model of pointers limits the size of the buffer */
     __CPROVER_assume( buffer_size < CBMC_MAX_OBJECT_SIZE );
@@ -89,12 +89,15 @@ void harness()
     __CPROVER_assume( uxTotalLength <= buffer_size );
     __CPROVER_assume( pxSocket != NULL );
 
-    int32_t index = __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions( pucPtr,
-                                                                                                 uxTotalLength,
-                                                                                                 pxSocket,
-                                                                                                 xHasSYNFlag );
+    int32_t index =
+        __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions(
+            pucPtr,
+            uxTotalLength,
+            pxSocket,
+            xHasSYNFlag );
 
     /* Postconditions */
-    __CPROVER_assert( ( ( index == -1 ) || ( index == 1 ) || ( index <= uxTotalLength ) ),
+    __CPROVER_assert( ( ( index == -1 ) || ( index == 1 ) ||
+                        ( index <= uxTotalLength ) ),
                       "prvSingleStepTCPHeaderOptions: index <= uxTotalLength" );
 }

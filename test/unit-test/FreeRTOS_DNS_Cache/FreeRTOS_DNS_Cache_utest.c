@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -28,22 +29,22 @@
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 #include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_task.h"
+#include "mock_FreeRTOS_Sockets.h"
 #include "mock_list.h"
 #include "mock_queue.h"
+#include "mock_task.h"
 
-#include "mock_FreeRTOS_DNS_Callback.h"
-#include "mock_FreeRTOS_DNS_Parser.h"
-#include "mock_FreeRTOS_DNS_Networking.h"
-#include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_DNS.h"
+#include "mock_FreeRTOS_DNS_Callback.h"
+#include "mock_FreeRTOS_DNS_Networking.h"
+#include "mock_FreeRTOS_DNS_Parser.h"
+#include "mock_NetworkBufferManagement.h"
 
 #include "FreeRTOS_DNS_Cache.h"
 
@@ -51,18 +52,17 @@
 
 #include "FreeRTOSIPConfig.h"
 
-#define LLMNR_ADDRESS     "freertos"
-#define GOOD_ADDRESS      "www.freertos.org"
-#define BAD_ADDRESS       "this is a bad address"
-#define DOTTED_ADDRESS    "192.268.0.1"
+#define LLMNR_ADDRESS  "freertos"
+#define GOOD_ADDRESS   "www.freertos.org"
+#define BAD_ADDRESS    "this is a bad address"
+#define DOTTED_ADDRESS "192.268.0.1"
 
-typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
-                                void * /* pvSearchID */,
-                                struct freertos_addrinfo * /* pxAddressInfo */ );
+typedef void ( *FOnDNSEvent )( const char * /* pcName */,
+                               void * /* pvSearchID */,
+                               struct freertos_addrinfo * /* pxAddressInfo */ );
 
 /* ===========================   GLOBAL VARIABLES =========================== */
 static int callback_called = 0;
-
 
 /* ===========================  STATIC FUNCTIONS  =========================== */
 static void dns_callback( const char * pcName,
@@ -76,7 +76,8 @@ static void dns_callback( const char * pcName,
 extern pucAddrBuffer[ 2 ];
 extern pucSockAddrBuffer[ 1 ];
 
-/* ============================  UNITY FIXTURES  ============================= */
+/* ============================  UNITY FIXTURES  =============================
+ */
 
 /**
  * @brief calls at the beginning of each test case
@@ -98,7 +99,6 @@ void tearDown( void )
  * @brief DNS cache structure instantiation
  */
 static DNSCacheRow_t xDNSCache[ ipconfigDNS_CACHE_ENTRIES ];
-
 
 /* =============================  TEST CASES  =============================== */
 
@@ -132,9 +132,11 @@ void test_processDNS_CACHE_Success( void )
 
     FreeRTOS_dns_update( "hello",
                          &pxIP,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 5 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
     x = FreeRTOS_dnslookup( "hello" );
@@ -143,7 +145,8 @@ void test_processDNS_CACHE_Success( void )
 }
 
 /**
- * @brief Ensures that the same entry is inserted into the cache and retrieved for IPv6
+ * @brief Ensures that the same entry is inserted into the cache and retrieved
+ * for IPv6
  */
 void test_processDNS_CACHE_Success2( void )
 {
@@ -159,9 +162,11 @@ void test_processDNS_CACHE_Success2( void )
 
     FreeRTOS_dns_update( "hello",
                          &pxIP,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 5 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
     ulReturn = FreeRTOS_dnslookup6( "hello", &pxIP );
@@ -170,7 +175,8 @@ void test_processDNS_CACHE_Success2( void )
 }
 
 /**
- * @brief Ensures that failure occurs when different entry is inserted into the cache and retrieved for IPv6
+ * @brief Ensures that failure occurs when different entry is inserted into the
+ * cache and retrieved for IPv6
  */
 void test_processDNS_CACHE_Fail_IPv6( void )
 {
@@ -186,9 +192,11 @@ void test_processDNS_CACHE_Fail_IPv6( void )
 
     FreeRTOS_dns_update( "hello",
                          &pxIP,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 10000 );                /* 10 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 10000 ); /* 10 seconds */
 
     ulReturn = FreeRTOS_dnslookup6( "helloworld", &pxIP );
 
@@ -212,8 +220,9 @@ void test_processDNS_CACHE_Entry_NotFresh( void )
 
     FreeRTOS_dns_update( "hello",
                          &pxIP,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
-
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL ); /* lives 3 seconds */
 
     xTaskGetTickCount_ExpectAndReturn( 8000 ); /* 8 seconds */
 
@@ -221,7 +230,6 @@ void test_processDNS_CACHE_Entry_NotFresh( void )
 
     TEST_ASSERT_EQUAL( 0, x );
 }
-
 
 /**
  * @brief Ensures empty cache returns zero
@@ -251,9 +259,7 @@ void test_processDNS_CACHE_entry_not_found( void )
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    FreeRTOS_dns_update( "world",
-                         &pxIP,
-                         400, pdFALSE, NULL );
+    FreeRTOS_dns_update( "world", &pxIP, 400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
@@ -276,15 +282,11 @@ void test_processDNS_CACHE_update_entry( void )
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    FreeRTOS_dns_update( "world",
-                         &pxIP,
-                         400, pdFALSE, NULL );
+    FreeRTOS_dns_update( "world", &pxIP, 400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-    FreeRTOS_dns_update( "world",
-                         &pxIP,
-                         500, pdFALSE, NULL );
+    FreeRTOS_dns_update( "world", &pxIP, 500, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
 
@@ -309,9 +311,11 @@ void test_processDNS_CACHE_expired_entry( void )
 
     FreeRTOS_dns_update( "world",
                          &pxIP,
-                         FreeRTOS_htonl( 20 ), pdFALSE, NULL ); /* lives 20 seconds */
+                         FreeRTOS_htonl( 20 ),
+                         pdFALSE,
+                         NULL ); /* lives 20 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 50000 );                 /* 50 Seconds */
+    xTaskGetTickCount_ExpectAndReturn( 50000 ); /* 50 Seconds */
     x = FreeRTOS_dnslookup( "world" );
 
     TEST_ASSERT_EQUAL( 0, x );
@@ -339,9 +343,7 @@ void test_processDNS_CACHE_exceed_IP_entry_limit( void )
         xTaskGetTickCount_ExpectAndReturn( 3000 );
         FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-        FreeRTOS_dns_update( "world",
-                             &pxIP[ i ],
-                             400, pdFALSE, NULL );
+        FreeRTOS_dns_update( "world", &pxIP[ i ], 400, pdFALSE, NULL );
     }
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
@@ -349,7 +351,9 @@ void test_processDNS_CACHE_exceed_IP_entry_limit( void )
 
     FreeRTOS_dns_update( "world",
                          &pxIP_2,
-                         FreeRTOS_htonl( 400 ), pdFALSE, NULL ); /* lives 400 seconds */
+                         FreeRTOS_htonl( 400 ),
+                         pdFALSE,
+                         NULL ); /* lives 400 seconds */
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -385,15 +389,15 @@ void test_processDNS_CACHE_exceed_host_entry_limit( void )
 
         FreeRTOS_dns_update( hosts,
                              &pxIP[ i ],
-                             FreeRTOS_htonl( 400 ), pdFALSE, NULL ); /* lives 400 seconds */
+                             FreeRTOS_htonl( 400 ),
+                             pdFALSE,
+                             NULL ); /* lives 400 seconds */
     }
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    FreeRTOS_dns_update( "world",
-                         &pxIP_2,
-                         400, pdFALSE, NULL );
+    FreeRTOS_dns_update( "world", &pxIP_2, 400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -420,9 +424,7 @@ void test_processDNS_CACHE_exceed_dns_name_limit( void )
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    FreeRTOS_dns_update( long_dns_name,
-                         &pxIP,
-                         400, pdFALSE, NULL );
+    FreeRTOS_dns_update( long_dns_name, &pxIP, 400, pdFALSE, NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 50000 );
     x = FreeRTOS_dnslookup( long_dns_name );
@@ -458,9 +460,12 @@ void test_prepare_DNSLookup( void )
 
     ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
     pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
-    ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, "hello", sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+    ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName,
+                      "hello",
+                      sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
 
-    pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
+    pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &(
+        pxAddrInfo->xPrivateStorage.sockaddr ) );
 
     pxAddrInfo->ai_addr = sockaddr;
     pxAddrInfo->ai_family = FREERTOS_AF_INET4;
@@ -471,7 +476,9 @@ void test_prepare_DNSLookup( void )
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddrInfo );
@@ -481,7 +488,6 @@ void test_prepare_DNSLookup( void )
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( ulIP, x );
 }
-
 
 /**
  * @brief DNS Lookup fail : pxAddressInfo = NULL
@@ -504,9 +510,11 @@ void test_prepare_DNSLookup2( void )
 
     FreeRTOS_dns_update( "helloman",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 5 seconds */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
@@ -533,7 +541,9 @@ void test_prepare_DNSLookup3( void )
 
     FreeRTOS_dns_update( "helloman",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -561,7 +571,9 @@ void test_prepare_DNSLookup4( void )
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -589,7 +601,9 @@ void test_prepare_DNSLookup5( void )
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
 
@@ -616,7 +630,9 @@ void test_prepare_DNSLookup6( void )
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
@@ -642,9 +658,12 @@ void test_prepare_DNSLookup_IPv6( void )
 
     ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
     pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
-    ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, "hello", sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+    ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName,
+                      "hello",
+                      sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
 
-    pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
+    pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &(
+        pxAddrInfo->xPrivateStorage.sockaddr ) );
 
     pxAddrInfo->ai_family = FREERTOS_AF_INET6;
     pxAddrInfo->ai_addrlen = ipSIZE_OF_IPv6_ADDRESS;
@@ -654,9 +673,11 @@ void test_prepare_DNSLookup_IPv6( void )
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 5 seconds */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddrInfo );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
@@ -685,9 +706,11 @@ void test_prepare_DNSLookup2_IPv6( void )
 
     FreeRTOS_dns_update( "helloman",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL ); /* lives 3 seconds */
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL ); /* lives 3 seconds */
 
-    xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
+    xTaskGetTickCount_ExpectAndReturn( 5000 ); /* 5 seconds */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
@@ -696,7 +719,8 @@ void test_prepare_DNSLookup2_IPv6( void )
 }
 
 /**
- * @brief DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo = NULL )
+ * @brief DNS IPv6 Lookup fail : (*ppxAddressInfo) == NULL, ( *pxAddressInfo =
+ * NULL )
  */
 void test_prepare_DNSLookup3_IPv6( void )
 {
@@ -714,7 +738,9 @@ void test_prepare_DNSLookup3_IPv6( void )
 
     FreeRTOS_dns_update( "helloman",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
@@ -734,7 +760,6 @@ void test_prepare_DNSLookup4_IPv6( void )
     struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
     IPv46_Address_t xAddress;
 
-
     xFamily = FREERTOS_AF_INET6;
     xAddress.xIs_IPv6 = pdTRUE;
 
@@ -743,11 +768,12 @@ void test_prepare_DNSLookup4_IPv6( void )
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
-
 
     x = Prepare_CacheLookup( "hello", xFamily, ppxAddressInfo );
     TEST_ASSERT_EQUAL( 0, x );
@@ -772,7 +798,9 @@ void test_prepare_DNSLookup5_IPv6( void )
 
     FreeRTOS_dns_update( "hello",
                          &xAddress,
-                         FreeRTOS_htonl( 3 ), pdFALSE, NULL );
+                         FreeRTOS_htonl( 3 ),
+                         pdFALSE,
+                         NULL );
 
     xTaskGetTickCount_ExpectAndReturn( 5000 );
 

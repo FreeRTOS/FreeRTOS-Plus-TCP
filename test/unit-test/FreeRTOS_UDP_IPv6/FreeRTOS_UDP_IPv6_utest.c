@@ -4,55 +4,55 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 #include "FreeRTOSIPConfig.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
 #include "mock_FreeRTOS_UDP_IPv6_list_macros.h"
-#include "mock_queue.h"
 #include "mock_event_groups.h"
+#include "mock_queue.h"
 
-#include "mock_FreeRTOS_IP.h"
-#include "mock_NetworkBufferManagement.h"
-#include "mock_FreeRTOS_DNS.h"
-#include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_ARP.h"
-#include "mock_FreeRTOS_ND.h"
+#include "mock_FreeRTOS_DHCP.h"
+#include "mock_FreeRTOS_DNS.h"
+#include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Utils.h"
+#include "mock_FreeRTOS_ND.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_NetworkBufferManagement.h"
 
 #include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_UDP_IP.h"
@@ -82,7 +82,8 @@ void test_xProcessReceivedUDPPacket_IPv6_NullInput()
 {
     BaseType_t xIsWaitingForARPResolution;
 
-    catch_assert( xProcessReceivedUDPPacket_IPv6( NULL, 0, &xIsWaitingForARPResolution ) );
+    catch_assert(
+        xProcessReceivedUDPPacket_IPv6( NULL, 0, &xIsWaitingForARPResolution ) );
 }
 
 /**
@@ -95,7 +96,10 @@ void test_xProcessReceivedUDPPacket_IPv6_NullBufferPointer()
 
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
 
-    catch_assert( xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, 0, &xIsWaitingForARPResolution ) );
+    catch_assert(
+        xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                        0,
+                                        &xIsWaitingForARPResolution ) );
 }
 
 /**
@@ -121,7 +125,9 @@ void test_xProcessReceivedUDPPacket_IPv6_ZeroChecksum()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -153,7 +159,9 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyPass()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
@@ -185,7 +193,9 @@ void test_xProcessReceivedUDPPacket_IPv6_DNSReplyFail()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -217,7 +227,9 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestPass()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
@@ -249,7 +261,9 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRRequestFail()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -281,7 +295,9 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyPass()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
@@ -313,7 +329,9 @@ void test_xProcessReceivedUDPPacket_IPv6_LLMNRReplyFail()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulDNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -345,7 +363,9 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestPass()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
@@ -377,7 +397,9 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSRequestFail()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -409,7 +431,9 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyPass()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
@@ -441,7 +465,9 @@ void test_xProcessReceivedUDPPacket_IPv6_NBNSReplyFail()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
     ulNBNSHandlePacket_ExpectAndReturn( &xNetworkBuffer, pdFAIL );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -472,7 +498,9 @@ void test_xProcessReceivedUDPPacket_IPv6_NoSocket()
 
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, NULL );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -506,7 +534,9 @@ void test_xProcessReceivedUDPPacket_IPv6_SocketNeedND()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdTRUE );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
     TEST_ASSERT_EQUAL( pdTRUE, xIsWaitingForARPResolution );
@@ -536,7 +566,9 @@ void test_xProcessReceivedUDPPacket_IPv6_SocketRecvHandlerFail()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -547,9 +579,12 @@ void test_xProcessReceivedUDPPacket_IPv6_SocketRecvHandlerFail()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -578,7 +613,9 @@ void test_xProcessReceivedUDPPacket_IPv6_UDPListBufferFull()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -589,18 +626,23 @@ void test_xProcessReceivedUDPPacket_IPv6_UDPListBufferFull()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
-    xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = xSocket.u.xUDP.uxMaxPackets;
+    xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = xSocket.u.xUDP
+                                                             .uxMaxPackets;
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**
- * @brief To validate the flow that all flows (list/event group/select/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows (list/event
+ * group/select/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_Pass()
 {
@@ -626,7 +668,9 @@ void test_xProcessReceivedUDPPacket_IPv6_Pass()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -637,37 +681,50 @@ void test_xProcessReceivedUDPPacket_IPv6_Pass()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0U;
 
     vTaskSuspendAll_Ignore();
-    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ), &( xNetworkBuffer.xBufferListItem ) );
+    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ),
+                           &( xNetworkBuffer.xBufferListItem ) );
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
     xSocket.xEventGroup = xEventGroup;
-    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup,
+                                        eSOCKET_RECEIVE,
+                                        pdPASS );
 
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
-    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup,
+                                        eSELECT_READ,
+                                        pdPASS );
 
     /* xSemaphoreGive is defined as xQueueGenericSend */
     xSocket.pxUserSemaphore = ( SemaphoreHandle_t ) &xSocketSem;
-    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore,
+                                       NULL,
+                                       semGIVE_BLOCK_TIME,
+                                       queueSEND_TO_BACK,
+                                       pdPASS );
 
     xIsDHCPSocket_ExpectAndReturn( &xSocket, pdTRUE );
     xSendDHCPEvent_ExpectAndReturn( xNetworkBuffer.pxEndPoint, pdPASS );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
- * @brief To validate the flow that all flows except for event group (list/select/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for event group
+ * (list/select/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup()
 {
@@ -692,7 +749,9 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -704,34 +763,45 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoEventGroup()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0U;
 
     vTaskSuspendAll_Ignore();
-    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ), &( xNetworkBuffer.xBufferListItem ) );
+    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ),
+                           &( xNetworkBuffer.xBufferListItem ) );
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
-    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup,
+                                        eSELECT_READ,
+                                        pdPASS );
 
     /* xSemaphoreGive is defined as xQueueGenericSend */
     xSocket.pxUserSemaphore = ( SemaphoreHandle_t ) &xSocketSem;
-    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore,
+                                       NULL,
+                                       semGIVE_BLOCK_TIME,
+                                       queueSEND_TO_BACK,
+                                       pdPASS );
 
     xIsDHCPSocket_ExpectAndReturn( &xSocket, pdTRUE );
     xSendDHCPEvent_ExpectAndReturn( xNetworkBuffer.pxEndPoint, pdPASS );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
- * @brief To validate the flow that all flows except for select bit (list/event group/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for select bit (list/event
+ * group/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
 {
@@ -757,7 +827,9 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -769,34 +841,45 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectBit()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0U;
 
     vTaskSuspendAll_Ignore();
-    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ), &( xNetworkBuffer.xBufferListItem ) );
+    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ),
+                           &( xNetworkBuffer.xBufferListItem ) );
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
-    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup,
+                                        eSOCKET_RECEIVE,
+                                        pdPASS );
 
     xSocket.pxSocketSet = &xSocketSet;
 
     /* xSemaphoreGive is defined as xQueueGenericSend */
     xSocket.pxUserSemaphore = ( SemaphoreHandle_t ) &xSocketSem;
-    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore,
+                                       NULL,
+                                       semGIVE_BLOCK_TIME,
+                                       queueSEND_TO_BACK,
+                                       pdPASS );
 
     xIsDHCPSocket_ExpectAndReturn( &xSocket, pdTRUE );
     xSendDHCPEvent_ExpectAndReturn( xNetworkBuffer.pxEndPoint, pdPASS );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
- * @brief To validate the flow that all flows except for select set (list/event group/queue/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for select set (list/event
+ * group/queue/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
 {
@@ -821,7 +904,9 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -833,32 +918,43 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSelectSet()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0U;
 
     vTaskSuspendAll_Ignore();
-    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ), &( xNetworkBuffer.xBufferListItem ) );
+    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ),
+                           &( xNetworkBuffer.xBufferListItem ) );
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
-    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup,
+                                        eSOCKET_RECEIVE,
+                                        pdPASS );
 
     /* xSemaphoreGive is defined as xQueueGenericSend */
     xSocket.pxUserSemaphore = ( SemaphoreHandle_t ) &xSocketSem;
-    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore,
+                                       NULL,
+                                       semGIVE_BLOCK_TIME,
+                                       queueSEND_TO_BACK,
+                                       pdPASS );
 
     xIsDHCPSocket_ExpectAndReturn( &xSocket, pdTRUE );
     xSendDHCPEvent_ExpectAndReturn( xNetworkBuffer.pxEndPoint, pdPASS );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
- * @brief To validate the flow that all flows except for semaphore (list/event group/select/DHCP) are all pass.
+ * @brief To validate the flow that all flows except for semaphore (list/event
+ * group/select/DHCP) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
 {
@@ -883,7 +979,9 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -895,32 +993,41 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoSem()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0U;
 
     vTaskSuspendAll_Ignore();
-    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ), &( xNetworkBuffer.xBufferListItem ) );
+    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ),
+                           &( xNetworkBuffer.xBufferListItem ) );
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
-    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup,
+                                        eSOCKET_RECEIVE,
+                                        pdPASS );
 
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
-    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup,
+                                        eSELECT_READ,
+                                        pdPASS );
 
     xIsDHCPSocket_ExpectAndReturn( &xSocket, pdTRUE );
     xSendDHCPEvent_ExpectAndReturn( xNetworkBuffer.pxEndPoint, pdPASS );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
- * @brief To validate the flow that all flows except for DHCP (list/event group/select/queue) are all pass.
+ * @brief To validate the flow that all flows except for DHCP (list/event
+ * group/select/queue) are all pass.
  */
 void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
 {
@@ -946,7 +1053,9 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pucEthernetBuffer;
-    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
+    pxUDPv6Packet->xIPHeader.usPayloadLength = xNetworkBuffer.xDataLength -
+                                               ( ipSIZE_OF_ETH_HEADER +
+                                                 ipSIZE_OF_IPv6_HEADER );
 
     pxUDPv6Packet->xUDPHeader.usChecksum = 0x1234U;
     pxUDPv6Packet->xUDPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
@@ -958,35 +1067,48 @@ void test_xProcessReceivedUDPPacket_IPv6_PassNoDHCP()
     pxUDPSocketLookup_ExpectAndReturn( usDestPortNetworkEndian, &xSocket );
     xCheckRequiresARPResolution_ExpectAndReturn( &xNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
-    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer, ipSIZE_OF_IPv6_HEADER );
+    uxIPHeaderSizePacket_ExpectAndReturn( &xNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER );
 
     /* Set for listCURRENT_LIST_LENGTH */
     xSocket.u.xUDP.uxMaxPackets = 255U;
     xSocket.u.xUDP.xWaitingPacketsList.uxNumberOfItems = 0U;
 
     vTaskSuspendAll_Ignore();
-    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ), &( xNetworkBuffer.xBufferListItem ) );
+    vListInsertEnd_Expect( &( xSocket.u.xUDP.xWaitingPacketsList ),
+                           &( xNetworkBuffer.xBufferListItem ) );
     xTaskResumeAll_ExpectAndReturn( pdPASS );
 
-    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup,
+                                        eSOCKET_RECEIVE,
+                                        pdPASS );
 
     xSocket.pxSocketSet = &xSocketSet;
     xSocket.xSelectBits |= eSELECT_READ;
-    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup, eSELECT_READ, pdPASS );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.pxSocketSet->xSelectGroup,
+                                        eSELECT_READ,
+                                        pdPASS );
 
     /* xSemaphoreGive is defined as xQueueGenericSend */
     xSocket.pxUserSemaphore = ( SemaphoreHandle_t ) &xSocketSem;
-    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore, NULL, semGIVE_BLOCK_TIME, queueSEND_TO_BACK, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xSocket.pxUserSemaphore,
+                                       NULL,
+                                       semGIVE_BLOCK_TIME,
+                                       queueSEND_TO_BACK,
+                                       pdPASS );
 
     xIsDHCPSocket_ExpectAndReturn( &xSocket, pdFALSE );
 
-    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer, usDestPortNetworkEndian, &xIsWaitingForARPResolution );
+    xReturn = xProcessReceivedUDPPacket_IPv6( &xNetworkBuffer,
+                                              usDestPortNetworkEndian,
+                                              &xIsWaitingForARPResolution );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
- * @brief To validate the flow to send ping message but get failure on neighbor discovery.
+ * @brief To validate the flow to send ping message but get failure on neighbor
+ * discovery.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCantSend()
 {
@@ -1002,7 +1124,11 @@ void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCantSend()
 
     pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxICMPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eCantSendPacket );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxICMPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eCantSendPacket );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -1011,7 +1137,8 @@ void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCantSend()
 }
 
 /**
- * @brief To validate the flow to send ping message but get an unknown ND return.
+ * @brief To validate the flow to send ping message but get an unknown ND
+ * return.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheUnknown()
 {
@@ -1027,7 +1154,11 @@ void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheUnknown()
 
     pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxICMPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, 0xFF );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxICMPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      0xFF );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -1049,22 +1180,32 @@ void test_vProcessGeneratedUDPPacket_IPv6_ICMPPingCacheHit()
     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
 
     /* To trigger checksum generation. */
-    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+    pxNetworkBuffer->pucEthernetBuffer
+        [ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
 
     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
 
     pxICMPv6Packet = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxICMPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxICMPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheHit );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer
+                                                    ->pucEthernetBuffer,
+                                                pxNetworkBuffer->xDataLength,
+                                                pdTRUE,
+                                                ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
     TEST_ASSERT_EQUAL( 0x60, pxICMPv6Packet->xIPHeader.ucVersionTrafficClass );
-    TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP_IPv6, pxICMPv6Packet->xIPHeader.ucNextHeader );
+    TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP_IPv6,
+                       pxICMPv6Packet->xIPHeader.ucNextHeader );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
 }
 
@@ -1082,14 +1223,23 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHit()
     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
 
     /* To trigger checksum generation. */
-    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+    pxNetworkBuffer->pucEthernetBuffer
+        [ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheHit );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer
+                                                    ->pucEthernetBuffer,
+                                                pxNetworkBuffer->xDataLength,
+                                                pdTRUE,
+                                                ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
 
@@ -1098,16 +1248,22 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHit()
     TEST_ASSERT_EQUAL( 0, pxUDPv6Packet->xIPHeader.ucTrafficClassFlow );
     TEST_ASSERT_EQUAL( 0, pxUDPv6Packet->xIPHeader.usFlowLabel );
     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPv6Packet->xIPHeader.ucNextHeader );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ), FreeRTOS_ntohs( pxUDPv6Packet->xUDPHeader.usLength ) );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPv6Packet->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPv6Packet->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPv6Address.ucBytes, pxUDPv6Packet->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength -
+                           ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ),
+                       FreeRTOS_ntohs( pxUDPv6Packet->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort,
+                       pxUDPv6Packet->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort,
+                       pxUDPv6Packet->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPv6Address.ucBytes,
+                              pxUDPv6Packet->xIPHeader.xSourceAddress.ucBytes,
+                              ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
 }
 
 /**
- * @brief To validate the flow to send UDP and get a cache hit. But the buffer length is
- * less than minimum requirement.
+ * @brief To validate the flow to send UDP and get a cache hit. But the buffer
+ * length is less than minimum requirement.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitLessBufferLength()
 {
@@ -1121,33 +1277,50 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitLessBufferLength()
     pxEndPoint = prvPrepareDefaultIPv6EndPoint();
 
     /* To trigger checksum generation. */
-    pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
+    pxNetworkBuffer->pucEthernetBuffer
+        [ ipSOCKET_OPTIONS_OFFSET ] |= FREERTOS_SO_UDPCKSUM_OUT;
     pxNetworkBuffer->xDataLength = xBufferLength;
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheHit );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
-    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, pdTRUE, ipCORRECT_CRC );
+    usGenerateProtocolChecksum_ExpectAndReturn( pxNetworkBuffer
+                                                    ->pucEthernetBuffer,
+                                                pxNetworkBuffer->xDataLength,
+                                                pdTRUE,
+                                                ipCORRECT_CRC );
 
     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES,
+                       pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
     TEST_ASSERT_EQUAL( 0x60, pxUDPv6Packet->xIPHeader.ucVersionTrafficClass );
     TEST_ASSERT_EQUAL( 0, pxUDPv6Packet->xIPHeader.ucTrafficClassFlow );
     TEST_ASSERT_EQUAL( 0, pxUDPv6Packet->xIPHeader.usFlowLabel );
     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPv6Packet->xIPHeader.ucNextHeader );
-    TEST_ASSERT_EQUAL( xBufferLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ), FreeRTOS_ntohs( pxUDPv6Packet->xUDPHeader.usLength ) );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPv6Packet->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPv6Packet->xUDPHeader.usDestinationPort );
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPv6Address.ucBytes, pxUDPv6Packet->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( xBufferLength -
+                           ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ),
+                       FreeRTOS_ntohs( pxUDPv6Packet->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort,
+                       pxUDPv6Packet->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort,
+                       pxUDPv6Packet->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPv6Address.ucBytes,
+                              pxUDPv6Packet->xIPHeader.xSourceAddress.ucBytes,
+                              ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
 }
 
 /**
- * @brief To validate the flow to send UDP and get a cache hit but no matching endpoint.
+ * @brief To validate the flow to send UDP and get a cache hit but no matching
+ * endpoint.
  */
 void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitNoEndPoint()
 {
@@ -1161,7 +1334,11 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitNoEndPoint()
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheHit );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheHit );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -1173,9 +1350,13 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheHitNoEndPoint()
     TEST_ASSERT_EQUAL( 0, pxUDPv6Packet->xIPHeader.ucTrafficClassFlow );
     TEST_ASSERT_EQUAL( 0, pxUDPv6Packet->xIPHeader.usFlowLabel );
     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, pxUDPv6Packet->xIPHeader.ucNextHeader );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ), FreeRTOS_ntohs( pxUDPv6Packet->xUDPHeader.usLength ) );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort, pxUDPv6Packet->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPv6Packet->xUDPHeader.usDestinationPort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength -
+                           ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ),
+                       FreeRTOS_ntohs( pxUDPv6Packet->xUDPHeader.usLength ) );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usBoundPort,
+                       pxUDPv6Packet->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort,
+                       pxUDPv6Packet->xUDPHeader.usDestinationPort );
     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
 }
 
@@ -1187,7 +1368,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissBothGlobal()
 {
     BaseType_t xReturn;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
+    NetworkEndPoint_t *pxEndPoint, *pxEndPointNull = NULL;
     UDPPacket_IPv6_t * pxUDPv6Packet;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
@@ -1195,15 +1376,23 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissBothGlobal()
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_Global );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                     eIPv6_Global );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ),
+                                     eIPv6_Global );
 
-    vNDSendNeighbourSolicitation_Expect( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
+    vNDSendNeighbourSolicitation_Expect( pxNetworkBuffer,
+                                         &( pxNetworkBuffer->xIPAddress
+                                                .xIP_IPv6 ) );
 
     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
 
@@ -1227,11 +1416,17 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissButEndPointFound()
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
-    vNDSendNeighbourSolicitation_Expect( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
+    vNDSendNeighbourSolicitation_Expect( pxNetworkBuffer,
+                                         &( pxNetworkBuffer->xIPAddress
+                                                .xIP_IPv6 ) );
 
     vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
 
@@ -1247,7 +1442,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType()
 {
     BaseType_t xReturn;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
+    NetworkEndPoint_t *pxEndPoint, *pxEndPointNull = NULL;
     UDPPacket_IPv6_t * pxUDPv6Packet;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
@@ -1255,13 +1450,19 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType()
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_LinkLocal );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                     eIPv6_LinkLocal );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ),
+                                     eIPv6_Global );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxEndPoint, NULL );
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -1280,7 +1481,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2()
 {
     BaseType_t xReturn;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
+    NetworkEndPoint_t *pxEndPoint, *pxEndPointNull = NULL;
     UDPPacket_IPv6_t * pxUDPv6Packet;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
@@ -1288,13 +1489,19 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2()
 
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_Global );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                     eIPv6_Global );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_LinkLocal );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ),
+                                     eIPv6_LinkLocal );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxEndPoint, NULL );
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -1313,7 +1520,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound()
 {
     BaseType_t xReturn;
     NetworkBufferDescriptor_t * pxNetworkBuffer;
-    NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
+    NetworkEndPoint_t *pxEndPoint, *pxEndPointNull = NULL;
     UDPPacket_IPv6_t * pxUDPv6Packet;
 
     pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
@@ -1322,12 +1529,21 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound()
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxUDPv6Packet->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
 
-    vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, pxEndPoint );
+    vARPRefreshCacheEntry_Expect( NULL,
+                                  pxNetworkBuffer->xIPAddress.ulIP_IPv4,
+                                  NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress
+                                                        .ulIP_IPv4,
+                                                    11,
+                                                    pxEndPoint );
     FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
     vARPGenerateRequestPacket_Expect( pxNetworkBuffer );
 
@@ -1353,12 +1569,21 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound()
     pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxUDPv6Packet->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ),
+                                      &( pxUDPv6Packet->xEthernetHeader
+                                             .xDestinationAddress ),
+                                      NULL,
+                                      eARPCacheMiss );
     eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
 
-    vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, NULL );
+    vARPRefreshCacheEntry_Expect( NULL,
+                                  pxNetworkBuffer->xIPAddress.ulIP_IPv4,
+                                  NULL );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress
+                                                        .ulIP_IPv4,
+                                                    11,
+                                                    NULL );
     FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
@@ -1369,7 +1594,8 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound()
 }
 
 /**
- * @brief Searching IPv4 endpoint in the global list. And it always returns NULL.
+ * @brief Searching IPv4 endpoint in the global list. And it always returns
+ * NULL.
  */
 void test_pxGetEndpoint_IPv4()
 {
@@ -1396,8 +1622,12 @@ void test_pxGetEndpoint_NotMatchEndpoint()
     NetworkEndPoint_t * pxIPv6EndPoint = prvPrepareDefaultIPv6EndPoint();
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxIPv4EndPoint );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxIPv4EndPoint, pxIPv6EndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxIPv6EndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL,
+                                           pxIPv4EndPoint,
+                                           pxIPv6EndPoint );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxIPv6EndPoint->ipv6_settings
+                                            .xIPAddress ),
+                                     eIPv6_Global );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxIPv6EndPoint, NULL );
 
     pxReturnEndPoint = pxGetEndpoint( ipTYPE_IPv6, xIsGlobal );

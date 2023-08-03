@@ -12,9 +12,10 @@ TCPSegment_t xRxSegmentListItem;
 TCPSegment_t xTxSegmentListItem;
 
 /* Definition of this function in FreeRTOS_TCP_WIN.c. */
-void __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( List_t * const pxList,
-                                                                 ListItem_t * const pxNewListItem,
-                                                                 MiniListItem_t * const pxWhere );
+void __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric(
+    List_t * const pxList,
+    ListItem_t * const pxNewListItem,
+    MiniListItem_t * const pxWhere );
 
 /* Segment List is defined in FreeRTOS_TCP_WIN.c */
 extern List_t xSegmentList;
@@ -39,8 +40,10 @@ void harness()
         /* Make the container of the queue item is NULL. */
         xRxSegmentListItem.xQueueItem.pxContainer = NULL;
 
-        __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( &xWindow.xRxSegments,
-                                                                    &( xRxSegmentListItem.xSegmentItem ), &xWindow.xRxSegments.xListEnd );
+        __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric(
+            &xWindow.xRxSegments,
+            &( xRxSegmentListItem.xSegmentItem ),
+            &xWindow.xRxSegments.xListEnd );
     }
 
     if( nondet_bool() )
@@ -51,12 +54,14 @@ void harness()
         /* Make the container of the queue item is NULL. */
         xTxSegmentListItem.xQueueItem.pxContainer = NULL;
 
-        __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric( &xWindow.xTxSegments,
-                                                                    &( xTxSegmentListItem.xSegmentItem ), &xWindow.xTxSegments.xListEnd );
+        __CPROVER_file_local_FreeRTOS_TCP_WIN_c_vListInsertGeneric(
+            &xWindow.xTxSegments,
+            &( xTxSegmentListItem.xSegmentItem ),
+            &xWindow.xTxSegments.xListEnd );
     }
 
-    /* Call the function. The function is internally called from just one location
-     * where it is made sure that the parameter passed to the function is non-NULL.
-     * Therefore, a non-NULL value is passed to the function. */
+    /* Call the function. The function is internally called from just one
+     * location where it is made sure that the parameter passed to the function
+     * is non-NULL. Therefore, a non-NULL value is passed to the function. */
     vTCPWindowDestroy( &xWindow );
 }

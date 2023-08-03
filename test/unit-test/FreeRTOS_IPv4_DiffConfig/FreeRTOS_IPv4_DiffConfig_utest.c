@@ -4,44 +4,44 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
 #include "mock_IPv4_DiffConfig_list_macros.h"
-#include "mock_queue.h"
 #include "mock_event_groups.h"
+#include "mock_queue.h"
 
 #include "mock_FreeRTOS_Routing.h"
 
@@ -54,7 +54,9 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
+const MACAddress_t xBroadcastMACAddress = {
+    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }
+};
 
 /* ============================ Unity Fixtures ============================ */
 
@@ -74,18 +76,18 @@ void tearDown( void )
 
 /**
  * @brief test_prvAllowIPPacketIPv4_BroadcastSourceIP
- * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when source IP address
- * is broadcast, which is not allowed.
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when source IP
+ * address is broadcast, which is not allowed.
  */
 void test_prvAllowIPPacketIPv4_BroadcastSourceIP( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t xEndpoint, *pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
@@ -102,31 +104,35 @@ void test_prvAllowIPPacketIPv4_BroadcastSourceIP( void )
 
     pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
-    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket,
+                                    pxNetworkBuffer,
+                                    uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 /**
  * @brief test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum
- * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when buffer size is
- * less than IP packet minimum requirement.
+ * To validate if prvAllowIPPacketIPv4() returns eReleaseBuffer when buffer size
+ * is less than IP packet minimum requirement.
  */
 void test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t xEndpoint, *pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
@@ -144,13 +150,17 @@ void test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum( void )
 
     pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
-    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket,
+                                    pxNetworkBuffer,
+                                    uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
@@ -164,11 +174,11 @@ void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t xEndpoint, *pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
@@ -188,33 +198,40 @@ void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
     pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
     /* Correct protocol. */
     pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
-    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof( UDPHeader_t ) );
+    pxIPHeader->usLength = FreeRTOS_htons(
+        ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) +
+        sizeof( UDPHeader_t ) );
 
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
-    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket,
+                                    pxNetworkBuffer,
+                                    uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 /**
  * @brief test_prvAllowIPPacketIPv4_UDP_HappyPath
- * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer for UDP happy path.
+ * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer for UDP happy
+ * path.
  */
 void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     ProtocolPacket_t * pxProtPack;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t xEndpoint, *pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
@@ -234,39 +251,48 @@ void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
     pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
     /* Correct protocol. */
     pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
-    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof( UDPHeader_t ) );
+    pxIPHeader->usLength = FreeRTOS_htons(
+        ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) +
+        sizeof( UDPHeader_t ) );
 
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     uxHeaderLength = ipSIZE_OF_IPv4_HEADER;
-    pxProtPack = ( ( ProtocolPacket_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
+    pxProtPack = ( ( ProtocolPacket_t * ) &(
+        pxNetworkBuffer
+            ->pucEthernetBuffer[ uxHeaderLength - ipSIZE_OF_IPv4_HEADER ] ) );
 
     /* Non-zero checksum. */
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0xFF12;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
-    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket,
+                                    pxNetworkBuffer,
+                                    uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }
 
 /**
  * @brief test_prvAllowIPPacketIPv4_TCP_HappyPath
- * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer for TCP happy path.
+ * To validate if prvAllowIPPacketIPv4() returns eProcessBuffer for TCP happy
+ * path.
  */
 void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = ipSIZE_OF_IPv4_HEADER;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     ProtocolPacket_t * pxProtPack;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t xEndpoint, *pxEndpoint = &xEndpoint;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
@@ -286,15 +312,21 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
     pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
     /* Correct protocol. */
     pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
-    pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof( UDPHeader_t ) );
+    pxIPHeader->usLength = FreeRTOS_htons(
+        ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) +
+        sizeof( UDPHeader_t ) );
 
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
 
-    eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+    eResult = prvAllowIPPacketIPv4( pxIPPacket,
+                                    pxNetworkBuffer,
+                                    uxHeaderLength );
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
 }

@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -30,8 +31,8 @@
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "list.h"
-#include "task.h"
 #include "message_buffer.h"
+#include "task.h"
 
 #if !defined( _WIN32 )
     #include "wait_for_event.h"
@@ -43,20 +44,21 @@
 /* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
+#if( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) eProcessBuffer
 #else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) \
+        eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #endif
 
 #if ipconfigNETWORK_MTU < 1500U
     #error ipconfigNETWORK_MTU must be at least 1500
 #endif
 
-#define NETWORK_BUFFER_LEN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
+#define NETWORK_BUFFER_LEN ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
 
-#define xSEND_BUFFER_SIZE     ( 32U * NETWORK_BUFFER_LEN )
-#define xRECV_BUFFER_SIZE     ( 32U * NETWORK_BUFFER_LEN )
+#define xSEND_BUFFER_SIZE  ( 32U * NETWORK_BUFFER_LEN )
+#define xRECV_BUFFER_SIZE  ( 32U * NETWORK_BUFFER_LEN )
 
 typedef struct
 {
@@ -90,21 +92,23 @@ BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
 
     if( pxNetif->pvArgument == NULL )
     {
-        FreeRTOS_printf( ( "Failed to allocate memory for pxNetif->pvArgument" ) );
+        FreeRTOS_printf(
+            ( "Failed to allocate memory for pxNetif->pvArgument" ) );
         configASSERT( 0 );
     }
 
-    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * )
+                                                pxNetif->pvArgument;
 
     if( pxDriverCtx->xInterfaceState == pdFALSE )
     {
         pxDriverCtx->xInterfaceState = pdFALSE;
 
-        #if defined( _WIN32 )
-            pxDriverCtx->pvSendEvent = CreateEvent( NULL, FALSE, TRUE, NULL );
-        #else
-            pxDriverCtx->pvSendEvent = ( void * ) event_create();
-        #endif
+#if defined( _WIN32 )
+        pxDriverCtx->pvSendEvent = CreateEvent( NULL, FALSE, TRUE, NULL );
+#else
+        pxDriverCtx->pvSendEvent = ( void * ) event_create();
+#endif
 
         if( pxDriverCtx->pvSendEvent == NULL )
         {
@@ -120,11 +124,11 @@ BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
             if( pxDriverCtx->pvBackendContext == NULL )
             {
                 xResult = pdFALSE;
-                #if defined( _WIN32 )
-                    ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
-                #else
-                    ( void ) event_delete( pxDriverCtx->pvSendEvent );
-                #endif
+#if defined( _WIN32 )
+                ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
+#else
+                ( void ) event_delete( pxDriverCtx->pvSendEvent );
+#endif
             }
         }
 
@@ -132,7 +136,8 @@ BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
 
         if( ( xResult == pdTRUE ) && ( xReceiveTaskCreated == pdFALSE ) )
         {
-            xResult = xTaskCreate( vNetifReceiveTask, "NetRX",
+            xResult = xTaskCreate( vNetifReceiveTask,
+                                   "NetRX",
                                    configMINIMAL_STACK_SIZE,
                                    pxNetif,
                                    tskIDLE_PRIORITY,
@@ -149,11 +154,11 @@ BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
         {
             if( pxDriverCtx->pvSendEvent != NULL )
             {
-                #if defined( _WIN32 )
-                    ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
-                #else
-                    event_delete( pxDriverCtx->pvSendEvent );
-                #endif
+#if defined( _WIN32 )
+                ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
+#else
+                event_delete( pxDriverCtx->pvSendEvent );
+#endif
             }
 
             if( pxDriverCtx->pvBackendContext != NULL )
@@ -175,13 +180,14 @@ BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
  */
 BaseType_t xNetworkInterfaceDeInitialise( NetworkInterface_t * pxNetif )
 {
-    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * )
+                                                pxNetif->pvArgument;
 
-    #if defined( _WIN32 )
-        ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
-    #else
-        event_delete( pxDriverCtx->pvSendEvent );
-    #endif
+#if defined( _WIN32 )
+    ( void ) CloseHandle( pxDriverCtx->pvSendEvent );
+#else
+    event_delete( pxDriverCtx->pvSendEvent );
+#endif
 
     vTaskDelete( pxDriverCtx->xRecvTask );
 
@@ -193,7 +199,8 @@ BaseType_t xNetworkInterfaceDeInitialise( NetworkInterface_t * pxNetif )
 }
 
 /*!
- * @brief FreeRTOS task which reads from xRecvMsgBuffer and passes new frames to FreeRTOS+TCP.
+ * @brief FreeRTOS task which reads from xRecvMsgBuffer and passes new frames to
+ * FreeRTOS+TCP.
  * @param [in] pvParameters not used
  */
 static void vNetifReceiveTask( void * pvParameters )
@@ -201,16 +208,18 @@ static void vNetifReceiveTask( void * pvParameters )
     NetworkBufferDescriptor_t * pxDescriptor = NULL;
     NetworkInterface_t * pxNetif = ( NetworkInterface_t * ) pvParameters;
 
-    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * )
+                                                pxNetif->pvArgument;
 
-    for( ; ; )
+    for( ;; )
     {
         size_t uxMessageLen;
 
         while( pxDescriptor == NULL )
         {
             /* Wait for an MTU + header sized buffer */
-            pxDescriptor = pxGetNetworkBufferWithDescriptor( NETWORK_BUFFER_LEN, portMAX_DELAY );
+            pxDescriptor = pxGetNetworkBufferWithDescriptor( NETWORK_BUFFER_LEN,
+                                                             portMAX_DELAY );
             configASSERT( pxDescriptor->xDataLength >= NETWORK_BUFFER_LEN );
         }
 
@@ -228,16 +237,22 @@ static void vNetifReceiveTask( void * pvParameters )
             pxDescriptor->xDataLength = uxMessageLen;
 
             /* eConsiderFrameForProcessing is interrupt safe */
-            xFrameProcess = ipCONSIDER_FRAME_FOR_PROCESSING( pxDescriptor->pucEthernetBuffer );
+            xFrameProcess = ipCONSIDER_FRAME_FOR_PROCESSING(
+                pxDescriptor->pucEthernetBuffer );
 
             if( xFrameProcess != eProcessBuffer )
             {
-                FreeRTOS_debug_printf( ( "Dropping RX frame of length: %lu. eConsiderFrameForProcessing returned %lu.\n",
-                                         uxMessageLen, xFrameProcess ) );
+                FreeRTOS_debug_printf(
+                    ( "Dropping RX frame of length: %lu. "
+                      "eConsiderFrameForProcessing returned %lu.\n",
+                      uxMessageLen,
+                      xFrameProcess ) );
             }
 
             pxDescriptor->pxInterface = pxNetif;
-            pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxNetif, pxDescriptor->pucEthernetBuffer );
+            pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint(
+                pxNetif,
+                pxDescriptor->pucEthernetBuffer );
 
             xRxEvent.eEventType = eNetworkRxEvent;
             xRxEvent.pvData = ( void * ) pxDescriptor;
@@ -251,9 +266,11 @@ static void vNetifReceiveTask( void * pvParameters )
             }
             else
             {
-                FreeRTOS_debug_printf( ( "Dropping TX frame of length: %lu. FreeRTOS+TCP event queue is full.\n",
+                FreeRTOS_debug_printf( ( "Dropping TX frame of length: %lu. "
+                                         "FreeRTOS+TCP event queue is full.\n",
                                          pxDescriptor->xDataLength ) );
-                /* Drop the frame and reuse the descriptor for the next incomming frame */
+                /* Drop the frame and reuse the descriptor for the next
+                 * incomming frame */
                 iptraceETHERNET_RX_EVENT_LOST();
             }
         }
@@ -271,23 +288,29 @@ static void vNetifReceiveTask( void * pvParameters )
  *        selected interface
  * @return pdTRUE if successful else pdFALSE
  */
-BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxNetif,
-                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput(
+    NetworkInterface_t * pxNetif,
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFALSE;
 
-    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * )
+                                                pxNetif->pvArgument;
 
-    FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: %p:%p\n", pxNetworkBuffer, pxNetworkBuffer->pucEthernetBuffer ) );
+    FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: %p:%p\n",
+                             pxNetworkBuffer,
+                             pxNetworkBuffer->pucEthernetBuffer ) );
 
     if( pxDriverCtx->xInterfaceState == pdTRUE )
     {
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-        configASSERT( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) );
+        configASSERT( pxNetworkBuffer->xDataLength >=
+                      sizeof( EthernetHeader_t ) );
 
-        if( xMessageBufferSpacesAvailable( pxDriverCtx->xSendMsgBuffer ) > pxNetworkBuffer->xDataLength + 4U )
+        if( xMessageBufferSpacesAvailable( pxDriverCtx->xSendMsgBuffer ) >
+            pxNetworkBuffer->xDataLength + 4U )
         {
             size_t uxBytesSent;
             uxBytesSent = xMessageBufferSend( pxDriverCtx->xSendMsgBuffer,
@@ -300,8 +323,9 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxNetif,
         }
         else
         {
-            FreeRTOS_debug_printf( ( "Dropping TX frame of length: %lu. xSendMsgBuffer is full.\n",
-                                     pxNetworkBuffer->xDataLength ) );
+            FreeRTOS_debug_printf(
+                ( "Dropping TX frame of length: %lu. xSendMsgBuffer is full.\n",
+                  pxNetworkBuffer->xDataLength ) );
         }
 
         iptraceNETWORK_INTERFACE_TRANSMIT();
@@ -313,33 +337,37 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxNetif,
 
         if( xResult == pdTRUE )
         {
-            #if defined( _WIN32 )
-                SetEvent( pxDriverCtx->pvSendEvent );
-            #else
-                event_signal( pxDriverCtx->pvSendEvent );
-            #endif
+#if defined( _WIN32 )
+            SetEvent( pxDriverCtx->pvSendEvent );
+#else
+            event_signal( pxDriverCtx->pvSendEvent );
+#endif
         }
     }
 
     return xResult;
 }
 
-#define BUFFER_SIZE               ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
-#define BUFFER_SIZE_ROUNDED_UP    ( ( BUFFER_SIZE + 7 ) & ~0x07UL )
+#define BUFFER_SIZE            ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
+#define BUFFER_SIZE_ROUNDED_UP ( ( BUFFER_SIZE + 7 ) & ~0x07UL )
 
 /*!
- * @brief Allocate RAM for packet buffers and set the pucEthernetBuffer field for each descriptor.
- *        Called when the BufferAllocation1 scheme is used.
- * @param [in,out] pxNetworkBuffers Pointer to an array of NetworkBufferDescriptor_t to populate.
+ * @brief Allocate RAM for packet buffers and set the pucEthernetBuffer field
+ * for each descriptor. Called when the BufferAllocation1 scheme is used.
+ * @param [in,out] pxNetworkBuffers Pointer to an array of
+ * NetworkBufferDescriptor_t to populate.
  */
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     static uint8_t * pucNetworkPacketBuffers = NULL;
     size_t uxIndex;
 
     if( pucNetworkPacketBuffers == NULL )
     {
-        pucNetworkPacketBuffers = ( uint8_t * ) malloc( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * BUFFER_SIZE_ROUNDED_UP );
+        pucNetworkPacketBuffers = ( uint8_t * ) malloc(
+            ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * BUFFER_SIZE_ROUNDED_UP );
     }
 
     if( pucNetworkPacketBuffers == NULL )
@@ -349,20 +377,24 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
     }
     else
     {
-        for( uxIndex = 0; uxIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; uxIndex++ )
+        for( uxIndex = 0; uxIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
+             uxIndex++ )
         {
             size_t uxOffset = uxIndex * BUFFER_SIZE_ROUNDED_UP;
             NetworkBufferDescriptor_t ** ppDescriptor;
 
-            /* At the beginning of each pbuff is a pointer to the relevant descriptor */
-            ppDescriptor = ( NetworkBufferDescriptor_t ** ) &( pucNetworkPacketBuffers[ uxOffset ] );
+            /* At the beginning of each pbuff is a pointer to the relevant
+             * descriptor */
+            ppDescriptor = ( NetworkBufferDescriptor_t ** ) &(
+                pucNetworkPacketBuffers[ uxOffset ] );
 
             /* Set this pointer to the address of the correct descriptor */
             *ppDescriptor = &( pxNetworkBuffers[ uxIndex ] );
 
-            /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from the
-             * beginning of the allocated buffer. */
-            pxNetworkBuffers[ uxIndex ].pucEthernetBuffer = &( pucNetworkPacketBuffers[ uxOffset + ipBUFFER_PADDING ] );
+            /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from
+             * the beginning of the allocated buffer. */
+            pxNetworkBuffers[ uxIndex ].pucEthernetBuffer = &(
+                pucNetworkPacketBuffers[ uxOffset + ipBUFFER_PADDING ] );
         }
     }
 }
@@ -371,7 +403,8 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxNetif )
 {
     BaseType_t xResult = pdFALSE;
 
-    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+    MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * )
+                                                pxNetif->pvArgument;
 
     if( pxDriverCtx->xInterfaceState == pdTRUE )
     {
@@ -381,8 +414,9 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxNetif )
     return xResult;
 }
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+NetworkInterface_t * pxFillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface )
 {
     configASSERT( pxInterface != NULL );
     static char pcName[ 17 ];
@@ -391,8 +425,9 @@ NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
 
     memset( pxInterface, 0, sizeof( NetworkInterface_t ) );
 
-    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
-    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pcName = pcName; /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the
+                                                        driver functions. */
     pxInterface->pfInitialise = xNetworkInterfaceInitialise;
     pxInterface->pfOutput = xNetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = xGetPhyLinkStatus;

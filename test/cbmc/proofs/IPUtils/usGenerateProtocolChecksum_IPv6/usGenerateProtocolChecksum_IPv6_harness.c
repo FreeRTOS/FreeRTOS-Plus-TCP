@@ -43,7 +43,8 @@ uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
                              size_t uxByteCount )
 {
-    __CPROVER_assert( __CPROVER_r_ok( pucNextData, uxByteCount ), "pucNextData should be readable." );
+    __CPROVER_assert( __CPROVER_r_ok( pucNextData, uxByteCount ),
+                      "pucNextData should be readable." );
 }
 
 /* Check if input is a valid extension header ID. */
@@ -67,9 +68,9 @@ BaseType_t xIsExtensionHeader( uint8_t ucCurrentHeader )
     return xReturn;
 }
 
-/* Abstraction of xGetExtensionOrder. To ensure the result of prepared extension headers is same. */
-BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
-                               uint8_t ucNextHeader )
+/* Abstraction of xGetExtensionOrder. To ensure the result of prepared extension
+ * headers is same. */
+BaseType_t xGetExtensionOrder( uint8_t ucProtocol, uint8_t ucNextHeader )
 {
     BaseType_t xReturn = -1;
 
@@ -81,12 +82,14 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
     return xReturn;
 }
 
-/* To guarantee the remaining buffer size greater than protocol header size to avoid dereference failure. */
+/* To guarantee the remaining buffer size greater than protocol header size to
+ * avoid dereference failure. */
 void prvPrepareExtensionHeaders( uint8_t * pucEthernetBuffer,
                                  size_t uxBufferLength )
 {
     size_t uxMinReminingSize = sizeof( ProtocolHeaders_t );
-    const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( const IPPacket_IPv6_t * ) pucEthernetBuffer;
+    const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( const IPPacket_IPv6_t * )
+        pucEthernetBuffer;
     uint8_t ucNextHeader = 0U;
     size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
     size_t uxHopSize = 0U;
@@ -119,15 +122,19 @@ void prvPrepareExtensionHeaders( uint8_t * pucEthernetBuffer,
                 ( ucNextHeader == ipPROTOCOL_UDP ) ||
                 ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
             {
-                /* The remaining size of buffer after extension header must be greater than size of protocol header. */
-                __CPROVER_assume( uxBufferLength - uxIndex >= sizeof( ProtocolHeaders_t ) );
+                /* The remaining size of buffer after extension header must be
+                 * greater than size of protocol header. */
+                __CPROVER_assume( uxBufferLength - uxIndex >=
+                                  sizeof( ProtocolHeaders_t ) );
                 break;
             }
 
             if( xIsExtensionHeader( ucNextHeader ) == pdFALSE )
             {
-                /* The remaining size of buffer after extension header must be greater than size of protocol header. */
-                __CPROVER_assume( uxBufferLength - uxIndex >= sizeof( ProtocolHeaders_t ) );
+                /* The remaining size of buffer after extension header must be
+                 * greater than size of protocol header. */
+                __CPROVER_assume( uxBufferLength - uxIndex >=
+                                  sizeof( ProtocolHeaders_t ) );
                 break;
             }
 
@@ -137,8 +144,10 @@ void prvPrepareExtensionHeaders( uint8_t * pucEthernetBuffer,
     else
     {
         /* No extension headers. */
-        /* The remaining size of buffer after extension header must be greater than size of protocol header. */
-        __CPROVER_assume( uxBufferLength - uxIndex >= sizeof( ProtocolHeaders_t ) );
+        /* The remaining size of buffer after extension header must be greater
+         * than size of protocol header. */
+        __CPROVER_assume( uxBufferLength - uxIndex >=
+                          sizeof( ProtocolHeaders_t ) );
     }
 }
 
@@ -149,18 +158,26 @@ void harness()
     BaseType_t xOutgoingPacket;
     IPPacket_IPv6_t * pxIPPacket;
 
-    /* The buffer must contain enough buffer size for ethernet header + IPv6 header and less than MTU size. */
-    __CPROVER_assume( ( uxBufferLength >= ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ProtocolHeaders_t ) ) && ( uxBufferLength < ipconfigNETWORK_MTU ) );
+    /* The buffer must contain enough buffer size for ethernet header + IPv6
+     * header and less than MTU size. */
+    __CPROVER_assume( ( uxBufferLength >= ipSIZE_OF_ETH_HEADER +
+                                              ipSIZE_OF_IPv6_HEADER +
+                                              sizeof( ProtocolHeaders_t ) ) &&
+                      ( uxBufferLength < ipconfigNETWORK_MTU ) );
     pucEthernetBuffer = safeMalloc( uxBufferLength );
     __CPROVER_assume( pucEthernetBuffer != NULL );
     __CPROVER_havoc_slice( pucEthernetBuffer, uxBufferLength );
 
     /* This test case verifies IPv6 only. */
     pxIPPacket = ( IPPacket_IPv6_t * ) pucEthernetBuffer;
-    __CPROVER_assume( pxIPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE );
+    __CPROVER_assume( pxIPPacket->xEthernetHeader.usFrameType ==
+                      ipIPv6_FRAME_TYPE );
 
-    /* Check if buffer size is enough for extension headers + protocol headers. */
+    /* Check if buffer size is enough for extension headers + protocol headers.
+     */
     prvPrepareExtensionHeaders( pucEthernetBuffer, uxBufferLength );
 
-    ( void ) usGenerateProtocolChecksum( pucEthernetBuffer, uxBufferLength, xOutgoingPacket );
+    ( void ) usGenerateProtocolChecksum( pucEthernetBuffer,
+                                         uxBufferLength,
+                                         xOutgoingPacket );
 }

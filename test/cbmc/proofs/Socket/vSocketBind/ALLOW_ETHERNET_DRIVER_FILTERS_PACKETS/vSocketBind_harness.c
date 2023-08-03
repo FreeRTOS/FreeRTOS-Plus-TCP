@@ -28,12 +28,13 @@ BaseType_t xIPIsNetworkTaskReady( void )
     return pdTRUE;
 }
 
-
-/* Random number generator provided by the application. In our case, CBMC provides
- * an indeterministic value. */
+/* Random number generator provided by the application. In our case, CBMC
+ * provides an indeterministic value. */
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 {
-    __CPROVER_assert( pulNumber != NULL, "Argument to xApplicationGetRandomNumber cannot be NULL" );
+    __CPROVER_assert( pulNumber != NULL,
+                      "Argument to xApplicationGetRandomNumber cannot be "
+                      "NULL" );
 
     if( nondet_bool() )
     {
@@ -50,12 +51,14 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 void harness()
 {
     /* Add few endpoints */
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc(
+        sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
     if( nondet_bool() )
     {
-        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc(
+            sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
         pxNetworkEndPoints->pxNext->pxNext = NULL;
     }
@@ -69,7 +72,8 @@ void harness()
     __CPROVER_assume( pxSocket != NULL );
     __CPROVER_assume( pxSocket != FREERTOS_INVALID_SOCKET );
 
-    struct freertos_sockaddr * pxBindAddress = safeMalloc( sizeof( struct freertos_sockaddr ) );
+    struct freertos_sockaddr * pxBindAddress = safeMalloc(
+        sizeof( struct freertos_sockaddr ) );
 
     /* uxAddressLength is not used in this implementation. */
     size_t uxAddressLength;

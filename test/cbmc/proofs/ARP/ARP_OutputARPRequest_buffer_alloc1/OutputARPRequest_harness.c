@@ -6,33 +6,37 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_ARP.h"
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
-#if ( ipconfigUSE_LLMNR == 1 )
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
+#if( ipconfigUSE_LLMNR == 1 )
     #include "FreeRTOS_DNS.h"
 #endif /* ipconfigUSE_LLMNR */
-#include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
+#include "NetworkInterface.h"
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
     {
         NetworkBufferDescriptor_t * current = &pxNetworkBuffers[ x ];
-        #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
-            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) + ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) ) );
-        #else
-            current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
-        #endif
+#if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
+        current->pucEthernetBuffer = malloc(
+            sizeof( ARPPacket_t ) +
+            ( ipconfigETHERNET_MINIMUM_PACKET_BYTES - sizeof( ARPPacket_t ) ) );
+#else
+        current->pucEthernetBuffer = malloc( sizeof( ARPPacket_t ) );
+#endif
         __CPROVER_assume( current->pucEthernetBuffer != NULL );
         current->xDataLength = sizeof( ARPPacket_t );
     }
@@ -61,13 +65,17 @@ void * pvPortMalloc( size_t xWantedSize )
  * for releasing the buffer to the end. Apart from that, it is up to the vendor,
  * how to write this code out to the network.
  */
-BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                BaseType_t xReleaseAfterSend )
+BaseType_t NetworkInterfaceOutputFunction_Stub(
+    struct xNetworkInterface * pxDescriptor,
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
-    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
-    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
-    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
+    __CPROVER_assert( pxDescriptor != NULL,
+                      "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL,
+                      "The ethernet buffer cannot be NULL." );
 
     if( xReleaseAfterSend != pdFALSE )
     {
@@ -75,27 +83,30 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
     }
 }
 
-
 void harness()
 {
     BaseType_t xRes = xNetworkBuffersInitialise();
 
     /*
-     * For this proof, its assumed that the endpoints and interfaces are correctly
-     * initialised and the pointers are set correctly.
-     * Assumes one endpoint and interface is present.
+     * For this proof, its assumed that the endpoints and interfaces are
+     * correctly initialised and the pointers are set correctly. Assumes one
+     * endpoint and interface is present.
      */
 
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc(
+        sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
     pxNetworkEndPoints->pxNext = NULL;
 
     /* Interface init. */
-    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) malloc(
+        sizeof( NetworkInterface_t ) );
     pxNetworkEndPoints->pxNetworkInterface->pxNext = NULL;
 
-    pxNetworkEndPoints->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
-    /* No assumption is added for pfOutput as its pointed to a static object/memory location. */
+    pxNetworkEndPoints->pxNetworkInterface
+        ->pfOutput = NetworkInterfaceOutputFunction_Stub;
+    /* No assumption is added for pfOutput as its pointed to a static
+     * object/memory location. */
 
     if( xRes == pdPASS )
     {

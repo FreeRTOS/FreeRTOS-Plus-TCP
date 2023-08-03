@@ -36,10 +36,11 @@
 #include "FreeRTOS_TCP_State_Handling.h"
 
 /* CBMC includes. */
-#include "cbmc.h"
 #include "../../utility/memory_assignments.c"
+#include "cbmc.h"
 
-/* Abstraction of uxIPHeaderSizePacket. This test case only uses to test IPv4 path. */
+/* Abstraction of uxIPHeaderSizePacket. This test case only uses to test IPv4
+ * path. */
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     return ipSIZE_OF_IPv4_HEADER;
@@ -57,10 +58,13 @@ void harness()
 {
     size_t xDataLength;
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * )
+        safeMalloc( sizeof( FreeRTOS_Socket_t ) );
 
-    /* The length of buffer must be larger than or equal to TCP minimum requirement. */
-    __CPROVER_assume( xDataLength >= sizeof( TCPPacket_t ) && xDataLength <= ipconfigNETWORK_MTU );
+    /* The length of buffer must be larger than or equal to TCP minimum
+     * requirement. */
+    __CPROVER_assume( xDataLength >= sizeof( TCPPacket_t ) &&
+                      xDataLength <= ipconfigNETWORK_MTU );
 
     /* Socket is guaranteed to be non-NULL. */
     __CPROVER_assume( pxSocket != NULL );
@@ -68,13 +72,15 @@ void harness()
     /* Network buffer is guaranteed to be non-NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) safeMalloc( xDataLength );
+    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) safeMalloc(
+        xDataLength );
 
     /* Network buffer is guaranteed to be non-NULL. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     pxNetworkBuffer->xDataLength = xDataLength;
-    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
 
     prvHandleListen( pxSocket, pxNetworkBuffer );
 }

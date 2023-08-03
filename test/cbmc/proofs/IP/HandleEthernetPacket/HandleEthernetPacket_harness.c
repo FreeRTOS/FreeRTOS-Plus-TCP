@@ -39,23 +39,30 @@
 #include "cbmc.h"
 
 /* Declaration */
-void __CPROVER_file_local_FreeRTOS_IP_c_prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer );
+void __CPROVER_file_local_FreeRTOS_IP_c_prvHandleEthernetPacket(
+    NetworkBufferDescriptor_t * pxBuffer );
 
 /* Stubs */
 
 /* ProcessEthernetPacket() is proved else where */
-void __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+void __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer != NULL" );
-    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "pxNetworkBuffer->pucEthernetBuffer != NULL" );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL,
+                      "pxNetworkBuffer->pucEthernetBuffer != NULL" );
 }
 
-/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
-/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented
+ * correctly and returns a valid data structure. */
+/*This is the mock to mimic the correct expected behavior. If this allocation
+ * fails, this might invalidate the proof. */
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor(
+    size_t xRequestedSizeBytes,
+    TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * )
+        safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
@@ -66,8 +73,8 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return pxNetworkBuffer;
 }
 
-
-/* The harness test proceeds to call eConsiderFrameForProcessing with an unconstrained buffer */
+/* The harness test proceeds to call eConsiderFrameForProcessing with an
+ * unconstrained buffer */
 void harness()
 {
     NetworkBufferDescriptor_t * pxBuffer;
@@ -80,7 +87,8 @@ void harness()
     __CPROVER_assume( uBuffSize > 0 && uBuffSize < ipconfigNETWORK_MTU );
 
     pxBuffer = pxGetNetworkBufferWithDescriptor( uBuffSize, xBlockTimeTicks );
-    pxBuffer->pxNextBuffer = pxGetNetworkBufferWithDescriptor( uBuffSize, xBlockTimeTicks );
+    pxBuffer->pxNextBuffer = pxGetNetworkBufferWithDescriptor( uBuffSize,
+                                                               xBlockTimeTicks );
 
     __CPROVER_assume( pxBuffer->pxNextBuffer->pxNextBuffer == NULL );
 

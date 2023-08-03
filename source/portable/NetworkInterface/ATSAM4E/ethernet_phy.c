@@ -56,7 +56,7 @@
 /*/ @cond 0 */
 /**INDENT-OFF**/
 #ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 /**INDENT-ON**/
 /*/ @endcond */
@@ -77,13 +77,13 @@
 SPhyProps phyProps;
 
 /* Max PHY number */
-#define ETH_PHY_MAX_ADDR     31
+#define ETH_PHY_MAX_ADDR  31
 
 /* Ethernet PHY operation max retry count */
-#define ETH_PHY_RETRY_MAX    1000000
+#define ETH_PHY_RETRY_MAX 1000000
 
 /* Ethernet PHY operation timeout */
-#define ETH_PHY_TIMEOUT      10
+#define ETH_PHY_TIMEOUT   10
 
 /**
  * \brief Find a valid PHY Address ( from addrStart to 31 ).
@@ -105,14 +105,14 @@ static uint8_t ethernet_phy_find_valid( Gmac * p_gmac,
 
     gmac_enable_management( p_gmac, true );
 
-/*
- #define GMII_OUI_MSB            0x0022
- #define GMII_OUI_LSB            0x05
- *
- * PHYID1 = 0x0022
- * PHYID2 = 0x1550
- * 0001_0101_0101_0000 = 0x1550 <= mask should be 0xFFF0
- */
+    /*
+     #define GMII_OUI_MSB            0x0022
+     #define GMII_OUI_LSB            0x05
+     *
+     * PHYID1 = 0x0022
+     * PHYID2 = 0x1550
+     * 0001_0101_0101_0000 = 0x1550 <= mask should be 0xFFF0
+     */
     /* Check the current PHY address */
     gmac_phy_read( p_gmac, uc_phy_addr, GMII_PHYID1, &ul_value );
 
@@ -145,7 +145,6 @@ static uint8_t ethernet_phy_find_valid( Gmac * p_gmac,
     return ethernet_phy_addr;
 }
 
-
 /**
  * \brief Perform a HW initialization to the PHY and set up clocks.
  *
@@ -162,9 +161,7 @@ static uint8_t ethernet_phy_find_valid( Gmac * p_gmac,
  *
  * Return GMAC_OK if successfully, GMAC_TIMEOUT if timeout.
  */
-uint8_t ethernet_phy_init( Gmac * p_gmac,
-                           uint8_t uc_phy_addr,
-                           uint32_t mck )
+uint8_t ethernet_phy_init( Gmac * p_gmac, uint8_t uc_phy_addr, uint32_t mck )
 {
     uint8_t uc_rc = GMAC_TIMEOUT;
     uint8_t uc_phy;
@@ -196,14 +193,14 @@ uint8_t ethernet_phy_init( Gmac * p_gmac,
     return uc_phy;
 }
 
-
 /**
- * \brief Get the Link & speed settings, and automatically set up the GMAC with the
- * settings.
+ * \brief Get the Link & speed settings, and automatically set up the GMAC with
+ * the settings.
  *
  * \param p_gmac   Pointer to the GMAC instance.
  * \param uc_phy_addr PHY address.
- * \param uc_apply_setting_flag Set to 0 to not apply the PHY configurations, else to apply.
+ * \param uc_apply_setting_flag Set to 0 to not apply the PHY configurations,
+ * else to apply.
  *
  * Return GMAC_OK if successfully, GMAC_TIMEOUT if timeout.
  */
@@ -265,22 +262,20 @@ uint8_t ethernet_phy_set_link( Gmac * p_gmac,
         uc_speed = true;
         uc_fd = true;
     }
-    else
-    if( ( ul_stat1 & GMII_100BASE_T4_HD ) && ( ul_stat2 & GMII_100TX_HDX ) )
+    else if( ( ul_stat1 & GMII_100BASE_T4_HD ) &&
+             ( ul_stat2 & GMII_100TX_HDX ) )
     {
         /* Set MII for 100BaseTX and Half Duplex */
         uc_speed = true;
         uc_fd = false;
     }
-    else
-    if( ( ul_stat1 & GMII_10BASE_T_FD ) && ( ul_stat2 & GMII_10_FDX ) )
+    else if( ( ul_stat1 & GMII_10BASE_T_FD ) && ( ul_stat2 & GMII_10_FDX ) )
     {
         /* Set MII for 10BaseT and Full Duplex */
         uc_speed = false;
         uc_fd = true;
     }
-    else
-    if( ( ul_stat1 & GMII_10BASE_T_HD ) && ( ul_stat2 & GMII_10_HDX ) )
+    else if( ( ul_stat1 & GMII_10BASE_T_HD ) && ( ul_stat2 & GMII_10_HDX ) )
     {
         /* Set MII for 10BaseT and Half Duplex */
         uc_speed = false;
@@ -305,8 +300,7 @@ PhyProps_t phy_props;
  *
  * Return GMAC_OK if successfully, GMAC_TIMEOUT if timeout.
  */
-uint8_t ethernet_phy_auto_negotiate( Gmac * p_gmac,
-                                     uint8_t uc_phy_addr )
+uint8_t ethernet_phy_auto_negotiate( Gmac * p_gmac, uint8_t uc_phy_addr )
 {
     uint32_t ul_retry_max = ETH_PHY_RETRY_MAX;
     uint32_t ul_value;
@@ -330,7 +324,7 @@ uint8_t ethernet_phy_auto_negotiate( Gmac * p_gmac,
 
     ul_value &= ~( uint32_t ) GMII_AUTONEG; /* Remove auto-negotiation enable */
     ul_value &= ~( uint32_t ) ( GMII_LOOPBACK | GMII_POWER_DOWN );
-    ul_value |= ( uint32_t ) GMII_ISOLATE;  /* Electrically isolate PHY */
+    ul_value |= ( uint32_t ) GMII_ISOLATE; /* Electrically isolate PHY */
     uc_rc = gmac_phy_write( p_gmac, uc_phy_addr, GMII_BMCR, ul_value );
 
     if( uc_rc != GMAC_OK )
@@ -419,7 +413,10 @@ uint8_t ethernet_phy_auto_negotiate( Gmac * p_gmac,
     }
 
     /* Get the auto negotiate link partner base page */
-    uc_rc = gmac_phy_read( p_gmac, uc_phy_addr, GMII_PCR1, &phy_props.phy_params );
+    uc_rc = gmac_phy_read( p_gmac,
+                           uc_phy_addr,
+                           GMII_PCR1,
+                           &phy_props.phy_params );
 
     if( uc_rc != GMAC_OK )
     {
@@ -476,8 +473,7 @@ uint8_t ethernet_phy_auto_negotiate( Gmac * p_gmac,
  *
  * \Return GMAC_OK if successfully, GMAC_TIMEOUT if timeout.
  */
-uint8_t ethernet_phy_reset( Gmac * p_gmac,
-                            uint8_t uc_phy_addr )
+uint8_t ethernet_phy_reset( Gmac * p_gmac, uint8_t uc_phy_addr )
 {
     uint32_t ul_bmcr = GMII_RESET;
     uint8_t uc_phy_address = uc_phy_addr;
@@ -502,7 +498,7 @@ uint8_t ethernet_phy_reset( Gmac * p_gmac,
         uc_rc = GMAC_OK;
     }
 
-    return( uc_rc );
+    return ( uc_rc );
 }
 
 /*/ @cond 0 */

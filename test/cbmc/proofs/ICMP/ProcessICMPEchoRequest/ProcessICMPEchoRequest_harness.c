@@ -45,11 +45,13 @@ uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
                              size_t uxByteCount )
 {
-    __CPROVER_assert( pucNextData != NULL, "Next data in GenerateChecksum cannot be NULL" );
+    __CPROVER_assert( pucNextData != NULL,
+                      "Next data in GenerateChecksum cannot be NULL" );
 
     uint16_t usChecksum;
 
-    /* Return any random value of checksum since it does not matter for CBMC checks. */
+    /* Return any random value of checksum since it does not matter for CBMC
+     * checks. */
     return usChecksum;
 }
 
@@ -59,15 +61,19 @@ uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                                      size_t uxBufferLength,
                                      BaseType_t xOutgoingPacket )
 {
-    __CPROVER_assert( pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL while generating Protocol Checksum" );
+    __CPROVER_assert( pucEthernetBuffer != NULL,
+                      "The Ethernet buffer cannot be NULL while generating "
+                      "Protocol Checksum" );
     uint16_t usProtocolChecksum;
 
-    /* Return random value of checksum since it does not matter for CBMC checks. */
+    /* Return random value of checksum since it does not matter for CBMC checks.
+     */
     return usProtocolChecksum;
 }
 
-eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest( ICMPPacket_t * const pxICMPPacket,
-                                                                                         const NetworkBufferDescriptor_t * const pxNetworkBuffer );
+eFrameProcessingResult_t __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest(
+    ICMPPacket_t * const pxICMPPacket,
+    const NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 void harness()
 {
@@ -80,5 +86,7 @@ void harness()
     xNetworkBuffer.xDataLength = sizeof( ICMPPacket_t );
     xNetworkBuffer.pucEthernetBuffer = pxICMPPacket;
 
-    __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest( pxICMPPacket, &xNetworkBuffer );
+    __CPROVER_file_local_FreeRTOS_ICMP_c_prvProcessICMPEchoRequest(
+        pxICMPPacket,
+        &xNetworkBuffer );
 }

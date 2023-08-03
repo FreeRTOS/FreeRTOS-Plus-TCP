@@ -16,7 +16,6 @@
  *
  */
 
-
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -24,13 +23,13 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
@@ -80,9 +79,7 @@ struct xERROR_MSG
 static struct xERROR_MSG xErrorList[ 8 ];
 static BaseType_t xErrorHead, xErrorTail;
 
-void emacps_error_handler( void * arg,
-                           u8 Direction,
-                           u32 ErrorWord )
+void emacps_error_handler( void * arg, u8 Direction, u32 ErrorWord )
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xemacpsif_s * xemacpsif;
@@ -90,9 +87,11 @@ void emacps_error_handler( void * arg,
 
     xemacpsif = ( xemacpsif_s * ) ( arg );
 
-    if( ( Direction != XEMACPS_SEND ) || ( ErrorWord != XEMACPS_TXSR_USEDREAD_MASK ) )
+    if( ( Direction != XEMACPS_SEND ) ||
+        ( ErrorWord != XEMACPS_TXSR_USEDREAD_MASK ) )
     {
-        if( ++xNextHead == ( sizeof( xErrorList ) / sizeof( xErrorList[ 0 ] ) ) )
+        if( ++xNextHead ==
+            ( sizeof( xErrorList ) / sizeof( xErrorList[ 0 ] ) ) )
         {
             xNextHead = 0;
         }
@@ -111,16 +110,15 @@ void emacps_error_handler( void * arg,
 
         if( xEMACTaskHandle != NULL )
         {
-            vTaskNotifyGiveFromISR( xEMACTaskHandle, &xHigherPriorityTaskWoken );
+            vTaskNotifyGiveFromISR( xEMACTaskHandle,
+                                    &xHigherPriorityTaskWoken );
         }
     }
 
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
-static void emacps_handle_error( void * arg,
-                                 u8 Direction,
-                                 u32 ErrorWord );
+static void emacps_handle_error( void * arg, u8 Direction, u32 ErrorWord );
 
 int emacps_check_errors( xemacpsif_s * xemacps )
 {
@@ -135,18 +133,15 @@ int emacps_check_errors( xemacpsif_s * xemacps )
     else
     {
         xResult = 1;
-        emacps_handle_error(
-            xErrorList[ xErrorTail ].arg,
-            xErrorList[ xErrorTail ].Direction,
-            xErrorList[ xErrorTail ].ErrorWord );
+        emacps_handle_error( xErrorList[ xErrorTail ].arg,
+                             xErrorList[ xErrorTail ].Direction,
+                             xErrorList[ xErrorTail ].ErrorWord );
     }
 
     return xResult;
 }
 
-static void emacps_handle_error( void * arg,
-                                 u8 Direction,
-                                 u32 ErrorWord )
+static void emacps_handle_error( void * arg, u8 Direction, u32 ErrorWord )
 {
     xemacpsif_s * xemacpsif;
     struct xtopology_t * xtopologyp;
@@ -244,14 +239,16 @@ void HandleTxErrors( xemacpsif_s * xemacpsif )
                                       XEMACPS_NWCTRL_OFFSET );
         netctrlreg = netctrlreg & ( ~XEMACPS_NWCTRL_TXEN_MASK );
         XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress,
-                          XEMACPS_NWCTRL_OFFSET, netctrlreg );
+                          XEMACPS_NWCTRL_OFFSET,
+                          netctrlreg );
 
         clean_dma_txdescs( xemacpsif );
         netctrlreg = XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress,
                                       XEMACPS_NWCTRL_OFFSET );
         netctrlreg = netctrlreg | ( XEMACPS_NWCTRL_TXEN_MASK );
         XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress,
-                          XEMACPS_NWCTRL_OFFSET, netctrlreg );
+                          XEMACPS_NWCTRL_OFFSET,
+                          netctrlreg );
     }
     /*taskEXIT_CRITICAL( ); */
 }

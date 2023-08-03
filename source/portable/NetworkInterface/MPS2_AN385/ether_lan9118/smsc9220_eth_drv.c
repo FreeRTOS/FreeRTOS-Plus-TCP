@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-
 #include "smsc9220_eth_drv.h"
 /*#include "CMSIS/SMM_MPS2.h" */
 
 /** Setter bit manipulation macro */
-#define SET_BIT( WORD, BIT_INDEX )    ( ( WORD ) |= ( 1U << ( BIT_INDEX ) ) )
+#define SET_BIT( WORD, BIT_INDEX ) ( ( WORD ) |= ( 1U << ( BIT_INDEX ) ) )
 /** Clearing bit manipulation macro */
-#define CLR_BIT( WORD, BIT_INDEX )    ( ( WORD ) &= ~( 1U << ( BIT_INDEX ) ) )
+#define CLR_BIT( WORD, BIT_INDEX ) ( ( WORD ) &= ~( 1U << ( BIT_INDEX ) ) )
 /** Getter bit manipulation macro */
-#define GET_BIT( WORD, BIT_INDEX )    ( bool ) ( ( ( WORD ) & ( 1U << ( BIT_INDEX ) ) ) )
+#define GET_BIT( WORD, BIT_INDEX ) \
+    ( bool ) ( ( ( WORD ) & ( 1U << ( BIT_INDEX ) ) ) )
 
 /** Setter bit-field manipulation macro */
 #define SET_BIT_FIELD( WORD, BIT_MASK, BIT_OFFSET, VALUE ) \
@@ -39,10 +39,10 @@
     ( ( WORD >> BIT_OFFSET ) & BIT_MASK )
 
 /** Millisec timeout macros */
-#define RESET_TIME_OUT_MS        10U
-#define REG_WRITE_TIME_OUT_MS    50U
-#define PHY_RESET_TIME_OUT_MS    100U
-#define INIT_FINISH_DELAY        2000U
+#define RESET_TIME_OUT_MS     10U
+#define REG_WRITE_TIME_OUT_MS 50U
+#define PHY_RESET_TIME_OUT_MS 100U
+#define INIT_FINISH_DELAY     2000U
 
 struct smsc9220_eth_reg_map_t
 {
@@ -51,55 +51,67 @@ struct smsc9220_eth_reg_map_t
     volatile uint32_t tx_data_port; /**< Transmit FIFO Ports (offset 0x20) */
     uint32_t reserved2[ 0x7 ];
 
-    volatile uint32_t rx_status_port;    /**< Receive FIFO status port (offset 0x40) */
-    volatile uint32_t rx_status_peek;    /**< Receive FIFO status peek (offset 0x44) */
-    volatile uint32_t tx_status_port;    /**< Transmit FIFO status port (offset 0x48) */
-    volatile uint32_t tx_status_peek;    /**< Transmit FIFO status peek (offset 0x4C) */
+    volatile uint32_t rx_status_port; /**< Receive FIFO status port (offset
+                                         0x40) */
+    volatile uint32_t rx_status_peek; /**< Receive FIFO status peek (offset
+                                         0x44) */
+    volatile uint32_t tx_status_port; /**< Transmit FIFO status port (offset
+                                         0x48) */
+    volatile uint32_t tx_status_peek; /**< Transmit FIFO status peek (offset
+                                         0x4C) */
 
-    volatile uint32_t id_revision;       /**< Chip ID and Revision (offset 0x50) */
-    volatile uint32_t irq_cfg;           /**< Main Interrupt Config (offset 0x54) */
-    volatile uint32_t irq_status;        /**< Interrupt Status (offset 0x58) */
-    volatile uint32_t irq_enable;        /**< Interrupt Enable Register (offset 0x5C) */
-    uint32_t reserved3;                  /**< Reserved for future use (offset 0x60) */
-    volatile uint32_t byte_test;         /**< Byte order test 87654321h (offset 0x64) */
-    volatile uint32_t fifo_level_irq;    /**< FIFO Level Interrupts (offset 0x68) */
-    volatile uint32_t rx_cfg;            /**< Receive Configuration (offset 0x6C) */
-    volatile uint32_t tx_cfg;            /**< Transmit Configuration (offset 0x70) */
-    volatile uint32_t hw_cfg;            /**< Hardware Configuration (offset 0x74) */
-    volatile uint32_t rx_datapath_ctrl;  /**< RX Datapath Control (offset 0x78) */
-    volatile uint32_t rx_fifo_inf;       /**< Receive FIFO Information (offset 0x7C) */
-    volatile uint32_t tx_fifo_inf;       /**< Transmit FIFO Information (offset 0x80) */
-    volatile uint32_t pmt_ctrl;          /**< Power Management Control (offset 0x84) */
-    volatile uint32_t gpio_cfg;          /**< GPIO Configuration (offset 0x88) */
-    volatile uint32_t gptimer_cfg;       /**< GP Timer Configuration (offset 0x8C) */
-    volatile uint32_t gptimer_count;     /**< GP Timer Count (offset 0x90) */
-    uint32_t reserved4;                  /**< Reserved for future use (offset 0x94) */
-    volatile uint32_t word_swap;         /**< WORD SWAP Register (offset 0x98) */
+    volatile uint32_t id_revision; /**< Chip ID and Revision (offset 0x50) */
+    volatile uint32_t irq_cfg;     /**< Main Interrupt Config (offset 0x54) */
+    volatile uint32_t irq_status;  /**< Interrupt Status (offset 0x58) */
+    volatile uint32_t irq_enable;  /**< Interrupt Enable Register (offset 0x5C)
+                                    */
+    uint32_t reserved3;            /**< Reserved for future use (offset 0x60) */
+    volatile uint32_t byte_test; /**< Byte order test 87654321h (offset 0x64) */
+    volatile uint32_t fifo_level_irq; /**< FIFO Level Interrupts (offset 0x68)
+                                       */
+    volatile uint32_t rx_cfg; /**< Receive Configuration (offset 0x6C) */
+    volatile uint32_t tx_cfg; /**< Transmit Configuration (offset 0x70) */
+    volatile uint32_t hw_cfg; /**< Hardware Configuration (offset 0x74) */
+    volatile uint32_t rx_datapath_ctrl; /**< RX Datapath Control (offset 0x78)
+                                         */
+    volatile uint32_t rx_fifo_inf; /**< Receive FIFO Information (offset 0x7C)
+                                    */
+    volatile uint32_t tx_fifo_inf; /**< Transmit FIFO Information (offset 0x80)
+                                    */
+    volatile uint32_t pmt_ctrl; /**< Power Management Control (offset 0x84) */
+    volatile uint32_t gpio_cfg; /**< GPIO Configuration (offset 0x88) */
+    volatile uint32_t gptimer_cfg; /**< GP Timer Configuration (offset 0x8C) */
+    volatile uint32_t gptimer_count; /**< GP Timer Count (offset 0x90) */
+    uint32_t reserved4;          /**< Reserved for future use (offset 0x94) */
+    volatile uint32_t word_swap; /**< WORD SWAP Register (offset 0x98) */
     volatile uint32_t free_run_counter;  /**< Free Run Counter (offset 0x9C) */
-    volatile uint32_t rx_dropped_frames; /**< RX Dropped Frames Counter (offset 0xA0) */
-    volatile uint32_t mac_csr_cmd;       /**< MAC CSR Synchronizer Cmd (offset 0xA4) */
-    volatile uint32_t mac_csr_data;      /**< MAC CSR Synchronizer Data (offset 0xA8) */
-    volatile uint32_t afc_cfg;           /**< AutomaticFlow Ctrl Config (offset 0xAC) */
-    volatile uint32_t eeprom_cmd;        /**< EEPROM Command (offset 0xB0) */
-    volatile uint32_t eeprom_data;       /**< EEPROM Data (offset 0xB4) */
+    volatile uint32_t rx_dropped_frames; /**< RX Dropped Frames Counter (offset
+                                            0xA0) */
+    volatile uint32_t mac_csr_cmd;  /**< MAC CSR Synchronizer Cmd (offset 0xA4)
+                                     */
+    volatile uint32_t mac_csr_data; /**< MAC CSR Synchronizer Data (offset 0xA8)
+                                     */
+    volatile uint32_t afc_cfg; /**< AutomaticFlow Ctrl Config (offset 0xAC) */
+    volatile uint32_t eeprom_cmd;  /**< EEPROM Command (offset 0xB0) */
+    volatile uint32_t eeprom_data; /**< EEPROM Data (offset 0xB4) */
 };
 
 /**
  * \brief TX FIFO Size definitions
  *
  */
-#define TX_STATUS_FIFO_SIZE_BYTES        512U /*< fixed allocation in bytes */
-#define TX_DATA_FIFO_SIZE_KBYTES_POS     16U
-#define TX_DATA_FIFO_SIZE_KBYTES_MASK    0x0FU
-#define KBYTES_TO_BYTES_MULTIPLIER       1024U
+#define TX_STATUS_FIFO_SIZE_BYTES     512U /*< fixed allocation in bytes */
+#define TX_DATA_FIFO_SIZE_KBYTES_POS  16U
+#define TX_DATA_FIFO_SIZE_KBYTES_MASK 0x0FU
+#define KBYTES_TO_BYTES_MULTIPLIER    1024U
 
 /**
  * \brief FIFO Info definitions
  *
  */
-#define FIFO_USED_SPACE_MASK             0xFFFFU
-#define DATA_FIFO_USED_SPACE_POS         0U
-#define STATUS_FIFO_USED_SPACE_POS       16U
+#define FIFO_USED_SPACE_MASK          0xFFFFU
+#define DATA_FIFO_USED_SPACE_POS      0U
+#define STATUS_FIFO_USED_SPACE_POS    16U
 
 /**
  * \brief MAC CSR Synchronizer Command bit definitions
@@ -111,7 +123,7 @@ enum mac_csr_cmd_bits_t
     MAC_CSR_CMD_BUSY_INDEX = 31U,
 };
 
-#define MAC_CSR_CMD_ADDRESS_MASK    0x0FU
+#define MAC_CSR_CMD_ADDRESS_MASK 0x0FU
 
 /**
  * \brief MAC Control register bit definitions
@@ -133,8 +145,8 @@ enum mac_reg_mii_acc_bits_t
     MAC_REG_MII_ACC_WRITE_INDEX = 1U,
     MAC_REG_MII_ACC_PHYADDR_INDEX = 11U
 };
-#define MAC_REG_MII_ACC_MII_REG_MASK      0x1FU
-#define MAC_REG_MII_ACC_MII_REG_OFFSET    6U
+#define MAC_REG_MII_ACC_MII_REG_MASK   0x1FU
+#define MAC_REG_MII_ACC_MII_REG_OFFSET 6U
 
 /**
  * \brief Hardware config register bit definitions
@@ -146,10 +158,10 @@ enum hw_cfg_reg_bits_t
     HW_CFG_REG_SRST_TIMEOUT_INDEX = 1U,
     HW_CFG_REG_MUST_BE_ONE_INDEX = 20U,
 };
-#define HW_CFG_REG_TX_FIFO_SIZE_POS    16U
-#define HW_CFG_REG_TX_FIFO_SIZE_MIN    2U   /*< Min Tx fifo size in KB */
-#define HW_CFG_REG_TX_FIFO_SIZE_MAX    14U  /*< Max Tx fifo size in KB */
-#define HW_CFG_REG_TX_FIFO_SIZE        5U   /*< Tx fifo size in KB */
+#define HW_CFG_REG_TX_FIFO_SIZE_POS 16U
+#define HW_CFG_REG_TX_FIFO_SIZE_MIN 2U  /*< Min Tx fifo size in KB */
+#define HW_CFG_REG_TX_FIFO_SIZE_MAX 14U /*< Max Tx fifo size in KB */
+#define HW_CFG_REG_TX_FIFO_SIZE     5U  /*< Tx fifo size in KB */
 
 /**
  * \brief EEPROM command register bit definitions
@@ -175,9 +187,8 @@ enum phy_reg_bctrl_reg_bits_t
  * \brief TX Command A bit definitions
  *
  */
-#define TX_CMD_DATA_START_OFFSET_BYTES_POS     16U
-#define TX_CMD_DATA_START_OFFSET_BYTES_MASK    0x1FU
-
+#define TX_CMD_DATA_START_OFFSET_BYTES_POS  16U
+#define TX_CMD_DATA_START_OFFSET_BYTES_MASK 0x1FU
 
 enum tx_command_a_bits_t
 {
@@ -185,10 +196,9 @@ enum tx_command_a_bits_t
     TX_COMMAND_A_FIRST_SEGMENT_INDEX = 13U
 };
 
-#define TX_CMD_PKT_LEN_BYTES_MASK    0x7FFU
-#define TX_CMD_PKT_TAG_MASK          0xFFFFU
-#define TX_CMD_PKT_TAG_POS           16U
-
+#define TX_CMD_PKT_LEN_BYTES_MASK 0x7FFU
+#define TX_CMD_PKT_TAG_MASK       0xFFFFU
+#define TX_CMD_PKT_TAG_POS        16U
 
 /**
  * \brief RX Fifo Status bit definitions
@@ -210,8 +220,8 @@ enum rx_fifo_status_bits_t
     RX_FIFO_STATUS_ERROR_INDEX = 15U,
     RX_FIFO_STATUS_FILTERING_FAIL_INDEX = 30U,
 };
-#define RX_FIFO_STATUS_PKT_LENGTH_POS     16U
-#define RX_FIFO_STATUS_PKT_LENGTH_MASK    0x3FFFU
+#define RX_FIFO_STATUS_PKT_LENGTH_POS  16U
+#define RX_FIFO_STATUS_PKT_LENGTH_MASK 0x3FFFU
 
 /**
  * \brief Interrupt Configuration register bit definitions
@@ -224,9 +234,9 @@ enum irq_cfg_bits_t
     IRQ_CFG_IRQ_EN_INDEX = 8U
 };
 
-#define IRQ_CFG_INT_DEAS_MASK    0xFFU
-#define IRQ_CFG_INT_DEAS_POS     24U
-#define IRQ_CFG_INT_DEAS_10US    0x22U
+#define IRQ_CFG_INT_DEAS_MASK 0xFFU
+#define IRQ_CFG_INT_DEAS_POS  24U
+#define IRQ_CFG_INT_DEAS_10US 0x22U
 
 /**
  * \brief Automatic Flow Control register bit definitions
@@ -240,17 +250,17 @@ enum afc_bits_t
     AFC_MULTICAST_INDEX = 3U
 };
 
-#define AFC_BACK_DUR_MASK      0x0FU
-#define AFC_BACK_DUR_POS       4U
-#define AFC_BACK_DUR           4U /**< equal to 50us */
+#define AFC_BACK_DUR_MASK   0x0FU
+#define AFC_BACK_DUR_POS    4U
+#define AFC_BACK_DUR        4U /**< equal to 50us */
 
-#define AFC_LOW_LEVEL_MASK     0xFFU
-#define AFC_LOW_LEVEL_POS      8U
-#define AFC_LOW_LEVEL          55U /**< specifies in multiple of 64 bytes */
+#define AFC_LOW_LEVEL_MASK  0xFFU
+#define AFC_LOW_LEVEL_POS   8U
+#define AFC_LOW_LEVEL       55U /**< specifies in multiple of 64 bytes */
 
-#define AFC_HIGH_LEVEL_MASK    0xFFU
-#define AFC_HIGH_LEVEL_POS     16U
-#define AFC_HIGH_LEVEL         110U /**< specifies in multiple of 64 bytes */
+#define AFC_HIGH_LEVEL_MASK 0xFFU
+#define AFC_HIGH_LEVEL_POS  16U
+#define AFC_HIGH_LEVEL      110U /**< specifies in multiple of 64 bytes */
 
 /**
  * \brief Auto-Negotiation Advertisement register bit definitions
@@ -284,9 +294,9 @@ enum tx_cfg_bits_t
  *
  */
 /*#define CHIP_ID         0x9220U */
-#define CHIP_ID         0x0118U
-#define CHIP_ID_MASK    0xFFFFU
-#define CHIP_ID_POS     16U
+#define CHIP_ID      0x0118U
+#define CHIP_ID_MASK 0xFFFFU
+#define CHIP_ID_POS  16U
 
 /**
  * \brief GPIO Configuration register bit definitions
@@ -302,13 +312,12 @@ enum gpio_cfg_bits_t
     GPIO_CFG_GPIO2_LED_INDEX = 30U       /*< GPIO2 set to LED3 */
 };
 
-
 static void fill_tx_fifo( const struct smsc9220_eth_dev_t * dev,
                           uint8_t * data,
                           uint32_t size_bytes )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     uint32_t tx_data_port_tmp = 0;
     uint8_t * tx_data_port_tmp_ptr = ( uint8_t * ) &tx_data_port_tmp;
@@ -352,8 +361,8 @@ static void empty_rx_fifo( const struct smsc9220_eth_dev_t * dev,
                            uint8_t * data,
                            uint32_t size_bytes )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     uint32_t rx_data_port_tmp = 0;
     uint8_t * rx_data_port_tmp_ptr = ( uint8_t * ) &rx_data_port_tmp;
@@ -382,17 +391,17 @@ static void empty_rx_fifo( const struct smsc9220_eth_dev_t * dev,
     }
 }
 
-enum smsc9220_error_t smsc9220_mac_regread( const struct smsc9220_eth_dev_t * dev,
-                                            enum smsc9220_mac_reg_offsets_t regoffset,
-                                            uint32_t * data )
+enum smsc9220_error_t smsc9220_mac_regread(
+    const struct smsc9220_eth_dev_t * dev,
+    enum smsc9220_mac_reg_offsets_t regoffset,
+    uint32_t * data )
 {
     volatile uint32_t val;
-    uint32_t maccmd = GET_BIT_FIELD( regoffset,
-                                     MAC_CSR_CMD_ADDRESS_MASK, 0 );
+    uint32_t maccmd = GET_BIT_FIELD( regoffset, MAC_CSR_CMD_ADDRESS_MASK, 0 );
     uint32_t time_out = REG_WRITE_TIME_OUT_MS;
 
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     /* Make sure there's no pending operation */
     if( !( GET_BIT( register_map->mac_csr_cmd, MAC_CSR_CMD_BUSY_INDEX ) ) )
@@ -432,17 +441,17 @@ enum smsc9220_error_t smsc9220_mac_regread( const struct smsc9220_eth_dev_t * de
     return SMSC9220_ERROR_NONE;
 }
 
-enum smsc9220_error_t smsc9220_mac_regwrite( const struct smsc9220_eth_dev_t * dev,
-                                             enum smsc9220_mac_reg_offsets_t regoffset,
-                                             uint32_t data )
+enum smsc9220_error_t smsc9220_mac_regwrite(
+    const struct smsc9220_eth_dev_t * dev,
+    enum smsc9220_mac_reg_offsets_t regoffset,
+    uint32_t data )
 {
     volatile uint32_t read = 0;
-    uint32_t maccmd = GET_BIT_FIELD( regoffset,
-                                     MAC_CSR_CMD_ADDRESS_MASK, 0 );
+    uint32_t maccmd = GET_BIT_FIELD( regoffset, MAC_CSR_CMD_ADDRESS_MASK, 0 );
     uint32_t time_out = REG_WRITE_TIME_OUT_MS;
 
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     /* Make sure there's no pending operation */
     if( !GET_BIT( register_map->mac_csr_cmd, MAC_CSR_CMD_BUSY_INDEX ) )
@@ -463,9 +472,9 @@ enum smsc9220_error_t smsc9220_mac_regwrite( const struct smsc9220_eth_dev_t * d
             }
 
             time_out--;
-        } while( time_out &&
-                 ( register_map->mac_csr_cmd &
-                   GET_BIT( register_map->mac_csr_cmd, MAC_CSR_CMD_BUSY_INDEX ) ) );
+        } while( time_out && ( register_map->mac_csr_cmd &
+                               GET_BIT( register_map->mac_csr_cmd,
+                                        MAC_CSR_CMD_BUSY_INDEX ) ) );
 
         if( !time_out )
         {
@@ -480,9 +489,10 @@ enum smsc9220_error_t smsc9220_mac_regwrite( const struct smsc9220_eth_dev_t * d
     return SMSC9220_ERROR_NONE;
 }
 
-enum smsc9220_error_t smsc9220_phy_regread( const struct smsc9220_eth_dev_t * dev,
-                                            enum phy_reg_offsets_t regoffset,
-                                            uint32_t * data )
+enum smsc9220_error_t smsc9220_phy_regread(
+    const struct smsc9220_eth_dev_t * dev,
+    enum phy_reg_offsets_t regoffset,
+    uint32_t * data )
 {
     uint32_t val = 0;
     uint32_t phycmd = 0;
@@ -497,12 +507,15 @@ enum smsc9220_error_t smsc9220_phy_regread( const struct smsc9220_eth_dev_t * de
     {
         phycmd = 0;
         SET_BIT( phycmd, MAC_REG_MII_ACC_PHYADDR_INDEX );
-        SET_BIT_FIELD( phycmd, MAC_REG_MII_ACC_MII_REG_MASK,
-                       MAC_REG_MII_ACC_MII_REG_OFFSET, regoffset );
+        SET_BIT_FIELD( phycmd,
+                       MAC_REG_MII_ACC_MII_REG_MASK,
+                       MAC_REG_MII_ACC_MII_REG_OFFSET,
+                       regoffset );
         CLR_BIT( phycmd, MAC_REG_MII_ACC_WRITE_INDEX );
         SET_BIT( phycmd, MAC_REG_MII_ACC_BUSY_INDEX );
 
-        if( smsc9220_mac_regwrite( dev, SMSC9220_MAC_REG_OFFSET_MII_ACC,
+        if( smsc9220_mac_regwrite( dev,
+                                   SMSC9220_MAC_REG_OFFSET_MII_ACC,
                                    phycmd ) )
         {
             return SMSC9220_ERROR_INTERNAL;
@@ -519,7 +532,8 @@ enum smsc9220_error_t smsc9220_phy_regread( const struct smsc9220_eth_dev_t * de
 
             time_out--;
 
-            if( smsc9220_mac_regread( dev, SMSC9220_MAC_REG_OFFSET_MII_ACC,
+            if( smsc9220_mac_regread( dev,
+                                      SMSC9220_MAC_REG_OFFSET_MII_ACC,
                                       &val ) )
             {
                 return SMSC9220_ERROR_INTERNAL;
@@ -530,7 +544,8 @@ enum smsc9220_error_t smsc9220_phy_regread( const struct smsc9220_eth_dev_t * de
         {
             return SMSC9220_ERROR_TIMEOUT;
         }
-        else if( smsc9220_mac_regread( dev, SMSC9220_MAC_REG_OFFSET_MII_DATA,
+        else if( smsc9220_mac_regread( dev,
+                                       SMSC9220_MAC_REG_OFFSET_MII_DATA,
                                        data ) )
         {
             return SMSC9220_ERROR_INTERNAL;
@@ -544,9 +559,10 @@ enum smsc9220_error_t smsc9220_phy_regread( const struct smsc9220_eth_dev_t * de
     return SMSC9220_ERROR_NONE;
 }
 
-enum smsc9220_error_t smsc9220_phy_regwrite( const struct smsc9220_eth_dev_t * dev,
-                                             enum phy_reg_offsets_t regoffset,
-                                             uint32_t data )
+enum smsc9220_error_t smsc9220_phy_regwrite(
+    const struct smsc9220_eth_dev_t * dev,
+    enum phy_reg_offsets_t regoffset,
+    uint32_t data )
 {
     uint32_t val = 0;
     uint32_t phycmd = 0;
@@ -560,7 +576,8 @@ enum smsc9220_error_t smsc9220_phy_regwrite( const struct smsc9220_eth_dev_t * d
     if( !GET_BIT( val, MAC_REG_MII_ACC_BUSY_INDEX ) )
     {
         /* Load the data */
-        if( smsc9220_mac_regwrite( dev, SMSC9220_MAC_REG_OFFSET_MII_DATA,
+        if( smsc9220_mac_regwrite( dev,
+                                   SMSC9220_MAC_REG_OFFSET_MII_DATA,
                                    ( data & 0xFFFF ) ) )
         {
             return SMSC9220_ERROR_INTERNAL;
@@ -568,13 +585,16 @@ enum smsc9220_error_t smsc9220_phy_regwrite( const struct smsc9220_eth_dev_t * d
 
         phycmd = 0;
         SET_BIT( phycmd, MAC_REG_MII_ACC_PHYADDR_INDEX );
-        SET_BIT_FIELD( phycmd, MAC_REG_MII_ACC_MII_REG_MASK,
-                       MAC_REG_MII_ACC_MII_REG_OFFSET, regoffset );
+        SET_BIT_FIELD( phycmd,
+                       MAC_REG_MII_ACC_MII_REG_MASK,
+                       MAC_REG_MII_ACC_MII_REG_OFFSET,
+                       regoffset );
         SET_BIT( phycmd, MAC_REG_MII_ACC_WRITE_INDEX );
         SET_BIT( phycmd, MAC_REG_MII_ACC_BUSY_INDEX );
 
         /* Start operation */
-        if( smsc9220_mac_regwrite( dev, SMSC9220_MAC_REG_OFFSET_MII_ACC,
+        if( smsc9220_mac_regwrite( dev,
+                                   SMSC9220_MAC_REG_OFFSET_MII_ACC,
                                    phycmd ) )
         {
             return SMSC9220_ERROR_INTERNAL;
@@ -591,7 +611,8 @@ enum smsc9220_error_t smsc9220_phy_regwrite( const struct smsc9220_eth_dev_t * d
 
             time_out--;
 
-            if( smsc9220_mac_regread( dev, SMSC9220_MAC_REG_OFFSET_MII_ACC,
+            if( smsc9220_mac_regread( dev,
+                                      SMSC9220_MAC_REG_OFFSET_MII_ACC,
                                       &phycmd ) )
             {
                 return SMSC9220_ERROR_INTERNAL;
@@ -613,18 +634,19 @@ enum smsc9220_error_t smsc9220_phy_regwrite( const struct smsc9220_eth_dev_t * d
 
 uint32_t smsc9220_read_id( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     return register_map->id_revision;
 }
 
-enum smsc9220_error_t smsc9220_soft_reset( const struct smsc9220_eth_dev_t * dev )
+enum smsc9220_error_t smsc9220_soft_reset(
+    const struct smsc9220_eth_dev_t * dev )
 {
     uint32_t time_out = RESET_TIME_OUT_MS;
 
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     /* Soft reset */
     SET_BIT( register_map->hw_cfg, HW_CFG_REG_SRST_INDEX );
@@ -648,11 +670,10 @@ enum smsc9220_error_t smsc9220_soft_reset( const struct smsc9220_eth_dev_t * dev
     return SMSC9220_ERROR_NONE;
 }
 
-void smsc9220_set_txfifo( const struct smsc9220_eth_dev_t * dev,
-                          uint32_t val )
+void smsc9220_set_txfifo( const struct smsc9220_eth_dev_t * dev, uint32_t val )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     if( ( val >= HW_CFG_REG_TX_FIFO_SIZE_MIN ) &&
         ( val <= HW_CFG_REG_TX_FIFO_SIZE_MAX ) )
@@ -661,40 +682,46 @@ void smsc9220_set_txfifo( const struct smsc9220_eth_dev_t * dev,
     }
 }
 
-enum smsc9220_error_t smsc9220_set_fifo_level_irq( const struct smsc9220_eth_dev_t * dev,
-                                                   enum smsc9220_fifo_level_irq_pos_t irq_level_pos,
-                                                   uint32_t level )
+enum smsc9220_error_t smsc9220_set_fifo_level_irq(
+    const struct smsc9220_eth_dev_t * dev,
+    enum smsc9220_fifo_level_irq_pos_t irq_level_pos,
+    uint32_t level )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
     enum smsc9220_error_t eReturn = SMSC9220_ERROR_PARAM;
 
-    #if ( SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN > 0 )
-        if( level < SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN )
-        {
-            /* An error will be returned. */
-        }
-        else
-    #endif
-
-    if( level <= SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX )
+#if( SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN > 0 )
+    if( level < SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MIN )
     {
-        CLR_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
-                       irq_level_pos, SMSC9220_FIFO_LEVEL_IRQ_MASK );
-        SET_BIT_FIELD( register_map->fifo_level_irq, SMSC9220_FIFO_LEVEL_IRQ_MASK,
-                       irq_level_pos, level );
+        /* An error will be returned. */
+    }
+    else
+#endif
+
+        if( level <= SMSC9220_FIFO_LEVEL_IRQ_LEVEL_MAX )
+    {
+        CLR_BIT_FIELD( register_map->fifo_level_irq,
+                       SMSC9220_FIFO_LEVEL_IRQ_MASK,
+                       irq_level_pos,
+                       SMSC9220_FIFO_LEVEL_IRQ_MASK );
+        SET_BIT_FIELD( register_map->fifo_level_irq,
+                       SMSC9220_FIFO_LEVEL_IRQ_MASK,
+                       irq_level_pos,
+                       level );
         eReturn = SMSC9220_ERROR_NONE;
     }
 
     return eReturn;
 }
 
-enum smsc9220_error_t smsc9220_wait_eeprom( const struct smsc9220_eth_dev_t * dev )
+enum smsc9220_error_t smsc9220_wait_eeprom(
+    const struct smsc9220_eth_dev_t * dev )
 {
     uint32_t time_out = REG_WRITE_TIME_OUT_MS;
 
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     do
     {
@@ -717,15 +744,17 @@ enum smsc9220_error_t smsc9220_wait_eeprom( const struct smsc9220_eth_dev_t * de
 
 void smsc9220_init_irqs( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     smsc9220_disable_all_interrupts( dev );
     smsc9220_clear_all_interrupts( dev );
 
     /* Set IRQ deassertion interval */
-    SET_BIT_FIELD( register_map->irq_cfg, IRQ_CFG_INT_DEAS_MASK,
-                   IRQ_CFG_INT_DEAS_POS, IRQ_CFG_INT_DEAS_10US );
+    SET_BIT_FIELD( register_map->irq_cfg,
+                   IRQ_CFG_INT_DEAS_MASK,
+                   IRQ_CFG_INT_DEAS_POS,
+                   IRQ_CFG_INT_DEAS_10US );
 
     /* enable interrupts */
     SET_BIT( register_map->irq_cfg, IRQ_CFG_IRQ_TYPE );
@@ -794,16 +823,16 @@ void smsc9220_advertise_cap( const struct smsc9220_eth_dev_t * dev )
 
 void smsc9220_enable_xmit( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     SET_BIT( register_map->tx_cfg, TX_CFG_ON_INDEX );
 }
 
 void smsc9220_disable_xmit( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     CLR_BIT( register_map->tx_cfg, TX_CFG_ON_INDEX );
 }
@@ -856,14 +885,15 @@ int smsc9220_check_id( const struct smsc9220_eth_dev_t * dev )
 {
     uint32_t id = smsc9220_read_id( dev );
 
-    return( ( GET_BIT_FIELD( id, CHIP_ID_MASK, CHIP_ID_POS ) == CHIP_ID ) ? 0 : 1 );
+    return (
+        ( GET_BIT_FIELD( id, CHIP_ID_MASK, CHIP_ID_POS ) == CHIP_ID ) ? 0 : 1 );
 }
 
 void smsc9220_enable_interrupt( const struct smsc9220_eth_dev_t * dev,
                                 enum smsc9220_interrupt_source source )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     SET_BIT( register_map->irq_enable, source );
 }
@@ -871,16 +901,16 @@ void smsc9220_enable_interrupt( const struct smsc9220_eth_dev_t * dev,
 void smsc9220_disable_interrupt( const struct smsc9220_eth_dev_t * dev,
                                  enum smsc9220_interrupt_source source )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     CLR_BIT( register_map->irq_enable, source );
 }
 
 void smsc9220_disable_all_interrupts( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     register_map->irq_enable = 0;
 }
@@ -888,25 +918,24 @@ void smsc9220_disable_all_interrupts( const struct smsc9220_eth_dev_t * dev )
 void smsc9220_clear_interrupt( const struct smsc9220_eth_dev_t * dev,
                                enum smsc9220_interrupt_source source )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     SET_BIT( register_map->irq_status, source );
 }
 
 uint32_t get_irq_status( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     return register_map->irq_status;
 }
 
-
 void smsc9220_clear_all_interrupts( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     register_map->irq_status = UINT32_MAX;
 }
@@ -914,8 +943,8 @@ void smsc9220_clear_all_interrupts( const struct smsc9220_eth_dev_t * dev )
 int smsc9220_get_interrupt( const struct smsc9220_eth_dev_t * dev,
                             enum smsc9220_interrupt_source source )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     return GET_BIT( register_map->irq_status, source );
 }
@@ -923,8 +952,8 @@ int smsc9220_get_interrupt( const struct smsc9220_eth_dev_t * dev,
 void smsc9220_establish_link( const struct smsc9220_eth_dev_t * dev )
 {
     uint32_t bcr = 0;
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     smsc9220_phy_regread( dev, SMSC9220_PHY_REG_OFFSET_BCTRL, &bcr );
     SET_BIT( bcr, PHY_REG_BCTRL_AUTO_NEG_EN_INDEX );
@@ -934,8 +963,9 @@ void smsc9220_establish_link( const struct smsc9220_eth_dev_t * dev )
     SET_BIT( register_map->hw_cfg, HW_CFG_REG_MUST_BE_ONE_INDEX );
 }
 
-enum smsc9220_error_t smsc9220_read_mac_address( const struct smsc9220_eth_dev_t * dev,
-                                                 char * mac )
+enum smsc9220_error_t smsc9220_read_mac_address(
+    const struct smsc9220_eth_dev_t * dev,
+    char * mac )
 {
     uint32_t mac_low = 0;
     uint32_t mac_high = 0;
@@ -967,24 +997,24 @@ enum smsc9220_error_t smsc9220_read_mac_address( const struct smsc9220_eth_dev_t
 
 uint32_t smsc9220_get_tx_data_fifo_size( const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
-    uint32_t tx_fifo_size =
-        GET_BIT_FIELD( register_map->hw_cfg,
-                       TX_DATA_FIFO_SIZE_KBYTES_MASK,
-                       TX_DATA_FIFO_SIZE_KBYTES_POS ) * KBYTES_TO_BYTES_MULTIPLIER;
+    uint32_t tx_fifo_size = GET_BIT_FIELD( register_map->hw_cfg,
+                                           TX_DATA_FIFO_SIZE_KBYTES_MASK,
+                                           TX_DATA_FIFO_SIZE_KBYTES_POS ) *
+                            KBYTES_TO_BYTES_MULTIPLIER;
 
-    return( tx_fifo_size - TX_STATUS_FIFO_SIZE_BYTES );
+    return ( tx_fifo_size - TX_STATUS_FIFO_SIZE_BYTES );
 }
 
 enum smsc9220_error_t smsc9220_init( const struct smsc9220_eth_dev_t * dev,
-                                     void ( * wait_ms_function )( uint32_t ) )
+                                     void ( *wait_ms_function )( uint32_t ) )
 {
     uint32_t phyreset = 0;
     enum smsc9220_error_t error = SMSC9220_ERROR_NONE;
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
     if( !wait_ms_function )
     {
@@ -1009,12 +1039,18 @@ enum smsc9220_error_t smsc9220_init( const struct smsc9220_eth_dev_t * dev,
 
     smsc9220_set_txfifo( dev, HW_CFG_REG_TX_FIFO_SIZE );
 
-    SET_BIT_FIELD( register_map->afc_cfg, AFC_BACK_DUR_MASK,
-                   AFC_BACK_DUR_POS, AFC_BACK_DUR );
-    SET_BIT_FIELD( register_map->afc_cfg, AFC_LOW_LEVEL_MASK,
-                   AFC_LOW_LEVEL_POS, AFC_LOW_LEVEL );
-    SET_BIT_FIELD( register_map->afc_cfg, AFC_HIGH_LEVEL_MASK,
-                   AFC_HIGH_LEVEL_POS, AFC_HIGH_LEVEL );
+    SET_BIT_FIELD( register_map->afc_cfg,
+                   AFC_BACK_DUR_MASK,
+                   AFC_BACK_DUR_POS,
+                   AFC_BACK_DUR );
+    SET_BIT_FIELD( register_map->afc_cfg,
+                   AFC_LOW_LEVEL_MASK,
+                   AFC_LOW_LEVEL_POS,
+                   AFC_LOW_LEVEL );
+    SET_BIT_FIELD( register_map->afc_cfg,
+                   AFC_HIGH_LEVEL_MASK,
+                   AFC_HIGH_LEVEL_POS,
+                   AFC_HIGH_LEVEL );
 
     error = smsc9220_wait_eeprom( dev );
 
@@ -1056,7 +1092,8 @@ enum smsc9220_error_t smsc9220_init( const struct smsc9220_eth_dev_t * dev,
     }
 
     /* Checking whether phy reset completed successfully.*/
-    error = smsc9220_phy_regread( dev, SMSC9220_PHY_REG_OFFSET_BCTRL,
+    error = smsc9220_phy_regread( dev,
+                                  SMSC9220_PHY_REG_OFFSET_BCTRL,
                                   &phyreset );
 
     if( error != SMSC9220_ERROR_NONE )
@@ -1087,14 +1124,15 @@ enum smsc9220_error_t smsc9220_init( const struct smsc9220_eth_dev_t * dev,
     return SMSC9220_ERROR_NONE;
 }
 
-enum smsc9220_error_t smsc9220_send_by_chunks( const struct smsc9220_eth_dev_t * dev,
-                                               uint32_t total_payload_length,
-                                               bool is_new_packet,
-                                               const char * data,
-                                               uint32_t current_size )
+enum smsc9220_error_t smsc9220_send_by_chunks(
+    const struct smsc9220_eth_dev_t * dev,
+    uint32_t total_payload_length,
+    bool is_new_packet,
+    const char * data,
+    uint32_t current_size )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
     bool is_first_segment = false;
     bool is_last_segment = false;
     uint32_t txcmd_a, txcmd_b = 0;
@@ -1150,12 +1188,15 @@ enum smsc9220_error_t smsc9220_send_by_chunks( const struct smsc9220_eth_dev_t *
     uint32_t data_start_offset_bytes = ( 4 - ( current_size % 4 ) );
 
     SET_BIT_FIELD( txcmd_a, TX_CMD_PKT_LEN_BYTES_MASK, 0, current_size );
-    SET_BIT_FIELD( txcmd_a, TX_CMD_DATA_START_OFFSET_BYTES_MASK,
+    SET_BIT_FIELD( txcmd_a,
+                   TX_CMD_DATA_START_OFFSET_BYTES_MASK,
                    TX_CMD_DATA_START_OFFSET_BYTES_POS,
                    data_start_offset_bytes );
 
     SET_BIT_FIELD( txcmd_b, TX_CMD_PKT_LEN_BYTES_MASK, 0, current_size );
-    SET_BIT_FIELD( txcmd_b, TX_CMD_PKT_TAG_MASK, TX_CMD_PKT_TAG_POS,
+    SET_BIT_FIELD( txcmd_b,
+                   TX_CMD_PKT_TAG_MASK,
+                   TX_CMD_PKT_TAG_POS,
                    current_size );
 
     register_map->tx_data_port = txcmd_a;
@@ -1174,13 +1215,14 @@ enum smsc9220_error_t smsc9220_send_by_chunks( const struct smsc9220_eth_dev_t *
     return SMSC9220_ERROR_NONE;
 }
 
-uint32_t smsc9220_get_rxfifo_data_used_space( const struct
-                                              smsc9220_eth_dev_t * dev )
+uint32_t smsc9220_get_rxfifo_data_used_space(
+    const struct smsc9220_eth_dev_t * dev )
 {
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
 
-    return GET_BIT_FIELD( register_map->rx_fifo_inf, FIFO_USED_SPACE_MASK,
+    return GET_BIT_FIELD( register_map->rx_fifo_inf,
+                          FIFO_USED_SPACE_MASK,
                           DATA_FIFO_USED_SPACE_POS );
 }
 
@@ -1195,7 +1237,8 @@ uint32_t smsc9220_receive_by_chunks( const struct smsc9220_eth_dev_t * dev,
         return 0; /* Invalid input parameter, cannot read */
     }
 
-    packet_length_byte = dlen; /*_RB_ Hard set to length read from peek register. */
+    packet_length_byte = dlen; /*_RB_ Hard set to length read from peek
+                                  register. */
     dev->data->current_rx_size_words = packet_length_byte;
 
     empty_rx_fifo( dev, ( uint8_t * ) data, packet_length_byte );
@@ -1203,12 +1246,11 @@ uint32_t smsc9220_receive_by_chunks( const struct smsc9220_eth_dev_t * dev,
     return packet_length_byte;
 }
 
-uint32_t smsc9220_peek_next_packet_size( const struct
-                                         smsc9220_eth_dev_t * dev )
+uint32_t smsc9220_peek_next_packet_size( const struct smsc9220_eth_dev_t * dev )
 {
     uint32_t packet_size = 0;
-    struct smsc9220_eth_reg_map_t * register_map =
-        ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
+    struct smsc9220_eth_reg_map_t *
+        register_map = ( struct smsc9220_eth_reg_map_t * ) dev->cfg->base;
     volatile uint32_t rx_status_from_peek = 0;
 
     if( smsc9220_get_rxfifo_data_used_space( dev ) )

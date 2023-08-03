@@ -1,10 +1,10 @@
 /* Include standard libraries */
+#include "FreeRTOS.h"
+#include "list.h"
+#include "task.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -17,7 +17,8 @@ int main()
 }
 /*-----------------------------------------------------------*/
 
-NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes )
+NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR(
+    size_t xRequestedSizeBytes )
 {
     ( void ) xRequestedSizeBytes;
 
@@ -25,7 +26,8 @@ NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeByte
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+BaseType_t vNetworkBufferReleaseFromISR(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     ( void ) pxNetworkBuffer;
 
@@ -190,8 +192,9 @@ void vConfigureTimerForRunTimeStats( void )
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t bReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t bReleaseAfterSend )
 {
     ( void ) pxNetworkBuffer;
     ( void ) bReleaseAfterSend;
@@ -212,9 +215,10 @@ BaseType_t FreeRTOS_SendPingRequest( uint32_t ulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
-                                                  struct xNetworkEndPoint * pxEndPoint,
-                                                  IP_Address_t * pxIPAddress )
+eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi(
+    eDHCPCallbackPhase_t eDHCPPhase,
+    struct xNetworkEndPoint * pxEndPoint,
+    IP_Address_t * pxIPAddress )
 {
     /* Provide a stub for this function. */
     return eDHCPContinue;

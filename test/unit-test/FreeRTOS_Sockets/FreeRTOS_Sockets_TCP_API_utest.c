@@ -4,50 +4,50 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
 #include "mock_Sockets_list_macros.h"
-#include "mock_queue.h"
 #include "mock_event_groups.h"
 #include "mock_portable.h"
+#include "mock_queue.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
-#include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
+#include "mock_NetworkBufferManagement.h"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -66,7 +66,22 @@ BaseType_t prvTCPSendLoop( FreeRTOS_Socket_t * pxSocket,
 extern List_t xBoundTCPSocketsList;
 
 /* 2001::1 */
-static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+static IPv6_Address_t xIPv6Address = { { 0x20,
+                                         0x01,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x00,
+                                         0x01 } };
 
 /* ============================== Test Cases ============================== */
 
@@ -75,7 +90,7 @@ static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x0
  */
 void test_FreeRTOS_accept_InvalidParams( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength;
 
@@ -109,7 +124,7 @@ void test_FreeRTOS_accept_InvalidParams( void )
  */
 void test_FreeRTOS_accept_ClientSocketTaken( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength;
 
@@ -136,7 +151,7 @@ void test_FreeRTOS_accept_ClientSocketTaken( void )
  */
 void test_FreeRTOS_accept_PeerSocketNULL( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength;
 
@@ -162,7 +177,7 @@ void test_FreeRTOS_accept_PeerSocketNULL( void )
  */
 void test_FreeRTOS_accept_NotReuseSocket( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength = 0;
 
@@ -188,8 +203,10 @@ void test_FreeRTOS_accept_NotReuseSocket( void )
     TEST_ASSERT_EQUAL( &xPeerSocket, pxReturn );
     TEST_ASSERT_EQUAL( NULL, xServerSocket.u.xTCP.pxPeerSocket );
     TEST_ASSERT_EQUAL( pdFALSE, xPeerSocket.u.xTCP.bits.bPassAccept );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( xPeerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 ), xAddress.sin_address.ulIP_IPv4 );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xPeerSocket.u.xTCP.usRemotePort ), xAddress.sin_port );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( xPeerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 ),
+                       xAddress.sin_address.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xPeerSocket.u.xTCP.usRemotePort ),
+                       xAddress.sin_port );
     TEST_ASSERT_EQUAL( sizeof( xAddress ), xAddressLength );
 }
 
@@ -198,7 +215,7 @@ void test_FreeRTOS_accept_NotReuseSocket( void )
  */
 void test_FreeRTOS_accept_ReuseSocket( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength = 0;
 
@@ -221,8 +238,11 @@ void test_FreeRTOS_accept_ReuseSocket( void )
     pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
     TEST_ASSERT_EQUAL( &xServerSocket, pxReturn );
     TEST_ASSERT_EQUAL( pdFALSE, xServerSocket.u.xTCP.bits.bPassAccept );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohl( xServerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 ), xAddress.sin_address.ulIP_IPv4 );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xServerSocket.u.xTCP.usRemotePort ), xAddress.sin_port );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohl(
+                           xServerSocket.u.xTCP.xRemoteIP.ulIP_IPv4 ),
+                       xAddress.sin_address.ulIP_IPv4 );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xServerSocket.u.xTCP.usRemotePort ),
+                       xAddress.sin_port );
     TEST_ASSERT_EQUAL( sizeof( xAddress ), xAddressLength );
 }
 
@@ -231,7 +251,7 @@ void test_FreeRTOS_accept_ReuseSocket( void )
  */
 void test_FreeRTOS_accept_ReuseSocket_NULLAddress( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength = 0;
 
@@ -261,7 +281,7 @@ void test_FreeRTOS_accept_ReuseSocket_NULLAddress( void )
  */
 void test_FreeRTOS_accept_ReuseSocket_Timeout( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength = 0;
 
@@ -287,7 +307,12 @@ void test_FreeRTOS_accept_ReuseSocket_Timeout( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xServerSocket.xEventGroup, eSOCKET_ACCEPT, pdTRUE, pdFALSE, 0xAA, pdFALSE );
+    xEventGroupWaitBits_ExpectAndReturn( xServerSocket.xEventGroup,
+                                         eSOCKET_ACCEPT,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         0xAA,
+                                         pdFALSE );
 
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
@@ -304,7 +329,7 @@ void test_FreeRTOS_accept_ReuseSocket_Timeout( void )
  */
 void test_FreeRTOS_accept_ReuseIPv6Socket( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     struct freertos_sockaddr xAddress;
     socklen_t xAddressLength = 0;
 
@@ -320,7 +345,9 @@ void test_FreeRTOS_accept_ReuseIPv6Socket( void )
     xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
     xServerSocket.u.xTCP.usRemotePort = 0x1234;
     xServerSocket.bits.bIsIPv6 = pdTRUE;
-    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
@@ -328,8 +355,11 @@ void test_FreeRTOS_accept_ReuseIPv6Socket( void )
     pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
     TEST_ASSERT_EQUAL( &xServerSocket, pxReturn );
     TEST_ASSERT_EQUAL( pdFALSE, xServerSocket.u.xTCP.bits.bPassAccept );
-    TEST_ASSERT_EQUAL_MEMORY( xAddress.sin_address.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xServerSocket.u.xTCP.usRemotePort ), xAddress.sin_port );
+    TEST_ASSERT_EQUAL_MEMORY( xAddress.sin_address.xIP_IPv6.ucBytes,
+                              xIPv6Address.ucBytes,
+                              ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( xServerSocket.u.xTCP.usRemotePort ),
+                       xAddress.sin_port );
     TEST_ASSERT_EQUAL( sizeof( xAddress ), xAddressLength );
 }
 
@@ -338,7 +368,7 @@ void test_FreeRTOS_accept_ReuseIPv6Socket( void )
  */
 void test_FreeRTOS_accept_ReuseIPv6Socket_NullAddress( void )
 {
-    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    FreeRTOS_Socket_t xServerSocket, *pxReturn, xPeerSocket;
     socklen_t xAddressLength = 0;
 
     memset( &xServerSocket, 0, sizeof( xServerSocket ) );
@@ -352,7 +382,9 @@ void test_FreeRTOS_accept_ReuseIPv6Socket_NullAddress( void )
     xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
     xServerSocket.u.xTCP.usRemotePort = 0x1234;
     xServerSocket.bits.bIsIPv6 = pdTRUE;
-    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xServerSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+            xIPv6Address.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
@@ -441,7 +473,12 @@ void test_FreeRTOS_recv_EstablishedConnection_NoWait( void )
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.eTCPState = eESTABLISHED;
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_INTR, pdTRUE, pdFALSE, 0, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_INTR,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         0,
+                                         0 );
 
     xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
 
@@ -497,7 +534,14 @@ void test_FreeRTOS_recv_Interrupted( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE | ( EventBits_t ) eSOCKET_CLOSED | ( EventBits_t ) eSOCKET_INTR, pdTRUE, pdFALSE, 0xAA, eSOCKET_INTR );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_RECEIVE |
+                                             ( EventBits_t ) eSOCKET_CLOSED |
+                                             ( EventBits_t ) eSOCKET_INTR,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         0xAA,
+                                         eSOCKET_INTR );
 
     xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
 
@@ -526,9 +570,19 @@ void test_FreeRTOS_recv_Interrupted1( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE | ( EventBits_t ) eSOCKET_CLOSED | ( EventBits_t ) eSOCKET_INTR, pdTRUE, pdFALSE, 0xAA, eSOCKET_RECEIVE | eSOCKET_CLOSED | eSOCKET_INTR );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_RECEIVE |
+                                             ( EventBits_t ) eSOCKET_CLOSED |
+                                             ( EventBits_t ) eSOCKET_INTR,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         0xAA,
+                                         eSOCKET_RECEIVE | eSOCKET_CLOSED |
+                                             eSOCKET_INTR );
 
-    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE | eSOCKET_CLOSED, 0 );
+    xEventGroupSetBits_ExpectAndReturn( xSocket.xEventGroup,
+                                        eSOCKET_RECEIVE | eSOCKET_CLOSED,
+                                        0 );
 
     xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
 
@@ -557,7 +611,14 @@ void test_FreeRTOS_recv_RxStreamNULL( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE | ( EventBits_t ) eSOCKET_CLOSED | ( EventBits_t ) eSOCKET_INTR, pdTRUE, pdFALSE, 0xAA, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_RECEIVE |
+                                             ( EventBits_t ) eSOCKET_CLOSED |
+                                             ( EventBits_t ) eSOCKET_INTR,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         0xAA,
+                                         0 );
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -587,7 +648,12 @@ void test_FreeRTOS_recv_12BytesAlreadyInBuffer( void )
 
     uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.rxStream, 12 );
 
-    uxStreamBufferGet_ExpectAndReturn( xSocket.u.xTCP.rxStream, 0U, pvBuffer, ( size_t ) uxBufferLength, 0, 12 );
+    uxStreamBufferGet_ExpectAndReturn( xSocket.u.xTCP.rxStream,
+                                       0U,
+                                       pvBuffer,
+                                       ( size_t ) uxBufferLength,
+                                       0,
+                                       12 );
 
     xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
 
@@ -616,7 +682,12 @@ void test_FreeRTOS_recv_LowWaterReached( void )
 
     uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.rxStream, 12 );
 
-    uxStreamBufferGet_ExpectAndReturn( xSocket.u.xTCP.rxStream, 0U, pvBuffer, ( size_t ) uxBufferLength, 0, 12 );
+    uxStreamBufferGet_ExpectAndReturn( xSocket.u.xTCP.rxStream,
+                                       0U,
+                                       pvBuffer,
+                                       ( size_t ) uxBufferLength,
+                                       0,
+                                       12 );
 
     uxStreamBufferFrontSpace_ExpectAndReturn( xSocket.u.xTCP.rxStream, 12 );
 
@@ -653,7 +724,12 @@ void test_FreeRTOS_recv_LowWaterReached2( void )
 
     uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.rxStream, 12 );
 
-    uxStreamBufferGet_ExpectAndReturn( xSocket.u.xTCP.rxStream, 0U, pvBuffer, ( size_t ) uxBufferLength, 0, 12 );
+    uxStreamBufferGet_ExpectAndReturn( xSocket.u.xTCP.rxStream,
+                                       0U,
+                                       pvBuffer,
+                                       ( size_t ) uxBufferLength,
+                                       0,
+                                       12 );
 
     uxStreamBufferFrontSpace_ExpectAndReturn( xSocket.u.xTCP.rxStream, 12 );
 
@@ -687,11 +763,20 @@ void test_FreeRTOS_recv_12BytesArriveLater( void )
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_RECEIVE | ( EventBits_t ) eSOCKET_CLOSED | ( EventBits_t ) eSOCKET_INTR, pdTRUE, pdFALSE, 0xAA, 0 );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_RECEIVE |
+                                             ( EventBits_t ) eSOCKET_CLOSED |
+                                             ( EventBits_t ) eSOCKET_INTR,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         0xAA,
+                                         0 );
 
     uxStreamBufferGetSize_ExpectAndReturn( xSocket.u.xTCP.rxStream, 12 );
 
-    uxStreamBufferGetPtr_ExpectAndReturn( xSocket.u.xTCP.rxStream, ( uint8_t ** ) pvBuffer, 12 );
+    uxStreamBufferGetPtr_ExpectAndReturn( xSocket.u.xTCP.rxStream,
+                                          ( uint8_t ** ) pvBuffer,
+                                          12 );
 
     xReturn = FreeRTOS_recv( &xSocket, pvBuffer, uxBufferLength, xFlags );
 
@@ -699,7 +784,8 @@ void test_FreeRTOS_recv_12BytesArriveLater( void )
 }
 
 /**
- * @brief 12 bytes arrive to the socket after a call to receive is made and a timeout occurs.
+ * @brief 12 bytes arrive to the socket after a call to receive is made and a
+ * timeout occurs.
  */
 void test_FreeRTOS_recv_12BytesArriveLater_Timeout( void )
 {
@@ -820,7 +906,8 @@ void test_FreeRTOS_get_tx_head_AllNULL( void )
     uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0 );
 
     pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
-    TEST_ASSERT_EQUAL_PTR( ( ( StreamBuffer_t * ) ucStream )->ucArray, pucReturn );
+    TEST_ASSERT_EQUAL_PTR( ( ( StreamBuffer_t * ) ucStream )->ucArray,
+                           pucReturn );
     TEST_ASSERT_EQUAL( 0, xLength );
 }
 
@@ -846,7 +933,8 @@ void test_FreeRTOS_get_tx_head_LessSpace( void )
     uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 10 );
 
     pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
-    TEST_ASSERT_EQUAL_PTR( &( ( ( StreamBuffer_t * ) ucStream )->ucArray[ 10 ] ), pucReturn );
+    TEST_ASSERT_EQUAL_PTR( &( ( ( StreamBuffer_t * ) ucStream )->ucArray[ 10 ] ),
+                           pucReturn );
     TEST_ASSERT_EQUAL( 10, xLength );
 }
 
@@ -872,7 +960,8 @@ void test_FreeRTOS_get_tx_head_MoreSpace( void )
     uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 10 );
 
     pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
-    TEST_ASSERT_EQUAL_PTR( &( ( ( StreamBuffer_t * ) ucStream )->ucArray[ 10 ] ), pucReturn );
+    TEST_ASSERT_EQUAL_PTR( &( ( ( StreamBuffer_t * ) ucStream )->ucArray[ 10 ] ),
+                           pucReturn );
     TEST_ASSERT_EQUAL( 10, xLength );
 }
 
@@ -924,7 +1013,8 @@ void test_FreeRTOS_send_InvalidInput( void )
 }
 
 /**
- * @brief There is exact amount of space in stream buffer as the length of data we want to send.
+ * @brief There is exact amount of space in stream buffer as the length of data
+ * we want to send.
  */
 void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
 {
@@ -947,9 +1037,14 @@ void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength );
     vTaskSuspendAll_Expect();
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength, uxDataLength );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength,
+                                       uxDataLength );
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
@@ -960,15 +1055,19 @@ void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
     TEST_ASSERT_EQUAL( uxDataLength, xReturn );
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bCloseRequested );
 
-
     /* 2. Not last set of bytes. */
     xSocket.u.xTCP.bits.bCloseAfterSend = pdFALSE_UNSIGNED;
     xSocket.u.xTCP.bits.bCloseRequested = pdFALSE;
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength, uxDataLength );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength,
+                                       uxDataLength );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
@@ -979,7 +1078,8 @@ void test_FreeRTOS_send_ExactSpaceInStreamBuffer( void )
 }
 
 /**
- * @brief There is more space in stream buffer than the length of data we want to send.
+ * @brief There is more space in stream buffer than the length of data we want
+ * to send.
  */
 void test_FreeRTOS_send_MoreSpaceInStreamBuffer( void )
 {
@@ -1001,9 +1101,14 @@ void test_FreeRTOS_send_MoreSpaceInStreamBuffer( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength + 20 );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength + 20 );
     vTaskSuspendAll_Expect();
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength, uxDataLength );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength,
+                                       uxDataLength );
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdPASS );
@@ -1015,7 +1120,8 @@ void test_FreeRTOS_send_MoreSpaceInStreamBuffer( void )
 }
 
 /**
- * @brief There is less space in stream buffer than the length of data we want to send, also a timeout happens.
+ * @brief There is less space in stream buffer than the length of data we want
+ * to send, also a timeout happens.
  */
 void test_FreeRTOS_send_LessSpaceInStreamBuffer_Timeout( void )
 {
@@ -1038,13 +1144,23 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_Timeout( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength - 20, uxDataLength - 20 );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength - 20,
+                                       uxDataLength - 20 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_SEND | eSOCKET_CLOSED,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         100,
+                                         pdFALSE );
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Second Iteration. No space still. */
@@ -1058,8 +1174,8 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_Timeout( void )
 }
 
 /**
- * @brief There is less space in stream buffer than the length of data we want to send. However,
- *        over time, space becomes available.
+ * @brief There is less space in stream buffer than the length of data we want
+ * to send. However, over time, space becomes available.
  */
 void test_FreeRTOS_send_LessSpaceInStreamBuffer_EventuallySpaceAvailable( void )
 {
@@ -1081,18 +1197,32 @@ void test_FreeRTOS_send_LessSpaceInStreamBuffer_EventuallySpaceAvailable( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength - 20, uxDataLength - 20 );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength - 20,
+                                       uxDataLength - 20 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_SEND | eSOCKET_CLOSED,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         100,
+                                         pdFALSE );
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Second Iteration. */
     uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, 20 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, &pvBuffer[ 80 ], 20, 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       &pvBuffer[ 80 ],
+                                       20,
+                                       20 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1125,24 +1255,43 @@ void test_FreeRTOS_send_MultipleIterationsAndNoSuccess( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength - 20, uxDataLength - 20 );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength - 20,
+                                       uxDataLength - 20 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_SEND | eSOCKET_CLOSED,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         100,
+                                         pdFALSE );
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Second Iteration. */
     uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, 10 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, &pvBuffer[ 80 ], 10, 10 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       &pvBuffer[ 80 ],
+                                       10,
+                                       10 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
 
     xTaskCheckForTimeOut_ExpectAnyArgsAndReturn( pdFALSE );
 
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_SEND | eSOCKET_CLOSED,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         100,
+                                         pdFALSE );
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
     /* Third iteration. No space still. */
@@ -1178,13 +1327,23 @@ void test_FreeRTOS_send_DisconnectionOccursDuringWait( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength - 20, uxDataLength - 20 );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength - 20,
+                                       uxDataLength - 20 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     vTaskSetTimeOutState_ExpectAnyArgs();
-    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup, eSOCKET_SEND | eSOCKET_CLOSED, pdTRUE, pdFALSE, 100, pdFALSE );
+    xEventGroupWaitBits_ExpectAndReturn( xSocket.xEventGroup,
+                                         eSOCKET_SEND | eSOCKET_CLOSED,
+                                         pdTRUE,
+                                         pdFALSE,
+                                         100,
+                                         pdFALSE );
 
     /* Let `socketSOCKET_IS_BOUND()` return false, so that prvTCPSendCheck()
      * returns en error, so that the loop is stopped. */
@@ -1196,8 +1355,8 @@ void test_FreeRTOS_send_DisconnectionOccursDuringWait( void )
 }
 
 /*
- * @brief IP task is calling send function with a NULL buffer. Also there are 20 bytes worth of space
- *        less in the stream buffer as the data length.
+ * @brief IP task is calling send function with a NULL buffer. Also there are 20
+ * bytes worth of space less in the stream buffer as the data length.
  */
 void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
 {
@@ -1247,8 +1406,13 @@ void test_FreeRTOS_send_DontWaitFlag( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength - 20, uxDataLength - 20 );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength - 20,
+                                       uxDataLength - 20 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
     xSendEventToIPTask_ExpectAndReturn( eTCPTimerEvent, pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
@@ -1282,9 +1446,14 @@ void test_FreeRTOS_send_ExactSpaceInStreamBufferInIPTask( void )
 
     uxDataLength = 100;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
-    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                            uxDataLength );
     vTaskSuspendAll_Expect();
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, pvBuffer, uxDataLength, uxDataLength );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       pvBuffer,
+                                       uxDataLength,
+                                       uxDataLength );
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
@@ -1341,7 +1510,9 @@ void test_FreeRTOS_listen_Success( void )
     xSocket.u.xTCP.eTCPState = eCLOSED;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
-    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff, ( int32_t ) xBacklog, xBacklog );
+    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff,
+                                        ( int32_t ) xBacklog,
+                                        xBacklog );
 
     vTCPStateChange_Expect( &xSocket, eTCP_LISTEN );
 
@@ -1353,7 +1524,9 @@ void test_FreeRTOS_listen_Success( void )
     xSocket.u.xTCP.eTCPState = eCLOSE_WAIT;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
-    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff, ( int32_t ) xBacklog, xBacklog );
+    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff,
+                                        ( int32_t ) xBacklog,
+                                        xBacklog );
 
     vTCPStateChange_Expect( &xSocket, eTCP_LISTEN );
 
@@ -1375,25 +1548,37 @@ void test_FreeRTOS_listen_Success_WithReuseSocket( void )
     xSocket.u.xTCP.eTCPState = eCLOSED;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
-    memset( xSocket.u.xTCP.xPacket.u.ucLastPacket, 0xFF, sizeof( xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
-    memset( &xSocket.u.xTCP.xTCPWindow, 0xFF, sizeof( xSocket.u.xTCP.xTCPWindow ) );
+    memset( xSocket.u.xTCP.xPacket.u.ucLastPacket,
+            0xFF,
+            sizeof( xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
+    memset( &xSocket.u.xTCP.xTCPWindow,
+            0xFF,
+            sizeof( xSocket.u.xTCP.xTCPWindow ) );
     memset( &xSocket.u.xTCP.bits, 0xFF, sizeof( xSocket.u.xTCP.bits ) );
 
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
 
-    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff, ( int32_t ) xBacklog, xBacklog );
+    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff,
+                                        ( int32_t ) xBacklog,
+                                        xBacklog );
 
     vTCPStateChange_Expect( &xSocket, eTCP_LISTEN );
 
     xReturn = FreeRTOS_listen( &xSocket, xBacklog );
     TEST_ASSERT_EQUAL( 0, xReturn );
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bReuseSocket );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, xSocket.u.xTCP.xPacket.u.ucLastPacket, sizeof( xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xSocket.u.xTCP.xTCPWindow, sizeof( xSocket.u.xTCP.xTCPWindow ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0,
+                                  xSocket.u.xTCP.xPacket.u.ucLastPacket,
+                                  sizeof(
+                                      xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0,
+                                  &xSocket.u.xTCP.xTCPWindow,
+                                  sizeof( xSocket.u.xTCP.xTCPWindow ) );
 }
 
 /**
- * @brief Listen call successful when socket is set to be reused and the streams are non NULL.
+ * @brief Listen call successful when socket is set to be reused and the streams
+ * are non NULL.
  */
 void test_FreeRTOS_listen_Success_WithReuseSocket_StreamsNonNULL( void )
 {
@@ -1406,15 +1591,21 @@ void test_FreeRTOS_listen_Success_WithReuseSocket_StreamsNonNULL( void )
     xSocket.u.xTCP.eTCPState = eCLOSED;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
 
-    memset( xSocket.u.xTCP.xPacket.u.ucLastPacket, 0xFF, sizeof( xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
-    memset( &xSocket.u.xTCP.xTCPWindow, 0xFF, sizeof( xSocket.u.xTCP.xTCPWindow ) );
+    memset( xSocket.u.xTCP.xPacket.u.ucLastPacket,
+            0xFF,
+            sizeof( xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
+    memset( &xSocket.u.xTCP.xTCPWindow,
+            0xFF,
+            sizeof( xSocket.u.xTCP.xTCPWindow ) );
     memset( &xSocket.u.xTCP.bits, 0xFF, sizeof( xSocket.u.xTCP.bits ) );
 
     xSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
     xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) &xReturn;
     xSocket.u.xTCP.txStream = ( StreamBuffer_t * ) &xReturn;
 
-    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff, ( int32_t ) xBacklog, xBacklog );
+    FreeRTOS_min_int32_ExpectAndReturn( ( int32_t ) 0xffff,
+                                        ( int32_t ) xBacklog,
+                                        xBacklog );
 
     vStreamBufferClear_Expect( xSocket.u.xTCP.rxStream );
     vStreamBufferClear_Expect( xSocket.u.xTCP.txStream );
@@ -1424,8 +1615,13 @@ void test_FreeRTOS_listen_Success_WithReuseSocket_StreamsNonNULL( void )
     xReturn = FreeRTOS_listen( &xSocket, xBacklog );
     TEST_ASSERT_EQUAL( 0, xReturn );
     TEST_ASSERT_EQUAL( pdTRUE, xSocket.u.xTCP.bits.bReuseSocket );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, xSocket.u.xTCP.xPacket.u.ucLastPacket, sizeof( xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &xSocket.u.xTCP.xTCPWindow, sizeof( xSocket.u.xTCP.xTCPWindow ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0,
+                                  xSocket.u.xTCP.xPacket.u.ucLastPacket,
+                                  sizeof(
+                                      xSocket.u.xTCP.xPacket.u.ucLastPacket ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0,
+                                  &xSocket.u.xTCP.xTCPWindow,
+                                  sizeof( xSocket.u.xTCP.xTCPWindow ) );
 }
 
 /**
@@ -1460,7 +1656,8 @@ void test_FreeRTOS_shutdown_Invalid( void )
         {
             xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
             xSocket.u.xTCP.eTCPState = i;
-            listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+            listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn(
+                &xBoundTCPSocketsList );
             xReturn = FreeRTOS_shutdown( &xSocket, xHow );
             TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOTCONN, xReturn );
         }
@@ -1528,7 +1725,6 @@ void test_FreeRTOS_get_rx_buf_ValidInput( void )
     TEST_ASSERT_EQUAL( &xStream, pxReturn );
 }
 
-
 /**
  * @brief Invalid protocol passed to the function.
  */
@@ -1573,7 +1769,8 @@ void test_FreeRTOS_tx_space_ValidStream( void )
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
 
-    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xABCD );
+    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                            0xABCD );
 
     xReturn = FreeRTOS_tx_space( &xSocket );
     TEST_ASSERT_EQUAL( 0xABCD, xReturn );
@@ -1602,7 +1799,8 @@ void test_FreeRTOS_tx_size( void )
     /* Valid Protocol. Stream non-NULL. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
-    uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0x345 );
+    uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                           0x345 );
     xReturn = FreeRTOS_tx_size( &xSocket );
     TEST_ASSERT_EQUAL( 0x345, xReturn );
 }
@@ -1639,7 +1837,6 @@ void test_FreeRTOS_issocketconnected( void )
     xReturn = FreeRTOS_issocketconnected( &xSocket );
     TEST_ASSERT_EQUAL( pdTRUE, xReturn );
 }
-
 
 /**
  * @brief All combination of inputs. See below comments.
@@ -1709,7 +1906,8 @@ void test_FreeRTOS_rx_size( void )
     /* Valid Protocol. Stream non-NULL. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     xSocket.u.xTCP.rxStream = ( StreamBuffer_t * ) ucStream;
-    uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, 0xAB );
+    uxStreamBufferGetSize_ExpectAndReturn( ( StreamBuffer_t * ) ucStream,
+                                           0xAB );
     xReturn = FreeRTOS_rx_size( &xSocket );
     TEST_ASSERT_EQUAL( 0xAB, xReturn );
 }
@@ -1746,7 +1944,11 @@ void test_prvTCPSendLoop_NullBuffer()
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     uxStreamBufferGetSpace_IgnoreAndReturn( 100 );
-    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, NULL, uxDataLength, uxDataLength );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream,
+                                       0U,
+                                       NULL,
+                                       uxDataLength,
+                                       uxDataLength );
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     xReturn = prvTCPSendLoop( &xSocket, NULL, uxDataLength, xFlags );

@@ -3,11 +3,11 @@
 #include "queue.h"
 
 /* FreeRTOS+TCP includes. */
+#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_UDP_IP.h"
 
 /*This proof assumes that pxUDPSocketLookup is implemented correctly. */
 
@@ -37,7 +37,8 @@ uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 }
 
 /* This proof was done before. Hence we assume it to be correct here. */
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+BaseType_t xCheckRequiresARPResolution(
+    NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     BaseType_t xReturn;
 
@@ -57,9 +58,10 @@ BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
 }
 
 /* This proof was done before. Hence we assume it to be correct here. */
-BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                           uint16_t usPort,
-                                           BaseType_t * pxIsWaitingForARPResolution )
+BaseType_t xProcessReceivedUDPPacket_IPv6(
+    NetworkBufferDescriptor_t * pxNetworkBuffer,
+    uint16_t usPort,
+    BaseType_t * pxIsWaitingForARPResolution )
 {
     BaseType_t xReturn;
 
@@ -89,19 +91,21 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc(
+        sizeof( NetworkBufferDescriptor_t ) );
     BaseType_t * pxIsWaitingForARPResolution;
     NetworkEndPoint_t xEndpoint;
     uint16_t usPort;
 
     pxIsWaitingForARPResolution = safeMalloc( sizeof( BaseType_t ) );
 
-    /* The function under test is only called by the IP-task. The below pointer is an
-     * address of a local variable which is being passed to the function under test.
-     * Thus, it cannot ever be NULL. */
+    /* The function under test is only called by the IP-task. The below pointer
+     * is an address of a local variable which is being passed to the function
+     * under test. Thus, it cannot ever be NULL. */
     __CPROVER_assume( pxIsWaitingForARPResolution != NULL );
 
-    /* The network buffer must not be NULL, checked in prvProcessEthernetPacket. */
+    /* The network buffer must not be NULL, checked in prvProcessEthernetPacket.
+     */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
     pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
@@ -110,5 +114,7 @@ void harness()
     /* The ethernet buffer must be valid. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
-    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
+    xProcessReceivedUDPPacket( pxNetworkBuffer,
+                               usPort,
+                               pxIsWaitingForARPResolution );
 }

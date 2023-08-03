@@ -19,15 +19,15 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
@@ -47,48 +47,56 @@ volatile static uint32_t xInterfaceState = INTERFACE_DOWN;
 
 static NetworkInterface_t * pxMyInterface;
 
-static BaseType_t xESP32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+static BaseType_t xESP32_Eth_NetworkInterfaceInitialise(
+    NetworkInterface_t * pxInterface );
 
-static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                     NetworkBufferDescriptor_t * const pxDescriptor,
-                                                     BaseType_t xReleaseAfterSend );
+static BaseType_t xESP32_Eth_NetworkInterfaceOutput(
+    NetworkInterface_t * pxInterface,
+    NetworkBufferDescriptor_t * const pxDescriptor,
+    BaseType_t xReleaseAfterSend );
 
-static BaseType_t xESP32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
+static BaseType_t xESP32_Eth_GetPhyLinkStatus(
+    NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                          NetworkInterface_t * pxInterface );
+NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && \
+    ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
-/* Do not call the following function directly. It is there for downward compatibility.
- * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
- * objects.  See the description in FreeRTOS_Routing.h. */
-    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                    NetworkInterface_t * pxInterface )
-    {
-        pxESP32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
-    }
+/* Do not call the following function directly. It is there for downward
+ * compatibility. The function FreeRTOS_IPInit() will call it to initialice the
+ * interface and end-point objects.  See the description in FreeRTOS_Routing.h.
+ */
+NetworkInterface_t * pxFillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface )
+{
+    pxESP32_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+}
 
 #endif
 /*-----------------------------------------------------------*/
 
-
-NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                          NetworkInterface_t * pxInterface )
+NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface )
 {
     static char pcName[ 8 ];
 
-/* This function pxESP32_Eth_FillInterfaceDescriptor() adds a network-interface.
- * Make sure that the object pointed to by 'pxInterface'
- * is declared static or global, and that it will remain to exist. */
+    /* This function pxESP32_Eth_FillInterfaceDescriptor() adds a
+     * network-interface. Make sure that the object pointed to by 'pxInterface'
+     * is declared static or global, and that it will remain to exist. */
 
     snprintf( pcName, sizeof( pcName ), "eth%ld", xEMACIndex );
 
     memset( pxInterface, '\0', sizeof( *pxInterface ) );
-    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
-    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pcName = pcName; /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the
+                                                        driver functions. */
     pxInterface->pfInitialise = xESP32_Eth_NetworkInterfaceInitialise;
     pxInterface->pfOutput = xESP32_Eth_NetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = xESP32_Eth_GetPhyLinkStatus;
@@ -100,7 +108,8 @@ NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t xESP32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+static BaseType_t xESP32_Eth_NetworkInterfaceInitialise(
+    NetworkInterface_t * pxInterface )
 {
     static BaseType_t xMACAdrInitialized = pdFALSE;
     uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
@@ -132,11 +141,14 @@ static BaseType_t xESP32_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface 
     return xResult;
 }
 
-static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                     NetworkBufferDescriptor_t * const pxDescriptor,
-                                                     BaseType_t xReleaseAfterSend )
+static BaseType_t xESP32_Eth_NetworkInterfaceOutput(
+    NetworkInterface_t * pxInterface,
+    NetworkBufferDescriptor_t * const pxDescriptor,
+    BaseType_t xReleaseAfterSend )
 {
-    if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pucEthernetBuffer == NULL ) || ( pxNetworkBuffer->xDataLength == 0 ) )
+    if( ( pxNetworkBuffer == NULL ) ||
+        ( pxNetworkBuffer->pucEthernetBuffer == NULL ) ||
+        ( pxNetworkBuffer->xDataLength == 0 ) )
     {
         ESP_LOGE( TAG, "Invalid params" );
         return pdFALSE;
@@ -151,22 +163,28 @@ static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
     }
     else
     {
-        ret = esp_wifi_internal_tx( ESP_IF_WIFI_STA, pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength );
+        ret = esp_wifi_internal_tx( ESP_IF_WIFI_STA,
+                                    pxNetworkBuffer->pucEthernetBuffer,
+                                    pxNetworkBuffer->xDataLength );
 
         if( ret != ESP_OK )
         {
-            ESP_LOGE( TAG, "Failed to tx buffer %p, len %d, err %d", pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, ret );
+            ESP_LOGE( TAG,
+                      "Failed to tx buffer %p, len %d, err %d",
+                      pxNetworkBuffer->pucEthernetBuffer,
+                      pxNetworkBuffer->xDataLength,
+                      ret );
         }
     }
 
-    #if ( ipconfigHAS_PRINTF != 0 )
-        {
-            /* Call a function that monitors resources: the amount of free network
-             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-             * for more detailed comments. */
-            vPrintResourceStats();
-        }
-    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+#if( ipconfigHAS_PRINTF != 0 )
+    {
+        /* Call a function that monitors resources: the amount of free network
+         * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+         * for more detailed comments. */
+        vPrintResourceStats();
+    }
+#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( xReleaseAfterSend == pdTRUE )
     {
@@ -192,20 +210,17 @@ void vNetworkNotifyIFUp()
     xInterfaceState = INTERFACE_UP;
 }
 
-esp_err_t wlanif_input( void * netif,
-                        void * buffer,
-                        uint16_t len,
-                        void * eb )
+esp_err_t wlanif_input( void * netif, void * buffer, uint16_t len, void * eb )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( 250 );
 
-    #if ( ipconfigHAS_PRINTF != 0 )
-        {
-            vPrintResourceStats();
-        }
-    #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+#if( ipconfigHAS_PRINTF != 0 )
+    {
+        vPrintResourceStats();
+    }
+#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
     if( eConsiderFrameForProcessing( buffer ) != eProcessBuffer )
     {
@@ -214,22 +229,28 @@ esp_err_t wlanif_input( void * netif,
         return ESP_OK;
     }
 
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len, xDescriptorWaitTime );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len,
+                                                        xDescriptorWaitTime );
 
     if( pxNetworkBuffer != NULL )
     {
         /* Set the packet size, in case a larger buffer was returned. */
         pxNetworkBuffer->xDataLength = len;
         pxNetworkBuffer->pxInterface = pxMyInterface;
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pcBuffer );
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface,
+                                                                 pcBuffer );
 
         /* Copy the packet data. */
         memcpy( pxNetworkBuffer->pucEthernetBuffer, buffer, len );
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
-        if( xSendEventStructToIPTask( &xRxEvent, xDescriptorWaitTime ) == pdFAIL )
+        if( xSendEventStructToIPTask( &xRxEvent, xDescriptorWaitTime ) ==
+            pdFAIL )
         {
-            ESP_LOGE( TAG, "Failed to enqueue packet to network stack %p, len %d", buffer, len );
+            ESP_LOGE( TAG,
+                      "Failed to enqueue packet to network stack %p, len %d",
+                      buffer,
+                      len );
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
             return ESP_FAIL;
         }

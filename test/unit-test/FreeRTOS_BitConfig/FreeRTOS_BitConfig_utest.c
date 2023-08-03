@@ -4,40 +4,40 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 #include "mock_FreeRTOS_IP.h"
-#include "mock_task.h"
-#include "mock_queue.h"
 #include "mock_portable.h"
+#include "mock_queue.h"
+#include "mock_task.h"
 
 #include "FreeRTOS_BitConfig.h"
 
@@ -48,7 +48,7 @@
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 /* The length of the binary data stream used for validating test cases. */
-#define SIZE_OF_BINARY_STREAM    10
+#define SIZE_OF_BINARY_STREAM 10
 
 /* ==============================  Test Cases  ============================== */
 
@@ -58,7 +58,7 @@
  */
 void test_xBitConfig_init_Fail( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     uint8_t * pucData = NULL;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     BaseType_t xResult = pdFALSE;
@@ -80,7 +80,7 @@ void test_xBitConfig_init_Fail( void )
  */
 void test_xBitConfig_init_pucDataNull( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     uint8_t * pucData = NULL;
     /* The length of the binary data stream. */
     size_t uxSize = SIZE_OF_BINARY_STREAM;
@@ -100,7 +100,6 @@ void test_xBitConfig_init_pucDataNull( void )
     TEST_ASSERT_EQUAL( uxSize, pxConfig->uxSize );
     TEST_ASSERT_EQUAL_MEMORY( pxConfig->ucContents, ucContentReturn, uxSize );
 }
-
 
 /**
  * @brief This functions verifies bit-config struct
@@ -157,7 +156,7 @@ void test_xBitConfig_read_uc_xHasError( void )
 
 void test_xBitConfig_read_uc_OutOfBoundRead( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     uint8_t * pucData;
     BaseType_t xResult = pdFALSE;
 
@@ -180,7 +179,7 @@ void test_xBitConfig_read_uc_OutOfBoundRead( void )
 
 void test_xBitConfig_read_uc_NullData( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     BaseType_t xResult = pdFALSE;
 
     memset( pxConfig, 0, sizeof( BitConfig_t ) );
@@ -201,7 +200,7 @@ void test_xBitConfig_read_uc_NullData( void )
 
 void test_xBitConfig_read_uc_HappyPath( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     uint8_t ucContents[ uxSize ], ucData[ uxSize ];
     BaseType_t xResult = pdFALSE;
@@ -264,7 +263,6 @@ void test_pucBitConfig_peek_last_index_uc_NullpucData( void )
     TEST_ASSERT_EQUAL( pdTRUE, xConfig.xHasError );
 }
 
-
 /**
  * @brief This functions verifies failure to
  *        Peek the last byte from a bit-config
@@ -322,7 +320,7 @@ void test_pucBitConfig_peek_last_index_uc_HappyPath( void )
 
 void test_ucBitConfig_read_8_fail( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     uint8_t ucResult;
 
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
@@ -340,7 +338,7 @@ void test_ucBitConfig_read_8_fail( void )
 
 void test_xBitConfig_read_8_HappyPath( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     uint8_t ucContents[ uxSize ];
     uint8_t ucResult;
@@ -367,7 +365,7 @@ void test_xBitConfig_read_8_HappyPath( void )
 
 void test_usBitConfig_read_16_fail( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     uint16_t ucResult;
 
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
@@ -386,7 +384,7 @@ void test_usBitConfig_read_16_fail( void )
 
 void test_usBitConfig_read_16_HappyPath( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     uint8_t ucContents[ uxSize ];
     uint16_t ucResult, ucResultExpected;
@@ -414,7 +412,7 @@ void test_usBitConfig_read_16_HappyPath( void )
 
 void test_ulBitConfig_read_32_fail( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     uint32_t ulResult;
 
     memset( &xConfig, 0, sizeof( BitConfig_t ) );
@@ -433,7 +431,7 @@ void test_ulBitConfig_read_32_fail( void )
 
 void test_ulBitConfig_read_32_HappyPath( void )
 {
-    BitConfig_t xConfig, * pxConfig = &xConfig;
+    BitConfig_t xConfig, *pxConfig = &xConfig;
     size_t uxSize = SIZE_OF_BINARY_STREAM;
     uint8_t ucContents[ uxSize ];
     uint32_t ulResult, ulResultExpected;
@@ -625,7 +623,9 @@ void test_vBitConfig_ReleaseNULL( void )
 
     vBitConfig_release( &xConfig );
 
-    TEST_ASSERT_EQUAL_MEMORY( &xConfigExpected, &xConfig, sizeof( BitConfig_t ) );
+    TEST_ASSERT_EQUAL_MEMORY( &xConfigExpected,
+                              &xConfig,
+                              sizeof( BitConfig_t ) );
 }
 
 /**
@@ -646,5 +646,7 @@ void test_vBitConfig_Release( void )
 
     vBitConfig_release( &xConfig );
 
-    TEST_ASSERT_EQUAL_MEMORY( &xConfigExpected, &xConfig, sizeof( BitConfig_t ) );
+    TEST_ASSERT_EQUAL_MEMORY( &xConfigExpected,
+                              &xConfig,
+                              sizeof( BitConfig_t ) );
 }

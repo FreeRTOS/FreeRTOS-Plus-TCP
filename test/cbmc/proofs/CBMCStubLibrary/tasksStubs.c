@@ -1,9 +1,9 @@
+#include "tasksStubs.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "tasksStubs.h"
 
 #ifndef TASK_STUB_COUNTER
-    #define TASK_STUB_COUNTER    0;
+    #define TASK_STUB_COUNTER 0;
 #endif
 
 /* 5 is a magic number, but we need some number here as a default value.
@@ -11,9 +11,8 @@
  * as a loop bound. It should be overwritten in the Makefile.json adapting
  * to the performance requirements of the harness. */
 #ifndef TASK_STUB_COUNTER_LIMIT
-    #define TASK_STUB_COUNTER_LIMIT    5;
+    #define TASK_STUB_COUNTER_LIMIT 5;
 #endif
-
 
 static BaseType_t xCounter = TASK_STUB_COUNTER;
 static BaseType_t xCounterLimit = TASK_STUB_COUNTER_LIMIT;
@@ -23,9 +22,8 @@ BaseType_t xTaskGetSchedulerState( void )
     return xState;
 }
 
-
-/* This function is another method apart from overwriting the defines to init the max
- * loop bound. */
+/* This function is another method apart from overwriting the defines to init
+ * the max loop bound. */
 void vInitTaskCheckForTimeOut( BaseType_t maxCounter,
                                BaseType_t maxCounter_limit )
 {

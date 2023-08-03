@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -28,25 +29,24 @@
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
+#include "mock_FreeRTOS_DNS_Networking.h"
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_Sockets.h"
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_DNS_Networking.h"
-#include "mock_task.h"
 #include "mock_list.h"
 #include "mock_queue.h"
+#include "mock_task.h"
 
-#include "mock_FreeRTOS_DNS_Cache.h"
-#include "mock_FreeRTOS_DNS_Parser.h"
-#include "mock_FreeRTOS_DNS_Networking.h"
-#include "mock_NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
-
+#include "mock_FreeRTOS_DNS_Cache.h"
+#include "mock_FreeRTOS_DNS_Networking.h"
+#include "mock_FreeRTOS_DNS_Parser.h"
+#include "mock_NetworkBufferManagement.h"
 
 #include "catch_assert.h"
 
@@ -55,19 +55,34 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define LLMNR_ADDRESS                 "freertos"
-#define LOCAL_ADDRESS                 "freertos.local"
-#define GOOD_ADDRESS                  "www.freertos.org"
-#define BAD_ADDRESS                   "this is a bad address"
-#define DOTTED_IPV4_ADDRESS           "192.168.0.1"
-#define DOTTED_IPV4_ADDRESS_UINT32    ( 0x0100A8C0 )
-#define DOTTED_IPv6_ADDRESS           "2001::1"
+#define LLMNR_ADDRESS              "freertos"
+#define LOCAL_ADDRESS              "freertos.local"
+#define GOOD_ADDRESS               "www.freertos.org"
+#define BAD_ADDRESS                "this is a bad address"
+#define DOTTED_IPV4_ADDRESS        "192.168.0.1"
+#define DOTTED_IPV4_ADDRESS_UINT32 ( 0x0100A8C0 )
+#define DOTTED_IPv6_ADDRESS        "2001::1"
 
-IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+IPv6_Address_t xIPv6Address = { { 0x20,
+                                  0x01,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x00,
+                                  0x01 } };
 
-typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
-                                void * /* pvSearchID */,
-                                struct freertos_addrinfo * /* pxAddressInfo */ );
+typedef void ( *FOnDNSEvent )( const char * /* pcName */,
+                               void * /* pvSearchID */,
+                               struct freertos_addrinfo * /* pxAddressInfo */ );
 
 extern IPPreference_t xDNS_IP_Preference;
 
@@ -90,22 +105,28 @@ void setUp( void )
 void test_FreeRTOS_getaddrinfo_IPv4AddressFound( void )
 {
     BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
-    struct freertos_addrinfo xHint, * pxHint = &xHint;
+    struct freertos_addrinfo xAddress, *pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, *pxHint = &xHint;
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
 
     xHint.ai_family = FREERTOS_AF_INET4;
 
-    FreeRTOS_inet_addr_ExpectAndReturn( DOTTED_IPV4_ADDRESS, DOTTED_IPV4_ADDRESS_UINT32 );
+    FreeRTOS_inet_addr_ExpectAndReturn( DOTTED_IPV4_ADDRESS,
+                                        DOTTED_IPV4_ADDRESS_UINT32 );
     ulChar2u32_IgnoreAndReturn( DOTTED_IPV4_ADDRESS_UINT32 );
 
-    xReturn = FreeRTOS_getaddrinfo( DOTTED_IPV4_ADDRESS, "Service", pxHint, &pxAddress );
+    xReturn = FreeRTOS_getaddrinfo( DOTTED_IPV4_ADDRESS,
+                                    "Service",
+                                    pxHint,
+                                    &pxAddress );
 
     TEST_ASSERT_EQUAL( 0, xReturn );
     TEST_ASSERT_EQUAL( FREERTOS_AF_INET4, pxAddress->ai_family );
-    TEST_ASSERT_EQUAL( DOTTED_IPV4_ADDRESS_UINT32, FreeRTOS_htonl( pxAddress->ai_addr->sin_address.ulIP_IPv4 ) );
+    TEST_ASSERT_EQUAL( DOTTED_IPV4_ADDRESS_UINT32,
+                       FreeRTOS_htonl(
+                           pxAddress->ai_addr->sin_address.ulIP_IPv4 ) );
     TEST_ASSERT_EQUAL( ipSIZE_OF_IPv4_ADDRESS, pxAddress->ai_addrlen );
 }
 
@@ -126,8 +147,8 @@ void test_FreeRTOS_gethostbyname_SuccessDotAddress( void )
 }
 
 /**
- * @brief Ensures that if the address is not in the dotted form and found in the cache,
- *        it is returned to the caller
+ * @brief Ensures that if the address is not in the dotted form and found in the
+ * cache, it is returned to the caller
  */
 void test_FreeRTOS_gethostbyname_SuccessAddressInCache( void )
 {
@@ -155,7 +176,8 @@ void test_FreeRTOS_gethostbyname_DifferentIdentifier( void )
     size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
     int i;
 
-    xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded + ipBUFFER_PADDING );
+    xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded +
+                                               ipBUFFER_PADDING );
     xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
     xNetworkBuffer.xDataLength = uxBytesNeeded;
     xReceiveBuffer.pucPayloadBuffer = malloc( 300 );
@@ -187,7 +209,8 @@ void test_FreeRTOS_gethostbyname_DifferentIdentifier( void )
         FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
         DNS_BindSocket_ExpectAnyArgsAndReturn( 0 );
 
-        pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+        pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(
+            &xNetworkBuffer );
 
         /* back in prvSendBuffer */
         DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
@@ -225,7 +248,8 @@ void test_FreeRTOS_gethostbyname_SameIdentifier( void )
     size_t uxBytesNeeded = sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t );
     int i;
 
-    xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded + ipBUFFER_PADDING );
+    xNetworkBuffer.pucEthernetBuffer = malloc( uxBytesNeeded +
+                                               ipBUFFER_PADDING );
     xNetworkBuffer.pucEthernetBuffer += ipBUFFER_PADDING;
     xNetworkBuffer.xDataLength = uxBytesNeeded;
     xReceiveBuffer.pucPayloadBuffer = malloc( 300 );

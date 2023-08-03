@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -27,7 +28,8 @@
 
 /**
  * @file FreeRTOS_Stream_Buffer.c
- * @brief Provides the API for managing/creating the stream buffers in the FreeRTOS+TCP network stack.
+ * @brief Provides the API for managing/creating the stream buffers in the
+ * FreeRTOS+TCP network stack.
  */
 
 /* Standard includes. */
@@ -35,15 +37,14 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
-
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
 
 /**
  * @brief Get the space between lower and upper value provided to the function.
@@ -70,7 +71,8 @@ size_t uxStreamBufferSpace( const StreamBuffer_t * pxBuffer,
 }
 
 /**
- * @brief Get the distance between lower and upper value provided to the function.
+ * @brief Get the distance between lower and upper value provided to the
+ * function.
  * @param[in] pxBuffer The circular stream buffer.
  * @param[in] uxLower The lower value.
  * @param[in] uxUpper The upper value.
@@ -174,8 +176,7 @@ void vStreamBufferClear( StreamBuffer_t * pxBuffer )
  * @param[in] pxBuffer The circular stream buffer.
  * @param[in] uxCount The byte count by which the mid pointer is to be moved.
  */
-void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer,
-                           size_t uxCount )
+void vStreamBufferMoveMid( StreamBuffer_t * pxBuffer, size_t uxCount )
 {
     /* Increment uxMid, but no further than uxHead */
     size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
@@ -225,18 +226,18 @@ BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * pxBuffer,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Get the pointer to data and the amount of data which can be read in one go.
+ * @brief Get the pointer to data and the amount of data which can be read in
+ * one go.
  *
  * @param[in] pxBuffer The circular stream buffer.
  * @param[out] ppucData Pointer to the data pointer which will point to the
  *                       data which can be read.
  *
- * @return The number of bytes which can be read in one go (which might be less than
- *         actual number of available bytes since this is a circular buffer and tail
- *         can loop back to the start of the buffer).
+ * @return The number of bytes which can be read in one go (which might be less
+ * than actual number of available bytes since this is a circular buffer and
+ * tail can loop back to the start of the buffer).
  */
-size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
-                             uint8_t ** ppucData )
+size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer, uint8_t ** ppucData )
 {
     size_t uxNextTail = pxBuffer->uxTail;
     size_t uxSize = uxStreamBufferGetSize( pxBuffer );
@@ -251,10 +252,10 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * pxBuffer,
  * @brief Adds data to a stream buffer.
  *
  * @param[in,out] pxBuffer The buffer to which the bytes will be added.
- * @param[in] uxOffset If uxOffset > 0, data will be written at an offset from uxHead
- *                      while uxHead will not be moved yet.
- * @param[in] pucData A pointer to the data to be added. If 'pucData' equals NULL,
- *                     the function is called to advance the 'Head' only.
+ * @param[in] uxOffset If uxOffset > 0, data will be written at an offset from
+ * uxHead while uxHead will not be moved yet.
+ * @param[in] pucData A pointer to the data to be added. If 'pucData' equals
+ * NULL, the function is called to advance the 'Head' only.
  * @param[in] uxByteCount The number of bytes to add.
  *
  * @return The number of bytes added to the buffer.
@@ -301,12 +302,16 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
         if( pucData != NULL )
         {
             /* Calculate the number of bytes that can be added in the first
-            * write - which may be less than the total number of bytes that need
-            * to be added if the buffer will wrap back to the beginning. */
-            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextHead, uxCount );
+             * write - which may be less than the total number of bytes that
+             * need to be added if the buffer will wrap back to the beginning.
+             */
+            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextHead,
+                                           uxCount );
 
             /* Write as many bytes as can be written in the first write. */
-            ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
+            ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ),
+                             pucData,
+                             uxFirst );
 
             /* If the number of bytes written was less than the number that
              * could be written in the first write... */
@@ -314,7 +319,9 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
             {
                 /* ...then write the remaining bytes to the start of the
                  * buffer. */
-                ( void ) memcpy( pxBuffer->ucArray, &( pucData[ uxFirst ] ), uxCount - uxFirst );
+                ( void ) memcpy( pxBuffer->ucArray,
+                                 &( pucData[ uxFirst ] ),
+                                 uxCount - uxFirst );
             }
         }
 
@@ -335,7 +342,9 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
                 pxBuffer->uxHead = uxNextHead;
             }
 
-            if( xStreamBufferLessThenEqual( pxBuffer, pxBuffer->uxFront, uxNextHead ) != pdFALSE )
+            if( xStreamBufferLessThenEqual( pxBuffer,
+                                            pxBuffer->uxFront,
+                                            uxNextHead ) != pdFALSE )
             {
                 /* Advance the front pointer */
                 pxBuffer->uxFront = uxNextHead;
@@ -352,11 +361,13 @@ size_t uxStreamBufferAdd( StreamBuffer_t * pxBuffer,
  * @brief Read bytes from stream buffer.
  *
  * @param[in] pxBuffer The buffer from which the bytes will be read.
- * @param[in] uxOffset can be used to read data located at a certain offset from 'lTail'.
- * @param[in,out] pucData If 'pucData' equals NULL, the function is called to advance 'lTail' only.
+ * @param[in] uxOffset can be used to read data located at a certain offset from
+ * 'lTail'.
+ * @param[in,out] pucData If 'pucData' equals NULL, the function is called to
+ * advance 'lTail' only.
  * @param[in] uxMaxCount The number of bytes to read.
- * @param[in] xPeek if 'xPeek' is pdTRUE, or if 'uxOffset' is non-zero, the 'lTail' pointer will
- *                   not be advanced.
+ * @param[in] xPeek if 'xPeek' is pdTRUE, or if 'uxOffset' is non-zero, the
+ * 'lTail' pointer will not be advanced.
  *
  * @return The count of the bytes read.
  */
@@ -400,20 +411,26 @@ size_t uxStreamBufferGet( StreamBuffer_t * pxBuffer,
         if( pucData != NULL )
         {
             /* Calculate the number of bytes that can be read - which may be
-             * less than the number wanted if the data wraps around to the start of
-             * the buffer. */
-            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextTail, uxCount );
+             * less than the number wanted if the data wraps around to the start
+             * of the buffer. */
+            uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextTail,
+                                           uxCount );
 
             /* Obtain the number of bytes it is possible to obtain in the first
              * read. */
-            ( void ) memcpy( pucData, &( pxBuffer->ucArray[ uxNextTail ] ), uxFirst );
+            ( void ) memcpy( pucData,
+                             &( pxBuffer->ucArray[ uxNextTail ] ),
+                             uxFirst );
 
             /* If the total number of wanted bytes is greater than the number
              * that could be read in the first read... */
             if( uxCount > uxFirst )
             {
-                /*...then read the remaining bytes from the start of the buffer. */
-                ( void ) memcpy( &( pucData[ uxFirst ] ), pxBuffer->ucArray, uxCount - uxFirst );
+                /*...then read the remaining bytes from the start of the buffer.
+                 */
+                ( void ) memcpy( &( pucData[ uxFirst ] ),
+                                 pxBuffer->ucArray,
+                                 uxCount - uxFirst );
             }
         }
 

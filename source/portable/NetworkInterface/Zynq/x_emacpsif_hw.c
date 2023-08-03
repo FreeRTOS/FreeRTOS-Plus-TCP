@@ -16,7 +16,6 @@
  *
  */
 
-
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -24,14 +23,14 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_Routing.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
@@ -48,15 +47,18 @@ void setup_isr( xemacpsif_s * xemacpsif )
     /*
      * Setup callbacks
      */
-    XEmacPs_SetHandler( &xemacpsif->emacps, XEMACPS_HANDLER_DMASEND,
+    XEmacPs_SetHandler( &xemacpsif->emacps,
+                        XEMACPS_HANDLER_DMASEND,
                         ( void * ) emacps_send_handler,
                         ( void * ) xemacpsif );
 
-    XEmacPs_SetHandler( &xemacpsif->emacps, XEMACPS_HANDLER_DMARECV,
+    XEmacPs_SetHandler( &xemacpsif->emacps,
+                        XEMACPS_HANDLER_DMARECV,
                         ( void * ) emacps_recv_handler,
                         ( void * ) xemacpsif );
 
-    XEmacPs_SetHandler( &xemacpsif->emacps, XEMACPS_HANDLER_ERROR,
+    XEmacPs_SetHandler( &xemacpsif->emacps,
+                        XEMACPS_HANDLER_ERROR,
                         ( void * ) emacps_error_handler,
                         ( void * ) xemacpsif );
 }
@@ -66,7 +68,6 @@ void start_emacps( xemacpsif_s * xemacps )
     /* start the temac */
     XEmacPs_Start( &xemacps->emacps );
 }
-
 
 volatile int error_msg_count = 0;
 volatile const char * last_err_msg = "";
@@ -81,9 +82,7 @@ struct xERROR_MSG
 static struct xERROR_MSG xErrorList[ 8 ];
 static BaseType_t xErrorHead, xErrorTail;
 
-void emacps_error_handler( void * arg,
-                           u8 Direction,
-                           u32 ErrorWord )
+void emacps_error_handler( void * arg, u8 Direction, u32 ErrorWord )
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xemacpsif_s * xemacpsif;
@@ -93,9 +92,11 @@ void emacps_error_handler( void * arg,
     xemacpsif = ( xemacpsif_s * ) ( arg );
     xEMACIndex = xemacpsif->emacps.Config.DeviceId;
 
-    if( ( Direction != XEMACPS_SEND ) || ( ErrorWord != XEMACPS_TXSR_USEDREAD_MASK ) )
+    if( ( Direction != XEMACPS_SEND ) ||
+        ( ErrorWord != XEMACPS_TXSR_USEDREAD_MASK ) )
     {
-        if( ++xNextHead == ( sizeof( xErrorList ) / sizeof( xErrorList[ 0 ] ) ) )
+        if( ++xNextHead ==
+            ( sizeof( xErrorList ) / sizeof( xErrorList[ 0 ] ) ) )
         {
             xNextHead = 0;
         }
@@ -114,16 +115,15 @@ void emacps_error_handler( void * arg,
 
         if( xEMACTaskHandles[ xEMACIndex ] != NULL )
         {
-            vTaskNotifyGiveFromISR( xEMACTaskHandles[ xEMACIndex ], &xHigherPriorityTaskWoken );
+            vTaskNotifyGiveFromISR( xEMACTaskHandles[ xEMACIndex ],
+                                    &xHigherPriorityTaskWoken );
         }
     }
 
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
-static void emacps_handle_error( void * arg,
-                                 u8 Direction,
-                                 u32 ErrorWord );
+static void emacps_handle_error( void * arg, u8 Direction, u32 ErrorWord );
 
 int emacps_check_errors( xemacpsif_s * xemacps )
 {
@@ -138,18 +138,15 @@ int emacps_check_errors( xemacpsif_s * xemacps )
     else
     {
         xResult = 1;
-        emacps_handle_error(
-            xErrorList[ xErrorTail ].arg,
-            xErrorList[ xErrorTail ].Direction,
-            xErrorList[ xErrorTail ].ErrorWord );
+        emacps_handle_error( xErrorList[ xErrorTail ].arg,
+                             xErrorList[ xErrorTail ].Direction,
+                             xErrorList[ xErrorTail ].ErrorWord );
     }
 
     return xResult;
 }
 
-static void emacps_handle_error( void * arg,
-                                 u8 Direction,
-                                 u32 ErrorWord )
+static void emacps_handle_error( void * arg, u8 Direction, u32 ErrorWord )
 {
     xemacpsif_s * xemacpsif;
     XEmacPs * xemacps;
@@ -242,14 +239,16 @@ void HandleTxErrors( xemacpsif_s * xemacpsif )
                                       XEMACPS_NWCTRL_OFFSET );
         netctrlreg = netctrlreg & ( ~XEMACPS_NWCTRL_TXEN_MASK );
         XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress,
-                          XEMACPS_NWCTRL_OFFSET, netctrlreg );
+                          XEMACPS_NWCTRL_OFFSET,
+                          netctrlreg );
 
         clean_dma_txdescs( xemacpsif );
         netctrlreg = XEmacPs_ReadReg( xemacpsif->emacps.Config.BaseAddress,
                                       XEMACPS_NWCTRL_OFFSET );
         netctrlreg = netctrlreg | ( XEMACPS_NWCTRL_TXEN_MASK );
         XEmacPs_WriteReg( xemacpsif->emacps.Config.BaseAddress,
-                          XEMACPS_NWCTRL_OFFSET, netctrlreg );
+                          XEMACPS_NWCTRL_OFFSET,
+                          netctrlreg );
     }
     /*taskEXIT_CRITICAL( ); */
 }

@@ -4,42 +4,42 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_semphr.h"
+#include "mock_task.h"
 
 #include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_UDP_IP.h"
 
 #include "FreeRTOS_Stream_Buffer.h"
@@ -48,13 +48,10 @@
 
 #include "FreeRTOSIPConfig.h"
 
-
 /*
  * @brief Function to calculate smaller of the two numbers given.
  */
-static size_t FreeRTOS_min_stub( size_t a,
-                                 size_t b,
-                                 int callback_count )
+static size_t FreeRTOS_min_stub( size_t a, size_t b, int callback_count )
 {
     /* Avoid compiler warnings about unused variable. */
     ( void ) callback_count;
@@ -327,8 +324,8 @@ void test_vStreamBufferMoveMid_CountEQDistance_RollOver( void )
 
     vStreamBufferMoveMid( &xLocalBuffer, uxCount );
 
-    /* Since we wanted to move mid equal to the distance, and the head has rolled over,
-     * mid will also roll over. */
+    /* Since we wanted to move mid equal to the distance, and the head has
+     * rolled over, mid will also roll over. */
     TEST_ASSERT_EQUAL( xLocalBuffer.uxHead, xLocalBuffer.uxMid );
 }
 
@@ -450,7 +447,8 @@ void test_uxStreamBufferGetPtr( void )
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
     uxResult = uxStreamBufferGetPtr( &xLocalBuffer, &pucData );
     TEST_ASSERT_EQUAL( 5, uxResult );
-    TEST_ASSERT_EQUAL_PTR( xLocalBuffer.ucArray + xLocalBuffer.uxTail, pucData );
+    TEST_ASSERT_EQUAL_PTR( xLocalBuffer.ucArray + xLocalBuffer.uxTail,
+                           pucData );
 }
 
 /*
@@ -460,7 +458,9 @@ void test_uxStreamBufferAdd_EverythingResetToZero( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = 0;
@@ -470,7 +470,10 @@ void test_uxStreamBufferAdd_EverythingResetToZero( void )
     memset( pucData, 0xAA, 512 );
 
     /* Clear the Buffer. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     pxLocalBuffer->LENGTH = usBufferSize;
     pxLocalBuffer->uxHead = 0;
@@ -480,7 +483,10 @@ void test_uxStreamBufferAdd_EverythingResetToZero( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     TEST_ASSERT_EQUAL( 0, uxReturn );
     /* Check that the data is still untouched i.e. 0. */
@@ -498,7 +504,9 @@ void test_uxStreamBufferAdd_BufferFullZeroOffset( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = 0;
@@ -508,7 +516,10 @@ void test_uxStreamBufferAdd_BufferFullZeroOffset( void )
     memset( pucData, 0xAA, 512 );
 
     /* Clear the Buffer. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     pxLocalBuffer->LENGTH = usBufferSize;
     pxLocalBuffer->uxHead = 100;
@@ -518,7 +529,10 @@ void test_uxStreamBufferAdd_BufferFullZeroOffset( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     TEST_ASSERT_EQUAL( 0, uxReturn );
     /* Check that the data is still untouched i.e. 0. */
@@ -536,7 +550,9 @@ void test_uxStreamBufferAdd_BufferFullPositiveOffset( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 10;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = 0;
@@ -546,7 +562,10 @@ void test_uxStreamBufferAdd_BufferFullPositiveOffset( void )
     memset( pucData, 0xAA, 512 );
 
     /* Clear the Buffer. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     pxLocalBuffer->LENGTH = usBufferSize;
     pxLocalBuffer->uxHead = 100;
@@ -556,7 +575,10 @@ void test_uxStreamBufferAdd_BufferFullPositiveOffset( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     TEST_ASSERT_EQUAL( 0, uxReturn );
     /* Check that the data is still untouched i.e. 0. */
@@ -570,11 +592,14 @@ void test_uxStreamBufferAdd_BufferFullPositiveOffset( void )
  * @brief Test adding to the buffer when it has more space than the data.
  *        And it has zero offset where data write causes head to rollover.
  */
-void test_uxStreamBufferAdd_BufferHasMoreSpaceThanData_ZeroOffset_DataWriteCausesRollover_FrontAheadOfHead( void )
+void test_uxStreamBufferAdd_BufferHasMoreSpaceThanData_ZeroOffset_DataWriteCausesRollover_FrontAheadOfHead(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = sizeof( pucData );
@@ -583,7 +608,10 @@ void test_uxStreamBufferAdd_BufferHasMoreSpaceThanData_ZeroOffset_DataWriteCause
     const size_t uxBytesWrittenInFirstGo = 24;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -605,19 +633,27 @@ void test_uxStreamBufferAdd_BufferHasMoreSpaceThanData_ZeroOffset_DataWriteCause
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     /* Only these many bytes should be written. */
     TEST_ASSERT_EQUAL( uxBytesToBeWritten, uxReturn );
 
     /* Assert that data was indeed written. Here in 2 steps. */
-    TEST_ASSERT_EQUAL_MEMORY( pucData, pxLocalBuffer->ucArray + 1000, uxBytesWrittenInFirstGo );
+    TEST_ASSERT_EQUAL_MEMORY( pucData,
+                              pxLocalBuffer->ucArray + 1000,
+                              uxBytesWrittenInFirstGo );
     /* Rollover! */
-    TEST_ASSERT_EQUAL_MEMORY( pucData, pxLocalBuffer->ucArray + 0, uxBytesToBeWritten - uxBytesWrittenInFirstGo );
+    TEST_ASSERT_EQUAL_MEMORY( pucData,
+                              pxLocalBuffer->ucArray + 0,
+                              uxBytesToBeWritten - uxBytesWrittenInFirstGo );
 
     /* Make sure that the rest of buffer is untouched. i.e. zero.*/
     TEST_ASSERT_EACH_EQUAL_UINT8( 0,
-                                  pxLocalBuffer->ucArray + uxBytesToBeWritten - uxBytesWrittenInFirstGo,
+                                  pxLocalBuffer->ucArray + uxBytesToBeWritten -
+                                      uxBytesWrittenInFirstGo,
                                   usBufferSize - uxBytesToBeWritten );
 
     /* Make sure that the head is moved since data was written. */
@@ -635,14 +671,19 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = sizeof( pucData );
     size_t uxReturn;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -660,13 +701,18 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset( void )
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     /* Only 500 bytes should be written. */
     TEST_ASSERT_EQUAL( 500, uxReturn );
 
     /* Assert that data was indeed written. */
-    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray + uxOffset, pucData, 500 - uxOffset );
+    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray + uxOffset,
+                              pucData,
+                              500 - uxOffset );
 
     /* Free the allocated data. */
     free( pxLocalBuffer );
@@ -680,7 +726,9 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 10;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = sizeof( pucData );
@@ -688,7 +736,10 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
     size_t uxBytesToBeWritten = 500;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -706,18 +757,26 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     /* Only these many bytes should be written. */
     TEST_ASSERT_EQUAL( uxBytesToBeWritten - uxOffset, uxReturn );
 
     /* Assert that data was indeed written. */
-    TEST_ASSERT_EQUAL_MEMORY( pucData, pxLocalBuffer->ucArray + uxOffset, uxBytesToBeWritten - uxOffset );
+    TEST_ASSERT_EQUAL_MEMORY( pucData,
+                              pxLocalBuffer->ucArray + uxOffset,
+                              uxBytesToBeWritten - uxOffset );
 
     /* Make sure that rest of the buffer is untouched. i.e. zero.*/
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, pxLocalBuffer->ucArray + uxBytesToBeWritten, usBufferSize - uxBytesToBeWritten );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0,
+                                  pxLocalBuffer->ucArray + uxBytesToBeWritten,
+                                  usBufferSize - uxBytesToBeWritten );
 
-    /* Make sure that the head is not moved since data was written at an offset. */
+    /* Make sure that the head is not moved since data was written at an offset.
+     */
     TEST_ASSERT_EQUAL( 0, pxLocalBuffer->uxHead );
 
     /* Free the allocated data. */
@@ -728,11 +787,14 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffset( void )
  * @brief Test adding to the buffer when it has less space than the data.
  *        And it has non-zero offset which causes rollover.
  */
-void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollover( void )
+void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollover(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 100;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = sizeof( pucData );
@@ -740,7 +802,10 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollov
     size_t uxBytesToBeWritten = 500;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -761,18 +826,26 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollov
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     /* Only these many bytes should be written. */
     TEST_ASSERT_EQUAL( uxBytesToBeWritten - uxOffset, uxReturn );
 
     /* Assert that data was indeed written. */
-    TEST_ASSERT_EQUAL_MEMORY( pucData, pxLocalBuffer->ucArray + 76, uxBytesToBeWritten - uxOffset );
+    TEST_ASSERT_EQUAL_MEMORY( pucData,
+                              pxLocalBuffer->ucArray + 76,
+                              uxBytesToBeWritten - uxOffset );
 
     /* Make sure that the rest of buffer is untouched. i.e. zero.*/
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, pxLocalBuffer->ucArray + uxBytesToBeWritten, usBufferSize - uxBytesToBeWritten );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0,
+                                  pxLocalBuffer->ucArray + uxBytesToBeWritten,
+                                  usBufferSize - uxBytesToBeWritten );
 
-    /* Make sure that the head is not moved since data was written at an offset. */
+    /* Make sure that the head is not moved since data was written at an offset.
+     */
     TEST_ASSERT_EQUAL( 1000, pxLocalBuffer->uxHead );
 
     /* Free the allocated data. */
@@ -783,11 +856,14 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_NonZeroOffsetCausesRollov
  * @brief Test adding to the buffer when it has less space than the data.
  *        And it has zero offset where data write causes head to rollover.
  */
-void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover( void )
+void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = sizeof( pucData );
@@ -796,7 +872,10 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCause
     const size_t uxBytesWrittenInFirstGo = 24;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -817,19 +896,27 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCause
     vTaskSuspendAll_Expect();
     xTaskResumeAll_ExpectAndReturn( pdTRUE );
 
-    uxReturn = uxStreamBufferAdd( pxLocalBuffer, uxOffset, pucData, uxByteCount );
+    uxReturn = uxStreamBufferAdd( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxByteCount );
 
     /* Only these many bytes should be written. */
     TEST_ASSERT_EQUAL( uxBytesToBeWritten - uxOffset, uxReturn );
 
     /* Assert that data was indeed written. Here in 2 steps. */
-    TEST_ASSERT_EQUAL_MEMORY( pucData, pxLocalBuffer->ucArray + 1000, uxBytesWrittenInFirstGo );
+    TEST_ASSERT_EQUAL_MEMORY( pucData,
+                              pxLocalBuffer->ucArray + 1000,
+                              uxBytesWrittenInFirstGo );
     /* Rollover! */
-    TEST_ASSERT_EQUAL_MEMORY( pucData, pxLocalBuffer->ucArray + 0, uxBytesToBeWritten - uxBytesWrittenInFirstGo );
+    TEST_ASSERT_EQUAL_MEMORY( pucData,
+                              pxLocalBuffer->ucArray + 0,
+                              uxBytesToBeWritten - uxBytesWrittenInFirstGo );
 
     /* Make sure that the rest of buffer is untouched. i.e. zero.*/
     TEST_ASSERT_EACH_EQUAL_UINT8( 0,
-                                  pxLocalBuffer->ucArray + uxBytesToBeWritten - uxBytesWrittenInFirstGo,
+                                  pxLocalBuffer->ucArray + uxBytesToBeWritten -
+                                      uxBytesWrittenInFirstGo,
                                   usBufferSize - uxBytesToBeWritten );
 
     /* Make sure that the head is moved since data was written. */
@@ -843,11 +930,14 @@ void test_uxStreamBufferAdd_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCause
  * @brief Test adding to the buffer when NULL pointer is passed with
  *        zero offset and data write causes a head pointer roll over.
  */
-void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover( void )
+void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = sizeof( pucData );
@@ -856,7 +946,10 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
     size_t uxNewHeadLocationAfterRollover = uxBytesToBeWritten - 24;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -899,11 +992,14 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
  *        zero offset and when the data write causes head roll over
  *        with front pointer greater than the head pointer.
  */
-void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover_Front( void )
+void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataWriteCausesRollover_Front(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxByteCount = sizeof( pucData );
@@ -912,7 +1008,10 @@ void test_uxStreamBufferAdd_NULLData_BufferHasLessSpaceThanData_ZeroOffset_DataW
     size_t uxNewHeadLocationAfterRollover = uxBytesToBeWritten - 24;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -958,7 +1057,9 @@ void test_uxStreamBufferGet_ResetEverything( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxMaxCount = 0;
@@ -966,7 +1067,10 @@ void test_uxStreamBufferGet_ResetEverything( void )
     BaseType_t xPeek = 0;
 
     /* Clear everything. */
-    memset( pxLocalBuffer, 0, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -975,7 +1079,11 @@ void test_uxStreamBufferGet_ResetEverything( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
+    uxReturn = uxStreamBufferGet( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxMaxCount,
+                                  xPeek );
 
     /* Nothing should be written. */
     TEST_ASSERT_EQUAL( 0, uxReturn );
@@ -995,7 +1103,9 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxMaxCount = 500;
@@ -1004,7 +1114,10 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
     BaseType_t xPeek = 0;
 
     /* Clear everything and fill it with 0x11. */
-    memset( pxLocalBuffer, 0x11, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0x11,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -1020,7 +1133,11 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
+    uxReturn = uxStreamBufferGet( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxMaxCount,
+                                  xPeek );
 
     /* 500 bytes should be written. */
     TEST_ASSERT_EQUAL( uxBufferSpace, uxReturn );
@@ -1028,7 +1145,9 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_NoOffset( void )
     TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxMaxCount );
 
     /* Make sure that the rest of buffer is untouched. i.e. zero.*/
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB, pucData + uxMaxCount, sizeof( pucData ) - uxMaxCount );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAB,
+                                  pucData + uxMaxCount,
+                                  sizeof( pucData ) - uxMaxCount );
 
     /* Free the allocated data. */
     free( pxLocalBuffer );
@@ -1042,7 +1161,9 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 50;
     uint8_t pucData[ 512 ];
     size_t uxMaxCount = 500;
@@ -1051,7 +1172,10 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset( void )
     BaseType_t xPeek = 0;
 
     /* Clear everything and fill it with 0x11. */
-    memset( pxLocalBuffer, 0x11, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0x11,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -1067,14 +1191,20 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
+    uxReturn = uxStreamBufferGet( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxMaxCount,
+                                  xPeek );
 
     /* 500 bytes should be written. */
     TEST_ASSERT_EQUAL( uxBufferSpace - uxOffset, uxReturn );
     /* Since we are reading at an offset, the tail should not be moved. */
     TEST_ASSERT_EQUAL( 0, pxLocalBuffer->uxTail );
     /* See if the data is copied. */
-    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
+    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray,
+                              pucData,
+                              uxBufferSpace - uxOffset );
 
     /* Free the allocated data. */
     free( pxLocalBuffer );
@@ -1085,11 +1215,14 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset( void )
  *        bytes and we are reading with positive offset and the tail is
  *        about to rollover the stream buffer.
  */
-void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAboutToRollOver( void )
+void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAboutToRollOver(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 50;
     uint8_t pucData[ 512 ];
     size_t uxMaxCount = 500;
@@ -1098,7 +1231,10 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAbout
     BaseType_t xPeek = 0;
 
     /* Clear everything and fill it with 0x11. */
-    memset( pxLocalBuffer, 0x11, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0x11,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -1116,14 +1252,20 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAbout
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
+    uxReturn = uxStreamBufferGet( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxMaxCount,
+                                  xPeek );
 
     /* 500 bytes should be written. */
     TEST_ASSERT_EQUAL( uxBufferSpace - uxOffset, uxReturn );
     /* Since we are reading at an offset, the tail should not be moved. */
     TEST_ASSERT_EQUAL( 1000, pxLocalBuffer->uxTail );
     /* See if the data is copied. */
-    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
+    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray,
+                              pucData,
+                              uxBufferSpace - uxOffset );
 
     /* Free the allocated data. */
     free( pxLocalBuffer );
@@ -1134,11 +1276,14 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_PositiveOffset_TailAbout
  *        bytes and we are reading without offset and the tail is about
  *        to rollover.
  */
-void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRollOver( void )
+void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRollOver(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxMaxCount = 500;
@@ -1147,7 +1292,10 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
     BaseType_t xPeek = 0;
 
     /* Clear everything and fill it with 0x11. */
-    memset( pxLocalBuffer, 0x11, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0x11,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -1165,14 +1313,20 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
+    uxReturn = uxStreamBufferGet( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxMaxCount,
+                                  xPeek );
 
     /* 500 bytes should be written. */
     TEST_ASSERT_EQUAL( uxBufferSpace - uxOffset, uxReturn );
     /* the tail should be moved. */
     TEST_ASSERT_EQUAL( uxMaxCount - 24, pxLocalBuffer->uxTail );
     /* See if the data is copied. */
-    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
+    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray,
+                              pucData,
+                              uxBufferSpace - uxOffset );
 
     /* Free the allocated data. */
     free( pxLocalBuffer );
@@ -1183,11 +1337,14 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
  *        bytes and we are reading without any offset and the tail is about
  *        to roll over. But, as a twist, we are just peeking into the buffer.
  */
-void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRollOver_ButJustPeeking( void )
+void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRollOver_ButJustPeeking(
+    void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxMaxCount = 500;
@@ -1197,7 +1354,10 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
     BaseType_t xPeek = 1;
 
     /* Clear everything and fill it with 0x11. */
-    memset( pxLocalBuffer, 0x11, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0x11,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -1215,14 +1375,20 @@ void test_uxStreamBufferGet_BytesRequiredEQBytesPresent_ZeroOffset_TailAboutToRo
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, pucData, uxMaxCount, xPeek );
+    uxReturn = uxStreamBufferGet( pxLocalBuffer,
+                                  uxOffset,
+                                  pucData,
+                                  uxMaxCount,
+                                  xPeek );
 
     /* 500 bytes should be written. */
     TEST_ASSERT_EQUAL( uxBufferSpace - uxOffset, uxReturn );
     /* the tail should not be moved. */
     TEST_ASSERT_EQUAL( 1000, pxLocalBuffer->uxTail );
     /* See if the data is copied. */
-    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray, pucData, uxBufferSpace - uxOffset );
+    TEST_ASSERT_EQUAL_MEMORY( pxLocalBuffer->ucArray,
+                              pucData,
+                              uxBufferSpace - uxOffset );
 
     /* Free the allocated data. */
     free( pxLocalBuffer );
@@ -1236,7 +1402,9 @@ void test_uxStreamBufferGet_NULLPointer( void )
 {
     const uint16_t usBufferSize = 1024;
     /* Now we need to get a buffer which can store up to 1024 bytes. */
-    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    StreamBuffer_t * pxLocalBuffer = malloc( sizeof( StreamBuffer_t ) -
+                                             sizeof( pxLocalBuffer->ucArray ) +
+                                             usBufferSize );
     size_t uxOffset = 0;
     uint8_t pucData[ 512 ];
     size_t uxMaxCount = 500;
@@ -1245,7 +1413,10 @@ void test_uxStreamBufferGet_NULLPointer( void )
     BaseType_t xPeek = 0;
 
     /* Clear everything and fill it with 0x11. */
-    memset( pxLocalBuffer, 0x11, sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) + usBufferSize );
+    memset( pxLocalBuffer,
+            0x11,
+            sizeof( StreamBuffer_t ) - sizeof( pxLocalBuffer->ucArray ) +
+                usBufferSize );
 
     /* Fill the Data (0xAB) */
     memset( pucData, 0xAB, sizeof( pucData ) );
@@ -1263,7 +1434,11 @@ void test_uxStreamBufferGet_NULLPointer( void )
 
     FreeRTOS_min_size_t_Stub( FreeRTOS_min_stub );
 
-    uxReturn = uxStreamBufferGet( pxLocalBuffer, uxOffset, NULL, uxMaxCount, xPeek );
+    uxReturn = uxStreamBufferGet( pxLocalBuffer,
+                                  uxOffset,
+                                  NULL,
+                                  uxMaxCount,
+                                  xPeek );
 
     /* No bytes should be read. But still the tail moves forward. */
     TEST_ASSERT_EQUAL( 500, uxReturn );

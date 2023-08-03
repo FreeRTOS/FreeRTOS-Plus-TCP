@@ -28,20 +28,21 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "queue.h"
 #include "list.h"
+#include "queue.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
 #include "cbmc.h"
 
-size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                                                                const char * pcHostName,
-                                                                TickType_t uxIdentifier,
-                                                                UBaseType_t uxHostType );
+size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage(
+    uint8_t * pucUDPPayloadBuffer,
+    const char * pcHostName,
+    TickType_t uxIdentifier,
+    UBaseType_t uxHostType );
 
 void harness()
 {
@@ -64,23 +65,26 @@ void harness()
 
     /* prvCreateDNSMessage() is expected to be called with a ethernet buffer of
      * the following size */
-    uxExpectedPayloadLength = sizeof( DNSMessage_t ) +
-                              strlen( pcHostName ) +
-                              sizeof( uint16_t ) +
-                              sizeof( uint16_t ) + 2U;
+    uxExpectedPayloadLength = sizeof( DNSMessage_t ) + strlen( pcHostName ) +
+                              sizeof( uint16_t ) + sizeof( uint16_t ) + 2U;
 
     /* Add header size */
     if( nondet_bool() )
     {
-        uxExpectedPayloadLength += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
+        uxExpectedPayloadLength += ipSIZE_OF_ETH_HEADER +
+                                   ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER;
     }
     else
     {
-        uxExpectedPayloadLength += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
+        uxExpectedPayloadLength += ipSIZE_OF_ETH_HEADER +
+                                   ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_UDP_HEADER;
     }
 
     /* pucUDPPayloadBuffer is tested to be valid prior */
     uint8_t * pucUDPPayloadBuffer = malloc( uxExpectedPayloadLength );
 
-    __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( pucUDPPayloadBuffer, pcHostName, uxIdentifier, uxHostType );
+    __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( pucUDPPayloadBuffer,
+                                                             pcHostName,
+                                                             uxIdentifier,
+                                                             uxHostType );
 }

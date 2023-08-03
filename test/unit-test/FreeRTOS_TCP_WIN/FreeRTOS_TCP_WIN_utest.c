@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -28,11 +29,10 @@
 #include "unity.h"
 
 /* Include standard libraries */
-#include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <string.h>
 
 #include "FreeRTOS.h"
 
@@ -43,12 +43,11 @@
 
 #include "FreeRTOS_TCP_WIN.h"
 
-#include "mock_list.h"
-#include "mock_FreeRTOS_TCP_WIN_list_macros.h"
-#include "mock_portable.h"
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_TCP_WIN_list_macros.h"
+#include "mock_list.h"
+#include "mock_portable.h"
 #include "mock_task.h"
-
 
 static void initializeList( List_t * const pxList );
 
@@ -72,10 +71,12 @@ void tearDown( void )
     xTCPSegments = NULL;
 }
 
-
 static void initializeList( List_t * const pxList )
 {
-    pxList->pxIndex = ( ListItem_t * ) &( pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+    pxList->pxIndex = ( ListItem_t * ) &(
+        pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is
+                               used as the list end to save RAM.  This is
+                               checked and valid. */
 
     /* The list end value is the highest possible value in the list to
      * ensure it remains at the end of the list. */
@@ -83,8 +84,14 @@ static void initializeList( List_t * const pxList )
 
     /* The list end next and previous pointers point to itself so we know
      * when the list is empty. */
-    pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );     /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
-    pxList->xListEnd.pxPrevious = ( ListItem_t * ) &( pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is used as the list end to save RAM.  This is checked and valid. */
+    pxList->xListEnd.pxNext = ( ListItem_t * ) &(
+        pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is
+                               used as the list end to save RAM.  This is
+                               checked and valid. */
+    pxList->xListEnd.pxPrevious = ( ListItem_t * ) &(
+        pxList->xListEnd ); /*lint !e826 !e740 !e9087 The mini list structure is
+                               used as the list end to save RAM.  This is
+                               checked and valid. */
 
     pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
 }
@@ -248,7 +255,8 @@ void test_vTCPWindowCreate_success( void )
     uint32_t ulSequenceNumber = 0;
     uint32_t ulMSS = 0;
 
-    void * mlc = malloc( ipconfigTCP_WIN_SEG_COUNT * sizeof( xTCPSegments[ 0 ] ) );
+    void * mlc = malloc( ipconfigTCP_WIN_SEG_COUNT *
+                         sizeof( xTCPSegments[ 0 ] ) );
 
     /* ->prvCreateSectors */
     vListInitialise_ExpectAnyArgs();
@@ -265,7 +273,6 @@ void test_vTCPWindowCreate_success( void )
     vListInitialise_ExpectAnyArgs();
     vListInitialise_ExpectAnyArgs();
     vListInitialise_ExpectAnyArgs();
-
 
     vTCPWindowCreate( &xWindow,
                       ulRxWindowLength,
@@ -294,7 +301,6 @@ void test_vTCPWindowCreate_tcp_segment_null( void )
     vListInitialise_ExpectAnyArgs();
     vListInitialise_ExpectAnyArgs();
     vListInitialise_ExpectAnyArgs();
-
 
     vTCPWindowCreate( &xWindow,
                       ulRxWindowLength,
@@ -379,7 +385,6 @@ void test_vTCPWindowInit_MSS_not_zero_mss_zero( void )
     TEST_ASSERT_EQUAL( ulMSS, xWindow.usMSS );
 }
 
-
 void test_vTCPSegmentCleanup_segment_null( void )
 {
     xTCPSegments = NULL;
@@ -435,10 +440,12 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX( void 
     /* ->prvTCPWindowRX_ExpectedRX */
     listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( 4 );
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -452,7 +459,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX( void 
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -466,16 +474,17 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( voi
     xWindow.rx.ulCurrentSequenceNumber = ulSequenceNumber;
     xSegment.ulSequenceNumber = 23;
 
-
     /* ->prvTCPWindowRX_ExpectedRX */
     listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( 4 );
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -489,7 +498,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_2( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -508,14 +518,17 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( voi
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -529,7 +542,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_3( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -548,13 +562,16 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( voi
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -568,7 +585,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_4( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -587,10 +605,12 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( voi
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -604,7 +624,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_5( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -624,13 +645,16 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( voi
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* ->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -644,7 +668,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_6( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -664,13 +689,16 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( voi
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* ->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -684,7 +712,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_7( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -707,13 +736,16 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( voi
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* ->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -727,7 +759,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_8( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -755,15 +788,18 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( voi
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xBest );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRxFind */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment2 );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -777,7 +813,8 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_9( voi
     TEST_ASSERT_EQUAL( 0, ulSkipCount );
 }
 
-void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( void )
+void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10(
+    void )
 {
     int32_t lReturn;
     TCPWindow_t xWindow = { 0 };
@@ -797,13 +834,16 @@ void test_lTCPWindowRxCheck_sequence_nums_equal_prvTCPWindowRX_ExpectedRX_10( vo
     /* -->xTCPWindowRXConfirm */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* ->prvTCPWindowRX_ExpectedRX */
     /* -->xTCPWindowRXConfirm */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRX_ExpectedRX */
     /* ->xTCPWindowRxFind */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
     lReturn = lTCPWindowRxCheck( &xWindow,
                                  ulSequenceNumber,
@@ -900,9 +940,11 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX( void )
     /* ->xTCPWindowRxFind */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* -> xTCPWindowNew */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -937,9 +979,11 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_2( void 
     /* ->xTCPWindowRxFind */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
 
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* -> xTCPWindowNew */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
     listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( &xSegment );
@@ -980,7 +1024,8 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_3( void 
     /* -->xTCPWindowRxFind */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* <-prvTCPWindowRx_UnexpectedRX */
     /* -->xTCPWindowRxFind */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xIterator );
@@ -1054,10 +1099,7 @@ void test_lTCPWindowTxAdd_nothing_to_do( void )
 
     xTCPWindowLoggingLevel = 3;
 
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 0, lDone );
 
@@ -1075,11 +1117,7 @@ void test_lTCPWindowTxAdd_null_txSegment( void )
 
     xWindow.pxHeadSegment = NULL;
 
-
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 0, lDone );
 }
@@ -1098,11 +1136,7 @@ void test_lTCPWindowTxAdd_true_outstanding_bits( void )
     xWindow.pxHeadSegment->lDataLength = xWindow.pxHeadSegment->lMaxLength - 3;
     xWindow.pxHeadSegment->u.bits.bOutstanding = pdTRUE_UNSIGNED;
 
-
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 0, lDone );
     free( xWindow.pxHeadSegment );
@@ -1122,11 +1156,7 @@ void test_lTCPWindowTxAdd_data_length_zero( void )
     xWindow.pxHeadSegment->lDataLength = 0;
     xWindow.pxHeadSegment->u.bits.bOutstanding = pdFALSE_UNSIGNED;
 
-
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 0, lDone );
     free( xWindow.pxHeadSegment );
@@ -1150,10 +1180,7 @@ void test_lTCPWindowTxAdd_bytes_left_gt_zero( void )
     xTCPWindowLoggingLevel = 2;
 
     FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 20 );
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 20, lDone );
     TEST_ASSERT_NOT_NULL( xWindow.pxHeadSegment );
@@ -1180,12 +1207,8 @@ void test_lTCPWindowTxAdd_len_gt_max_len( void )
     xWindow.pxHeadSegment->lDataLength = 200;
     xWindow.pxHeadSegment->u.bits.bOutstanding = pdFALSE_UNSIGNED;
 
-
     FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 200 );
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 200, lDone );
     TEST_ASSERT_NULL( xWindow.pxHeadSegment );
@@ -1207,12 +1230,8 @@ void test_lTCPWindowTxAdd_lBytsLeft_gt_zero_pxSegment_NULL( void )
     xWindow.pxHeadSegment->lDataLength = 200;
     xWindow.pxHeadSegment->u.bits.bOutstanding = pdTRUE_UNSIGNED;
 
-
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 0, lDone );
     TEST_ASSERT_NOT_NULL( xWindow.pxHeadSegment );
@@ -1250,15 +1269,13 @@ void test_lTCPWindowTxAdd_lBytsLeft_gt_zero_data_length_gt_maxlen( void )
     /* -->vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     /* ->xTCPWindowNew */
-    listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( ipconfigTCP_WIN_SEG_COUNT - 1 );
+    listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( ipconfigTCP_WIN_SEG_COUNT -
+                                                    1 );
 
     /* back to API */
     FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 25 );
 
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 25, lDone );
     TEST_ASSERT_NULL( xWindow.pxHeadSegment );
@@ -1297,21 +1314,18 @@ void test_lTCPWindowTxAdd_lBytesLeft_gt_zero_data_length_lt_maxlen( void )
     /* --> vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 3000 );
     /* -> xTCPWindowNew */
-    listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( ipconfigTCP_WIN_SEG_COUNT - 1 );
+    listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( ipconfigTCP_WIN_SEG_COUNT -
+                                                    1 );
 
     /* back to API */
     FreeRTOS_min_int32_ExpectAnyArgsAndReturn( 23 );
 
-    lDone = lTCPWindowTxAdd( &xWindow,
-                             ulLength,
-                             lPosition,
-                             lMax );
+    lDone = lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax );
 
     TEST_ASSERT_EQUAL( 23, lDone );
     TEST_ASSERT_NOT_NULL( xWindow.pxHeadSegment );
     free( xWindow.pxHeadSegment );
 }
-
 
 void test_lTCPWindowTxAdd_assert_null( void )
 {
@@ -1325,22 +1339,14 @@ void test_lTCPWindowTxAdd_assert_null( void )
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
     listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( NULL );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( xWindow.pxHeadSegment );
-    catch_assert( lTCPWindowTxAdd( &xWindow,
-                                   ulLength,
-                                   lPosition,
-                                   lMax ) );
+    catch_assert( lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax ) );
 
     /* -> xTCPWindowTxNew */ /* xTCPWindowNew */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
     listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( NULL );
-    catch_assert( lTCPWindowTxAdd( &xWindow,
-                                   ulLength,
-                                   lPosition,
-                                   lMax ) );
+    catch_assert( lTCPWindowTxAdd( &xWindow, ulLength, lPosition, lMax ) );
 }
-
-
 
 void test_xTCPWindowTxDone( void )
 {
@@ -1568,7 +1574,6 @@ void test_xTCPWindowTxHasData_SendFullSize( void )
     TEST_ASSERT_TRUE( xReturn );
 }
 
-
 void test_ulTCPWindowTxGet_config_assert( void )
 {
     uint32_t ulReturn;
@@ -1582,7 +1587,8 @@ void test_ulTCPWindowTxGet_config_assert( void )
 
     xTCPWindowLoggingLevel = 2;
     xWindow.tx.ulHighestSequenceNumber = 45;
-    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber + 3U;
+    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber +
+                                         3U;
     mockSegment.lDataLength = 360;
     mockSegment.lMaxLength = 300;
     xWindow.pxHeadSegment = &mockSegment2;
@@ -1622,9 +1628,7 @@ void test_ulTCPWindowTxGet_config_assert( void )
     /* --> xTCPWindowPeekHead */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
 
-    catch_assert( ulTCPWindowTxGet( &xWindow,
-                                    ulWindowSize,
-                                    &lPosition ) );
+    catch_assert( ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition ) );
 
     xTCPWindowLoggingLevel = xBackup;
 }
@@ -1646,9 +1650,7 @@ void test_ulTCPWindowTxGet_empty_segment_list( void )
     /* --> xTCPWindowPeekHead */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
@@ -1662,7 +1664,8 @@ void test_ulTCPWindowTxGet_empty_wait_queue( void )
     ListItem_t mockListItem;
 
     xWindow.tx.ulHighestSequenceNumber = 45;
-    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber + 3U;
+    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber +
+                                         3U;
     mockSegment.lDataLength = 360;
     xWindow.pxHeadSegment = &mockSegment;
 
@@ -1686,9 +1689,7 @@ void test_ulTCPWindowTxGet_empty_wait_queue( void )
     /* -->prvTCPWindowTxHasSpace */
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 50 );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
@@ -1702,13 +1703,15 @@ void test_ulTCPWindowTxGet_empty_wait_queue_2( void )
     ListItem_t mockListItem;
 
     xWindow.tx.ulHighestSequenceNumber = 45;
-    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber - 3U;
+    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber -
+                                         3U;
     mockSegment.lDataLength = 360;
     xWindow.pxHeadSegment = &mockSegment;
 
     xWindow.xSize.ulTxWindowLength = ( ( xWindow.tx.ulHighestSequenceNumber -
                                          xWindow.tx.ulCurrentSequenceNumber ) +
-                                       mockSegment.lDataLength ) - 2U;
+                                       mockSegment.lDataLength ) -
+                                     2U;
 
     /* -> xTCPWindowGetHead */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1730,9 +1733,7 @@ void test_ulTCPWindowTxGet_empty_wait_queue_2( void )
     /* -->prvTCPWindowTxHasSpace */
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 50 );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
@@ -1746,13 +1747,15 @@ void test_ulTCPWindowTxGet_empty_wait_queue_3( void )
     ListItem_t mockListItem;
 
     xWindow.tx.ulHighestSequenceNumber = 45;
-    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber - 3U;
+    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber -
+                                         3U;
     mockSegment.lDataLength = 360;
     xWindow.pxHeadSegment = &mockSegment;
 
     xWindow.xSize.ulTxWindowLength = ( ( xWindow.tx.ulHighestSequenceNumber -
                                          xWindow.tx.ulCurrentSequenceNumber ) +
-                                       mockSegment.lDataLength ) + 2U;
+                                       mockSegment.lDataLength ) +
+                                     2U;
 
     /* -> xTCPWindowGetHead */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1774,9 +1777,7 @@ void test_ulTCPWindowTxGet_empty_wait_queue_3( void )
     /* -->prvTCPWindowTxHasSpace */
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 50 );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
@@ -1790,7 +1791,8 @@ void test_ulTCPWindowTxGet_empty_wait_queue_4( void )
     ListItem_t mockListItem;
 
     xWindow.tx.ulHighestSequenceNumber = 45;
-    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber + 3U;
+    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber +
+                                         3U;
     mockSegment.lDataLength = 360;
     mockSegment.lMaxLength = 400;
     xWindow.pxHeadSegment = &mockSegment;
@@ -1809,9 +1811,7 @@ void test_ulTCPWindowTxGet_empty_wait_queue_4( void )
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
     /* -->prvTCPWindowTxHasSpace */
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
 }
 
@@ -1829,7 +1829,8 @@ void test_ulTCPWindowTxGet_empty_wait_queue_5( void )
     xTCPWindowLoggingLevel = 0;
 
     xWindow.tx.ulHighestSequenceNumber = 45;
-    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber + 3U;
+    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber +
+                                         3U;
     mockSegment.lDataLength = 360;
     mockSegment.lMaxLength = 300;
     xWindow.pxHeadSegment = &mockSegment2;
@@ -1869,9 +1870,7 @@ void test_ulTCPWindowTxGet_empty_wait_queue_5( void )
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     xTaskGetTickCount_ExpectAndReturn( 32 );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 567, ulReturn );
     TEST_ASSERT_NULL( xWindow.pxHeadSegment );
     xTCPWindowLoggingLevel = xBackup;
@@ -1888,7 +1887,8 @@ void test_ulTCPWindowTxGet_empty_wait_queue_6( void )
     ListItem_t mockListItem;
 
     xWindow.tx.ulHighestSequenceNumber = 45;
-    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber + 3U;
+    xWindow.tx.ulCurrentSequenceNumber = xWindow.tx.ulHighestSequenceNumber +
+                                         3U;
     mockSegment.lDataLength = 360;
     mockSegment.lMaxLength = 300;
     xWindow.pxHeadSegment = &mockSegment;
@@ -1928,9 +1928,7 @@ void test_ulTCPWindowTxGet_empty_wait_queue_6( void )
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     xTaskGetTickCount_ExpectAndReturn( 32 );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_NOT_NULL( xWindow.pxHeadSegment );
     TEST_ASSERT_EQUAL( 567, ulReturn );
 }
@@ -1981,9 +1979,7 @@ void ignore_test_ulTCPWindowTxGet_segment_not_null( void )
     /* -> vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 32 );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 360, ulReturn );
     TEST_ASSERT_EQUAL( 32, mockSegment.xTransmitTimer.uxBorn );
 }
@@ -2020,9 +2016,7 @@ void test_ulTCPWindowTxGet_segment_null( void )
     /* -->xTCPWindowPeekHead */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdTRUE );
 
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
     TEST_ASSERT_EQUAL( 2, mockSegment.xTransmitTimer.uxBorn );
 }
@@ -2075,11 +2069,7 @@ void test_ulTCPWindowTxGet_segment_not_null_2( void )
     /* -> vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 32 );
 
-
-
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
     TEST_ASSERT_EQUAL( 32, mockSegment.xTransmitTimer.uxBorn );
 
@@ -2134,11 +2124,7 @@ void test_ulTCPWindowTxGet_segment_not_null_3( void )
     /* -> vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 32 );
 
-
-
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
     TEST_ASSERT_EQUAL( 32, mockSegment.xTransmitTimer.uxBorn );
     xTCPWindowLoggingLevel = xBackup;
@@ -2176,15 +2162,10 @@ void test_ulTCPWindowTxGet_segment_not_null_4( void )
     /* -> vTCPTimerSet */
     xTaskGetTickCount_ExpectAndReturn( 32 );
 
-
-
-    ulReturn = ulTCPWindowTxGet( &xWindow,
-                                 ulWindowSize,
-                                 &lPosition );
+    ulReturn = ulTCPWindowTxGet( &xWindow, ulWindowSize, &lPosition );
     TEST_ASSERT_EQUAL( 0, ulReturn );
     TEST_ASSERT_EQUAL( 32, mockSegment.xTransmitTimer.uxBorn );
 }
-
 
 void test_ulTCPWindowTxAck_curr_seq_gt_seq( void )
 {
@@ -2207,7 +2188,8 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_no_list_items( void )
 
     xWindow.tx.ulCurrentSequenceNumber = 32;
     /* ->prvTCPWindowTxCheckAck */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
 
     ulReturn = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
 
@@ -2251,7 +2233,8 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_3_continue_loop( void )
     /* ->prvTCPWindowTxCheckAck */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
 
     ulReturn = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
 
@@ -2326,7 +2309,8 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_5_acked_false( void )
     /* ->prvTCPWindowTxCheckAck */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
 
     ulReturn = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
 
@@ -2353,7 +2337,8 @@ void test_ulTCPWindowTxAck_curr_seq_lt_seq_6_acked_false( void )
     /* ->prvTCPWindowTxCheckAck */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
 
     ulReturn = ulTCPWindowTxAck( &xWindow, ulSequenceNumber );
 
@@ -2386,7 +2371,8 @@ void ignore_test_ulTCPWindowTxAck_curr_seq_lt_seq_7_acked_false( void )
     /* ->prvTCPWindowTxCheckAck */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
     /* -->prvTCPWindowTxCheckAck_CalcSRTT */
     /* --->ulTimerGetAge */
     /* -->prvTCPWindowTxCheckAck_CalcSRTT */
@@ -2427,7 +2413,8 @@ void test_ulTCPWindowTxSack( void )
     /* ->prvTCPWindowTxCheckAck */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
     /* -->prvTCPWindowTxCheckAck_CalcSRTT */
     /* --->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 23 );
@@ -2436,15 +2423,13 @@ void test_ulTCPWindowTxSack( void )
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     /* ulTCPWindowTxSack */
     /* ->prvTCPWindowFastRetransmit */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
 
-    ulAckCount = ulTCPWindowTxSack( &xWindow,
-                                    ulFirst,
-                                    ulLast );
+    ulAckCount = ulTCPWindowTxSack( &xWindow, ulFirst, ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
     TEST_ASSERT_EQUAL( ipconfigTCP_SRTT_MINIMUM_VALUE_MS, xWindow.lSRTT );
 }
-
 
 void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_1( void )
 {
@@ -2472,7 +2457,8 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_1( void )
     /* ->prvTCPWindowTxCheckAck */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
     /* -->prvTCPWindowTxCheckAck_CalcSRTT */
     /* --->ulTimerGetAge */
     xTaskGetTickCount_ExpectAndReturn( 69 );
@@ -2483,11 +2469,10 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_1( void )
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
     /* exit the loop */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
 
-    ulAckCount = ulTCPWindowTxSack( &xWindow,
-                                    ulFirst,
-                                    ulLast );
+    ulAckCount = ulTCPWindowTxSack( &xWindow, ulFirst, ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
     TEST_ASSERT_EQUAL( 65, xWindow.lSRTT );
 }
@@ -2515,17 +2500,17 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_2( void )
     mockSegment.u.bits.ucDupAckCount = 1U;
 
     /* ->prvTCPWindowTxCheckAck */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
     /* ulTCPWindowTxSack */
     /* ->prvTCPWindowFastRetransmit */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
     /* exit the loop */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
 
-    ulAckCount = ulTCPWindowTxSack( &xWindow,
-                                    ulFirst,
-                                    ulLast );
+    ulAckCount = ulTCPWindowTxSack( &xWindow, ulFirst, ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
 }
 
@@ -2554,17 +2539,17 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_3( void )
     mockSegment.u.bits.ucDupAckCount = 1U;
 
     /* ->prvTCPWindowTxCheckAck */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
     /* ulTCPWindowTxSack */
     /* ->prvTCPWindowFastRetransmit */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
     /* exit the loop */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
 
-    ulAckCount = ulTCPWindowTxSack( &xWindow,
-                                    ulFirst,
-                                    ulLast );
+    ulAckCount = ulTCPWindowTxSack( &xWindow, ulFirst, ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
 
     xTCPWindowLoggingLevel = xBackup;
@@ -2596,18 +2581,18 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_LoggingGTZero( void )
     mockSegment.u.bits.ucDupAckCount = 2U;
 
     /* ->prvTCPWindowTxCheckAck */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
     /* ulTCPWindowTxSack */
     /* ->prvTCPWindowFastRetransmit */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
     /* exit the loop */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
 
-    ulAckCount = ulTCPWindowTxSack( &xWindow,
-                                    ulFirst,
-                                    ulLast );
+    ulAckCount = ulTCPWindowTxSack( &xWindow, ulFirst, ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
 
     xTCPWindowLoggingLevel = xBackup;
@@ -2640,18 +2625,18 @@ void test_ulTCPWindowTxSack_prvTCPWindowFastRetransmit_4_LoggingLTZero( void )
     mockSegment.u.bits.ucDupAckCount = 2U;
 
     /* ->prvTCPWindowTxCheckAck */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xTxSegments.xListEnd );
     /* ulTCPWindowTxSack */
     /* ->prvTCPWindowFastRetransmit */
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &mockListItem );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &mockSegment );
     /* exit the loop */
-    listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
+    listGET_NEXT_ExpectAnyArgsAndReturn(
+        ( ListItem_t * ) &xWindow.xWaitQueue.xListEnd );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
 
-    ulAckCount = ulTCPWindowTxSack( &xWindow,
-                                    ulFirst,
-                                    ulLast );
+    ulAckCount = ulTCPWindowTxSack( &xWindow, ulFirst, ulLast );
     TEST_ASSERT_EQUAL( 0, ulAckCount );
 
     xTCPWindowLoggingLevel = xBackup;

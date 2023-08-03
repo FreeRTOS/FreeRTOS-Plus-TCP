@@ -2,12 +2,12 @@
 #include <unity.h>
 
 /* Include standard libraries */
+#include "FreeRTOS.h"
+#include "list.h"
+#include "task.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
@@ -22,8 +22,8 @@
  * @param[in,out] ppxEndPoint: The pointer to a pointer will point to an
  *                             end-point to which the device has responded.
  *
- * @note Look for ulIPAddress in the ND cache.  If the IP address exists, copy the
- * associated MAC address into pxMACAddress, refresh the ND cache entry's
+ * @note Look for ulIPAddress in the ND cache.  If the IP address exists, copy
+ * the associated MAC address into pxMACAddress, refresh the ND cache entry's
  * age, and return eARPCacheHit.  If the IP address does not exist in the ND
  * cache return eARPCacheMiss.  If the packet cannot be sent for any reason
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
@@ -61,14 +61,16 @@ BaseType_t FreeRTOS_CreateIPv6Address( IPv6_Address_t * pxIPAddress,
 
 /**
  * @brief Send a neighbour solicitation.
- * @param[in] pxNetworkBuffer: A network buffer big enough to hold the ICMP packet.
+ * @param[in] pxNetworkBuffer: A network buffer big enough to hold the ICMP
+ * packet.
  * @param[in] pxIPAddress: The IPv6 address of the target device.
  *
- * @note Send out an ND request for the IPv6 address contained in pxNetworkBuffer, and
- * add an entry into the ND table that indicates that an ND reply is
- * outstanding so re-transmissions can be generated.
+ * @note Send out an ND request for the IPv6 address contained in
+ * pxNetworkBuffer, and add an entry into the ND table that indicates that an ND
+ * reply is outstanding so re-transmissions can be generated.
  */
-void vNDSendNeighbourSolicitation( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                   const IPv6_Address_t * pxIPAddress )
+void vNDSendNeighbourSolicitation(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    const IPv6_Address_t * pxIPAddress )
 {
 }

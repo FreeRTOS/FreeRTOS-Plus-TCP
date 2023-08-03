@@ -4,73 +4,76 @@
  *       @date: Feb 1, 2022
  *  @copyright: Hotstart 2022 Hotstart Thermal Management. All Rights Reserved.
  *
- *      Permission is hereby granted, free of charge, to any person obtaining a copy of
- *      this software and associated documentation files (the "Software"), to deal in
- *      the Software without restriction, including without limitation the rights to
- *      use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- *      the Software, and to permit persons to whom the Software is furnished to do so,
- *      subject to the following conditions:
+ *      Permission is hereby granted, free of charge, to any person obtaining a
+ *copy of this software and associated documentation files (the "Software"), to
+ *deal in the Software without restriction, including without limitation the
+ *rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ *sell copies of the Software, and to permit persons to whom the Software is
+ *furnished to do so, subject to the following conditions:
  *
- *      The above copyright notice and this permission notice shall be included in all
- *      copies or substantial portions of the Software.
+ *      The above copyright notice and this permission notice shall be included
+ *in all copies or substantial portions of the Software.
  *
- *      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- *      FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- *      COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- *      IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- *      CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ *OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *SOFTWARE.
  *
- *      @brief:Network Interface driver for the Texas Instruments TM4C line of microcontrollers.
+ *      @brief:Network Interface driver for the Texas Instruments TM4C line of
+ *microcontrollers.
  *
- *      This driver was written and tested with the TM4C1294NCPDT, which includes a built-in MAC and
- *      PHY. The expectation is that this driver should function correctly across all the MAC/PHY
- *      integrated parts of the TM4C129X parts.
+ *      This driver was written and tested with the TM4C1294NCPDT, which
+ *includes a built-in MAC and PHY. The expectation is that this driver should
+ *function correctly across all the MAC/PHY integrated parts of the TM4C129X
+ *parts.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
-#include "inc/hw_ints.h"
 #include "inc/hw_emac.h"
+#include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
 #include "inc/hw_nvic.h"
 
+#include "driverlib/emac.h"
 #include "driverlib/flash.h"
-#include "driverlib/interrupt.h"
 #include "driverlib/gpio.h"
+#include "driverlib/interrupt.h"
 #include "driverlib/rom_map.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/systick.h"
-#include "driverlib/emac.h"
 
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
+#include "task.h"
 
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "phyHandling.h"
 
-#define BUFFER_SIZE                ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
-#define BUFFER_SIZE_ROUNDED_UP     ( ( BUFFER_SIZE + 7 ) & ~0x7UL )
-#define PHY_PHYS_ADDR              0
+#define BUFFER_SIZE            ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
+#define BUFFER_SIZE_ROUNDED_UP ( ( BUFFER_SIZE + 7 ) & ~0x7UL )
+#define PHY_PHYS_ADDR          0
 
 #ifndef niEMAC_SYSCONFIG_HZ
-    #define niEMAC_SYSCONFIG_HZ    configCPU_CLOCK_HZ
+    #define niEMAC_SYSCONFIG_HZ configCPU_CLOCK_HZ
 #endif
 
 #ifndef niEMAC_TX_DMA_DESC_COUNT
-    #define niEMAC_TX_DMA_DESC_COUNT    8
+    #define niEMAC_TX_DMA_DESC_COUNT 8
 #endif
 
 #ifndef niEMAC_RX_DMA_DESC_COUNT
-    #define niEMAC_RX_DMA_DESC_COUNT    8
+    #define niEMAC_RX_DMA_DESC_COUNT 8
 #endif
 
 #if ipconfigUSE_LINKED_RX_MESSAGES
@@ -78,27 +81,28 @@
 #endif
 
 /* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
+ * the size of the stack used by the idle task - but allow this to be overridden
+ * in FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant.
+ */
 #ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
+    #define configEMAC_TASK_STACK_SIZE ( 2 * configMINIMAL_STACK_SIZE )
 #endif
 
 #ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
+    #define niEMAC_HANDLER_TASK_PRIORITY configMAX_PRIORITIES - 1
 #endif
 
 #if !defined( ipconfigETHERNET_AN_ENABLE )
     /* Enable auto-negotiation */
-    #define ipconfigETHERNET_AN_ENABLE    1
+    #define ipconfigETHERNET_AN_ENABLE 1
 #endif
 
 #if !defined( ipconfigETHERNET_USE_100MB )
-    #define ipconfigETHERNET_USE_100MB    1
+    #define ipconfigETHERNET_USE_100MB 1
 #endif
 
 #if !defined( ipconfigETHERNET_USE_FULL_DUPLEX )
-    #define ipconfigETHERNET_USE_FULL_DUPLEX    1
+    #define ipconfigETHERNET_USE_FULL_DUPLEX 1
 #endif
 
 typedef struct
@@ -124,39 +128,46 @@ typedef enum
 
 static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
-static volatile eMAC_INTERRUPT_STATUS_TYPE xMacInterruptStatus = eMACInterruptNone;
+static volatile eMAC_INTERRUPT_STATUS_TYPE
+    xMacInterruptStatus = eMACInterruptNone;
 
 static tEMACDMADescriptor _tx_descriptors[ niEMAC_TX_DMA_DESC_COUNT ];
 static tEMACDMADescriptor _rx_descriptors[ niEMAC_RX_DMA_DESC_COUNT ];
 
-static tDescriptorList _tx_descriptor_list = { .number_descriptors = niEMAC_TX_DMA_DESC_COUNT, 0 };
-static tDescriptorList _rx_descriptor_list = { .number_descriptors = niEMAC_RX_DMA_DESC_COUNT, 0 };
+static tDescriptorList _tx_descriptor_list = {
+    .number_descriptors = niEMAC_TX_DMA_DESC_COUNT,
+    0
+};
+static tDescriptorList _rx_descriptor_list = {
+    .number_descriptors = niEMAC_RX_DMA_DESC_COUNT,
+    0
+};
 
-static uint8_t _network_buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ BUFFER_SIZE_ROUNDED_UP ];
-#pragma DATA_ALIGN(_network_buffers, 4)
+static uint8_t _network_buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ]
+                               [ BUFFER_SIZE_ROUNDED_UP ];
+#pragma DATA_ALIGN( _network_buffers, 4 )
 
 static EthernetPhy_t xPhyObject;
 
 static TaskHandle_t _deferred_task_handle = NULL;
 
-const PhyProperties_t xPHYProperties =
-{
-    #if ( ipconfigETHERNET_AN_ENABLE != 0 )
-        .ucSpeed      = PHY_SPEED_AUTO,
-        .ucDuplex     = PHY_DUPLEX_AUTO,
+const PhyProperties_t xPHYProperties = {
+#if( ipconfigETHERNET_AN_ENABLE != 0 )
+    .ucSpeed = PHY_SPEED_AUTO,
+    .ucDuplex = PHY_DUPLEX_AUTO,
+#else
+    #if( ipconfigETHERNET_USE_100MB != 0 )
+    .ucSpeed = PHY_SPEED_100,
     #else
-        #if ( ipconfigETHERNET_USE_100MB != 0 )
-            .ucSpeed  = PHY_SPEED_100,
-        #else
-            .ucSpeed  = PHY_SPEED_10,
-        #endif
+    .ucSpeed = PHY_SPEED_10,
+    #endif
 
-        #if ( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
-            .ucDuplex = PHY_DUPLEX_FULL,
-        #else
-            .ucDuplex = PHY_DUPLEX_HALF,
-        #endif
-    #endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+    #if( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
+    .ucDuplex = PHY_DUPLEX_FULL,
+    #else
+    .ucDuplex = PHY_DUPLEX_HALF,
+    #endif
+#endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
 };
 
 /**
@@ -228,7 +239,12 @@ BaseType_t xNetworkInterfaceInitialise( void )
     if( eMACInit == xMacInitStatus )
     {
         /* Create the RX packet forwarding task */
-        if( pdFAIL == xTaskCreate( _deferred_task, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &_deferred_task_handle ) )
+        if( pdFAIL == xTaskCreate( _deferred_task,
+                                   "EMAC",
+                                   configEMAC_TASK_STACK_SIZE,
+                                   NULL,
+                                   niEMAC_HANDLER_TASK_PRIORITY,
+                                   &_deferred_task_handle ) )
         {
             xMacInitStatus = eMACFailed;
         }
@@ -253,63 +269,69 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 {
                 }
 
-                MAP_EMACInit( EMAC0_BASE, niEMAC_SYSCONFIG_HZ,
-                              EMAC_BCONFIG_MIXED_BURST | EMAC_BCONFIG_PRIORITY_FIXED, 4,
-                              4, 0 );
+                MAP_EMACInit( EMAC0_BASE,
+                              niEMAC_SYSCONFIG_HZ,
+                              EMAC_BCONFIG_MIXED_BURST |
+                                  EMAC_BCONFIG_PRIORITY_FIXED,
+                              4,
+                              4,
+                              0 );
 
                 MAP_EMACConfigSet(
                     EMAC0_BASE,
-                    (
-                        EMAC_CONFIG_100MBPS |
-                        EMAC_CONFIG_FULL_DUPLEX |
-                        EMAC_CONFIG_CHECKSUM_OFFLOAD |
-                        EMAC_CONFIG_7BYTE_PREAMBLE |
-                        EMAC_CONFIG_IF_GAP_96BITS |
-                        EMAC_CONFIG_USE_MACADDR0 |
-                        EMAC_CONFIG_SA_FROM_DESCRIPTOR |
-                        EMAC_CONFIG_BO_LIMIT_1024 |
-                        EMAC_CONFIG_STRIP_CRC
-                    ),
-                    (
-                        EMAC_MODE_RX_STORE_FORWARD |
-                        EMAC_MODE_TX_STORE_FORWARD |
-                        EMAC_MODE_RX_THRESHOLD_64_BYTES |
-                        EMAC_MODE_TX_THRESHOLD_64_BYTES ),
+                    ( EMAC_CONFIG_100MBPS | EMAC_CONFIG_FULL_DUPLEX |
+                      EMAC_CONFIG_CHECKSUM_OFFLOAD |
+                      EMAC_CONFIG_7BYTE_PREAMBLE | EMAC_CONFIG_IF_GAP_96BITS |
+                      EMAC_CONFIG_USE_MACADDR0 |
+                      EMAC_CONFIG_SA_FROM_DESCRIPTOR |
+                      EMAC_CONFIG_BO_LIMIT_1024 | EMAC_CONFIG_STRIP_CRC ),
+                    ( EMAC_MODE_RX_STORE_FORWARD | EMAC_MODE_TX_STORE_FORWARD |
+                      EMAC_MODE_RX_THRESHOLD_64_BYTES |
+                      EMAC_MODE_TX_THRESHOLD_64_BYTES ),
                     0 );
 
-
                 /* Clear any stray MISR1 PHY interrupts that may be set. */
-                ui16Val = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1 );
+                ui16Val = MAP_EMACPHYRead( EMAC0_BASE,
+                                           PHY_PHYS_ADDR,
+                                           EPHY_MISR1 );
                 /* Enable link status change interrupts */
-                ui16Val |=
-                    ( EPHY_MISR1_LINKSTATEN |
-                      EPHY_MISR1_SPEEDEN |
-                      EPHY_MISR1_DUPLEXMEN |
-                      EPHY_MISR1_ANCEN
-                    );
-                MAP_EMACPHYWrite( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1, ui16Val );
+                ui16Val |= ( EPHY_MISR1_LINKSTATEN | EPHY_MISR1_SPEEDEN |
+                             EPHY_MISR1_DUPLEXMEN | EPHY_MISR1_ANCEN );
+                MAP_EMACPHYWrite( EMAC0_BASE,
+                                  PHY_PHYS_ADDR,
+                                  EPHY_MISR1,
+                                  ui16Val );
 
                 /* Clear any stray MISR2 PHY interrupts that may be set. */
-                ui16Val = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR2 );
+                ui16Val = MAP_EMACPHYRead( EMAC0_BASE,
+                                           PHY_PHYS_ADDR,
+                                           EPHY_MISR2 );
 
                 /* Configure and enable PHY interrupts */
-                ui16Val = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR );
+                ui16Val = MAP_EMACPHYRead( EMAC0_BASE,
+                                           PHY_PHYS_ADDR,
+                                           EPHY_SCR );
                 ui16Val |= ( EPHY_SCR_INTEN_EXT | EPHY_SCR_INTOE_EXT );
                 MAP_EMACPHYWrite( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_SCR, ui16Val );
 
                 /* Read the PHY interrupt status to clear any stray events. */
-                ui16Val = MAP_EMACPHYRead( EMAC0_BASE, PHY_PHYS_ADDR, EPHY_MISR1 );
+                ui16Val = MAP_EMACPHYRead( EMAC0_BASE,
+                                           PHY_PHYS_ADDR,
+                                           EPHY_MISR1 );
 
-                /* Set MAC filtering options.  We receive all broadcast and mui32ticast */
+                /* Set MAC filtering options.  We receive all broadcast and
+                 * mui32ticast */
                 /* packets along with those addressed specifically for us. */
-                MAP_EMACFrameFilterSet( EMAC0_BASE, ( EMAC_FRMFILTER_HASH_AND_PERFECT |
-                                                      EMAC_FRMFILTER_PASS_MULTICAST ) );
+                MAP_EMACFrameFilterSet( EMAC0_BASE,
+                                        ( EMAC_FRMFILTER_HASH_AND_PERFECT |
+                                          EMAC_FRMFILTER_PASS_MULTICAST ) );
 
                 /* Set the MAC address */
                 MAP_EMACAddrSet( EMAC0_BASE, 0, &mac_address_bytes[ 0 ] );
 
                 /* Clears any previously asserted interrupts */
-                MAP_EMACIntClear( EMAC0_BASE, EMACIntStatus( EMAC0_BASE, false ) );
+                MAP_EMACIntClear( EMAC0_BASE,
+                                  EMACIntStatus( EMAC0_BASE, false ) );
 
                 /* Initialize the DMA descriptors */
                 _dma_descriptors_init();
@@ -318,8 +340,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 MAP_EMACTxEnable( EMAC0_BASE );
                 MAP_EMACRxEnable( EMAC0_BASE );
 
-                /* Set the interrupt to a lower priority than the OS scheduler interrupts */
-                MAP_IntPrioritySet( INT_EMAC0, ( 6 << ( 8 - configPRIO_BITS ) ) );
+                /* Set the interrupt to a lower priority than the OS scheduler
+                 * interrupts */
+                MAP_IntPrioritySet( INT_EMAC0,
+                                    ( 6 << ( 8 - configPRIO_BITS ) ) );
 
                 /* Probe the PHY with the stack driver */
                 vMACBProbePhy();
@@ -335,9 +359,10 @@ BaseType_t xNetworkInterfaceInitialise( void )
         if( xPhyObject.ulLinkStatusMask != 0U )
         {
             /* Enable the Ethernet RX and TX interrupt source. */
-            MAP_EMACIntEnable( EMAC0_BASE, ( EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
-                                             EMAC_INT_TX_STOPPED | EMAC_INT_RX_NO_BUFFER |
-                                             EMAC_INT_RX_STOPPED | EMAC_INT_PHY ) );
+            MAP_EMACIntEnable( EMAC0_BASE,
+                               ( EMAC_INT_RECEIVE | EMAC_INT_TRANSMIT |
+                                 EMAC_INT_TX_STOPPED | EMAC_INT_RX_NO_BUFFER |
+                                 EMAC_INT_RX_STOPPED | EMAC_INT_PHY ) );
 
             /* Enable EMAC interrupts */
             MAP_IntEnable( INT_EMAC0 );
@@ -349,31 +374,41 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return xResult;
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
     BaseType_t success = pdTRUE;
     tEMACDMADescriptor * dma_descriptor;
 
-    /* As this driver is strictly zero-copy, assert that the stack does not call this function with */
+    /* As this driver is strictly zero-copy, assert that the stack does not call
+     * this function with */
     /* xReleaseAfterSend as false */
     configASSERT( 0 != xReleaseAfterSend );
 
     dma_descriptor = &_tx_descriptors[ _tx_descriptor_list.write ];
 
-    /* If the DMA controller still owns the descriptor, all DMA descriptors are in use, bail out */
+    /* If the DMA controller still owns the descriptor, all DMA descriptors are
+     * in use, bail out */
     if( 0U == ( dma_descriptor->ui32CtrlStatus & DES0_RX_CTRL_OWN ) )
     {
         /* Assign the buffer to the DMA descriptor */
         dma_descriptor->pvBuffer1 = pxNetworkBuffer->pucEthernetBuffer;
 
         /* Inform the DMA of the size of the packet */
-        dma_descriptor->ui32Count = ( pxNetworkBuffer->xDataLength & DES1_TX_CTRL_BUFF1_SIZE_M ) << DES1_TX_CTRL_BUFF1_SIZE_S;
+        dma_descriptor->ui32Count = ( pxNetworkBuffer->xDataLength &
+                                      DES1_TX_CTRL_BUFF1_SIZE_M )
+                                    << DES1_TX_CTRL_BUFF1_SIZE_S;
 
-        /* Inform the DMA that this is the first and last segment of the packet, calculate the checksums, the descriptors are */
+        /* Inform the DMA that this is the first and last segment of the packet,
+         * calculate the checksums, the descriptors are */
         /* chained, and to use interrupts */
-        dma_descriptor->ui32CtrlStatus = DES0_TX_CTRL_FIRST_SEG | DES0_TX_CTRL_IP_ALL_CKHSUMS | DES0_TX_CTRL_CHAINED
-                                         | DES0_TX_CTRL_LAST_SEG | DES0_TX_CTRL_INTERRUPT | DES0_TX_CTRL_REPLACE_CRC;
+        dma_descriptor->ui32CtrlStatus = DES0_TX_CTRL_FIRST_SEG |
+                                         DES0_TX_CTRL_IP_ALL_CKHSUMS |
+                                         DES0_TX_CTRL_CHAINED |
+                                         DES0_TX_CTRL_LAST_SEG |
+                                         DES0_TX_CTRL_INTERRUPT |
+                                         DES0_TX_CTRL_REPLACE_CRC;
 
         /* Advance the index in the list */
         _tx_descriptor_list.write++;
@@ -403,17 +438,22 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     return success;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     BaseType_t i;
 
     for( i = 0; i < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; i++ )
     {
         /* Assign buffers to each descriptor */
-        pxNetworkBuffers[ i ].pucEthernetBuffer = &_network_buffers[ i ][ ipBUFFER_PADDING ];
+        pxNetworkBuffers[ i ]
+            .pucEthernetBuffer = &_network_buffers[ i ][ ipBUFFER_PADDING ];
 
-        /* Set the 'hidden' reference to the descriptor for use in DMA interrupts */
-        *( ( uint32_t * ) &_network_buffers[ i ][ 0 ] ) = ( uint32_t ) &( ( pxNetworkBuffers[ i ] ) );
+        /* Set the 'hidden' reference to the descriptor for use in DMA
+         * interrupts */
+        *( ( uint32_t * ) &_network_buffers
+               [ i ][ 0 ] ) = ( uint32_t ) & ( ( pxNetworkBuffers[ i ] ) );
     }
 }
 
@@ -426,7 +466,8 @@ static BaseType_t _ethernet_mac_get( uint8_t * mac_address_bytes )
     MAP_FlashUserGet( &mac_address_words[ 0 ], &mac_address_words[ 1 ] );
 
     /* If the MAC is not set, fail */
-    if( ( 0xFFFFFFFF == mac_address_words[ 0 ] ) || ( 0xFFFFFFFF == mac_address_words[ 1 ] ) )
+    if( ( 0xFFFFFFFF == mac_address_words[ 0 ] ) ||
+        ( 0xFFFFFFFF == mac_address_words[ 1 ] ) )
     {
         success = pdFAIL;
     }
@@ -459,13 +500,16 @@ static void _dma_descriptors_init( void )
         /* Clear the reference to the buffer */
         _tx_descriptors[ i ].pvBuffer1 = NULL;
 
-        /* Set the next link in the DMA descriptor chain, either the next in the chain or the first descriptor in the event */
+        /* Set the next link in the DMA descriptor chain, either the next in the
+         * chain or the first descriptor in the event */
         /* that this is the last descriptor */
-        _tx_descriptors[ i ].DES3.pLink = (
-            ( i == ( niEMAC_TX_DMA_DESC_COUNT - 1 ) ) ?
-            &_tx_descriptors[ 0 ] : &_tx_descriptors[ i + 1 ] );
-        _tx_descriptors[ i ].ui32CtrlStatus = DES0_TX_CTRL_INTERRUPT | DES0_TX_CTRL_CHAINED
-                                              | DES0_TX_CTRL_IP_ALL_CKHSUMS;
+        _tx_descriptors[ i ].DES3.pLink = ( ( i ==
+                                              ( niEMAC_TX_DMA_DESC_COUNT - 1 ) )
+                                                ? &_tx_descriptors[ 0 ]
+                                                : &_tx_descriptors[ i + 1 ] );
+        _tx_descriptors[ i ].ui32CtrlStatus = DES0_TX_CTRL_INTERRUPT |
+                                              DES0_TX_CTRL_CHAINED |
+                                              DES0_TX_CTRL_IP_ALL_CKHSUMS;
     }
 
     /* Set the TX descriptor index */
@@ -474,21 +518,30 @@ static void _dma_descriptors_init( void )
 
     for( i = 0; i < niEMAC_RX_DMA_DESC_COUNT; i++ )
     {
-        stack_descriptor = pxGetNetworkBufferWithDescriptor( ipTOTAL_ETHERNET_FRAME_SIZE, 0 );
+        stack_descriptor = pxGetNetworkBufferWithDescriptor(
+            ipTOTAL_ETHERNET_FRAME_SIZE,
+            0 );
 
         configASSERT( NULL != stack_descriptor );
 
         /* Get a buffer from the stack and assign it to the DMA Descriptor */
         _rx_descriptors[ i ].pvBuffer1 = stack_descriptor->pucEthernetBuffer;
 
-        /* Inform the DMA controller that the descriptors are chained and the size of the buffer */
-        _rx_descriptors[ i ].ui32Count = DES1_RX_CTRL_CHAINED | ( ( buffer_size_requested << DES1_TX_CTRL_BUFF1_SIZE_S ) & DES1_TX_CTRL_BUFF1_SIZE_M );
+        /* Inform the DMA controller that the descriptors are chained and the
+         * size of the buffer */
+        _rx_descriptors[ i ].ui32Count = DES1_RX_CTRL_CHAINED |
+                                         ( ( buffer_size_requested
+                                             << DES1_TX_CTRL_BUFF1_SIZE_S ) &
+                                           DES1_TX_CTRL_BUFF1_SIZE_M );
 
         /* Give the DMA descriptor to the DMA controller */
         _rx_descriptors[ i ].ui32CtrlStatus = DES0_RX_CTRL_OWN;
 
         /* Set the next link the DMA descriptor chain */
-        _rx_descriptors[ i ].DES3.pLink = ( ( i == ( niEMAC_RX_DMA_DESC_COUNT - 1 ) ) ? &_rx_descriptors[ 0 ] : &_rx_descriptors[ i + 1 ] );
+        _rx_descriptors[ i ].DES3.pLink = ( ( i ==
+                                              ( niEMAC_RX_DMA_DESC_COUNT - 1 ) )
+                                                ? &_rx_descriptors[ 0 ]
+                                                : &_rx_descriptors[ i + 1 ] );
     }
 
     /* Set the RX descriptor index */
@@ -536,7 +589,8 @@ void freertos_tcp_ethernet_int( void )
     }
 
     /* Handle Receive interrupts */
-    if( ( EMAC_INT_RECEIVE | EMAC_INT_RX_NO_BUFFER | EMAC_INT_RX_STOPPED ) & status )
+    if( ( EMAC_INT_RECEIVE | EMAC_INT_RX_NO_BUFFER | EMAC_INT_RX_STOPPED ) &
+        status )
     {
         xMacInterruptStatus |= eMACInterruptRx;
     }
@@ -544,7 +598,8 @@ void freertos_tcp_ethernet_int( void )
     /* If interrupts of concern were found, wake the task if present */
     if( ( 0 != xMacInterruptStatus ) && ( NULL != _deferred_task_handle ) )
     {
-        vTaskNotifyGiveFromISR( _deferred_task_handle, &higher_priority_task_woken );
+        vTaskNotifyGiveFromISR( _deferred_task_handle,
+                                &higher_priority_task_woken );
 
         portYIELD_FROM_ISR( higher_priority_task_woken );
     }
@@ -556,7 +611,9 @@ static void _process_transmit_complete( void )
     tEMACDMADescriptor * dma_descriptor;
     NetworkBufferDescriptor_t * stack_descriptor;
 
-    for( i = 0; ( ( i < _tx_descriptor_list.number_descriptors ) && ( _tx_descriptor_list.read != _tx_descriptor_list.write ) ); i++ )
+    for( i = 0; ( ( i < _tx_descriptor_list.number_descriptors ) &&
+                  ( _tx_descriptor_list.read != _tx_descriptor_list.write ) );
+         i++ )
     {
         /* Get a reference to the current DMA descriptor */
         dma_descriptor = &_tx_descriptors[ _tx_descriptor_list.read ];
@@ -568,7 +625,8 @@ static void _process_transmit_complete( void )
         }
 
         /* Get the 'hidden' reference to the stack descriptor from the buffer */
-        stack_descriptor = pxPacketBuffer_to_NetworkBuffer( dma_descriptor->pvBuffer1 );
+        stack_descriptor = pxPacketBuffer_to_NetworkBuffer(
+            dma_descriptor->pvBuffer1 );
 
         configASSERT( NULL != stack_descriptor );
 
@@ -604,7 +662,8 @@ static BaseType_t _process_received_packet( void )
         configASSERT( NULL != dma_descriptor->pvBuffer1 );
 
         /* If the descriptor is still in use by DMA, stop processing here */
-        if( DES0_RX_CTRL_OWN == ( dma_descriptor->ui32CtrlStatus & DES0_RX_CTRL_OWN ) )
+        if( DES0_RX_CTRL_OWN ==
+            ( dma_descriptor->ui32CtrlStatus & DES0_RX_CTRL_OWN ) )
         {
             break;
         }
@@ -613,22 +672,32 @@ static BaseType_t _process_received_packet( void )
         if( 0U == ( dma_descriptor->ui32CtrlStatus & DES0_RX_STAT_ERR ) )
         {
             /* Get a new empty descriptor */
-            new_stack_descriptor = pxGetNetworkBufferWithDescriptor( ipTOTAL_ETHERNET_FRAME_SIZE, max_block_time );
+            new_stack_descriptor = pxGetNetworkBufferWithDescriptor(
+                ipTOTAL_ETHERNET_FRAME_SIZE,
+                max_block_time );
 
             /* If a descriptor was provided, else this packet is dropped */
             if( NULL != new_stack_descriptor )
             {
-                /* Get a reference to the current stack descriptor held by the DMA descriptor */
-                cur_stack_descriptor = pxPacketBuffer_to_NetworkBuffer( dma_descriptor->pvBuffer1 );
+                /* Get a reference to the current stack descriptor held by the
+                 * DMA descriptor */
+                cur_stack_descriptor = pxPacketBuffer_to_NetworkBuffer(
+                    dma_descriptor->pvBuffer1 );
 
                 /* Set the length of the buffer on the current descriptor */
-                cur_stack_descriptor->xDataLength = ( dma_descriptor->ui32CtrlStatus & DES0_RX_STAT_FRAME_LENGTH_M ) >> DES0_RX_STAT_FRAME_LENGTH_S;
+                cur_stack_descriptor
+                    ->xDataLength = ( dma_descriptor->ui32CtrlStatus &
+                                      DES0_RX_STAT_FRAME_LENGTH_M ) >>
+                                    DES0_RX_STAT_FRAME_LENGTH_S;
 
                 /* Assign the new stack descriptor to the DMA descriptor */
-                dma_descriptor->pvBuffer1 = new_stack_descriptor->pucEthernetBuffer;
+                dma_descriptor->pvBuffer1 = new_stack_descriptor
+                                                ->pucEthernetBuffer;
 
                 /* Ask the stack if it wants to process the frame. */
-                if( eProcessBuffer == eConsiderFrameForProcessing( cur_stack_descriptor->pucEthernetBuffer ) )
+                if( eProcessBuffer ==
+                    eConsiderFrameForProcessing(
+                        cur_stack_descriptor->pucEthernetBuffer ) )
                 {
                     /* Setup the event */
                     event.eEventType = eNetworkRxEvent;
@@ -638,7 +707,8 @@ static BaseType_t _process_received_packet( void )
                     if( pdFALSE == xSendEventStructToIPTask( &event, 0 ) )
                     {
                         /* Release the buffer if an error was encountered */
-                        vReleaseNetworkBufferAndDescriptor( cur_stack_descriptor );
+                        vReleaseNetworkBufferAndDescriptor(
+                            cur_stack_descriptor );
 
                         iptraceETHERNET_RX_EVENT_LOST();
                     }
@@ -657,21 +727,25 @@ static BaseType_t _process_received_packet( void )
             } /* end if descriptor is available */
             else
             {
-                /* No stack descriptor was available for the next RX DMA descriptor so this packet */
+                /* No stack descriptor was available for the next RX DMA
+                 * descriptor so this packet */
                 /* is dropped */
 
                 /* Mark the RX event as lost */
                 iptraceETHERNET_RX_EVENT_LOST();
             }
-        } /* end if frame had error. In this case, give the buffer back to the DMA for the next RX */
+        } /* end if frame had error. In this case, give the buffer back to the
+             DMA for the next RX */
 
         /* Set up the DMA descriptor for the next receive transaction */
-        dma_descriptor->ui32Count = DES1_RX_CTRL_CHAINED | ipTOTAL_ETHERNET_FRAME_SIZE;
+        dma_descriptor->ui32Count = DES1_RX_CTRL_CHAINED |
+                                    ipTOTAL_ETHERNET_FRAME_SIZE;
         dma_descriptor->ui32CtrlStatus = DES0_RX_CTRL_OWN;
 
         _rx_descriptor_list.write++;
 
-        if( _rx_descriptor_list.write == _rx_descriptor_list.number_descriptors )
+        if( _rx_descriptor_list.write ==
+            _rx_descriptor_list.number_descriptors )
         {
             _rx_descriptor_list.write = 0;
         }
@@ -681,8 +755,8 @@ static BaseType_t _process_received_packet( void )
 }
 
 /**
- * This deferred interrupt handler process changes from the PHY auto-negotiation to configure the
- * MAC as appropriate.
+ * This deferred interrupt handler process changes from the PHY auto-negotiation
+ * to configure the MAC as appropriate.
  */
 static void _process_phy_interrupts( void )
 {
@@ -733,7 +807,7 @@ static void _deferred_task( void * parameters )
     /* Ignore parameters */
     ( void ) parameters;
 
-    for( ; ; )
+    for( ;; )
     {
         had_reception = pdFALSE;
 
@@ -778,7 +852,9 @@ static BaseType_t xTM4C_PhyRead( BaseType_t xAddress,
                                  BaseType_t xRegister,
                                  uint32_t * pulValue )
 {
-    *pulValue = MAP_EMACPHYRead( EMAC0_BASE, ( uint8_t ) xAddress, ( uint8_t ) xRegister );
+    *pulValue = MAP_EMACPHYRead( EMAC0_BASE,
+                                 ( uint8_t ) xAddress,
+                                 ( uint8_t ) xRegister );
 
     return 0;
 }
@@ -787,7 +863,10 @@ static BaseType_t xTM4C_PhyWrite( BaseType_t xAddress,
                                   BaseType_t xRegister,
                                   uint32_t ulValue )
 {
-    MAP_EMACPHYWrite( EMAC0_BASE, ( uint8_t ) xAddress, ( uint8_t ) xRegister, ulValue );
+    MAP_EMACPHYWrite( EMAC0_BASE,
+                      ( uint8_t ) xAddress,
+                      ( uint8_t ) xRegister,
+                      ulValue );
 
     return 0;
 }

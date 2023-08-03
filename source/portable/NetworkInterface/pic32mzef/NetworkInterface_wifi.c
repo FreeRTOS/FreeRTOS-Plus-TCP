@@ -1,68 +1,66 @@
 /*******************************************************************************
-*  Network Interface file
-*
-*  Summary:
-*   Network Interface file for FreeRTOS-Plus-TCP stack
-*
-*  Description:
-*   - Interfaces PIC32 to the FreeRTOS TCP/IP stack
-*******************************************************************************/
+ *  Network Interface file
+ *
+ *  Summary:
+ *   Network Interface file for FreeRTOS-Plus-TCP stack
+ *
+ *  Description:
+ *   - Interfaces PIC32 to the FreeRTOS TCP/IP stack
+ *******************************************************************************/
 
 /*******************************************************************************
-*  File Name:  pic32_NetworkInterface.c
-*  Copyright 2017 Microchip Technology Incorporated and its subsidiaries.
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy of
-*  this software and associated documentation files (the "Software"), to deal in
-*  the Software without restriction, including without limitation the rights to
-*  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-*  of the Software, and to permit persons to whom the Software is furnished to do
-*  so, subject to the following conditions:
-*  The above copyright notice and this permission notice shall be included in all
-*  copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-*  SOFTWARE
-*******************************************************************************/
+ *  File Name:  pic32_NetworkInterface.c
+ *  Copyright 2017 Microchip Technology Incorporated and its subsidiaries.
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *of this software and associated documentation files (the "Software"), to deal
+ *in the Software without restriction, including without limitation the rights
+ *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *copies of the Software, and to permit persons to whom the Software is
+ *furnished to do so, subject to the following conditions: The above copyright
+ *notice and this permission notice shall be included in all copies or
+ *substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ *IN THE SOFTWARE
+ *******************************************************************************/
 #ifndef PIC32_USE_ETHERNET
-#include <sys/kmem.h>
+    #include <sys/kmem.h>
 
-#include "FreeRTOS.h"
-#include "semphr.h"
-#include "event_groups.h"
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
+    #include "FreeRTOS.h"
+    #include "FreeRTOS_IP.h"
+    #include "FreeRTOS_IP_Private.h"
+    #include "event_groups.h"
+    #include "semphr.h"
 
-#include "NetworkInterface.h"
-#include "NetworkBufferManagement.h"
-#include "peripheral/eth/plib_eth.h"
+    #include "NetworkBufferManagement.h"
+    #include "NetworkInterface.h"
+    #include "peripheral/eth/plib_eth.h"
 
-#include "system_config.h"
-#include "system/console/sys_console.h"
-#include "system/debug/sys_debug.h"
-#include "system/command/sys_command.h"
+    #include "system/command/sys_command.h"
+    #include "system/console/sys_console.h"
+    #include "system/debug/sys_debug.h"
+    #include "system_config.h"
 
-#include "driver/ethmac/drv_ethmac.h"
-#include "driver/miim/drv_miim.h"
-#include "m2m_types.h"
+    #include "driver/ethmac/drv_ethmac.h"
+    #include "driver/miim/drv_miim.h"
+    #include "m2m_types.h"
 
-#include "tcpip/tcpip.h"
-#include "tcpip/src/tcpip_private.h"
-#include "tcpip/src/link_list.h"
-#include "wilc1000_task.h"
+    #include "tcpip/src/link_list.h"
+    #include "tcpip/src/tcpip_private.h"
+    #include "tcpip/tcpip.h"
+    #include "wilc1000_task.h"
 
-#include "NetworkConfig.h"
+    #include "NetworkConfig.h"
 
-
-#include "iot_wifi.h"
+    #include "iot_wifi.h"
 
 /* local definitions and data */
-
 
 /* FreeRTOS implementation functions */
 BaseType_t xNetworkInterfaceInitialise( void )
@@ -75,8 +73,9 @@ BaseType_t xNetworkInterfaceInitialise( void )
             clientcredentialWIFI_SSID,
             xNetworkParams.ucSSIDLength );
 
-    xNetworkParams.xPassword.xWPA.ucLength = strnlen( clientcredentialWIFI_PASSWORD,
-                                                      wificonfigMAX_PASSPHRASE_LEN );
+    xNetworkParams.xPassword.xWPA
+        .ucLength = strnlen( clientcredentialWIFI_PASSWORD,
+                             wificonfigMAX_PASSPHRASE_LEN );
     memcpy( xNetworkParams.xPassword.xWPA.cPassphrase,
             clientcredentialWIFI_PASSWORD,
             xNetworkParams.xPassword.xWPA.ucLength );
@@ -99,18 +98,20 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return pdPASS;
 }
 
-
 /*-----------------------------------------------------------*/
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xNetworkInterfaceOutput(
+    NetworkBufferDescriptor_t * const pxDescriptor,
+    BaseType_t xReleaseAfterSend )
 {
     BaseType_t retRes = pdFALSE;
 
-    if( ( pxDescriptor != 0 ) && ( pxDescriptor->pucEthernetBuffer != 0 ) && ( pxDescriptor->xDataLength != 0 ) )
+    if( ( pxDescriptor != 0 ) && ( pxDescriptor->pucEthernetBuffer != 0 ) &&
+        ( pxDescriptor->xDataLength != 0 ) )
     {
         /* There you go */
-        if( WDRV_EXT_DataSend( pxDescriptor->xDataLength, pxDescriptor->pucEthernetBuffer ) == 0 )
+        if( WDRV_EXT_DataSend( pxDescriptor->xDataLength,
+                               pxDescriptor->pucEthernetBuffer ) == 0 )
         {
             retRes = pdTRUE;
         }
@@ -125,17 +126,15 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
     return retRes;
 }
 
-
-/************************************* Section: helper functions ************************************************** */
+/************************************* Section: helper functions
+ * ************************************************** */
 /* */
 
-
-
-/************************************* Section: worker code ************************************************** */
+/************************************* Section: worker code
+ * ************************************************** */
 /* */
 
-void xNetworkFrameReceived( uint32_t len,
-                            uint8_t const * const frame )
+void xNetworkFrameReceived( uint32_t len, uint8_t const * const frame )
 {
     bool pktSuccess, pktLost;
     NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;

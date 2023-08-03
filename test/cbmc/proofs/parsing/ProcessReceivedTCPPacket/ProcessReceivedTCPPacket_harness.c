@@ -5,19 +5,20 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_Stream_Buffer.h"
+#include "FreeRTOS_TCP_IP.h"
 
 /* CBMC includes. */
-#include "cbmc.h"
 #include "../../utility/memory_assignments.c"
+#include "cbmc.h"
 
 /* This proof assumes pxTCPSocketLookup and pxGetNetworkBufferWithDescriptor
  * are implemented correctly.
  *
- * It also assumes prvSingleStepTCPHeaderOptions, prvCheckOptions, prvTCPPrepareSend,
- * prvTCPHandleState, prvHandleListen_IPV4 and prvTCPReturnPacket are correct. These functions are
- * proved to be correct separately. */
+ * It also assumes prvSingleStepTCPHeaderOptions, prvCheckOptions,
+ * prvTCPPrepareSend, prvTCPHandleState, prvHandleListen_IPV4 and
+ * prvTCPReturnPacket are correct. These functions are proved to be correct
+ * separately. */
 
 /* Abstraction of xTaskGetCurrentTaskHandle */
 TaskHandle_t xTaskGetCurrentTaskHandle( void )
@@ -36,8 +37,9 @@ TaskHandle_t xTaskGetCurrentTaskHandle( void )
 }
 
 /* Abstraction of prvHandleListen_IPV4 */
-FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
-                                          NetworkBufferDescriptor_t * pxNetworkBuffer )
+FreeRTOS_Socket_t * prvHandleListen_IPV4(
+    FreeRTOS_Socket_t * pxSocket,
+    NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     FreeRTOS_Socket_t * xRetSocket = ensure_FreeRTOS_Socket_t_is_allocated();
 
@@ -68,15 +70,18 @@ FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
 }
 
 /* Abstraction of pxGetNetworkBufferWithDescriptor */
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor(
+    size_t xRequestedSizeBytes,
+    TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc(
+        sizeof( NetworkBufferDescriptor_t ) );
 
     if( pxNetworkBuffer )
     {
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes );
-        __CPROVER_assume( pxNetworkBuffer->xDataLength == ipSIZE_OF_ETH_HEADER + sizeof( int32_t ) );
+        __CPROVER_assume( pxNetworkBuffer->xDataLength ==
+                          ipSIZE_OF_ETH_HEADER + sizeof( int32_t ) );
     }
 
     return pxNetworkBuffer;
@@ -84,7 +89,8 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc(
+        sizeof( NetworkBufferDescriptor_t ) );
 
     /* To avoid asserting on the network buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );

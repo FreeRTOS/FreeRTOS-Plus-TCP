@@ -31,16 +31,16 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_DHCP.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
 
 #include "NetworkBufferManagement.h"
 
@@ -55,41 +55,44 @@ uint32_t uxSocketCloseCnt = 0;
 
 DHCPMessage_IPv4_t xDHCPMessage;
 
-
-void __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( const NetworkEndPoint_t * pxEndPoint );
+void __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket(
+    const NetworkEndPoint_t * pxEndPoint );
 
 /****************************************************************
-* vDHCPProcessEndPoint() is proved separately
-****************************************************************/
+ * vDHCPProcessEndPoint() is proved separately
+ ****************************************************************/
 
-void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( BaseType_t xReset,
-                                                                BaseType_t xDoCheck,
-                                                                NetworkEndPoint_t * pxEndPoint )
+void __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint(
+    BaseType_t xReset,
+    BaseType_t xDoCheck,
+    NetworkEndPoint_t * pxEndPoint )
 {
     __CPROVER_assert( pxEndPoint != NULL,
                       "FreeRTOS precondition: pxEndPoint != NULL" );
 }
 
 /****************************************************************
-* Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
-****************************************************************/
+ * Abstract prvProcessDHCPReplies proved memory safe in ProcessDHCPReplies.
+ ****************************************************************/
 
-BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
-                                                                       NetworkEndPoint_t * pxEndPoint )
+BaseType_t __CPROVER_file_local_FreeRTOS_DHCP_c_prvProcessDHCPReplies(
+    BaseType_t xExpectedMessageType,
+    NetworkEndPoint_t * pxEndPoint )
 {
     return nondet_BaseType();
 }
 
 /**
- * For the purpose of this proof we assume that xSocketValid returns true always.
- * This has to do with assertions in the source code that checks for socket being invalid.
- * [configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE );]
+ * For the purpose of this proof we assume that xSocketValid returns true
+ * always. This has to do with assertions in the source code that checks for
+ * socket being invalid. [configASSERT( xSocketValid( xDHCPv4Socket ) == pdTRUE
+ * );]
  */
 BaseType_t xSocketValid( const ConstSocket_t xSocket )
 {
     __CPROVER_assume( xSocket != FREERTOS_INVALID_SOCKET );
     __CPROVER_assume( xSocket != NULL );
-    return( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) );
+    return ( ( xSocket != FREERTOS_INVALID_SOCKET ) && ( xSocket != NULL ) );
 }
 
 BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
@@ -97,8 +100,8 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
                         size_t uxAddressLength,
                         BaseType_t xInternal )
 {
-    /* Return value is set to zero assuming socket bind will succeed. If it doesn't, it
-     * will hit an assert in the function.  */
+    /* Return value is set to zero assuming socket bind will succeed. If it
+     * doesn't, it will hit an assert in the function.  */
     BaseType_t xRet = 0;
 
     __CPROVER_assert( pxSocket != NULL,
@@ -109,18 +112,24 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
     return xRet;
 }
 
-
-/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented correctly and returns a valid data structure. */
-/*This is the mock to mimic the correct expected behavior. If this allocation fails, this might invalidate the proof. */
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+/*We assume that the pxGetNetworkBufferWithDescriptor function is implemented
+ * correctly and returns a valid data structure. */
+/*This is the mock to mimic the correct expected behavior. If this allocation
+ * fails, this might invalidate the proof. */
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor(
+    size_t xRequestedSizeBytes,
+    TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * ) safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( NetworkBufferDescriptor_t * )
+        safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
     __CPROVER_assume( pxNetworkBuffer != NULL );
-    __CPROVER_assume( xRequestedSizeBytes > ( dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) + ipIP_TYPE_OFFSET ) );
+    __CPROVER_assume( xRequestedSizeBytes >
+                      ( dhcpFIRST_OPTION_BYTE_OFFSET + sizeof( MACAddress_t ) +
+                        ipIP_TYPE_OFFSET ) );
 
-    pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) safeMalloc( xRequestedSizeBytes + ( ipIP_TYPE_OFFSET ) ) );
+    pxNetworkBuffer->pucEthernetBuffer = ( ( uint8_t * ) safeMalloc(
+        xRequestedSizeBytes + ( ipIP_TYPE_OFFSET ) ) );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
     /* Increment with expected buffer padding */
@@ -141,8 +150,8 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
 
 /* For the DHCP process loop to be fully covered, we expect FreeRTOS_recvfrom
  * to fail after few iterations. This is because vDHCPProcessEndPoint is proved
- * separately and is stubbed out for this proof, which ideally is supposed to close
- * the socket and end the loop. */
+ * separately and is stubbed out for this proof, which ideally is supposed to
+ * close the socket and end the loop. */
 int32_t FreeRTOS_recvfrom( Socket_t xSocket,
                            void * pvBuffer,
                            size_t uxBufferLength,
@@ -167,27 +176,31 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
 }
 
 /****************************************************************
-* The proof of vDHCPProcess
-****************************************************************/
+ * The proof of vDHCPProcess
+ ****************************************************************/
 
 void harness()
 {
     BaseType_t xReset;
     eDHCPState_t eExpectedState;
 
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
     /* Interface init. */
-    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+    pxNetworkEndPoints->pxNetworkInterface = ( NetworkInterface_t * )
+        safeMalloc( sizeof( NetworkInterface_t ) );
     __CPROVER_assume( pxNetworkEndPoints->pxNetworkInterface != NULL );
 
     if( nondet_bool() )
     {
-        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc(
+            sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
         pxNetworkEndPoints->pxNext->pxNext = NULL;
-        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
+        pxNetworkEndPoints->pxNext
+            ->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
     }
     else
     {
@@ -206,5 +219,6 @@ void harness()
 
     vDHCPProcess( xReset, pxNetworkEndPoints );
 
-    __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket( pxNetworkEndPoints );
+    __CPROVER_file_local_FreeRTOS_DHCP_c_prvCloseDHCPSocket(
+        pxNetworkEndPoints );
 }

@@ -2,12 +2,12 @@
 #include <unity.h>
 
 /* Include standard libraries */
+#include "FreeRTOS.h"
+#include "list.h"
+#include "task.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "list.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
@@ -18,51 +18,66 @@ NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer = NULL;
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
+/** @brief The expected IP version and header length coded into the IP header
+ * itself. */
+#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE ( ( uint8_t ) 0x45 )
 
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
+UDPPacketHeader_t xDefaultPartUDPPacketHeader = {
     /* .ucBytes : */
     {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
+        0x11,
+        0x22,
+        0x33,
+        0x44,
+        0x55,
+        0x66, /* Ethernet source MAC address. */
+        0x08,
+        0x00,                                /* Ethernet frame type. */
         ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
         0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
+        0x00,
+        0x00, /* usLength. */
+        0x00,
+        0x00, /* usIdentification. */
+        0x00,
+        0x00,                     /* usFragmentOffset. */
+        ipconfigUDP_TIME_TO_LIVE, /* ucTimeToLive */
+        ipPROTOCOL_UDP,           /* ucProtocol. */
+        0x00,
+        0x00, /* usHeaderChecksum. */
+        0x00,
+        0x00,
+        0x00,
+        0x00 /* Source IP address. */
     }
 };
 
-/** @brief For convenience, a MAC address of all 0xffs is defined const for quick
- * reference. */
-const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
+/** @brief For convenience, a MAC address of all 0xffs is defined const for
+ * quick reference. */
+const MACAddress_t xBroadcastMACAddress = {
+    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }
+};
 
-/** @brief Structure that stores the netmask, gateway address and DNS server addresses. */
-NetworkAddressingParameters_t xNetworkAddressing =
-{
+/** @brief Structure that stores the netmask, gateway address and DNS server
+ * addresses. */
+NetworkAddressingParameters_t xNetworkAddressing = {
     0xC0C0C0C0, /* 192.192.192.192 - Default IP address. */
     0xFFFFFF00, /* 255.255.255.0 - Netmask. */
     0xC0C0C001, /* 192.192.192.1 - Gateway Address. */
     0x01020304, /* 1.2.3.4 - DNS server address. */
     0xC0C0C0FF
-};              /* 192.192.192.255 - Broadcast address. */
+}; /* 192.192.192.255 - Broadcast address. */
 
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
     return 0;
 }
 
-
 /* Even though the function is defined in main.c, the rule is violated. */
 /* misra_c_2012_rule_8_6_violation */
-extern BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
-                                                  const char * pcName )
+extern BaseType_t xApplicationDNSQueryHook_Multi(
+    struct xNetworkEndPoint * pxEndPoint,
+    const char * pcName )
 {
 }
 
@@ -151,7 +166,8 @@ void vConfigureTimerForRunTimeStats( void )
 
 /**
  * @brief Send an ND advertisement.
- * @param[in] pxEndPoint: The end-point for which an ND advertisement should be sent.
+ * @param[in] pxEndPoint: The end-point for which an ND advertisement should be
+ * sent.
  */
 void FreeRTOS_OutputAdvertiseIPv6( NetworkEndPoint_t * pxEndPoint )
 {

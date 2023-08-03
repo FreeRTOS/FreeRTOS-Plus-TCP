@@ -31,16 +31,17 @@
 #include "queue.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_DNS_Parser.h"
+#include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
 #include "cbmc.h"
 
 NetworkBufferDescriptor_t xNetworkBuffer;
 
-NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer )
+NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer(
+    const void * pvBuffer )
 {
     __CPROVER_assert( pvBuffer != NULL, "Precondition: pvBuffer != NULL" );
     NetworkBufferDescriptor_t * pxRBuf;
@@ -57,12 +58,14 @@ NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pv
     return pxRBuf;
 }
 
-NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                                 size_t xNewSizeBytes )
+NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor(
+    NetworkBufferDescriptor_t * pxNetworkBuffer,
+    size_t xNewSizeBytes )
 {
     NetworkBufferDescriptor_t * pxRBuf;
 
-    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "pxNetworkBuffer: pvBuffer != NULL" );
 
     uint8_t * pucNewBuffer = safeMalloc( xNewSizeBytes );
     __CPROVER_assume( pucNewBuffer != NULL );
@@ -85,21 +88,29 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
 void prepareReplyDNSMessage( NetworkBufferDescriptor_t * pxNetworkBuffer,
                              BaseType_t lNetLength )
 {
-    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer: pvBuffer != NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL,
+                      "pxNetworkBuffer: pvBuffer != NULL" );
 }
 
 void harness()
 {
     uint32_t ulIPAddress;
 
-    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * )
+        safeMalloc( sizeof( NetworkEndPoint_t ) );
 
     BaseType_t xDataSize;
 
-    /* When re-adjusting the buffer, (sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t )) more bytes are
-     * required to be added to the existing buffer. Make sure total bytes doesn't exceed  ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER
-     * when re-resizing. This will prevent hitting an assert if Buffer Allocation 1 is used. */
-    __CPROVER_assume( ( xDataSize != 0 ) && ( xDataSize < ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER - ( sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) ) );
+    /* When re-adjusting the buffer, (sizeof( NBNSAnswer_t ) - 2 * sizeof(
+     * uint16_t )) more bytes are required to be added to the existing buffer.
+     * Make sure total bytes doesn't exceed  ipconfigNETWORK_MTU +
+     * ipSIZE_OF_ETH_HEADER when re-resizing. This will prevent hitting an
+     * assert if Buffer Allocation 1 is used. */
+    __CPROVER_assume(
+        ( xDataSize != 0 ) &&
+        ( xDataSize <
+          ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER -
+            ( sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) ) );
 
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
     xNetworkBuffer.xDataLength = xDataSize;
@@ -113,5 +124,7 @@ void harness()
         xNetworkBuffer.pxEndPoint = NULL;
     }
 
-    DNS_TreatNBNS( xNetworkBuffer.pucEthernetBuffer, xNetworkBuffer.xDataLength, ulIPAddress );
+    DNS_TreatNBNS( xNetworkBuffer.pucEthernetBuffer,
+                   xNetworkBuffer.xDataLength,
+                   ulIPAddress );
 }

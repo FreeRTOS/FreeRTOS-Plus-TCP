@@ -4,63 +4,63 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
 
-
 /* Include Unity header */
 #include "unity.h"
 
 /* Include standard libraries */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-#include "mock_task.h"
 #include "mock_list.h"
+#include "mock_task.h"
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "mock_IP_list_macros.h"
-#include "mock_queue.h"
-#include "mock_event_groups.h"
 #include "mock_FreeRTOS_Stream_Buffer.h"
+#include "mock_IP_list_macros.h"
+#include "mock_event_groups.h"
+#include "mock_queue.h"
 
-#include "mock_FreeRTOS_IP.h"
-#include "mock_FreeRTOS_IP_Private.h"
-#include "mock_FreeRTOS_IP_Utils.h"
-#include "mock_FreeRTOS_IP_Timers.h"
-#include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_FreeRTOS_ICMP.h"
 #include "mock_FreeRTOS_ARP.h"
-#include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_DHCP.h"
-#include "mock_FreeRTOS_Sockets.h"
-#include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_DNS.h"
 #include "mock_FreeRTOS_DNS_Cache.h"
-#include "mock_FreeRTOS_UDP_IP.h"
-#include "mock_FreeRTOS_ND.h"
-#include "mock_FreeRTOS_IPv6.h"
+#include "mock_FreeRTOS_ICMP.h"
+#include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IP_Timers.h"
+#include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_IPv4.h"
+#include "mock_FreeRTOS_IPv6.h"
+#include "mock_FreeRTOS_ND.h"
+#include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_Sockets.h"
+#include "mock_FreeRTOS_TCP_IP.h"
+#include "mock_FreeRTOS_UDP_IP.h"
+#include "mock_NetworkBufferManagement.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -77,20 +77,27 @@ extern BaseType_t xNetworkDownEventPending;
 
 void prvIPTask( void * pvParameters );
 void prvProcessIPEventsAndTimers( void );
-eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
-                                             NetworkBufferDescriptor_t * const pxNetworkBuffer );
-void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+eFrameProcessingResult_t prvProcessIPPacket(
+    IPPacket_t * pxIPPacket,
+    NetworkBufferDescriptor_t * const pxNetworkBuffer );
+void prvProcessEthernetPacket(
+    NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 static BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 
 /* First IPv6 address is 2001:1234:5678::5 */
-const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
+const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78,
+                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x05 };
 
 /* Second IPv6 address is 2001:1234:5678::10 */
-const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
+const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78,
+                                       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x10 };
 
 /* MAC Address for endpoint. */
-const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
+const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef,
+                                                             0x11, 0x22, 0x33 };
 
 /* ============================ Unity Fixtures ============================ */
 
@@ -109,9 +116,10 @@ void tearDown( void )
 
 /* ======================== Stub Callback Functions ========================= */
 
-static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
-                                                       NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                                       BaseType_t xReleaseAfterSend )
+static BaseType_t NetworkInterfaceOutputFunction_Stub(
+    struct xNetworkInterface * pxDescriptor,
+    NetworkBufferDescriptor_t * const pxNetworkBuffer,
+    BaseType_t xReleaseAfterSend )
 {
     NetworkInterfaceOutputFunction_Stub_Called++;
     return 0;
@@ -119,27 +127,30 @@ static BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface 
 
 static uint8_t ReleaseTCPPayloadBuffer[ 1500 ];
 static BaseType_t ReleaseTCPPayloadBufferxByteCount = 100;
-static size_t StubuxStreamBufferGetPtr_ReturnBadAddress( StreamBuffer_t * pxBuffer,
-                                                         uint8_t ** ppucData,
-                                                         int lCounter )
+static size_t StubuxStreamBufferGetPtr_ReturnBadAddress(
+    StreamBuffer_t * pxBuffer,
+    uint8_t ** ppucData,
+    int lCounter )
 {
     *ppucData = &ReleaseTCPPayloadBuffer[ 150 ];
 
     return 0xFFFFFF;
 }
 
-static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize( StreamBuffer_t * pxBuffer,
-                                                            uint8_t ** ppucData,
-                                                            int lCounter )
+static size_t StubuxStreamBufferGetPtr_ReturnIncorrectSize(
+    StreamBuffer_t * pxBuffer,
+    uint8_t ** ppucData,
+    int lCounter )
 {
     *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
 
-    return( ReleaseTCPPayloadBufferxByteCount >> 1 );
+    return ( ReleaseTCPPayloadBufferxByteCount >> 1 );
 }
 
-static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals( StreamBuffer_t * pxBuffer,
-                                                          uint8_t ** ppucData,
-                                                          int lCounter )
+static size_t StubuxStreamBufferGetPtr_ReturnCorrectVals(
+    StreamBuffer_t * pxBuffer,
+    uint8_t ** ppucData,
+    int lCounter )
 {
     *ppucData = &ReleaseTCPPayloadBuffer[ 0 ];
 
@@ -169,7 +180,8 @@ void test_vIPNetworkUpCalls( void )
 
 /**
  * @brief test_FreeRTOS_NetworkDown_SendToIPTaskSuccessful
- * To validate if FreeRTOS_NetworkDown calls queue send when it's called from IP task.
+ * To validate if FreeRTOS_NetworkDown calls queue send when it's called from IP
+ * task.
  */
 void test_FreeRTOS_NetworkDown_SendToIPTaskSuccessful( void )
 {
@@ -186,7 +198,8 @@ void test_FreeRTOS_NetworkDown_SendToIPTaskSuccessful( void )
 
 /**
  * @brief test_FreeRTOS_NetworkDown_SendToIPTaskNotSuccessful
- * To validate if FreeRTOS_NetworkDown set network down event correctly when queue send failed.
+ * To validate if FreeRTOS_NetworkDown set network down event correctly when
+ * queue send failed.
  */
 void test_FreeRTOS_NetworkDown_SendToIPTaskNotSuccessful( void )
 {
@@ -203,7 +216,8 @@ void test_FreeRTOS_NetworkDown_SendToIPTaskNotSuccessful( void )
 
 /**
  * @brief test_FreeRTOS_NetworkDownFromISR_SendToIPTaskSuccessful
- * FreeRTOS_NetworkDownFromISR sends by xQueueGenericSendFromISR and return value is true.
+ * FreeRTOS_NetworkDownFromISR sends by xQueueGenericSendFromISR and return
+ * value is true.
  */
 void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskSuccessful( void )
 {
@@ -212,7 +226,8 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskSuccessful( void )
     struct xNetworkInterface xNetworkInterface;
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( pdPASS );
-    xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken( &xHasPriorityTaskAwoken );
+    xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken(
+        &xHasPriorityTaskAwoken );
 
     xReturn = FreeRTOS_NetworkDownFromISR( &xNetworkInterface );
 
@@ -222,7 +237,8 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskSuccessful( void )
 
 /**
  * @brief test_FreeRTOS_NetworkDownFromISR_SendToIPTaskUnsuccessful
- * To validate if FreeRTOS_NetworkDownFromISR set network down event correct when send queue failed.
+ * To validate if FreeRTOS_NetworkDownFromISR set network down event correct
+ * when send queue failed.
  */
 void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskUnsuccessful( void )
 {
@@ -231,7 +247,8 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskUnsuccessful( void )
     struct xNetworkInterface xNetworkInterface;
 
     xQueueGenericSendFromISR_ExpectAnyArgsAndReturn( pdFAIL );
-    xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken( &xHasPriorityTaskAwoken );
+    xQueueGenericSendFromISR_ReturnThruPtr_pxHigherPriorityTaskWoken(
+        &xHasPriorityTaskAwoken );
 
     xReturn = FreeRTOS_NetworkDownFromISR( &xNetworkInterface );
 
@@ -241,159 +258,219 @@ void test_FreeRTOS_NetworkDownFromISR_SendToIPTaskUnsuccessful( void )
 
 /**
  * @brief test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig
- * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network buffer with maximum block time.
+ * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network
+ * buffer with maximum block time.
  */
 void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig( void )
 {
     size_t uxRequestedSizeBytes = 300;
     TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     void * pvReturn;
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer,
+        *pxNetworkBuffer = &xNetworkBuffer;
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
     pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
     pxNetworkBuffer->xDataLength = 0;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) +
+                                                          uxRequestedSizeBytes,
+                                                      uxBlockTimeTicks,
+                                                      pxNetworkBuffer );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes,
+                                                   uxBlockTimeTicks,
+                                                   ipTYPE_IPv4 );
 
-    TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
-    TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
+    TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes,
+                       pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL_PTR(
+        &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ),
+        pvReturn );
 }
 
 /**
  * @brief test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeLessThanConfig
- * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network buffer with maximum block time - 1.
+ * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network
+ * buffer with maximum block time - 1.
  */
 void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeLessThanConfig( void )
 {
     size_t uxRequestedSizeBytes = 300;
     TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS - 1;
     void * pvReturn;
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer,
+        *pxNetworkBuffer = &xNetworkBuffer;
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
     pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
     pxNetworkBuffer->xDataLength = 0;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) +
+                                                          uxRequestedSizeBytes,
+                                                      uxBlockTimeTicks,
+                                                      pxNetworkBuffer );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes,
+                                                   uxBlockTimeTicks,
+                                                   ipTYPE_IPv4 );
 
-    TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
-    TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
+    TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes,
+                       pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL_PTR(
+        &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ),
+        pvReturn );
 }
 
 /**
  * @brief test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig
- * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network buffer with maximum block time + 1.
- * And the block time is reduced to maximum block time.
+ * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network
+ * buffer with maximum block time + 1. And the block time is reduced to maximum
+ * block time.
  */
 void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig( void )
 {
     size_t uxRequestedSizeBytes = 300;
     TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS + 1;
     void * pvReturn;
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer,
+        *pxNetworkBuffer = &xNetworkBuffer;
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
     pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
     pxNetworkBuffer->xDataLength = 0;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS, pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn(
+        sizeof( UDPPacket_t ) + uxRequestedSizeBytes,
+        ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS,
+        pxNetworkBuffer );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes,
+                                                   uxBlockTimeTicks,
+                                                   ipTYPE_IPv4 );
 
-    TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
-    TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ), pvReturn );
+    TEST_ASSERT_EQUAL( sizeof( UDPPacket_t ) + uxRequestedSizeBytes,
+                       pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL_PTR(
+        &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_t ) ] ),
+        pvReturn );
 }
 
 /**
- * @brief test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig_NULLBufferReturned
- * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return NULL when pxGetNetworkBufferWithDescriptor returns NULL.
+ * @brief
+ * test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig_NULLBufferReturned
+ * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return NULL when
+ * pxGetNetworkBufferWithDescriptor returns NULL.
  */
-void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig_NULLBufferReturned( void )
+void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeMoreThanConfig_NULLBufferReturned(
+    void )
 {
     size_t uxRequestedSizeBytes = 300;
     TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS + 1;
     void * pvReturn;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_t ) + uxRequestedSizeBytes, ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn(
+        sizeof( UDPPacket_t ) + uxRequestedSizeBytes,
+        ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS,
+        NULL );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv4 );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes,
+                                                   uxBlockTimeTicks,
+                                                   ipTYPE_IPv4 );
 
     TEST_ASSERT_NULL( pvReturn );
 }
 
 /**
  * @brief test_FreeRTOS_GetUDPPayloadBuffer_UnknownType
- * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can trigger assertion when the input type is neither IPv4 nor IPv6.
+ * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can trigger assertion when
+ * the input type is neither IPv4 nor IPv6.
  */
 void test_FreeRTOS_GetUDPPayloadBuffer_UnknownType( void )
 {
     size_t uxRequestedSizeBytes = 300;
     TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
 
-    catch_assert( FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, 0xFF ) );
+    catch_assert( FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes,
+                                                      uxBlockTimeTicks,
+                                                      0xFF ) );
 }
 
 /**
  * @brief test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig_IPv6
- * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network buffer for IPv6.
+ * To validate if FreeRTOS_GetUDPPayloadBuffer_Multi can return correct network
+ * buffer for IPv6.
  */
 void test_FreeRTOS_GetUDPPayloadBuffer_BlockTimeEqualToConfig_IPv6( void )
 {
     size_t uxRequestedSizeBytes = 300;
     TickType_t uxBlockTimeTicks = ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS;
     void * pvReturn;
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer,
+        *pxNetworkBuffer = &xNetworkBuffer;
     uint8_t pucEthernetBuffer[ 1500 ];
 
     /* Put the ethernet buffer in place. */
     pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
     pxNetworkBuffer->xDataLength = 0;
 
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( UDPPacket_IPv6_t ) + uxRequestedSizeBytes, uxBlockTimeTicks, pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof(
+                                                          UDPPacket_IPv6_t ) +
+                                                          uxRequestedSizeBytes,
+                                                      uxBlockTimeTicks,
+                                                      pxNetworkBuffer );
 
-    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes, uxBlockTimeTicks, ipTYPE_IPv6 );
+    pvReturn = FreeRTOS_GetUDPPayloadBuffer_Multi( uxRequestedSizeBytes,
+                                                   uxBlockTimeTicks,
+                                                   ipTYPE_IPv6 );
 
-    TEST_ASSERT_EQUAL( sizeof( UDPPacket_IPv6_t ) + uxRequestedSizeBytes, pxNetworkBuffer->xDataLength );
-    TEST_ASSERT_EQUAL_PTR( &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_IPv6_t ) ] ), pvReturn );
+    TEST_ASSERT_EQUAL( sizeof( UDPPacket_IPv6_t ) + uxRequestedSizeBytes,
+                       pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL_PTR(
+        &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( UDPPacket_IPv6_t ) ] ),
+        pvReturn );
 }
 
 /**
  * @brief test_FreeRTOS_ReleaseUDPPayloadBuffer
- * To validate if FreeRTOS_ReleaseUDPPayloadBuffer release the correct pointer of buffer.
+ * To validate if FreeRTOS_ReleaseUDPPayloadBuffer release the correct pointer
+ * of buffer.
  */
 void test_FreeRTOS_ReleaseUDPPayloadBuffer( void )
 {
     void * pvBuffer = ( void * ) 0xFFCDEA;
 
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( pvBuffer, ( NetworkBufferDescriptor_t * ) 0x12123434 );
-    vReleaseNetworkBufferAndDescriptor_Expect( ( NetworkBufferDescriptor_t * ) 0x12123434 );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn(
+        pvBuffer,
+        ( NetworkBufferDescriptor_t * ) 0x12123434 );
+    vReleaseNetworkBufferAndDescriptor_Expect(
+        ( NetworkBufferDescriptor_t * ) 0x12123434 );
 
     FreeRTOS_ReleaseUDPPayloadBuffer( pvBuffer );
 }
 
 /**
  * @brief test_FreeRTOS_ReleaseUDPPayloadBuffer_NullNetworkDescriptor
- * To validate if FreeRTOS_ReleaseUDPPayloadBuffer triggers assertion when network descriptor is NULL.
+ * To validate if FreeRTOS_ReleaseUDPPayloadBuffer triggers assertion when
+ * network descriptor is NULL.
  */
 void test_FreeRTOS_ReleaseUDPPayloadBuffer_NullNetworkDescriptor( void )
 {
-    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn( NULL, ( NetworkBufferDescriptor_t * ) NULL );
+    pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAndReturn(
+        NULL,
+        ( NetworkBufferDescriptor_t * ) NULL );
 
     catch_assert( FreeRTOS_ReleaseUDPPayloadBuffer( NULL ) );
 }
 
 /**
  * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert
- * The input buffer pointer must be obtained by calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag.
- * Trigger assertion if the input buffer pointer is different from pointer returned from stream buffer API.
+ * The input buffer pointer must be obtained by calling FreeRTOS_recv() with the
+ * FREERTOS_ZERO_COPY flag. Trigger assertion if the input buffer pointer is
+ * different from pointer returned from stream buffer API.
  */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
 {
@@ -404,13 +481,15 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBufferAssert( void )
 
     uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnBadAddress );
 
-    catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, xByteCount ) );
+    catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket,
+                                                    ReleaseTCPPayloadBuffer,
+                                                    xByteCount ) );
 }
 
 /**
  * @brief test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert
- * To validate if FreeRTOS_ReleaseTCPPayloadBuffer triggers assertion when available buffer size
- * is less than input length.
+ * To validate if FreeRTOS_ReleaseTCPPayloadBuffer triggers assertion when
+ * available buffer size is less than input length.
  */
 void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert( void )
 {
@@ -420,7 +499,10 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectSizeAssert( void )
 
     uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnIncorrectSize );
 
-    catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, ReleaseTCPPayloadBufferxByteCount ) );
+    catch_assert(
+        FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket,
+                                          ReleaseTCPPayloadBuffer,
+                                          ReleaseTCPPayloadBufferxByteCount ) );
 }
 
 /**
@@ -436,9 +518,16 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_IncorrectBytesReleasedAssert( void )
 
     uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnCorrectVals );
 
-    FreeRTOS_recv_ExpectAndReturn( &xSocket, NULL, ReleaseTCPPayloadBufferxByteCount, FREERTOS_MSG_DONTWAIT, ( ReleaseTCPPayloadBufferxByteCount >> 1 ) );
+    FreeRTOS_recv_ExpectAndReturn( &xSocket,
+                                   NULL,
+                                   ReleaseTCPPayloadBufferxByteCount,
+                                   FREERTOS_MSG_DONTWAIT,
+                                   ( ReleaseTCPPayloadBufferxByteCount >> 1 ) );
 
-    catch_assert( FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, ReleaseTCPPayloadBufferxByteCount ) );
+    catch_assert(
+        FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket,
+                                          ReleaseTCPPayloadBuffer,
+                                          ReleaseTCPPayloadBufferxByteCount ) );
 }
 
 /**
@@ -454,16 +543,24 @@ void test_FreeRTOS_ReleaseTCPPayloadBuffer_HappyPath( void )
 
     uxStreamBufferGetPtr_Stub( StubuxStreamBufferGetPtr_ReturnCorrectVals );
 
-    FreeRTOS_recv_ExpectAndReturn( &xSocket, NULL, ReleaseTCPPayloadBufferxByteCount, FREERTOS_MSG_DONTWAIT, ReleaseTCPPayloadBufferxByteCount );
+    FreeRTOS_recv_ExpectAndReturn( &xSocket,
+                                   NULL,
+                                   ReleaseTCPPayloadBufferxByteCount,
+                                   FREERTOS_MSG_DONTWAIT,
+                                   ReleaseTCPPayloadBufferxByteCount );
 
-    xReturn = FreeRTOS_ReleaseTCPPayloadBuffer( &xSocket, ReleaseTCPPayloadBuffer, ReleaseTCPPayloadBufferxByteCount );
+    xReturn = FreeRTOS_ReleaseTCPPayloadBuffer(
+        &xSocket,
+        ReleaseTCPPayloadBuffer,
+        ReleaseTCPPayloadBufferxByteCount );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
  * @brief test_prvIPTask
- * Check if prvIPTask() initialize functionalities and state variables as expected.
+ * Check if prvIPTask() initialize functionalities and state variables as
+ * expected.
  */
 void test_prvIPTask( void )
 {
@@ -527,7 +624,8 @@ void test_prvIPTask_NetworkDown( void )
     vCheckNetworkTimers_Ignore();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xDownEvent, sizeof( xDownEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xDownEvent,
+                                             sizeof( xDownEvent ) );
     prvProcessNetworkDownEvent_Expect( &xNetworkInterface );
 
     /* In prvIPTask. */
@@ -557,7 +655,8 @@ void test_prvProcessIPEventsAndTimers_NoEventReceived( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL
- * Check if prvProcessIPEventsAndTimers() triggers assertion when data pointer is NULL in eNetworkRxEvent.
+ * Check if prvProcessIPEventsAndTimers() triggers assertion when data pointer
+ * is NULL in eNetworkRxEvent.
  */
 void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL( void )
 {
@@ -570,19 +669,21 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
 
     catch_assert( prvProcessIPEventsAndTimers() );
 }
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eNetworkRxEvent
- * Check if prvProcessIPEventsAndTimers() triggers assertion when data pointer is NULL in eNetworkRxEvent.
+ * Check if prvProcessIPEventsAndTimers() triggers assertion when data pointer
+ * is NULL in eNetworkRxEvent.
  */
 void test_prvProcessIPEventsAndTimers_eNetworkRxEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
@@ -594,14 +695,16 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent( void )
     xReceivedEvent.eEventType = eNetworkRxEvent;
     xReceivedEvent.pvData = pxNetworkBuffer;
 
-    /* Put an unknown frame type for prvProcessEthernetPacket to release buffer directly. */
+    /* Put an unknown frame type for prvProcessEthernetPacket to release buffer
+     * directly. */
     pxEthernetHeader->usFrameType = 0xFF;
 
     /* prvProcessIPEventsAndTimers */
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
 
     /* prvProcessEthernetPacket */
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -611,13 +714,14 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eNetworkTxEvent
- * Check if prvProcessIPEventsAndTimers() transmits data through network interface with eNetworkTxEvent.
+ * Check if prvProcessIPEventsAndTimers() transmits data through network
+ * interface with eNetworkTxEvent.
  */
 void test_prvProcessIPEventsAndTimers_eNetworkTxEvent( void )
 {
     struct xNetworkInterface xInterface;
     IPStackEvent_t xReceivedEvent;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
 
     pxNetworkBuffer = &xNetworkBuffer;
@@ -626,7 +730,8 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent( void )
     pxNetworkBuffer->pxInterface = &xInterface;
 
     NetworkInterfaceOutputFunction_Stub_Called = 0;
-    pxNetworkBuffer->pxInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    pxNetworkBuffer->pxInterface
+        ->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     xReceivedEvent.eEventType = eNetworkTxEvent;
     xReceivedEvent.pvData = pxNetworkBuffer;
@@ -636,7 +741,8 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
 
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
@@ -647,13 +753,13 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eNetworkTxEvent_NullInterface
- * Check if prvProcessIPEventsAndTimers() skip transmitting data through network interface
- * when network interface pointer is NULL.
+ * Check if prvProcessIPEventsAndTimers() skip transmitting data through network
+ * interface when network interface pointer is NULL.
  */
 void test_prvProcessIPEventsAndTimers_eNetworkTxEvent_NullInterface( void )
 {
     IPStackEvent_t xReceivedEvent;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
 
     pxNetworkBuffer = &xNetworkBuffer;
@@ -671,14 +777,16 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent_NullInterface( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
 
     prvProcessIPEventsAndTimers();
 }
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eARPTimerEvent
- * Check if prvProcessIPEventsAndTimers() updates the cache for ARP/ND when timeout event triggered.
+ * Check if prvProcessIPEventsAndTimers() updates the cache for ARP/ND when
+ * timeout event triggered.
  */
 void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
 {
@@ -691,7 +799,8 @@ void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vARPAgeCache_Expect();
     vNDAgeCache_Expect();
 
@@ -700,8 +809,8 @@ void test_prvProcessIPEventsAndTimers_eARPTimerEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketBindEvent
- * To validate if prvProcessIPEventsAndTimers() binds IPv4 socket with its address/port successfully
- * with eSocketBindEvent.
+ * To validate if prvProcessIPEventsAndTimers() binds IPv4 socket with its
+ * address/port successfully with eSocketBindEvent.
  */
 void test_prvProcessIPEventsAndTimers_eSocketBindEvent( void )
 {
@@ -719,8 +828,13 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
-    vSocketBind_ExpectAndReturn( &xSocket, NULL, sizeof( struct freertos_sockaddr ), pdFALSE, 0 );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
+    vSocketBind_ExpectAndReturn( &xSocket,
+                                 NULL,
+                                 sizeof( struct freertos_sockaddr ),
+                                 pdFALSE,
+                                 0 );
     vSocketBind_IgnoreArg_pxBindAddress();
     vSocketWakeUpUser_Expect( &xSocket );
 
@@ -732,8 +846,8 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv6
- * To validate if prvProcessIPEventsAndTimers() binds IPv6 socket with its address/port successfully
- * with eSocketBindEvent.
+ * To validate if prvProcessIPEventsAndTimers() binds IPv6 socket with its
+ * address/port successfully with eSocketBindEvent.
  */
 void test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv6( void )
 {
@@ -751,8 +865,13 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv6( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
-    vSocketBind_ExpectAndReturn( &xSocket, NULL, sizeof( struct freertos_sockaddr ), pdFALSE, 0 );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
+    vSocketBind_ExpectAndReturn( &xSocket,
+                                 NULL,
+                                 sizeof( struct freertos_sockaddr ),
+                                 pdFALSE,
+                                 0 );
     vSocketBind_IgnoreArg_pxBindAddress();
     vSocketWakeUpUser_Expect( &xSocket );
 
@@ -764,7 +883,8 @@ void test_prvProcessIPEventsAndTimers_eSocketBindEvent_IPv6( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketCloseEvent
- * To validate if prvProcessIPEventsAndTimers() close socket successfully with eSocketCloseEvent.
+ * To validate if prvProcessIPEventsAndTimers() close socket successfully with
+ * eSocketCloseEvent.
  */
 void test_prvProcessIPEventsAndTimers_eSocketCloseEvent( void )
 {
@@ -781,7 +901,8 @@ void test_prvProcessIPEventsAndTimers_eSocketCloseEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vSocketClose_ExpectAndReturn( &xSocket, 0 );
 
     prvProcessIPEventsAndTimers();
@@ -789,8 +910,8 @@ void test_prvProcessIPEventsAndTimers_eSocketCloseEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eStackTxEvent
- * To validate if prvProcessIPEventsAndTimers() calls vProcessGeneratedUDPPacket() to handle
- * eStackTxEvent for sending UDP/ping.
+ * To validate if prvProcessIPEventsAndTimers() calls
+ * vProcessGeneratedUDPPacket() to handle eStackTxEvent for sending UDP/ping.
  */
 void test_prvProcessIPEventsAndTimers_eStackTxEvent( void )
 {
@@ -804,7 +925,8 @@ void test_prvProcessIPEventsAndTimers_eStackTxEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vProcessGeneratedUDPPacket_Expect( &xNetworkBuffer );
 
     prvProcessIPEventsAndTimers();
@@ -812,13 +934,14 @@ void test_prvProcessIPEventsAndTimers_eStackTxEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eDHCPEvent
- * To validate if prvProcessIPEventsAndTimers() calls vDHCPProcess() to handle eDHCPEvent.
+ * To validate if prvProcessIPEventsAndTimers() calls vDHCPProcess() to handle
+ * eDHCPEvent.
  */
 void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
     uint32_t ulDHCPEvent = 0x1234;
-    NetworkEndPoint_t xEndPoints, * pxEndPoints = &xEndPoints;
+    NetworkEndPoint_t xEndPoints, *pxEndPoints = &xEndPoints;
 
     memset( pxEndPoints, 0, sizeof( NetworkEndPoint_t ) );
     pxEndPoints->bits.bWantDHCP = pdTRUE_UNSIGNED;
@@ -831,7 +954,8 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vDHCPProcess_Expect( pdFALSE, pxEndPoints );
 
     prvProcessIPEventsAndTimers();
@@ -839,7 +963,8 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketSelectEvent
- * To validate if prvProcessIPEventsAndTimers() calls vSocketSelect() to handle eSocketSelectEvent.
+ * To validate if prvProcessIPEventsAndTimers() calls vSocketSelect() to handle
+ * eSocketSelectEvent.
  */
 void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
 {
@@ -853,7 +978,8 @@ void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vSocketSelect_Expect( ( SocketSelect_t * ) ulData );
 
     prvProcessIPEventsAndTimers();
@@ -861,7 +987,8 @@ void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketSelectEvent
- * To validate if prvProcessIPEventsAndTimers() calls FreeRTOS_SignalSocket() to handle eSocketSignalEvent.
+ * To validate if prvProcessIPEventsAndTimers() calls FreeRTOS_SignalSocket() to
+ * handle eSocketSignalEvent.
  */
 void test_prvProcessIPEventsAndTimers_eSocketSignalEvent( void )
 {
@@ -875,7 +1002,8 @@ void test_prvProcessIPEventsAndTimers_eSocketSignalEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     FreeRTOS_SignalSocket_ExpectAndReturn( ( Socket_t ) ulData, 0 );
 
     prvProcessIPEventsAndTimers();
@@ -883,7 +1011,8 @@ void test_prvProcessIPEventsAndTimers_eSocketSignalEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eTCPTimerEvent
- * To validate if prvProcessIPEventsAndTimers() calls vIPSetTCPTimerExpiredState() to handle eTCPTimerEvent.
+ * To validate if prvProcessIPEventsAndTimers() calls
+ * vIPSetTCPTimerExpiredState() to handle eTCPTimerEvent.
  */
 void test_prvProcessIPEventsAndTimers_eTCPTimerEvent( void )
 {
@@ -895,7 +1024,8 @@ void test_prvProcessIPEventsAndTimers_eTCPTimerEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vIPSetTCPTimerExpiredState_Expect( pdTRUE );
 
     prvProcessIPEventsAndTimers();
@@ -903,8 +1033,8 @@ void test_prvProcessIPEventsAndTimers_eTCPTimerEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eTCPTimerEvent
- * To validate if prvProcessIPEventsAndTimers() calls xTCPCheckNewClient() to handle eTCPAcceptEvent
- * without new client comes.
+ * To validate if prvProcessIPEventsAndTimers() calls xTCPCheckNewClient() to
+ * handle eTCPAcceptEvent without new client comes.
  */
 void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NoNewClient( void )
 {
@@ -920,7 +1050,8 @@ void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NoNewClient( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     xTCPCheckNewClient_ExpectAndReturn( &xSocket, pdFALSE );
 
     prvProcessIPEventsAndTimers();
@@ -930,8 +1061,8 @@ void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NoNewClient( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eTCPTimerEvent
- * To validate if prvProcessIPEventsAndTimers() calls xTCPCheckNewClient() to handle eTCPAcceptEvent
- * with new client comes.
+ * To validate if prvProcessIPEventsAndTimers() calls xTCPCheckNewClient() to
+ * handle eTCPAcceptEvent with new client comes.
  */
 void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NewClient( void )
 {
@@ -947,7 +1078,8 @@ void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NewClient( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     xTCPCheckNewClient_ExpectAndReturn( &xSocket, pdTRUE );
     vSocketWakeUpUser_Expect( &xSocket );
 
@@ -958,7 +1090,8 @@ void test_prvProcessIPEventsAndTimers_eTCPAcceptEvent_NewClient( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eTCPNetStat
- * To validate if prvProcessIPEventsAndTimers() calls vTCPNetStat() to handle eTCPNetStat.
+ * To validate if prvProcessIPEventsAndTimers() calls vTCPNetStat() to handle
+ * eTCPNetStat.
  */
 void test_prvProcessIPEventsAndTimers_eTCPNetStat( void )
 {
@@ -970,7 +1103,8 @@ void test_prvProcessIPEventsAndTimers_eTCPNetStat( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vTCPNetStat_Expect();
 
     prvProcessIPEventsAndTimers();
@@ -978,7 +1112,8 @@ void test_prvProcessIPEventsAndTimers_eTCPNetStat( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent
- * To validate if prvProcessIPEventsAndTimers() calls vEventGroupDelete() to handle eSocketSetDeleteEvent.
+ * To validate if prvProcessIPEventsAndTimers() calls vEventGroupDelete() to
+ * handle eSocketSetDeleteEvent.
  */
 void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
 {
@@ -992,7 +1127,8 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vEventGroupDelete_Expect( pxSocketSet->xSelectGroup );
 
     prvProcessIPEventsAndTimers();
@@ -1000,12 +1136,15 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent( void )
 
 /**
  * @brief test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending
- * To validate if prvProcessIPEventsAndTimers() handles pending network down events at the end function.
+ * To validate if prvProcessIPEventsAndTimers() handles pending network down
+ * events at the end function.
  */
-void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void )
+void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending(
+    void )
 {
     IPStackEvent_t xReceivedEvent;
-    NetworkInterface_t xNetworkInterface[ 2 ], * pxInterface = &xNetworkInterface[ 1 ];
+    NetworkInterface_t xNetworkInterface[ 2 ],
+        *pxInterface = &xNetworkInterface[ 1 ];
     SocketSelect_t * pxSocketSet = malloc( sizeof( SocketSelect_t ) );
 
     xNetworkDownEventPending = pdTRUE;
@@ -1019,13 +1158,16 @@ void test_prvProcessIPEventsAndTimers_eSocketSetDeleteEvent_NetDownPending( void
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
     vEventGroupDelete_Expect( pxSocketSet->xSelectGroup );
 
     /* prvIPTask_CheckPendingEvents */
     FreeRTOS_FirstNetworkInterface_ExpectAndReturn( &xNetworkInterface[ 0 ] );
-    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xNetworkInterface[ 0 ], pxInterface );
-    /* Since network down event is pending, a call to this function should be expected. */
+    FreeRTOS_NextNetworkInterface_ExpectAndReturn( &xNetworkInterface[ 0 ],
+                                                   pxInterface );
+    /* Since network down event is pending, a call to this function should be
+     * expected. */
     prvProcessNetworkDownEvent_Expect( pxInterface );
     FreeRTOS_NextNetworkInterface_ExpectAndReturn( pxInterface, NULL );
 
@@ -1050,14 +1192,16 @@ void test_prvProcessIPEventsAndTimers_Error( void )
     vCheckNetworkTimers_Expect();
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
-    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent,
+                                             sizeof( xReceivedEvent ) );
 
     prvProcessIPEventsAndTimers();
 }
 
 /**
  * @brief test_FreeRTOS_SendPingRequest_HappyPath
- * To validate if FreeRTOS_SendPingRequest() prepares ping request and send an event to IP task.
+ * To validate if FreeRTOS_SendPingRequest() prepares ping request and send an
+ * event to IP task.
  */
 void test_FreeRTOS_SendPingRequest_HappyPath( void )
 {
@@ -1072,13 +1216,16 @@ void test_FreeRTOS_SendPingRequest_HappyPath( void )
      * actually block. */
     TickType_t uxBlockTimeTicks = 100;
 
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ];
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
+    uint8_t
+        pucEthernetBuffer[ ipconfigNETWORK_MTU -
+                           ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ];
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
 
-    pxICMPHeader = ( ICMPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipIP_PAYLOAD_OFFSET ] );
+    pxICMPHeader = ( ICMPHeader_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipIP_PAYLOAD_OFFSET ] );
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
     xIPTaskInitialised = pdTRUE;
@@ -1086,28 +1233,38 @@ void test_FreeRTOS_SendPingRequest_HappyPath( void )
     /* FreeRTOS_SendPingRequest */
     /* At least 4 free network buffers must be there to send a ping. */
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 4U );
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNumberOfBytesToSend + sizeof( ICMPPacket_t ), uxBlockTimeTicks, pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNumberOfBytesToSend +
+                                                          sizeof(
+                                                              ICMPPacket_t ),
+                                                      uxBlockTimeTicks,
+                                                      pxNetworkBuffer );
 
     /* xSendEventStructToIPTask */
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
     xQueueGenericSend_ExpectAnyArgsAndReturn( pdPASS );
 
-    xReturn = FreeRTOS_SendPingRequest( ulIPAddress, uxNumberOfBytesToSend, uxBlockTimeTicks );
+    xReturn = FreeRTOS_SendPingRequest( ulIPAddress,
+                                        uxNumberOfBytesToSend,
+                                        uxBlockTimeTicks );
 
     TEST_ASSERT_EQUAL( 1, xReturn );
-    TEST_ASSERT_EQUAL( 8 /* ipICMP_ECHO_REQUEST */, pxICMPHeader->ucTypeOfMessage );
+    TEST_ASSERT_EQUAL( 8 /* ipICMP_ECHO_REQUEST */,
+                       pxICMPHeader->ucTypeOfMessage );
     TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucTypeOfService );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usIdentifier );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
     TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );
-    TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT, pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
+    TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT,
+                       pxNetworkBuffer
+                           ->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
     TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( ipPACKET_CONTAINS_ICMP_DATA, pxNetworkBuffer->usPort );
 }
 
 /**
  * @brief test_FreeRTOS_SendPingRequest_SendingToIPTaskFails
- * To validate if FreeRTOS_SendPingRequest() release the ping request packet when fail to send event.
+ * To validate if FreeRTOS_SendPingRequest() release the ping request packet
+ * when fail to send event.
  */
 void test_FreeRTOS_SendPingRequest_SendingToIPTaskFails( void )
 {
@@ -1122,19 +1279,26 @@ void test_FreeRTOS_SendPingRequest_SendingToIPTaskFails( void )
      * actually block. */
     TickType_t uxBlockTimeTicks = 100;
 
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
-    uint8_t pucEthernetBuffer[ ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ];
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
+    uint8_t
+        pucEthernetBuffer[ ipconfigNETWORK_MTU -
+                           ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) ) ];
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = pucEthernetBuffer;
 
-    pxICMPHeader = ( ICMPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipIP_PAYLOAD_OFFSET ] );
+    pxICMPHeader = ( ICMPHeader_t * ) &(
+        pxNetworkBuffer->pucEthernetBuffer[ ipIP_PAYLOAD_OFFSET ] );
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
     /* FreeRTOS_SendPingRequest */
     /* At least 4 free network buffers must be there to send a ping. */
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 4U );
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNumberOfBytesToSend + sizeof( ICMPPacket_t ), uxBlockTimeTicks, pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNumberOfBytesToSend +
+                                                          sizeof(
+                                                              ICMPPacket_t ),
+                                                      uxBlockTimeTicks,
+                                                      pxNetworkBuffer );
 
     /* xSendEventStructToIPTask */
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
@@ -1143,28 +1307,36 @@ void test_FreeRTOS_SendPingRequest_SendingToIPTaskFails( void )
     /* FreeRTOS_SendPingRequest */
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
-    xReturn = FreeRTOS_SendPingRequest( ulIPAddress, uxNumberOfBytesToSend, uxBlockTimeTicks );
+    xReturn = FreeRTOS_SendPingRequest( ulIPAddress,
+                                        uxNumberOfBytesToSend,
+                                        uxBlockTimeTicks );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
-    TEST_ASSERT_EQUAL( 8 /* ipICMP_ECHO_REQUEST */, pxICMPHeader->ucTypeOfMessage );
+    TEST_ASSERT_EQUAL( 8 /* ipICMP_ECHO_REQUEST */,
+                       pxICMPHeader->ucTypeOfMessage );
     TEST_ASSERT_EQUAL( 0, pxICMPHeader->ucTypeOfService );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usIdentifier );
     TEST_ASSERT_EQUAL( 1, pxICMPHeader->usSequenceNumber );
     TEST_ASSERT_EQUAL( ipIPv4_FRAME_TYPE, pxEthernetHeader->usFrameType );
-    TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT, pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
+    TEST_ASSERT_EQUAL( FREERTOS_SO_UDPCKSUM_OUT,
+                       pxNetworkBuffer
+                           ->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] );
     TEST_ASSERT_EQUAL( ulIPAddress, pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
     TEST_ASSERT_EQUAL( ipPACKET_CONTAINS_ICMP_DATA, pxNetworkBuffer->usPort );
 }
 
 /**
  * @brief test_FreeRTOS_SendPingRequest_TooManyBytes
- * To validate if FreeRTOS_SendPingRequest() returns fail when input bytes is too large.
+ * To validate if FreeRTOS_SendPingRequest() returns fail when input bytes is
+ * too large.
  */
 void test_FreeRTOS_SendPingRequest_TooManyBytes( void )
 {
     BaseType_t xReturn;
     uint32_t ulIPAddress = 0xC0AB0101;
-    size_t uxNumberOfBytesToSend = ipconfigNETWORK_MTU - ( sizeof( IPHeader_t ) + sizeof( ICMPHeader_t ) );
+    size_t uxNumberOfBytesToSend = ipconfigNETWORK_MTU -
+                                   ( sizeof( IPHeader_t ) +
+                                     sizeof( ICMPHeader_t ) );
 
     /* The value of blocking time doesn't matter since the test doesn't
      * actually block. */
@@ -1174,7 +1346,9 @@ void test_FreeRTOS_SendPingRequest_TooManyBytes( void )
     /* At least 4 free network buffers must be there to send a ping. */
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 4U );
 
-    xReturn = FreeRTOS_SendPingRequest( ulIPAddress, uxNumberOfBytesToSend, uxBlockTimeTicks );
+    xReturn = FreeRTOS_SendPingRequest( ulIPAddress,
+                                        uxNumberOfBytesToSend,
+                                        uxBlockTimeTicks );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
@@ -1197,14 +1371,17 @@ void test_FreeRTOS_SendPingRequest_TooLessBytes( void )
     /* At least 4 free network buffers must be there to send a ping. */
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 4U );
 
-    xReturn = FreeRTOS_SendPingRequest( ulIPAddress, uxNumberOfBytesToSend, uxBlockTimeTicks );
+    xReturn = FreeRTOS_SendPingRequest( ulIPAddress,
+                                        uxNumberOfBytesToSend,
+                                        uxBlockTimeTicks );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**
  * @brief test_FreeRTOS_SendPingRequest_NotEnoughFreeBuffers
- * To validate if FreeRTOS_SendPingRequest() returns fail when buffer size is not enough for input bytes.
+ * To validate if FreeRTOS_SendPingRequest() returns fail when buffer size is
+ * not enough for input bytes.
  */
 void test_FreeRTOS_SendPingRequest_NotEnoughFreeBuffers( void )
 {
@@ -1220,14 +1397,17 @@ void test_FreeRTOS_SendPingRequest_NotEnoughFreeBuffers( void )
     /* FreeRTOS_SendPingRequest */
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 3U );
 
-    xReturn = FreeRTOS_SendPingRequest( ulIPAddress, uxNumberOfBytesToSend, uxBlockTimeTicks );
+    xReturn = FreeRTOS_SendPingRequest( ulIPAddress,
+                                        uxNumberOfBytesToSend,
+                                        uxBlockTimeTicks );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**
  * @brief test_FreeRTOS_SendPingRequest_NetworkBufferFailure
- * To validate if FreeRTOS_SendPingRequest() returns fail to get network buffer descriptor.
+ * To validate if FreeRTOS_SendPingRequest() returns fail to get network buffer
+ * descriptor.
  */
 void test_FreeRTOS_SendPingRequest_NetworkBufferFailure( void )
 {
@@ -1242,16 +1422,23 @@ void test_FreeRTOS_SendPingRequest_NetworkBufferFailure( void )
 
     /* FreeRTOS_SendPingRequest */
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 4U );
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNumberOfBytesToSend + sizeof( ICMPPacket_t ), uxBlockTimeTicks, NULL );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( uxNumberOfBytesToSend +
+                                                          sizeof(
+                                                              ICMPPacket_t ),
+                                                      uxBlockTimeTicks,
+                                                      NULL );
 
-    xReturn = FreeRTOS_SendPingRequest( ulIPAddress, uxNumberOfBytesToSend, uxBlockTimeTicks );
+    xReturn = FreeRTOS_SendPingRequest( ulIPAddress,
+                                        uxNumberOfBytesToSend,
+                                        uxBlockTimeTicks );
 
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**
  * @brief test_xSendEventToIPTask
- * To validate if xSendEventToIPTask() returns fail when IP task was not initialized.
+ * To validate if xSendEventToIPTask() returns fail when IP task was not
+ * initialized.
  */
 void test_xSendEventToIPTask( void )
 {
@@ -1267,8 +1454,8 @@ void test_xSendEventToIPTask( void )
 
 /**
  * @brief test_xSendEventStructToIPTask_IPTaskNotInit_NoNetworkDownEvent
- * To validate if xSendEventToIPTask() returns fail when IP task was not initialized
- * and the event is not eNetworkDownEvent.
+ * To validate if xSendEventToIPTask() returns fail when IP task was not
+ * initialized and the event is not eNetworkDownEvent.
  */
 void test_xSendEventStructToIPTask_IPTaskNotInit_NoNetworkDownEvent( void )
 {
@@ -1287,8 +1474,8 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NoNetworkDownEvent( void )
 
 /**
  * @brief test_xSendEventStructToIPTask_IPTaskNotInit_NoNetworkDownEvent
- * To validate if xSendEventToIPTask() returns pass when the event is eNetworkDownEvent
- * even though IP task was not initialized.
+ * To validate if xSendEventToIPTask() returns pass when the event is
+ * eNetworkDownEvent even though IP task was not initialized.
  */
 void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEvent( void )
 {
@@ -1301,7 +1488,11 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEvent( void )
 
     /* xSendEventStructToIPTask */
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
-    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue, &xEvent, 0, 0, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue,
+                                       &xEvent,
+                                       0,
+                                       0,
+                                       pdPASS );
 
     xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
 
@@ -1310,8 +1501,8 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEvent( void )
 
 /**
  * @brief test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventInIPTask
- * To validate if xSendEventToIPTask() changes the timeout value to 0 when it's happening
- * in IP task.
+ * To validate if xSendEventToIPTask() changes the timeout value to 0 when it's
+ * happening in IP task.
  */
 void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventInIPTask( void )
 {
@@ -1324,7 +1515,11 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventInIPTask( void 
 
     /* xSendEventStructToIPTask */
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
-    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue, &xEvent, 0, 0, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue,
+                                       &xEvent,
+                                       0,
+                                       0,
+                                       pdPASS );
 
     xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
 
@@ -1333,10 +1528,11 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventInIPTask( void 
 
 /**
  * @brief test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTask
- * To validate if xSendEventToIPTask() returns pass when the event is eNetworkDownEvent
- * and it's not happening in IP task.
+ * To validate if xSendEventToIPTask() returns pass when the event is
+ * eNetworkDownEvent and it's not happening in IP task.
  */
-void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTask( void )
+void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTask(
+    void )
 {
     BaseType_t xReturn;
     IPStackEvent_t xEvent;
@@ -1347,7 +1543,11 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTask( void
 
     /* xSendEventStructToIPTask */
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
-    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue, &xEvent, 0, 0, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue,
+                                       &xEvent,
+                                       0,
+                                       0,
+                                       pdPASS );
 
     xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
 
@@ -1355,11 +1555,13 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTask( void
 }
 
 /**
- * @brief test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTaskTimeout
- * To validate if xSendEventToIPTask() keeps input timeout value to send event when it's
- * not happening in IP task.
+ * @brief
+ * test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTaskTimeout
+ * To validate if xSendEventToIPTask() keeps input timeout value to send event
+ * when it's not happening in IP task.
  */
-void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTaskTimeout( void )
+void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTaskTimeout(
+    void )
 {
     BaseType_t xReturn;
     IPStackEvent_t xEvent;
@@ -1370,7 +1572,11 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTaskTimeou
 
     /* xSendEventStructToIPTask */
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
-    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue, &xEvent, 10, 0, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue,
+                                       &xEvent,
+                                       10,
+                                       0,
+                                       pdPASS );
 
     xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
 
@@ -1379,7 +1585,8 @@ void test_xSendEventStructToIPTask_IPTaskNotInit_NetworkDownEventNotIPTaskTimeou
 
 /**
  * @brief test_xSendEventStructToIPTask_IPTaskInit_NetworkDownEvent
- * To validate if xSendEventToIPTask() sends eNetworkDownEvent to IP task successfully from other tasks.
+ * To validate if xSendEventToIPTask() sends eNetworkDownEvent to IP task
+ * successfully from other tasks.
  */
 void test_xSendEventStructToIPTask_IPTaskInit_NetworkDownEvent( void )
 {
@@ -1392,7 +1599,11 @@ void test_xSendEventStructToIPTask_IPTaskInit_NetworkDownEvent( void )
 
     /* xSendEventStructToIPTask */
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
-    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue, &xEvent, 10, 0, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue,
+                                       &xEvent,
+                                       10,
+                                       0,
+                                       pdPASS );
 
     xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
 
@@ -1401,8 +1612,8 @@ void test_xSendEventStructToIPTask_IPTaskInit_NetworkDownEvent( void )
 
 /**
  * @brief test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent
- * To validate if xSendEventToIPTask() sends eTCPTimerEvent to IP task successfully from other tasks
- * when no pending events in queue.
+ * To validate if xSendEventToIPTask() sends eTCPTimerEvent to IP task
+ * successfully from other tasks when no pending events in queue.
  */
 void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent( void )
 {
@@ -1417,7 +1628,11 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent( void )
     vIPSetTCPTimerExpiredState_Expect( pdTRUE );
     uxQueueMessagesWaiting_ExpectAndReturn( xNetworkEventQueue, 0 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
-    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue, &xEvent, 10, 0, pdPASS );
+    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue,
+                                       &xEvent,
+                                       10,
+                                       0,
+                                       pdPASS );
 
     xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
 
@@ -1426,7 +1641,8 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEvent( void )
 
 /**
  * @brief test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventFail
- * To validate if xSendEventToIPTask() fails to send eTCPTimerEvent to IP task from other tasks.
+ * To validate if xSendEventToIPTask() fails to send eTCPTimerEvent to IP task
+ * from other tasks.
  */
 void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventFail( void )
 {
@@ -1441,7 +1657,11 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventFail( void )
     vIPSetTCPTimerExpiredState_Expect( pdTRUE );
     uxQueueMessagesWaiting_ExpectAndReturn( xNetworkEventQueue, 0 );
     xIsCallingFromIPTask_ExpectAndReturn( pdFALSE );
-    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue, &xEvent, 10, 0, pdFAIL );
+    xQueueGenericSend_ExpectAndReturn( xNetworkEventQueue,
+                                       &xEvent,
+                                       10,
+                                       0,
+                                       pdFAIL );
 
     xReturn = xSendEventStructToIPTask( &xEvent, uxTimeout );
 
@@ -1449,11 +1669,13 @@ void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventFail( void )
 }
 
 /**
- * @brief test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventWithEventInQueue
- * To validate if xSendEventToIPTask() skip to send eTCPTimerEvent because there are
- * other pending events in queue.
+ * @brief
+ * test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventWithEventInQueue To
+ * validate if xSendEventToIPTask() skip to send eTCPTimerEvent because there
+ * are other pending events in queue.
  */
-void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventWithEventInQueue( void )
+void test_xSendEventStructToIPTask_IPTaskInit_eTCPTimerEventWithEventInQueue(
+    void )
 {
     BaseType_t xReturn;
     IPStackEvent_t xEvent;
@@ -1486,13 +1708,13 @@ void test_eConsiderFrameForProcessing_NullBufferDescriptor( void )
 
 /**
  * @brief test_eConsiderFrameForProcessing_LocalMACMatch
- * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
- * matches endpoint's MAC address and the frame type is valid.
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address
+ * in packet matches endpoint's MAC address and the frame type is valid.
  */
 void test_eConsiderFrameForProcessing_LocalMACMatch( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
@@ -1506,7 +1728,9 @@ void test_eConsiderFrameForProcessing_LocalMACMatch( void )
 
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes,
+            pxEndPoint->xMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = FreeRTOS_htons( 0x0800 );
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1516,13 +1740,13 @@ void test_eConsiderFrameForProcessing_LocalMACMatch( void )
 
 /**
  * @brief test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType
- * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is unknown
- * even though the MAC address in packet matches endpoint's MAC address.
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is
+ * unknown even though the MAC address in packet matches endpoint's MAC address.
  */
 void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
@@ -1536,7 +1760,9 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType( void )
 
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes,
+            pxEndPoint->xMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = FreeRTOS_htons( 0 );
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1546,13 +1772,13 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType( void )
 
 /**
  * @brief test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType1
- * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is unknown
- * even though the MAC address in packet matches endpoint's MAC address.
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the frame type is
+ * unknown even though the MAC address in packet matches endpoint's MAC address.
  */
 void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType1( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
@@ -1566,7 +1792,9 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType1( void )
 
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes,
+            pxEndPoint->xMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = 0x0600;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1576,8 +1804,8 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType1( void )
 
 /**
  * @brief test_eConsiderFrameForProcessing_BroadCastMACMatch
- * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
- * matches broadcast MAC address and the frame type is valid.
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address
+ * in packet matches broadcast MAC address and the frame type is valid.
  */
 void test_eConsiderFrameForProcessing_BroadCastMACMatch( void )
 {
@@ -1593,7 +1821,9 @@ void test_eConsiderFrameForProcessing_BroadCastMACMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1603,8 +1833,8 @@ void test_eConsiderFrameForProcessing_BroadCastMACMatch( void )
 
 /**
  * @brief test_eConsiderFrameForProcessing_BroadCastMACMatch
- * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
- * matches LLMNR MAC address and the frame type is valid.
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address
+ * in packet matches LLMNR MAC address and the frame type is valid.
  */
 void test_eConsiderFrameForProcessing_LLMNR_MACMatch( void )
 {
@@ -1620,7 +1850,9 @@ void test_eConsiderFrameForProcessing_LLMNR_MACMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes,
+            xLLMNR_MacAdress.ucBytes,
+            sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1648,7 +1880,9 @@ void test_eConsiderFrameForProcessing_NotMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, &xMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes,
+            &xMACAddress,
+            sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1658,8 +1892,8 @@ void test_eConsiderFrameForProcessing_NotMatch( void )
 
 /**
  * @brief test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch
- * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
- * matches IPv6 broadcast MAC address and the frame type is valid.
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address
+ * in packet matches IPv6 broadcast MAC address and the frame type is valid.
  */
 void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
 {
@@ -1675,8 +1909,10 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
-    pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
+    pxEthernetHeader->xDestinationAddress
+        .ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+    pxEthernetHeader->xDestinationAddress
+        .ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
@@ -1686,8 +1922,8 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
 
 /**
  * @brief test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch
- * eConsiderFrameForProcessing must return eReleaseBuffer when the MAC address in packet
- * doesn't matches IPv6 broadcast MAC address.
+ * eConsiderFrameForProcessing must return eReleaseBuffer when the MAC address
+ * in packet doesn't matches IPv6 broadcast MAC address.
  */
 void test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch( void )
 {
@@ -1703,7 +1939,8 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+    pxEthernetHeader->xDestinationAddress
+        .ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
     pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = 0x00;
     pxEthernetHeader->usFrameType = 0xFFFF;
 
@@ -1714,8 +1951,8 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_NoData
- * To validate if prvProcessEthernetPacket calls vReleaseNetworkBufferAndDescriptor
- * to release the network buffer descriptor.
+ * To validate if prvProcessEthernetPacket calls
+ * vReleaseNetworkBufferAndDescriptor to release the network buffer descriptor.
  */
 void test_prvProcessEthernetPacket_NoData( void )
 {
@@ -1732,7 +1969,8 @@ void test_prvProcessEthernetPacket_NoData( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_NullNetworkBufferDescriptor
- * To validate if prvProcessEthernetPacket triggers assertion when input is NULL.
+ * To validate if prvProcessEthernetPacket triggers assertion when input is
+ * NULL.
  */
 void test_prvProcessEthernetPacket_NullNetworkBufferDescriptor( void )
 {
@@ -1741,8 +1979,9 @@ void test_prvProcessEthernetPacket_NullNetworkBufferDescriptor( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_UnknownFrameType
- * To validate if prvProcessEthernetPacket calls vReleaseNetworkBufferAndDescriptor
- * to release the network buffer descriptor when the ethernet frame type is unknown.
+ * To validate if prvProcessEthernetPacket calls
+ * vReleaseNetworkBufferAndDescriptor to release the network buffer descriptor
+ * when the ethernet frame type is unknown.
  */
 void test_prvProcessEthernetPacket_UnknownFrameType( void )
 {
@@ -1765,7 +2004,8 @@ void test_prvProcessEthernetPacket_UnknownFrameType( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType1
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eReleaseBuffer.
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns
+ * eReleaseBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType1( void )
 {
@@ -1792,7 +2032,8 @@ void test_prvProcessEthernetPacket_ARPFrameType1( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType2
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eProcessBuffer.
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns
+ * eProcessBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType2( void )
 {
@@ -1819,8 +2060,8 @@ void test_prvProcessEthernetPacket_ARPFrameType2( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
- * without pxARPWaitingNetworkBuffer.
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns
+ * eWaitingARPResolution without pxARPWaitingNetworkBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
 {
@@ -1849,8 +2090,8 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eWaitingARPResolution
- * with pxARPWaitingNetworkBuffer.
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns
+ * eWaitingARPResolution with pxARPWaitingNetworkBuffer.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
 {
@@ -1879,11 +2120,12 @@ void test_prvProcessEthernetPacket_ARPFrameType_WaitingARPResolution2( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eReturnEthernetFrame.
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns
+ * eReturnEthernetFrame.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
 {
-    struct xNetworkInterface xInterface, * pxInterface = &xInterface;
+    struct xNetworkInterface xInterface, *pxInterface = &xInterface;
     NetworkBufferDescriptor_t xNetworkBuffer, xARPWaitingBuffer;
     NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
@@ -1894,7 +2136,8 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    xEndPoint.pxNetworkInterface
+        ->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
@@ -1914,7 +2157,8 @@ void test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_eReturnEthernetFrame
- * To validate the flow to handle ARP packets but eARPProcessPacket() returns eFrameConsumed.
+ * To validate the flow to handle ARP packets but eARPProcessPacket() returns
+ * eFrameConsumed.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
 {
@@ -1939,8 +2183,8 @@ void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_ARPFrameType_SmallerDataLength
- * To validate the flow to handle ARP packets but the data length is smaller than
- * minimum size of ARP packet.
+ * To validate the flow to handle ARP packets but the data length is smaller
+ * than minimum size of ARP packet.
  */
 void test_prvProcessEthernetPacket_ARPFrameType_SmallerDataLength( void )
 {
@@ -1965,8 +2209,8 @@ void test_prvProcessEthernetPacket_ARPFrameType_SmallerDataLength( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_IPv4FrameType_LessData
- * To validate the flow to handle IPv4 packets but the data length is smaller than
- * minimum size of IPv4 packet.
+ * To validate the flow to handle IPv4 packets but the data length is smaller
+ * than minimum size of IPv4 packet.
  */
 void test_prvProcessEthernetPacket_IPv4FrameType_LessData( void )
 {
@@ -1991,8 +2235,8 @@ void test_prvProcessEthernetPacket_IPv4FrameType_LessData( void )
 
 /**
  * @brief test_prvProcessEthernetPacket_IPv4FrameType_AptData
- * To validate the flow to handle IPv4 packets but the length in IP header is smaller than
- * minimum requirement.
+ * To validate the flow to handle IPv4 packets but the length in IP header is
+ * smaller than minimum requirement.
  */
 void test_prvProcessEthernetPacket_IPv4FrameType_AptData( void )
 {
@@ -2022,13 +2266,13 @@ void test_prvProcessEthernetPacket_IPv4FrameType_AptData( void )
 
 /**
  * @brief test_prvProcessIPPacket_HeaderLengthSmaller
- * To validate the flow to handle IPv4 packets but the length in IP header is smaller than
- * minimum requirement.
+ * To validate the flow to handle IPv4 packets but the length in IP header is
+ * smaller than minimum requirement.
  */
 void test_prvProcessIPPacket_HeaderLengthSmaller( void )
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPPacket_t * pxIPPacket;
     IPHeader_t * pxIPHeader;
@@ -2050,14 +2294,14 @@ void test_prvProcessIPPacket_HeaderLengthSmaller( void )
 
 /**
  * @brief test_prvProcessIPPacket_HeaderLengthGreater
- * To validate the flow to handle IPv4 packets but the length in IP header is greater than
- * network buffer size.
+ * To validate the flow to handle IPv4 packets but the length in IP header is
+ * greater than network buffer size.
  */
 void test_prvProcessIPPacket_HeaderLengthGreater( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2088,7 +2332,7 @@ void test_prvProcessIPPacket_UnknownFrameType( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2113,7 +2357,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2127,12 +2371,18 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2148,7 +2398,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2163,13 +2413,19 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x46;
     pxIPHeader->ucProtocol = 0xFF;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
@@ -2181,13 +2437,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
 
 /**
  * @brief test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease
- * To validate the flow to handle a valid ICMPv4 packet. Then ProcessICMPPacket() returns eReleaseBuffer.
+ * To validate the flow to handle a valid ICMPv4 packet. Then
+ * ProcessICMPPacket() returns eReleaseBuffer.
  */
 void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2202,13 +2459,19 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x46;
     pxIPHeader->ucProtocol = ipPROTOCOL_ICMP;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
@@ -2221,13 +2484,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease( void )
 
 /**
  * @brief test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPProcess
- * To validate the flow to handle a valid ICMPv4 packet. Then ProcessICMPPacket() returns eProcessBuffer.
+ * To validate the flow to handle a valid ICMPv4 packet. Then
+ * ProcessICMPPacket() returns eProcessBuffer.
  */
 void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPProcess( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2242,13 +2506,19 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPProcess( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x46;
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_ICMP;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
@@ -2267,7 +2537,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPZeroLength( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
@@ -2283,7 +2553,9 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPZeroLength( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x46;
@@ -2293,7 +2565,11 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPZeroLength( void )
     pxUDPPacket = ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_htons( 0 );
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2302,15 +2578,17 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPZeroLength( void )
 }
 
 /**
- * @brief test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader
- * To validate the flow to handle a UDPv4 packet when length of UDP header is greater
- * than the length in IP header.
+ * @brief
+ * test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader To
+ * validate the flow to handle a UDPv4 packet when length of UDP header is
+ * greater than the length in IP header.
  */
-void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader( void )
+void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader(
+    void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
@@ -2327,7 +2605,9 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader( 
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
@@ -2335,10 +2615,15 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPLengthGreaterThanIPHeader( 
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     /* Initialize UDP layer. */
-    /* The length in IP header contains IP header + UDP. So UDP length shouldn't be same as length in IP header. */
+    /* The length in IP header contains IP header + UDP. So UDP length shouldn't
+     * be same as length in IP header. */
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_htons( ipconfigTCP_MSS );
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2353,7 +2638,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPHappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
@@ -2370,7 +2655,9 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPHappyPath( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
@@ -2380,7 +2667,11 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPHappyPath( void )
     /* Initialize UDP layer. */
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2390,13 +2681,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPHappyPath( void )
 
 /**
  * @brief test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail
- * To validate the flow to handle a valid UDPv4 packet but got failure while calling xProcessReceivedUDPPacket().
+ * To validate the flow to handle a valid UDPv4 packet but got failure while
+ * calling xProcessReceivedUDPPacket().
  */
 void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
@@ -2413,7 +2705,9 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
@@ -2423,7 +2717,11 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail( void )
     /* Initialize UDP layer. */
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdFAIL );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2433,14 +2731,14 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail( void )
 
 /**
  * @brief test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail
- * To validate the flow to handle a valid UDPv4 packet but got failure while calling xProcessReceivedUDPPacket()
- * because of waiting ARP resolution.
+ * To validate the flow to handle a valid UDPv4 packet but got failure while
+ * calling xProcessReceivedUDPPacket() because of waiting ARP resolution.
  */
 void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
@@ -2459,7 +2757,9 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
@@ -2469,29 +2769,43 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     /* Initialize UDP layer. */
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
+    xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer,
+                                               pxUDPPacket->xUDPHeader
+                                                   .usDestinationPort,
+                                               NULL,
+                                               pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
-    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
+    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution(
+        &xReturnValue );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
-    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) - sizeof( UDPHeader_t ) + sizeof( UDPPacket_t ), pxNetworkBuffer->xDataLength );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ) -
+                           sizeof( UDPHeader_t ) + sizeof( UDPPacket_t ),
+                       pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort,
+                       pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4,
+                       pxUDPPacket->xIPHeader.ulSourceIPAddress );
 }
 
 /**
  * @brief test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail
- * To validate the flow to handle a valid UDPv4 packet but got failure while calling xProcessReceivedUDPPacket()
- * because of waiting ARP resolution. And the network buffer size is small than UDP header.
+ * To validate the flow to handle a valid UDPv4 packet but got failure while
+ * calling xProcessReceivedUDPPacket() because of waiting ARP resolution. And
+ * the network buffer size is small than UDP header.
  */
 void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     UDPPacket_t * pxUDPPacket;
@@ -2509,7 +2823,9 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
@@ -2519,27 +2835,39 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     /* Initialize UDP layer. */
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
+    xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer,
+                                               pxUDPPacket->xUDPHeader
+                                                   .usDestinationPort,
+                                               NULL,
+                                               pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
-    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
+    xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution(
+        &xReturnValue );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort, pxUDPPacket->xUDPHeader.usSourcePort );
-    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4, pxUDPPacket->xIPHeader.ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->usPort,
+                       pxUDPPacket->xUDPHeader.usSourcePort );
+    TEST_ASSERT_EQUAL( pxNetworkBuffer->xIPAddress.ulIP_IPv4,
+                       pxUDPPacket->xIPHeader.ulSourceIPAddress );
 }
 
 /**
  * @brief test_prvProcessIPPacket_TCP
- * To validate the flow to handle a valid TCPv4 packet and no ARP resolution needed.
+ * To validate the flow to handle a valid TCPv4 packet and no ARP resolution
+ * needed.
  */
 void test_prvProcessIPPacket_TCP( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
@@ -2556,14 +2884,20 @@ void test_prvProcessIPPacket_TCP( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdPASS );
@@ -2576,14 +2910,14 @@ void test_prvProcessIPPacket_TCP( void )
 
 /**
  * @brief test_prvProcessIPPacket_TCPProcessFail
- * To validate the flow to handle a valid TCPv4 packet and no ARP resolution needed.
- * Got failure while calling xProcessReceivedTCPPacket().
+ * To validate the flow to handle a valid TCPv4 packet and no ARP resolution
+ * needed. Got failure while calling xProcessReceivedTCPPacket().
  */
 void test_prvProcessIPPacket_TCPProcessFail( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
@@ -2601,14 +2935,20 @@ void test_prvProcessIPPacket_TCPProcessFail( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->usLength = FreeRTOS_htons( ipconfigTCP_MSS );
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdFAIL );
@@ -2628,7 +2968,7 @@ void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2643,14 +2983,21 @@ void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 );
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl(
+        ipFIRST_LOOPBACK_IPv4 );
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2666,7 +3013,7 @@ void test_prvProcessIPPacket_UDP_GreaterLoopbackAddress( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2681,14 +3028,20 @@ void test_prvProcessIPPacket_UDP_GreaterLoopbackAddress( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipLAST_LOOPBACK_IPv4 );
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2704,7 +3057,7 @@ void test_prvProcessIPPacket_UDP_LessLoopbackAddress( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2719,14 +3072,21 @@ void test_prvProcessIPPacket_UDP_LessLoopbackAddress( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            xBroadcastMACAddress.ucBytes,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 - 1 );
+    pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( ipFIRST_LOOPBACK_IPv4 -
+                                                         1 );
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
-    prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    prvAllowIPPacketIPv4_ExpectAndReturn(
+        pxIPPacket,
+        pxNetworkBuffer,
+        ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2,
+        eProcessBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2742,7 +3102,7 @@ void test_prvProcessIPPacket_UDP_IPHeaderLengthTooLarge( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
 
@@ -2776,7 +3136,7 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
     UDPPacket_IPv6_t * pxUDPPacket;
@@ -2794,17 +3154,24 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
     pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            ucMACAddress,
+            sizeof( MACAddress_t ) );
 
     /* Initialize IP layer. */
     pxIPHeader->ucVersionTrafficClass = 0x60;
-    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) -
+                                  sizeof( IPPacket_IPv6_t );
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
 
     /* Initialize UDP layer. */
-    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs(
+        FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
 
-    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader,
+                                          pxNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER,
+                                          eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 0 );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
@@ -2815,13 +3182,14 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
 
 /**
  * @brief test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath
- * To validate the flow to handle a UDPv6 packet with extension header successfully.
+ * To validate the flow to handle a UDPv6 packet with extension header
+ * successfully.
  */
 void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
     UDPPacket_IPv6_t * pxUDPPacket;
@@ -2839,24 +3207,37 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
     pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            ucMACAddress,
+            sizeof( MACAddress_t ) );
 
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
-    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) -
+                                  sizeof( IPPacket_IPv6_t );
 
     /* Packet not meant for this node. */
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes,
+            xIPAddressTen.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes,
+            xIPAddressFive.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
 
-    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs(
+        FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
 
-    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader,
+                                          pxNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER,
+                                          eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 1 );
-    eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eProcessBuffer );
+    eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer,
+                                                 pdTRUE,
+                                                 eProcessBuffer );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2866,14 +3247,14 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
 
 /**
  * @brief test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail
- * To validate the flow to handle a UDPv6 packet with extension header but got failure
- * while handling extension header.
+ * To validate the flow to handle a UDPv6 packet with extension header but got
+ * failure while handling extension header.
  */
 void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
@@ -2892,22 +3273,35 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
-    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) -
+                                  sizeof( IPPacket_IPv6_t );
 
     /* Packet not meant for this node. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            ucMACAddress,
+            sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes,
+            xIPAddressTen.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes,
+            xIPAddressFive.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_UDP;
 
-    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
+    pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs(
+        FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( UDPPacket_IPv6_t ) );
 
-    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader,
+                                          pxNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER,
+                                          eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 1 );
-    eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eReleaseBuffer );
+    eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer,
+                                                 pdTRUE,
+                                                 eReleaseBuffer );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2922,7 +3316,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
@@ -2941,18 +3335,28 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
-    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) -
+                                  sizeof( IPPacket_IPv6_t );
 
     /* Packet not meant for this node. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            ucMACAddress,
+            sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes,
+            xIPAddressTen.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes,
+            xIPAddressFive.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
 
-    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader,
+                                          pxNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER,
+                                          eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
@@ -2972,7 +3376,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
@@ -2991,18 +3395,28 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
-    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) -
+                                  sizeof( IPPacket_IPv6_t );
 
     /* Packet not meant for this node. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            ucMACAddress,
+            sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes,
+            xIPAddressTen.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes,
+            xIPAddressFive.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_TCP;
 
-    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader,
+                                          pxNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER,
+                                          eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
@@ -3019,7 +3433,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
@@ -3038,18 +3452,28 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
-    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) - sizeof( IPPacket_IPv6_t );
+    pxIPHeader->usPayloadLength = FreeRTOS_htons( ipconfigTCP_MSS ) -
+                                  sizeof( IPPacket_IPv6_t );
 
     /* Packet not meant for this node. */
-    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
-    memcpy( pxIPHeader->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxIPHeader->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes,
+            ucMACAddress,
+            sizeof( MACAddress_t ) );
+    memcpy( pxIPHeader->xSourceAddress.ucBytes,
+            xIPAddressTen.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxIPHeader->xDestinationAddress.ucBytes,
+            xIPAddressFive.ucBytes,
+            ipSIZE_OF_IPv6_ADDRESS );
 
     /* Set the protocol to be IPv6 UDP. */
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
 
-    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
+    prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader,
+                                          pxNetworkBuffer,
+                                          ipSIZE_OF_IPv6_HEADER,
+                                          eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_ICMP_IPv6, 0U, 0 );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
@@ -3067,7 +3491,7 @@ void test_prvProcessIPPacket_IPv6_LessPacketSize( void )
 {
     eFrameProcessingResult_t eResult;
     IPPacket_IPv6_t * pxIPPacket;
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     UBaseType_t uxHeaderLength = 0;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_IPv6_t * pxIPHeader;
@@ -3089,16 +3513,16 @@ void test_prvProcessIPPacket_IPv6_LessPacketSize( void )
 
 /**
  * @brief test_vReturnEthernetFrame
- * To validate if vReturnEthernetFrame changes the source/destination MAC addresses correctly
- * and transmits though network interface.
+ * To validate if vReturnEthernetFrame changes the source/destination MAC
+ * addresses correctly and transmits though network interface.
  */
 void test_vReturnEthernetFrame( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdFALSE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
@@ -3108,44 +3532,64 @@ void test_vReturnEthernetFrame( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
-    memset( pxEndPoint->xMACAddress.ucBytes, 0x11, sizeof( pxEndPoint->xMACAddress ) );
+    xEndPoint.pxNetworkInterface
+        ->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    memset( pxEndPoint->xMACAddress.ucBytes,
+            0x11,
+            sizeof( pxEndPoint->xMACAddress ) );
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    memset( &pxEthernetHeader->xDestinationAddress, 0, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memset( &pxEthernetHeader->xDestinationAddress,
+            0,
+            sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress,
+            0x22,
+            sizeof( pxEthernetHeader->xSourceAddress ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
 
-    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(
+        pxNetworkBuffer->pxEndPoint );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
-    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0x11, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
-    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES,
+                       pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EACH_EQUAL_UINT8(
+        0,
+        &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ],
+        10 );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22,
+                                  &pxEthernetHeader->xDestinationAddress,
+                                  sizeof(
+                                      pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x11,
+                                  &pxEthernetHeader->xSourceAddress,
+                                  sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes,
+                              &pxEthernetHeader->xSourceAddress,
+                              sizeof( pxEthernetHeader->xSourceAddress ) );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 /**
  * @brief test_vReturnEthernetFrame_DataLenMoreThanRequired
- * To validate if vReturnEthernetFrame changes the source/destination MAC addresses correctly
- * and transmits though network interface. And the buffer length is equal to ipconfigETHERNET_MINIMUM_PACKET_BYTES.
+ * To validate if vReturnEthernetFrame changes the source/destination MAC
+ * addresses correctly and transmits though network interface. And the buffer
+ * length is equal to ipconfigETHERNET_MINIMUM_PACKET_BYTES.
  */
 void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdFALSE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
@@ -3153,41 +3597,56 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    xEndPoint.pxNetworkInterface
+        ->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memset( &pxEthernetHeader->xDestinationAddress,
+            0x11,
+            sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress,
+            0x22,
+            sizeof( pxEthernetHeader->xSourceAddress ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
-    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(
+        pxNetworkBuffer->pxEndPoint );
 
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
-    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAA, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES,
+                       pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EACH_EQUAL_UINT8(
+        0xAA,
+        &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ],
+        10 );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22,
+                                  &pxEthernetHeader->xDestinationAddress,
+                                  sizeof(
+                                      pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes,
+                              &pxEthernetHeader->xSourceAddress,
+                              sizeof( pxEthernetHeader->xSourceAddress ) );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 /**
  * @brief test_vReturnEthernetFrame_ReleaseAfterSend
- * To validate if vReturnEthernetFrame changes the source/destination MAC addresses correctly
- * and send the event to IP task.
+ * To validate if vReturnEthernetFrame changes the source/destination MAC
+ * addresses correctly and send the event to IP task.
  */
 void test_vReturnEthernetFrame_ReleaseAfterSend( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdTRUE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
@@ -3197,18 +3656,24 @@ void test_vReturnEthernetFrame_ReleaseAfterSend( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    xEndPoint.pxNetworkInterface
+        ->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memset( &pxEthernetHeader->xDestinationAddress,
+            0x11,
+            sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress,
+            0x22,
+            sizeof( pxEthernetHeader->xSourceAddress ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
-    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(
+        pxNetworkBuffer->pxEndPoint );
 
     xIPTaskInitialised = pdTRUE;
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
@@ -3217,24 +3682,32 @@ void test_vReturnEthernetFrame_ReleaseAfterSend( void )
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAA, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8(
+        0xAA,
+        &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ],
+        10 );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22,
+                                  &pxEthernetHeader->xDestinationAddress,
+                                  sizeof(
+                                      pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes,
+                              &pxEthernetHeader->xSourceAddress,
+                              sizeof( pxEthernetHeader->xSourceAddress ) );
     TEST_ASSERT_EQUAL( 0, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 /**
  * @brief test_vReturnEthernetFrame_ReleaseAfterSendFail
- * To validate if vReturnEthernetFrame changes the source/destination MAC addresses correctly
- * but fail to send the event to IP task.
+ * To validate if vReturnEthernetFrame changes the source/destination MAC
+ * addresses correctly but fail to send the event to IP task.
  */
 void test_vReturnEthernetFrame_ReleaseAfterSendFail( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdTRUE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
@@ -3244,18 +3717,24 @@ void test_vReturnEthernetFrame_ReleaseAfterSendFail( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    xEndPoint.pxNetworkInterface
+        ->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memset( &pxEthernetHeader->xDestinationAddress,
+            0x11,
+            sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress,
+            0x22,
+            sizeof( pxEthernetHeader->xSourceAddress ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
-    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(
+        pxNetworkBuffer->pxEndPoint );
 
     xIPTaskInitialised = pdTRUE;
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
@@ -3265,24 +3744,32 @@ void test_vReturnEthernetFrame_ReleaseAfterSendFail( void )
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
 
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0xAA, &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ], 10 );
-    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EACH_EQUAL_UINT8(
+        0xAA,
+        &ucEthBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10 ],
+        10 );
+    TEST_ASSERT_EACH_EQUAL_UINT8( 0x22,
+                                  &pxEthernetHeader->xDestinationAddress,
+                                  sizeof(
+                                      pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes,
+                              &pxEthernetHeader->xSourceAddress,
+                              sizeof( pxEthernetHeader->xSourceAddress ) );
     TEST_ASSERT_EQUAL( 0, NetworkInterfaceOutputFunction_Stub_Called );
 }
 
 /**
  * @brief test_vReturnEthernetFrame_NeitherIPTaskNorReleaseAfterSend
- * To validate if vReturnEthernetFrame triggers assertion when it's neither called from IP task
- * nor ReleaseAfterSend.
+ * To validate if vReturnEthernetFrame triggers assertion when it's neither
+ * called from IP task nor ReleaseAfterSend.
  */
 void test_vReturnEthernetFrame_NeitherIPTaskNorReleaseAfterSend( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdFALSE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkEndPoint_t xEndPoint, *pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
@@ -3292,18 +3779,24 @@ void test_vReturnEthernetFrame_NeitherIPTaskNorReleaseAfterSend( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->pxEndPoint = pxEndPoint;
     xEndPoint.pxNetworkInterface = &xInterfaces;
-    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    xEndPoint.pxNetworkInterface
+        ->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memset( &pxEthernetHeader->xDestinationAddress,
+            0x11,
+            sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress,
+            0x22,
+            sizeof( pxEthernetHeader->xSourceAddress ) );
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
 
-    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxNetworkBuffer->pxEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn(
+        pxNetworkBuffer->pxEndPoint );
 
     xIPTaskInitialised = pdTRUE;
     xIsCallingFromIPTask_IgnoreAndReturn( pdFALSE );
@@ -3317,7 +3810,7 @@ void test_vReturnEthernetFrame_NeitherIPTaskNorReleaseAfterSend( void )
  */
 void test_vReturnEthernetFrame_UnknownFrameType( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdFALSE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
@@ -3333,8 +3826,12 @@ void test_vReturnEthernetFrame_UnknownFrameType( void )
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memset( &pxEthernetHeader->xDestinationAddress,
+            0x11,
+            sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress,
+            0x22,
+            sizeof( pxEthernetHeader->xSourceAddress ) );
     pxEthernetHeader->usFrameType = 0xFF;
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
@@ -3346,11 +3843,12 @@ void test_vReturnEthernetFrame_UnknownFrameType( void )
 
 /**
  * @brief test_vReturnEthernetFrame_IPv6NoEndpoint
- * To validate if vReturnEthernetFrame handles IPv6 ethernet frame without endpoint.
+ * To validate if vReturnEthernetFrame handles IPv6 ethernet frame without
+ * endpoint.
  */
 void test_vReturnEthernetFrame_IPv6NoEndpoint( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    NetworkBufferDescriptor_t *pxNetworkBuffer, xNetworkBuffer;
     BaseType_t xReleaseAfterSend = pdFALSE;
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
@@ -3366,8 +3864,12 @@ void test_vReturnEthernetFrame_IPv6NoEndpoint( void )
     memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
-    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+    memset( &pxEthernetHeader->xDestinationAddress,
+            0x11,
+            sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress,
+            0x22,
+            sizeof( pxEthernetHeader->xSourceAddress ) );
     pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
@@ -3377,7 +3879,8 @@ void test_vReturnEthernetFrame_IPv6NoEndpoint( void )
 
 /**
  * @brief test_FreeRTOS_GetIPAddress
- * To validate if FreeRTOS_GetIPAddress returns correct IP address stored in first endpoint.
+ * To validate if FreeRTOS_GetIPAddress returns correct IP address stored in
+ * first endpoint.
  */
 void test_FreeRTOS_GetIPAddress( void )
 {
@@ -3436,7 +3939,8 @@ void test_FreeRTOS_GetIPAddress_NullEndpoint( void )
 
 /**
  * @brief test_FreeRTOS_GetIPAddress_MultipleEndpoints
- * To validate if FreeRTOS_GetIPAddress returns IP address of first IPv4 endpoint.
+ * To validate if FreeRTOS_GetIPAddress returns IP address of first IPv4
+ * endpoint.
  */
 void test_FreeRTOS_GetIPAddress_MultipleEndpoints( void )
 {
@@ -3450,7 +3954,9 @@ void test_FreeRTOS_GetIPAddress_MultipleEndpoints( void )
     xEndPoints[ 1 ].ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL,
+                                           &xEndPoints[ 0 ],
+                                           &xEndPoints[ 1 ] );
 
     ulIPAddress = FreeRTOS_GetIPAddress();
 
@@ -3472,7 +3978,9 @@ void test_FreeRTOS_GetIPAddress_NoValidEndpoints( void )
     xEndPoints[ 1 ].bits.bIPv6 = pdTRUE;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL,
+                                           &xEndPoints[ 0 ],
+                                           &xEndPoints[ 1 ] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 1 ], NULL );
 
     ulIPAddress = FreeRTOS_GetIPAddress();
@@ -3493,15 +4001,21 @@ void test_CastingFunctions( void )
     const TCPPacket_t * pxConstTCPPacket = ( ( const TCPPacket_t * ) pvPtr );
     TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pvPtr );
     ProtocolPacket_t * pxProtPacket = ( ( ProtocolPacket_t * ) pvPtr );
-    const ProtocolPacket_t * pxConstProtPacket = ( ( const ProtocolPacket_t * ) pvPtr );
+    const ProtocolPacket_t * pxConstProtPacket = ( (
+        const ProtocolPacket_t * ) pvPtr );
     const SocketSelect_t * pxSockSelPtr = ( ( const SocketSelect_t * ) pvPtr );
-    const SocketSelectMessage_t * pxConstSockSelMsgPtr = ( ( const SocketSelectMessage_t * ) pvPtr );
-    SocketSelectMessage_t * pxSockSelMsgPtr = ( ( SocketSelectMessage_t * ) pvPtr );
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) pvPtr );
+    const SocketSelectMessage_t * pxConstSockSelMsgPtr = ( (
+        const SocketSelectMessage_t * ) pvPtr );
+    SocketSelectMessage_t * pxSockSelMsgPtr = ( (
+        SocketSelectMessage_t * ) pvPtr );
+    NetworkBufferDescriptor_t * pxNetworkBuffer = ( (
+        NetworkBufferDescriptor_t * ) pvPtr );
     ListItem_t * pxList = ( ( ListItem_t * ) pvPtr );
     const ListItem_t * pxConstList = ( ( const ListItem_t * ) pvPtr );
-    const FreeRTOS_Socket_t * pxSocket = ( ( const FreeRTOS_Socket_t * ) pvPtr );
-    const ProtocolHeaders_t * pxConstProtHeader = ( ( const ProtocolHeaders_t * ) pvPtr );
+    const FreeRTOS_Socket_t * pxSocket = ( (
+        const FreeRTOS_Socket_t * ) pvPtr );
+    const ProtocolHeaders_t * pxConstProtHeader = ( (
+        const ProtocolHeaders_t * ) pvPtr );
     ProtocolHeaders_t * pxProtHeader = ( ( ProtocolHeaders_t * ) pvPtr );
 }
 
@@ -3517,7 +4031,8 @@ void test_FreeRTOS_IPInit_Multi_NoInterface( void )
 
 /**
  * @brief test_FreeRTOS_GetEndPointConfiguration_AllSettings
- * To validate if FreeRTOS_GetEndPointConfiguration() returns all settings in endpoint.
+ * To validate if FreeRTOS_GetEndPointConfiguration() returns all settings in
+ * endpoint.
  */
 void test_FreeRTOS_GetEndPointConfiguration_AllSettings( void )
 {
@@ -3534,7 +4049,11 @@ void test_FreeRTOS_GetEndPointConfiguration_AllSettings( void )
     xEndPoint.ipv4_settings.ulGatewayAddress = 3;
     xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
-    FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    FreeRTOS_GetEndPointConfiguration( &ulIPAddress,
+                                       &ulNetMask,
+                                       &ulGatewayAddress,
+                                       &ulDNSServerAddress,
+                                       &xEndPoint );
     TEST_ASSERT_EQUAL( 1, ulIPAddress );
     TEST_ASSERT_EQUAL( 2, ulNetMask );
     TEST_ASSERT_EQUAL( 3, ulGatewayAddress );
@@ -3543,7 +4062,8 @@ void test_FreeRTOS_GetEndPointConfiguration_AllSettings( void )
 
 /**
  * @brief test_FreeRTOS_GetEndPointConfiguration_AllSettings
- * To validate if FreeRTOS_GetEndPointConfiguration() supports NULL pointers in API.
+ * To validate if FreeRTOS_GetEndPointConfiguration() supports NULL pointers in
+ * API.
  */
 void test_FreeRTOS_GetEndPointConfiguration_AllNull( void )
 {
@@ -3574,7 +4094,11 @@ void test_FreeRTOS_GetEndPointConfiguration_IPv6Endpoint( void )
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
     xEndPoint.bits.bIPv6 = pdTRUE;
 
-    FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    FreeRTOS_GetEndPointConfiguration( &ulIPAddress,
+                                       &ulNetMask,
+                                       &ulGatewayAddress,
+                                       &ulDNSServerAddress,
+                                       &xEndPoint );
     TEST_ASSERT_EQUAL( 0, ulIPAddress );
     TEST_ASSERT_EQUAL( 0, ulNetMask );
     TEST_ASSERT_EQUAL( 0, ulGatewayAddress );
@@ -3592,7 +4116,11 @@ void test_FreeRTOS_GetEndPointConfiguration_NullEndpoint( void )
     uint32_t ulGatewayAddress = 0;
     uint32_t ulDNSServerAddress = 0;
 
-    FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, NULL );
+    FreeRTOS_GetEndPointConfiguration( &ulIPAddress,
+                                       &ulNetMask,
+                                       &ulGatewayAddress,
+                                       &ulDNSServerAddress,
+                                       NULL );
     TEST_ASSERT_EQUAL( 0, ulIPAddress );
     TEST_ASSERT_EQUAL( 0, ulNetMask );
     TEST_ASSERT_EQUAL( 0, ulGatewayAddress );
@@ -3601,7 +4129,8 @@ void test_FreeRTOS_GetEndPointConfiguration_NullEndpoint( void )
 
 /**
  * @brief test_FreeRTOS_SetEndPointConfiguration_AllSettings
- * To validate if FreeRTOS_SetEndPointConfiguration() sets all settings in endpoint correctly.
+ * To validate if FreeRTOS_SetEndPointConfiguration() sets all settings in
+ * endpoint correctly.
  */
 void test_FreeRTOS_SetEndPointConfiguration_AllSettings( void )
 {
@@ -3613,7 +4142,11 @@ void test_FreeRTOS_SetEndPointConfiguration_AllSettings( void )
 
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    FreeRTOS_SetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    FreeRTOS_SetEndPointConfiguration( &ulIPAddress,
+                                       &ulNetMask,
+                                       &ulGatewayAddress,
+                                       &ulDNSServerAddress,
+                                       &xEndPoint );
     TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
     TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
     TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
@@ -3635,7 +4168,8 @@ void test_FreeRTOS_SetEndPointConfiguration_AllNull( void )
 
 /**
  * @brief test_FreeRTOS_SetEndPointConfiguration_IPv6Endpoint
- * To validate if FreeRTOS_SetEndPointConfiguration() returns 0 when endpoint is not IPv4.
+ * To validate if FreeRTOS_SetEndPointConfiguration() returns 0 when endpoint is
+ * not IPv4.
  */
 void test_FreeRTOS_SetEndPointConfiguration_IPv6Endpoint( void )
 {
@@ -3648,7 +4182,11 @@ void test_FreeRTOS_SetEndPointConfiguration_IPv6Endpoint( void )
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
     xEndPoint.bits.bIPv6 = pdTRUE;
 
-    FreeRTOS_SetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
+    FreeRTOS_SetEndPointConfiguration( &ulIPAddress,
+                                       &ulNetMask,
+                                       &ulGatewayAddress,
+                                       &ulDNSServerAddress,
+                                       &xEndPoint );
     TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulIPAddress );
     TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulNetMask );
     TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulGatewayAddress );
@@ -3672,7 +4210,7 @@ void test_FreeRTOS_SetEndPointConfiguration_NullEndpoint( void )
 void test_FreeRTOS_IsNetworkUp()
 {
     BaseType_t xReturn;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t xEndpoint, *pxEndpoint = &xEndpoint;
 
     memset( pxEndpoint, 0, sizeof( xEndpoint ) );
     pxEndpoint->bits.bEndPointUp = pdTRUE;
@@ -3692,7 +4230,7 @@ void test_FreeRTOS_IsNetworkUp()
 void test_FreeRTOS_IsEndPointUp()
 {
     BaseType_t xReturn;
-    NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    NetworkEndPoint_t xEndpoint, *pxEndpoint = &xEndpoint;
 
     memset( pxEndpoint, 0, sizeof( xEndpoint ) );
     pxEndpoint->bits.bEndPointUp = pdTRUE;

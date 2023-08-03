@@ -3,9 +3,8 @@
 #include "queue.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
 #include "FreeRTOS_ARP.h"
-
+#include "FreeRTOS_IP.h"
 
 void harness()
 {

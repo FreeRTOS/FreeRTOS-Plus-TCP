@@ -4,22 +4,23 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -59,8 +60,8 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
 {
     uint32_t ulMSS = ipconfigTCP_MSS;
 
-    #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-        char cIPv6Address[ 40 ];
+    #if( ipconfigHAS_DEBUG_PRINTF == 1 )
+    char cIPv6Address[ 40 ];
     #endif
 
     const NetworkEndPoint_t * pxEndPoint = NULL;
@@ -70,7 +71,8 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
         if( pxSocket == NULL )
         {
             /* If NULL socket handler, skip all following steps. */
-            FreeRTOS_debug_printf( ( "prvSocketSetMSS_IPV6: NULL socket handler\n" ) );
+            FreeRTOS_debug_printf(
+                ( "prvSocketSetMSS_IPV6: NULL socket handler\n" ) );
 
             break;
         }
@@ -82,34 +84,45 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
             /* Compared to IPv4, an IPv6 header is 20 bytes longer.
              * It must be subtracted from the MSS. */
             size_t uxDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
-            /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
-            #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-                {
-                    ulMSS = ipconfigTCP_MSS;
-                }
-            #else
-                {
-                    ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-                }
-            #endif
+    /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
+    #if( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
+            {
+                ulMSS = ipconfigTCP_MSS;
+            }
+    #else
+            {
+                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+            }
+    #endif
 
             ulMSS -= uxDifference;
-            IPv6_Type_t eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
+            IPv6_Type_t eType = xIPv6_GetIPType(
+                &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
 
             if( eType == eIPv6_Global )
             {
                 /* The packet will travel through Internet, make the MSS
                  * smaller. */
-                ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+                ulMSS = FreeRTOS_min_uint32( ( uint32_t )
+                                                 tcpREDUCED_MSS_THROUGH_INTERNET,
+                                             ulMSS );
             }
         }
 
-        #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-            {
-                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, cIPv6Address, sizeof( cIPv6Address ) );
-                FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %s ip port %u\n", ( unsigned ) ulMSS, cIPv6Address, pxSocket->u.xTCP.usRemotePort ) );
-            }
-        #endif
+    #if( ipconfigHAS_DEBUG_PRINTF == 1 )
+        {
+            ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                         ( const void * ) pxSocket->u.xTCP
+                                             .xRemoteIP.xIP_IPv6.ucBytes,
+                                         cIPv6Address,
+                                         sizeof( cIPv6Address ) );
+            FreeRTOS_debug_printf(
+                ( "prvSocketSetMSS: %u bytes for %s ip port %u\n",
+                  ( unsigned ) ulMSS,
+                  cIPv6Address,
+                  pxSocket->u.xTCP.usRemotePort ) );
+        }
+    #endif
 
         pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
     } while( ipFALSE_BOOL );

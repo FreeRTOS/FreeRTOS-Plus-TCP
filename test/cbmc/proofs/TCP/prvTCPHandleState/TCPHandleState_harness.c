@@ -69,23 +69,32 @@ void harness()
     if( ensure_memory_is_valid( pxSocket, socketSize ) )
     {
         /* ucOptionLength is the number of valid bytes in ulOptionsData[].
-         * ulOptionsData[] is initialized as uint32_t ulOptionsData[ipSIZE_TCP_OPTIONS/sizeof(uint32_t)].
-         * This assumption is required for a memcpy function that copies uxOptionsLength
-         * data from pxTCPHeader->ucOptdata to pxTCPWindow->ulOptionsData.*/
-        __CPROVER_assume( pxSocket->u.xTCP.xTCPWindow.ucOptionLength == sizeof( uint32_t ) * ipSIZE_TCP_OPTIONS / sizeof( uint32_t ) );
-        /* uxRxWinSize is initialized as size_t. This assumption is required to terminate `while(uxWinSize > 0xfffful)` loop.*/
-        __CPROVER_assume( pxSocket->u.xTCP.uxRxWinSize >= 0 && pxSocket->u.xTCP.uxRxWinSize <= sizeof( size_t ) );
-        /* uxRxWinSize is initialized as uint16_t. This assumption is required to terminate `while(uxWinSize > 0xfffful)` loop.*/
+         * ulOptionsData[] is initialized as uint32_t
+         * ulOptionsData[ipSIZE_TCP_OPTIONS/sizeof(uint32_t)]. This assumption
+         * is required for a memcpy function that copies uxOptionsLength data
+         * from pxTCPHeader->ucOptdata to pxTCPWindow->ulOptionsData.*/
+        __CPROVER_assume( pxSocket->u.xTCP.xTCPWindow.ucOptionLength ==
+                          sizeof( uint32_t ) * ipSIZE_TCP_OPTIONS /
+                              sizeof( uint32_t ) );
+        /* uxRxWinSize is initialized as size_t. This assumption is required to
+         * terminate `while(uxWinSize > 0xfffful)` loop.*/
+        __CPROVER_assume( pxSocket->u.xTCP.uxRxWinSize >= 0 &&
+                          pxSocket->u.xTCP.uxRxWinSize <= sizeof( size_t ) );
+        /* uxRxWinSize is initialized as uint16_t. This assumption is required
+         * to terminate `while(uxWinSize > 0xfffful)` loop.*/
         __CPROVER_assume( pxSocket->u.xTCP.usMSS == sizeof( uint16_t ) );
 
         if( xIsCallingFromIPTask() == pdFALSE )
         {
-            __CPROVER_assume( pxSocket->u.xTCP.bits.bPassQueued == pdFALSE_UNSIGNED );
-            __CPROVER_assume( pxSocket->u.xTCP.bits.bPassAccept == pdFALSE_UNSIGNED );
+            __CPROVER_assume( pxSocket->u.xTCP.bits.bPassQueued ==
+                              pdFALSE_UNSIGNED );
+            __CPROVER_assume( pxSocket->u.xTCP.bits.bPassAccept ==
+                              pdFALSE_UNSIGNED );
         }
     }
 
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     size_t bufferSize = sizeof( NetworkBufferDescriptor_t );
 
     FreeRTOS_Socket_t xSck;
@@ -94,12 +103,14 @@ void harness()
     if( ensure_memory_is_valid( pxNetworkBuffer, bufferSize ) )
     {
         /* Allocates min. buffer size required for the proof */
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket ) );
+        pxNetworkBuffer->pucEthernetBuffer = safeMalloc(
+            sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket ) );
     }
 
     if( ensure_memory_is_valid( pxSocket, socketSize ) &&
         ensure_memory_is_valid( pxNetworkBuffer, bufferSize ) &&
-        ensure_memory_is_valid( pxNetworkBuffer->pucEthernetBuffer, sizeof( TCPPacket_t ) ) &&
+        ensure_memory_is_valid( pxNetworkBuffer->pucEthernetBuffer,
+                                sizeof( TCPPacket_t ) ) &&
         ensure_memory_is_valid( pxSocket->u.xTCP.pxPeerSocket, socketSize ) )
     {
         publicTCPHandleState( pxSocket, &pxNetworkBuffer );

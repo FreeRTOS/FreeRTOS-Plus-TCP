@@ -33,21 +33,24 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_Stream_Buffer.h"
+#include "FreeRTOS_TCP_IP.h"
 
 #include "../../utility/memory_assignments.c"
 
-/* This proof assumes that pxGetNetworkBufferWithDescriptor is implemented correctly. */
+/* This proof assumes that pxGetNetworkBufferWithDescriptor is implemented
+ * correctly. */
 int32_t publicTCPPrepareSend( FreeRTOS_Socket_t * pxSocket,
                               NetworkBufferDescriptor_t ** ppxNetworkBuffer,
                               UBaseType_t uxOptionsLength );
 
 /* Abstraction of pxGetNetworkBufferWithDescriptor. It creates a buffer. */
-NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
-                                                              TickType_t xBlockTimeTicks )
+NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor(
+    size_t xRequestedSizeBytes,
+    TickType_t xBlockTimeTicks )
 {
-    NetworkBufferDescriptor_t * pxBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t *
+        pxBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     size_t bufferSize = sizeof( NetworkBufferDescriptor_t );
 
     if( ensure_memory_is_valid( pxBuffer, bufferSize ) )
@@ -77,10 +80,12 @@ void harness()
     pxSocket->u.xTCP.txStream = malloc( sizeof( StreamBuffer_t ) );
     pxSocket->u.xTCP.pxPeerSocket = malloc( sizeof( FreeRTOS_Socket_t ) );
 
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t *
+        pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
     size_t socketSize = sizeof( FreeRTOS_Socket_t );
     /* Allocates min. buffer size required for the proof */
-    size_t bufferSize = sizeof( TCPPacket_t ) + uxIPHeaderSizeSocket( pxSocket );
+    size_t bufferSize = sizeof( TCPPacket_t ) +
+                        uxIPHeaderSizeSocket( pxSocket );
 
     if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
     {

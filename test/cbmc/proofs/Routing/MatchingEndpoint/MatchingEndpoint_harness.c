@@ -41,19 +41,22 @@
 
 void harness()
 {
-    NetworkInterface_t * pxNetworkInterface = safeMalloc( sizeof( NetworkInterface_t ) );
+    NetworkInterface_t * pxNetworkInterface = safeMalloc(
+        sizeof( NetworkInterface_t ) );
     uint8_t * pcNetworkBuffer = safeMalloc( sizeof( ProtocolPacket_t ) + 4 );
     ProtocolPacket_t * pxProtocolPacket;
 
     __CPROVER_assume( pcNetworkBuffer != NULL );
 
-    pxProtocolPacket = ( ProtocolPacket_t * ) ( ( uintptr_t ) ( pcNetworkBuffer ) + 2U );
+    pxProtocolPacket = ( ProtocolPacket_t * ) ( ( uintptr_t ) ( pcNetworkBuffer ) +
+                                                2U );
     __CPROVER_assume( pxProtocolPacket != NULL );
 
-    /* For this proof, its assumed that the endpoints and interfaces are correctly
-     * initialised and the pointers are set correctly. */
+    /* For this proof, its assumed that the endpoints and interfaces are
+     * correctly initialised and the pointers are set correctly. */
 
-    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) safeMalloc(
+        sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoints != NULL );
 
     /* Interface init. */
@@ -62,15 +65,18 @@ void harness()
 
     if( nondet_bool() )
     {
-        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) safeMalloc(
+            sizeof( NetworkEndPoint_t ) );
         __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
         pxNetworkEndPoints->pxNext->pxNext = NULL;
-        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
+        pxNetworkEndPoints->pxNext
+            ->pxNetworkInterface = pxNetworkEndPoints->pxNetworkInterface;
     }
     else
     {
         pxNetworkEndPoints->pxNext = NULL;
     }
 
-    FreeRTOS_MatchingEndpoint( pxNetworkInterface, ( const uint8_t * ) ( pxProtocolPacket ) );
+    FreeRTOS_MatchingEndpoint( pxNetworkInterface,
+                               ( const uint8_t * ) ( pxProtocolPacket ) );
 }

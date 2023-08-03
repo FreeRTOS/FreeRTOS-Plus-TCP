@@ -2,22 +2,23 @@
  * FreeRTOS+TCP V2.3.1
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
@@ -30,25 +31,25 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_DNS.h"
 #include "FreeRTOS_ARP.h"
+#include "FreeRTOS_DNS.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_Routing.h"
+#include "FreeRTOS_Sockets.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
 /* Some files from the Atmel Software Framework */
 /* gmac_SAM.[ch] is a combination of the gmac.[ch] for both SAM4E and SAME70. */
 #include "gmac_SAM.h"
-#include <sysclk.h>
 #include "phyHandling.h"
+#include <sysclk.h>
 
 /* This file is included to see if 'CONF_BOARD_ENABLE_CACHE' is defined. */
 #include "conf_board.h"
@@ -59,87 +60,99 @@
  * For now, NETWORK_BUFFERS_CACHED should be defined as zero.
  * D-cache may be enabled.
  */
-#if ( NETWORK_BUFFERS_CACHED != 0 )
+#if( NETWORK_BUFFERS_CACHED != 0 )
     #error please define this macro as zero
 #endif
 
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future
  * expansion. */
-#define EMAC_IF_RX_EVENT     1UL
-#define EMAC_IF_TX_EVENT     2UL
-#define EMAC_IF_ERR_EVENT    4UL
-#define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
+#define EMAC_IF_RX_EVENT  1UL
+#define EMAC_IF_TX_EVENT  2UL
+#define EMAC_IF_ERR_EVENT 4UL
+#define EMAC_IF_ALL_EVENT \
+    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
 #ifndef EMAC_MAX_BLOCK_TIME_MS
 
 /* The task 'prvEMACHandlerTask()' will wake-up every 100 ms, to see
  * if something has to be done, mostly checking if the PHY has a
  * change in Link Status. */
-    #define EMAC_MAX_BLOCK_TIME_MS    100ul
+    #define EMAC_MAX_BLOCK_TIME_MS 100ul
 #endif
 
-#if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
+#if( ipconfigZERO_COPY_RX_DRIVER == 0 )
     #error This driver works optimal if ipconfigZERO_COPY_RX_DRIVER is defined as 1
 #endif
 
-#if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
+#if( ipconfigZERO_COPY_TX_DRIVER == 0 )
     #error This driver works optimal if ipconfigZERO_COPY_TX_DRIVER is defined as 1
 #endif
 
 /* Default the size of the stack used by the EMAC deferred handler task to 4x
- *  the size of the stack used by the idle task - but allow this to be overridden in
- *  FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
+ *  the size of the stack used by the idle task - but allow this to be
+ * overridden in FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user
+ * definable constant. */
 #ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 4 * configMINIMAL_STACK_SIZE )
+    #define configEMAC_TASK_STACK_SIZE ( 4 * configMINIMAL_STACK_SIZE )
 #endif
 
 #ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
+    #define niEMAC_HANDLER_TASK_PRIORITY configMAX_PRIORITIES - 1
 #endif
 
-#if ( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE )
+#if( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && \
+    defined( CONF_BOARD_ENABLE_CACHE )
     #include "core_cm7.h"
 
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+    #if( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning This driver assumes the presence of DCACHE
     #endif
 
-    #define     CACHE_LINE_SIZE               32
-    #define     NETWORK_BUFFER_HEADER_SIZE    ( ipconfigPACKET_FILLER_SIZE + 8 )
+    #define CACHE_LINE_SIZE            32
+    #define NETWORK_BUFFER_HEADER_SIZE ( ipconfigPACKET_FILLER_SIZE + 8 )
 
-    static void cache_clean_invalidate()
-    {
-        /* If you application crashes here, make sure that SCB_EnableDCache() has been called. */
-        SCB_CleanInvalidateDCache();
-    }
-    /*-----------------------------------------------------------*/
+static void cache_clean_invalidate()
+{
+    /* If you application crashes here, make sure that SCB_EnableDCache() has
+     * been called. */
+    SCB_CleanInvalidateDCache();
+}
+/*-----------------------------------------------------------*/
 
-    static void cache_clean_invalidate_by_addr( uint32_t addr,
-                                                uint32_t size )
-    {
-        /* SAME70 does not have clean/invalidate per area. */
-        SCB_CleanInvalidateDCache_by_Addr( ( uint32_t * ) addr, size );
-    }
-    /*-----------------------------------------------------------*/
+static void cache_clean_invalidate_by_addr( uint32_t addr, uint32_t size )
+{
+    /* SAME70 does not have clean/invalidate per area. */
+    SCB_CleanInvalidateDCache_by_Addr( ( uint32_t * ) addr, size );
+}
+/*-----------------------------------------------------------*/
 
-    static void cache_invalidate_by_addr( uint32_t addr,
-                                          uint32_t size )
-    {
-        /* SAME70 does not have clean/invalidate per area. */
-        SCB_InvalidateDCache_by_Addr( ( uint32_t * ) addr, size );
-    }
-    /*-----------------------------------------------------------*/
+static void cache_invalidate_by_addr( uint32_t addr, uint32_t size )
+{
+    /* SAME70 does not have clean/invalidate per area. */
+    SCB_InvalidateDCache_by_Addr( ( uint32_t * ) addr, size );
+}
+/*-----------------------------------------------------------*/
 
 #else /* The DMA buffers are located in non-cached RAM. */
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+    #if( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning Sure there is no caching?
     #endif
 
-    #define     cache_clean_invalidate()                        do {} while( 0 )
-    #define     cache_clean_invalidate_by_addr( addr, size )    do {} while( 0 )
-    #define     cache_invalidate_by_addr( addr, size )          do {} while( 0 )
-#endif /* if ( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE ) */
+    #define cache_clean_invalidate() \
+        do                           \
+        {                            \
+        } while( 0 )
+    #define cache_clean_invalidate_by_addr( addr, size ) \
+        do                                               \
+        {                                                \
+        } while( 0 )
+    #define cache_invalidate_by_addr( addr, size ) \
+        do                                         \
+        {                                          \
+        } while( 0 )
+#endif /* if ( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && \
+          defined( CONF_BOARD_ENABLE_CACHE ) */
 
 /*-----------------------------------------------------------*/
 
@@ -159,17 +172,16 @@ static BaseType_t xPHY_Write( BaseType_t xAddress,
                               BaseType_t xRegister,
                               uint32_t ulValue );
 
-#if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) && ( ipconfigHAS_TX_CRC_OFFLOADING == 0 )
-    void vGMACGenerateChecksum( uint8_t * apBuffer,
-                                size_t uxLength );
+#if( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 1 ) && \
+    ( ipconfigHAS_TX_CRC_OFFLOADING == 0 )
+void vGMACGenerateChecksum( uint8_t * apBuffer, size_t uxLength );
 #endif
 
 /*
  * Called from the ASF GMAC driver.
  */
 void xRxCallback( uint32_t ulStatus );
-void xTxCallback( uint32_t ulStatus,
-                  uint8_t * puc_buffer );
+void xTxCallback( uint32_t ulStatus, uint8_t * puc_buffer );
 
 /*
  * A deferred interrupt handler task that processes GMAC interrupts.
@@ -186,14 +198,17 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface );
  */
 static uint32_t prvEMACRxPoll( void );
 
-static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
-static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                 NetworkBufferDescriptor_t * const pxBuffer,
-                                                 BaseType_t bReleaseAfterSend );
+static BaseType_t prvSAM_NetworkInterfaceInitialise(
+    NetworkInterface_t * pxInterface );
+static BaseType_t prvSAM_NetworkInterfaceOutput(
+    NetworkInterface_t * pxInterface,
+    NetworkBufferDescriptor_t * const pxBuffer,
+    BaseType_t bReleaseAfterSend );
 static BaseType_t prvSAM_GetPhyLinkStatus( NetworkInterface_t * pxInterface );
 
-NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                    NetworkInterface_t * pxInterface );
+NetworkInterface_t * pxSAM_FillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface );
 
 /*
  * Handle transmission errors.
@@ -210,7 +225,9 @@ static void prvAddMulticastMACAddress( const uint8_t * ucMacAddress );
 static BaseType_t xGMACSwitchRequired;
 
 /* LLMNR multicast address. */
-static const uint8_t llmnr_mac_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+static const uint8_t llmnr_mac_address[] = {
+    0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC
+};
 
 /* The GMAC object as defined by the ASF drivers. */
 static gmac_device_t gs_gmac_dev;
@@ -219,8 +236,8 @@ static gmac_device_t gs_gmac_dev;
 extern const uint8_t ucMACAddress[ 6 ];
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
- * handle is used so direct notifications can be sent to the task for all EMAC/DMA
- * related interrupts. */
+ * handle is used so direct notifications can be sent to the task for all
+ * EMAC/DMA related interrupts. */
 TaskHandle_t xEMACTaskHandle = NULL;
 
 static NetworkInterface_t * pxMyInterface = NULL;
@@ -235,32 +252,32 @@ static QueueHandle_t xTxBufferQueue;
 static SemaphoreHandle_t xTXDescriptorSemaphore = NULL;
 
 /* For local use only: describe the PHY's properties: */
-const PhyProperties_t xPHYProperties =
-{
-    #if ( ipconfigETHERNET_AN_ENABLE != 0 )
-        .ucSpeed      = PHY_SPEED_AUTO,
-        .ucDuplex     = PHY_DUPLEX_AUTO,
+const PhyProperties_t xPHYProperties = {
+#if( ipconfigETHERNET_AN_ENABLE != 0 )
+    .ucSpeed = PHY_SPEED_AUTO,
+    .ucDuplex = PHY_DUPLEX_AUTO,
+#else
+    #if( ipconfigETHERNET_USE_100MB != 0 )
+    .ucSpeed = PHY_SPEED_100,
     #else
-        #if ( ipconfigETHERNET_USE_100MB != 0 )
-            .ucSpeed  = PHY_SPEED_100,
-        #else
-            .ucSpeed  = PHY_SPEED_10,
-        #endif
-
-        #if ( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
-            .ucDuplex = PHY_DUPLEX_FULL,
-        #else
-            .ucDuplex = PHY_DUPLEX_HALF,
-        #endif
-    #endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
-
-    #if ( ipconfigETHERNET_AN_ENABLE != 0 ) && ( ipconfigETHERNET_AUTO_CROSS_ENABLE != 0 )
-        .ucMDI_X      = PHY_MDIX_AUTO,
-    #elif ( ipconfigETHERNET_CROSSED_LINK != 0 )
-        .ucMDI_X      = PHY_MDIX_CROSSED,
-    #else
-        .ucMDI_X      = PHY_MDIX_DIRECT,
+    .ucSpeed = PHY_SPEED_10,
     #endif
+
+    #if( ipconfigETHERNET_USE_FULL_DUPLEX != 0 )
+    .ucDuplex = PHY_DUPLEX_FULL,
+    #else
+    .ucDuplex = PHY_DUPLEX_HALF,
+    #endif
+#endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+
+#if( ipconfigETHERNET_AN_ENABLE != 0 ) && \
+    ( ipconfigETHERNET_AUTO_CROSS_ENABLE != 0 )
+    .ucMDI_X = PHY_MDIX_AUTO,
+#elif( ipconfigETHERNET_CROSSED_LINK != 0 )
+    .ucMDI_X = PHY_MDIX_CROSSED,
+#else
+    .ucMDI_X = PHY_MDIX_DIRECT,
+#endif
 };
 
 /* All PHY handling code has now been separated from the NetworkInterface.c,
@@ -292,7 +309,10 @@ void xRxCallback( uint32_t ulStatus )
     if( ( ( ulStatus & GMAC_RSR_REC ) != 0 ) && ( xEMACTaskHandle != NULL ) )
     {
         /* let the prvEMACHandlerTask know that there was an RX event. */
-        xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_RX_EVENT, eSetBits, &( xGMACSwitchRequired ) );
+        xTaskNotifyFromISR( xEMACTaskHandle,
+                            EMAC_IF_RX_EVENT,
+                            eSetBits,
+                            &( xGMACSwitchRequired ) );
     }
 }
 /*-----------------------------------------------------------*/
@@ -310,8 +330,7 @@ void returnTxBuffer( uint8_t * puc_buffer )
     }
 }
 
-void xTxCallback( uint32_t ulStatus,
-                  uint8_t * puc_buffer )
+void xTxCallback( uint32_t ulStatus, uint8_t * puc_buffer )
 {
     if( ( xTxBufferQueue != NULL ) && ( xEMACTaskHandle != NULL ) )
     {
@@ -324,8 +343,13 @@ void xTxCallback( uint32_t ulStatus,
         }
         else
         {
-            xQueueSendFromISR( xTxBufferQueue, &puc_buffer, ( BaseType_t * ) &xGMACSwitchRequired );
-            xTaskNotifyFromISR( xEMACTaskHandle, EMAC_IF_TX_EVENT, eSetBits, &( xGMACSwitchRequired ) );
+            xQueueSendFromISR( xTxBufferQueue,
+                               &puc_buffer,
+                               ( BaseType_t * ) &xGMACSwitchRequired );
+            xTaskNotifyFromISR( xEMACTaskHandle,
+                                EMAC_IF_TX_EVENT,
+                                eSetBits,
+                                &( xGMACSwitchRequired ) );
 
             /* TX statistics. Only works when 'GMAC_STATS'
              * is defined as 1.  See gmac_SAM.h for more information. */
@@ -335,15 +359,14 @@ void xTxCallback( uint32_t ulStatus,
 }
 /*-----------------------------------------------------------*/
 
-
 /*
  *  The two standard defines 'GMAC_MAN_RW_TYPE' and 'GMAC_MAN_READ_ONLY'
  *  are incorrect.
  *  Therefore, use the following:
  */
 
-#define GMAC_MAINTENANCE_READ_ACCESS     ( 2 )
-#define GMAC_MAINTENANCE_WRITE_ACCESS    ( 1 )
+#define GMAC_MAINTENANCE_READ_ACCESS  ( 2 )
+#define GMAC_MAINTENANCE_WRITE_ACCESS ( 1 )
 
 static BaseType_t xPHY_Read( BaseType_t xAddress,
                              BaseType_t xRegister,
@@ -370,12 +393,10 @@ static BaseType_t xPHY_Read( BaseType_t xAddress,
         GMAC->GMAC_NCR |= GMAC_NCR_MPE;
     }
 
-    GMAC->GMAC_MAN = GMAC_MAN_WTN( GMAC_MAN_CODE_VALUE )
-                     | GMAC_MAN_CLTTO
-                     | GMAC_MAN_PHYA( xAddress )
-                     | GMAC_MAN_REGA( xRegister )
-                     | GMAC_MAN_OP( GMAC_MAINTENANCE_READ_ACCESS )
-                     | GMAC_MAN_DATA( ( uint16_t ) 0u );
+    GMAC->GMAC_MAN = GMAC_MAN_WTN( GMAC_MAN_CODE_VALUE ) | GMAC_MAN_CLTTO |
+                     GMAC_MAN_PHYA( xAddress ) | GMAC_MAN_REGA( xRegister ) |
+                     GMAC_MAN_OP( GMAC_MAINTENANCE_READ_ACCESS ) |
+                     GMAC_MAN_DATA( ( uint16_t ) 0u );
 
     if( gmac_wait_phy( GMAC, MAC_PHY_RETRY_MAX ) == GMAC_TIMEOUT )
     {
@@ -426,12 +447,10 @@ static BaseType_t xPHY_Write( BaseType_t xAddress,
         GMAC->GMAC_NCR |= GMAC_NCR_MPE;
     }
 
-    GMAC->GMAC_MAN = GMAC_MAN_WTN( GMAC_MAN_CODE_VALUE )
-                     | GMAC_MAN_CLTTO
-                     | GMAC_MAN_PHYA( xAddress )
-                     | GMAC_MAN_REGA( xRegister )
-                     | GMAC_MAN_OP( GMAC_MAINTENANCE_WRITE_ACCESS )
-                     | GMAC_MAN_DATA( ( uint16_t ) ulValue );
+    GMAC->GMAC_MAN = GMAC_MAN_WTN( GMAC_MAN_CODE_VALUE ) | GMAC_MAN_CLTTO |
+                     GMAC_MAN_PHYA( xAddress ) | GMAC_MAN_REGA( xRegister ) |
+                     GMAC_MAN_OP( GMAC_MAINTENANCE_WRITE_ACCESS ) |
+                     GMAC_MAN_DATA( ( uint16_t ) ulValue );
 
     if( gmac_wait_phy( GMAC, MAC_PHY_RETRY_MAX ) == GMAC_TIMEOUT )
     {
@@ -452,7 +471,8 @@ static BaseType_t xPHY_Write( BaseType_t xAddress,
 }
 /*-----------------------------------------------------------*/
 
-static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
+static BaseType_t prvSAM_NetworkInterfaceInitialise(
+    NetworkInterface_t * pxInterface )
 {
     const TickType_t x5_Seconds = 5000UL;
 
@@ -464,7 +484,12 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 
         /* The handler task is created at the highest possible priority to
          * ensure the interrupt handler can return directly to it. */
-        xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+        xTaskCreate( prvEMACHandlerTask,
+                     "EMAC",
+                     configEMAC_TASK_STACK_SIZE,
+                     NULL,
+                     niEMAC_HANDLER_TASK_PRIORITY,
+                     &xEMACTaskHandle );
         configASSERT( xEMACTaskHandle );
         pxMyInterface = pxInterface;
     }
@@ -479,7 +504,9 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
     {
         /* When there are N TX descriptors, we want to use
          * at most "N-1" simultaneously. */
-        xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) GMAC_TX_BUFFERS - 1U, ( UBaseType_t ) GMAC_TX_BUFFERS - 1U );
+        xTXDescriptorSemaphore = xSemaphoreCreateCounting(
+            ( UBaseType_t ) GMAC_TX_BUFFERS - 1U,
+            ( UBaseType_t ) GMAC_TX_BUFFERS - 1U );
         configASSERT( xTXDescriptorSemaphore );
     }
 
@@ -489,34 +516,39 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && \
+    ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
-/* Do not call the following function directly. It is there for downward compatibility.
- * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
- * objects.  See the description in FreeRTOS_Routing.h. */
-    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                    NetworkInterface_t * pxInterface )
-    {
-        pxSAM_FillInterfaceDescriptor( xEMACIndex, pxInterface );
-    }
+/* Do not call the following function directly. It is there for downward
+ * compatibility. The function FreeRTOS_IPInit() will call it to initialice the
+ * interface and end-point objects.  See the description in FreeRTOS_Routing.h.
+ */
+NetworkInterface_t * pxFillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface )
+{
+    pxSAM_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+}
 
 #endif
 /*-----------------------------------------------------------*/
 
-NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                    NetworkInterface_t * pxInterface )
+NetworkInterface_t * pxSAM_FillInterfaceDescriptor(
+    BaseType_t xEMACIndex,
+    NetworkInterface_t * pxInterface )
 {
     static char pcName[ 8 ];
 
-/* This function pxSAM_FillInterfaceDescriptor() adds a network-interface.
- * Make sure that the object pointed to by 'pxInterface'
- * is declared static or global, and that it will remain to exist. */
+    /* This function pxSAM_FillInterfaceDescriptor() adds a network-interface.
+     * Make sure that the object pointed to by 'pxInterface'
+     * is declared static or global, and that it will remain to exist. */
 
     snprintf( pcName, sizeof( pcName ), "GMAC%ld", xEMACIndex );
 
     memset( pxInterface, '\0', sizeof( *pxInterface ) );
-    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
-    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pcName = pcName; /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the
+                                                        driver functions. */
     pxInterface->pfInitialise = prvSAM_NetworkInterfaceInitialise;
     pxInterface->pfOutput = prvSAM_NetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = prvSAM_GetPhyLinkStatus;
@@ -553,11 +585,11 @@ static BaseType_t prvSAM_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 /*-----------------------------------------------------------*/
 
 /** The GMAC TX errors to handle */
-#define GMAC_TX_ERRORS    ( GMAC_TSR_TFC | GMAC_TSR_HRESP )
+#define GMAC_TX_ERRORS ( GMAC_TSR_TFC | GMAC_TSR_HRESP )
 
 static void hand_tx_errors( void )
 {
-/* Handle GMAC underrun or AHB errors. */
+    /* Handle GMAC underrun or AHB errors. */
     if( gmac_get_tx_status( GMAC ) & GMAC_TX_ERRORS )
     {
         gmac_enable_transmit( GMAC, false );
@@ -573,11 +605,12 @@ static void hand_tx_errors( void )
 
 volatile IPPacket_t * pxSendPacket;
 
-static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
-                                                 NetworkBufferDescriptor_t * const pxDescriptor,
-                                                 BaseType_t bReleaseAfterSend )
+static BaseType_t prvSAM_NetworkInterfaceOutput(
+    NetworkInterface_t * pxInterface,
+    NetworkBufferDescriptor_t * const pxDescriptor,
+    BaseType_t bReleaseAfterSend )
 {
-/* Do not wait too long for a free TX DMA buffer. */
+    /* Do not wait too long for a free TX DMA buffer. */
     const TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 50U );
     uint32_t ulTransmitSize;
 
@@ -610,7 +643,8 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 
         if( xPhyObject.ulLinkStatusMask == 0ul )
         {
-            /* Do not attempt to send packets as long as the Link Status is low. */
+            /* Do not attempt to send packets as long as the Link Status is low.
+             */
             break;
         }
 
@@ -622,7 +656,8 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 
         hand_tx_errors();
 
-        if( xSemaphoreTake( xTXDescriptorSemaphore, xBlockTimeTicks ) != pdPASS )
+        if( xSemaphoreTake( xTXDescriptorSemaphore, xBlockTimeTicks ) !=
+            pdPASS )
         {
             /* Time-out waiting for a free TX descriptor. */
             TX_STAT_INCREMENT( tx_enqueue_fail );
@@ -630,34 +665,40 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
         }
 
         TX_STAT_INCREMENT( tx_enqueue_ok );
-        #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                configASSERT( bReleaseAfterSend != pdFALSE );
-            }
-        #endif /* ipconfigZERO_COPY_TX_DRIVER */
+#if( ipconfigZERO_COPY_TX_DRIVER != 0 )
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            configASSERT( bReleaseAfterSend != pdFALSE );
+        }
+#endif /* ipconfigZERO_COPY_TX_DRIVER */
 
-        #if ( NETWORK_BUFFERS_CACHED != 0 )
-            {
-                uint32_t xlength = CACHE_LINE_SIZE * ( ( ulTransmitSize + NETWORK_BUFFER_HEADER_SIZE + CACHE_LINE_SIZE - 1 ) / CACHE_LINE_SIZE );
-                uint32_t xAddress = ( uint32_t ) ( pxDescriptor->pucEthernetBuffer - NETWORK_BUFFER_HEADER_SIZE );
-                cache_clean_invalidate_by_addr( xAddress, xlength );
-            }
-        #endif
+#if( NETWORK_BUFFERS_CACHED != 0 )
+        {
+            uint32_t xlength = CACHE_LINE_SIZE *
+                               ( ( ulTransmitSize + NETWORK_BUFFER_HEADER_SIZE +
+                                   CACHE_LINE_SIZE - 1 ) /
+                                 CACHE_LINE_SIZE );
+            uint32_t xAddress = ( uint32_t ) ( pxDescriptor->pucEthernetBuffer -
+                                               NETWORK_BUFFER_HEADER_SIZE );
+            cache_clean_invalidate_by_addr( xAddress, xlength );
+        }
+#endif
 
-        ulResult = gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, ulTransmitSize );
+        ulResult = gmac_dev_write( &gs_gmac_dev,
+                                   ( void * ) pxDescriptor->pucEthernetBuffer,
+                                   ulTransmitSize );
 
         if( ulResult != GMAC_OK )
         {
             TX_STAT_INCREMENT( tx_write_fail );
         }
 
-        #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                bReleaseAfterSend = pdFALSE;
-            }
-        #endif /* ipconfigZERO_COPY_TX_DRIVER */
+#if( ipconfigZERO_COPY_TX_DRIVER != 0 )
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            bReleaseAfterSend = pdFALSE;
+        }
+#endif /* ipconfigZERO_COPY_TX_DRIVER */
         /* Not interested in a call-back after TX. */
         iptraceNETWORK_INTERFACE_TRANSMIT();
     } while( ipFALSE_BOOL );
@@ -689,7 +730,9 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     memset( &gmac_option, '\0', sizeof( gmac_option ) );
     gmac_option.uc_copy_all_frame = 0;
     gmac_option.uc_no_boardcast = 0;
-    memcpy( gmac_option.uc_mac_addr, pxEndPoint->xMACAddress.ucBytes, sizeof( gmac_option.uc_mac_addr ) );
+    memcpy( gmac_option.uc_mac_addr,
+            pxEndPoint->xMACAddress.ucBytes,
+            sizeof( gmac_option.uc_mac_addr ) );
 
     gs_gmac_dev.p_hw = GMAC;
     gmac_dev_init( GMAC, &gs_gmac_dev, &gmac_option );
@@ -706,37 +749,40 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     /* set Multicast Hash Enable. */
     GMAC->GMAC_NCFGR |= GMAC_NCFGR_MTIHEN;
 
-    #if ( ipconfigUSE_LLMNR == 1 )
+#if( ipconfigUSE_LLMNR == 1 )
+    {
+        prvAddMulticastMACAddress( xLLMNR_MacAdress.ucBytes );
+    }
+#endif /* ipconfigUSE_LLMNR */
+
+#if( ipconfigUSE_IPv6 != 0 )
+    {
+        NetworkEndPoint_t * pxEndPoint;
+    #if( ipconfigUSE_LLMNR == 1 )
         {
-            prvAddMulticastMACAddress( xLLMNR_MacAdress.ucBytes );
+            prvAddMulticastMACAddress( xLLMNR_MacAdressIPv6.ucBytes );
         }
     #endif /* ipconfigUSE_LLMNR */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
         {
-            NetworkEndPoint_t * pxEndPoint;
-            #if ( ipconfigUSE_LLMNR == 1 )
-                {
-                    prvAddMulticastMACAddress( xLLMNR_MacAdressIPv6.ucBytes );
-                }
-            #endif /* ipconfigUSE_LLMNR */
-
-            for( pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
-                 pxEndPoint != NULL;
-                 pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
+            if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
             {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                {
-                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
-                    ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                    ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                    ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                    prvAddMulticastMACAddress( ucMACAddress );
-                }
+                ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress
+                                        .ucBytes[ 13 ];
+                ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress
+                                        .ucBytes[ 14 ];
+                ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress
+                                        .ucBytes[ 15 ];
+                prvAddMulticastMACAddress( ucMACAddress );
             }
         }
-    #endif /* ipconfigUSE_IPv6 */
+    }
+#endif /* ipconfigUSE_IPv6 */
 
     {
         /* Set MDC clock divider. */
@@ -749,17 +795,17 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
         /* For a reset / reconfigure of the EMAC. */
         prvEthernetUpdateConfig( pdTRUE );
 
-        /* Select Media Independent Interface type */
-        #if ( SAME70 != 0 )
-            {
-                /* Selecting RMII mode. */
-                GMAC->GMAC_UR &= ~GMAC_UR_RMII;
-            }
-        #else
-            {
-                gmac_select_mii_mode( GMAC, ETH_PHY_MODE );
-            }
-        #endif
+/* Select Media Independent Interface type */
+#if( SAME70 != 0 )
+        {
+            /* Selecting RMII mode. */
+            GMAC->GMAC_UR &= ~GMAC_UR_RMII;
+        }
+#else
+        {
+            gmac_select_mii_mode( GMAC, ETH_PHY_MODE );
+        }
+#endif
 
         gmac_enable_transmit( GMAC, true );
         gmac_enable_receive( GMAC, true );
@@ -828,118 +874,125 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
 
     if( ( xForce != pdFALSE ) || ( xPhyObject.ulLinkStatusMask != 0 ) )
     {
-        #if ( ipconfigETHERNET_AN_ENABLE != 0 )
+#if( ipconfigETHERNET_AN_ENABLE != 0 )
+        {
+            UBaseType_t uxWasEnabled;
+
+            /* Restart the auto-negotiation. */
+            uxWasEnabled = ( GMAC->GMAC_NCR & GMAC_NCR_MPE ) != 0u;
+
+            if( uxWasEnabled == 0u )
             {
-                UBaseType_t uxWasEnabled;
-
-                /* Restart the auto-negotiation. */
-                uxWasEnabled = ( GMAC->GMAC_NCR & GMAC_NCR_MPE ) != 0u;
-
-                if( uxWasEnabled == 0u )
-                {
-                    /* Enable further GMAC maintenance. */
-                    GMAC->GMAC_NCR |= GMAC_NCR_MPE;
-                }
-
-                xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
-
-                /* Configure the MAC with the Duplex Mode fixed by the
-                 * auto-negotiation process. */
-                if( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL )
-                {
-                    gmac_enable_full_duplex( GMAC, pdTRUE );
-                }
-                else
-                {
-                    gmac_enable_full_duplex( GMAC, pdFALSE );
-                }
-
-                /* Configure the MAC with the speed fixed by the
-                 * auto-negotiation process. */
-                if( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 )
-                {
-                    gmac_set_speed( GMAC, pdFALSE );
-                }
-                else
-                {
-                    gmac_set_speed( GMAC, pdTRUE );
-                }
-
-                if( uxWasEnabled == 0u )
-                {
-                    /* Enable further GMAC maintenance. */
-                    GMAC->GMAC_NCR &= ~GMAC_NCR_MPE;
-                }
+                /* Enable further GMAC maintenance. */
+                GMAC->GMAC_NCR |= GMAC_NCR_MPE;
             }
-        #else /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+
+            xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+
+            /* Configure the MAC with the Duplex Mode fixed by the
+             * auto-negotiation process. */
+            if( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL )
             {
-                if( xPHYProperties.ucDuplex == PHY_DUPLEX_FULL )
-                {
-                    xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_FULL;
-                    gmac_enable_full_duplex( GMAC, pdTRUE );
-                }
-                else
-                {
-                    xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_HALF;
-                    gmac_enable_full_duplex( GMAC, pdFALSE );
-                }
-
-                if( xPHYProperties.ucSpeed == PHY_SPEED_100 )
-                {
-                    xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_100;
-                    gmac_set_speed( GMAC, pdTRUE );
-                }
-                else
-                {
-                    xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_10;
-                    gmac_set_speed( GMAC, pdFALSE );
-                }
-
-                xPhyObject.xPhyPreferences.ucMDI_X = PHY_MDIX_AUTO;
-
-                /* Use predefined (fixed) configuration. */
-                xPhyFixedValue( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+                gmac_enable_full_duplex( GMAC, pdTRUE );
             }
-        #endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+            else
+            {
+                gmac_enable_full_duplex( GMAC, pdFALSE );
+            }
+
+            /* Configure the MAC with the speed fixed by the
+             * auto-negotiation process. */
+            if( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 )
+            {
+                gmac_set_speed( GMAC, pdFALSE );
+            }
+            else
+            {
+                gmac_set_speed( GMAC, pdTRUE );
+            }
+
+            if( uxWasEnabled == 0u )
+            {
+                /* Enable further GMAC maintenance. */
+                GMAC->GMAC_NCR &= ~GMAC_NCR_MPE;
+            }
+        }
+#else  /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+        {
+            if( xPHYProperties.ucDuplex == PHY_DUPLEX_FULL )
+            {
+                xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_FULL;
+                gmac_enable_full_duplex( GMAC, pdTRUE );
+            }
+            else
+            {
+                xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_HALF;
+                gmac_enable_full_duplex( GMAC, pdFALSE );
+            }
+
+            if( xPHYProperties.ucSpeed == PHY_SPEED_100 )
+            {
+                xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_100;
+                gmac_set_speed( GMAC, pdTRUE );
+            }
+            else
+            {
+                xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_10;
+                gmac_set_speed( GMAC, pdFALSE );
+            }
+
+            xPhyObject.xPhyPreferences.ucMDI_X = PHY_MDIX_AUTO;
+
+            /* Use predefined (fixed) configuration. */
+            xPhyFixedValue( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+        }
+#endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
     }
 }
 /*-----------------------------------------------------------*/
 
-void vGMACGenerateChecksum( uint8_t * pucBuffer,
-                            size_t uxLength )
+void vGMACGenerateChecksum( uint8_t * pucBuffer, size_t uxLength )
 {
     ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) pucBuffer;
 
     /* The SAM4E has problems offloading checksums for transmission.
      * The SAME70 does not set the CRC for ICMP packets (ping). */
 
-    if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
+    if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType ==
+        ipIPv4_FRAME_TYPE )
     {
-        #if ( SAME70 != 0 )
-            if( ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
-                ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
-        #endif
+#if( SAME70 != 0 )
+        if( ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol !=
+              ipPROTOCOL_UDP ) &&
+            ( xProtPacket->xICMPPacket.xIPHeader.ucProtocol !=
+              ipPROTOCOL_TCP ) )
+#endif
         {
             IPHeader_t * pxIPHeader = &( xProtPacket->xTCPPacket.xIPHeader );
 
             /* Calculate the IP header checksum. */
             pxIPHeader->usHeaderChecksum = 0x00;
-            pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ipSIZE_OF_IPv4_HEADER );
-            pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+            pxIPHeader->usHeaderChecksum = usGenerateChecksum(
+                0U,
+                ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ),
+                ipSIZE_OF_IPv4_HEADER );
+            pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons(
+                pxIPHeader->usHeaderChecksum );
 
             /* Calculate the TCP checksum for an outgoing packet. */
             usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
         }
     }
-    else if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    else if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType ==
+             ipIPv6_FRAME_TYPE )
     {
         ICMPPacket_IPv6_t * xProtPacket16 = ( ICMPPacket_IPv6_t * ) pucBuffer;
         IPHeader_IPv6_t * pxIPHeader = &( xProtPacket16->xIPHeader );
 
-        #if ( SAME70 != 0 )
-            if( ( pxIPHeader->ucNextHeader != ipPROTOCOL_UDP ) &&
-                ( pxIPHeader->ucNextHeader != ipPROTOCOL_TCP ) )
-        #endif
+#if( SAME70 != 0 )
+        if( ( pxIPHeader->ucNextHeader != ipPROTOCOL_UDP ) &&
+            ( pxIPHeader->ucNextHeader != ipPROTOCOL_TCP ) )
+#endif
         {
             /* Calculate the TCP checksum for an outgoing packet. */
             usGenerateProtocolChecksum( pucBuffer, uxLength, pdTRUE );
@@ -962,21 +1015,26 @@ static uint32_t prvEMACRxPoll( void )
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     uint8_t * pucDMABuffer = NULL;
 
-    for( ; ; )
+    for( ;; )
     {
         BaseType_t xRelease = pdFALSE;
 
         /* If pxNextNetworkBufferDescriptor was not left pointing at a valid
          * descriptor then allocate one now. */
-        if( ( pxNextNetworkBufferDescriptor == NULL ) && ( uxGetNumberOfFreeNetworkBuffers() > xMinDescriptorsToLeave ) )
+        if( ( pxNextNetworkBufferDescriptor == NULL ) &&
+            ( uxGetNumberOfFreeNetworkBuffers() > xMinDescriptorsToLeave ) )
         {
-            pxNextNetworkBufferDescriptor = pxGetNetworkBufferWithDescriptor( GMAC_RX_UNITSIZE, xBlockTime );
+            pxNextNetworkBufferDescriptor = pxGetNetworkBufferWithDescriptor(
+                GMAC_RX_UNITSIZE,
+                xBlockTime );
         }
 
         if( pxNextNetworkBufferDescriptor != NULL )
         {
             /* Point pucUseBuffer to the buffer pointed to by the descriptor. */
-            pucUseBuffer = ( unsigned char * ) ( pxNextNetworkBufferDescriptor->pucEthernetBuffer - ipconfigPACKET_FILLER_SIZE );
+            pucUseBuffer = ( unsigned char * ) ( pxNextNetworkBufferDescriptor
+                                                     ->pucEthernetBuffer -
+                                                 ipconfigPACKET_FILLER_SIZE );
         }
         else
         {
@@ -986,7 +1044,11 @@ static uint32_t prvEMACRxPoll( void )
         }
 
         /* Read the next packet from the hardware into pucUseBuffer. */
-        ulResult = gmac_dev_read( &gs_gmac_dev, pucUseBuffer, GMAC_RX_UNITSIZE, &ulReceiveCount, &pucDMABuffer );
+        ulResult = gmac_dev_read( &gs_gmac_dev,
+                                  pucUseBuffer,
+                                  GMAC_RX_UNITSIZE,
+                                  &ulReceiveCount,
+                                  &pucDMABuffer );
 
         if( ( ulResult != GMAC_OK ) || ( ulReceiveCount == 0 ) )
         {
@@ -1003,25 +1065,30 @@ static uint32_t prvEMACRxPoll( void )
         }
 
         iptraceNETWORK_INTERFACE_RECEIVE();
-        #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-            {
-                pxNextNetworkBufferDescriptor = pxPacketBuffer_to_NetworkBuffer( pucDMABuffer );
+#if( ipconfigZERO_COPY_RX_DRIVER != 0 )
+        {
+            pxNextNetworkBufferDescriptor = pxPacketBuffer_to_NetworkBuffer(
+                pucDMABuffer );
 
-                if( pxNextNetworkBufferDescriptor == NULL )
-                {
-                    /* Strange: can not translate from a DMA buffer to a Network Buffer. */
-                    break;
-                }
+            if( pxNextNetworkBufferDescriptor == NULL )
+            {
+                /* Strange: can not translate from a DMA buffer to a Network
+                 * Buffer. */
+                break;
             }
-        #endif /* ipconfigZERO_COPY_RX_DRIVER */
+        }
+#endif /* ipconfigZERO_COPY_RX_DRIVER */
 
         pxNextNetworkBufferDescriptor->xDataLength = ( size_t ) ulReceiveCount;
         pxNextNetworkBufferDescriptor->pxInterface = pxMyInterface;
-        pxNextNetworkBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxNextNetworkBufferDescriptor->pucEthernetBuffer );
+        pxNextNetworkBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint(
+            pxMyInterface,
+            pxNextNetworkBufferDescriptor->pucEthernetBuffer );
 
         if( pxNextNetworkBufferDescriptor->pxEndPoint == NULL )
         {
-            FreeRTOS_printf( ( "NetworkInterface: can not find a proper endpoint\n" ) );
+            FreeRTOS_printf(
+                ( "NetworkInterface: can not find a proper endpoint\n" ) );
             xRelease = pdTRUE;
         }
         else
@@ -1030,7 +1097,8 @@ static uint32_t prvEMACRxPoll( void )
 
             if( xSendEventStructToIPTask( &xRxEvent, xBlockTime ) != pdTRUE )
             {
-                /* xSendEventStructToIPTask() timed out. Release the descriptor. */
+                /* xSendEventStructToIPTask() timed out. Release the descriptor.
+                 */
                 xRelease = pdTRUE;
             }
         }
@@ -1042,7 +1110,8 @@ static uint32_t prvEMACRxPoll( void )
              * again. */
             vReleaseNetworkBufferAndDescriptor( pxNextNetworkBufferDescriptor );
             iptraceETHERNET_RX_EVENT_LOST();
-            FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
+            FreeRTOS_printf(
+                ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
         }
 
         /* Now the buffer has either been passed to the IP-task,
@@ -1056,8 +1125,8 @@ static uint32_t prvEMACRxPoll( void )
 /*-----------------------------------------------------------*/
 
 volatile UBaseType_t uxLastMinBufferCount = 0;
-#if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-    volatile UBaseType_t uxLastMinQueueSpace;
+#if( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+volatile UBaseType_t uxLastMinQueueSpace;
 #endif
 volatile UBaseType_t uxCurrentSemCount;
 volatile UBaseType_t uxLowestSemCount;
@@ -1066,19 +1135,19 @@ void vCheckBuffersAndQueue( void )
 {
     static UBaseType_t uxCurrentCount;
 
-    #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-        {
-            uxCurrentCount = uxGetMinimumIPQueueSpace();
+#if( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+    {
+        uxCurrentCount = uxGetMinimumIPQueueSpace();
 
-            if( uxLastMinQueueSpace != uxCurrentCount )
-            {
-                /* The logging produced below may be helpful
-                 * while tuning +TCP: see how many buffers are in use. */
-                uxLastMinQueueSpace = uxCurrentCount;
-                FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-            }
+        if( uxLastMinQueueSpace != uxCurrentCount )
+        {
+            /* The logging produced below may be helpful
+             * while tuning +TCP: see how many buffers are in use. */
+            uxLastMinQueueSpace = uxCurrentCount;
+            FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
         }
-    #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
+    }
+#endif /* ipconfigCHECK_IP_QUEUE_SPACE */
     uxCurrentCount = uxGetMinimumFreeNetworkBuffers();
 
     if( uxLastMinBufferCount != uxCurrentCount )
@@ -1087,7 +1156,8 @@ void vCheckBuffersAndQueue( void )
          * while tuning +TCP: see how many buffers are in use. */
         uxLastMinBufferCount = uxCurrentCount;
         FreeRTOS_printf( ( "Network buffers: %lu lowest %lu\n",
-                           uxGetNumberOfFreeNetworkBuffers(), uxCurrentCount ) );
+                           uxGetNumberOfFreeNetworkBuffers(),
+                           uxCurrentCount ) );
     }
 
     if( xTXDescriptorSemaphore != NULL )
@@ -1097,22 +1167,29 @@ void vCheckBuffersAndQueue( void )
         if( uxLowestSemCount > uxCurrentSemCount )
         {
             uxLowestSemCount = uxCurrentSemCount;
-            FreeRTOS_printf( ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
+            FreeRTOS_printf(
+                ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
         }
     }
 }
 /*-----------------------------------------------------------*/
 
-extern uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+extern uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS *
+                                 NETWORK_BUFFER_SIZE ];
+void vNetworkInterfaceAllocateRAMToBuffers(
+    NetworkBufferDescriptor_t
+        pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint8_t * ucRAMBuffer = ucNetworkPackets;
     uint32_t ulIndex;
 
-    for( ulIndex = 0; ulIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ulIndex++ )
+    for( ulIndex = 0; ulIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS;
+         ulIndex++ )
     {
-        pxNetworkBuffers[ ulIndex ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ulIndex ] ) );
+        pxNetworkBuffers[ ulIndex ].pucEthernetBuffer = ucRAMBuffer +
+                                                        ipBUFFER_PADDING;
+        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &(
+            pxNetworkBuffers[ ulIndex ] ) );
         ucRAMBuffer += NETWORK_BUFFER_SIZE;
     }
 
@@ -1125,9 +1202,9 @@ static void prvEMACHandlerTask( void * pvParameters )
     UBaseType_t uxCount;
     UBaseType_t uxLowestSemCount = GMAC_TX_BUFFERS + 1;
 
-    #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-        NetworkBufferDescriptor_t * pxBuffer;
-    #endif
+#if( ipconfigZERO_COPY_TX_DRIVER != 0 )
+    NetworkBufferDescriptor_t * pxBuffer;
+#endif
     uint8_t * pucBuffer;
     BaseType_t xResult = 0;
     uint32_t xStatus;
@@ -1139,7 +1216,7 @@ static void prvEMACHandlerTask( void * pvParameters )
 
     configASSERT( xEMACTaskHandle );
 
-    for( ; ; )
+    for( ;; )
     {
         xResult = 0;
         vCheckBuffersAndQueue();
@@ -1152,8 +1229,8 @@ static void prvEMACHandlerTask( void * pvParameters )
 
         if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )
         {
-            /* Wait for the EMAC interrupt to indicate that another packet has been
-             * received. */
+            /* Wait for the EMAC interrupt to indicate that another packet has
+             * been received. */
             xResult = prvEMACRxPoll();
         }
 
@@ -1161,30 +1238,32 @@ static void prvEMACHandlerTask( void * pvParameters )
         {
             while( xQueueReceive( xTxBufferQueue, &pucBuffer, 0 ) != pdFALSE )
             {
-                #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                    {
-                        pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
+#if( ipconfigZERO_COPY_TX_DRIVER != 0 )
+                {
+                    pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
 
-                        if( pxBuffer != NULL )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxBuffer );
-                            TX_STAT_INCREMENT( tx_release_ok );
-                        }
-                        else
-                        {
-                            TX_STAT_INCREMENT( tx_release_bad );
-                        }
-                    }
-                #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                    if( pxBuffer != NULL )
                     {
+                        vReleaseNetworkBufferAndDescriptor( pxBuffer );
                         TX_STAT_INCREMENT( tx_release_ok );
                     }
-                #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
-                uxCount = uxQueueMessagesWaiting( ( QueueHandle_t ) xTXDescriptorSemaphore );
+                    else
+                    {
+                        TX_STAT_INCREMENT( tx_release_bad );
+                    }
+                }
+#else  /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                {
+                    TX_STAT_INCREMENT( tx_release_ok );
+                }
+#endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                uxCount = uxQueueMessagesWaiting(
+                    ( QueueHandle_t ) xTXDescriptorSemaphore );
 
                 if( uxCount < ( GMAC_TX_BUFFERS - 1 ) )
                 {
-                    /* Tell the counting semaphore that one more TX descriptor is available. */
+                    /* Tell the counting semaphore that one more TX descriptor
+                     * is available. */
                     xSemaphoreGive( xTXDescriptorSemaphore );
                 }
             }

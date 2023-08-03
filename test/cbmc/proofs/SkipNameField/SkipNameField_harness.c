@@ -3,34 +3,33 @@
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
 #include "list.h"
+#include "queue.h"
 #include "semphr.h"
+#include "task.h"
 
 /* FreeRTOS+TCP includes. */
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DNS.h"
+#include "FreeRTOS_DNS_Parser.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_UDP_IP.h"
+#include "IPTraceMacroDefaults.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
-#include "IPTraceMacroDefaults.h"
-#include "FreeRTOS_DNS_Parser.h"
 
 #include "cbmc.h"
 
 /****************************************************************
-* Signature of function under test
-****************************************************************/
+ * Signature of function under test
+ ****************************************************************/
 
-size_t DNS_SkipNameField( const uint8_t * pucByte,
-                          size_t uxLength );
+size_t DNS_SkipNameField( const uint8_t * pucByte, size_t uxLength );
 
 /****************************************************************
-* Proof of DNS_SkipNameField function contract
-****************************************************************/
+ * Proof of DNS_SkipNameField function contract
+ ****************************************************************/
 
 void harness()
 {
