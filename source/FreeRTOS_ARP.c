@@ -302,7 +302,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     eReturn = eReturnEthernetFrame;
                                 }
                             }
-                            else if( ulSenderProtocolAddress == ulTargetProtocolAddress ) /* Gratuitous ARP request? */
+                            else if( (ulSenderProtocolAddress == ulTargetProtocolAddress) && \
+                            ((ulSenderProtocolAddress & pxTargetEndPoint->ipv4_settings.ulNetMask) == (pxTargetEndPoint->ipv4_settings.ulNetMask & pxTargetEndPoint->ipv4_settings.ulIPAddress)) ) /* Gratuitous ARP request? */
                             {
                                 MACAddress_t xGARPBroadcastAddress_1 = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
                                 MACAddress_t xGARPBroadcastAddress_2 = {{0, 0, 0, 0, 0, 0}};
@@ -347,7 +348,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ) ) == eARPCacheHit )
                                     {
                                         /* Check if the endpoint matches with the one present in the ARP cache */
-                                        if( (pxCachedEndPoint == pxTargetEndPoint) && (ulSenderProtocolAddress == ulTargetProtocolAddress) )
+                                        if(pxCachedEndPoint == pxTargetEndPoint)
                                         {
                                             vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
                                             FreeRTOS_PrintARPCache();
