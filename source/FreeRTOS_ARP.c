@@ -302,56 +302,31 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     eReturn = eReturnEthernetFrame;
                                 }
                             }
-                            else if( (ulSenderProtocolAddress == ulTargetProtocolAddress) && \
-                            ((ulSenderProtocolAddress & pxTargetEndPoint->ipv4_settings.ulNetMask) == (pxTargetEndPoint->ipv4_settings.ulNetMask & pxTargetEndPoint->ipv4_settings.ulIPAddress)) ) /* Gratuitous ARP request? */
+                            else if( ( ulSenderProtocolAddress == ulTargetProtocolAddress ) &&
+                                     ( ( ulSenderProtocolAddress & pxTargetEndPoint->ipv4_settings.ulNetMask ) == ( pxTargetEndPoint->ipv4_settings.ulNetMask & pxTargetEndPoint->ipv4_settings.ulIPAddress ) ) ) /* Gratuitous ARP request? */
                             {
-                                MACAddress_t xGARPBroadcastAddress_1 = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
-                                MACAddress_t xGARPBroadcastAddress_2 = {{0, 0, 0, 0, 0, 0}};
+                                const MACAddress_t xGARPTargetAddress = { { 0, 0, 0, 0, 0, 0 } };
 
-                                FreeRTOS_printf(( "Gratuitous ARP ulSenderProtocolAddress: %xip \n", ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ) ));
-                                FreeRTOS_printf(( "Gratuitous ARP xTargetHardwareAddress: %x:%x:%x:%x:%x:%x\n",
-                                pxARPHeader->xTargetHardwareAddress.ucBytes[0],
-                                pxARPHeader->xTargetHardwareAddress.ucBytes[1],
-                                pxARPHeader->xTargetHardwareAddress.ucBytes[2],
-                                pxARPHeader->xTargetHardwareAddress.ucBytes[3],
-                                pxARPHeader->xTargetHardwareAddress.ucBytes[4],
-                                pxARPHeader->xTargetHardwareAddress.ucBytes[5]));
-                                FreeRTOS_printf(( "Gratuitous ARP xTargetEndPoint->xMACAddress.ucBytes: %x:%x:%x:%x:%x:%x\n",
-                                pxTargetEndPoint->xMACAddress.ucBytes[0],
-                                pxTargetEndPoint->xMACAddress.ucBytes[1],
-                                pxTargetEndPoint->xMACAddress.ucBytes[2],
-                                pxTargetEndPoint->xMACAddress.ucBytes[3],
-                                pxTargetEndPoint->xMACAddress.ucBytes[4],
-                                pxTargetEndPoint->xMACAddress.ucBytes[5]));
-                                FreeRTOS_printf(( "Gratuitous ARP pxARPHeader->xSenderHardwareAddress.ucBytes: %x:%x:%x:%x:%x:%x\n",
-                                pxARPHeader->xSenderHardwareAddress.ucBytes[0],
-                                pxARPHeader->xSenderHardwareAddress.ucBytes[1],
-                                pxARPHeader->xSenderHardwareAddress.ucBytes[2],
-                                pxARPHeader->xSenderHardwareAddress.ucBytes[3],
-                                pxARPHeader->xSenderHardwareAddress.ucBytes[4],
-                                pxARPHeader->xSenderHardwareAddress.ucBytes[5]));
-
-                                if (((memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPBroadcastAddress_1.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES) == 0) ||
-                                ((memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPBroadcastAddress_2.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES) == 0))) &&
-                                ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ))
+                                /* Make sure target MAC address is either ff:ff:ff:ff:ff:ff or 00:00:00:00:00:00 and senders MAC
+                                 * address is not matching with the endpoint MAC address. */
+                                if( ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
+                                      ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
+                                    ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                                 {
                                     MACAddress_t xHardwareAddress;
                                     NetworkEndPoint_t * pxCachedEndPoint;
 
                                     pxCachedEndPoint = NULL;
 
-                                    FreeRTOS_PrintARPCache();
-
                                     /* The request is a Gratuitous ARP message.
-                                    * Refresh the entry if it already exists. */
+                                     * Refresh the entry if it already exists. */
                                     /* Determine the ARP cache status for the requested IP address. */
                                     if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ) ) == eARPCacheHit )
                                     {
                                         /* Check if the endpoint matches with the one present in the ARP cache */
-                                        if(pxCachedEndPoint == pxTargetEndPoint)
+                                        if( pxCachedEndPoint == pxTargetEndPoint )
                                         {
                                             vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
-                                            FreeRTOS_PrintARPCache();
                                         }
                                     }
                                 }
@@ -1075,7 +1050,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                  * hardware address of the router, if any. */
                 *( ppxEndPoint ) = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv4 );
 
-                FreeRTOS_printf(("eARPGetCacheEntryGateWay: Re: %d Using gateway address: %p \n", ipconfigARP_STORES_REMOTE_ADDRESSES, *ppxEndPoint));
+                FreeRTOS_printf( ( "eARPGetCacheEntryGateWay: Re: %d Using gateway address: %p \n", ipconfigARP_STORES_REMOTE_ADDRESSES, *ppxEndPoint ) );
 
                 if( *( ppxEndPoint ) != NULL )
                 {
@@ -1622,7 +1597,7 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
     {
         BaseType_t x, xCount = 0;
 
-        FreeRTOS_printf(("****************************************************\n"));
+        FreeRTOS_printf( ( "****************************************************\n" ) );
 
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
