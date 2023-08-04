@@ -1377,7 +1377,7 @@ void test_vDHCPv6Process_ResetFromInit()
     xEndPoint.xDHCPData.eDHCPState = eInitialWait;
     xEndPoint.xDHCPData.eExpectedState = eInitialWait;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -1413,7 +1413,7 @@ void test_vDHCPv6Process_ResetFromLease()
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -1449,7 +1449,7 @@ void test_vDHCPv6Process_ResetDifferentState()
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -3207,7 +3207,7 @@ void test_vDHCPv6Process_prvCloseDHCPv6Socket_MultipleEndpointsCloseSockets()
 
     pxNetworkEndPoints = &xEndPoint[ 0 ];
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket[ 0 ] );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket[ 0 ] );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket[ 0 ], pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket[ 0 ], sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -3320,7 +3320,7 @@ void test_vDHCPv6Process_prvCreateDHCPv6Socket_CreateSocketFail()
 
     pxNetworkEndPoints = &xEndPoint;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdFALSE );
 
     catch_assert( vDHCPv6Process( pdTRUE, &xEndPoint ) );
@@ -3353,7 +3353,7 @@ void test_vDHCPv6Process_prvCreateDHCPv6Socket_BindSocketFail()
 
     pxNetworkEndPoints = &xEndPoint;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
