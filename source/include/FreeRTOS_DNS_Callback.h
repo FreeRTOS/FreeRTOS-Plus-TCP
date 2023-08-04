@@ -62,7 +62,7 @@
 
     void vDNSCheckCallBack( void * pvSearchID );
 
-    void vDNSCallbackInitialise();
+    void vDNSCallbackInitialise( void );
 
 #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
 
