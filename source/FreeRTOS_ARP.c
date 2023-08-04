@@ -339,6 +339,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
 
                                     pxCachedEndPoint = NULL;
 
+                                    FreeRTOS_PrintARPCache();
+
                                     /* The request is a Gratuitous ARP message.
                                     * Refresh the entry if it already exists. */
                                     /* Determine the ARP cache status for the requested IP address. */
@@ -348,6 +350,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                         if( pxCachedEndPoint == pxTargetEndPoint )
                                         {
                                             vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
+                                            FreeRTOS_PrintARPCache();
                                         }
                                     }
                                 }
@@ -1622,7 +1625,7 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
             if( ( xARPCache[ x ].ulIPAddress != 0U ) && ( xARPCache[ x ].ucAge > ( uint8_t ) 0U ) )
             {
                 /* See if the MAC-address also matches, and we're all happy */
-                FreeRTOS_printf( ( "ARP %2d: %3u - %16xip : %02x:%02x:%02x : %02x:%02x:%02x\n",
+                FreeRTOS_printf( ( "ARP %2d: %3u - %16xip : %02x:%02x:%02x : %02x:%02x:%02x Endpoint: %p\n",
                                    ( int ) x,
                                    xARPCache[ x ].ucAge,
                                    ( unsigned ) FreeRTOS_ntohl( xARPCache[ x ].ulIPAddress ),
@@ -1631,7 +1634,7 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
                                    xARPCache[ x ].xMACAddress.ucBytes[ 2 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 3 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 4 ],
-                                   xARPCache[ x ].xMACAddress.ucBytes[ 5 ] ) );
+                                   xARPCache[ x ].xMACAddress.ucBytes[ 5 ], xARPCache[ x ].pxEndPoint ) );
                 xCount++;
             }
         }
