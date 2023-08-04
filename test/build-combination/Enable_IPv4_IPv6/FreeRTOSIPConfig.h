@@ -60,6 +60,13 @@
 #define ipconfigSELECT_USES_NOTIFY                 1
 #define ipconfigSUPPORT_SIGNALS                    1
 #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES     1
+#define ipconfigDNS_USE_CALLBACKS                  1
+#define ipconfigIGNORE_UNKNOWN_PACKETS             1
+#define ipconfigCHECK_IP_QUEUE_SPACE               1
+#define ipconfigUDP_MAX_RX_PACKETS                 1
+#define ipconfigETHERNET_MINIMUM_PACKET_BYTES      1
+#define ipconfigTCP_IP_SANITY                      1
+#define ipconfigSUPPORT_NETWORK_DOWN_EVENT         1
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
