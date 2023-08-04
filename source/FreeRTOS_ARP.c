@@ -302,22 +302,33 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     eReturn = eReturnEthernetFrame;
                                 }
                             }
-                            else if( ulSenderProtocolAddress == ulTargetProtocolAddress ) /* Gratuitous ARP request? */
+                            /* Check if its a Gratuitous ARP request and verify if it belongs to same subnet mask. */
+                            else if( ( ulSenderProtocolAddress == ulTargetProtocolAddress ) &&
+                                     ( ( ulSenderProtocolAddress & pxTargetEndPoint->ipv4_settings.ulNetMask ) == ( pxTargetEndPoint->ipv4_settings.ulNetMask & pxTargetEndPoint->ipv4_settings.ulIPAddress ) ) )
                             {
-                                MACAddress_t xHardwareAddress;
-                                NetworkEndPoint_t * pxCachedEndPoint;
+                                const MACAddress_t xGARPTargetAddress = { { 0, 0, 0, 0, 0, 0 } };
 
-                                pxCachedEndPoint = NULL;
-
-                                /* The request is a Gratuitous ARP message.
-                                 * Refresh the entry if it already exists. */
-                                /* Determine the ARP cache status for the requested IP address. */
-                                if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ) ) == eARPCacheHit )
+                                /* Make sure target MAC address is either ff:ff:ff:ff:ff:ff or 00:00:00:00:00:00 and senders MAC
+                                 * address is not matching with the endpoint MAC address. */
+                                if( ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
+                                      ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
+                                    ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                                 {
-                                    /* Check if the endpoint matches with the one present in the ARP cache */
-                                    if( pxCachedEndPoint == pxTargetEndPoint )
+                                    MACAddress_t xHardwareAddress;
+                                    NetworkEndPoint_t * pxCachedEndPoint;
+
+                                    pxCachedEndPoint = NULL;
+
+                                    /* The request is a Gratuitous ARP message.
+                                     * Refresh the entry if it already exists. */
+                                    /* Determine the ARP cache status for the requested IP address. */
+                                    if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ) ) == eARPCacheHit )
                                     {
-                                        vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
+                                        /* Check if the endpoint matches with the one present in the ARP cache */
+                                        if( pxCachedEndPoint == pxTargetEndPoint )
+                                        {
+                                            vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
+                                        }
                                     }
                                 }
                             }

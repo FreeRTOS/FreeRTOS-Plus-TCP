@@ -734,6 +734,8 @@ void test_eARPProcessPacket_Request_GratuitousARP( void )
     memset( xARPCache[ 0 ].xMACAddress.ucBytes, 0x34, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
     xARPCache[ 0 ].pxEndPoint = &xEndPoint;
 
+    memset( &( xARPFrame.xARPHeader.xTargetHardwareAddress.ucBytes ), 0xff, sizeof( MACAddress_t ) );
+
     /* Reset the private variable uxARPClashCounter. */
     vResetARPClashCounter();
 
@@ -819,6 +821,183 @@ void test_eARPProcessPacket_Request_GratuitousARP_MACUnchanged( void )
     TEST_ASSERT_EQUAL_MEMORY( &( xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes ), xARPCache[ 0 ].xMACAddress.ucBytes, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
     /* =================================================== */
 }
+
+/**
+ * @brief This function verify receiving Gratuitous ARP packet
+ *        but the sender protocol address is outside the subnet.
+ */
+void test_eARPProcessPacket_Request_GratuitousARP_OutOfSubnetIP( void )
+{
+    ARPPacket_t xARPFrame = { 0 };
+    eFrameProcessingResult_t eResult;
+    NetworkInterface_t xInterface;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    uint32_t ulTargetIP = 0xAACCDDBB;
+
+    memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
+    memset( xARPCache, 0, sizeof( xARPCache ) );
+
+    /* =================================================== */
+    /* Add settings required for ARP header to pass checks */
+    xARPFrame.xARPHeader.usHardwareType = ipARP_HARDWARE_TYPE_ETHERNET;
+    xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
+    xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
+    xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
+
+    /* Process an ARP request - meant for this node with target and source same. */
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulNetMask = 0xFFFF0000;
+    /* Fill in the request option. */
+    xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = ulTargetIP;
+    memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
+
+    memset( &( xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes ), 0x22, sizeof( MACAddress_t ) );
+
+    xARPCache[ 0 ].ulIPAddress = ulTargetIP;
+    xARPCache[ 0 ].ucAge = 1;
+    xARPCache[ 0 ].ucValid = pdTRUE;
+    memset( xARPCache[ 0 ].xMACAddress.ucBytes, 0x22, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    xARPCache[ 0 ].pxEndPoint = &xEndPoint;
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
+
+    xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
+    xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
+
+    eResult = eARPProcessPacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( ulTargetIP, xARPCache[ 0 ].ulIPAddress );
+    TEST_ASSERT_EQUAL( 1, xARPCache[ 0 ].ucAge );
+    TEST_ASSERT_EQUAL( pdTRUE, xARPCache[ 0 ].ucValid );
+    TEST_ASSERT_EQUAL( &xEndPoint, xARPCache[ 0 ].pxEndPoint );
+    TEST_ASSERT_EQUAL_MEMORY( &( xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes ), xARPCache[ 0 ].xMACAddress.ucBytes, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    /* =================================================== */
+}
+
+/**
+ * @brief This function verify receiving Gratuitous ARP packet
+ *        but the new MAC address matches with the MAC address of the
+ *        endpoint.
+ */
+void test_eARPProcessPacket_Request_GratuitousARP_MACMatchesWithEndpoint( void )
+{
+    ARPPacket_t xARPFrame = { 0 };
+    eFrameProcessingResult_t eResult;
+    NetworkInterface_t xInterface;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    uint32_t ulTargetIP = 0xAACCDDBB;
+
+    memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
+    memset( xARPCache, 0, sizeof( xARPCache ) );
+
+    /* =================================================== */
+    /* Add settings required for ARP header to pass checks */
+    xARPFrame.xARPHeader.usHardwareType = ipARP_HARDWARE_TYPE_ETHERNET;
+    xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
+    xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
+    xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
+
+    /* Process an ARP request - meant for this node with target and source same. */
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulNetMask = 0;
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    /* Fill in the request option. */
+    xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = ulTargetIP;
+    memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
+
+    memset( &( xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes ), 0x22, sizeof( MACAddress_t ) );
+
+    xARPCache[ 0 ].ulIPAddress = ulTargetIP;
+    xARPCache[ 0 ].ucAge = 1;
+    xARPCache[ 0 ].ucValid = pdTRUE;
+    memset( xARPCache[ 0 ].xMACAddress.ucBytes, 0x22, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    xARPCache[ 0 ].pxEndPoint = &xEndPoint;
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
+
+    xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
+    xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
+
+    eResult = eARPProcessPacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( ulTargetIP, xARPCache[ 0 ].ulIPAddress );
+    TEST_ASSERT_EQUAL( 1, xARPCache[ 0 ].ucAge );
+    TEST_ASSERT_EQUAL( pdTRUE, xARPCache[ 0 ].ucValid );
+    TEST_ASSERT_EQUAL( &xEndPoint, xARPCache[ 0 ].pxEndPoint );
+    TEST_ASSERT_EQUAL_MEMORY( &( xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes ), xARPCache[ 0 ].xMACAddress.ucBytes, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    /* =================================================== */
+}
+
+/**
+ * @brief This function verify receiving Gratuitous ARP packet
+ *        but the target MAC address in the ARP request is not a
+ *        broadcast address.
+ */
+void test_eARPProcessPacket_Request_GratuitousARP_TargetHWAddressNotBroadcast( void )
+{
+    ARPPacket_t xARPFrame = { 0 };
+    eFrameProcessingResult_t eResult;
+    NetworkInterface_t xInterface;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
+    uint32_t ulTargetIP = 0xAACCDDBB;
+
+    memset( &xARPFrame, 0, sizeof( ARPPacket_t ) );
+    memset( xARPCache, 0, sizeof( xARPCache ) );
+
+    /* =================================================== */
+    /* Add settings required for ARP header to pass checks */
+    xARPFrame.xARPHeader.usHardwareType = ipARP_HARDWARE_TYPE_ETHERNET;
+    xARPFrame.xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
+    xARPFrame.xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
+    xARPFrame.xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
+
+    /* Process an ARP request - meant for this node with target and source same. */
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulNetMask = 0;
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    /* Fill in the request option. */
+    xARPFrame.xARPHeader.usOperation = ipARP_REQUEST;
+    xARPFrame.xARPHeader.ulTargetProtocolAddress = ulTargetIP;
+    memcpy( xARPFrame.xARPHeader.ucSenderProtocolAddress, &( xARPFrame.xARPHeader.ulTargetProtocolAddress ), sizeof( xARPFrame.xARPHeader.ulTargetProtocolAddress ) );
+
+    memset( &( xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes ), 0x22, sizeof( MACAddress_t ) );
+    memset( &( xARPFrame.xARPHeader.xTargetHardwareAddress.ucBytes ), 0x11, sizeof( MACAddress_t ) );
+
+    xARPCache[ 0 ].ulIPAddress = ulTargetIP;
+    xARPCache[ 0 ].ucAge = 1;
+    xARPCache[ 0 ].ucValid = pdTRUE;
+    memset( xARPCache[ 0 ].xMACAddress.ucBytes, 0x22, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    xARPCache[ 0 ].pxEndPoint = &xEndPoint;
+
+    /* Reset the private variable uxARPClashCounter. */
+    vResetARPClashCounter();
+
+    xNetworkBuffer.pucEthernetBuffer = &xARPFrame;
+    xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+    xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
+
+    eResult = eARPProcessPacket( &xNetworkBuffer );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+    TEST_ASSERT_EQUAL( ulTargetIP, xARPCache[ 0 ].ulIPAddress );
+    TEST_ASSERT_EQUAL( 1, xARPCache[ 0 ].ucAge );
+    TEST_ASSERT_EQUAL( pdTRUE, xARPCache[ 0 ].ucValid );
+    TEST_ASSERT_EQUAL( &xEndPoint, xARPCache[ 0 ].pxEndPoint );
+    TEST_ASSERT_EQUAL_MEMORY( &( xARPFrame.xARPHeader.xSenderHardwareAddress.ucBytes ), xARPCache[ 0 ].xMACAddress.ucBytes, sizeof( xARPCache[ 0 ].xMACAddress.ucBytes ) );
+    /* =================================================== */
+}
+
 
 /**
  * @brief This function verify receiving Gratuitous ARP packet
