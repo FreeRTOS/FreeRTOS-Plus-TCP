@@ -871,7 +871,7 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
     }
     else if( xDHCPv6Socket == NULL ) /* Create the socket, if it has not already been created. */
     {
-        xDHCPv6Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
+        xDHCPv6Socket = FreeRTOS_socket( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
         configASSERT( xSocketValid( xDHCPv6Socket ) == pdTRUE );
 
         /* Ensure the Rx and Tx timeouts are zero as the DHCP executes in the
