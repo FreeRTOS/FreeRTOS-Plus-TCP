@@ -302,8 +302,9 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     eReturn = eReturnEthernetFrame;
                                 }
                             }
+                            /* Check if its a Gratuitous ARP request and verify if it belongs to same subnet mask. */
                             else if( ( ulSenderProtocolAddress == ulTargetProtocolAddress ) &&
-                                     ( ( ulSenderProtocolAddress & pxTargetEndPoint->ipv4_settings.ulNetMask ) == ( pxTargetEndPoint->ipv4_settings.ulNetMask & pxTargetEndPoint->ipv4_settings.ulIPAddress ) ) ) /* Gratuitous ARP request? */
+                                     ( ( ulSenderProtocolAddress & pxTargetEndPoint->ipv4_settings.ulNetMask ) == ( pxTargetEndPoint->ipv4_settings.ulNetMask & pxTargetEndPoint->ipv4_settings.ulIPAddress ) ) )
                             {
                                 const MACAddress_t xGARPTargetAddress = { { 0, 0, 0, 0, 0, 0 } };
 
