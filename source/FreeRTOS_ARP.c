@@ -347,7 +347,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                     if( eARPGetCacheEntry( &( ulSenderProtocolAddress ), &( xHardwareAddress ), &( pxCachedEndPoint ) ) == eARPCacheHit )
                                     {
                                         /* Check if the endpoint matches with the one present in the ARP cache */
-                                        if( pxCachedEndPoint == pxTargetEndPoint )
+                                        if( (pxCachedEndPoint == pxTargetEndPoint) && (ulSenderProtocolAddress == ulTargetProtocolAddress) )
                                         {
                                             vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
                                             FreeRTOS_PrintARPCache();
@@ -1073,6 +1073,8 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                 /* The IP address is off the local network, so look up the
                  * hardware address of the router, if any. */
                 *( ppxEndPoint ) = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv4 );
+
+                FreeRTOS_printf(("eARPGetCacheEntryGateWay: Re: %d Using gateway address: %p \n", ipconfigARP_STORES_REMOTE_ADDRESSES, *ppxEndPoint));
 
                 if( *( ppxEndPoint ) != NULL )
                 {
