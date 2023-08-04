@@ -1050,8 +1050,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                  * hardware address of the router, if any. */
                 *( ppxEndPoint ) = FreeRTOS_FindGateWay( ( BaseType_t ) ipTYPE_IPv4 );
 
-                FreeRTOS_printf( ( "eARPGetCacheEntryGateWay: Re: %d Using gateway address: %p \n", ipconfigARP_STORES_REMOTE_ADDRESSES, *ppxEndPoint ) );
-
                 if( *( ppxEndPoint ) != NULL )
                 {
                     /* 'ipv4_settings' can be accessed safely, because 'ipTYPE_IPv4' was provided. */
@@ -1597,15 +1595,13 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
     {
         BaseType_t x, xCount = 0;
 
-        FreeRTOS_printf( ( "****************************************************\n" ) );
-
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
         {
             if( ( xARPCache[ x ].ulIPAddress != 0U ) && ( xARPCache[ x ].ucAge > ( uint8_t ) 0U ) )
             {
                 /* See if the MAC-address also matches, and we're all happy */
-                FreeRTOS_printf( ( "ARP %2d: %3u - %16xip : %02x:%02x:%02x : %02x:%02x:%02x Endpoint: %p\n",
+                FreeRTOS_printf( ( "ARP %2d: %3u - %16xip : %02x:%02x:%02x : %02x:%02x:%02x\n",
                                    ( int ) x,
                                    xARPCache[ x ].ucAge,
                                    ( unsigned ) FreeRTOS_ntohl( xARPCache[ x ].ulIPAddress ),
@@ -1614,7 +1610,7 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
                                    xARPCache[ x ].xMACAddress.ucBytes[ 2 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 3 ],
                                    xARPCache[ x ].xMACAddress.ucBytes[ 4 ],
-                                   xARPCache[ x ].xMACAddress.ucBytes[ 5 ], xARPCache[ x ].pxEndPoint ) );
+                                   xARPCache[ x ].xMACAddress.ucBytes[ 5 ] ) );
                 xCount++;
             }
         }
