@@ -151,7 +151,7 @@
             if( listLIST_IS_EMPTY( &xCallbackList ) != pdFALSE )
             {
                 /* This is the first one, start the DNS timer to check for timeouts */
-                vDNSTimerReload( FreeRTOS_min_uint32( 1000U, uxTimeout ) );
+                vDNSTimerReload( FreeRTOS_min_uint32( 1000U, ( uint32_t ) uxTimeout ) );
             }
 
             ( void ) strcpy( pxCallback->pcName, pcHostName );
