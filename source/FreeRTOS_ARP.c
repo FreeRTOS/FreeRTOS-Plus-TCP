@@ -1619,6 +1619,8 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
     {
         BaseType_t x, xCount = 0;
 
+        FreeRTOS_printf(("****************************************************\n"));
+
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
         {
