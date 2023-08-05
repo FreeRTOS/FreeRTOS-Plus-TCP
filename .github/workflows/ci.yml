@@ -35,7 +35,7 @@ jobs:
           make -C test/unit-test/build/ coverage
           lcov --list --rc lcov_branch_coverage=1 test/unit-test/build/coverage.info
       - name: Check Coverage
-        uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
+        uses: Skptak/CI-CD-Github-Actions/coverage-cop@main
         with:
           path: ./test/unit-test/build/coverage.info
 
@@ -73,7 +73,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Check formatting
-        uses: FreeRTOS/CI-CD-Github-Actions/formatting@main
+        uses: Skptak/CI-CD-Github-Actions/formatting@main
         with:
           path: ./
 
@@ -82,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Run doxygen build
-        uses: FreeRTOS/CI-CD-Github-Actions/doxygen@main
+        uses: Skptak/CI-CD-Github-Actions/doxygen@main
         with:
           path: ./
 
@@ -185,7 +185,7 @@ jobs:
     runs-on: cbmc_ubuntu-latest_16-core
     steps:
       - name: Set up CBMC runner
-        uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@main
+        uses: Skptak/CI-CD-Github-Actions/set_up_cbmc_runner@main
         with:
           cbmc_version: "5.61.0"
       - run: |
@@ -193,6 +193,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends gcc-multilib
       - name: Run CBMC
-        uses: FreeRTOS/CI-CD-Github-Actions/run_cbmc@main
+        uses: Skptak/CI-CD-Github-Actions/run_cbmc@main
         with:
           proofs_dir: test/cbmc/proofs
