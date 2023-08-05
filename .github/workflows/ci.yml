@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone This Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Build
@@ -43,13 +43,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Parent Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: main
           repository: aws/aws-iot-device-sdk-embedded-C
           path: main
       - name: Clone This Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ./tcp
       - name: Install spell
@@ -71,7 +71,7 @@ jobs:
   formatting:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Check formatting
         uses: FreeRTOS/CI-CD-Github-Actions/formatting@main
         with:
@@ -80,7 +80,7 @@ jobs:
   doxygen:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Run doxygen build
         uses: FreeRTOS/CI-CD-Github-Actions/doxygen@main
         with:
@@ -89,7 +89,7 @@ jobs:
   build-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build Install Dependencies
         run: |
           sudo apt-get install -y libpcap-dev
@@ -134,7 +134,7 @@ jobs:
   complexity:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup
         run: sudo apt-get install complexity
       - name: Install Uncrustify
@@ -165,11 +165,11 @@ jobs:
   git-secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Checkout awslabs/git-secrets
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: awslabs/git-secrets
           ref: master
