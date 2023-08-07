@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_TCP_Utils_IPV6" )
+set( project_name "FreeRTOS_TCP_Utils_IPv6_ConfigLowTCPMSS" )
 message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
@@ -38,7 +38,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_TCP_Utils_IPv6.c
 	)
 
 set(real_include_directories "")

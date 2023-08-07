@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_TCP_Transmission_IPV6" )
+set( project_name "FreeRTOS_TCP_Transmission_IPv6" )
 message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================

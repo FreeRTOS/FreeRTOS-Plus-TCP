@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS" )
+set( project_name "FreeRTOS_TCP_State_Handling_IPv6" )
 message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
@@ -10,9 +10,16 @@ set(mock_list "")
 
 # list the files to mock here
 list(APPEND mock_list
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/task.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/list.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/queue.h"
+            "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Transmission.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Utils.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/TCP_State_Handling_IPv6_list_macros.h"
         )
 
 set(mock_include_list "")
@@ -22,8 +29,8 @@ list(APPEND mock_include_list
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
-            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
+            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
 set(mock_define_list "")
@@ -38,7 +45,7 @@ set(real_source_files "")
 
 # list the files you would like to test here
 list(APPEND real_source_files
-            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/FreeRTOS_TCP_Utils_IPV6.c
+            ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources/${project_name}.c
 	)
 
 set(real_include_directories "")
