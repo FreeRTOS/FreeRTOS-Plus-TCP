@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_IP_IPV4.c
+ * @file FreeRTOS_TCP_IP_IPv4.c
  * @brief Module which handles the TCP connections for FreeRTOS+TCP.
  * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
  * schemes.
