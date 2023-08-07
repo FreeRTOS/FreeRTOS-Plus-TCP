@@ -20,7 +20,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Transmission.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_Utils.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_IP.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/TCP_State_Handling_IPV4_list_macros.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/TCP_State_Handling_IPv4_list_macros.h"
         )
 
 set(mock_include_list "")
