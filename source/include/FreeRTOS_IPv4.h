@@ -42,6 +42,11 @@
 #endif
 /* *INDENT-ON* */
 
+/* Forward declarations. */
+typedef struct xNETWORK_BUFFER        NetworkBufferDescriptor_t;
+typedef enum eFrameProcessingResult   eFrameProcessingResult_t;
+typedef struct xIP_PACKET             IPPacket_t;
+
 #define ipSIZE_OF_IPv4_HEADER               20U
 #define ipSIZE_OF_IPv4_ADDRESS              4U
 #define ipSIZE_OF_ICMPv4_HEADER             8U

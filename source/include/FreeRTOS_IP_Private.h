@@ -57,6 +57,9 @@
     #define ipFOREVER()    1
 #endif
 
+/* Forward declaration of 'NetworkEndPoint_t'. */
+typedef struct xNetworkEndPoint NetworkEndPoint_t;
+
 typedef enum eFrameProcessingResult
 {
     eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
