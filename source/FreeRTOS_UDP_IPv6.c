@@ -608,6 +608,16 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
                 else
             #endif /* ipconfigUSE_LLMNR */
 
+            #if ( ipconfigUSE_DNS == 1 ) && ( ipconfigUSE_MDNS == 1 )
+                /* A MDNS request, check for the destination port. */
+                if( ( usPort == FreeRTOS_ntohs( ipMDNS_PORT ) ) ||
+                    ( pxUDPPacket_IPv6->xUDPHeader.usSourcePort == FreeRTOS_ntohs( ipMDNS_PORT ) ) )
+                {
+                    xReturn = ( BaseType_t ) ulDNSHandlePacket( pxNetworkBuffer );
+                }
+                else
+            #endif /* ipconfigUSE_MDNS */
+
             #if ( ipconfigUSE_NBNS == 1 )
                 /* a NetBIOS request, check for the destination port */
                 if( ( usPort == FreeRTOS_htons( ipNBNS_PORT ) ) ||
