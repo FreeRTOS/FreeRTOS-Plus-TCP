@@ -1,8 +1,33 @@
 /*
- * RM46L852.c
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2023 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
- *  Created on: Jul 10, 2023
- *      Author: chmalho
+ * SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
+ */
+
+/**
+ * @file NetworkInterface.c
+ * @brief Implements the Network Interface driver for the TI Hercules RM46 board.
  */
 
 #include "FreeRTOS.h"
@@ -34,7 +59,7 @@
 TaskHandle_t receiveTaskHandle = NULL;
 
 void prvEMACHandlerTask( void * pvParameters  );
-void prvProcessFrame( uint32 length, uint32 bufptr );
+void prvProcessFrame( uint32 length, uint32 bufptr, uint32 next_bufptr );
 uint8   emacAddress[6U] =   {0x00U, 0x08U, 0xEEU, 0x03U, 0xA6U, 0x6CU};
 
 BaseType_t xNetworkInterfaceInitialise( void )
@@ -114,7 +139,7 @@ void prvEMACHandlerTask( void * pvParameters  )
     }
 }
 
-void prvProcessFrame( uint32 length, uint32 bufptr)
+void prvProcessFrame( uint32 length, uint32 bufptr, uint32 next_bufptr)
 {
 
     NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
@@ -127,6 +152,12 @@ void prvProcessFrame( uint32 length, uint32 bufptr)
         ( void ) memcpy( pxBufferDescriptor->pucEthernetBuffer,
                          (uint8_t *)bufptr,
                          length );
+        if (next_bufptr != NULL)
+        {
+            ( void ) memcpy( pxBufferDescriptor->xBufferListItem.pxNext,
+                                     (uint8_t *)next_bufptr,
+                                     length );
+        }
 
         if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
@@ -176,119 +207,121 @@ void prvProcessFrame( uint32 length, uint32 bufptr)
 void EMACReceive(hdkif_t *hdkif)
 {
 
-  rxch_t *rxch_int;
-  volatile emac_rx_bd_t *curr_bd, *curr_tail, *last_bd;
+    rxch_t *rxch_int;
+    volatile emac_rx_bd_t *curr_bd, *curr_tail, *last_bd;
 
 
-  /* The receive structure that holds data about a particular receive channel */
-  rxch_int = &(hdkif->rxchptr);
+    /* The receive structure that holds data about a particular receive channel */
+    rxch_int = &(hdkif->rxchptr);
 
-  /* Get the buffer descriptors which contain the earliest filled data */
-  /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-  curr_bd = rxch_int->active_head;
-  /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-  last_bd = rxch_int->active_tail;
+    /* Get the buffer descriptors which contain the earliest filled data */
+    /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+    curr_bd = rxch_int->active_head;
+    /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+    last_bd = rxch_int->active_tail;
 
-  /**
-   * Process the descriptors as long as data is available
-   * when the DMA is receiving data, SOP flag will be set
-  */
-  /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
-  /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-  /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-  while((curr_bd->flags_pktlen & EMAC_BUF_DESC_SOP) == EMAC_BUF_DESC_SOP) {
-
-
-
-    /* Start processing once the packet is loaded */
+    /**
+    * Process the descriptors as long as data is available
+    * when the DMA is receiving data, SOP flag will be set
+    */
+    /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
     /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
     /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-    if((curr_bd->flags_pktlen & EMAC_BUF_DESC_OWNER)
-       != EMAC_BUF_DESC_OWNER) {
+    while((curr_bd->flags_pktlen & EMAC_BUF_DESC_SOP) == EMAC_BUF_DESC_SOP)
+    {
 
-      /* this bd chain will be freed after processing */
-      /*SAFETYMCUSW 71 S MR:17.6 <APPROVED> "Assigned pointer value has required scope." */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-      rxch_int->free_head = curr_bd;
-      prvProcessFrame(curr_bd->bufoff_len & 0x0000FFFF, curr_bd->bufptr); /*send for processing*/
-      /* Get the total length of the packet. curr_bd points to the start
-       * of the packet.
-       */
-
-      /*
-       * The loop runs till it reaches the end of the packet.
-       */
-      /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-      while((curr_bd->flags_pktlen & EMAC_BUF_DESC_EOP)!= EMAC_BUF_DESC_EOP)
-      {
-
-          /*Update the flags for the descriptor again and the length of the buffer*/
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        curr_bd->flags_pktlen = (uint32)EMAC_BUF_DESC_OWNER;
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        curr_bd->bufoff_len = (uint32)MAX_TRANSFER_UNIT;
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        last_bd = curr_bd;
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        curr_bd = curr_bd->next;
-      }
-
-      /* Updating the last descriptor (which contained the EOP flag) */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-
-      curr_bd->flags_pktlen = (uint32)EMAC_BUF_DESC_OWNER;
-
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        curr_bd->bufoff_len = (uint32)MAX_TRANSFER_UNIT;
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        last_bd = curr_bd;
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        curr_bd = curr_bd->next;
-
-      /* Acknowledge that this packet is processed */
-      /*SAFETYMCUSW 439 S MR:11.3 <APPROVED> "Address stored in pointer is passed as as an int parameter. - Advisory as per MISRA" */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-      EMACRxCPWrite(hdkif->emac_base, (uint32)EMAC_CHANNELNUMBER, (uint32)last_bd);
-
-      /* The next buffer descriptor is the new head of the linked list. */
-      /*SAFETYMCUSW 71 S MR:17.6 <APPROVED> "Assigned pointer value has required scope." */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-      rxch_int->active_head = curr_bd;
-
-      /* The processed descriptor is now the tail of the linked list. */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-      curr_tail = rxch_int->active_tail;
-    /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-      curr_tail->next = rxch_int->free_head;
-
-      /* The last element in the already processed Rx descriptor chain is now the end of list. */
-      /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-      last_bd->next = NULL;
-
-
-        /**
-         * Check if the reception has ended. If the EOQ flag is set, the NULL
-         * Pointer is taken by the DMA engine. So we need to write the RX HDP
-         * with the next descriptor.
-         */
+        /* Start processing once the packet is loaded */
         /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-        /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-      /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        if((curr_tail->flags_pktlen & EMAC_BUF_DESC_EOQ) == EMAC_BUF_DESC_EOQ) {
-          /*SAFETYMCUSW 439 S MR:11.3 <APPROVED> "Address stored in pointer is passed as as an int parameter. - Advisory as per MISRA" */
-          /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-          EMACRxHdrDescPtrWrite(hdkif->emac_base, (uint32)(rxch_int->free_head), (uint32)EMAC_CHANNELNUMBER);
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+        if((curr_bd->flags_pktlen & EMAC_BUF_DESC_OWNER) != EMAC_BUF_DESC_OWNER)
+        {
+
+            /* this bd chain will be freed after processing */
+            /*SAFETYMCUSW 71 S MR:17.6 <APPROVED> "Assigned pointer value has required scope." */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            rxch_int->free_head = curr_bd;
+
+            /* Get the total length of the packet. curr_bd points to the start
+            * of the packet.
+            */
+
+            /*
+            * The loop runs till it reaches the end of the packet.
+            */
+            /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            while((curr_bd->flags_pktlen & EMAC_BUF_DESC_EOP)!= EMAC_BUF_DESC_EOP)
+            {
+
+                prvProcessFrame(curr_bd->bufoff_len & 0x0000FFFF, curr_bd->bufptr, curr_bd->next->bufptr); /*send for processing*/
+                /*Update the flags for the descriptor again and the length of the buffer*/
+                /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+                curr_bd->flags_pktlen = (uint32)EMAC_BUF_DESC_OWNER;
+                /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+                curr_bd->bufoff_len = (uint32)MAX_TRANSFER_UNIT;
+                /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+                last_bd = curr_bd;
+                /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+                curr_bd = curr_bd->next;
+            }
+
+            prvProcessFrame(curr_bd->bufoff_len & 0x0000FFFF, curr_bd->bufptr, NULL);
+
+            /* Updating the last descriptor (which contained the EOP flag) */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+
+            curr_bd->flags_pktlen = (uint32)EMAC_BUF_DESC_OWNER;
+
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            curr_bd->bufoff_len = (uint32)MAX_TRANSFER_UNIT;
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            last_bd = curr_bd;
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            curr_bd = curr_bd->next;
+
+            /* Acknowledge that this packet is processed */
+            /*SAFETYMCUSW 439 S MR:11.3 <APPROVED> "Address stored in pointer is passed as as an int parameter. - Advisory as per MISRA" */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            EMACRxCPWrite(hdkif->emac_base, (uint32)EMAC_CHANNELNUMBER, (uint32)last_bd);
+
+            /* The next buffer descriptor is the new head of the linked list. */
+            /*SAFETYMCUSW 71 S MR:17.6 <APPROVED> "Assigned pointer value has required scope." */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            rxch_int->active_head = curr_bd;
+
+            /* The processed descriptor is now the tail of the linked list. */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            curr_tail = rxch_int->active_tail;
+            /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            curr_tail->next = rxch_int->free_head;
+
+            /* The last element in the already processed Rx descriptor chain is now the end of list. */
+            /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            last_bd->next = NULL;
+
+            /**
+            * Check if the reception has ended. If the EOQ flag is set, the NULL
+            * Pointer is taken by the DMA engine. So we need to write the RX HDP
+            * with the next descriptor.
+            */
+            /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+            /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            if((curr_tail->flags_pktlen & EMAC_BUF_DESC_EOQ) == EMAC_BUF_DESC_EOQ)
+            {
+                /*SAFETYMCUSW 439 S MR:11.3 <APPROVED> "Address stored in pointer is passed as as an int parameter. - Advisory as per MISRA" */
+                /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+                EMACRxHdrDescPtrWrite(hdkif->emac_base, (uint32)(rxch_int->free_head), (uint32)EMAC_CHANNELNUMBER);
+            }
+
+            /*SAFETYMCUSW 71 S MR:17.6 <APPROVED> "Assigned pointer value has required scope." */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+            rxch_int->free_head  = curr_bd;
+            rxch_int->active_tail = last_bd;
         }
-
-        /*SAFETYMCUSW 71 S MR:17.6 <APPROVED> "Assigned pointer value has required scope." */
-        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
-        rxch_int->free_head  = curr_bd;
-        rxch_int->active_tail = last_bd;
-      }
     }
 }
 
