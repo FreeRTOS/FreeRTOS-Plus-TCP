@@ -572,10 +572,9 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
             {
                 uint16_t usDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
 
-                if( pxSocket->u.xTCP.usMSS > usDifference )
-                {
-                    pxSocket->u.xTCP.usMSS = ( uint16_t ) ( pxSocket->u.xTCP.usMSS - usDifference );
-                }
+                /* Because ipconfigTCP_MSS is guaranteed not less than tcpMINIMUM_SEGMENT_LENGTH by FreeRTOSIPConfigDefaults.h,
+                 * it's unnecessary to check if xSocket->u.xTCP.usMSS is greater than difference. */
+                pxSocket->u.xTCP.usMSS = ( uint16_t ) ( pxSocket->u.xTCP.usMSS - usDifference );
             }
         #endif /* ipconfigUSE_IPv6 != 0 */
 

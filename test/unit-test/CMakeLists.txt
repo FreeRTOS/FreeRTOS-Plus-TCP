@@ -283,7 +283,6 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ND/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig1/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig2/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_RA/ut.cmake )
@@ -300,7 +299,6 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Transmission_IPV6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils_IPV6/ut.cmake )
-# include( ${UNIT_TEST_DIR}/FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_IPv6_ConfigDriverCheckChecksum/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_IPv6/ut.cmake )
@@ -347,14 +345,11 @@ add_custom_target( coverage
     FreeRTOS_TCP_IP
     FreeRTOS_TCP_Utils
     FreeRTOS_TCP_Utils_IPV6_utest
-    # FreeRTOS_TCP_Utils_IPV6_ConfigLowTCPMSS_utest
     FreeRTOS_Sockets_GenericAPI_utest
     FreeRTOS_Sockets_privates_utest
     FreeRTOS_Sockets_TCP_API_utest
     FreeRTOS_Sockets_UDP_API_utest
     FreeRTOS_Sockets_DiffConfig_privates_utest
-    # FreeRTOS_Sockets_DiffConfig1_GenericAPI_utest
-    # FreeRTOS_Sockets_DiffConfig1_privates_utest
     FreeRTOS_Sockets_DiffConfig2_GenericAPI_utest
     FreeRTOS_Sockets_DiffConfig2_privates_utest
     FreeRTOS_Sockets_DiffConfig2_TCP_API_utest
