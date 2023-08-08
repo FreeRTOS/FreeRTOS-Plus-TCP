@@ -12,7 +12,7 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Stream_Buffer.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission_IPV6.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission_IPv6.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission.goto"
   ],
   "DEF":

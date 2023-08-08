@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Transmission_IPV6.c
+ * @file FreeRTOS_TCP_Transmission_IPv6.c
  * @brief Module which prepares the packet to be sent through
  * a socket for FreeRTOS+TCP.
  * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing

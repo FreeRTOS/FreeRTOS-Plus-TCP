@@ -47,7 +47,7 @@
 #include "mock_FreeRTOS_ND.h"
 
 #include "FreeRTOS_TCP_Transmission.h"
-#include "FreeRTOS_TCP_Transmission_IPV6_stubs.c"
+#include "FreeRTOS_TCP_Transmission_IPv6_stubs.c"
 
 #include "catch_assert.h"
 
