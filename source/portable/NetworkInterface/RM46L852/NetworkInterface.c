@@ -30,7 +30,7 @@
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #endif
 
-struct hdkif_struct xHdkif;
+
 TaskHandle_t receiveTaskHandle = NULL;
 
 void prvEMACHandlerTask( void * pvParameters  );
@@ -44,12 +44,13 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     if (EMACHWInit(emacAddress) == EMAC_ERR_OK)
     {
-       // sci_print("\n network initialise successful\n");
         if( ( xFirstCall == pdTRUE ) || ( receiveTaskHandle == NULL ) )
         {
+            /* The handler task is created at the highest possible priority to
+             * ensure the interrupt handler can return directly to it. */
             xTaskCreated = xTaskCreate( prvEMACHandlerTask,
                                         "EMAC-Handler",
-                                        configMINIMAL_STACK_SIZE * 2,
+                                        configMINIMAL_STACK_SIZE,
                                         NULL,
                                         configMAX_PRIORITIES - 1,
                                         &receiveTaskHandle );
@@ -68,55 +69,38 @@ BaseType_t xNetworkInterfaceInitialise( void )
     }
     else
     {
-        sci_print("\n network initialise unsuccessful\n");
         return pdFAIL;
     }
 }
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t xReleaseAfterSend )
 {
-       struct pbuf_struct xpbuf;
+      struct pbuf_struct xpbuf;
       xpbuf.payload = pxNetworkBuffer->pucEthernetBuffer;
       xpbuf.len = pxNetworkBuffer->xDataLength;
       xpbuf.tot_len = pxNetworkBuffer->xDataLength;
       xpbuf.next = NULL;
-      if(xpbuf.tot_len < MIN_PKT_LEN) {
+      if(xpbuf.tot_len < MIN_PKT_LEN)
+      {
           xpbuf.tot_len = MIN_PKT_LEN;
           xpbuf.len = MIN_PKT_LEN;
-        }
+      }
 
-      xHdkif.emac_base = EMAC_0_BASE;
-      xHdkif.emac_ctrl_base = EMAC_CTRL_0_BASE;
-      xHdkif.emac_ctrl_ram = EMAC_CTRL_RAM_0_BASE;
-      xHdkif.mdio_base = MDIO_0_BASE;
-      xHdkif.phy_addr = 1;
-      xHdkif.phy_autoneg = Dp83640AutoNegotiate;
-      xHdkif.phy_partnerability = Dp83640PartnerAbilityGet;
-      xHdkif.mac_addr[0] = 0x00U;
-      xHdkif.mac_addr[1] = 0x08U;
-      xHdkif.mac_addr[2]= 0xEEU;
-      xHdkif.mac_addr[3]= 0x03U;
-      xHdkif.mac_addr[4]= 0xA6U;
-      xHdkif.mac_addr[5]= 0x6CU;
       taskENTER_CRITICAL();
       {
-          EMACTransmit(&xHdkif,&xpbuf);
+          EMACTransmit(&hdkif_data[0U],&xpbuf);
       }
       taskEXIT_CRITICAL();
 
       if( xReleaseAfterSend == pdTRUE )
-          {
-              vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-          }
+      {
+          vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+      }
       return pdPASS;
 }
 
 void prvEMACHandlerTask( void * pvParameters  )
 {
-
-
-    /* Wait for the driver to finish starting. */
-   // ( void ) ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
     while( pdTRUE )
     {
@@ -127,32 +111,30 @@ void prvEMACHandlerTask( void * pvParameters  )
             EMACReceive(&hdkif_data[0U]);
         }
         taskEXIT_CRITICAL();
-
-
     }
 }
 
-
 void prvProcessFrame( uint32 length, uint32 bufptr)
 {
-    //sci_print("\ninside process frame\r\n");
+
     NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
 
     if( pxBufferDescriptor != NULL )
     {
 
+        /* Copy EMAC buffer descriptor to +TCP buffer descriptor */
         pxBufferDescriptor->xDataLength = length;
-
         ( void ) memcpy( pxBufferDescriptor->pucEthernetBuffer,
                          (uint8_t *)bufptr,
                          length );
 
         if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
+
+            /* send packet to IP task for further processing */
             IPStackEvent_t xRxEvent;
             xRxEvent.eEventType = eNetworkRxEvent;
             xRxEvent.pvData = ( void * ) pxBufferDescriptor;
-            //sci_print("\r\nsending event struct to IP\n");
             if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
             {
                 vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
@@ -194,7 +176,7 @@ void prvProcessFrame( uint32 length, uint32 bufptr)
 void EMACReceive(hdkif_t *hdkif)
 {
 
-    rxch_t *rxch_int;
+  rxch_t *rxch_int;
   volatile emac_rx_bd_t *curr_bd, *curr_tail, *last_bd;
 
 
@@ -228,7 +210,7 @@ void EMACReceive(hdkif_t *hdkif)
       /*SAFETYMCUSW 71 S MR:17.6 <APPROVED> "Assigned pointer value has required scope." */
       /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
       rxch_int->free_head = curr_bd;
-      prvProcessFrame(curr_bd->bufoff_len & 0x0000FFFF, curr_bd->bufptr);
+      prvProcessFrame(curr_bd->bufoff_len & 0x0000FFFF, curr_bd->bufptr); /*send for processing*/
       /* Get the total length of the packet. curr_bd points to the start
        * of the packet.
        */
