@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Utils_IPV6.c
+ * @file FreeRTOS_TCP_Utils_IPv6.c
  * @brief Module contains utility functions used by FreeRTOS+TCP module.
  *
  * Endianness: in this module all ports and IP addresses are stored in

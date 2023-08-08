@@ -30,7 +30,6 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include "FreeRTOS_IP.h"
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
@@ -42,13 +41,15 @@
 #endif
 /* *INDENT-ON* */
 
+/* Forward declarations. */
+typedef struct xNETWORK_BUFFER        NetworkBufferDescriptor_t;
+typedef enum eFrameProcessingResult   eFrameProcessingResult_t;
+typedef struct xIP_PACKET             IPPacket_t;
+
 #define ipSIZE_OF_IPv4_HEADER               20U
 #define ipSIZE_OF_IPv4_ADDRESS              4U
 #define ipSIZE_OF_ICMPv4_HEADER             8U
 #define ipTYPE_IPv4                         ( 0x40U )
-
-/* The number of octets in the IP addresses respectively. */
-#define ipIP_ADDRESS_LENGTH_BYTES           ( 4U )
 
 #define ipFIRST_LOOPBACK_IPv4               0x7F000000UL         /**< Lowest IPv4 loopback address (including). */
 #define ipLAST_LOOPBACK_IPv4                0x80000000UL         /**< Highest IPv4 loopback address (excluding). */

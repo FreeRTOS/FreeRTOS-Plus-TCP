@@ -33,6 +33,8 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
+#include "FreeRTOS_Sockets.h"
+
 #define dnsPARSE_ERROR              0UL
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )

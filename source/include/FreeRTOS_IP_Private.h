@@ -56,7 +56,10 @@
     #define ipFOREVER()    1
 #endif
 
-typedef enum
+/* Forward declaration of 'NetworkEndPoint_t'. */
+typedef struct xNetworkEndPoint NetworkEndPoint_t;
+
+typedef enum eFrameProcessingResult
 {
     eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
     eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */

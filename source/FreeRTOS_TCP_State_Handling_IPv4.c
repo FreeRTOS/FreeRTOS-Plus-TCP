@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_State_Handling_IPV4.c
+ * @file FreeRTOS_TCP_State_Handling_IPv4.c
  * @brief Module which handles the TCP protocol state transition for FreeRTOS+TCP.
  *
  * Endianness: in this module all ports and IP addresses are stored in

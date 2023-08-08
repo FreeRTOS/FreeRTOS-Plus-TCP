@@ -37,6 +37,11 @@ target_include_directories(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFAC
 target_link_libraries(freertos_plus_tcp_config_all_enable_ipv6_tcp INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_header_self_contain INTERFACE)
+target_include_directories(freertos_plus_tcp_config_header_self_contain INTERFACE Header_Self_Contain)
+target_link_libraries(freertos_plus_tcp_config_header_self_contain INTERFACE freertos_plus_tcp_config_common)
+
+# -------------------------------------------------------------------
 add_library( freertos_plus_tcp_config_default INTERFACE)
 target_include_directories(freertos_plus_tcp_config_default INTERFACE DefaultConf)
 target_link_libraries(freertos_plus_tcp_config_default INTERFACE freertos_plus_tcp_config_common)
@@ -62,19 +67,23 @@ elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV6_TCP" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_ipv6_tcp)
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV4_IPV6" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_ipv4_ipv6)
+elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "HEADER_SELF_CONTAIN" )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_header_self_contain)
+    include( Header_Self_Contain/headerSelfContain.cmake )
 else()
     add_library( freertos_config ALIAS freertos_plus_tcp_config_default)
 endif()
 
+# Common build combination test.
 add_executable(freertos_plus_tcp_build_test EXCLUDE_FROM_ALL)
 
 target_sources(freertos_plus_tcp_build_test
-  PRIVATE
+PRIVATE
     Common/main.c
 )
 
 target_compile_options(freertos_plus_tcp_build_test
-  PRIVATE
+    PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-format-nonliteral>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-implicit-function-declaration>
@@ -90,7 +99,7 @@ target_compile_options(freertos_plus_tcp_build_test
 )
 
 target_link_libraries(freertos_plus_tcp_build_test
-  PRIVATE
+    PRIVATE
     freertos_plus_tcp
     freertos_kernel
 )

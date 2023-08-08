@@ -30,7 +30,6 @@
 #include "task.h"
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Common.h"
-#include "FreeRTOS_IPv6_Private.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -88,7 +87,6 @@ struct xNetworkInterface;
 eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                UBaseType_t uxHeaderLength );
-
 
 /** @brief Handle the IPv6 extension headers. */
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,

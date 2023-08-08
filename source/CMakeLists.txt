@@ -70,18 +70,18 @@ target_sources( freertos_plus_tcp
       FreeRTOS_Sockets.c
       FreeRTOS_Stream_Buffer.c
       FreeRTOS_TCP_IP.c
-      FreeRTOS_TCP_IP_IPV4.c
-      FreeRTOS_TCP_IP_IPV6.c
+      FreeRTOS_TCP_IP_IPv4.c
+      FreeRTOS_TCP_IP_IPv6.c
       FreeRTOS_TCP_Reception.c
       FreeRTOS_TCP_State_Handling.c
-      FreeRTOS_TCP_State_Handling_IPV4.c
-      FreeRTOS_TCP_State_Handling_IPV6.c
+      FreeRTOS_TCP_State_Handling_IPv4.c
+      FreeRTOS_TCP_State_Handling_IPv6.c
       FreeRTOS_TCP_Transmission.c
-      FreeRTOS_TCP_Transmission_IPV4.c
-      FreeRTOS_TCP_Transmission_IPV6.c
+      FreeRTOS_TCP_Transmission_IPv4.c
+      FreeRTOS_TCP_Transmission_IPv6.c
       FreeRTOS_TCP_Utils.c
-      FreeRTOS_TCP_Utils_IPV4.c
-      FreeRTOS_TCP_Utils_IPV6.c
+      FreeRTOS_TCP_Utils_IPv4.c
+      FreeRTOS_TCP_Utils_IPv6.c
       FreeRTOS_TCP_WIN.c
       FreeRTOS_Tiny_TCP.c
       FreeRTOS_UDP_IP.c

@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Transmission_IPV4.c
+ * @file FreeRTOS_TCP_Transmission_IPv4.c
  * @brief Module which prepares the packet to be sent through
  * a socket for FreeRTOS+TCP.
  * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
@@ -213,7 +213,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                     /* calculate the IP header checksum, in case the driver won't do that. */
                     pxIPHeader->usHeaderChecksum = 0x00U;
                     pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSize );
-                    pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+                    pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
                     /* calculate the TCP checksum for an outgoing packet. */
                     ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );

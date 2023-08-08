@@ -82,7 +82,7 @@ static void vNetifReceiveTask( void * pvParameters );
  *
  * @return BaseType_t pdTRUE on success
  */
-BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
+static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
 {
     BaseType_t xResult = pdTRUE;
 
@@ -271,9 +271,9 @@ static void vNetifReceiveTask( void * pvParameters )
  *        selected interface
  * @return pdTRUE if successful else pdFALSE
  */
-BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxNetif,
-                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                    BaseType_t xReleaseAfterSend )
+static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxNetif,
+                                           NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                           BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFALSE;
 
@@ -381,8 +381,8 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxNetif )
     return xResult;
 }
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+NetworkInterface_t * pxLibslirp_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                         NetworkInterface_t * pxInterface )
 {
     configASSERT( pxInterface != NULL );
     static char pcName[ 17 ];
