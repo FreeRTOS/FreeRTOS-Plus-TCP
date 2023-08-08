@@ -32,7 +32,6 @@
 
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -100,15 +99,6 @@
  * the query will be responded to with these flags: */
         #define dnsNBNS_QUERY_RESPONSE_FLAGS    ( 0x8500U )
     #endif /* ( ipconfigUSE_NBNS != 0 ) */
-
-
-    #ifndef _lint
-        #if ( ipconfigUSE_DNS_CACHE == 0 )
-            #if ( ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY != 1 )
-                #error When DNS caching is disabled, please make ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY equal to 1.
-            #endif
-        #endif
-    #endif
 
 /** @brief Define the ASCII value of '.' (Period/Full-stop). */
     #define ASCII_BASELINE_DOT    46U

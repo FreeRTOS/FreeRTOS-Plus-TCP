@@ -32,7 +32,6 @@
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
-#include "IPTraceMacroDefaults.h"
 
 #include "FreeRTOS_Sockets.h"
 

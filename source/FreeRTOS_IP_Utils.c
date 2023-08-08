@@ -1461,7 +1461,7 @@ uint16_t usGenerateChecksum( uint16_t usSum,
 
 /**
  * @brief Utility function: Convert error number to a human readable
- *        string. Declaration in FreeRTOS_errno_TCP.h.
+ *        string.
  *
  * @param[in] xErrnum The error number.
  * @param[in] pcBuffer Buffer big enough to be filled with the human readable message.

@@ -29,7 +29,6 @@
 /* Application level configuration options. */
     #include "FreeRTOS_DHCP.h"
     #include "FreeRTOSIPConfig.h"
-    #include "IPTraceMacroDefaults.h"
 
     #ifdef __cplusplus
         extern "C" {

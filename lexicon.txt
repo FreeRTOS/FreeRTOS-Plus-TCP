@@ -57,6 +57,7 @@ bcloserequested
 bconnpassed
 bconnprepared
 bds
+behaviour
 bendpointup
 berkeley
 besr
@@ -168,6 +169,7 @@ dcrs
 dd
 de
 debounce
+decaseconds
 deferral
 deferralcheck
 defgroup
@@ -233,6 +235,7 @@ ectrl
 edfe
 edhcpcontinue
 edhcpevent
+edhcpphase
 edhcpphaseprediscover
 edhcpphaseprerequest
 edhcpstate
@@ -274,6 +277,7 @@ en
 enablesolved
 endcode
 endcond
+enetworkevent
 endgetcacheentry
 endian
 endianness
@@ -371,10 +375,12 @@ freertosconfig
 freertosip
 freertosipconfig
 freertosipconfigdefaults
+freertosipdeprecateddefinitions
 fromisr
 fsrxdesc
 fuf
 func
+functionname
 getaddrinfo
 gethostbyname
 getnetworkbuffer
@@ -438,6 +444,7 @@ initialises
 initialising
 inlined
 inlining
+installable
 int
 interframegap
 intn
@@ -446,6 +453,8 @@ ip
 ipaddress
 ipc
 ipco
+ipconfigdisable
+ipconfigenable
 ipg
 ipif
 ipsec
@@ -574,6 +583,7 @@ mdio
 mdix
 mdns
 mediainterface
+mem
 memcmp
 memcopy
 memcpy
@@ -612,6 +622,7 @@ nack
 nanosec
 nbns
 nc
+ndp
 neg
 neighbour
 netbios
@@ -689,6 +700,7 @@ pce
 pcendpointname
 pcf
 pcformat
+pcformatstring
 pcfrom
 pchost
 pchostname
@@ -747,6 +759,7 @@ pmecr
 pmt
 pointee
 portinline
+portmacro
 posix
 pparam
 ppkt
@@ -953,6 +966,7 @@ pvparam
 pvparameters
 pvpointer
 pvportmalloc
+pvportmalloclarge
 pvportmallocsocket
 pvptr
 pvsearchid
@@ -968,9 +982,11 @@ pxaddresstolookup
 pxallnetworkinterfaces
 pxanswer
 pxarpframe
+pxarpheader
 pxarpwaitingnetworkbuffer
 pxbindaddress
 pxbuffer
+pxbufferaddress
 pxbufferdescriptor
 pxclientsocket
 pxconfig
@@ -1032,6 +1048,7 @@ pxnewsocket
 pxnext
 pxnextbuffer
 pxnextnetworkbufferdescriptor
+pxobject
 pxontcpconnected
 pxontcpreceive
 pxontcpsent
@@ -1491,6 +1508,8 @@ ulsourceaddress
 ulsourceipaddress
 ulspace
 ulsrtt
+ulstaticipaddress
+ulstaticnetmask
 ulstatus
 ulsubnetmask
 ulsum
@@ -1739,6 +1758,7 @@ vlantagidentifier
 vlistinitialise
 vlistinitialiseitem
 vlistinsertend
+vloggingprintf
 vmyconnecthandler
 vndagecache
 vndrefreshcacheentry
@@ -1750,6 +1770,8 @@ vperformaction
 vportentercritical
 vportexitcritical
 vportfree
+vportfreelarge
+vportfreesocket
 vprecheckconfigs
 vprintresourcestats
 vprocessgeneratedudppacket
@@ -1882,6 +1904,7 @@ xendpoints
 xentries
 xentryfound
 xerrnum
+xerrorcode
 xethernetheader
 xeventbits
 xeventgroup
@@ -1961,6 +1984,7 @@ xmacaddress
 xmacbroadcast
 xmacentry
 xmaxtime
+xmemtype
 xmessage
 xmicreldevice
 xmitcount
@@ -1983,6 +2007,7 @@ xnetworkup
 xnextorder
 xntppacket
 xntptaskhandle
+xnumberofbytesdiscarded
 xontcpconnect
 xontcpreceive
 xontcpsent

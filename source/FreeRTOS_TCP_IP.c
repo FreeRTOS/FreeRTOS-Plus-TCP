@@ -301,9 +301,11 @@
         {
             /* A socket was in the connecting phase but something
              * went wrong and it should be closed. */
-            FreeRTOS_debug_printf( ( "Move from %s to %s\n",
-                                     FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
-                                     FreeRTOS_GetTCPStateName( eTCPState ) ) );
+            #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                FreeRTOS_debug_printf( ( "Move from %s to %s\n",
+                                         FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
+                                         FreeRTOS_GetTCPStateName( eTCPState ) ) );
+            #endif
 
             /* Set the flag to show that it was connected before and that the
              * status has changed now. This will cause the control flow to go
