@@ -24,6 +24,7 @@
     "FREERTOS_TCP_ENABLE_VERIFICATION",
     "ipconfigUSE_TCP=1",
     "ipconfigNETWORK_MTU=200",
+    "ipconfigTCP_MSS=586",
     "ipconfigUSE_DHCP=0"
   ],
   "INC":
