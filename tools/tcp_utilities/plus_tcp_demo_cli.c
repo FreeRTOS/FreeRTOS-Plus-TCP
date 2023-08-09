@@ -38,12 +38,12 @@
 #include <time.h>
 
 /* FreeRTOS includes. */
+#include "FreeRTOS.h"
 #include "message_buffer.h"
 #include "queue.h"
 #include "semphr.h"
 #include "task.h"
 #include "timers.h"
-#include <FreeRTOS.h>
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_ARP.h"
