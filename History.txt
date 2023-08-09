@@ -5,7 +5,6 @@ Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
         + Multiple Interface and Multiple Endpoint support
 		1. The stack supports multiple Physical Interfaces.
 		2. The stack also supports multiple endpoints (or Virtual interfaces) on the same physical interface.
-	(Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/freertostcp-multiple-interfaces.html).
         + New WinSim demo to support IPv4, IPv6 and multi-interface together.
 	(Reference: https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo)
 	+ Build separation feature introduced to achieve low memory footprint. Supported build combinations:
