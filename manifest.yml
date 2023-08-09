@@ -4,7 +4,7 @@ description: "Thread safe FreeRTOS TCP/IP stack working on top of the FreeRTOS-K
 license: "MIT"
 dependencies:
   - name: "FreeRTOS-Kernel"
-    version: "V10.4.5"
+    version: "V10.6.0"
     license: "MIT"
     repository:
       type: "git"
