@@ -42,7 +42,7 @@ We thank the following people for their inputs in these enhancements:
 	+ Allow use of loopback addresses. Contributed by @adam-stamand.
 	+ CBMC proof-running GitHub Action. Contributed by @karkhaz.
 	+ CBMC XML output to enable VSCode debugger. Contributed by @karkhaz.
-	+ vTaskDelay for sleep in the network-interface of xilinx_ultrascale.
+	+ vTaskDelay for sleep in the network-interface of xilinx_ultrascale.Contributed by @ChristosZosi.
 	+ Read mac address using FreeRTOS_GetMACAddress(). Contributed by @sayyadumar.
 	+ Minor warning fixes. Contributed by @ChristosZosi.
 	+ Network-interface fix for Xilinx UltraScale port. Contributed by @ChristosZosi.
