@@ -2404,7 +2404,7 @@
  * @}
  */
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* __STM32Fxx_HAL_ETH_H */

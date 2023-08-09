@@ -28,17 +28,18 @@
 #ifndef FREERTOS_DHCP_H
 #define FREERTOS_DHCP_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_Routing.h"
+#include "FreeRTOS.h"
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "IPTraceMacroDefaults.h"
+
+#include "FreeRTOS_Sockets.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
 
 #if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 

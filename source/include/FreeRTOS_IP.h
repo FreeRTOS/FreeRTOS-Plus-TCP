@@ -28,12 +28,6 @@
 #ifndef FREERTOS_IP_H
 #define FREERTOS_IP_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -42,6 +36,12 @@
 #include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_IP_Common.h"
 #include "IPTraceMacroDefaults.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* Constants defining the current version of the FreeRTOS+TCP
  * network stack. */

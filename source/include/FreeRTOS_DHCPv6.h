@@ -26,14 +26,14 @@
 #ifndef FREERTOS_DHCPV6_H
     #define FREERTOS_DHCPV6_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
 /* Application level configuration options. */
     #include "FreeRTOS_DHCP.h"
     #include "FreeRTOSIPConfig.h"
     #include "IPTraceMacroDefaults.h"
+
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
 /* IPv6 option numbers. */
 /** @brief IPv6 DHCP option number - Solicit */
@@ -153,7 +153,7 @@
                          struct xNetworkEndPoint * pxEndPoint );
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 /* The application should supply the following time-function.

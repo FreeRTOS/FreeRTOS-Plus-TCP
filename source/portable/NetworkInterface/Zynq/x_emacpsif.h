@@ -19,10 +19,6 @@
 #ifndef __NETIF_XEMACPSIF_H__
     #define __NETIF_XEMACPSIF_H__
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
     #include <stdint.h>
 
     #include "xstatus.h"
@@ -37,6 +33,10 @@
     #include "xuartps.h"
     #include "xscugic.h"
     #include "xemacps.h" /* defines XEmacPs API */
+
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
     #define XPAR_PS7_ETHERNET_1_DEVICE_ID    1
     #define XPAR_PS7_ETHERNET_1_BASEADDR     0xE000C000
@@ -151,7 +151,7 @@
     void vInitialiseOnIndex( BaseType_t xIndex );
 
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */

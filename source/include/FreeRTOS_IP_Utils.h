@@ -25,19 +25,13 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef FREERTOS_IP_UTILS_H
-#define FREERTOS_IP_UTILS_H
-
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /**
  * @file FreeRTOS_IP_Utils.h
  * @brief Implements the utility functions for FreeRTOS_IP.c
  */
+
+#ifndef FREERTOS_IP_UTILS_H
+#define FREERTOS_IP_UTILS_H
 
 /* Standard includes. */
 #include <stdint.h>
@@ -64,6 +58,15 @@
 
 #include "FreeRTOS_IPv4_Utils.h"
 #include "FreeRTOS_IPv6_Utils.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
+/* Forward declaration of 'NetworkInterface_t'. */
+typedef struct xNetworkInterface NetworkInterface_t;
 
 #if ( ipconfigUSE_DHCP != 0 )
 

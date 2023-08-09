@@ -155,6 +155,7 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     ENABLE_ALL_IPV6_TCP     # Enable all configuration settings IPv6 TCP
     ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6 UDP
     DISABLE_ALL             # Disable all configuration settings
+    HEADER_SELF_CONTAIN     # Enable header self contain test
     DEFAULT_CONF            # Default (typical) configuration
 )
 if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)
@@ -196,10 +197,22 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wall>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wpedantic>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wconversion>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wunused-variable>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
 
-    # TODO: Add in other Compilers here.
+    # Suppressions required to build clean with clang.
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-switch-enum>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-declaration-after-statement>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-padded>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-covered-switch-default>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-align>
 )
 
 ########################################################################

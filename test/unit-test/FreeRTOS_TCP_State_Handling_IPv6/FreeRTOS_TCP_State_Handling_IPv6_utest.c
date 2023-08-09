@@ -39,7 +39,7 @@
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_TCP_Transmission.h"
 #include "mock_FreeRTOS_TCP_Utils.h"
-#include "mock_TCP_State_Handling_IPV6_list_macros.h"
+#include "mock_TCP_State_Handling_IPv6_list_macros.h"
 
 #include "catch_assert.h"
 

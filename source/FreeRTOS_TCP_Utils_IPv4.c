@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Utils_IPV6.c
+ * @file FreeRTOS_TCP_Utils_IPv4.c
  * @brief Module contains utility functions used by FreeRTOS+TCP module.
  *
  * Endianness: in this module all ports and IP addresses are stored in
@@ -47,7 +47,7 @@
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 /* *INDENT-OFF* */
-#if( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_TCP == 1 )
+#if( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 )
 /* *INDENT-ON* */
 
 /**
@@ -55,67 +55,39 @@
  *
  * @param[in] pxSocket The socket whose MSS is to be set.
  */
-void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
+void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket )
 {
     uint32_t ulMSS = ipconfigTCP_MSS;
+    const NetworkEndPoint_t * pxEndPoint = pxSocket->pxEndPoint;
 
-    #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-        char cIPv6Address[ 40 ];
-    #endif
-
-    const NetworkEndPoint_t * pxEndPoint = NULL;
-
-    do
+    if( pxEndPoint != NULL )
     {
-        if( pxSocket == NULL )
-        {
-            /* If NULL socket handler, skip all following steps. */
-            FreeRTOS_debug_printf( ( "prvSocketSetMSS_IPV6: NULL socket handler\n" ) );
-
-            break;
-        }
-
-        pxEndPoint = pxSocket->pxEndPoint;
-
-        if( pxEndPoint != NULL )
-        {
-            /* Compared to IPv4, an IPv6 header is 20 bytes longer.
-             * It must be subtracted from the MSS. */
-            size_t uxDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
-            /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
-            #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-                {
-                    ulMSS = ipconfigTCP_MSS;
-                }
-            #else
-                {
-                    ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-                }
-            #endif
-
-            ulMSS -= uxDifference;
-            IPv6_Type_t eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
-
-            if( eType == eIPv6_Global )
+        /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
+        #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
             {
-                /* The packet will travel through Internet, make the MSS
-                 * smaller. */
-                ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+                ulMSS = ipconfigTCP_MSS;
             }
-        }
-
-        #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
+        #else
             {
-                ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6, ( const void * ) pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, cIPv6Address, sizeof( cIPv6Address ) );
-                FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %s ip port %u\n", ( unsigned ) ulMSS, cIPv6Address, pxSocket->u.xTCP.usRemotePort ) );
+                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
             }
         #endif
 
-        pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
-    } while( ipFALSE_BOOL );
+        /* Check if the remote IP-address belongs to the same netmask. */
+        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 ) ^ pxEndPoint->ipv4_settings.ulIPAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) != 0U )
+        {
+            /* Data for this peer will pass through a router, and maybe through
+             * the internet.  Limit the MSS to 1400 bytes or less. */
+            ulMSS = FreeRTOS_min_uint32( ( uint32_t ) tcpREDUCED_MSS_THROUGH_INTERNET, ulMSS );
+        }
+    }
+
+    FreeRTOS_debug_printf( ( "prvSocketSetMSS: %u bytes for %xip port %u\n", ( unsigned ) ulMSS, ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, pxSocket->u.xTCP.usRemotePort ) );
+
+    pxSocket->u.xTCP.usMSS = ( uint16_t ) ulMSS;
 }
 /*-----------------------------------------------------------*/
 
 /* *INDENT-OFF* */
-#endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_TCP == 1 ) */
+#endif /* ( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 ) */
 /* *INDENT-ON* */

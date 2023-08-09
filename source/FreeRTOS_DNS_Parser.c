@@ -471,7 +471,7 @@
                                 /*logging*/
                                 FreeRTOS_printf( ( "prvParseDNS_HandleLLMNRRequest[%s]: type %04X\n", xSet.pcName, xSet.usType ) );
 
-                                xEndPoint.usDNSType = xSet.usType;
+                                xEndPoint.usDNSType = ( uint8_t ) xSet.usType;
                             }
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -572,7 +572,7 @@
                                         ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                                         uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                         /* An extra 12 bytes will be sent compared to an A-record. */
-                                        usLength = ( int16_t ) sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress );
+                                        usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
                                     }
                                     else
                                 #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -786,15 +786,7 @@
                         {
                             BaseType_t xCallbackResult;
 
-                            #if ( ipconfigUSE_IPv6 != 0 )
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
-                                }
-                            #else
-                                {
-                                    xCallbackResult = xDNSDoCallback( pxSet, pxSet->ulIPAddress );
-                                }
-                            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                            xCallbackResult = xDNSDoCallback( pxSet, ( ppxAddressInfo != NULL ) ? *( ppxAddressInfo ) : NULL );
 
                             /* See if any asynchronous call was made to FreeRTOS_gethostbyname_a() */
                             if( xCallbackResult != pdFALSE )
@@ -997,7 +989,7 @@
                         /* Calculate the IP header checksum. */
                         pxIPHeader->usHeaderChecksum = 0U;
                         pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderLength );
-                        pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+                        pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
                     }
 
                     /* calculate the UDP checksum for outgoing package */
@@ -1090,8 +1082,8 @@
                     /* Define the ASCII value of the capital "A". */
                     const uint8_t ucCharA = ( uint8_t ) 0x41U;
 
-                    ucByte = ( ( uint8_t ) ( ( pucSource[ 0 ] - ucCharA ) << 4 ) ) |
-                             ( pucSource[ 1 ] - ucCharA );
+                    ucByte = ( uint8_t ) ( ( ( pucSource[ 0 ] - ucCharA ) << 4 ) |
+                                           ( pucSource[ 1 ] - ucCharA ) );
 
                     /* Make sure there are no trailing spaces in the name. */
                     if( ( ucByte == ( uint8_t ) ' ' ) && ( pucTarget[ 1 ] == 0U ) )

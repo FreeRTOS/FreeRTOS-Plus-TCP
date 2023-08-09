@@ -40,7 +40,7 @@
 #include "mock_FreeRTOS_TCP_Transmission.h"
 #include "mock_FreeRTOS_TCP_Utils.h"
 #include "mock_FreeRTOS_TCP_IP.h"
-#include "mock_TCP_State_Handling_IPV4_list_macros.h"
+#include "mock_TCP_State_Handling_IPv4_list_macros.h"
 
 #include "catch_assert.h"
 

@@ -28,11 +28,11 @@
 #ifndef DATE_AND_TIME_H
     #define DATE_AND_TIME_H
 
+    #include <time.h>
+
     #ifdef __cplusplus
         extern "C" {
     #endif
-
-    #include <time.h>
 
     extern uint32_t ulSeconds, ulMsec;
     extern int iTimeZone;
@@ -46,7 +46,7 @@
 
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* DATE_AND_TIME_H */

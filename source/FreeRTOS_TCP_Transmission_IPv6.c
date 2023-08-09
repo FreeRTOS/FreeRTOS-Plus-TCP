@@ -26,7 +26,7 @@
  */
 
 /**
- * @file FreeRTOS_TCP_Transmission_IPV4.c
+ * @file FreeRTOS_TCP_Transmission_IPv6.c
  * @brief Module which prepares the packet to be sent through
  * a socket for FreeRTOS+TCP.
  * It depends on  FreeRTOS_TCP_WIN.c, which handles the TCP windowing
@@ -54,6 +54,7 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOSIPConfigDefaults.h"
+#include "FreeRTOS_ND.h"
 
 #include "FreeRTOS_TCP_IP.h"
 #include "FreeRTOS_TCP_Reception.h"
@@ -63,7 +64,7 @@
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 /* *INDENT-OFF* */
-#if( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 )
+#if( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_TCP == 1 )
 /* *INDENT-ON* */
 
 /*------------------------------------------------------------------------*/
@@ -81,14 +82,14 @@
  * @param[in] xReleaseAfterSend pdTRUE if the ownership of the descriptor is
  *                               transferred to the network interface.
  */
-void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
+void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
                               NetworkBufferDescriptor_t * pxDescriptor,
                               uint32_t ulLen,
                               BaseType_t xReleaseAfterSend )
 {
-    TCPPacket_t * pxTCPPacket = NULL;
+    TCPPacket_IPv6_t * pxTCPPacket = NULL;
     ProtocolHeaders_t * pxProtocolHeaders = NULL;
-    IPHeader_t * pxIPHeader = NULL;
+    IPHeader_IPv6_t * pxIPHeader = NULL;
     BaseType_t xDoRelease = xReleaseAfterSend;
     EthernetHeader_t * pxEthernetHeader = NULL;
     NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
@@ -97,11 +98,18 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
     MACAddress_t xMACAddress;
     const void * pvCopySource = NULL;
     void * pvCopyDest = NULL;
-    const size_t uxIPHeaderSize = ipSIZE_OF_IPv4_HEADER;
-    uint32_t ulDestinationIPAddress;
+    const size_t uxIPHeaderSize = ipSIZE_OF_IPv6_HEADER;
+    IPv6_Address_t xDestinationIPAddress;
 
     do
     {
+        /* Use do/while to be able to break out of the flow */
+        if( ( pxNetworkBuffer == NULL ) && ( pxSocket == NULL ) )
+        {
+            /* Either 'pxNetworkBuffer' or 'pxSocket' should be defined. */
+            break;
+        }
+
         /* For sending, a pseudo network buffer will be used, as explained above. */
 
         if( pxNetworkBuffer == NULL )
@@ -139,10 +147,12 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
+        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxIPHeader = ( ( IPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+        pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
 
         #ifndef __COVERITY__
             if( pxNetworkBuffer != NULL ) /* LCOV_EXCL_BR_LINE the 2nd branch will never be reached */
@@ -153,7 +163,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxTCPPacket = ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
+            pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
             pxEthernetHeader = ( EthernetHeader_t * ) &( pxTCPPacket->xEthernetHeader );
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -176,49 +186,36 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                 }
             }
 
-            /* Fill the packet, using hton translations. */
+            /* Fill the packet, swapping from- and to-addresses. */
             if( pxSocket != NULL )
             {
                 prvTCPReturn_CheckTCPWindow( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
                 prvTCPReturn_SetSequenceNumber( pxSocket, pxNetworkBuffer, uxIPHeaderSize, ulLen );
-                pxIPHeader->ulDestinationIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-                pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
+                ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             }
             else
             {
+                IPv6_Address_t xTempAddress;
+
                 /* Sending data without a socket, probably replying with a RST flag
                  * Just swap the two sequence numbers. */
                 vFlip_32( pxProtocolHeaders->xTCPHeader.ulSequenceNumber, pxProtocolHeaders->xTCPHeader.ulAckNr );
-                vFlip_32( pxIPHeader->ulDestinationIPAddress, pxIPHeader->ulSourceIPAddress );
+                ( void ) memcpy( xTempAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxIPHeader->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, xTempAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             }
 
-            pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
-            pxIPHeader->usLength = FreeRTOS_htons( ulLen );
-
-            /* Just an increasing number. */
-            pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
-            usPacketIdentifier++;
-
-            /* The stack doesn't support fragments, so the fragment offset field must always be zero.
-             * The header was never memset to zero, so set both the fragment offset and fragmentation flags in one go.
-             */
-            #if ( ipconfigFORCE_IP_DONT_FRAGMENT != 0 )
-                pxIPHeader->usFragmentOffset = ipFRAGMENT_FLAGS_DONT_FRAGMENT;
-            #else
-                pxIPHeader->usFragmentOffset = 0U;
-            #endif
+            /* In IPv6, the "payload length" does not include the size of the IP-header */
+            pxIPHeader->usPayloadLength = FreeRTOS_htons( ulLen - sizeof( IPHeader_IPv6_t ) );
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 {
-                    /* calculate the IP header checksum, in case the driver won't do that. */
-                    pxIPHeader->usHeaderChecksum = 0x00U;
-                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSize );
-                    pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
-
                     /* calculate the TCP checksum for an outgoing packet. */
-                    ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
+                    uint32_t ulTotalLength = ulLen + ipSIZE_OF_ETH_HEADER;
+                    ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxNetworkBuffer->pucEthernetBuffer, ulTotalLength, pdTRUE );
                 }
-            #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
+            #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 */
 
             vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
 
@@ -232,11 +229,10 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                 }
             #endif
 
-            pvCopySource = &pxEthernetHeader->xSourceAddress;
-            ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
+            ( void ) memcpy( xDestinationIPAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             eARPLookupResult_t eResult;
 
-            eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
+            eResult = eNDGetCacheEntry( &xDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
 
             if( eResult == eARPCacheHit )
             {
@@ -292,9 +288,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                  * containing the packet header. */
                 vFlip_16( pxTCPPacket->xTCPHeader.usSourcePort, pxTCPPacket->xTCPHeader.usDestinationPort );
 
-                pxIPHeader->ulSourceIPAddress = pxIPHeader->ulDestinationIPAddress;
-
-                ( void ) memcpy( pxEthernetHeader->xSourceAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
+                ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             }
             else
             {
@@ -320,15 +314,17 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
  *       target IP address is not within the netmask, the hardware address of the
  *       gateway will be used.
  */
-BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
+BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
 {
-    TCPPacket_t * pxTCPPacket;
-    IPHeader_t * pxIPHeader;
+    TCPPacket_IPv6_t * pxTCPPacket = NULL;
+    IPHeader_IPv6_t * pxIPHeader = NULL;
     eARPLookupResult_t eReturned;
-    uint32_t ulRemoteIP;
+    IP_Address_t xRemoteIP;
     MACAddress_t xEthAddress;
     BaseType_t xReturn = pdTRUE;
     uint32_t ulInitialSequenceNumber = 0;
+    ProtocolHeaders_t * pxProtocolHeaders = NULL;
+    NetworkEndPoint_t * pxEndPoint = NULL;
 
     #if ( ipconfigHAS_PRINTF != 0 )
         {
@@ -337,9 +333,21 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
         }
     #endif /* ipconfigHAS_PRINTF != 0 */
 
-    ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-    /* Determine the ARP cache status for the requested IP address. */
-    eReturned = eARPGetCacheEntry( &( ulRemoteIP ), &( xEthAddress ), &( pxSocket->pxEndPoint ) );
+    ( void ) memset( xRemoteIP.xIP_IPv6.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( xRemoteIP.xIP_IPv6.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    eReturned = eNDGetCacheEntry( &( xRemoteIP.xIP_IPv6 ), &( xEthAddress ), &( pxEndPoint ) );
+    FreeRTOS_printf( ( "eNDGetCacheEntry: %d with end-point %p\n", eReturned, ( void * ) pxEndPoint ) );
+
+    if( pxEndPoint != NULL )
+    {
+        pxSocket->pxEndPoint = pxEndPoint;
+    }
+
+    /* MISRA Ref 11.3.1 [Misaligned access] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+    /* coverity[misra_c_2012_rule_11_3_violation] */
+    pxProtocolHeaders = ( ( ProtocolHeaders_t * )
+                          &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
 
     switch( eReturned )
     {
@@ -352,19 +360,23 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
             /* Count the number of times it could not find the ARP address. */
             pxSocket->u.xTCP.ucRepCount++;
 
-            FreeRTOS_debug_printf( ( "ARP for %xip (using %xip): rc=%d %02x-%02x-%02x-%02x-%02x-%02x\n",
-                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
-                                     ( unsigned ) FreeRTOS_htonl( ulRemoteIP ),
-                                     eReturned,
-                                     xEthAddress.ucBytes[ 0 ],
-                                     xEthAddress.ucBytes[ 1 ],
-                                     xEthAddress.ucBytes[ 2 ],
-                                     xEthAddress.ucBytes[ 3 ],
-                                     xEthAddress.ucBytes[ 4 ],
-                                     xEthAddress.ucBytes[ 5 ] ) );
+            FreeRTOS_printf( ( "Looking up %pip with%s end-point\n", ( void * ) xRemoteIP.xIP_IPv6.ucBytes, ( pxEndPoint != NULL ) ? "" : "out" ) );
 
-            /* And issue a (new) ARP request */
-            FreeRTOS_OutputARPRequest( ulRemoteIP );
+            if( pxEndPoint != NULL )
+            {
+                size_t uxNeededSize;
+                NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+                uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
+                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, 0U );
+
+                if( pxNetworkBuffer != NULL )
+                {
+                    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                    vNDSendNeighbourSolicitation( pxNetworkBuffer, &( xRemoteIP.xIP_IPv6 ) );
+                }
+            }
+
             xReturn = pdFALSE;
             break;
     }
@@ -386,17 +398,15 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
 
     if( xReturn != pdFALSE )
     {
-        uint16_t usLength;
-
         /* The MAC-address of the peer (or gateway) has been found,
          * now prepare the initial TCP packet and some fields in the socket. Map
-         * the buffer onto the TCPPacket_t struct to easily access it's field. */
+         * the buffer onto the TCPPacket_IPv6_t struct to easily access it's field. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxTCPPacket = ( ( TCPPacket_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
-        pxIPHeader = &pxTCPPacket->xIPHeader;
+        pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxSocket->u.xTCP.xPacket.u.ucLastPacket );
+        pxIPHeader = &( pxTCPPacket->xIPHeader );
 
         /* reset the retry counter to zero. */
         pxSocket->u.xTCP.ucRepCount = 0U;
@@ -410,24 +420,32 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
 
         /* Write the Ethernet address in Source, because it will be swapped by
          * prvTCPReturnPacket(). */
-        ( void ) memcpy( ( void * ) ( &pxTCPPacket->xEthernetHeader.xSourceAddress ), ( const void * ) ( &xEthAddress ), sizeof( xEthAddress ) );
+        ( void ) memcpy( ( void * ) ( &( pxTCPPacket->xEthernetHeader.xSourceAddress ) ), ( const void * ) ( &xEthAddress ), sizeof( xEthAddress ) );
 
-        /* 'ipIPv4_FRAME_TYPE' is already in network-byte-order. */
-        pxTCPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
+        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        {
+            /* 'ipIPv4_FRAME_TYPE' is already in network-byte-order. */
+            pxTCPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-        pxIPHeader->ucVersionHeaderLength = 0x45U;
-        usLength = ( uint16_t ) ( sizeof( TCPPacket_t ) - sizeof( pxTCPPacket->xEthernetHeader ) );
-        pxIPHeader->usLength = FreeRTOS_htons( usLength );
-        pxIPHeader->ucTimeToLive = ( uint8_t ) ipconfigTCP_TIME_TO_LIVE;
+            pxIPHeader->ucVersionTrafficClass = ( uint8_t ) 0x60U;
+            pxIPHeader->ucTrafficClassFlow = ( uint8_t ) 0x00;
+            pxIPHeader->usFlowLabel = ( uint16_t ) 0x0000U;
+            pxIPHeader->usPayloadLength = FreeRTOS_htons( sizeof( TCPHeader_t ) );
+            pxIPHeader->ucNextHeader = ( uint8_t ) ipPROTOCOL_TCP;
+            pxIPHeader->ucHopLimit = 128;
+            /* The Source and Destination addresses will be swapped later. */
+            ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, sizeof( pxIPHeader->xSourceAddress.ucBytes ) );
+            ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxSocket->xLocalAddress.xIP_IPv6.ucBytes, sizeof( pxIPHeader->xDestinationAddress.ucBytes ) );
+            pxEndPoint = pxSocket->pxEndPoint;
+        }
+    }
 
-        pxIPHeader->ucProtocol = ( uint8_t ) ipPROTOCOL_TCP;
+    if( pxEndPoint != NULL )
+    {
+        pxSocket->pxEndPoint = pxEndPoint;
 
-        /* Addresses and ports will be stored swapped because prvTCPReturnPacket
-         * will swap them back while replying. */
-        pxIPHeader->ulSourceIPAddress = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-
-        pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
-        pxTCPPacket->xTCPHeader.usDestinationPort = FreeRTOS_htons( pxSocket->usLocalPort );
+        pxProtocolHeaders->xTCPHeader.usSourcePort = FreeRTOS_htons( pxSocket->u.xTCP.usRemotePort );
+        pxProtocolHeaders->xTCPHeader.usDestinationPort = FreeRTOS_htons( pxSocket->usLocalPort );
 
         /* We are actively connecting, so the peer's Initial Sequence Number (ISN)
          * isn't known yet. */
@@ -438,10 +456,10 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
 
         /* The TCP header size is 20 bytes, divided by 4 equals 5, which is put in
          * the high nibble of the TCP offset field. */
-        pxTCPPacket->xTCPHeader.ucTCPOffset = 0x50U;
+        pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50U;
 
         /* Only set the SYN flag. */
-        pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
+        pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
         /* Set the value of usMSS for this socket. */
         prvSocketSetMSS( pxSocket );
@@ -450,6 +468,11 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
          * vTCPWindowInit() will be called to fill in the peer's sequence numbers, but
          * first wait for a SYN+ACK reply. */
         prvTCPCreateWindow( pxSocket );
+    }
+    else
+    {
+        FreeRTOS_printf( ( "prvTCPPrepareConnect: No pxEndPoint yet?\n" ) );
+        xReturn = pdFAIL;
     }
 
     return xReturn;
@@ -466,7 +489,7 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
  *
  * @return pdFAIL always indicating that the packet was not consumed.
  */
-BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+BaseType_t prvTCPSendSpecialPktHelper_IPV6( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                             uint8_t ucTCPFlags )
 {
     #if ( ipconfigIGNORE_UNKNOWN_PACKETS == 1 )
@@ -478,11 +501,11 @@ BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetwor
             /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
-            TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+            TCPPacket_IPv6_t * pxTCPPacket = ( ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
             const uint32_t ulSendLength =
-                ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
+                ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
 
             uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
             pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
@@ -507,6 +530,7 @@ BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetwor
 }
 /*-----------------------------------------------------------*/
 
+
 /* *INDENT-OFF* */
-#endif /* ( ipconfigUSE_IPv4 != 0 ) && ( ipconfigUSE_TCP == 1 ) */
+#endif /* ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_TCP == 1 ) */
 /* *INDENT-ON* */

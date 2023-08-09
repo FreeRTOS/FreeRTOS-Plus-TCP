@@ -19,10 +19,6 @@
 #ifndef __NETIF_XEMACPSIF_H__
     #define __NETIF_XEMACPSIF_H__
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
     #include <stdint.h>
 
     #include "xstatus.h"
@@ -39,8 +35,9 @@
     #include "xscugic.h"
     #include "xemacps.h" /* defines XEmacPs API */
 
-/*#include "netif/xpqueue.h" */
-/*#include "xlwipconfig.h" */
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
 
     void xemacpsif_setmac( uint32_t index,
                            uint8_t * addr );
@@ -154,7 +151,7 @@
     void resetrx_on_no_rxdata( xemacpsif_s * xemacpsif );
 
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */

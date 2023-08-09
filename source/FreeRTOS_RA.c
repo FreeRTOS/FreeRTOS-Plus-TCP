@@ -138,6 +138,7 @@
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
         IPv6_Address_t xSourceAddress;
         BaseType_t xHasLocal;
+        NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
 
         configASSERT( pxEndPoint != NULL );
         configASSERT( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED );
@@ -151,12 +152,14 @@
         }
         else
         {
-            FreeRTOS_printf( ( "RA: source %pip\n", xSourceAddress.ucBytes ) );
+            FreeRTOS_printf( ( "RA: source %pip\n", ( void * ) xSourceAddress.ucBytes ) );
         }
 
         if( pxDescriptor->xDataLength < uxNeededSize )
         {
-            pxDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+            pxNewDescriptor = pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, uxNeededSize );
+            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+            pxDescriptor = pxNewDescriptor;
         }
 
         if( pxDescriptor != NULL )
@@ -315,7 +318,7 @@
                                        pxPrefixOption->ucPrefixLength,
                                        FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
                                        FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
-                                       pxPrefixOption->ucPrefix ) );
+                                       ( void * ) pxPrefixOption->ucPrefix ) );
                     break;
 
                 case ndICMP_REDIRECTED_HEADER: /* 4 */
@@ -486,7 +489,7 @@
                     pxEndPoint->xRAData.eRAState = eRAStatePreLease;
                     iptraceRA_SUCCEDEED( &( pxEndPoint->ipv6_settings.xIPAddress ) );
                     FreeRTOS_printf( ( "RA: succeeded, using IP address %pip Reload after %u seconds\n",
-                                       pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                       ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                        ( unsigned ) pxEndPoint->xRAData.ulPreferredLifeTime ) );
                 }
                 else
@@ -496,7 +499,7 @@
 
                     iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
-                    FreeRTOS_printf( ( "RA: failed, using default parameters and IP address %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                    FreeRTOS_printf( ( "RA: failed, using default parameters and IP address %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
                     /* Disable the timer. */
                     uxNewReloadTime = 0U;
                 }
@@ -574,7 +577,7 @@
                        FreeRTOS_printf( ( "RA: Creating a random IP-address\n" ) );
                    }
 
-                   FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                   FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
 
                    uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
                    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, raDONT_BLOCK );
@@ -658,7 +661,7 @@
             {
                 FreeRTOS_printf( ( "vRAProcess( %ld, %pip) bRouterReplied=%d bIPAddressInUse=%d state %d -> %d\n",
                                    xDoReset,
-                                   pxEndPoint->ipv6_defaults.xIPAddress.ucBytes,
+                                   ( void * ) pxEndPoint->ipv6_defaults.xIPAddress.ucBytes,
                                    pxEndPoint->xRAData.bits.bRouterReplied,
                                    pxEndPoint->xRAData.bits.bIPAddressInUse,
                                    eRAState,

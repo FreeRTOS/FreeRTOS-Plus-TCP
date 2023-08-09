@@ -238,7 +238,7 @@ BaseType_t xPhyDiscover( EthernetPhy_t * pxPhyObject )
             pxPhyObject->fnPhyRead( xPhyAddress, phyREG_02_PHYSID1, &ulUpperID );
             ulPhyID = ( ( ( uint32_t ) ulUpperID ) << 16 ) | ( ulLowerID & 0xFFF0U );
 
-            pxPhyObject->ucPhyIndexes[ pxPhyObject->xPortCount ] = xPhyAddress;
+            pxPhyObject->ucPhyIndexes[ pxPhyObject->xPortCount ] = ( uint8_t ) xPhyAddress;
             pxPhyObject->ulPhyIDs[ pxPhyObject->xPortCount ] = ulPhyID;
 
             pxPhyObject->xPortCount++;

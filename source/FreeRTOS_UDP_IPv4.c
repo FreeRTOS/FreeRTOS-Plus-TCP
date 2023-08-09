@@ -233,7 +233,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 {
                     pxIPHeader->usHeaderChecksum = 0U;
                     pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSizePacket( pxNetworkBuffer ) );
-                    pxIPHeader->usHeaderChecksum = ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+                    pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
                     if( ( ucSocketOptions & ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT ) != 0U )
                     {
@@ -381,13 +381,8 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                 }
                 else
                 {
-                    /* IP address is not on the same subnet, ARP table can be updated.
-                     * When refreshing the ARP cache with received UDP packets we must be
-                     * careful;  hundreds of broadcast messages may pass and if we're not
-                     * handling them, no use to fill the ARP cache with those IP addresses.
-                     */
-                    vARPRefreshCacheEntry( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress,
-                                           pxNetworkBuffer->pxEndPoint );
+                    /* Update the age of this cache entry since a packet was received. */
+                    vARPRefreshCacheEntryAge( &( pxUDPPacket->xEthernetHeader.xSourceAddress ), pxUDPPacket->xIPHeader.ulSourceIPAddress );
                 }
             }
             else

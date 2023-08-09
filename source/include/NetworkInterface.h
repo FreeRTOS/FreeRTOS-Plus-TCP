@@ -34,6 +34,8 @@
 #endif
 /* *INDENT-ON* */
 
+#include "FreeRTOS_IP.h"
+
 /* INTERNAL API FUNCTIONS. */
 
 /* Since there are multiple interfaces, there are multiple versions
