@@ -173,7 +173,21 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
             }
             else if( ucNextHeader == ( uint8_t ) ipPROTOCOL_ICMP_IPv6 )
             {
-                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength + ipSIZE_OF_ICMPv6_HEADER;
+                uint8_t ucTypeOfMessage;
+
+                uxMinimumLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength;
+
+                ucTypeOfMessage = pucEthernetBuffer[ uxMinimumLength ];
+
+                if( ( ucTypeOfMessage == ipICMP_PING_REQUEST_IPv6 ) ||
+                    ( ucTypeOfMessage == ipICMP_PING_REPLY_IPv6 ) )
+                {
+                    uxMinimumLength += sizeof( ICMPEcho_IPv6_t );
+                }
+                else
+                {
+                    uxMinimumLength += ipSIZE_OF_ICMPv6_HEADER;
+                }
             }
             else
             {
