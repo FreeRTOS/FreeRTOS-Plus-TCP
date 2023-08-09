@@ -94,6 +94,15 @@ jobs:
         with:
           path: ./
 
+  link-verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check Links
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: Skptak/CI-CD-Github-Actions/link-verifier@main
+
   build-checks:
     runs-on: ubuntu-latest
     steps:
