@@ -22,12 +22,12 @@ Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
 	+ Stack is Penetration tested and a memory leak issue has been identified and fixed in the process.
 	(Refrence: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/pull/973)
 	+ Improved Documentation:
-		1. Multi-interface and Multi-endpoint Documentataion.
+		1. Multi-interface and Multi-endpoint documentation.
 		2. Updated stack initialization documentation to support multi-interface and endpoint.
 		(Reference: https://freertos-wordpress.corp.amazon.com/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial_Initialising_TCP.updated.html)
 		3. Code size details for various build configurations
 		(Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/index.html).
-		4. Documentataion added for IPv6 protocol support.
+		4. Documentation added for IPv6 protocol support.
 		5. Documentation added for various IPv6 functionalities like DHCPv6, ND (Neighbour Discovery), RA (Router Advertisement).
 		6. README added for the network ports.
 
