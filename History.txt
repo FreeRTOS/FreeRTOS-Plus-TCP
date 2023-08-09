@@ -1,6 +1,6 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
-Changes between FreeRTOS-plus-TCP V4.0.0 and V3.0.0 released August 10, 2023
+Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
 	+ Unified code for both IPv4 and IPv6 protocols
         + Multiple Interface and Multiple Endpoint support
 		1. The stack supports multiple Physical Interfaces
