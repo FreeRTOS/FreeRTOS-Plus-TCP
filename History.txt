@@ -7,6 +7,7 @@ Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
 		2. The stack also supports multiple endpoints (or Virtual interfaces) on the same physiscal interface.
 	(Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/freertostcp-multiple-interfaces.html).
         + New WinSim demo to support IPv4, IPv6 and multi-interface together.
+	(Reference: https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo)
 	+ Build separation feature introduced to achieve low memory footprint. Supported build combinations:
 		    1. IPv4 + UDP
 		    2. IPv4 + UDP + TCP
@@ -22,8 +23,9 @@ Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
 	+ Improved Documentation:
 		1. Multi-interface and Multi-endpoint Documentataion.
 		2. Updated stack initialization documentation to support multi-interface and endpoint.
-		( https://freertos-wordpress.corp.amazon.com/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial_Initialising_TCP.updated.html)
-		3. Code size details for various build configurations (https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/index.html).
+		(Reference: https://freertos-wordpress.corp.amazon.com/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial_Initialising_TCP.updated.html)
+		3. Code size details for various build configurations
+		(Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/index.html).
 		4. Documentataion added for IPv6 protocol support.
 		5. Documentataion added for various IPv6 functionalities like DHCPv6, ND (Neighbour Discovery), RA (Router Advertisement).
 		6. README added for the network ports.
