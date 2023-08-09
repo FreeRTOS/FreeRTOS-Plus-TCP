@@ -17,10 +17,10 @@ Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
 	+ Support added in FreeRTOS-plus-TCP git repository CI tool to validate various build configurations before PR merge.
 	+ Achieved 100% unit test coverage for both IPv4 and IPv6.
 	+ MISRA c-2012 compliance for both IPv4 and IPv6.
-	+ IPv6 code is protocol tested using Maxwell protocol tester.
+	+ Addressed several issues observed by Maxwell Protocol tester.
 	+ Memory safety proofs for IPv6 code using[ CBMC automated reasoning tool ] (https://www.cprover.org/cbmc/).
 	+ Stack is Penetration tested and a memory leak issue has been identified and fixed in the process.
-	(Refrence: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/pull/973)
+	(Reference: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/pull/973)
 	+ Improved Documentation:
 		1. Multi-interface and Multi-endpoint documentation.
 		2. Updated stack initialization documentation to support multi-interface and endpoint.
