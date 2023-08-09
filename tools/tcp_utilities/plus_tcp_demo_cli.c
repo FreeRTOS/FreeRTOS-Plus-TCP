@@ -468,7 +468,7 @@ static void handle_arpq( char * pcBuffer )
 {
     CommandOptions_t xOptions;
     char * ptr = pcBuffer;
-    eARPLookupResult_t eResult;
+    eARPLookupResult_t eResult = eARPCacheMiss;
     uint32_t ulIPAddress;
     uint32_t ulLookUpIP;
     MACAddress_t xMACAddress;
