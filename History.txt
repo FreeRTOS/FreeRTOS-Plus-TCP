@@ -29,7 +29,7 @@ Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
 		3. Code size details for various build configurations
 		(Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/index.html).
 		4. Documentataion added for IPv6 protocol support.
-		5. Documentataion added for various IPv6 functionalities like DHCPv6, ND (Neighbour Discovery), RA (Router Advertisement).
+		5. Documentation added for various IPv6 functionalities like DHCPv6, ND (Neighbour Discovery), RA (Router Advertisement).
 		6. README added for the network ports.
 
 We thank the following people for their inputs in these enhancements:
