@@ -57,7 +57,7 @@
     #define ipFOREVER()    1
 #endif
 
-/* Forward declaration of 'NetworkEndPoint_t'. */
+/* Forward declaration. */
 struct xNetworkEndPoint;
 
 typedef enum eFrameProcessingResult

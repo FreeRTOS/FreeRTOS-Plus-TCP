@@ -219,9 +219,9 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
  *
  * @return Whether the packet should be processed or dropped.
  */
-eFrameProcessingResult_t prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
-                                               const struct xNETWORK_BUFFER * const pxNetworkBuffer,
-                                               UBaseType_t uxHeaderLength )
+enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
+                                                  const struct xNETWORK_BUFFER * const pxNetworkBuffer,
+                                                  UBaseType_t uxHeaderLength )
 {
     eFrameProcessingResult_t eReturn = eProcessBuffer;
 
