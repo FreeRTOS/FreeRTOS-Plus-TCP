@@ -1030,8 +1030,8 @@ _static void prvCreateDHCPSocket( const NetworkEndPoint_t * pxEndPoint )
 static void prvInitialiseDHCP( NetworkEndPoint_t * pxEndPoint )
 {
     /* Initialise the parameters that will be set by the DHCP process. Per
-     * https://datatracker.ietf.org/doc/html/rfc2131, Transaction ID should be a random
-     * value chosen by the client. */
+     * https://datatracker.ietf.org/doc/html/rfc2131 Transaction ID should be a
+     * random value chosen by the client. */
 
     /* Check for random number generator API failure. */
     if( xApplicationGetRandomNumber( &( EP_DHCPData.ulTransactionId ) ) !=

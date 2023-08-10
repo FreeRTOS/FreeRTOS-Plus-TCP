@@ -1046,8 +1046,8 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint )
 {
     /* Initialise the parameters that will be set by the DHCP process. Per
-     * https://datatracker.ietf.org/doc/html/rfc2131, Transaction ID should be a random
-     * value chosen by the client. */
+     * https://datatracker.ietf.org/doc/html/rfc2131 Transaction ID should be a
+     * random value chosen by the client. */
 
     /* Check for random number generator API failure. */
     EP_DHCPData.ulOfferedIPAddress = 0U;
