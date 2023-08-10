@@ -14,8 +14,6 @@ Another way is to start with the pre-configured demo application project (found 
 
 Additionally, for FreeRTOS-Plus-TCP source code organization refer to the [Documentation](http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial.html), and [API Reference](https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/FreeRTOS_TCP_API_Functions.html).
 
-**FreeRTOS-Plus-TCP V3.1.0 [source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V3.1.0)(.c .h) is part of the [FreeRTOS 202210.00 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202210.00-LTS) release.**
-
 ### Getting help
 If you have any questions or need assistance troubleshooting your FreeRTOS project, we have an active community that can help on the [FreeRTOS Community Support Forum](https://forums.freertos.org). Please also refer to [FAQ](http://www.freertos.org/FAQHelp.html) for frequently asked questions.
 
@@ -25,6 +23,8 @@ Also see the [Submitting a bugs/feature request](https://github.com/FreeRTOS/Fre
 
 ## Upgrading to V3.0.0 and above
 In version 3.0.0 or higher, the folder structure of FreeRTOS-Plus-TCP has changed and the files have been broken down into smaller logically separated modules. This change makes the code more modular and conducive to unit-tests. FreeRTOS-Plus-TCP V3.0.0 improves the robustness, security, and modularity of the library. Version 3.0.0 adds comprehensive unit test coverage for all lines and branches of code and has undergone protocol testing, and penetration testing by AWS Security to reduce the exposure to security vulnerabilities. Additionally, the source files have been moved to a `source` directory. This change requires modification of any existing project(s) to include the modified source files and directories. There are examples on how to use the new files and directory structure. For a windows simulator based example, refer to this [demo](https://github.com/FreeRTOS/FreeRTOS/tree/TCPRefactorDemo/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator). For an example based on the Xilinx Zynq-7000, use the code in this [branch](https://github.com/aws/amazon-freertos/tree/TCPRefactorDemo) and follow these [instructions](https://docs.aws.amazon.com/freertos/latest/userguide/getting_started_xilinx.html) to build and run the demo.
+
+**FreeRTOS-Plus-TCP V3.1.0 [source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V3.1.0)(.c .h) is part of the [FreeRTOS 202210.00 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202210.00-LTS) release.**
 
 ### Generating pre V3.0.0 folder structure for backward compatibility:
 If you wish to continue using a version earlier than V3.0.0 i.e. continue to use your existing source code organization, a script is provided to generate the folder structure similar to [this](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/f118c8415b4373e3d6e6dbd2d5a116f7eaf27b63).
