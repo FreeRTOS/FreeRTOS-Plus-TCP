@@ -799,7 +799,7 @@
 
 #if( ipconfigUSE_DNS_CACHE != 0 )
 
-    /* Per https://tools.ietf.org/html/rfc1035, 253 is the maximum string length
+    /* Per https://datatracker.ietf.org/doc/html/rfc1035, 253 is the maximum string length
      * of a DNS name.  The following default accounts for a null terminator. */
     #ifndef ipconfigDNS_CACHE_NAME_LENGTH
         #define ipconfigDNS_CACHE_NAME_LENGTH 254U

@@ -1,7 +1,7 @@
 # MISRA Compliance
 
 The FreeRTOS-Plus-TCP library files conform to the
-[MISRA C:2012](https://www.misra.org.uk/MISRAHome/MISRAC2012/tabid/196/Default.aspx)
+[MISRA C:2012](https://www.misra.org.uk)
 guidelines, with the deviations listed below. Compliance is checked with
 Coverity static analysis. Since the FreeRTOS-Plus-TCP library is designed for
 small-embedded devices, it needs to have a very small memory footprint and has
