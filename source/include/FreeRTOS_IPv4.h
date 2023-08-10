@@ -43,9 +43,9 @@
 /* *INDENT-ON* */
 
 /* Forward declarations. */
-typedef struct xNETWORK_BUFFER        NetworkBufferDescriptor_t;
-typedef enum eFrameProcessingResult   eFrameProcessingResult_t;
-typedef struct xIP_PACKET             IPPacket_t;
+struct xNETWORK_BUFFER;
+enum eFrameProcessingResult;
+struct xIP_PACKET;
 
 #define ipSIZE_OF_IPv4_HEADER               20U
 #define ipSIZE_OF_IPv4_ADDRESS              4U
@@ -89,12 +89,12 @@ uint32_t FreeRTOS_GetIPAddress( void );
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
 /* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
-eFrameProcessingResult_t prvAllowIPPacketIPv4( const IPPacket_t * const pxIPPacket,
-                                               const NetworkBufferDescriptor_t * const pxNetworkBuffer,
-                                               UBaseType_t uxHeaderLength );
+enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
+                                                  const struct xNETWORK_BUFFER * const pxNetworkBuffer,
+                                                  UBaseType_t uxHeaderLength );
 
 /* Check if the IP-header is carrying options. */
-eFrameProcessingResult_t prvCheckIP4HeaderOptions( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+enum eFrameProcessingResult prvCheckIP4HeaderOptions( struct xNETWORK_BUFFER * const pxNetworkBuffer );
 
 
 /* *INDENT-OFF* */
