@@ -687,8 +687,9 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     GMAC->GMAC_NCR |= GMAC_NCR_MPE;
 
     memset( &gmac_option, '\0', sizeof( gmac_option ) );
-    gmac_option.uc_copy_all_frame = 0;
-    gmac_option.uc_no_boardcast = 0;
+    /* Note that 'gmac_option.uc_copy_all_frame' is false, do not copy all frames.
+     * And 'gmac_option.uc_no_boardcast' is false, meaning that broadcast is received.
+	 * 'boardcast' is a typo. */
     memcpy( gmac_option.uc_mac_addr, pxEndPoint->xMACAddress.ucBytes, sizeof( gmac_option.uc_mac_addr ) );
 
     gs_gmac_dev.p_hw = GMAC;
@@ -697,7 +698,8 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     NVIC_SetPriority( GMAC_IRQn, configMAC_INTERRUPT_PRIORITY );
     NVIC_EnableIRQ( GMAC_IRQn );
 
-    /* Clear the hash table for multicast MAC addresses. */
+    /* Clear the hash table for multicast MAC addresses.
+     * OR set both to ~0H to receive all multicast packets. */
     GMAC->GMAC_HRB = 0U; /* Hash Register Bottom. */
     GMAC->GMAC_HRT = 0U; /* Hash Register Top. */
 
@@ -1031,6 +1033,7 @@ static uint32_t prvEMACRxPoll( void )
             if( xSendEventStructToIPTask( &xRxEvent, xBlockTime ) != pdTRUE )
             {
                 /* xSendEventStructToIPTask() timed out. Release the descriptor. */
+				FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue a packet!\n" ) );
                 xRelease = pdTRUE;
             }
         }
@@ -1042,7 +1045,6 @@ static uint32_t prvEMACRxPoll( void )
              * again. */
             vReleaseNetworkBufferAndDescriptor( pxNextNetworkBufferDescriptor );
             iptraceETHERNET_RX_EVENT_LOST();
-            FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
         }
 
         /* Now the buffer has either been passed to the IP-task,

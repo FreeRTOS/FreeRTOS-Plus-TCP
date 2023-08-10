@@ -624,13 +624,13 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
         return GMAC_RX_NO_DATA;
     }
 
+    /* Return the number of bytes received. */
+    *p_rcv_size = bytesLeft;
+
     /* gmac_dev_poll has confirmed that there is a complete frame at
      * the current position 'ul_rx_idx'
      */
     nextIdx = p_gmac_dev->ul_rx_idx;
-
-    /* Read +2 bytes because buffers are aligned at -2 bytes */
-    bytesLeft = min( bytesLeft + 2, ( int32_t ) ul_frame_size );
 
     #if ( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE )
         SCB_InvalidateDCache();
@@ -639,14 +639,15 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
     #if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
         {
             /* The frame will be copied in 1 or 2 memcpy's */
-            if( ( p_frame != NULL ) && ( bytesLeft != 0 ) )
+            if( p_frame != NULL )
             {
                 const uint8_t * source;
                 int32_t left;
                 int32_t toCopy;
 
                 source = gs_uc_rx_buffer + nextIdx * GMAC_RX_UNITSIZE;
-                left = bytesLeft;
+				/* Read +2 bytes because buffers are aligned at -2 bytes */
+                left = min( bytesLeft + 2, ( int32_t ) ul_frame_size );
                 toCopy = ( GMAC_RX_BUFFERS - nextIdx ) * GMAC_RX_UNITSIZE;
 
                 if( toCopy > left )
@@ -695,8 +696,6 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
     } while( ( pxHead->status.val & GMAC_RXD_EOF ) == 0 );
 
     p_gmac_dev->ul_rx_idx = nextIdx;
-
-    *p_rcv_size = bytesLeft;
 
     return GMAC_OK;
 }
