@@ -347,10 +347,10 @@ static BaseType_t prvNXP1060_NetworkInterfaceInitialise( NetworkInterface_t * px
 
             if( xStatus != kStatus_Success )
             {
-                if(!xFirstCall)
-				{
-					xTaskNotify(receiveTaskHandle, DRIVER_READY, eSetValueWithOverwrite);
-				}
+                if( !xFirstCall )
+		{
+			xTaskNotify( receiveTaskHandle, DRIVER_READY, eSetValueWithOverwrite );
+		}
                 break;
             }
             else
