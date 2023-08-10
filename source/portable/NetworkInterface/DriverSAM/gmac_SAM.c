@@ -477,7 +477,6 @@ void gmac_dev_init( Gmac * p_gmac,
      * GMAC_DCFGR_TXCOEN: (GMAC_DCFGR) Transmitter Checksum Generation Offload
      * Enable. Note: SAM4E/SAME70 do have RX checksum offloading but TX checksum
      * offloading has NOT been implemented, at least on a SAM4E.
-     * http://community.atmel.com/forum/sam4e-gmac-transmit-checksum-offload-enablesolved
      */
 
     {

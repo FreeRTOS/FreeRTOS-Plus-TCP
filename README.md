@@ -2,7 +2,7 @@
 
 This branch contains unified IPv4 and IPv6 functionalities. Refer to the Getting
 started Guide (found
-[here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted_4.0.0-rc3.md))
+[here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted.md))
 for more details.
 
 ## FreeRTOS-Plus-TCP Library
@@ -76,12 +76,7 @@ Additionally, the source files have been moved to a `source` directory. This
 change requires modification of any existing project(s) to include the modified
 source files and directories. There are examples on how to use the new files and
 directory structure. For a windows simulator based example, refer to this
-[demo](https://github.com/FreeRTOS/FreeRTOS/tree/TCPRefactorDemo/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator).
-For an example based on the Xilinx Zynq-7000, use the code in this
-[branch](https://github.com/aws/amazon-freertos/tree/TCPRefactorDemo) and follow
-these
-[instructions](https://docs.aws.amazon.com/freertos/latest/userguide/getting_started_xilinx.html)
-to build and run the demo.
+[demo](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator).
 
 ### Generating pre V3.0.0 folder structure for backward compatibility:
 
