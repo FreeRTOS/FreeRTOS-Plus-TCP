@@ -415,9 +415,9 @@
 #endif
 
 /* The number of times an ARP request is sent when looking
- * up an IP-address.
- * The name should have been 'max transmissions', and not
- * 'max re-transmissions'. */
+ * up an IP-address. The name should have been 'max transmissions',
+ * and not 'max re-transmissions'.
+ */
 #ifndef ipconfigMAX_ARP_RETRANSMISSIONS
     #define ipconfigMAX_ARP_RETRANSMISSIONS ( 5U )
 #endif

@@ -34,12 +34,12 @@
 extern "C" {
 #endif
 
-#include "FreeRTOS_Routing.h"
-#include "FreeRTOS_Sockets.h"
-
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "IPTraceMacroDefaults.h"
+
+#include "FreeRTOS_Routing.h"
+#include "FreeRTOS_Sockets.h"
 
 #if( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 

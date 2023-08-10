@@ -40,6 +40,7 @@ extern "C" {
 #endif
 
 /* Every NetworkInterface needs a set of access functions: */
+#include "FreeRTOS_Sockets.h"
 
 /* Forward declaration of 'struct xNetworkInterface'. */
 struct xNetworkInterface;
