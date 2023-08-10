@@ -637,7 +637,7 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
  *
  * @param pxEndPoint The end-point which goes up.
  */
-void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint )
+void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
 {
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
