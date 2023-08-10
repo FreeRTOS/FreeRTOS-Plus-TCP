@@ -27,8 +27,7 @@ project successfully, you must have the following:
      similar command).
      - Uninstall the current version of CMake using
        `sudo apt remove --purge --auto-remove cmake`.
-     - Download the 3.13.0 version using
-       `wget https://cmake.org/files/v3.13/cmake-3.13.0.tar.gz`.
+     - Download the [CMAKE version 3.13.0](https://cmake.org/files/v3.13/).
      - Extract the cmake download using `tar -xzvf cmake-3.13.0.tar.gz`.
      - Go to the extracted folder (`cd cmake-3.13.0`) and run `./bootstrap`.
      - Run `make -j$(nproc)' and then run `sudo make install`.

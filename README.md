@@ -24,9 +24,9 @@ protocol tested using Maxwell protocol tester for both IPv4 and IPv6.
 
 ## Getting started
 
-The easiest way to use the 4.0.0-rc3 version of FreeRTOS-Plus-TCP is to refer to
+The easiest way to use the current version of FreeRTOS-Plus-TCP is to refer to
 to the Getting started Guide (found
-[here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted_4.0.0-rc3.md))
+[here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted.md))
 Another way is to start with the pre-configured demo application project (found
 in
 [this directory](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator)).
@@ -99,8 +99,7 @@ Once python is downloaded and installed, you can verify the version from your
 terminal/command window by typing `python --version`.
 
 To run the script, you should switch to the FreeRTOS-Plus-TCP directory that was
-created using the [Cloning this repository](#cloning-this-repository) step
-above. And then run `python <Path/to/the/script>/GenerateOriginalFiles.py`.
+created and then run `python <Path/to/the/script>/GenerateOriginalFiles.py`.
 
 ## To consume FreeRTOS+TCP
 

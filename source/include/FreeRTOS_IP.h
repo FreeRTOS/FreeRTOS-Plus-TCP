@@ -524,11 +524,11 @@ extern void vPrintResourceStats( void );
 extern BaseType_t xProcessedTCPMessage;
 #endif
 
-#include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
-
 #include "FreeRTOS_IPv4.h"
 
 #include "FreeRTOS_IPv6.h"
+
+#include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
