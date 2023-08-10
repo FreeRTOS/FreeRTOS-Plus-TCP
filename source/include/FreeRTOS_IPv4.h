@@ -90,8 +90,8 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
 /* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
 enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
-                                               const struct xNETWORK_BUFFER * const pxNetworkBuffer,
-                                               UBaseType_t uxHeaderLength );
+                                                  const struct xNETWORK_BUFFER * const pxNetworkBuffer,
+                                                  UBaseType_t uxHeaderLength );
 
 /* Check if the IP-header is carrying options. */
 enum eFrameProcessingResult prvCheckIP4HeaderOptions( struct xNETWORK_BUFFER * const pxNetworkBuffer );
