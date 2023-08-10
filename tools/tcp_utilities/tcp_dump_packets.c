@@ -39,8 +39,8 @@
 #include <stdio.h>
 
 /* FreeRTOS includes. */
+#include "FreeRTOS.h"
 #include "task.h"
-#include <FreeRTOS.h>
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
@@ -142,7 +142,7 @@ const char pcHeaderCode[] = "/*\n"
                             "#include <ctype.h>\n"
                             "\n"
                             "/* FreeRTOS includes. */\n"
-                            "#include <FreeRTOS.h>\n"
+                            "#include "FreeRTOS.h"\n"
                             "#include <task.h>\n\n"
                             "#include \"%s\"\n\n";
 

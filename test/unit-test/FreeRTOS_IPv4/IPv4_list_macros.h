@@ -30,7 +30,7 @@
 #define LIST_MACRO_H
 
 #include "FreeRTOS_IPv6_Private.h"
-#include <FreeRTOS.h>
+#include "FreeRTOS.h"
 #include <list.h>
 #include <portmacro.h>
 

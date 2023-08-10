@@ -29,7 +29,7 @@
 #ifndef FREERTOS_UDP_IPV6_LIST_MACRO_H
 #define FREERTOS_UDP_IPV6_LIST_MACRO_H
 
-#include <FreeRTOS.h>
+#include "FreeRTOS.h"
 #include <list.h>
 #include <portmacro.h>
 
