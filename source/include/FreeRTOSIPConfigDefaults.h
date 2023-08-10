@@ -1,6 +1,6 @@
 /*
  * FreeRTOS+TCP <DEVELOPMENT BRANCH>
- * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -145,7 +145,7 @@
 #endif
 
 /* The macro 'ipconfigBYTE_ORDER' must be defined as either
- * 'pdFREERTOS_LITTLE_ENDIAN' or as 'pdFREERTOS_BIG_ENDIAN'.  See also
+ * 'pdFREERTOS_LITTLE_ENDIAN' or as 'pdFREERTOS_BIG_ENDIAN'. See also
  * 'projdefs.h'.
  */
 #ifndef ipconfigBYTE_ORDER
@@ -159,7 +159,7 @@
 /* The IP stack executes it its own task (although any application task can make
  * use of its services through the published sockets API).
  * ipconfigUDP_TASK_PRIORITY sets the priority of the task that executes the IP
- * stack.  The priority is a standard FreeRTOS task priority so can take any
+ * stack. The priority is a standard FreeRTOS task priority so can take any
  * value from 0 (the lowest priority) to (configMAX_PRIORITIES - 1) (the highest
  * priority). configMAX_PRIORITIES is a standard FreeRTOS configuration
  * parameter defined in FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration
@@ -170,9 +170,9 @@
 #endif
 
 /* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
- * task.  This setting is less important when the FreeRTOS Win32 simulator is
+ * task. This setting is less important when the FreeRTOS Win32 simulator is
  * used as the Win32 simulator only stores a fixed amount of information on the
- * task stack.  FreeRTOS includes optional stack overflow detection, see:
+ * task stack. FreeRTOS includes optional stack overflow detection, see:
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html */
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
     #define ipconfigIP_TASK_STACK_SIZE_WORDS ( configMINIMAL_STACK_SIZE * 5U )
@@ -199,7 +199,7 @@
 
 #if( ipconfigUSE_TCP != 0 )
 
-    /* 'ipconfigUSE_TCP_WIN' enables support for TCP sliding windows.  When
+    /* 'ipconfigUSE_TCP_WIN' enables support for TCP sliding windows. When
      * defined as zero, each TCP packet must be acknowledged individually.
      * That will be slower, but it will result less code. */
     #ifndef ipconfigUSE_TCP_WIN
@@ -214,7 +214,7 @@
 
     /* When non-zero, TCP will not send RST packets in reply to
      * TCP packets which are unknown, or out-of-order.
-     * This is an option used for testing.  It is recommended to
+     * This is an option used for testing. It is recommended to
      * define it as '0'. */
     #ifndef ipconfigIGNORE_UNKNOWN_PACKETS
         #define ipconfigIGNORE_UNKNOWN_PACKETS ( 0 )
@@ -271,7 +271,7 @@
     #define ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME portMAX_DELAY
 #endif
 
-/* When sending a UDP packet, a network buffer must be obtained.  This macro
+/* When sending a UDP packet, a network buffer must be obtained. This macro
  * will limit the maximum waiting time that is configured with e.g.
  * ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME, or when setting the socket option
  * FREERTOS_SO_SNDTIMEO.
@@ -284,7 +284,7 @@
 
 /*
  * FreeRTOS debug logging routines.
- * The macro will be called with a printf() format as a parameter.  Users
+ * The macro will be called with a printf() format as a parameter. Users
  * can define their own logging routine as:
  *
  *     extern void my_printf( const char * pcFormat, ... );
@@ -359,7 +359,7 @@
         } while( ipFALSE_BOOL )
 #endif
 
-/* Malloc functions.  Within most applications of FreeRTOS, the couple
+/* Malloc functions. Within most applications of FreeRTOS, the couple
  * pvPortMalloc()/vPortFree() will be used.
  * If there are different types of RAM, the user may decide to use a different
  * memory allocator for different purposes:
@@ -403,7 +403,7 @@
  * available called 'vApplicationIPNetworkEventHook()' ( if
  * ipconfigIPv4_BACKWARD_COMPATIBLE enabled, otherwise
  * vApplicationIPNetworkEventHook_Multi() ). This function will be called when
- * the network goes up and when it goes down.  See also FREERTOS_IP.h for
+ * the network goes up and when it goes down. See also FREERTOS_IP.h for
  * further explanation. */
 #ifndef ipconfigUSE_NETWORK_EVENT_HOOK
     #define ipconfigUSE_NETWORK_EVENT_HOOK 0
@@ -466,7 +466,7 @@
 #endif
 
 /* This is about how new packets are passed from the network interface
- * to the IP-task.  By default they will be sent one-by-one.
+ * to the IP-task. By default they will be sent one-by-one.
  * When 'ipconfigUSE_LINKED_RX_MESSAGES' is non-zero, each message
  * buffer gets a 'pxNextBuffer' field, to that linked packets can be passed
  * to the IP-task in a single call to 'xSendEventStructToIPTask()'.
@@ -493,11 +493,11 @@
 #endif
 
 /* Every task, and also the network interface can send messages
- * to the IP-task by calling API's.  These messages pass through a
+ * to the IP-task by calling API's. These messages pass through a
  * queue which has a maximum size of 'ipconfigEVENT_QUEUE_LENGTH'
  * items.
  * When developing an application, it is important to monitor the
- * actual usage of the queue.  See 'ipconfigCHECK_IP_QUEUE_SPACE'
+ * actual usage of the queue. See 'ipconfigCHECK_IP_QUEUE_SPACE'
  * here below.
  */
 #ifndef ipconfigEVENT_QUEUE_LENGTH
@@ -514,7 +514,7 @@
  * when developing a new networking application, it can be helpful
  * to monitor the length of the message queue of the IP-task.
  * This code is only enabled when 'ipconfigCHECK_IP_QUEUE_SPACE'
- * is set to 1.  See also the function 'uxGetMinimumIPQueueSpace()'.
+ * is set to 1. See also the function 'uxGetMinimumIPQueueSpace()'.
  */
 #ifndef ipconfigCHECK_IP_QUEUE_SPACE
     #define ipconfigCHECK_IP_QUEUE_SPACE 0
@@ -541,7 +541,7 @@
 /* Configuration to control whether all outgoing IP datagrams get their
  * "don't fragment" flag set.
  * If set to 1, the stack will set the "don't fragment" flag on all outgoing IP
- * packets.  If a packet needs to be fragmented somewhere along it's path, it
+ * packets. If a packet needs to be fragmented somewhere along it's path, it
  * will get discarded instead of fragmented. If set to 0, the stack will clear
  * the "don't fragment" flag an all outgoing IP packets therefore allowing
  * fragmentation if it is needed.
@@ -595,7 +595,7 @@
     #define ipconfigUDP_MAX_RX_PACKETS 0U
 #endif
 
-/* Define the priority of the IP-task.  It is recommended to use this
+/* Define the priority of the IP-task. It is recommended to use this
  * order of priorities:
  * Highest : network interface, handling transmission and reception.
  * Medium  : the IP-task handling API calls from the application.
@@ -607,9 +607,9 @@
 #endif
 
 /* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
- * task.  This setting is less important when the FreeRTOS Win32 simulator is
+ * task. This setting is less important when the FreeRTOS Win32 simulator is
  * used as the Win32 simulator only stores a fixed amount of information on the
- * task stack.  FreeRTOS includes optional stack overflow detection, see:
+ * task stack. FreeRTOS includes optional stack overflow detection, see:
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
     #define ipconfigIP_TASK_STACK_SIZE_WORDS ( configMINIMAL_STACK_SIZE * 5 )
@@ -623,14 +623,14 @@
 #endif
 
 /* During the DHCP process, the driver will call an application hook
- * if 'ipconfigUSE_DHCP_HOOK' is non-zero.  It lets the application decide
+ * if 'ipconfigUSE_DHCP_HOOK' is non-zero. It lets the application decide
  * if the DHCP offer shall be accepted.
  */
 #ifndef ipconfigUSE_DHCP_HOOK
     #define ipconfigUSE_DHCP_HOOK 1
 #endif
 
-/* DHCP servers have a table with information about each clients.  One
+/* DHCP servers have a table with information about each clients. One
  * of the fields in this table contains the host name of the DHCP clients.
  * When 'ipconfigDHCP_REGISTER_HOSTNAME' is defined as non-zero, the DHCP
  * driver will call 'pcApplicationHostnameHook()' to obtain the name of
@@ -651,7 +651,7 @@
 
 /* When a link-layer address is assigned, the driver will test
  * if it is already taken by a different device by sending ARP
- * requests.  Therefore, 'ipconfigARP_USE_CLASH_DETECTION' must
+ * requests. Therefore, 'ipconfigARP_USE_CLASH_DETECTION' must
  * be defined as non-zero.
  */
 #if( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
@@ -727,7 +727,7 @@
  * they can be overridden at runtime by calling FreeRTOS_setsockopt(),
  * and use 'FREERTOS_SO_RCVBUF', 'FREERTOS_SO_SNDBUF' or
  * 'FREERTOS_SO_WIN_PROPERTIES'.
- * A stream buffer will only be created when needed.  A TCP server socket
+ * A stream buffer will only be created when needed. A TCP server socket
  * will never create buffers.
  */
 #ifndef ipconfigTCP_RX_BUFFER_LENGTH
@@ -762,7 +762,7 @@
     #endif
 #endif
 
-/* By default, the DNS client is included.  Note that LLMNR and
+/* By default, the DNS client is included. Note that LLMNR and
  * NBNS also need the code from FreeRTOS_DNS.c
  */
 #ifndef ipconfigUSE_DNS
@@ -799,8 +799,9 @@
 
 #if( ipconfigUSE_DNS_CACHE != 0 )
 
-    /* Per https://datatracker.ietf.org/doc/html/rfc1035, 253 is the maximum string length
-     * of a DNS name.  The following default accounts for a null terminator. */
+    /* Per https://datatracker.ietf.org/doc/html/rfc1035, 253 is the maximum
+     * string length of a DNS name. The following default accounts for a null
+     * terminator. */
     #ifndef ipconfigDNS_CACHE_NAME_LENGTH
         #define ipconfigDNS_CACHE_NAME_LENGTH 254U
     #endif
@@ -864,7 +865,7 @@
  * the first 32 bytes are equal, which might cause problems
  * for some compilers. */
 
-/* Beside that, there is some overlap between the following 3 macros.  Here is
+/* Beside that, there is some overlap between the following 3 macros. Here is
  * a summary:
  *
  * 1) ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES
@@ -873,7 +874,7 @@
  * 2) ipconfigETHERNET_DRIVER_FILTERS_PACKETS
  *        When disabled, the IP-task will perform sanity checks on the
  * IP-header, also checking the target IP address. Also when disabled,
- * xPortHasUDPSocket() won't be included.  That means that the IP-task can
+ * xPortHasUDPSocket() won't be included. That means that the IP-task can
  * access the 'xBoundUDPSocketsList' without locking. 3)
  * ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES When enabled, the function
  * 'eConsiderFrameForProcessing()' will also check if the Ethernet frame type is
@@ -881,7 +882,7 @@
  */
 
 /* The following macro determines if the network interface will
- * do checks on the incoming packets.  When false, the IP-task will
+ * do checks on the incoming packets. When false, the IP-task will
  * perform these checks in the function eConsiderFrameForProcessing().
  *
  * It should be noted that it is most efficient to drop unwanted packets
@@ -923,14 +924,14 @@
         configINCLUDE_TRACE_RELATED_CLI_COMMANDS
 #endif
 
-/* This macro will be called in every loop the IP-task makes.  It may be
+/* This macro will be called in every loop the IP-task makes. It may be
  * replaced by user-code that triggers a watchdog */
 #ifndef ipconfigWATCHDOG_TIMER
     #define ipconfigWATCHDOG_TIMER()
 #endif
 
 /* The option 'ipconfigUSE_CALLBACKS' allows to assign specific application
- * hooks to a socket.  Each hook will be set with a specific socket option:
+ * hooks to a socket. Each hook will be set with a specific socket option:
  *
  *  FREERTOS_SO_TCP_CONN_HANDLER  * Callback for (dis) connection events.
  *                                * Supply pointer to 'F_TCP_UDP_Handler_t'
@@ -944,7 +945,7 @@
  *                                * Supply pointer to 'F_TCP_UDP_Handler_t'
  *
  * Note that the call-back functions will run in the IP-task, so very little
- * things can be done.  Better not to call any networking API, because that
+ * things can be done. Better not to call any networking API, because that
  * could easily lead to a deadlock situation.
  */
 #ifndef ipconfigUSE_CALLBACKS
@@ -970,14 +971,14 @@
 #endif
 
 /* Since all code is made compatible with the MISRA rules, the inline functions
- * disappear.  'portINLINE' should normally be defined in FreeRTOSCOnfig.h
+ * disappear. 'portINLINE' should normally be defined in FreeRTOSCOnfig.h
  */
 #ifndef portINLINE
     #define portINLINE inline
 #endif
 
 /* When non-zero, the buffers passed to xNetworkInterfaceOutput() will be passed
- * directly to DMA.  As soon as sending is ready, the buffers must be released
+ * directly to DMA. As soon as sending is ready, the buffers must be released
  * by calling vReleaseNetworkBufferAndDescriptor(). */
 #ifndef ipconfigZERO_COPY_TX_DRIVER
     #define ipconfigZERO_COPY_TX_DRIVER ( 0 )
@@ -1012,7 +1013,7 @@
 #endif
 
 /* The macro 'ipconfigSOCKET_HAS_USER_SEMAPHORE' is rarely used, yet it
- * can be very useful.  IT applies to both TCP and UDP sockets.
+ * can be very useful. IT applies to both TCP and UDP sockets.
  *
  * The application can register a semaphore ( of type 'SemaphoreHandle_t' )
  * in a socket with the option 'FREERTOS_SO_SET_SEMAPHORE'.
@@ -1032,7 +1033,7 @@
  * Use the socket option 'FREERTOS_SO_WAKEUP_CALLBACK' to install a function
  * of the type 'void callback( Socket_t pxSocket )'.
  * Note that the call-back function runs in the IP-task, so very little things
- * can be done.  Better not to call any networking API, because that could
+ * can be done. Better not to call any networking API, because that could
  * easily lead to a deadlock situation.
  */
 #ifndef ipconfigSOCKET_HAS_USER_WAKE_CALLBACK
@@ -1040,7 +1041,7 @@
 #endif
 
 /* Yet another possibility that makes it easy to handle multiple socket in
- * a single task FreeRTOS_select().  The code for this functionality will
+ * a single task FreeRTOS_select(). The code for this functionality will
  * be included when 'ipconfigSUPPORT_SELECT_FUNCTION' is defined as non-zero.
  */
 #ifndef ipconfigSUPPORT_SELECT_FUNCTION
@@ -1070,14 +1071,14 @@
 #endif
 
 /* The period of non-activity ( in seconds ) after which the driver will
- * start sending a keep-alive packet to the TCP peer.  The default is 20
+ * start sending a keep-alive packet to the TCP peer. The default is 20
  * seconds.
  */
 #ifndef ipconfigTCP_KEEP_ALIVE_INTERVAL
     #define ipconfigTCP_KEEP_ALIVE_INTERVAL 20U
 #endif
 
-/* Another less used option: signals.  This macro makes it possible to interrupt
+/* Another less used option: signals. This macro makes it possible to interrupt
  * a blocking call to one of the API's by calling either FreeRTOS_SignalSocket()
  * or FreeRTOS_SignalSocketFromISR() for that socket. When an API got
  * interrupted, it will return the error value -pdFREERTOS_ERRNO_EINTR.
@@ -1090,7 +1091,7 @@
  * When a SYN packet comes in, it will first be checked if there is a listening
  * socket for the port number. If not, it will be replied to with a RESET
  * packet. If there is a listing socket for that port number, a new socket will
- * be created. This socket will be owned temporarily by the IP-task.  Only when
+ * be created. This socket will be owned temporarily by the IP-task. Only when
  * the SYN/ACK handshake is finished, the new socket will be passed to the
  * application, resulting in a successful call to FreeRTOS_accept(). The option
  * 'ipconfigTCP_HANG_PROTECTION' will make sure that the socket will be deleted
@@ -1112,7 +1113,7 @@
 #endif
 
 /* Initially, 'ipconfigTCP_IP_SANITY' was introduced to include all code that
- * checks the correctness of the algorithms.  However, it is only used in
+ * checks the correctness of the algorithms. However, it is only used in
  * BufferAllocation_1.c When defined as non-zero, some extra code will check the
  * validity of network buffers.
  */
@@ -1128,10 +1129,10 @@
 #endif
 
 /* This library treats the network packets as structs, containing 16- and 32-bit
- * variables.  However, due to the size of the Ethernet header, the 32-byte
+ * variables. However, due to the size of the Ethernet header, the 32-byte
  * variables are badly aligned.
  * This is corrected with the macro 'ipconfigPACKET_FILLER_SIZE' which has a
- * default of two.  Thanks to this offset, ( almost ) all 32-bit numbers can be
+ * default of two. Thanks to this offset, ( almost ) all 32-bit numbers can be
  * read and written in a single assembler instruction.
  */
 #ifndef ipconfigPACKET_FILLER_SIZE
@@ -1139,7 +1140,7 @@
 #endif
 
 /* Set to 1 if you plan on processing custom Ethernet protocols or protocols
- * that are not yet supported by the FreeRTOS+TCP stack.  If set to 1,
+ * that are not yet supported by the FreeRTOS+TCP stack. If set to 1,
  * the user must define eFrameProcessingResult_t
  * eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const
  * pxNetworkBuffer ) which will be called by the stack for any frame with an
