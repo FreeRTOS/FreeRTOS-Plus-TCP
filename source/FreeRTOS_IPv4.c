@@ -355,7 +355,7 @@ eFrameProcessingResult_t prvAllowIPPacketIPv4(
                  * checksum always is 0xffff which is denoted by ipCORRECT_CRC.
                  * See this wiki for more information:
                  * https://en.wikipedia.org/wiki/IPv4_header_checksum#Verifying_the_IPv4_header_checksum
-                 * and this RFC: https://tools.ietf.org/html/rfc1624#page-4
+                 * and this RFC: https://datatracker.ietf.org/doc/html/rfc1624#page-4
                  */
                 if( usGenerateChecksum( 0U,
                                         ( const uint8_t * ) &(
