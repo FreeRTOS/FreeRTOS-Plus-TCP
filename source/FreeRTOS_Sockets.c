@@ -80,10 +80,10 @@
  *         Automatically generated port numbers will be between
  *         socketAUTO_PORT_ALLOCATION_START_NUMBER and 0xffff.
  *
- * @note Per https://datatracker.ietf.org/doc/html/rfc6056, "the dynamic ports consist of
- *       the range 49152-65535. However, ephemeral port selection algorithms
- * should use the whole range 1024-65535" excluding those already in use
- * (inbound or outbound).
+ * @note Per https://datatracker.ietf.org/doc/html/rfc6056, "the dynamic ports
+ * consist of the range 49152-65535. However, ephemeral port selection
+ * algorithms should use the whole range 1024-65535" excluding those already in
+ * use (inbound or outbound).
  */
 #if !defined( socketAUTO_PORT_ALLOCATION_START_NUMBER )
     #define socketAUTO_PORT_ALLOCATION_START_NUMBER ( ( uint16_t ) 0x0400 )
@@ -3259,7 +3259,8 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Find an available port number per https://datatracker.ietf.org/doc/html/rfc6056.
+ * @brief Find an available port number per
+ * https://datatracker.ietf.org/doc/html/rfc6056.
  *
  * @param[in] xProtocol FREERTOS_IPPROTO_TCP/FREERTOS_IPPROTO_UDP.
  *

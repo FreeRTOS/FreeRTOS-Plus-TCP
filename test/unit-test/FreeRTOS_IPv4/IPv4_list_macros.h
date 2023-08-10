@@ -29,8 +29,8 @@
 #ifndef LIST_MACRO_H
 #define LIST_MACRO_H
 
-#include "FreeRTOS_IPv6_Private.h"
 #include "FreeRTOS.h"
+#include "FreeRTOS_IPv6_Private.h"
 #include <list.h>
 #include <portmacro.h>
 

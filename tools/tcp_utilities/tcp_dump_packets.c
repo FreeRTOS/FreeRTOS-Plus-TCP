@@ -118,6 +118,7 @@ typedef struct xBufferheader
     UBaseType_t bIncoming : 1;
 } Bufferheader_t;
 
+/* clang-format off*/
 static DumpEntries_t
     xExampleEntries = { .uxEntryCount = 4, /* No more than
                                               'dumpMAX_DUMP_ENTRIES' elements.
@@ -162,6 +163,7 @@ const char pcHeaderHeader[] = "/*\n"
                               "	uint16_t usDestination;\n"
                               "} DumpPacket_t;\n\n";
 
+/* clang-format on*/
 /*-----------------------------------------------------------*/
 
 /* The Windows thread that actually writes the network packets to a C source and

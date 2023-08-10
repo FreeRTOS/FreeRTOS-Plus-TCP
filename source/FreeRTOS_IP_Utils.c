@@ -952,8 +952,8 @@ void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
 #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
 
         /* Per the ARP Cache Validation section of
-         * https://datatracker.ietf.org/doc/html/rfc1122, treat network down as a
-         * "delivery problem" and flush the ARP cache for this interface. */
+         * https://datatracker.ietf.org/doc/html/rfc1122, treat network down as
+         * a "delivery problem" and flush the ARP cache for this interface. */
         FreeRTOS_ClearARP( pxEndPoint );
     }
 

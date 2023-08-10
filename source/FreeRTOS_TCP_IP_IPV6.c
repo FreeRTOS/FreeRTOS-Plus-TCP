@@ -244,7 +244,8 @@ BaseType_t xProcessReceivedTCPPacket_IPV6(
                           usLocalPort ) );
 
                     /* Implement
-                     * https://datatracker.ietf.org/doc/html/rfc5961#section-3.2. */
+                     * https://datatracker.ietf.org/doc/html/rfc5961#section-3.2.
+                     */
                     if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
                     {
                         /* Per the above RFC, "In the SYN-SENT state ... the RST

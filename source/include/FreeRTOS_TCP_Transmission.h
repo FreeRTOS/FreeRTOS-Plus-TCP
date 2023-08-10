@@ -148,9 +148,10 @@ BaseType_t prvSendData( FreeRTOS_Socket_t * pxSocket,
                         BaseType_t xByteCount );
 
 /*
- * A "challenge ACK" is as per https://datatracker.ietf.org/doc/html/rfc5961#section-3.2,
- * case #3. In summary, an RST was received with a sequence number that is
- * unexpected but still within the window.
+ * A "challenge ACK" is as per
+ * https://datatracker.ietf.org/doc/html/rfc5961#section-3.2, case #3. In
+ * summary, an RST was received with a sequence number that is unexpected but
+ * still within the window.
  */
 BaseType_t prvTCPSendChallengeAck( NetworkBufferDescriptor_t * pxNetworkBuffer );
 

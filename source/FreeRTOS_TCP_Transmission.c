@@ -1567,9 +1567,9 @@ BaseType_t prvTCPSendSpecialPacketHelper(
 
 /**
  * @brief A "challenge ACK" is as per
- * https://datatracker.ietf.org/doc/html/rfc5961#section-3.2, case #3. In summary, an RST
- * was received with a sequence number that is unexpected but still within the
- * window.
+ * https://datatracker.ietf.org/doc/html/rfc5961#section-3.2, case #3. In
+ * summary, an RST was received with a sequence number that is unexpected but
+ * still within the window.
  *
  * @param[in] pxNetworkBuffer The network buffer descriptor with the packet.
  *
