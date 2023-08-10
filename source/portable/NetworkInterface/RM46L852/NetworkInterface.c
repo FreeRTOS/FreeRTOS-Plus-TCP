@@ -48,7 +48,7 @@
 #include "phy_dp83640.h"
 #include "sci.h"
 
-#define DRIVER_READY    ( 0x40 )
+
 #if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
 #else
@@ -59,8 +59,14 @@
 TaskHandle_t receiveTaskHandle = NULL;
 
 void prvEMACHandlerTask( void * pvParameters  );
-void prvProcessFrame( uint32 length, uint32 bufptr, uint32 next_bufptr );
+void prvProcessFrame( NetworkBufferDescriptor_t * pxBufferDescriptor );
 uint8   emacAddress[6U] =   {0x00U, 0x08U, 0xEEU, 0x03U, 0xA6U, 0x6CU};
+
+/*
+ * This function is used to call EMAC API to perform low level hardware
+ * initializations.
+ * Also, creates prvEMACHandlerTask for handling received packets.
+ */
 
 BaseType_t xNetworkInterfaceInitialise( void )
 {
@@ -97,6 +103,12 @@ BaseType_t xNetworkInterfaceInitialise( void )
         return pdFAIL;
     }
 }
+
+/*
+ *  This function is used to call EMAC API to transmit packets.
+ *  And freeing the network buffers.
+ */
+
 BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t xReleaseAfterSend )
 {
@@ -124,6 +136,11 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
       return pdPASS;
 }
 
+/*
+ *  This Task is notified everytime a packet is received.
+ *  It calls EMACReceive for actual packet processing.
+ */
+
 void prvEMACHandlerTask( void * pvParameters  )
 {
 
@@ -139,25 +156,15 @@ void prvEMACHandlerTask( void * pvParameters  )
     }
 }
 
-void prvProcessFrame( uint32 length, uint32 bufptr, uint32 next_bufptr)
-{
+/*
+ *  This function sends RX event to IP task for further processing the data packet.
+ */
 
-    NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( length, 0 );
+void prvProcessFrame( NetworkBufferDescriptor_t * pxBufferDescriptor)
+{
 
     if( pxBufferDescriptor != NULL )
     {
-
-        /* Copy EMAC buffer descriptor to +TCP buffer descriptor */
-        pxBufferDescriptor->xDataLength = length;
-        ( void ) memcpy( pxBufferDescriptor->pucEthernetBuffer,
-                         (uint8_t *)bufptr,
-                         length );
-        if (next_bufptr != NULL)
-        {
-            ( void ) memcpy( pxBufferDescriptor->xBufferListItem.pxNext,
-                                     (uint8_t *)next_bufptr,
-                                     length );
-        }
 
         if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
@@ -204,12 +211,17 @@ void prvProcessFrame( uint32 length, uint32 bufptr, uint32 next_bufptr)
     }
 }
 
+/*
+ *  This function is called from prvEMACHandlerTask.
+ *  It iterates over the packet (packet may be spread across multiple buffers),
+ *  copies it into a single buffer descriptor for IP task to process.
+ */
 void EMACReceive(hdkif_t *hdkif)
 {
 
     rxch_t *rxch_int;
     volatile emac_rx_bd_t *curr_bd, *curr_tail, *last_bd;
-
+    volatile uint32 curr_len;
 
     /* The receive structure that holds data about a particular receive channel */
     rxch_int = &(hdkif->rxchptr);
@@ -250,10 +262,20 @@ void EMACReceive(hdkif_t *hdkif)
             */
             /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
             /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
+
+            /* this handles the case of one packet being spread across multiple buffers*/
+
+            /* allocate a buffer of size equal to packet size */
+            NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( (curr_bd->flags_pktlen & 0x0000FFFF) , 0 );
+            pxBufferDescriptor->xDataLength = (curr_bd->flags_pktlen & 0x0000FFFF);
+            curr_len=0;
             while((curr_bd->flags_pktlen & EMAC_BUF_DESC_EOP)!= EMAC_BUF_DESC_EOP)
             {
 
-                prvProcessFrame(curr_bd->bufoff_len & 0x0000FFFF, curr_bd->bufptr, curr_bd->next->bufptr); /*send for processing*/
+                ( void ) memcpy ( curr_len + pxBufferDescriptor->pucEthernetBuffer,
+                                 (uint8_t *)curr_bd->bufptr,
+                                 (curr_bd->bufoff_len & 0x0000FFFF) );
+                curr_len+=(curr_bd->bufoff_len & 0x0000FFFF);
                 /*Update the flags for the descriptor again and the length of the buffer*/
                 /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
                 curr_bd->flags_pktlen = (uint32)EMAC_BUF_DESC_OWNER;
@@ -263,9 +285,16 @@ void EMACReceive(hdkif_t *hdkif)
                 last_bd = curr_bd;
                 /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
                 curr_bd = curr_bd->next;
+
+
             }
 
-            prvProcessFrame(curr_bd->bufoff_len & 0x0000FFFF, curr_bd->bufptr, NULL);
+            /* Updating the last descriptor (which contained the EOP flag) */
+            ( void ) memcpy ( curr_len + pxBufferDescriptor->pucEthernetBuffer,
+                             (uint8_t *)curr_bd->bufptr,
+                             (curr_bd->bufoff_len & 0x0000FFFF) );
+
+            prvProcessFrame(pxBufferDescriptor);
 
             /* Updating the last descriptor (which contained the EOP flag) */
             /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are assigned in this driver" */
@@ -325,7 +354,12 @@ void EMACReceive(hdkif_t *hdkif)
     }
 }
 
-void taskHandleYield()
+/*
+ * This function is called from the EMAC RX Interrupt Handler.
+ * it is responsible to notify the prvEMACHandlerTask whenever
+ * a packet is received.
+ */
+void RXTaskNotify()
 {
     BaseType_t needsToYield = FALSE;
     configASSERT(receiveTaskHandle != NULL);
