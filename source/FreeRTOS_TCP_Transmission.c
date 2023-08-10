@@ -60,7 +60,6 @@
 #include "FreeRTOS_TCP_Transmission.h"
 #include "FreeRTOS_TCP_State_Handling.h"
 #include "FreeRTOS_TCP_Utils.h"
-#include "FreeRTOS_Stream_Buffer.h"
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1

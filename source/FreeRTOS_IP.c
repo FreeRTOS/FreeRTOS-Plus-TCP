@@ -332,7 +332,6 @@ static void prvProcessIPEventsAndTimers( void )
             /* The network hardware driver has received a new packet.  A
              * pointer to the received buffer is located in the pvData member
              * of the received event structure. */
-
             prvHandleEthernetPacket( ( NetworkBufferDescriptor_t * ) xReceivedEvent.pvData );
             break;
 

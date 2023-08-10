@@ -1073,8 +1073,8 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     ARPPacket_t * pxARPPacket;
 
 /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-     const void  *pvCopySource;
-     void * pvCopyDest;
+    const void  * pvCopySource;
+    void * pvCopyDest;
 
     /* Buffer allocation ensures that buffers always have space
      * for an ARP packet. See buffer allocation implementations 1

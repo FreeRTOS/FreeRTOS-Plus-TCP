@@ -103,9 +103,8 @@
     {
         uint16_t usType;  /**< Type of DNS message. */
         uint16_t usClass; /**< Class of DNS message. */
-    };
+    }
     #include "pack_struct_end.h"
-
     typedef struct xDNSTail DNSTail_t;
 /*-----------------------------------------------------------*/
 
