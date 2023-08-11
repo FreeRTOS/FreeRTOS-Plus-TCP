@@ -1547,7 +1547,7 @@
 /*/ @cond 0 */
 /**INDENT-OFF**/
     #ifdef __cplusplus
-        }
+}
     #endif
 /**INDENT-ON**/
 /*/ @endcond */
