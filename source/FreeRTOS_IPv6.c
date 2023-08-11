@@ -184,6 +184,14 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
                 {
                     uxMinimumLength += sizeof( ICMPEcho_IPv6_t );
                 }
+                else if( ucTypeOfMessage == ipICMP_ROUTER_SOLICITATION_IPv6 )
+                {
+                    uxMinimumLength += sizeof( ICMPRouterSolicitation_IPv6_t );
+                }
+                else if( ucTypeOfMessage == ipICMP_ROUTER_ADVERTISEMENT_IPv6 )
+                {
+                    uxMinimumLength += sizeof( ICMPRouterAdvertisement_IPv6_t );
+                }
                 else
                 {
                     uxMinimumLength += ipSIZE_OF_ICMPv6_HEADER;
