@@ -579,7 +579,7 @@ static void prvEMACHandlerTask( void * parameter )
                         break;
 
                     default:
-                        FreeRTOS_printf( "RX Receive default" );
+                        FreeRTOS_printf( ( "RX Receive default" ) );
                         break;
                 }
             }
