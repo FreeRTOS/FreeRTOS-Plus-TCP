@@ -646,6 +646,12 @@ uint32_t gmac_dev_read( gmac_device_t * p_gmac_dev,
                 int32_t toCopy;
 
                 source = gs_uc_rx_buffer + nextIdx * GMAC_RX_UNITSIZE;
+
+                /* The driver receives frames up to 1514 bytes long.
+                 * The actual value of ul_frame_size is 1536, so the
+                 * following test is not really necessary:
+                 */
+
                 /* Read +2 bytes because buffers are aligned at -2 bytes */
                 left = min( bytesLeft + 2, ( int32_t ) ul_frame_size );
                 toCopy = ( GMAC_RX_BUFFERS - nextIdx ) * GMAC_RX_UNITSIZE;
