@@ -573,7 +573,7 @@ static void prvEMACHandlerTask( void * parameter )
                         break;
 
                     case kStatus_ENET_RxFrameError: /* Received an error frame.  Read & drop it */
-                        FreeRTOS_printf( "RX Receive Error\n" );
+                        FreeRTOS_printf( ( "RX Receive Error\n" ) );
                         ENET_ReadFrame( ethernetifLocal->base, &( ethernetifLocal->handle ), NULL, 0, 0, NULL );
                         /* Not sure if a trace is required.  The MAC had an error and needed to dump bytes */
                         break;
