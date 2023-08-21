@@ -65,8 +65,8 @@
 #endif
 /* *INDENT-ON* */
 
-/* Forward declaration of 'NetworkInterface_t'. */
-typedef struct xNetworkInterface NetworkInterface_t;
+/* Forward declaration. */
+struct xNetworkInterface;
 
 #if ( ipconfigUSE_DHCP != 0 )
 
@@ -101,7 +101,7 @@ void vPreCheckConfigs( void );
  * @brief Called to create a network connection when the stack is first
  *        started, or when the network connection is lost.
  */
-void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface );
+void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

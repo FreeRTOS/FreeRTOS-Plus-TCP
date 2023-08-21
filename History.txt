@@ -1,3 +1,52 @@
+Documentation and download available at https://www.FreeRTOS.org/
+
+Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
+	+ Unified code for both IPv4 and IPv6 protocols.
+        + Multiple Interface and Multiple Endpoint support
+		1. The stack supports multiple Physical Interfaces.
+		2. The stack also supports multiple endpoints (or Virtual interfaces) on the same physical interface.
+        + New WinSim demo to support IPv4, IPv6 and multi-interface together.
+	(Reference: https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo)
+	+ Build separation feature introduced to achieve low memory footprint. Supported build combinations:
+		    1. IPv4 + UDP
+		    2. IPv4 + UDP + TCP
+		    3. IPv6 + UDP
+		    4. IPv6 + UDP + TCP
+		    5. IPv4 + IPv6 + UDP
+		    6. IPv4 + IPv6 + UDP + TCP
+	+ Support added in FreeRTOS-plus-TCP git repository CI tool to validate various build configurations before PR merge.
+	+ Achieved 100% unit test coverage for both IPv4 and IPv6.
+	+ MISRA c-2012 compliance for both IPv4 and IPv6.
+	+ Addressed several issues observed by Maxwell Protocol tester.
+	+ Memory safety proofs for IPv6 code using[ CBMC automated reasoning tool ] (https://www.cprover.org/cbmc/).
+	+ Stack is Penetration tested and a memory leak issue has been identified and fixed in the process.
+	(Reference: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/pull/973)
+	+ Improved Documentation:
+		1. Multi-interface and Multi-endpoint documentation.
+		2. Updated stack initialization documentation to support multi-interface and endpoint.
+		(Reference: https://freertos-wordpress.corp.amazon.com/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Networking_Tutorial_Initialising_TCP.updated.html)
+		3. Code size details for various build configurations
+		(Reference: https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/index.html).
+		4. Documentation added for IPv6 protocol support.
+		5. Documentation added for various IPv6 functionalities like DHCPv6, ND (Neighbour Discovery), RA (Router Advertisement).
+		6. README added for the network ports.
+
+We thank the following people for their inputs in these enhancements:
+	+ Add mDNS fixes for IPv6. Contributed by @evpopov.
+	+ IP offset calculation improvement. Contributed by @evpopov.
+	+ CCS compiler fix for packed structs. Contributed by @rahul-arasikere.
+	+ Add tasking compiler support. Contributed by @go2sh.
+	+ Add NetworkDown notification support to STM32FXX. Contributed by @zipperowiec.
+	+ CMake changes. Contributed by @phelter.
+	+ STM32Hxx porting fixes. Contributed by @miguelfreitas.
+	+ Allow use of loopback addresses. Contributed by @adam-stamand.
+	+ CBMC proof-running GitHub Action. Contributed by @karkhaz.
+	+ CBMC XML output to enable VSCode debugger. Contributed by @karkhaz.
+	+ vTaskDelay for sleep in the network-interface of xilinx_ultrascale.Contributed by @ChristosZosi.
+	+ Read mac address using FreeRTOS_GetMACAddress(). Contributed by @sayyadumar.
+	+ Minor warning fixes. Contributed by @ChristosZosi.
+	+ Network-interface fix for Xilinx UltraScale port. Contributed by @ChristosZosi.
+
 Changes between 4.0.0-RC3 and 4.0.0-RC2 releases:
 		+ Added memory safety proofs for IPv6 using[ CBMC automated reasoning tool ] ( https:/*www.cprover.org/cbmc/)
 		+ Introduced build separation feature to achieve low memory footprint. Supported build combinations:
