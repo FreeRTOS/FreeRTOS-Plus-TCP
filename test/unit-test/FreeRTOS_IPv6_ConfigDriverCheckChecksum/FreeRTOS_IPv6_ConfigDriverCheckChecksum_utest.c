@@ -229,10 +229,10 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_UDP_min_req
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_1
  * The buffer size is less than ICMP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
  */
-void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement()
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_1()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -241,11 +241,94 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_re
     /* Set next header to ICMPv6 */
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_ROUTER_SOLICITATION_IPv6;
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
 
     eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_2
+ * The buffer size is less than ICMP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_2()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to ICMPv6 */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_ROUTER_ADVERTISEMENT_IPv6;
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_3
+ * The buffer size is less than ICMP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_3()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to ICMPv6 */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_PING_REQUEST_IPv6;
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_4
+ * The buffer size is less than ICMP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_4()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to ICMPv6 */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+    pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_PING_REPLY_IPv6;
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
+/**
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_5
+ * This is the default case for all ICMPv6 packet length testing.
+ * The buffer size is less than ICMP packet minimal requirement. Check if prvAllowIPPacketIPv6 determines to release it.
+ */
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_requirement_5()
+{
+    eFrameProcessingResult_t eResult;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
+    IPPacket_IPv6_t * pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+
+    /* Set next header to ICMPv6 */
+    pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
+	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
+    pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
+
+    eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
+}
+
 
 /**
  * @brief test_prvAllowIPPacketIPv6_source_unspecified_address
