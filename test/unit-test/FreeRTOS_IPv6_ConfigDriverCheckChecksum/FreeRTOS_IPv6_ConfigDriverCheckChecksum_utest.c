@@ -241,7 +241,7 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_re
     /* Set next header to ICMPv6 */
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
-	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_ROUTER_SOLICITATION_IPv6;
+    pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_ROUTER_SOLICITATION_IPv6;
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
 
     eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -261,7 +261,7 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_re
     /* Set next header to ICMPv6 */
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
-	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_ROUTER_ADVERTISEMENT_IPv6;
+    pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_ROUTER_ADVERTISEMENT_IPv6;
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
 
     eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -281,7 +281,7 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_re
     /* Set next header to ICMPv6 */
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
-	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_PING_REQUEST_IPv6;
+    pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_PING_REQUEST_IPv6;
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
 
     eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
@@ -322,7 +322,7 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_length_less_than_ICMP_min_re
     /* Set next header to ICMPv6 */
     pxIPPacket->xIPHeader.ucNextHeader = ipPROTOCOL_ICMP_IPv6;
     pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + 1;
-	pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
+    pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER ] = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
     pxIPPacket->xIPHeader.usPayloadLength = FreeRTOS_htons( 1 );
 
     eResult = prvAllowIPPacketIPv6( &pxIPPacket->xIPHeader, pxNetworkBuffer, 0U );
