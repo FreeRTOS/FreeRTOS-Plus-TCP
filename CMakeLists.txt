@@ -58,6 +58,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     DRIVER_SAM
     ESP32
     KSZ8851SNL
+    LIBSLIRP
     LPC17xx LPC18xx LPC54018
     M487
     MPS2_AN385
@@ -96,6 +97,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " DRIVER_SAM             Target: Driver SAM         Tested: TODO\n"
         " ESP32                  Target: ESP-32             Tested: TODO\n"
         " KSZ8851SNL             Target: ksz8851snl         Tested: TODO\n"
+        " LIBSLIRP               Target: libslirp           Tested: TODO\n"
         " POSIX                  Target: linux/Posix\n"
         " LPC17xx                Target: LPC17xx            Tested: TODO\n"
         " LPC18xx                Target: LPC18xx            Tested: TODO\n"
