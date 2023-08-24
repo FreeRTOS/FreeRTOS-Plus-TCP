@@ -56,8 +56,8 @@
     #define ipFOREVER()    1
 #endif
 
-/* Forward declaration of 'NetworkEndPoint_t'. */
-typedef struct xNetworkEndPoint NetworkEndPoint_t;
+/* Forward declaration. */
+struct xNetworkEndPoint;
 
 typedef enum eFrameProcessingResult
 {
@@ -888,7 +888,7 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );
+void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

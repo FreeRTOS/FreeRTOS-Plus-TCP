@@ -816,7 +816,7 @@ BaseType_t xIsCallingFromIPTask( void )
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 /* coverity[single_use] */
-void prvProcessNetworkDownEvent( NetworkInterface_t * pxInterface )
+void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
 {
     NetworkEndPoint_t * pxEndPoint;
 
