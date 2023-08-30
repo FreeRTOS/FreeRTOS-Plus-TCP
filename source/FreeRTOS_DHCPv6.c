@@ -910,7 +910,7 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint )
 {
     /* Initialise the parameters that will be set by the DHCP process. Per
-     * https://www.ietf.org/rfc/rfc2131.txt, Transaction ID should be a random
+     * https://www.ietf.org/rfc/rfc2131.txt Transaction ID should be a random
      * value chosen by the client. */
 
     /* Check for random number generator API failure. */

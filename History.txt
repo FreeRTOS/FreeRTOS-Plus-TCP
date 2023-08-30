@@ -120,7 +120,7 @@ Changes between V2.3.1 and V2.3.2 releases:
 	  instead of being given the eCLOSE_WAIT status. A client socket, which calls
 	  connect() to establish a connection, will receive the eCLOSE_WAIT status,
 	  just like before.
-	+ Fixed a race condition in DHCP state machine which occured when the macro
+	+ Fixed a race condition in DHCP state machine which occurred when the macro
 	  dhcpINITIAL_TIMER_PERIOD was set to a very low value.
 
 Changes between V2.3.0 and V2.3.1 releases:
@@ -340,7 +340,7 @@ Changes between 141019 and 150825
 	+ Introduced ipMAX_IP_TASK_SLEEP_TIME to allow the application writer to
 	  override the default value of 10 seconds.
 	+ Fix:  Correct error in *pxUDPPayloadBuffer_to_NetworkBuffer().
-	+ FreeRTOS_recv() now recognises the FREERTOS_ZERO_COPY flag, which, when
+	+ FreeRTOS_recv() now recognizes the FREERTOS_ZERO_COPY flag, which, when
 	  set, the void *pvBuffer parameter is interpreted as void **pvBuffer.
 	+ FreeRTOS_listen() now returns an error code.  Previously it always
 	  returned 0.

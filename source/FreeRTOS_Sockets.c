@@ -75,7 +75,7 @@
  *         Automatically generated port numbers will be between
  *         socketAUTO_PORT_ALLOCATION_START_NUMBER and 0xffff.
  *
- * @note Per https://tools.ietf.org/html/rfc6056, "the dynamic ports consist of
+ * @note Per https://tools.ietf.org/html/rfc6056 "the dynamic ports consist of
  *       the range 49152-65535. However, ephemeral port selection algorithms should
  *       use the whole range 1024-65535" excluding those already in use (inbound
  *       or outbound).

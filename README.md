@@ -36,8 +36,11 @@ For running the script, you will need Python version > 3.7. You can download/ins
 
 Once python is downloaded and installed, you can verify the version from your terminal/command window by typing `python --version`.
 
-To run the script, you should switch to the FreeRTOS-Plus-TCP directory that was created using the [Cloning this repository](#cloning-this-repository) step above.
-And then run  `python <Path/to/the/script>/GenerateOriginalFiles.py`.
+To run the script, you should switch to the FreeRTOS-Plus-TCP directory that was created
+using the following [instructions](#consume-with-cmake) to download FreeRTOS-Plus-TCP
+And then run:
+
+`python3 GenerateOriginalFiles.py`
 
 ## To consume FreeRTOS+TCP
 
