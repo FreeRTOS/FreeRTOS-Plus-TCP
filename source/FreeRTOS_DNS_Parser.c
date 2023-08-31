@@ -550,10 +550,10 @@
                             {
                                 pxAnswer = ( ( LLMNRAnswer_t * ) xSet.pucByte );
                                 /* We leave 'usIdentifier' and 'usQuestions' untouched */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_REPONSE ); /* Set the response flag */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                       /* Provide a single answer */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                  /* No authority */
-                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                 /* No additional info */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_RESPONSE ); /* Set the response flag */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                        /* Provide a single answer */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                   /* No authority */
+                                vSetField16( xSet.pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                  /* No additional info */
 
                                 pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
@@ -1170,7 +1170,7 @@
 
                 if( xBufferAllocFixedSize == pdFALSE )
                 {
-                    /* We're linked with BufferAlolocation_2.c
+                    /* We're linked with BufferAllocation_2.c
                      * pxResizeNetworkBufferWithDescriptor() will malloc a new bigger buffer,
                      * and memcpy the data. The old buffer will be free'd.
                      */

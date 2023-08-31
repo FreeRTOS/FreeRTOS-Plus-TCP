@@ -469,7 +469,7 @@ void gmac_dev_init( Gmac * p_gmac,
         #if ( SAME70 != 0 )
         {
             /* Transmitter Packet Buffer Memory Size Select:
-             * Use full configured addressable space (4 Kbytes). */
+             * Use full configured addressable space (4 KBytes). */
             ulValue |= GMAC_DCFGR_TXPBMS;
         }
         #endif

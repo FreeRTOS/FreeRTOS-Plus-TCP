@@ -493,7 +493,7 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 
     EP_DHCPData.eDHCPState = eLeasedAddress;
 
-    iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
+    iptraceDHCP_SUCCEEDED( EP_DHCPData.ulOfferedIPAddress );
 
     /* Close socket to ensure packets don't queue on it. */
     prvCloseDHCPv6Socket( pxEndPoint );

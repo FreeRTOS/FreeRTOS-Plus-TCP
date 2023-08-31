@@ -235,7 +235,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             #endif /* ipconfigUSE_LLMNR == 1 */
 
             XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
-            ulPHYIndex = ulDetecPHY( pxEMAC_PS );
+            ulPHYIndex = ulDetectPHY( pxEMAC_PS );
 
             if( ulPHYIndex == ~0U )
             {

@@ -97,7 +97,7 @@
 
     #if ( ipconfigUSE_LLMNR == 1 )
     /** @brief The MAC address used for LLMNR. */
-    const MACAddress_t xLLMNR_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
+    const MACAddress_t xLLMNR_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
     #endif /* ipconfigUSE_LLMNR == 1 */
 
 /*-----------------------------------------------------------*/
@@ -123,7 +123,7 @@
 /**
  * @brief The IPv6 link-scope multicast MAC address
  */
-        const MACAddress_t xLLMNR_MacAdressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
+        const MACAddress_t xLLMNR_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
     #endif /* ipconfigUSE_LLMNR && ipconfigUSE_IPv6 */
 
     #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
@@ -150,13 +150,13 @@
  * The MAC-addresses are provided here in case a network
  * interface needs it.
  */
-        const MACAddress_t xMDNS_MACAdressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
+        const MACAddress_t xMDNS_MACAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
     #endif /* ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
 
 
     #if ( ipconfigUSE_MDNS == 1 )
     /** @brief The MAC address used for MDNS. */
-    const MACAddress_t xMDNS_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
+    const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
     #endif /* ipconfigUSE_MDNS == 1 */
 
 /** @brief This global variable is being used to indicate to the driver which IP type

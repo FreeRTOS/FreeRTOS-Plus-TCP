@@ -509,7 +509,7 @@
              * It is enough to set 'EP_IPv4_SETTINGS.ulIPAddress'. */
             *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
 
-            iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
+            iptraceDHCP_SUCCEEDED( EP_DHCPData.ulOfferedIPAddress );
 
             /* DHCP failed, the default configured IP-address will be used
              * Now call vIPNetworkUpCalls() to send the network-up event and
@@ -751,7 +751,7 @@
                                 if( xARPHadIPClash == pdFALSE )
                                 {
                                     /* ARP OK. proceed. */
-                                    iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
+                                    iptraceDHCP_SUCCEEDED( EP_DHCPData.ulOfferedIPAddress );
 
                                     /* Auto-IP succeeded, the default configured IP-address will
                                      * be used.  Now call vIPNetworkUpCalls() to send the

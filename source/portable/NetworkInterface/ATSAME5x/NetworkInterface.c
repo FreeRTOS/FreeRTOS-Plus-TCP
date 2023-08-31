@@ -535,7 +535,7 @@ static void prvGMACInit()
         {
             uint8_t ucMACAddressLLMNRIPv6[ ipMAC_ADDRESS_LENGTH_BYTES ];
             /* Avoid warning */
-            memcpy( ucMACAddressLLMNRIPv6, xLLMNR_MacAdressIPv6.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
+            memcpy( ucMACAddressLLMNRIPv6, xLLMNR_MacAddressIPv6.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES );
             mac_async_set_filter_ex( &ETH_MAC, ucMACAddressLLMNRIPv6 );
         }
         #endif /* ipconfigUSE_LLMNR */

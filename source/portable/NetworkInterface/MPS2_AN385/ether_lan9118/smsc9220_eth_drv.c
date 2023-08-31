@@ -723,7 +723,7 @@ void smsc9220_init_irqs( const struct smsc9220_eth_dev_t * dev )
     smsc9220_disable_all_interrupts( dev );
     smsc9220_clear_all_interrupts( dev );
 
-    /* Set IRQ deassertion interval */
+    /* Set IRQ de-assertion interval */
     SET_BIT_FIELD( register_map->irq_cfg, IRQ_CFG_INT_DEAS_MASK,
                    IRQ_CFG_INT_DEAS_POS, IRQ_CFG_INT_DEAS_10US );
 

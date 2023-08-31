@@ -896,7 +896,7 @@
                 xTCPSegments = NULL;
             }
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
 /*=============================================================================
@@ -983,7 +983,7 @@
 
             return pxBest;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1059,7 +1059,7 @@
 
             pxWindow->rx.ulCurrentSequenceNumber = ulCurrentSequenceNumber;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1170,7 +1170,7 @@
 
             return lReturn;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1300,7 +1300,7 @@
 
             return lReturn;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
 /*=============================================================================

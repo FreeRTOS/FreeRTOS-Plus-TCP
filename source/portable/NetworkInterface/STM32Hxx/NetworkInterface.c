@@ -340,26 +340,26 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         #if ( ipconfigUSE_MDNS == 1 )
         {
             /* Program the MDNS address. */
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MacAdress.ucBytes );
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
             xMACEntry += 8;
         }
         #endif
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
         {
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv6.ucBytes );
             xMACEntry += 8;
         }
         #endif
         #if ( ipconfigUSE_LLMNR == 1 )
         {
             /* Program the LLMNR address. */
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
             xMACEntry += 8;
         }
         #endif
         #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
         {
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
             xMACEntry += 8;
         }
         #endif
@@ -571,7 +571,7 @@ static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
             /* Memory barrier: Make sure that the data written to the packet buffer got written. */
             __DSB();
 
-            /* Get exclusive accces to the TX process.
+            /* Get exclusive access to the TX process.
              * Both the IP-task and the EMAC task will work on the TX process. */
             if( xSemaphoreTake( xTransmissionMutex, xBlockTimeTicks ) != pdFAIL )
             {

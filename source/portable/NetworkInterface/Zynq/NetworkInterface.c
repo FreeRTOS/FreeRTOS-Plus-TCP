@@ -104,7 +104,7 @@
  * many outgoing packets seem to get dropped.
  */
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-        #warning ipconfigNIC_LINKSPEED100 is btoken. Are you sure?
+        #warning ipconfigNIC_LINKSPEED100 is broken. Are you sure?
     #endif
 #endif
 
@@ -276,7 +276,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
             /* Also add LLMNR multicast MAC address. */
             #if ( ipconfigUSE_IPv6 == 0 )
             {
-                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAdress.ucBytes );
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes );
             }
             #else
             {
@@ -297,15 +297,15 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
                     }
                 }
 
-                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAdressIPv6.ucBytes );
+                XEmacPs_SetHash( pxEMAC_PS, ( void * ) xLLMNR_MacAddressIPv6.ucBytes );
             }
             #endif /* if ( ipconfigUSE_IPv6 == 0 ) */
         }
         #endif /* ipconfigUSE_LLMNR == 1 */
 
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAdress.ucBytes );
-            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MACAdressIPv6.ucBytes );
+            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MacAddress.ucBytes );
+            XEmacPs_SetHash( pxEMAC_PS, ( void * ) xMDNS_MACAddressIPv6.ucBytes );
         #endif
 
         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint );

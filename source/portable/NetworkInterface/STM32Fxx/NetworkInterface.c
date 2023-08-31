@@ -106,7 +106,7 @@
 
 /*
  * Most users will want a PHY that negotiates about
- * the connection properties: speed, dmix and duplex.
+ * the connection properties: speed, MDIX and duplex.
  * On some rare cases, you want to select what is being
  * advertised, properties like MDIX and duplex.
  */
@@ -537,7 +537,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             #endif
             #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             {
-                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv6.ucBytes );
                 xMACEntry += 8;
             }
             #endif
@@ -550,7 +550,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             #endif
             #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
             {
-                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
+                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
                 xMACEntry += 8;
             }
             #endif
@@ -1362,7 +1362,7 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
         /* ETHERNET MAC Re-Configuration */
         HAL_ETH_ConfigMAC( &xETH, ( ETH_MACInitTypeDef * ) NULL );
 
-        /* Optionally, pass all mutlicast */
+        /* Optionally, pass all multicast */
         #if 0
             xETH.Instance->MACFFR |= ETH_MACFFR_PAM;
         #endif

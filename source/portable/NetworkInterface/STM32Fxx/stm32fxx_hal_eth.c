@@ -1343,7 +1343,7 @@
             /* Set the RPBL and 4*PBL bits according to ETH RxDMABurstLength value */
             /* Set the PBL and 4*PBL bits according to ETH TxDMABurstLength value */
             /* Set the Enhanced DMA descriptors bit according to ETH EnhancedDescriptorFormat value*/
-            /* Set the DSL bit according to ETH DesciptorSkipLength value */
+            /* Set the DSL bit according to ETH DescriptorSkipLength value */
             /* Set the PR and DA bits according to ETH DMAArbitration value */
             heth->Instance->DMABMR = ( uint32_t ) ( dmainit.AddressAlignedBeats |
                                                     dmainit.FixedBurst |

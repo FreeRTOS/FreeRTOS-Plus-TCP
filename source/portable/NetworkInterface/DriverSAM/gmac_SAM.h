@@ -1469,7 +1469,7 @@
         }
 
 /**
- * \brief Set screening type 2 eherType register.
+ * \brief Set screening type 2 etherType register.
  *
  * \param p_gmac   Pointer to the GMAC instance.
  * \param ethertype  Ethertype compare value

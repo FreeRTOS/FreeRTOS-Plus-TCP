@@ -487,7 +487,7 @@
                     /* Obtained configuration from a router. */
                     uxNewReloadTime = pdMS_TO_TICKS( 1000U * pxEndPoint->xRAData.ulPreferredLifeTime );
                     pxEndPoint->xRAData.eRAState = eRAStatePreLease;
-                    iptraceRA_SUCCEDEED( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                    iptraceRA_SUCCEEDED( &( pxEndPoint->ipv6_settings.xIPAddress ) );
                     FreeRTOS_printf( ( "RA: succeeded, using IP address %pip Reload after %u seconds\n",
                                        ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                        ( unsigned ) pxEndPoint->xRAData.ulPreferredLifeTime ) );

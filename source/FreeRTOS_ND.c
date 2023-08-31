@@ -842,8 +842,8 @@
                     pcReturn = "PACKET_TOO_BIG";
                     break;
 
-                case ipICMP_TIME_EXEEDED_IPv6:
-                    pcReturn = "TIME_EXEEDED";
+                case ipICMP_TIME_EXCEEDED_IPv6:
+                    pcReturn = "TIME_EXCEEDED";
                     break;
 
                 case ipICMP_PARAMETER_PROBLEM_IPv6:
@@ -962,7 +962,7 @@
             {
                 case ipICMP_DEST_UNREACHABLE_IPv6:
                 case ipICMP_PACKET_TOO_BIG_IPv6:
-                case ipICMP_TIME_EXEEDED_IPv6:
+                case ipICMP_TIME_EXCEEDED_IPv6:
                 case ipICMP_PARAMETER_PROBLEM_IPv6:
                     /* These message types are not implemented. They are logged here above. */
                     break;

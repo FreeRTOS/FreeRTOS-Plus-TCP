@@ -59,7 +59,7 @@
             uint16_t
                 ERR_IHE       : 1, /* IP Header Error */
                 ERR_DB        : 1, /* Deferred Bit */
-                ERR_Umderflow : 1, /* Underflow Error */
+                ERR_Underflow : 1, /* Underflow Error */
                 ERR_ExcDefer  : 1, /* Excessive Deferral */
                 ERR_CC        : 4, /* Collision count. */
                 ERR_EC        : 1, /* Excessive Collision */
@@ -373,7 +373,7 @@
 
             uint32_t GiantPacketSizeLimit;                   /*!< Specifies the packet size that the MAC will declare it as Giant, If it's size is
                                                               * greater than the value programmed in this field in units of bytes
-                                                              * This parameter must be a number between Min_Data = 0x618 (1518 byte) and Max_Data = 0x3FFF (32 Kbyte)*/
+                                                              * This parameter must be a number between Min_Data = 0x618 (1518 byte) and Max_Data = 0x3FFF (32 KByte)*/
 
             FunctionalState ExtendedInterPacketGap;          /*!< Enable or disables the extended inter packet gap. */
 
@@ -653,7 +653,7 @@
  */
 
 /*
- * DMA Tx Normal Desciptor Read Format
+ * DMA Tx Normal Descriptor Read Format
  * -----------------------------------------------------------------------------------------------
  * TDES0 |                         Buffer1 or Header Address  [31:0]                              |
  * -----------------------------------------------------------------------------------------------
@@ -766,7 +766,7 @@
 
 
 /*
- * DMA Tx Context Desciptor
+ * DMA Tx Context Descriptor
  * -----------------------------------------------------------------------------------------------
  * TDES0 |                               Timestamp Low                                            |
  * -----------------------------------------------------------------------------------------------
@@ -883,9 +883,9 @@
         #define ETH_DMARXNDESCWBF_PMT_FUP          ( ( uint32_t ) 0x00000200U ) /*!< PTP Message Type: Follow_Up (all clock types)  */
         #define ETH_DMARXNDESCWBF_PMT_DREQ         ( ( uint32_t ) 0x00000300U ) /*!< PTP Message Type: Delay_Req (all clock types)  */
         #define ETH_DMARXNDESCWBF_PMT_DRESP        ( ( uint32_t ) 0x00000400U ) /*!< PTP Message Type: Delay_Resp (all clock types)  */
-        #define ETH_DMARXNDESCWBF_PMT_PDREQ        ( ( uint32_t ) 0x00000500U ) /*!< PTP Message Type: Pdelay_Req (in peer-to-peer transparent clock)  */
-        #define ETH_DMARXNDESCWBF_PMT_PDRESP       ( ( uint32_t ) 0x00000600U ) /*!< PTP Message Type: Pdelay_Resp (in peer-to-peer transparent clock)  */
-        #define ETH_DMARXNDESCWBF_PMT_PDRESPFUP    ( ( uint32_t ) 0x00000700U ) /*!< PTP Message Type: Pdelay_Resp_Follow_Up (in peer-to-peer transparent clock)  */
+        #define ETH_DMARXNDESCWBF_PMT_PDREQ        ( ( uint32_t ) 0x00000500U ) /*!< PTP Message Type: PDelay_Req (in peer-to-peer transparent clock)  */
+        #define ETH_DMARXNDESCWBF_PMT_PDRESP       ( ( uint32_t ) 0x00000600U ) /*!< PTP Message Type: PDelay_Resp (in peer-to-peer transparent clock)  */
+        #define ETH_DMARXNDESCWBF_PMT_PDRESPFUP    ( ( uint32_t ) 0x00000700U ) /*!< PTP Message Type: PDelay_Resp_Follow_Up (in peer-to-peer transparent clock)  */
         #define ETH_DMARXNDESCWBF_PMT_ANNOUNCE     ( ( uint32_t ) 0x00000800U ) /*!< PTP Message Type: Announce  */
         #define ETH_DMARXNDESCWBF_PMT_MANAG        ( ( uint32_t ) 0x00000900U ) /*!< PTP Message Type: Management  */
         #define ETH_DMARXNDESCWBF_PMT_SIGN         ( ( uint32_t ) 0x00000A00U ) /*!< PTP Message Type: Signaling  */
@@ -1460,8 +1460,8 @@
 /** @defgroup ETH_MAC_Wake_Up_Event ETH MAC Wake Up Event
  * @{
  */
-        #define ETH_WAKEUP_PACKET_RECIEVED    ETH_MACPCSR_RWKPRCVD
-        #define ETH_MAGIC_PACKET_RECIEVED     ETH_MACPCSR_MGKPRCVD
+        #define ETH_WAKEUP_PACKET_RECEIVED    ETH_MACPCSR_RWKPRCVD
+        #define ETH_MAGIC_PACKET_RECEIVED     ETH_MACPCSR_MGKPRCVD
 
 /**
  * @}

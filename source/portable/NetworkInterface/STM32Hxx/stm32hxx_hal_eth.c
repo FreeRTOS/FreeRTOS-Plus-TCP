@@ -638,7 +638,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
 
 /**
  * @brief  Unregister an ETH Callback
- *         ETH callabck is redirected to the weak predefined callback
+ *         ETH callback is redirected to the weak predefined callback
  * @param heth eth handle
  * @param CallbackID ID of the callback to be unregistered
  *        This parameter can be one of the following values:
@@ -977,7 +977,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 /* Set the ETH peripheral state to BUSY */
                 heth->gState = HAL_ETH_STATE_BUSY;
 
-                /* Disable intrrupts:
+                /* Disable interrupts:
                  * - Tx complete interrupt
                  * - Rx complete interrupt
                  * - Fatal bus interrupt
@@ -1065,7 +1065,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
 
                 tickstart = HAL_GetTick();
 
-                /* Wait for data to be transmitted or timeout occured */
+                /* Wait for data to be transmitted or timeout occurred */
                 while( ( dmatxdesc->DESC3 & ETH_DMATXNDESCWBF_OWN ) != ( uint32_t ) RESET )
                 {
                     if( ( heth->Instance->DMACSR & ETH_DMACSR_FBE ) != ( uint32_t ) RESET )
@@ -1603,7 +1603,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 {
                     heth->ErrorCode |= HAL_ETH_ERROR_DMA;
 
-                    /* if fatal bus error occured */
+                    /* if fatal bus error occurred */
                     if( __HAL_ETH_DMA_GET_IT( heth, ETH_DMACSR_FBE ) )
                     {
                         /* Get DMA error code  */
@@ -2794,7 +2794,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 WRITE_REG( dmarxdesc->BackupAddr0, 0x0 );
                 WRITE_REG( dmarxdesc->BackupAddr1, 0x0 );
 
-                /* Set Rx descritors adresses */
+                /* Set Rx descritors addresses */
                 WRITE_REG( heth->RxDescList.RxDesc[ i ], ( uint32_t ) dmarxdesc );
             }
 

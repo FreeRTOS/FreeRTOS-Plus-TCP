@@ -123,7 +123,7 @@ _Ref 11.4.2_
 _Ref 11.4.3_
 
 - MISRA Rule 11.4 warns about casting pointer to an integer and vice versa.
-  Here, the poiner to the starting byte of the packet is cast to an integer
+  Here, the pointer to the starting byte of the packet is cast to an integer
   which is then used to see whether the pointer is well aligned or not. It is
   not used to access any pointer values. Thus, this violation can be safely
   suppressed.
@@ -188,7 +188,7 @@ _Ref 20.5.1_
 
 _Ref 20.10.1_
 
-- MISRA C-2012 Rule 20.10 warns against the use of ## concatination operator.
+- MISRA C-2012 Rule 20.10 warns against the use of ## concatenation operator.
   However, in this case, it must be used to support compile time assertions in
   case the preprocessor does not suppport sizeof. This operation (assert) has no
   runtime execution.

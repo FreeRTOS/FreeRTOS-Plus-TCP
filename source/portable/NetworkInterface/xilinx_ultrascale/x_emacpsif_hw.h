@@ -33,7 +33,7 @@
     int emacps_check_errors( xemacpsif_s * xemacps );
 
 /* Defined in x_emacpsif_physpeed.c. */
-    uint32_t ulDetecPHY( XEmacPs * xemacpsp );
+    uint32_t ulDetectPHY( XEmacPs * xemacpsp );
 
 
     #ifdef __cplusplus

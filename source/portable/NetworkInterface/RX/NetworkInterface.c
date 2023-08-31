@@ -479,7 +479,7 @@ static int InitializeNetwork( void )
     BaseType_t return_code = pdFALSE;
     ether_param_t param;
 
-    /* Read the mac address after it has been initilized by the FreeRTOS IP Stack, rather than from defines
+    /* Read the mac address after it has been initialized by the FreeRTOS IP Stack, rather than from defines
      * as the mac address is usually read from the EEPROM, and it might be different to the mac address in
      * the defines, especially in production environments
      */
