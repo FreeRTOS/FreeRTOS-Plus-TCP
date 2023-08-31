@@ -16,7 +16,6 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/portable.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv6_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
