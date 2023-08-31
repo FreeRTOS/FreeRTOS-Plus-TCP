@@ -218,9 +218,9 @@
             prvTCPReturnPacket( pxSocket, *ppxNetworkBuffer, ( uint32_t ) xSendLength, ipconfigZERO_COPY_TX_DRIVER );
 
             #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                {
-                    *ppxNetworkBuffer = NULL;
-                }
+            {
+                *ppxNetworkBuffer = NULL;
+            }
             #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
             lResult += xSendLength;
@@ -349,13 +349,13 @@
 
         /* Avoid overflow of the 16-bit win field. */
         #if ( ipconfigUSE_TCP_WIN != 0 )
-            {
-                ulWinSize = ( ulSpace >> pxSocket->u.xTCP.ucMyWinScaleFactor );
-            }
+        {
+            ulWinSize = ( ulSpace >> pxSocket->u.xTCP.ucMyWinScaleFactor );
+        }
         #else
-            {
-                ulWinSize = ulSpace;
-            }
+        {
+            ulWinSize = ulSpace;
+        }
         #endif
 
         if( ulWinSize > 0xfffcU )
@@ -578,29 +578,29 @@
         pxTCPHeader->ucOptdata[ 3 ] = ( uint8_t ) ( usMSS & 0xffU );
 
         #if ( ipconfigUSE_TCP_WIN != 0 )
-            {
-                pxSocket->u.xTCP.ucMyWinScaleFactor = prvWinScaleFactor( pxSocket );
+        {
+            pxSocket->u.xTCP.ucMyWinScaleFactor = prvWinScaleFactor( pxSocket );
 
-                pxTCPHeader->ucOptdata[ 4 ] = tcpTCP_OPT_NOOP;
-                pxTCPHeader->ucOptdata[ 5 ] = ( uint8_t ) ( tcpTCP_OPT_WSOPT );
-                pxTCPHeader->ucOptdata[ 6 ] = ( uint8_t ) ( tcpTCP_OPT_WSOPT_LEN );
-                pxTCPHeader->ucOptdata[ 7 ] = ( uint8_t ) pxSocket->u.xTCP.ucMyWinScaleFactor;
-                uxOptionsLength = 8U;
-            }
+            pxTCPHeader->ucOptdata[ 4 ] = tcpTCP_OPT_NOOP;
+            pxTCPHeader->ucOptdata[ 5 ] = ( uint8_t ) ( tcpTCP_OPT_WSOPT );
+            pxTCPHeader->ucOptdata[ 6 ] = ( uint8_t ) ( tcpTCP_OPT_WSOPT_LEN );
+            pxTCPHeader->ucOptdata[ 7 ] = ( uint8_t ) pxSocket->u.xTCP.ucMyWinScaleFactor;
+            uxOptionsLength = 8U;
+        }
         #else
-            {
-                uxOptionsLength = 4U;
-            }
+        {
+            uxOptionsLength = 4U;
+        }
         #endif /* if ( ipconfigUSE_TCP_WIN != 0 ) */
 
         #if ( ipconfigUSE_TCP_WIN != 0 )
-            {
-                pxTCPHeader->ucOptdata[ uxOptionsLength ] = tcpTCP_OPT_NOOP;
-                pxTCPHeader->ucOptdata[ uxOptionsLength + 1U ] = tcpTCP_OPT_NOOP;
-                pxTCPHeader->ucOptdata[ uxOptionsLength + 2U ] = tcpTCP_OPT_SACK_P; /* 4: Sack-Permitted Option. */
-                pxTCPHeader->ucOptdata[ uxOptionsLength + 3U ] = 2U;                /* 2: length of this option. */
-                uxOptionsLength += 4U;
-            }
+        {
+            pxTCPHeader->ucOptdata[ uxOptionsLength ] = tcpTCP_OPT_NOOP;
+            pxTCPHeader->ucOptdata[ uxOptionsLength + 1U ] = tcpTCP_OPT_NOOP;
+            pxTCPHeader->ucOptdata[ uxOptionsLength + 2U ] = tcpTCP_OPT_SACK_P; /* 4: Sack-Permitted Option. */
+            pxTCPHeader->ucOptdata[ uxOptionsLength + 3U ] = 2U;                /* 2: length of this option. */
+            uxOptionsLength += 4U;
+        }
         #endif /* ipconfigUSE_TCP_WIN == 0 */
         return uxOptionsLength; /* bytes, not words. */
     }
@@ -881,13 +881,13 @@
                     ulDataGot = ( uint32_t ) uxStreamBufferGet( pxSocket->u.xTCP.txStream, uxOffset, pucSendData, ( size_t ) lDataLen, pdTRUE );
 
                     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
+                    {
+                        if( ulDataGot != ( uint32_t ) lDataLen )
                         {
-                            if( ulDataGot != ( uint32_t ) lDataLen )
-                            {
-                                FreeRTOS_debug_printf( ( "uxStreamBufferGet: pos %d offs %u only %u != %d\n",
-                                                         ( int ) lStreamPos, ( unsigned ) uxOffset, ( unsigned ) ulDataGot, ( int ) lDataLen ) );
-                            }
+                            FreeRTOS_debug_printf( ( "uxStreamBufferGet: pos %d offs %u only %u != %d\n",
+                                                     ( int ) lStreamPos, ( unsigned ) uxOffset, ( unsigned ) ulDataGot, ( int ) lDataLen ) );
                         }
+                    }
                     #endif
 
                     /* If the owner of the socket requests a closure, add the FIN
@@ -899,17 +899,17 @@
                         if( ulDistance == ulDataGot )
                         {
                             #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-                                {
-                                    /* the order of volatile accesses is undefined
-                                     *  so such workaround */
-                                    size_t uxHead = pxSocket->u.xTCP.txStream->uxHead;
-                                    size_t uxMid = pxSocket->u.xTCP.txStream->uxMid;
-                                    size_t uxTail = pxSocket->u.xTCP.txStream->uxTail;
+                            {
+                                /* the order of volatile accesses is undefined
+                                 *  so such workaround */
+                                size_t uxHead = pxSocket->u.xTCP.txStream->uxHead;
+                                size_t uxMid = pxSocket->u.xTCP.txStream->uxMid;
+                                size_t uxTail = pxSocket->u.xTCP.txStream->uxTail;
 
-                                    FreeRTOS_debug_printf( ( "CheckClose %u <= %u (%u <= %u <= %u)\n",
-                                                             ( unsigned ) ulDataGot, ( unsigned ) ulDistance,
-                                                             ( unsigned ) uxTail, ( unsigned ) uxMid, ( unsigned ) uxHead ) );
-                                }
+                                FreeRTOS_debug_printf( ( "CheckClose %u <= %u (%u <= %u <= %u)\n",
+                                                         ( unsigned ) ulDataGot, ( unsigned ) ulDistance,
+                                                         ( unsigned ) uxTail, ( unsigned ) uxMid, ( unsigned ) uxHead ) );
+                            }
                             #endif /* if ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
 
                             /* Although the socket sends a FIN, it will stay in
@@ -943,47 +943,47 @@
             }
 
             #if ( ipconfigTCP_KEEP_ALIVE != 0 )
+            {
+                if( pxSocket->u.xTCP.ucKeepRepCount > 3U ) /*_RB_ Magic number. */
                 {
-                    if( pxSocket->u.xTCP.ucKeepRepCount > 3U ) /*_RB_ Magic number. */
+                    FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
+                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, /* IP address of remote machine. */
+                                             pxSocket->u.xTCP.usRemotePort ) );                 /* Port on remote machine. */
+                    vTCPStateChange( pxSocket, eCLOSE_WAIT );
+                    lDataLen = -1;
+                }
+
+                if( ( lDataLen == 0 ) && ( pxSocket->u.xTCP.bits.bWinChange == pdFALSE_UNSIGNED ) )
+                {
+                    /* If there is no data to be sent, and no window-update message,
+                     * we might want to send a keep-alive message. */
+                    TickType_t xAge = xTaskGetTickCount() - pxSocket->u.xTCP.xLastAliveTime;
+                    TickType_t xMax;
+                    xMax = ( ( TickType_t ) ipconfigTCP_KEEP_ALIVE_INTERVAL * ( TickType_t ) configTICK_RATE_HZ );
+
+                    if( pxSocket->u.xTCP.ucKeepRepCount != 0U )
                     {
-                        FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
-                                                 ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, /* IP address of remote machine. */
-                                                 pxSocket->u.xTCP.usRemotePort ) );                 /* Port on remote machine. */
-                        vTCPStateChange( pxSocket, eCLOSE_WAIT );
-                        lDataLen = -1;
+                        xMax = 3U * configTICK_RATE_HZ;
                     }
 
-                    if( ( lDataLen == 0 ) && ( pxSocket->u.xTCP.bits.bWinChange == pdFALSE_UNSIGNED ) )
+                    if( xAge > xMax )
                     {
-                        /* If there is no data to be sent, and no window-update message,
-                         * we might want to send a keep-alive message. */
-                        TickType_t xAge = xTaskGetTickCount() - pxSocket->u.xTCP.xLastAliveTime;
-                        TickType_t xMax;
-                        xMax = ( ( TickType_t ) ipconfigTCP_KEEP_ALIVE_INTERVAL * ( TickType_t ) configTICK_RATE_HZ );
+                        pxSocket->u.xTCP.xLastAliveTime = xTaskGetTickCount();
 
-                        if( pxSocket->u.xTCP.ucKeepRepCount != 0U )
+                        if( xTCPWindowLoggingLevel != 0 )
                         {
-                            xMax = 3U * configTICK_RATE_HZ;
+                            FreeRTOS_debug_printf( ( "keep-alive: %xip:%u count %u\n",
+                                                     ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
+                                                     pxSocket->u.xTCP.usRemotePort,
+                                                     pxSocket->u.xTCP.ucKeepRepCount ) );
                         }
 
-                        if( xAge > xMax )
-                        {
-                            pxSocket->u.xTCP.xLastAliveTime = xTaskGetTickCount();
-
-                            if( xTCPWindowLoggingLevel != 0 )
-                            {
-                                FreeRTOS_debug_printf( ( "keep-alive: %xip:%u count %u\n",
-                                                         ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,
-                                                         pxSocket->u.xTCP.usRemotePort,
-                                                         pxSocket->u.xTCP.ucKeepRepCount ) );
-                            }
-
-                            pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
-                            pxSocket->u.xTCP.usTimeout = ( ( uint16_t ) pdMS_TO_TICKS( 2500U ) );
-                            pxSocket->u.xTCP.ucKeepRepCount++;
-                        }
+                        pxSocket->u.xTCP.bits.bSendKeepAlive = pdTRUE_UNSIGNED;
+                        pxSocket->u.xTCP.usTimeout = ( ( uint16_t ) pdMS_TO_TICKS( 2500U ) );
+                        pxSocket->u.xTCP.ucKeepRepCount++;
                     }
                 }
+            }
             #endif /* ipconfigTCP_KEEP_ALIVE */
         }
 
@@ -1185,88 +1185,88 @@
         lRxSpace = ( int32_t ) ulRxBufferSpace;
 
         #if ipconfigUSE_TCP_WIN == 1
+        {
+            /* An ACK may be delayed if the peer has space for at least 2 x MSS. */
+            lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usMSS );
+
+            /* In case we're receiving data continuously, we might postpone sending
+             * an ACK to gain performance. */
+            /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
+            if( ( ulReceiveLength > 0U ) &&                               /* Data was sent to this socket. */
+                ( lRxSpace >= lMinLength ) &&                             /* There is Rx space for more data. */
+                ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) && /* Not in a closure phase. */
+                ( xSendLength == xSizeWithoutData ) &&                    /* No Tx data or options to be sent. */
+                ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&         /* Connection established. */
+                ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )          /* There are no other flags than an ACK. */
             {
-                /* An ACK may be delayed if the peer has space for at least 2 x MSS. */
-                lMinLength = ( ( int32_t ) 2 ) * ( ( int32_t ) pxSocket->u.xTCP.usMSS );
+                uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
 
-                /* In case we're receiving data continuously, we might postpone sending
-                 * an ACK to gain performance. */
-                /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
-                if( ( ulReceiveLength > 0U ) &&                               /* Data was sent to this socket. */
-                    ( lRxSpace >= lMinLength ) &&                             /* There is Rx space for more data. */
-                    ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) && /* Not in a closure phase. */
-                    ( xSendLength == xSizeWithoutData ) &&                    /* No Tx data or options to be sent. */
-                    ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&         /* Connection established. */
-                    ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )          /* There are no other flags than an ACK. */
+                if( pxSocket->u.xTCP.pxAckMessage != *ppxNetworkBuffer )
                 {
-                    uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
-
-                    if( pxSocket->u.xTCP.pxAckMessage != *ppxNetworkBuffer )
-                    {
-                        /* There was still a delayed in queue, delete it. */
-                        if( pxSocket->u.xTCP.pxAckMessage != NULL )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxSocket->u.xTCP.pxAckMessage );
-                        }
-
-                        pxSocket->u.xTCP.pxAckMessage = *ppxNetworkBuffer;
-                    }
-
-                    if( ulReceiveLength < ulCurMSS ) /* Received a small message. */
-                    {
-                        pxSocket->u.xTCP.usTimeout = ( uint16_t ) tcpDELAYED_ACK_SHORT_DELAY_MS;
-                    }
-                    else
-                    {
-                        /* Normally a delayed ACK should wait 200 ms for a next incoming
-                         * packet.  Only wait 20 ms here to gain performance.  A slow ACK
-                         * for full-size message. */
-                        pxSocket->u.xTCP.usTimeout = ( uint16_t ) pdMS_TO_TICKS( tcpDELAYED_ACK_LONGER_DELAY_MS );
-
-                        if( pxSocket->u.xTCP.usTimeout < 1U ) /* LCOV_EXCL_BR_LINE, the second branch will never be hit */
-                        {
-                            pxSocket->u.xTCP.usTimeout = 1U;  /* LCOV_EXCL_LINE, this line will not be reached */
-                        }
-                    }
-
-                    if( ( xTCPWindowLoggingLevel > 1 ) && ( ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) ) )
-                    {
-                        FreeRTOS_debug_printf( ( "Send[%u->%u] del ACK %u SEQ %u (len %u) tmout %u d %d\n",
-                                                 pxSocket->usLocalPort,
-                                                 pxSocket->u.xTCP.usRemotePort,
-                                                 ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ),
-                                                 ( unsigned ) xSendLength,
-                                                 pxSocket->u.xTCP.usTimeout,
-                                                 ( int ) lRxSpace ) );
-                    }
-
-                    *ppxNetworkBuffer = NULL;
-                    xSendLength = 0;
-                }
-                else if( pxSocket->u.xTCP.pxAckMessage != NULL )
-                {
-                    /* As an ACK is not being delayed, remove any earlier delayed ACK
-                     * message. */
-                    if( pxSocket->u.xTCP.pxAckMessage != *ppxNetworkBuffer )
+                    /* There was still a delayed in queue, delete it. */
+                    if( pxSocket->u.xTCP.pxAckMessage != NULL )
                     {
                         vReleaseNetworkBufferAndDescriptor( pxSocket->u.xTCP.pxAckMessage );
                     }
 
-                    pxSocket->u.xTCP.pxAckMessage = NULL;
+                    pxSocket->u.xTCP.pxAckMessage = *ppxNetworkBuffer;
+                }
+
+                if( ulReceiveLength < ulCurMSS ) /* Received a small message. */
+                {
+                    pxSocket->u.xTCP.usTimeout = ( uint16_t ) tcpDELAYED_ACK_SHORT_DELAY_MS;
                 }
                 else
                 {
-                    /* The ack will not be postponed, and there was no stored ack ( in 'pxAckMessage' ). */
+                    /* Normally a delayed ACK should wait 200 ms for a next incoming
+                     * packet.  Only wait 20 ms here to gain performance.  A slow ACK
+                     * for full-size message. */
+                    pxSocket->u.xTCP.usTimeout = ( uint16_t ) pdMS_TO_TICKS( tcpDELAYED_ACK_LONGER_DELAY_MS );
+
+                    if( pxSocket->u.xTCP.usTimeout < 1U ) /* LCOV_EXCL_BR_LINE, the second branch will never be hit */
+                    {
+                        pxSocket->u.xTCP.usTimeout = 1U;  /* LCOV_EXCL_LINE, this line will not be reached */
+                    }
                 }
+
+                if( ( xTCPWindowLoggingLevel > 1 ) && ( ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) ) )
+                {
+                    FreeRTOS_debug_printf( ( "Send[%u->%u] del ACK %u SEQ %u (len %u) tmout %u d %d\n",
+                                             pxSocket->usLocalPort,
+                                             pxSocket->u.xTCP.usRemotePort,
+                                             ( unsigned ) ( pxTCPWindow->rx.ulCurrentSequenceNumber - pxTCPWindow->rx.ulFirstSequenceNumber ),
+                                             ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - pxTCPWindow->tx.ulFirstSequenceNumber ),
+                                             ( unsigned ) xSendLength,
+                                             pxSocket->u.xTCP.usTimeout,
+                                             ( int ) lRxSpace ) );
+                }
+
+                *ppxNetworkBuffer = NULL;
+                xSendLength = 0;
             }
-        #else /* if ipconfigUSE_TCP_WIN == 1 */
+            else if( pxSocket->u.xTCP.pxAckMessage != NULL )
             {
-                /* Remove compiler warnings. */
-                ( void ) ulReceiveLength;
-                ( void ) pxTCPHeader;
-                ( void ) lRxSpace;
+                /* As an ACK is not being delayed, remove any earlier delayed ACK
+                 * message. */
+                if( pxSocket->u.xTCP.pxAckMessage != *ppxNetworkBuffer )
+                {
+                    vReleaseNetworkBufferAndDescriptor( pxSocket->u.xTCP.pxAckMessage );
+                }
+
+                pxSocket->u.xTCP.pxAckMessage = NULL;
             }
+            else
+            {
+                /* The ack will not be postponed, and there was no stored ack ( in 'pxAckMessage' ). */
+            }
+        }
+        #else /* if ipconfigUSE_TCP_WIN == 1 */
+        {
+            /* Remove compiler warnings. */
+            ( void ) ulReceiveLength;
+            ( void ) pxTCPHeader;
+            ( void ) lRxSpace;
+        }
         #endif /* ipconfigUSE_TCP_WIN */
 
         if( xSendLength != 0 )
@@ -1285,10 +1285,10 @@
              * ipconfigZERO_COPY_TX_DRIVER. */
             prvTCPReturnPacket( pxSocket, *ppxNetworkBuffer, ( uint32_t ) xSendLength, ipconfigZERO_COPY_TX_DRIVER );
             #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                {
-                    /* The driver has taken ownership of the Network Buffer. */
-                    *ppxNetworkBuffer = NULL;
-                }
+            {
+                /* The driver has taken ownership of the Network Buffer. */
+                *ppxNetworkBuffer = NULL;
+            }
             #endif
         }
 
@@ -1315,26 +1315,26 @@
             ( void ) pxNetworkBuffer;
             ( void ) ucTCPFlags;
         #else
+        {
+            switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
             {
-                switch( uxIPHeaderSizePacket( pxNetworkBuffer ) )
-                {
-                    #if ( ipconfigUSE_IPv4 != 0 )
-                        case ipSIZE_OF_IPv4_HEADER:
-                            xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
-                            break;
-                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        case ipSIZE_OF_IPv6_HEADER:
-                            xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
-                            break;
-                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-                    default:
-                        xReturn = pdFAIL;
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case ipSIZE_OF_IPv4_HEADER:
+                        xReturn = prvTCPSendSpecialPktHelper_IPV4( pxNetworkBuffer, ucTCPFlags );
                         break;
-                }
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case ipSIZE_OF_IPv6_HEADER:
+                        xReturn = prvTCPSendSpecialPktHelper_IPV6( pxNetworkBuffer, ucTCPFlags );
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    xReturn = pdFAIL;
+                    break;
             }
+        }
         #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */
 
         /* The packet was not consumed. */
