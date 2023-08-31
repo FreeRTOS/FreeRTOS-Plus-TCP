@@ -543,6 +543,8 @@ static UBaseType_t prvNetworkInterfaceInput( void )
     {
         /*configASSERT( xEthHandle.RxDescList.RxDataLength <= EMAC_DATA_BUFFER_SIZE );*/
         xResult++;
+        pxCurDescriptor->pxInterface = pxMyInterface;
+        pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxCurDescriptor->pucEthernetBuffer );;
         #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
             if ( pxStartDescriptor == NULL )
             {
@@ -559,7 +561,7 @@ static UBaseType_t prvNetworkInterfaceInput( void )
             {
                 iptraceETHERNET_RX_EVENT_LOST();
                 FreeRTOS_debug_printf( ( "prvNetworkInterfaceInput: xSendEventStructToIPTask failed\n" ) );
-                vReleaseNetworkBufferAndDescriptor( pxStartDescriptor );
+                vReleaseNetworkBufferAndDescriptor( pxCurDescriptor );
             }
         #endif
     }
@@ -568,8 +570,6 @@ static UBaseType_t prvNetworkInterfaceInput( void )
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         if( xResult > 0 )
         {
-            pxStartDescriptor->pxInterface = pxMyInterface;
-            pxStartDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxStartDescriptor->pucEthernetBuffer );
             xRxEvent.pvData = ( void * ) pxStartDescriptor;
             if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 100U ) != pdPASS )
             {
