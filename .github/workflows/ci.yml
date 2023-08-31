@@ -86,6 +86,27 @@ jobs:
         with:
           path: ./
 
+  verify-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      # At time of writing the gitmodules are set not to pull
+      # Even when using fetch submodules. Need to run this command
+      # To force it to grab them.
+      - name: Perform Recursive Clone
+        shell: bash
+        run: git submodule update --checkout --init --recursive
+
+      - name: Run manifest verifier
+        uses: FreeRTOS/CI-CD-GitHub-Actions/manifest-verifier@v2
+        with:
+          path: ./
+          fail-on-incorrect-version: true
+
   build-checks:
     runs-on: ubuntu-latest
     steps:
@@ -192,6 +213,7 @@ jobs:
         run: |
           git-secrets --register-aws
           git-secrets --scan
+
   proof_ci:
     runs-on: cbmc_ubuntu-latest_16-core
     steps:

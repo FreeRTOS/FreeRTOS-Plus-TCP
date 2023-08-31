@@ -29,9 +29,9 @@ list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
+            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
-            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
         )
 
 set(mock_define_list "")
@@ -67,6 +67,7 @@ set(test_include_directories "")
 list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src
+            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources
