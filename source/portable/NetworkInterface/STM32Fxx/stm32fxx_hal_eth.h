@@ -53,7 +53,7 @@
     #endif
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /** @addtogroup STM32Fxx_HAL_Driver

@@ -299,15 +299,15 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
 
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
-            {
-                /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
-                xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
-                xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
-            }
+        {
+            /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
+            xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
+            xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
+        }
         #else
-            {
-                xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
-            }
+        {
+            xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
+        }
         #endif
         xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
 
@@ -324,44 +324,44 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
             uint8_t * pucBuffer;
 
             #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-                {
-                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
-                    configASSERT( pucBuffer != NULL );
-                }
+            {
+                pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
+                configASSERT( pucBuffer != NULL );
+            }
             #else
-                {
-                    pucBuffer = Rx_Buff[ uxIndex ];
-                }
+            {
+                pucBuffer = Rx_Buff[ uxIndex ];
+            }
             #endif
 
             HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
         }
 
         #if ( ipconfigUSE_MDNS == 1 )
-            {
-                /* Program the MDNS address. */
-                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MacAdress.ucBytes );
-                xMACEntry += 8;
-            }
+        {
+            /* Program the MDNS address. */
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MacAdress.ucBytes );
+            xMACEntry += 8;
+        }
         #endif
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-            {
-                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
-                xMACEntry += 8;
-            }
+        {
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MACAdressIPv6.ucBytes );
+            xMACEntry += 8;
+        }
         #endif
         #if ( ipconfigUSE_LLMNR == 1 )
-            {
-                /* Program the LLMNR address. */
-                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
-                xMACEntry += 8;
-            }
+        {
+            /* Program the LLMNR address. */
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
+            xMACEntry += 8;
+        }
         #endif
         #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-            {
-                prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
-                xMACEntry += 8;
-            }
+        {
+            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
+            xMACEntry += 8;
+        }
         #endif
 
         {
@@ -414,16 +414,16 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         }
 
         #if ( ipconfigUSE_IPv6 != 0 )
+        {
+            if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
             {
-                if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
-                {
-                    /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
-                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+                /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
+                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
 
-                    prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
-                    xMACEntry += 8;
-                }
+                prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
+                xMACEntry += 8;
             }
+        }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         /* Initialize the MACB and set all PHY properties */
@@ -576,18 +576,18 @@ static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
             if( xSemaphoreTake( xTransmissionMutex, xBlockTimeTicks ) != pdFAIL )
             {
                 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                    {
-                        /* Do not release the buffer. */
-                        xReleaseAfterSend = pdFALSE;
-                    }
+                {
+                    /* Do not release the buffer. */
+                    xReleaseAfterSend = pdFALSE;
+                }
                 #else
-                    {
-                        memcpy( pucTXBuffer, pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength );
+                {
+                    memcpy( pucTXBuffer, pxBuffer->pucEthernetBuffer, pxBuffer->xDataLength );
 
-                        /* A memory barrier to make sure that the outgoing packets has been written
-                         * to the physical memory. */
-                        __DSB();
-                    }
+                    /* A memory barrier to make sure that the outgoing packets has been written
+                     * to the physical memory. */
+                    __DSB();
+                }
                 #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 
                 if( HAL_ETH_Transmit_IT( &( xEthHandle ), &( xTxConfig ) ) == HAL_OK )
@@ -678,13 +678,13 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
         MACConf.Speed = speed;
         HAL_ETH_SetMACConfig( &( xEthHandle ), &( MACConf ) );
         #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 )
-            {
-                MACConf.ChecksumOffload = ENABLE;
-            }
+        {
+            MACConf.ChecksumOffload = ENABLE;
+        }
         #else
-            {
-                MACConf.ChecksumOffload = DISABLE;
-            }
+        {
+            MACConf.ChecksumOffload = DISABLE;
+        }
         #endif /* ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 ) */
 
         /* Restart MAC interface */
@@ -722,30 +722,30 @@ static BaseType_t prvNetworkInterfaceInput( void )
         xReturn++;
 
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+        {
+            /* Reserve the maximum length for the next reception. */
+            uxLength = ETH_RX_BUF_SIZE;
+
+            if( data_buffer.buffer != NULL )
             {
-                /* Reserve the maximum length for the next reception. */
-                uxLength = ETH_RX_BUF_SIZE;
-
-                if( data_buffer.buffer != NULL )
+                pxReceivedBuffer = pxPacketBuffer_to_NetworkBuffer( data_buffer.buffer );
+                #if ( ipconfigTCP_IP_SANITY != 0 )
                 {
-                    pxReceivedBuffer = pxPacketBuffer_to_NetworkBuffer( data_buffer.buffer );
-                    #if ( ipconfigTCP_IP_SANITY != 0 )
-                        {
-                            configASSERT( bIsValidNetworkDescriptor( pxReceivedBuffer ) != 0 );
-                        }
-                    #endif
+                    configASSERT( bIsValidNetworkDescriptor( pxReceivedBuffer ) != 0 );
                 }
-
-                if( pxReceivedBuffer == NULL )
-                {
-                    FreeRTOS_printf( ( "Strange: no descriptor received\n" ) );
-                }
+                #endif
             }
+
+            if( pxReceivedBuffer == NULL )
+            {
+                FreeRTOS_printf( ( "Strange: no descriptor received\n" ) );
+            }
+        }
         #else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
-            {
-                /* Reserve the length of the packet that was just received. */
-                uxLength = uxDataLength;
-            }
+        {
+            /* Reserve the length of the packet that was just received. */
+            uxLength = uxDataLength;
+        }
         #endif /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 
         pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( uxLength, 0u );
@@ -758,33 +758,33 @@ static BaseType_t prvNetworkInterfaceInput( void )
         }
 
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+        {
+            if( pxBufferDescriptor == NULL )
             {
-                if( pxBufferDescriptor == NULL )
-                {
-                    /* Can not receive this packet. Buffer will be re-used. */
-                    pxReceivedBuffer = NULL;
-                }
-                else if( pxReceivedBuffer != NULL )
-                {
-                    pxReceivedBuffer->xDataLength = uxDataLength;
-                }
-                else
-                {
-                    /* Allocating a new buffer failed. */
-                }
+                /* Can not receive this packet. Buffer will be re-used. */
+                pxReceivedBuffer = NULL;
             }
+            else if( pxReceivedBuffer != NULL )
+            {
+                pxReceivedBuffer->xDataLength = uxDataLength;
+            }
+            else
+            {
+                /* Allocating a new buffer failed. */
+            }
+        }
         #else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
+        {
+            if( pxBufferDescriptor != NULL )
             {
-                if( pxBufferDescriptor != NULL )
-                {
-                    pxReceivedBuffer = pxBufferDescriptor;
-                    /* The copy method. */
-                    memcpy( pxReceivedBuffer->pucEthernetBuffer, data_buffer.buffer, uxDataLength );
-                    pxReceivedBuffer->xDataLength = uxDataLength;
-                    /* Make sure that the descriptor isn't used any more. */
-                    pxBufferDescriptor = NULL;
-                }
+                pxReceivedBuffer = pxBufferDescriptor;
+                /* The copy method. */
+                memcpy( pxReceivedBuffer->pucEthernetBuffer, data_buffer.buffer, uxDataLength );
+                pxReceivedBuffer->xDataLength = uxDataLength;
+                /* Make sure that the descriptor isn't used any more. */
+                pxBufferDescriptor = NULL;
             }
+        }
         #endif /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
 
         {
@@ -1044,36 +1044,36 @@ static void prvEMACHandlerTask( void * pvParameters )
         BaseType_t xResult = 0;
 
         #if ( ipconfigHAS_PRINTF != 0 )
+        {
+            size_t uxUsed;
+            size_t uxOwnCount;
+
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+
+            /* Some more statistics: number of free descriptors. */
+            uxUsed = ETH_TX_DESC_CNT - uxSemaphoreGetCount( xTXDescriptorSemaphore );
+
+            if( uxTXDescriptorsUsed < uxUsed )
             {
-                size_t uxUsed;
-                size_t uxOwnCount;
-
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-
-                /* Some more statistics: number of free descriptors. */
-                uxUsed = ETH_TX_DESC_CNT - uxSemaphoreGetCount( xTXDescriptorSemaphore );
-
-                if( uxTXDescriptorsUsed < uxUsed )
-                {
-                    uxTXDescriptorsUsed = uxUsed;
-                    FreeRTOS_printf( ( "TX descriptors %u/%u\n",
-                                       uxTXDescriptorsUsed,
-                                       ETH_TX_DESC_CNT ) );
-                }
-
-                uxOwnCount = uxGetOwnCount( &( xEthHandle ) );
-
-                if( uxRXDescriptorsUsed > uxOwnCount )
-                {
-                    uxRXDescriptorsUsed = uxOwnCount;
-                    FreeRTOS_printf( ( "RX descriptors %u/%u\n",
-                                       uxRXDescriptorsUsed,
-                                       ETH_RX_DESC_CNT ) );
-                }
+                uxTXDescriptorsUsed = uxUsed;
+                FreeRTOS_printf( ( "TX descriptors %u/%u\n",
+                                   uxTXDescriptorsUsed,
+                                   ETH_TX_DESC_CNT ) );
             }
+
+            uxOwnCount = uxGetOwnCount( &( xEthHandle ) );
+
+            if( uxRXDescriptorsUsed > uxOwnCount )
+            {
+                uxRXDescriptorsUsed = uxOwnCount;
+                FreeRTOS_printf( ( "RX descriptors %u/%u\n",
+                                   uxRXDescriptorsUsed,
+                                   ETH_RX_DESC_CNT ) );
+            }
+        }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );

@@ -20,7 +20,7 @@
     #define __XTOPOLOGY_H_
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
     enum xemac_types

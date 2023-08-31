@@ -27,7 +27,7 @@
     #include <stdint.h>
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /** SMSC9220 device configuration structure */
