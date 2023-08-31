@@ -204,13 +204,16 @@ static void hand_tx_errors( void );
 static uint16_t prvGenerateCRC16( const uint8_t * pucAddress );
 static void prvAddMulticastMACAddress( const uint8_t * ucMacAddress );
 
+/* Checks IP queue, buffers, and semaphore and logs diagnostic info if configured */
+void vCheckBuffersAndQueue( void );
+
+/* return 'puc_buffer' to the pool of transmission buffers. */
+void returnTxBuffer( uint8_t * puc_buffer );
+
 /*-----------------------------------------------------------*/
 
 /* A copy of PHY register 1: 'PHY_REG_01_BMSR' */
 static BaseType_t xGMACSwitchRequired;
-
-/* LLMNR multicast address. */
-static const uint8_t llmnr_mac_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 
 /* The GMAC object as defined by the ASF drivers. */
 static gmac_device_t gs_gmac_dev;
@@ -454,8 +457,6 @@ static BaseType_t xPHY_Write( BaseType_t xAddress,
 
 static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
-    const TickType_t x5_Seconds = 5000UL;
-
     if( xEMACTaskHandle == NULL )
     {
         prvGMACInit( pxInterface );
@@ -673,9 +674,7 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 
 static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
 {
-    uint32_t ncfgr;
     NetworkEndPoint_t * pxEndPoint;
-    BaseType_t xEntry = 1;
 
     gmac_options_t gmac_option;
 
@@ -1126,14 +1125,12 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 static void prvEMACHandlerTask( void * pvParameters )
 {
     UBaseType_t uxCount;
-    UBaseType_t uxLowestSemCount = GMAC_TX_BUFFERS + 1;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         NetworkBufferDescriptor_t * pxBuffer;
     #endif
     uint8_t * pucBuffer;
     BaseType_t xResult = 0;
-    uint32_t xStatus;
     const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS );
     uint32_t ulISREvents = 0U;
 
