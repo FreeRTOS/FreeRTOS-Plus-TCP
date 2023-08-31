@@ -58,6 +58,7 @@ list(APPEND real_include_directories
 list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src
+            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${TCP_INCLUDE_DIRS}
         )
 
