@@ -68,7 +68,7 @@ jobs:
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
       - name: Check Coverage
-        uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@v2
+        uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
         with:
           coverage-file: ./test/unit-test/build/coverage.info
 
@@ -96,9 +96,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Run doxygen build
-        uses: FreeRTOS/CI-CD-Github-Actions/doxygen@v2
+        uses: FreeRTOS/CI-CD-Github-Actions/doxygen@main
         with:
           path: ./
+
+  verify-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      # At time of writing the gitmodules are set not to pull
+      # Even when using fetch submodules. Need to run this command
+      # To force it to grab them.
+      - name: Perform Recursive Clone
+        shell: bash
+        run: git submodule update --checkout --init --recursive
+
+      - name: Run manifest verifier
+        uses: FreeRTOS/CI-CD-GitHub-Actions/manifest-verifier@main
+        with:
+          path: ./
+          fail-on-incorrect-version: true
 
   link-verifier:
     runs-on: ubuntu-latest
@@ -266,12 +287,12 @@ jobs:
           RESULT=$?
           rm -rf ${TEMP_DIR}
           echo "::endgroup::"
-          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
           if [ "${RESULT}" = "0" ]; then
-              echo "All is good."
+              echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
               exit 0
           else
-              echo "Sources are too complex, rc = " ${RESULT}
+              echo -e "${{ env.bashFail }} Sources are too complex, rc = ${RESULT} ${{ env.bashEnd }}"
+              echo -e "${{ env.bashFail }} ${{ env.stepName }} ${{ env.bashEnd }}"
               exit 1
           fi
 
@@ -307,27 +328,6 @@ jobs:
           git-secrets --scan
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
-
-  verify-manifest:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      # At time of writing the gitmodules are set not to pull
-      # Even when using fetch submodules. Need to run this command
-      # To force it to grab them.
-      - name: Perform Recursive Clone
-        shell: bash
-        run: git submodule update --checkout --init --recursive
-
-      - name: Run manifest verifier
-        uses: FreeRTOS/CI-CD-GitHub-Actions/manifest-verifier@v2
-        with:
-          path: ./
-          fail-on-incorrect-version: true
 
   proof_ci:
     if: ${{ github.event.pull_request }}
