@@ -37,7 +37,7 @@ jobs:
       - name: Check Coverage
         uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
         with:
-          path: ./test/unit-test/build/coverage.info
+          coverage-file: ./test/unit-test/build/coverage.info
 
   spell-check:
     runs-on: ubuntu-latest
