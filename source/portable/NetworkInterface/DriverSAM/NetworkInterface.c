@@ -205,7 +205,7 @@ static uint16_t prvGenerateCRC16( const uint8_t * pucAddress );
 static void prvAddMulticastMACAddress( const uint8_t * ucMacAddress );
 
 /* Checks IP queue, buffers, and semaphore and logs diagnostic info if configured */
-void vCheckBuffersAndQueue( void );
+static void vCheckBuffersAndQueue( void );
 
 /* return 'puc_buffer' to the pool of transmission buffers. */
 void returnTxBuffer( uint8_t * puc_buffer );
@@ -1064,7 +1064,7 @@ volatile UBaseType_t uxLastMinBufferCount = 0;
 volatile UBaseType_t uxCurrentSemCount;
 volatile UBaseType_t uxLowestSemCount;
 
-void vCheckBuffersAndQueue( void )
+static void vCheckBuffersAndQueue( void )
 {
     static UBaseType_t uxCurrentCount;
 
@@ -1125,6 +1125,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 static void prvEMACHandlerTask( void * pvParameters )
 {
     UBaseType_t uxCount;
+    uxLowestSemCount = GMAC_TX_BUFFERS + 1;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         NetworkBufferDescriptor_t * pxBuffer;
