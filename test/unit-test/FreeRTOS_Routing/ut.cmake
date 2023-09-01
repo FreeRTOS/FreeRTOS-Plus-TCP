@@ -69,7 +69,6 @@ set(test_include_directories "")
 list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src
-            ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources

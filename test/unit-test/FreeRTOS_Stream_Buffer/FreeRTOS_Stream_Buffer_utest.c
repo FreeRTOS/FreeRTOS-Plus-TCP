@@ -34,8 +34,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "portmacro.h"
-
 #include "mock_task.h"
 #include "mock_semphr.h"
 
