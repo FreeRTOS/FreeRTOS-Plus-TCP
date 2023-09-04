@@ -134,6 +134,7 @@ chextochar
 cli
 clk
 cmd
+cmock
 co
 col
 com
@@ -2073,6 +2074,7 @@ xtaskcreate
 xtaskcreatestatic
 xtaskgenericnotify
 xtaskgetcurrenttaskhandle
+xtaskgetmpusettings
 xtaskgettickcount
 xtaskhandle
 xtasknotifygive
