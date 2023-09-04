@@ -88,17 +88,18 @@ _Ref 11.1.1_
 
 _Ref 11.3.1_
 
-- MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represent as
-  a byte stream. This byte stream needs to be casted to various data structures
-  to access certain fields of the packet. However, when casting a byte stream to
-  a structure, MISRA warns us that it can lead to unaligned access. But, in case
-  of FreeRTOS+TCP, the buffer in which the packets are stored are always aligned
-  to a 4 byte word boundary with an offset of 2 bytes. The reason for this 2
-  byte offset is that the ethernet header is of 14 (12 + 2) bytes. Thus,
-  everything except the ethernet header is properly aligned. There is one
-  alignment exception, which is the sender protocol address in the ARP Header.
-  To combat that, the sender protocol address field is declared as an array of 4
-  bytes instead of a `uint32_t`. More details can be found
+- MISRA C-2012 Rule 11.3 The data received/sent by the IP stack is represented
+  as a byte stream. This byte stream needs to be casted to various data
+  structures to access certain fields of the packet. However, when casting a
+  byte stream to a structure, MISRA warns us that it can lead to unaligned
+  access. But, in case of FreeRTOS+TCP, the buffer in which the packets are
+  stored are always aligned to a 4 byte word boundary with an offset of 2
+  bytes. The reason for this 2byte offset is that the ethernet header is of
+  14 (12 + 2) bytes. Thus,everything except the ethernet header is properly
+  aligned. There is one alignment exception, which is the sender protocol
+  address in the ARP Header. To combat that, the sender protocol address field
+  is declared as an array of 4 bytes instead of a `uint32_t`. More details can
+  be found
   [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/pull/512#pullrequestreview-1035211706).
 
 #### Rule 11.4
