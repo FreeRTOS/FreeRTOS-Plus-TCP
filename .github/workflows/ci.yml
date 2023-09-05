@@ -78,7 +78,7 @@ jobs:
       - name: Clone This Repo
         uses: actions/checkout@v3
       - name: Run spellings check
-        uses: FreeRTOS/CI-CD-GitHub-Actions/spellings@v2
+        uses: FreeRTOS/CI-CD-Github-Actions/spellings@main
         with:
           path: ./
 
@@ -128,7 +128,7 @@ jobs:
       - name: Check Links
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: FreeRTOS/CI-CD-Github-Actions/link-verifier@v2
+        uses: FreeRTOS/CI-CD-Github-Actions/link-verifier@main
 
   build-checks:
     runs-on: ubuntu-latest
@@ -334,7 +334,7 @@ jobs:
     runs-on: cbmc_ubuntu-latest_16-core
     steps:
       - name: Set up CBMC runner
-        uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@v2
+        uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@main
         with:
           cbmc_version: "5.61.0"
 
@@ -352,6 +352,6 @@ jobs:
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
       - name: Run CBMC
-        uses: FreeRTOS/CI-CD-Github-Actions/run_cbmc@v2
+        uses: FreeRTOS/CI-CD-Github-Actions/run_cbmc@main
         with:
           proofs_dir: test/cbmc/proofs
