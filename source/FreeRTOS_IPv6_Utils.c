@@ -162,9 +162,9 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
     {
         pxSet->uxProtocolHeaderLength = xICMPLength;
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            {
-                pxSet->pcType = "ICMP_IPv6";
-            }
+        {
+            pxSet->pcType = "ICMP_IPv6";
+        }
         #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
     }
 

@@ -36,7 +36,7 @@
     #define FREERTOS_BITCONFIG_H
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /**< @brief The struct BitConfig_t holds a character array, its length and an index. */

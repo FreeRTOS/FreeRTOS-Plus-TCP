@@ -64,13 +64,13 @@ void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket )
     {
         /* Do not allow MSS smaller than tcpMINIMUM_SEGMENT_LENGTH. */
         #if ( ipconfigTCP_MSS >= tcpMINIMUM_SEGMENT_LENGTH )
-            {
-                ulMSS = ipconfigTCP_MSS;
-            }
+        {
+            ulMSS = ipconfigTCP_MSS;
+        }
         #else
-            {
-                ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
-            }
+        {
+            ulMSS = tcpMINIMUM_SEGMENT_LENGTH;
+        }
         #endif
 
         /* Check if the remote IP-address belongs to the same netmask. */

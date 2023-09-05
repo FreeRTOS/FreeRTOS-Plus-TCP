@@ -632,18 +632,18 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 
         TX_STAT_INCREMENT( tx_enqueue_ok );
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                configASSERT( bReleaseAfterSend != pdFALSE );
-            }
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            configASSERT( bReleaseAfterSend != pdFALSE );
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
         #if ( NETWORK_BUFFERS_CACHED != 0 )
-            {
-                uint32_t xlength = CACHE_LINE_SIZE * ( ( ulTransmitSize + NETWORK_BUFFER_HEADER_SIZE + CACHE_LINE_SIZE - 1 ) / CACHE_LINE_SIZE );
-                uint32_t xAddress = ( uint32_t ) ( pxDescriptor->pucEthernetBuffer - NETWORK_BUFFER_HEADER_SIZE );
-                cache_clean_invalidate_by_addr( xAddress, xlength );
-            }
+        {
+            uint32_t xlength = CACHE_LINE_SIZE * ( ( ulTransmitSize + NETWORK_BUFFER_HEADER_SIZE + CACHE_LINE_SIZE - 1 ) / CACHE_LINE_SIZE );
+            uint32_t xAddress = ( uint32_t ) ( pxDescriptor->pucEthernetBuffer - NETWORK_BUFFER_HEADER_SIZE );
+            cache_clean_invalidate_by_addr( xAddress, xlength );
+        }
         #endif
 
         ulResult = gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, ulTransmitSize );
@@ -654,10 +654,10 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                bReleaseAfterSend = pdFALSE;
-            }
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            bReleaseAfterSend = pdFALSE;
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
         /* Not interested in a call-back after TX. */
         iptraceNETWORK_INTERFACE_TRANSMIT();
@@ -709,35 +709,35 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     GMAC->GMAC_NCFGR |= GMAC_NCFGR_MTIHEN;
 
     #if ( ipconfigUSE_LLMNR == 1 )
-        {
-            prvAddMulticastMACAddress( xLLMNR_MacAdress.ucBytes );
-        }
+    {
+        prvAddMulticastMACAddress( xLLMNR_MacAddress.ucBytes );
+    }
     #endif /* ipconfigUSE_LLMNR */
 
     #if ( ipconfigUSE_IPv6 != 0 )
+    {
+        NetworkEndPoint_t * pxEndPoint;
+        #if ( ipconfigUSE_LLMNR == 1 )
         {
-            NetworkEndPoint_t * pxEndPoint;
-            #if ( ipconfigUSE_LLMNR == 1 )
-                {
-                    prvAddMulticastMACAddress( xLLMNR_MacAdressIPv6.ucBytes );
-                }
-            #endif /* ipconfigUSE_LLMNR */
+            prvAddMulticastMACAddress( xLLMNR_MacAddressIPv6.ucBytes );
+        }
+        #endif /* ipconfigUSE_LLMNR */
 
-            for( pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
-                 pxEndPoint != NULL;
-                 pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
+        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
+             pxEndPoint != NULL;
+             pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
+        {
+            if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
             {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                {
-                    uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
-                    ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                    ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                    ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                    prvAddMulticastMACAddress( ucMACAddress );
-                }
+                ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                prvAddMulticastMACAddress( ucMACAddress );
             }
         }
+    }
     #endif /* ipconfigUSE_IPv6 */
 
     {
@@ -753,14 +753,14 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
 
         /* Select Media Independent Interface type */
         #if ( SAME70 != 0 )
-            {
-                /* Selecting RMII mode. */
-                GMAC->GMAC_UR &= ~GMAC_UR_RMII;
-            }
+        {
+            /* Selecting RMII mode. */
+            GMAC->GMAC_UR &= ~GMAC_UR_RMII;
+        }
         #else
-            {
-                gmac_select_mii_mode( GMAC, ETH_PHY_MODE );
-            }
+        {
+            gmac_select_mii_mode( GMAC, ETH_PHY_MODE );
+        }
         #endif
 
         gmac_enable_transmit( GMAC, true );
@@ -831,77 +831,77 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
     if( ( xForce != pdFALSE ) || ( xPhyObject.ulLinkStatusMask != 0 ) )
     {
         #if ( ipconfigETHERNET_AN_ENABLE != 0 )
+        {
+            UBaseType_t uxWasEnabled;
+
+            /* Restart the auto-negotiation. */
+            uxWasEnabled = ( GMAC->GMAC_NCR & GMAC_NCR_MPE ) != 0u;
+
+            if( uxWasEnabled == 0u )
             {
-                UBaseType_t uxWasEnabled;
-
-                /* Restart the auto-negotiation. */
-                uxWasEnabled = ( GMAC->GMAC_NCR & GMAC_NCR_MPE ) != 0u;
-
-                if( uxWasEnabled == 0u )
-                {
-                    /* Enable further GMAC maintenance. */
-                    GMAC->GMAC_NCR |= GMAC_NCR_MPE;
-                }
-
-                xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
-
-                /* Configure the MAC with the Duplex Mode fixed by the
-                 * auto-negotiation process. */
-                if( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL )
-                {
-                    gmac_enable_full_duplex( GMAC, pdTRUE );
-                }
-                else
-                {
-                    gmac_enable_full_duplex( GMAC, pdFALSE );
-                }
-
-                /* Configure the MAC with the speed fixed by the
-                 * auto-negotiation process. */
-                if( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 )
-                {
-                    gmac_set_speed( GMAC, pdFALSE );
-                }
-                else
-                {
-                    gmac_set_speed( GMAC, pdTRUE );
-                }
-
-                if( uxWasEnabled == 0u )
-                {
-                    /* Enable further GMAC maintenance. */
-                    GMAC->GMAC_NCR &= ~GMAC_NCR_MPE;
-                }
+                /* Enable further GMAC maintenance. */
+                GMAC->GMAC_NCR |= GMAC_NCR_MPE;
             }
+
+            xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+
+            /* Configure the MAC with the Duplex Mode fixed by the
+             * auto-negotiation process. */
+            if( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL )
+            {
+                gmac_enable_full_duplex( GMAC, pdTRUE );
+            }
+            else
+            {
+                gmac_enable_full_duplex( GMAC, pdFALSE );
+            }
+
+            /* Configure the MAC with the speed fixed by the
+             * auto-negotiation process. */
+            if( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 )
+            {
+                gmac_set_speed( GMAC, pdFALSE );
+            }
+            else
+            {
+                gmac_set_speed( GMAC, pdTRUE );
+            }
+
+            if( uxWasEnabled == 0u )
+            {
+                /* Enable further GMAC maintenance. */
+                GMAC->GMAC_NCR &= ~GMAC_NCR_MPE;
+            }
+        }
         #else /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
+        {
+            if( xPHYProperties.ucDuplex == PHY_DUPLEX_FULL )
             {
-                if( xPHYProperties.ucDuplex == PHY_DUPLEX_FULL )
-                {
-                    xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_FULL;
-                    gmac_enable_full_duplex( GMAC, pdTRUE );
-                }
-                else
-                {
-                    xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_HALF;
-                    gmac_enable_full_duplex( GMAC, pdFALSE );
-                }
-
-                if( xPHYProperties.ucSpeed == PHY_SPEED_100 )
-                {
-                    xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_100;
-                    gmac_set_speed( GMAC, pdTRUE );
-                }
-                else
-                {
-                    xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_10;
-                    gmac_set_speed( GMAC, pdFALSE );
-                }
-
-                xPhyObject.xPhyPreferences.ucMDI_X = PHY_MDIX_AUTO;
-
-                /* Use predefined (fixed) configuration. */
-                xPhyFixedValue( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+                xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_FULL;
+                gmac_enable_full_duplex( GMAC, pdTRUE );
             }
+            else
+            {
+                xPhyObject.xPhyPreferences.ucDuplex = PHY_DUPLEX_HALF;
+                gmac_enable_full_duplex( GMAC, pdFALSE );
+            }
+
+            if( xPHYProperties.ucSpeed == PHY_SPEED_100 )
+            {
+                xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_100;
+                gmac_set_speed( GMAC, pdTRUE );
+            }
+            else
+            {
+                xPhyObject.xPhyPreferences.ucSpeed = PHY_SPEED_10;
+                gmac_set_speed( GMAC, pdFALSE );
+            }
+
+            xPhyObject.xPhyPreferences.ucMDI_X = PHY_MDIX_AUTO;
+
+            /* Use predefined (fixed) configuration. */
+            xPhyFixedValue( &xPhyObject, xPhyGetMask( &xPhyObject ) );
+        }
         #endif /* if ( ipconfigETHERNET_AN_ENABLE != 0 ) */
     }
 }
@@ -1006,15 +1006,15 @@ static uint32_t prvEMACRxPoll( void )
 
         iptraceNETWORK_INTERFACE_RECEIVE();
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-            {
-                pxNextNetworkBufferDescriptor = pxPacketBuffer_to_NetworkBuffer( pucDMABuffer );
+        {
+            pxNextNetworkBufferDescriptor = pxPacketBuffer_to_NetworkBuffer( pucDMABuffer );
 
-                if( pxNextNetworkBufferDescriptor == NULL )
-                {
-                    /* Strange: can not translate from a DMA buffer to a Network Buffer. */
-                    break;
-                }
+            if( pxNextNetworkBufferDescriptor == NULL )
+            {
+                /* Strange: can not translate from a DMA buffer to a Network Buffer. */
+                break;
             }
+        }
         #endif /* ipconfigZERO_COPY_RX_DRIVER */
 
         pxNextNetworkBufferDescriptor->xDataLength = ( size_t ) ulReceiveCount;
@@ -1069,17 +1069,17 @@ static void vCheckBuffersAndQueue( void )
     static UBaseType_t uxCurrentCount;
 
     #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-        {
-            uxCurrentCount = uxGetMinimumIPQueueSpace();
+    {
+        uxCurrentCount = uxGetMinimumIPQueueSpace();
 
-            if( uxLastMinQueueSpace != uxCurrentCount )
-            {
-                /* The logging produced below may be helpful
-                 * while tuning +TCP: see how many buffers are in use. */
-                uxLastMinQueueSpace = uxCurrentCount;
-                FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-            }
+        if( uxLastMinQueueSpace != uxCurrentCount )
+        {
+            /* The logging produced below may be helpful
+             * while tuning +TCP: see how many buffers are in use. */
+            uxLastMinQueueSpace = uxCurrentCount;
+            FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
         }
+    }
     #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
     uxCurrentCount = uxGetMinimumFreeNetworkBuffers();
 
@@ -1163,23 +1163,23 @@ static void prvEMACHandlerTask( void * pvParameters )
             while( xQueueReceive( xTxBufferQueue, &pucBuffer, 0 ) != pdFALSE )
             {
                 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                    {
-                        pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
+                {
+                    pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
 
-                        if( pxBuffer != NULL )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxBuffer );
-                            TX_STAT_INCREMENT( tx_release_ok );
-                        }
-                        else
-                        {
-                            TX_STAT_INCREMENT( tx_release_bad );
-                        }
-                    }
-                #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                    if( pxBuffer != NULL )
                     {
+                        vReleaseNetworkBufferAndDescriptor( pxBuffer );
                         TX_STAT_INCREMENT( tx_release_ok );
                     }
+                    else
+                    {
+                        TX_STAT_INCREMENT( tx_release_bad );
+                    }
+                }
+                #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                {
+                    TX_STAT_INCREMENT( tx_release_ok );
+                }
                 #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
                 uxCount = uxQueueMessagesWaiting( ( QueueHandle_t ) xTXDescriptorSemaphore );
 

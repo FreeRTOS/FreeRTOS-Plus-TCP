@@ -3128,7 +3128,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
 }
 
-void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBsucceeds( void )
+void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBSucceeds( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
@@ -5312,7 +5312,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength2( void )
 }
 
 
-void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthofpacket( void )
+void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthOfPacket( void )
 {
     struct xSOCKET xTestSocket;
     TickType_t xTimeValue = 1234;
@@ -5560,7 +5560,7 @@ void test_vDHCPProcess_eLeasedAddress_EndPointDown( void )
     TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
-void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( void )
+void test_vDHCPProcess_eLeasedAddress_NetworkUp_SocketCreated_RNGPass_GNBfail( void )
 {
     struct xSOCKET xTestSocket;
     BaseType_t xTimeValue = 300;
@@ -5595,7 +5595,7 @@ void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGPass_GNBfail( v
     TEST_ASSERT_EQUAL( dhcpINITIAL_DHCP_TX_PERIOD, pxEndPoint->xDHCPData.xDHCPTxPeriod );
 }
 
-void test_vDHCPProcess_eLeasedAddress_NetworkUp_SokcetCreated_RNGFail( void )
+void test_vDHCPProcess_eLeasedAddress_NetworkUp_SocketCreated_RNGFail( void )
 {
     struct xSOCKET xTestSocket;
     BaseType_t xTimeValue = 300;

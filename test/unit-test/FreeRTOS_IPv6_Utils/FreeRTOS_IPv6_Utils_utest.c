@@ -491,7 +491,7 @@ void test_usGetExtensionHeaderLength_TCPExtensionSuccess( void )
 
     xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
 
-    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
+    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH, xReturn );
     TEST_ASSERT_EQUAL( ipPROTOCOL_TCP, ucProtocol );
 }
 
@@ -530,7 +530,7 @@ void test_usGetExtensionHeaderLength_UDPExtensionSuccess( void )
 
     xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
 
-    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
+    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH, xReturn );
     TEST_ASSERT_EQUAL( ipPROTOCOL_UDP, ucProtocol );
 }
 
@@ -569,7 +569,7 @@ void test_usGetExtensionHeaderLength_ICMPv6ExtensionSuccess( void )
 
     xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
 
-    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH, xReturn );
+    TEST_ASSERT_EQUAL( TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH, xReturn );
     TEST_ASSERT_EQUAL( ipPROTOCOL_ICMP_IPv6, ucProtocol );
 }
 
@@ -591,7 +591,7 @@ void test_usGetExtensionHeaderLength_ShortBufferLength( void )
     uint8_t ucProtocol = 0;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
 
-    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH - 1 );
+    pxNetworkBuffer->xDataLength = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ( TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH - 1 );
 
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U, 2 );
     xGetExtensionOrder_ExpectAndReturn( ipIPv6_EXT_HEADER_HOP_BY_HOP, ipIPv6_EXT_HEADER_ROUTING_HEADER, 2 );

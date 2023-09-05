@@ -909,12 +909,12 @@ static status_t xEMACInit( phy_speed_t speed,
                              sysClock );
 
         #if ( ipconfigUSE_LLMNR == 1 )
-            ENET_AddMulticastGroup( ethernetifLocal->base, ( uint8_t * ) xLLMNR_MacAdress.ucBytes );
+            ENET_AddMulticastGroup( ethernetifLocal->base, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
         #endif /* ipconfigUSE_LLMNR */
 
         #if ( ipconfigUSE_IPv6 != 0 )
             #if ( ipconfigUSE_LLMNR == 1 )
-                ENET_AddMulticastGroup( ethernetifLocal->base, ( uint8_t * ) xLLMNR_MacAdressIPv6.ucBytes );
+                ENET_AddMulticastGroup( ethernetifLocal->base, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
             #endif /* ipconfigUSE_LLMNR */
 
             for( pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
