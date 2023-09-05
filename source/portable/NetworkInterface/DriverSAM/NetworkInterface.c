@@ -1125,6 +1125,7 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 static void prvEMACHandlerTask( void * pvParameters )
 {
     UBaseType_t uxCount;
+
     uxLowestSemCount = GMAC_TX_BUFFERS + 1;
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
