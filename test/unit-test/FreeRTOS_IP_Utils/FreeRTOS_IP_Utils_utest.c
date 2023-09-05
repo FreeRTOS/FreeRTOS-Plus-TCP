@@ -282,10 +282,10 @@ void test_prvPacketBuffer_to_NetworkBuffer_NULLParam( void )
 }
 
 /**
- * @brief test_prvPacketBuffer_to_NetworkBuffer_Unalligned
+ * @brief test_prvPacketBuffer_to_NetworkBuffer_Unaligned
  * To validate if prvPacketBuffer_to_NetworkBuffer returns NULL when byte not aligned.
  */
-void test_prvPacketBuffer_to_NetworkBuffer_Unalligned( void )
+void test_prvPacketBuffer_to_NetworkBuffer_Unaligned( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetBufferToReturn;
     const void * pvBuffer;
@@ -302,10 +302,10 @@ void test_prvPacketBuffer_to_NetworkBuffer_Unalligned( void )
 }
 
 /**
- * @brief test_prvPacketBuffer_to_NetworkBuffer_Unalligned
+ * @brief test_prvPacketBuffer_to_NetworkBuffer_Unaligned
  * To validate if prvPacketBuffer_to_NetworkBuffer moves offset&padding correctly.
  */
-void test_prvPacketBuffer_to_NetworkBuffer_Alligned( void )
+void test_prvPacketBuffer_to_NetworkBuffer_Aligned( void )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer, xNetBufferToReturn;
     const void * pvBuffer;
@@ -2074,28 +2074,28 @@ void test_usGenerateProtocolChecksum_ICMPv6LessHeaderLength( void )
 }
 
 /**
- * @brief test_usGenerateChecksum_UnallignedAccess
+ * @brief test_usGenerateChecksum_UnalignedAccess
  * To toggle address that is not aligned in usGenerateChecksum.
  */
-void test_usGenerateChecksum_UnallignedAccess( void )
+void test_usGenerateChecksum_UnalignedAccess( void )
 {
     uint16_t usResult;
     uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 10;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xAB, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x01U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x01U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 0x5A5A, usResult );
 }
@@ -2110,181 +2110,181 @@ void test_usGenerateChecksum_OneByteToChecksum( void )
     uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 1;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xAB, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x01U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x01U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 0xAB00, usResult );
 }
 
 /**
- * @brief test_usGenerateChecksum_OneByteAllignedButZeroLength
+ * @brief test_usGenerateChecksum_OneByteAlignedButZeroLength
  * To validate usGenerateChecksum with one byte align but zero length.
  */
-void test_usGenerateChecksum_OneByteAllignedButZeroLength( void )
+void test_usGenerateChecksum_OneByteAlignedButZeroLength( void )
 {
     uint16_t usResult;
     uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 0;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xAB, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x01U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x01U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 0, usResult );
 }
 
 /**
- * @brief test_usGenerateChecksum_TwoByteAlligned
+ * @brief test_usGenerateChecksum_TwoByteAligned
  * To validate usGenerateChecksum with two byte align and 1 length.
  */
-void test_usGenerateChecksum_TwoByteAlligned( void )
+void test_usGenerateChecksum_TwoByteAligned( void )
 {
     uint16_t usResult;
     uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 1;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xAB, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x02U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x02U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 43776, usResult );
 }
 
 /**
- * @brief test_usGenerateChecksum_TwoByteAllignedTwoLength
+ * @brief test_usGenerateChecksum_TwoByteAlignedTwoLength
  * To validate usGenerateChecksum with two byte align and 2 length.
  */
-void test_usGenerateChecksum_TwoByteAllignedTwoLength( void )
+void test_usGenerateChecksum_TwoByteAlignedTwoLength( void )
 {
     uint16_t usResult;
     uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 2;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xAB, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x02U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x02U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 43947, usResult );
 }
 
 /**
- * @brief test_usGenerateChecksum_FourByteAlligned
+ * @brief test_usGenerateChecksum_FourByteAligned
  * To validate usGenerateChecksum with four byte align and 2 length.
  */
-void test_usGenerateChecksum_FourByteAlligned( void )
+void test_usGenerateChecksum_FourByteAligned( void )
 {
     uint16_t usResult;
     uint16_t usSum = 0;
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 2;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xAB, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x04U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x04U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 43947, usResult );
 }
 
 /**
- * @brief test_usGenerateChecksum_FourByteAllignedSumOverflow
+ * @brief test_usGenerateChecksum_FourByteAlignedSumOverflow
  * To validate usGenerateChecksum with four byte align and sum overflow.
  */
-void test_usGenerateChecksum_FourByteAllignedSumOverflow( void )
+void test_usGenerateChecksum_FourByteAlignedSumOverflow( void )
 {
     uint16_t usResult;
     uint16_t usSum = FreeRTOS_htons( 0xFFFF - 0xAB );
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 20;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xAB, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x04U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x04U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 2484, usResult );
 }
 
 /**
- * @brief test_usGenerateChecksum_FourByteAllignedSumOverflow2
+ * @brief test_usGenerateChecksum_FourByteAlignedSumOverflow2
  * To validate usGenerateChecksum with four byte align and sum overflow.
  */
-void test_usGenerateChecksum_FourByteAllignedSumOverflow2( void )
+void test_usGenerateChecksum_FourByteAlignedSumOverflow2( void )
 {
     uint16_t usResult;
     uint16_t usSum = FreeRTOS_htons( 0xFFFF - 0xAB );
     uint8_t pucNextData[ ipconfigTCP_MSS ];
     size_t uxByteCount = 20;
-    size_t uxUnalligned = 0;
+    size_t uxUnaligned = 0;
 
     memset( pucNextData, 0xFF, ipconfigTCP_MSS );
 
-    for( uxUnalligned = 0; uxUnalligned < 4; uxUnalligned++ )
+    for( uxUnaligned = 0; uxUnaligned < 4; uxUnaligned++ )
     {
-        if( ( ( uintptr_t ) &pucNextData[ uxUnalligned ] ) & 0x04U )
+        if( ( ( uintptr_t ) &pucNextData[ uxUnaligned ] ) & 0x04U )
         {
             break;
         }
     }
 
-    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnalligned ], uxByteCount );
+    usResult = usGenerateChecksum( usSum, &pucNextData[ uxUnaligned ], uxByteCount );
 
     TEST_ASSERT_EQUAL( 21759, usResult );
 }

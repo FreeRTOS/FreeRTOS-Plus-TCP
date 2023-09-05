@@ -1,4 +1,4 @@
-This is a FreeeRTOS+TCP driver that works for STM32Fxx parts.
+This is a FreeRTOS+TCP driver that works for STM32Fxx parts.
 
 
 CONFIGURATION AND RUNNING

@@ -32,7 +32,7 @@
     #include "IPTraceMacroDefaults.h"
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /* IPv6 option numbers. */

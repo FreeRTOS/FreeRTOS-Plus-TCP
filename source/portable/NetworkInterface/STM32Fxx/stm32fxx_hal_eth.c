@@ -270,29 +270,29 @@
                 else
                 {
                     #if ( stm_is_F1 != 0 )
+                    {
+                        /* The STM32F1xx has a frequency up to 72 MHz. */
+                        /* CSR Clock Range between 60-72 MHz */
+                        tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
+                    }
+                    #else
+                    {
+                        if( ( hclk >= 60000000uL ) && ( hclk < 100000000uL ) )
                         {
-                            /* The STM32F1xx has a frequency up to 72 MHz. */
-                            /* CSR Clock Range between 60-72 MHz */
+                            /* CSR Clock Range between 60-100 MHz */
                             tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
                         }
-                    #else
+                        else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
                         {
-                            if( ( hclk >= 60000000uL ) && ( hclk < 100000000uL ) )
-                            {
-                                /* CSR Clock Range between 60-100 MHz */
-                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
-                            }
-                            else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
-                            {
-                                /* CSR Clock Range between 100-150 MHz */
-                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
-                            }
-                            else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
-                            {
-                                /* CSR Clock Range between 150-183 MHz */
-                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
-                            }
+                            /* CSR Clock Range between 100-150 MHz */
+                            tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
                         }
+                        else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
+                        {
+                            /* CSR Clock Range between 150-183 MHz */
+                            tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
+                        }
+                    }
                     #endif /* if ( stm_is_F1 != 0 ) */
                 }
             #else /* if !defined( STM32F2xx ) */
@@ -1343,7 +1343,7 @@
             /* Set the RPBL and 4*PBL bits according to ETH RxDMABurstLength value */
             /* Set the PBL and 4*PBL bits according to ETH TxDMABurstLength value */
             /* Set the Enhanced DMA descriptors bit according to ETH EnhancedDescriptorFormat value*/
-            /* Set the DSL bit according to ETH DesciptorSkipLength value */
+            /* Set the DSL bit according to ETH DescriptorSkipLength value */
             /* Set the PR and DA bits according to ETH DMAArbitration value */
             heth->Instance->DMABMR = ( uint32_t ) ( dmainit.AddressAlignedBeats |
                                                     dmainit.FixedBurst |

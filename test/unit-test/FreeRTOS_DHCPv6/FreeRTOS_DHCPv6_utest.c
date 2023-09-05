@@ -3470,7 +3470,7 @@ void test_vDHCPv6Process_prvSendDHCPMessage_BitConfigInitFail()
 /**
  * @brief Check if prvSendDHCPMessage stop sending when the state is unexpected.
  */
-void test_prvSendDHCPMessage_UnexpectState()
+void test_prvSendDHCPMessage_UnexpectedState()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;

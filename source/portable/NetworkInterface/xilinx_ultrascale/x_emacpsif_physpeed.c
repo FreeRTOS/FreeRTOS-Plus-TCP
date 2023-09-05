@@ -236,7 +236,7 @@ static uint16_t prvAR803x_debug_reg_write( XEmacPs * xemacpsp,
 static void prvSET_AR803x_TX_Timing( XEmacPs * xemacpsp,
                                      uint32_t phy_addr );
 
-uint32_t ulDetecPHY( XEmacPs * xemacpsp )
+uint32_t ulDetectPHY( XEmacPs * xemacpsp )
 {
     u16 PhyReg1;
     u16 PhyReg2;
@@ -933,7 +933,7 @@ static const char * pcGetPHIName( uint16_t usID )
             break;
 
         default:
-            snprintf( pcName, sizeof pcName, "Unkkwn PHY %04X", usID );
+            snprintf( pcName, sizeof pcName, "Unknown PHY %04X", usID );
             pcReturn = pcName;
             break;
     }
@@ -954,7 +954,7 @@ static uint32_t get_IEEE_phy_speed_US( XEmacPs * xemacpsp,
 
     FreeRTOS_printf( ( "Start %s PHY autonegotiation. ID = 0x%04X\n", pcPHYName, phy_identity ) );
 
-    /* Just to prevent compiler warnings about unused variablies. */
+    /* Just to prevent compiler warnings about unused variables. */
     ( void ) pcPHYName;
 
     switch( phy_identity )

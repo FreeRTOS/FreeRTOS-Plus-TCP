@@ -50,7 +50,7 @@
 /* Some IPv6 ICMP requests. */
 #define ipICMP_DEST_UNREACHABLE_IPv6             ( ( uint8_t ) 1U )
 #define ipICMP_PACKET_TOO_BIG_IPv6               ( ( uint8_t ) 2U )
-#define ipICMP_TIME_EXEEDED_IPv6                 ( ( uint8_t ) 3U )
+#define ipICMP_TIME_EXCEEDED_IPv6                ( ( uint8_t ) 3U )
 #define ipICMP_PARAMETER_PROBLEM_IPv6            ( ( uint8_t ) 4U )
 #define ipICMP_PING_REQUEST_IPv6                 ( ( uint8_t ) 128U )
 #define ipICMP_PING_REPLY_IPv6                   ( ( uint8_t ) 129U )

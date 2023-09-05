@@ -751,7 +751,7 @@ void test_FreeRTOS_recv_SocketClosing( void )
 }
 
 /**
- * @brief Socket is in eClise_Wait in receive procedure.
+ * @brief Socket is in eClose_Wait in receive procedure.
  */
 void test_FreeRTOS_recv_SocketCloseWait( void )
 {

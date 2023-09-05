@@ -498,7 +498,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not activate promisuous mode\n" ) );
+            FreeRTOS_printf( ( "could not activate promiscuous mode\n" ) );
             break;
         }
 
@@ -507,7 +507,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set snaplen\n" ) );
+            FreeRTOS_printf( ( "could not set snaplen\n" ) );
             break;
         }
 
@@ -515,7 +515,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set timeout\n" ) );
+            FreeRTOS_printf( ( "could not set timeout\n" ) );
             break;
         }
 
@@ -524,7 +524,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set buffer size\n" ) );
+            FreeRTOS_printf( ( "could not set buffer size\n" ) );
             break;
         }
 
@@ -858,7 +858,7 @@ static void * prvLinuxPcapSendThread( void * pvParam )
         {
             uxStreamBufferGet( xSendBuffer, 0, ( uint8_t * ) &xLength, sizeof( xLength ), pdFALSE );
             uxStreamBufferGet( xSendBuffer, 0, ( uint8_t * ) ucBuffer, xLength, pdFALSE );
-            FreeRTOS_debug_printf( ( "Sending  ========== > data pcap_sendpadcket %lu\n", xLength ) );
+            FreeRTOS_debug_printf( ( "Sending  ========== > data pcap_sendpacket %lu\n", xLength ) );
             print_hex( ucBuffer, xLength );
 
             if( pcap_sendpacket( pxOpenedInterfaceHandle, ucBuffer, ( int ) xLength ) != 0 )
@@ -979,9 +979,9 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         pxNetworkBuffer->xDataLength = ( size_t ) pxHeader->len;
 
                         #if ( niDISRUPT_PACKETS == 1 )
-                            {
-                                pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
-                            }
+                        {
+                            pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
+                        }
                         #endif /* niDISRUPT_PACKETS */
 
                         if( pxNetworkBuffer != NULL )

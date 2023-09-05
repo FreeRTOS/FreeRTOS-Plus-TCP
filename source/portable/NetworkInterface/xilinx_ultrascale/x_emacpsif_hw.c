@@ -212,7 +212,7 @@ static void emacps_handle_error( void * arg,
 
                 if( ( ErrorWord & XEMACPS_TXSR_RXOVR_MASK ) != 0 )
                 {
-                    last_err_msg = "Transmit retry excessed limits";
+                    last_err_msg = "Transmit retry exceeded limits";
                     HandleTxErrors( xemacpsif );
                 }
 
