@@ -241,10 +241,6 @@ struct xIPv6_Couple
     {
         NetworkEndPoint_t * pxIterator = NULL;
 
-        /* This end point will go to the end of the list, so there is no pxNext
-         * yet. */
-        pxEndPoint->pxNext = NULL;
-
         /* Double link between the NetworkInterface_t that is using the addressing
          * defined by this NetworkEndPoint_t structure. */
         pxEndPoint->pxNetworkInterface = pxInterface;
@@ -278,6 +274,7 @@ struct xIPv6_Couple
 
                 if( pxIterator->pxNext == NULL )
                 {
+                    pxEndPoint->pxNext = NULL;
                     pxIterator->pxNext = pxEndPoint;
                     break;
                 }
