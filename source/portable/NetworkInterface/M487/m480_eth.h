@@ -136,15 +136,15 @@
 
         #define ETH_TS_ENABLE()    do { EMAC->TSCTL = EMAC_TSCTL_TSEN_Msk; } while( 0 )
         #define ETH_TS_START()     do { EMAC->TSCTL |= ( EMAC_TSCTL_TSMODE_Msk | EMAC_TSCTL_TSIEN_Msk ); } while( 0 )
-        s32_t ETH_settime( u32_t sec,
-                           u32_t nsec );
-        s32_t ETH_gettime( u32_t * sec,
-                           u32_t * nsec );
-        s32_t ETH_updatetime( u32_t neg,
-                              u32_t sec,
-                              u32_t nsec );
-        s32_t ETH_adjtimex( int ppm );
-        void ETH_setinc( void );
+    s32_t ETH_settime( u32_t sec,
+                       u32_t nsec );
+    s32_t ETH_gettime( u32_t * sec,
+                       u32_t * nsec );
+    s32_t ETH_updatetime( u32_t neg,
+                          u32_t sec,
+                          u32_t nsec );
+    s32_t ETH_adjtimex( int ppm );
+    void ETH_setinc( void );
 
     #endif /* ifdef TIME_STAMPING */
 
@@ -154,18 +154,18 @@
         #define NU_DEBUGF( x )
     #endif
 
-    void numaker_set_mac_addr( uint8_t * addr );
-    int numaker_eth_init( uint8_t * mac_addr );
-    uint8_t * numaker_eth_get_tx_buf( void );
-    void numaker_eth_trigger_tx( uint16_t length,
-                                 void * p );
-    int numaker_eth_get_rx_buf( uint16_t * len,
-                                uint8_t ** buf );
-    void numaker_eth_rx_next( void );
-    void numaker_eth_trigger_rx( void );
-    int numaker_eth_link_ok( void );
-    void numaker_mac_address( uint8_t * mac );
-    void numaker_eth_enable_interrupts( void );
-    void numaker_eth_disable_interrupts( void );
+void numaker_set_mac_addr( uint8_t * addr );
+int numaker_eth_init( uint8_t * mac_addr );
+uint8_t * numaker_eth_get_tx_buf( void );
+void numaker_eth_trigger_tx( uint16_t length,
+                             void * p );
+int numaker_eth_get_rx_buf( uint16_t * len,
+                            uint8_t ** buf );
+void numaker_eth_rx_next( void );
+void numaker_eth_trigger_rx( void );
+int numaker_eth_link_ok( void );
+void numaker_mac_address( uint8_t * mac );
+void numaker_eth_enable_interrupts( void );
+void numaker_eth_disable_interrupts( void );
 
 #endif /* _M480_ETH_ */

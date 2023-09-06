@@ -35,7 +35,7 @@
     #include "xemacps.h" /* defines XEmacPs API */
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
     #define XPAR_PS7_ETHERNET_1_DEVICE_ID    1

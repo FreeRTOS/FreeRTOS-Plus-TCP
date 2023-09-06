@@ -346,7 +346,7 @@ static BaseType_t xMPS2_NetworkInterfaceOutput( NetworkInterface_t * pxInterface
             else
             {
                 xReturn = pdFAIL;
-                FreeRTOS_debug_printf( ( "Error send by chuncks: %d\n",
+                FreeRTOS_debug_printf( ( "Error send by chunks: %d\n",
                                          error ) );
             }
         }

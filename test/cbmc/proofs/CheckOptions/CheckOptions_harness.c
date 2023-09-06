@@ -75,7 +75,7 @@ int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOpti
 
 size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer shouldnt be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer should not be NULL" );
     return uxIPHeaderSizePacket_uxResult;
 }
 

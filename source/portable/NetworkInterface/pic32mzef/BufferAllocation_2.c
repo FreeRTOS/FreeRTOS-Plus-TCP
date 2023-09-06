@@ -273,19 +273,19 @@ BaseType_t xNetworkBuffersInitialise( void )
         if( xNetworkBufferSemaphore != NULL )
         {
             #if ( configQUEUE_REGISTRY_SIZE > 0 )
-                {
-                    vQueueAddToRegistry( xNetworkBufferSemaphore, "NetBufSem" );
-                }
+            {
+                vQueueAddToRegistry( xNetworkBufferSemaphore, "NetBufSem" );
+            }
             #endif /* configQUEUE_REGISTRY_SIZE */
 
             /* If the trace recorder code is included name the semaphore for viewing
              * in FreeRTOS+Trace.  */
             #if ( ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 )
-                {
-                    extern QueueHandle_t xNetworkEventQueue;
-                    vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
-                    vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
-                }
+            {
+                extern QueueHandle_t xNetworkEventQueue;
+                vTraceSetQueueName( xNetworkEventQueue, "IPStackEvent" );
+                vTraceSetQueueName( xNetworkBufferSemaphore, "NetworkBufferCount" );
+            }
             #endif /*  ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS == 1 */
 
             vListInitialise( &xFreeBuffersList );
@@ -503,10 +503,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                 pxReturn->xDataLength = xRequestedSizeBytes;
 
                 #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                    {
-                        /* make sure the buffer is not linked */
-                        pxReturn->pxNextBuffer = NULL;
-                    }
+                {
+                    /* make sure the buffer is not linked */
+                    pxReturn->pxNextBuffer = NULL;
+                }
                 #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
             }
         }

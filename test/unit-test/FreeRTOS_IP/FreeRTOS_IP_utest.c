@@ -1620,7 +1620,7 @@ void test_eConsiderFrameForProcessing_LLMNR_MACMatch( void )
 
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
-    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAdress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     pxEthernetHeader->usFrameType = 0xFFFF;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );

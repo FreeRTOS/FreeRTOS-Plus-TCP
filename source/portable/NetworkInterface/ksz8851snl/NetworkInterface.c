@@ -425,10 +425,10 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 1 )
-            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-                {
-                    #warning Please ipconfigZERO_COPY_TX_DRIVER as 1
-                }
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+            {
+                #warning Please ipconfigZERO_COPY_TX_DRIVER as 1
+            }
             #endif
         #endif
         configASSERT( bReleaseAfterSend != pdFALSE );
@@ -1251,17 +1251,17 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
 
         #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-            {
-                uxCurrentCount = uxGetMinimumIPQueueSpace();
+        {
+            uxCurrentCount = uxGetMinimumIPQueueSpace();
 
-                if( uxLastMinQueueSpace != uxCurrentCount )
-                {
-                    /* The logging produced below may be helpful
-                     * while tuning +TCP: see how many buffers are in use. */
-                    uxLastMinQueueSpace = uxCurrentCount;
-                    FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-                }
+            if( uxLastMinQueueSpace != uxCurrentCount )
+            {
+                /* The logging produced below may be helpful
+                 * while tuning +TCP: see how many buffers are in use. */
+                uxLastMinQueueSpace = uxCurrentCount;
+                FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
             }
+        }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
         /* Run the state-machine of the ksz8851 driver. */
