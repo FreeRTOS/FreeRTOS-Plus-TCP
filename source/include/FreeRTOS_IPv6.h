@@ -88,6 +88,23 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                UBaseType_t uxHeaderLength );
 
+#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+
+/*
+ * Return pdTRUE if either source or destination is a loopback address.
+ * A loopback IP-address may only communicate internally with another
+ * loopback IP-address.
+ */
+    BaseType_t xBadIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
+
+#if( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+    /*
+     * Check if the address is a loopback IP-address.
+     */
+    BaseType_t xIsIPv6Loopback( const IPv6_Address_t* pxAddress );
+#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
+
 /** @brief Handle the IPv6 extension headers. */
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       BaseType_t xDoRemove );

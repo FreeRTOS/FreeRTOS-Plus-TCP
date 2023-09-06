@@ -155,14 +155,6 @@ struct xIPv6_Couple
 
         if( pxInterface != NULL )
         {
-            /* This interface will be added to the end of the list of interfaces, so
-             * there is no pxNext yet. */
-            pxInterface->pxNext = NULL;
-
-            /* The end point for this interface has not yet been set. */
-            /*_RB_ As per other comments, why not set the end point at the same time? */
-            pxInterface->pxEndPoint = NULL;
-
             if( pxNetworkInterfaces == NULL )
             {
                 /* No other interfaces are set yet, so this is the first in the list. */
@@ -189,6 +181,7 @@ struct xIPv6_Couple
                     if( pxIterator->pxNext == NULL )
                     {
                         pxIterator->pxNext = pxInterface;
+                        pxInterface->pxNext = NULL;
                         break;
                     }
 
@@ -1452,6 +1445,7 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
         { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
         { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
         { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+        { eIPv6_Loopback,  0xFFFFU, 0x0000U }, /* 0000 0000 ::1 */
     };
 
     if( pxAddress != NULL )
@@ -1461,6 +1455,15 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
             uint16_t usAddress =
                 ( uint16_t ) ( ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
                                ( ( uint16_t ) pxAddress->ucBytes[ 1 ] ) );
+
+            if( xIPCouples[ xIndex ].eType == eIPv6_Loopback )
+            {
+                if( xIsIPv6Loopback( &pxAddress ) != pdFALSE )
+                {
+                    eResult = eIPv6_Loopback;
+                    break;
+                }
+            }
 
             if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
             {

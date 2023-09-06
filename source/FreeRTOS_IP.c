@@ -1716,8 +1716,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
         eReturn = eReleaseBuffer;
     }
     else if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-             ( ipFIRST_LOOPBACK_IPv4 <= ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) ) &&
-             ( ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) < ipLAST_LOOPBACK_IPv4 ) )
+             ( xBadIPv4Loopback( &( pxUDPPacket->xIPHeader ) ) != pdFALSE ) )
     {
         /* The local loopback addresses must never appear outside a host. See RFC 1122
          * section 3.2.1.3. */

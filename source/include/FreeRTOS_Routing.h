@@ -332,6 +332,7 @@
         eIPv6_LinkLocal, /* 1111 1110 10  */
         eIPv6_SiteLocal, /* 1111 1110 11  */
         eIPv6_Multicast, /* 1111 1111     */
+        eIPv6_Loopback,  /* 1111 (::1)    */
         eIPv6_Unknown,   /* Not implemented. */
     }
     IPv6_Type_t;
