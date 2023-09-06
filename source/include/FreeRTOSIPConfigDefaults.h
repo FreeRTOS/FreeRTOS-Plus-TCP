@@ -57,6 +57,12 @@
 /*---------------------------------------------------------------------------*/
 
 /*
+ * MACROS details :
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html
+ */
+/*---------------------------------------------------------------------------*/
+
+/*
  * Used to define away static keyword for CBMC proofs
  */
 
@@ -132,7 +138,8 @@
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
- * Enables the APIs that are backward compatible with single end point IPv4.
+ * Enables the APIs that are backward compatible with single end point IPv4
+ * version V3.x.x or older.
  */
 
 #ifndef ipconfigIPv4_BACKWARD_COMPATIBLE
@@ -248,6 +255,12 @@
  *
  * Sets the amount of times a router solicitation message can
  * be retransmitted after timing out.
+ *
+ * A Router Solicitation will be sent. It will wait for ipconfigRA_SEARCH_TIME_OUT_MSEC ms.
+ * When there is no response, it will be repeated ipconfigRA_SEARCH_COUNT times.
+ * Then it will be checked if the chosen IP-address already exists, repeating this
+ * ipconfigRA_IP_TEST_COUNT times, each time with a timeout of ipconfigRA_IP_TEST_TIME_OUT_MSEC ms.
+ * Finally the end-point will go in the UP state.
  */
 
 #ifndef ipconfigRA_SEARCH_COUNT
@@ -851,6 +864,12 @@
  * When enabled it is possible to reduce CPU load during periods of heavy
  * network traffic by linking multiple received packets together, then passing
  * all the linked packets to the IP RTOS task in one go.
+ *
+ * By default packets will be sent one-by-one. If 'ipconfigUSE_LINKED_RX_MESSAGES'
+ * is non-zero, each message buffer gets a 'pxNextBuffer' field, to that linked
+ * packets can be passed to the IP-task in a single call to 'xSendEventStructToIPTask()'.
+ * Note that this only works if the Network Interface also supports this
+ * option.
  */
 
 #ifndef ipconfigUSE_LINKED_RX_MESSAGES
@@ -963,7 +982,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * ipconfigSUPPORT_NETWORK_DOWN_EVENT
+ * ipconfigPHY_LS_LOW_CHECK_TIME_MS
  *
  * Type: uint32_t
  * Unit: milliseconds
@@ -1131,7 +1150,9 @@
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
  * Enables usage of an application defined hook to process any unknown frame,
- * that is, any frame that expects ARP or IP.
+ * that is, any frame that expects ARP or IP. If set to 1, the user must define
+ * eApplicationProcessCustomFrameHook function which will be called by the stack
+ * for any frame with an unsupported EtherType.
  *
  * Function prototype:
  *
@@ -1155,7 +1176,8 @@
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
- * Enables usage of a hook to process network events.
+ * Enables usage of a hook to process network events. The function will be called when
+ * the network goes up and when it goes down.
  *
  * This hook is affected by ipconfigIPv4_BACKWARD_COMPATIBLE.
  *
@@ -1225,7 +1247,8 @@
  * Advanced users only.
  *
  * Prevents sending RESET responses to TCP packets that have a bad or unknown
- * destination.
+ * destination. This is an option used for testing.  It is recommended to
+ * define it as '0'.
  */
 
 #ifndef ipconfigIGNORE_UNKNOWN_PACKETS
@@ -1246,7 +1269,15 @@
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
  * Enables automatic closure of a TCP socket after a timeout of no status
- * changes.
+ * changes. It can help reduce the impact of SYN floods.
+ * When a SYN packet comes in, it will first be checked if there is a listening
+ * socket for that port number. If not, it will be replied to with a RESET packet.
+ * If there is a listing socket for that port number, a new socket will be created.
+ * This socket will be owned temporarily by the IP-task.  Only when the SYN/ACK
+ * handshake is finished, the new socket will be passed to the application,
+ * resulting in a successful call to FreeRTOS_accept().
+ * The option 'ipconfigTCP_HANG_PROTECTION' will make sure that the socket will be
+ * deleted in case the SYN-handshake doesn't come to a good end.
  *
  * See ipconfigTCP_HANG_PROTECTION_TIME
  */
@@ -1278,7 +1309,9 @@
  * If ipconfigTCP_HANG_PROTECTION is set to 1 then
  * ipconfigTCP_HANG_PROTECTION_TIME sets the interval in seconds
  * between the status of a socket last changing and the anti-hang
- * mechanism marking the socket as closed.
+ * mechanism marking the socket as closed. It is the maximum time that a socket
+ * stays in one of these "in-between" states: eCONNECT_SYN, eSYN_FIRST,
+ * eSYN_RECEIVED, eFIN_WAIT_1, eFIN_WAIT_2, eCLOSING, eLAST_ACK, or eTIME_WAIT.
  */
 
 #ifndef ipconfigTCP_HANG_PROTECTION_TIME
@@ -1397,6 +1430,7 @@
  * 'ipconfigTCP_MSS'.
  *
  * The default is derived from MTU - ( ipconfigNETWORK_MTU + ipSIZE_OF_TCP_HEADER )
+ * Where ipconfigNETWORK_MTU + ipSIZE_OF_TCP_HEADER is 40 bytes.
  */
 
 #ifndef ipconfigTCP_MSS
@@ -1422,8 +1456,8 @@
  * Unit: size of StreamBuffer_t in bytes
  * Minimum: 0
  *
- * Each TCP socket has a buffer for reception and a separate buffer for
- * transmission.
+ * Each TCP socket has a circular stream buffer for reception and a separate
+ * buffer for transmission.
  *
  * FreeRTOS_setsockopt() can be used with the FREERTOS_SO_RCVBUF and
  * FREERTOS_SO_SNDBUF parameters to set the receive and send buffer sizes
@@ -1462,6 +1496,7 @@
  * Unit: size of StreamBuffer_t in bytes
  * Minimum: 0
  *
+ * Define the size of Tx stream buffer for TCP sockets.
  * See ipconfigTCP_RX_BUFFER_LENGTH
  */
 
@@ -1666,6 +1701,7 @@
  * ipconfigUDP_MAX_RX_PACKETS is set to 5 and there are already 5 packets
  * queued on the UDP socket then subsequent packets received on that socket
  * will be dropped until the queue length is less than 5 again.
+ * Can be overridden with the socket option 'FREERTOS_SO_UDP_MAX_RX_PACKETS'.
  */
 
 #ifndef ipconfigUDP_MAX_RX_PACKETS
@@ -1917,6 +1953,9 @@
  * When writing to a socket, the write may not be able to proceed immediately.
  * For example, depending on the configuration, a write might have to wait for
  * a network buffer to become available.
+ * It determines the number of clock ticks that FreeRTOS_send() must wait
+ * for space in the transmission buffer. For FreeRTOS_sendto(), it limits
+ * how long the application should wait for a network buffer to become available.
  *
  * See ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME
  */
@@ -1938,7 +1977,12 @@
  * to wake up the user.
  *
  * Set by calling FreeRTOS_setsockopt() with the FREERTOS_SO_SET_SEMAPHORE
- * option and a pointer to a semaphore.
+ * option and a pointer to a semaphore. Once set, the semaphore will be signalled
+ * after every important socket event: READ, WRITE, EXCEPTION.
+ * Note that a READ event is also generated for a TCP socket in listen mode,
+ * and a WRITE event is generated when a call to connect() has succeeded.
+ * Beside that, READ and WRITE are the normal events that occur when
+ * data has been received or delivered.
  *
  * Can be used with non-blocking sockets as an alternative to
  * FreeRTOS_select in order to handle multiple sockets at once.
@@ -2308,8 +2352,8 @@
  * server and accepted, or the interval between transmissions reaches
  * ipconfigMAXIMUM_DISCOVER_TX_PERIOD. If no reply is received, the TCP/IP
  * stack will revert to using the default IP address of the endpoint
- * 'endpoint->ipv4_defaults.ulIPAddress' or
- * 'endpoint->ipv6_defaults.xIPAddress'.
+ * 'endpoint->ipv4_defaults.ulIPAddress' for IPv4 address or
+ * 'endpoint->ipv6_defaults.xIPAddress' for IPv6 address.
  */
 
 #ifndef ipconfigMAXIMUM_DISCOVER_TX_PERIOD
@@ -2519,6 +2563,10 @@
  * Minimum: 0
  * Maximum: portMAX_DELAY
  *
+ * When looking up a host with DNS, this macro determines how long the
+ * call to FreeRTOS_sendto() will wait for a reply. When there is no
+ * reply, the request will be repeated up to 'ipconfigDNS_REQUEST_ATTEMPTS'
+ * attempts.
  * See ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME
  *
  * Applies to DNS socket only.
@@ -2538,6 +2586,8 @@
  * Minimum: 0
  * Maximum: portMAX_DELAY
  *
+ * When looking up a host with DNS, this macro determines how long the
+ * call to FreeRTOS_sendto() will block to wait for a free buffer.
  * See ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME
  *
  * Applies to DNS socket only.
@@ -2711,8 +2761,10 @@
  *
  * Advanced users only.
  *
- * Enables the storage of remote addresses in the ARP table along with the
- * associated MAC address from which the message was received.
+ * Normally, the ARP table will only store IP-addresses that are located
+ * in the local subnet. This macro enables the storage of remote addresses
+ * in the ARP table along with the associated MAC address from which the
+ * message was received.
  *
  * Provided for the case when a message that requires a reply arrives from the
  * Internet, but from a computer attached to a LAN rather than via the defined
@@ -2795,6 +2847,8 @@
  * Defines the maximum time between an entry in the ARP table being created or
  * refreshed and the entry being removed because it is stale. New ARP requests
  * are sent for ARP cache entries that are nearing their maximum age.
+ * The maximum age of an entry in the ARP cache table can be
+ * calculated as 'ipARP_TIMER_PERIOD_MS' x 'ipconfigMAX_ARP_AGE'.
  *
  * Units are derived from ipARP_TIMER_PERIOD_MS, which is 10000 ms or 10 sec.
  * So, a value of 150 is equal to 1500 seconds.
@@ -2823,8 +2877,10 @@
  * Unit: count of retransmissions
  * Minimum: 0
  *
- * Sets the maximum amount of retransmissions of ARP requests that do not
- * result in an ARP response before the ARP request is aborted.
+ * Sets the number of times an ARP request is sent when looking up an
+ * IP-address. Also referred as the maximum amount of retransmissions
+ * of ARP requests that do not result in an ARP response before the ARP
+ * request is aborted.
  */
 
 #ifndef ipconfigMAX_ARP_RETRANSMISSIONS
@@ -3003,7 +3059,8 @@
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
- * Retains compatibility with older versions that only supported one interface.
+ * Retains compatibility with V3.x.x and older versions that only
+ * supported one interface.
  */
 
 #ifndef ipconfigCOMPATIBLE_WITH_SINGLE
@@ -3112,6 +3169,9 @@
  * Requires a reentrant application defined macro function
  * FreeRTOS_debug_printf with a return value that is ignored.
  *
+ * The FreeRTOS_debug_printf() must be thread-safe but does not
+ * have to be interrupt-safe.
+ *
  * Example:
  *
  * void vLoggingPrintf( const char *pcFormatString, ... )
@@ -3152,6 +3212,8 @@
  *
  * Requires a reentrant application defined macro function FreeRTOS_printf with
  * a return value that is ignored.
+ *
+ * The FreeRTOS_printf() must be thread-safe but does not have to be interrupt-safe.
  *
  * See ipconfigHAS_DEBUG_PRINTF
  */
@@ -3370,6 +3432,10 @@
  * ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * The macro 'ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS' was
+ * introduced to enable a tracing system. Currently it is only used in
+ * BufferAllocation_2.c.
  */
 
 #ifndef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
