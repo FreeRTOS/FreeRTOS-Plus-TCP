@@ -63,9 +63,9 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
-#define baALIGNMENT_BYTES               ( sizeof( size_t ) )
-#define baALIGNMENT_MASK                ( sizeof( size_t ) - 1U )
-#define baADD_WILL_OVERFLOW( a, b )     ( ( a ) > ( SIZE_MAX - ( b ) ) )
+#define baALIGNMENT_BYTES            ( sizeof( size_t ) )
+#define baALIGNMENT_MASK             ( sizeof( size_t ) - 1U )
+#define baADD_WILL_OVERFLOW( a, b )    ( ( a ) > ( SIZE_MAX - ( b ) ) )
 
 /* Compile time assertion with zero runtime effects
  * it will assert on 'e' not being zero, as it tries to divide by it,
@@ -481,8 +481,8 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
             }
 
             ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
-                            pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
-                            uxSizeBytes );
+                             pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
+                             uxSizeBytes );
             vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
             pxNetworkBufferCopy->pucEthernetBuffer = pucBuffer;
         }
