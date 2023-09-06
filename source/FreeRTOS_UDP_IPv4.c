@@ -416,7 +416,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                                   &( xSourceAddress ),
                                   &( destinationAddress ) ) != 0 )
                     {
-                        xReturn = pdFAIL;     /* xHandler has consumed the data, do not add it to .xWaitingPacketsList'. */
+                        xReturn = pdFAIL; /* xHandler has consumed the data, do not add it to .xWaitingPacketsList'. */
                     }
                 }
             }
@@ -431,7 +431,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
                         FreeRTOS_debug_printf( ( "xProcessReceivedUDPPacket: buffer full %ld >= %ld port %u\n",
                                                  listCURRENT_LIST_LENGTH( &( pxSocket->u.xUDP.xWaitingPacketsList ) ),
                                                  pxSocket->u.xUDP.uxMaxPackets, pxSocket->usLocalPort ) );
-                        xReturn = pdFAIL;     /* we did not consume or release the buffer */
+                        xReturn = pdFAIL; /* we did not consume or release the buffer */
                     }
                 }
             }

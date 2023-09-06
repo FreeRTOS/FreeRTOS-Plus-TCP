@@ -849,7 +849,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                 /* If ARP stores the MAC address of IP addresses outside the
                  * network, than the MAC address of the gateway should not be
                  * overwritten. */
-                BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0;     /* ARP remote address. */
+                BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
                 if( xAddressIsLocal == xOtherIsLocal )
                 {

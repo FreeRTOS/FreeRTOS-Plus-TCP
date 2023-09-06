@@ -811,7 +811,7 @@
                                 pxDNSAnswerRecord->ulTTL,
                                 pdFALSE,
                                 NULL );
-                            pxSet->usNumARecordsStored++;     /* Track # of A records stored */
+                            pxSet->usNumARecordsStored++; /* Track # of A records stored */
                         }
 
                         if( pxSet->usType == ( uint16_t ) dnsTYPE_AAAA_HOST )

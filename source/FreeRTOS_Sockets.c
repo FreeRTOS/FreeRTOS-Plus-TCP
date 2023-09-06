@@ -2510,8 +2510,8 @@ void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 
             #if ( ipconfigUSE_TCP_WIN == 1 )
             {
-                pxTCP->uxRxWinSize = ( uint32_t ) pxProps->lRxWinSize;     /* Fixed value: size of the TCP reception window */
-                pxTCP->uxTxWinSize = ( uint32_t ) pxProps->lTxWinSize;     /* Fixed value: size of the TCP transmit window */
+                pxTCP->uxRxWinSize = ( uint32_t ) pxProps->lRxWinSize; /* Fixed value: size of the TCP reception window */
+                pxTCP->uxTxWinSize = ( uint32_t ) pxProps->lTxWinSize; /* Fixed value: size of the TCP transmit window */
             }
             #else
             {

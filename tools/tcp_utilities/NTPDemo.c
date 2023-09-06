@@ -562,12 +562,12 @@ static void prvNTPTask( void * pvParameters )
                         {
                             #if ( ipconfigDNS_USE_CALLBACKS != 0 )
                             {
-                                FreeRTOS_getaddrinfo_a( pcServerName,        /* The name of the node or device */
-                                                        NULL,                /* Ignored for now. */
-                                                        &( xHints ),         /* If not NULL: preferences. */
-                                                        &( pxResults ),      /* An allocated struct, containing the results. */
+                                FreeRTOS_getaddrinfo_a( pcServerName,    /* The name of the node or device */
+                                                        NULL,            /* Ignored for now. */
+                                                        &( xHints ),     /* If not NULL: preferences. */
+                                                        &( pxResults ),  /* An allocated struct, containing the results. */
                                                         vDNS_callback,
-                                                        ( void * ) NULL,     /* An object or a reference. */
+                                                        ( void * ) NULL, /* An object or a reference. */
                                                         pdMS_TO_TICKS( 2500U ) );
                             }
                             #else

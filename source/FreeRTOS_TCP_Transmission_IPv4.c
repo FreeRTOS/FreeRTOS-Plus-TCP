@@ -482,7 +482,7 @@ BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetwor
         /* coverity[misra_c_2012_rule_11_3_violation] */
         TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
         const uint32_t ulSendLength =
-            ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER;     /* Plus 0 options. */
+            ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
 
         uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
         pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;

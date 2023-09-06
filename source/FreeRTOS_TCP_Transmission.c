@@ -597,8 +597,8 @@
         {
             pxTCPHeader->ucOptdata[ uxOptionsLength ] = tcpTCP_OPT_NOOP;
             pxTCPHeader->ucOptdata[ uxOptionsLength + 1U ] = tcpTCP_OPT_NOOP;
-            pxTCPHeader->ucOptdata[ uxOptionsLength + 2U ] = tcpTCP_OPT_SACK_P;     /* 4: Sack-Permitted Option. */
-            pxTCPHeader->ucOptdata[ uxOptionsLength + 3U ] = 2U;                    /* 2: length of this option. */
+            pxTCPHeader->ucOptdata[ uxOptionsLength + 2U ] = tcpTCP_OPT_SACK_P; /* 4: Sack-Permitted Option. */
+            pxTCPHeader->ucOptdata[ uxOptionsLength + 3U ] = 2U;                /* 2: length of this option. */
             uxOptionsLength += 4U;
         }
         #endif /* ipconfigUSE_TCP_WIN == 0 */
@@ -944,11 +944,11 @@
 
             #if ( ipconfigTCP_KEEP_ALIVE != 0 )
             {
-                if( pxSocket->u.xTCP.ucKeepRepCount > 3U )     /*_RB_ Magic number. */
+                if( pxSocket->u.xTCP.ucKeepRepCount > 3U ) /*_RB_ Magic number. */
                 {
                     FreeRTOS_debug_printf( ( "keep-alive: giving up %xip:%u\n",
-                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4,     /* IP address of remote machine. */
-                                             pxSocket->u.xTCP.usRemotePort ) );                     /* Port on remote machine. */
+                                             ( unsigned ) pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4, /* IP address of remote machine. */
+                                             pxSocket->u.xTCP.usRemotePort ) );                 /* Port on remote machine. */
                     vTCPStateChange( pxSocket, eCLOSE_WAIT );
                     lDataLen = -1;
                 }
@@ -1192,12 +1192,12 @@
             /* In case we're receiving data continuously, we might postpone sending
              * an ACK to gain performance. */
             /* lint e9007 is OK because 'uxIPHeaderSizeSocket()' has no side-effects. */
-            if( ( ulReceiveLength > 0U ) &&                                   /* Data was sent to this socket. */
-                ( lRxSpace >= lMinLength ) &&                                 /* There is Rx space for more data. */
-                ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) &&     /* Not in a closure phase. */
-                ( xSendLength == xSizeWithoutData ) &&                        /* No Tx data or options to be sent. */
-                ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&             /* Connection established. */
-                ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )              /* There are no other flags than an ACK. */
+            if( ( ulReceiveLength > 0U ) &&                               /* Data was sent to this socket. */
+                ( lRxSpace >= lMinLength ) &&                             /* There is Rx space for more data. */
+                ( pxSocket->u.xTCP.bits.bFinSent == pdFALSE_UNSIGNED ) && /* Not in a closure phase. */
+                ( xSendLength == xSizeWithoutData ) &&                    /* No Tx data or options to be sent. */
+                ( pxSocket->u.xTCP.eTCPState == eESTABLISHED ) &&         /* Connection established. */
+                ( pxTCPHeader->ucTCPFlags == tcpTCP_FLAG_ACK ) )          /* There are no other flags than an ACK. */
             {
                 uint32_t ulCurMSS = ( uint32_t ) pxSocket->u.xTCP.usMSS;
 
@@ -1212,7 +1212,7 @@
                     pxSocket->u.xTCP.pxAckMessage = *ppxNetworkBuffer;
                 }
 
-                if( ulReceiveLength < ulCurMSS )     /* Received a small message. */
+                if( ulReceiveLength < ulCurMSS ) /* Received a small message. */
                 {
                     pxSocket->u.xTCP.usTimeout = ( uint16_t ) tcpDELAYED_ACK_SHORT_DELAY_MS;
                 }
@@ -1223,9 +1223,9 @@
                      * for full-size message. */
                     pxSocket->u.xTCP.usTimeout = ( uint16_t ) pdMS_TO_TICKS( tcpDELAYED_ACK_LONGER_DELAY_MS );
 
-                    if( pxSocket->u.xTCP.usTimeout < 1U )     /* LCOV_EXCL_BR_LINE, the second branch will never be hit */
+                    if( pxSocket->u.xTCP.usTimeout < 1U ) /* LCOV_EXCL_BR_LINE, the second branch will never be hit */
                     {
-                        pxSocket->u.xTCP.usTimeout = 1U;      /* LCOV_EXCL_LINE, this line will not be reached */
+                        pxSocket->u.xTCP.usTimeout = 1U;  /* LCOV_EXCL_LINE, this line will not be reached */
                     }
                 }
 

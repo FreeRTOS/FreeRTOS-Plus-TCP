@@ -287,7 +287,7 @@
                             /* CSR Clock Range between 100-150 MHz */
                             tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
                         }
-                        else     /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
+                        else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
                         {
                             /* CSR Clock Range between 150-183 MHz */
                             tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
