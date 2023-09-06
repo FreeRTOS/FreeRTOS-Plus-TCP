@@ -63,6 +63,10 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
+#define baALIGNMENT_BYTES            ( sizeof( size_t ) )
+#define baALIGNMENT_MASK             ( baALIGNMENT_BYTES - 1U )
+#define baADD_WILL_OVERFLOW( a, b )    ( ( a ) > ( SIZE_MAX - ( b ) ) )
+
 /* Compile time assertion with zero runtime effects
  * it will assert on 'e' not being zero, as it tries to divide by it,
  * will also print the line where the error occurred in case of failure */
@@ -175,8 +179,11 @@ BaseType_t xNetworkBuffersInitialise( void )
 
 uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
 {
-    uint8_t * pucEthernetBuffer;
+    uint8_t * pucEthernetBuffer = NULL;
+    size_t uxMaxAllowedBytes = ( SIZE_MAX >> 1 );
     size_t xSize = *pxRequestedSizeBytes;
+    size_t xBytesRequiredForAlignment, xAllocatedBytes;
+    BaseType_t xIntegerOverflowed = pdFALSE;
 
     if( xSize < baMINIMAL_BUFFER_SIZE )
     {
@@ -187,25 +194,46 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
 
     /* Round up xSize to the nearest multiple of N bytes,
      * where N equals 'sizeof( size_t )'. */
-    if( ( xSize & ( sizeof( size_t ) - 1U ) ) != 0U )
+    if( ( xSize & baALIGNMENT_MASK ) != 0U )
     {
-        xSize = ( xSize | ( sizeof( size_t ) - 1U ) ) + 1U;
+        xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xSize & baALIGNMENT_MASK );
+
+        if( baADD_WILL_OVERFLOW( xSize, xBytesRequiredForAlignment ) == 0 )
+        {
+            xSize += xBytesRequiredForAlignment;
+        }
+        else
+        {
+            xIntegerOverflowed = pdTRUE;
+        }
     }
 
-    *pxRequestedSizeBytes = xSize;
-
-    /* Allocate a buffer large enough to store the requested Ethernet frame size
-     * and a pointer to a network buffer structure (hence the addition of
-     * ipBUFFER_PADDING bytes). */
-    pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xSize + ipBUFFER_PADDING );
-    configASSERT( pucEthernetBuffer != NULL );
-
-    if( pucEthernetBuffer != NULL )
+    if( baADD_WILL_OVERFLOW( xSize, ipBUFFER_PADDING ) == 0 )
     {
-        /* Enough space is left at the start of the buffer to place a pointer to
-         * the network buffer structure that references this Ethernet buffer.
-         * Return a pointer to the start of the Ethernet buffer itself. */
-        pucEthernetBuffer += ipBUFFER_PADDING;
+        xAllocatedBytes = xSize + ipBUFFER_PADDING;
+    }
+    else
+    {
+        xIntegerOverflowed = pdTRUE;
+    }
+
+    if( ( xIntegerOverflowed == pdFALSE ) && ( xAllocatedBytes <= uxMaxAllowedBytes ) )
+    {
+        *pxRequestedSizeBytes = xSize;
+
+        /* Allocate a buffer large enough to store the requested Ethernet frame size
+         * and a pointer to a network buffer structure (hence the addition of
+         * ipBUFFER_PADDING bytes). */
+        pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xAllocatedBytes );
+        configASSERT( pucEthernetBuffer != NULL );
+
+        if( pucEthernetBuffer != NULL )
+        {
+            /* Enough space is left at the start of the buffer to place a pointer to
+             * the network buffer structure that references this Ethernet buffer.
+             * Return a pointer to the start of the Ethernet buffer itself. */
+            pucEthernetBuffer += ipBUFFER_PADDING;
+        }
     }
 
     return pucEthernetBuffer;
@@ -234,8 +262,51 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     size_t uxCount;
     size_t uxMaxAllowedBytes = ( SIZE_MAX >> 1 );
     size_t xRequestedSizeBytesCopy = xRequestedSizeBytes;
+    size_t xBytesRequiredForAlignment, xAllocatedBytes;
+    BaseType_t xIntegerOverflowed = pdFALSE;
 
-    if( ( xRequestedSizeBytesCopy <= uxMaxAllowedBytes ) && ( xNetworkBufferSemaphore != NULL ) )
+    if( ( xRequestedSizeBytesCopy < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
+    {
+        /* ARP packets can replace application packets, so the storage must be
+         * at least large enough to hold an ARP. */
+        xRequestedSizeBytesCopy = baMINIMAL_BUFFER_SIZE;
+    }
+
+    /* Add 2 bytes to xRequestedSizeBytesCopy and round up xRequestedSizeBytesCopy
+     * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2 ) == 0 )
+    {
+        xRequestedSizeBytesCopy += 2U;
+    }
+    else
+    {
+        xIntegerOverflowed = pdTRUE;
+    }
+
+    if( ( xRequestedSizeBytesCopy & baALIGNMENT_MASK ) != 0U )
+    {
+        xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xRequestedSizeBytesCopy & baALIGNMENT_MASK );
+
+        if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, xBytesRequiredForAlignment ) == 0 )
+        {
+            xRequestedSizeBytesCopy += xBytesRequiredForAlignment;
+        }
+        else
+        {
+            xIntegerOverflowed = pdTRUE;
+        }
+    }
+
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, ipBUFFER_PADDING ) == 0 )
+    {
+        xAllocatedBytes = xRequestedSizeBytesCopy + ipBUFFER_PADDING;
+    }
+    else
+    {
+        xIntegerOverflowed = pdTRUE;
+    }
+
+    if( ( xIntegerOverflowed == pdFALSE ) && ( xAllocatedBytes <= uxMaxAllowedBytes ) && ( xNetworkBufferSemaphore != NULL ) )
     {
         /* If there is a semaphore available, there is a network buffer available. */
         if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
@@ -261,25 +332,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
             if( xRequestedSizeBytesCopy > 0U )
             {
-                if( ( xRequestedSizeBytesCopy < ( size_t ) baMINIMAL_BUFFER_SIZE ) )
-                {
-                    /* ARP packets can replace application packets, so the storage must be
-                     * at least large enough to hold an ARP. */
-                    xRequestedSizeBytesCopy = baMINIMAL_BUFFER_SIZE;
-                }
-
-                /* Add 2 bytes to xRequestedSizeBytesCopy and round up xRequestedSizeBytesCopy
-                 * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
-                xRequestedSizeBytesCopy += 2U;
-
-                if( ( xRequestedSizeBytesCopy & ( sizeof( size_t ) - 1U ) ) != 0U )
-                {
-                    xRequestedSizeBytesCopy = ( xRequestedSizeBytesCopy | ( sizeof( size_t ) - 1U ) ) + 1U;
-                }
-
                 /* Extra space is obtained so a pointer to the network buffer can
                  * be stored at the beginning of the buffer. */
-                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xRequestedSizeBytesCopy + ipBUFFER_PADDING );
+                pxReturn->pucEthernetBuffer = ( uint8_t * ) pvPortMalloc( xAllocatedBytes );
 
                 if( pxReturn->pucEthernetBuffer == NULL )
                 {
@@ -403,32 +458,38 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
     size_t uxSizeBytes = xNewSizeBytes;
     NetworkBufferDescriptor_t * pxNetworkBufferCopy = pxNetworkBuffer;
 
-
-
     xOriginalLength = pxNetworkBufferCopy->xDataLength + ipBUFFER_PADDING;
-    uxSizeBytes = uxSizeBytes + ipBUFFER_PADDING;
 
-    pucBuffer = pucGetNetworkBuffer( &( uxSizeBytes ) );
-
-    if( pucBuffer == NULL )
+    if( baADD_WILL_OVERFLOW( uxSizeBytes, ipBUFFER_PADDING ) == 0 )
     {
-        /* In case the allocation fails, return NULL. */
-        pxNetworkBufferCopy = NULL;
+        uxSizeBytes = uxSizeBytes + ipBUFFER_PADDING;
+
+        pucBuffer = pucGetNetworkBuffer( &( uxSizeBytes ) );
+
+        if( pucBuffer == NULL )
+        {
+            /* In case the allocation fails, return NULL. */
+            pxNetworkBufferCopy = NULL;
+        }
+        else
+        {
+            pxNetworkBufferCopy->xDataLength = uxSizeBytes;
+
+            if( uxSizeBytes > xOriginalLength )
+            {
+                uxSizeBytes = xOriginalLength;
+            }
+
+            ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
+                             pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
+                             uxSizeBytes );
+            vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
+            pxNetworkBufferCopy->pucEthernetBuffer = pucBuffer;
+        }
     }
     else
     {
-        pxNetworkBufferCopy->xDataLength = uxSizeBytes;
-
-        if( uxSizeBytes > xOriginalLength )
-        {
-            uxSizeBytes = xOriginalLength;
-        }
-
-        ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
-                         pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
-                         uxSizeBytes );
-        vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
-        pxNetworkBufferCopy->pucEthernetBuffer = pucBuffer;
+        pxNetworkBufferCopy = NULL;
     }
 
     return pxNetworkBufferCopy;
