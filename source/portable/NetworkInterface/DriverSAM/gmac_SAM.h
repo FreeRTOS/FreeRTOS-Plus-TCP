@@ -53,7 +53,7 @@
 /*/ @cond 0 */
 /**INDENT-OFF**/
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 /**INDENT-ON**/
 /*/ @endcond */

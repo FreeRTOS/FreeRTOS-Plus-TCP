@@ -206,16 +206,16 @@
 
             /* Checksums. */
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-                {
-                    /* calculate the ICMPv6 checksum for outgoing package */
-                    ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
-                }
+            {
+                /* calculate the ICMPv6 checksum for outgoing package */
+                ( void ) usGenerateProtocolChecksum( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, pdTRUE );
+            }
             #else
-                {
-                    /* Many EMAC peripherals will only calculate the ICMP checksum
-                     * correctly if the field is nulled beforehand. */
-                    xRASolicitationRequest->usChecksum = 0U;
-                }
+            {
+                /* Many EMAC peripherals will only calculate the ICMP checksum
+                 * correctly if the field is nulled beforehand. */
+                xRASolicitationRequest->usChecksum = 0U;
+            }
             #endif
 
             /* This function will fill in the eth addresses and send the packet */
@@ -658,15 +658,15 @@
         uxReloadTime = xRAProcess_HandleOtherStates( pxEndPoint, uxReloadTime );
 
         #if ( ipconfigHAS_PRINTF == 1 )
-            {
-                FreeRTOS_printf( ( "vRAProcess( %ld, %pip) bRouterReplied=%d bIPAddressInUse=%d state %d -> %d\n",
-                                   xDoReset,
-                                   ( void * ) pxEndPoint->ipv6_defaults.xIPAddress.ucBytes,
-                                   pxEndPoint->xRAData.bits.bRouterReplied,
-                                   pxEndPoint->xRAData.bits.bIPAddressInUse,
-                                   eRAState,
-                                   pxEndPoint->xRAData.eRAState ) );
-            }
+        {
+            FreeRTOS_printf( ( "vRAProcess( %ld, %pip) bRouterReplied=%d bIPAddressInUse=%d state %d -> %d\n",
+                               xDoReset,
+                               ( void * ) pxEndPoint->ipv6_defaults.xIPAddress.ucBytes,
+                               pxEndPoint->xRAData.bits.bRouterReplied,
+                               pxEndPoint->xRAData.bits.bIPAddressInUse,
+                               eRAState,
+                               pxEndPoint->xRAData.eRAState ) );
+        }
         #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 
         if( uxReloadTime != 0U )

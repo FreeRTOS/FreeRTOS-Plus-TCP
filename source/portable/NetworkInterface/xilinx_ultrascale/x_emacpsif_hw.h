@@ -23,7 +23,7 @@
 /*#include "lwip/netif.h" */
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
     XEmacPs_Config * lookup_config( unsigned mac_base );

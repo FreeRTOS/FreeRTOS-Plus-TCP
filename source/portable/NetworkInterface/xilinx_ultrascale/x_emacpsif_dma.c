@@ -374,18 +374,18 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
          * This is a deferred handler taskr, not a real interrupt, so it is ok to
          * use the task level function here. */
         #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+        {
+            do
             {
-                do
-                {
-                    NetworkBufferDescriptor_t * pxNext = pxDescriptor->pxNextBuffer;
-                    vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-                    pxDescriptor = pxNext;
-                } while( pxDescriptor != NULL );
-            }
-        #else
-            {
+                NetworkBufferDescriptor_t * pxNext = pxDescriptor->pxNextBuffer;
                 vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-            }
+                pxDescriptor = pxNext;
+            } while( pxDescriptor != NULL );
+        }
+        #else
+        {
+            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+        }
         #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
         iptraceETHERNET_RX_EVENT_LOST();
         FreeRTOS_printf( ( "prvPassEthMessages: Can not queue return packet!\n" ) );
@@ -441,13 +441,13 @@ int emacps_check_rx( xemacpsif_s * xemacpsif )
              * XEMACPS_RXBUF_LEN_MASK can be used.
              */
             #if ( USE_JUMBO_FRAMES == 1 )
-                {
-                    rx_bytes = xemacpsif->rxSegments[ head ].flags & XEMACPS_RXBUF_LEN_JUMBO_MASK;
-                }
+            {
+                rx_bytes = xemacpsif->rxSegments[ head ].flags & XEMACPS_RXBUF_LEN_JUMBO_MASK;
+            }
             #else
-                {
-                    rx_bytes = xemacpsif->rxSegments[ head ].flags & XEMACPS_RXBUF_LEN_MASK;
-                }
+            {
+                rx_bytes = xemacpsif->rxSegments[ head ].flags & XEMACPS_RXBUF_LEN_MASK;
+            }
             #endif /* ( USE_JUMBO_FRAMES == 1 ) */
 
             pxBuffer->xDataLength = rx_bytes;
@@ -461,26 +461,26 @@ int emacps_check_rx( xemacpsif_s * xemacpsif )
              * different handler. */
             iptraceNETWORK_INTERFACE_RECEIVE();
             #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            {
+                pxBuffer->pxNextBuffer = NULL;
+
+                if( pxFirstDescriptor == NULL )
                 {
-                    pxBuffer->pxNextBuffer = NULL;
-
-                    if( pxFirstDescriptor == NULL )
-                    {
-                        /* Becomes the first message */
-                        pxFirstDescriptor = pxBuffer;
-                    }
-                    else if( pxLastDescriptor != NULL )
-                    {
-                        /* Add to the tail */
-                        pxLastDescriptor->pxNextBuffer = pxBuffer;
-                    }
-
-                    pxLastDescriptor = pxBuffer;
+                    /* Becomes the first message */
+                    pxFirstDescriptor = pxBuffer;
                 }
+                else if( pxLastDescriptor != NULL )
+                {
+                    /* Add to the tail */
+                    pxLastDescriptor->pxNextBuffer = pxBuffer;
+                }
+
+                pxLastDescriptor = pxBuffer;
+            }
             #else /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
-                {
-                    prvPassEthMessages( pxBuffer );
-                }
+            {
+                prvPassEthMessages( pxBuffer );
+            }
             #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
             msgCount++;
@@ -517,12 +517,12 @@ int emacps_check_rx( xemacpsif_s * xemacpsif )
     }
 
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+    {
+        if( pxFirstDescriptor != NULL )
         {
-            if( pxFirstDescriptor != NULL )
-            {
-                prvPassEthMessages( pxFirstDescriptor );
-            }
+            prvPassEthMessages( pxFirstDescriptor );
         }
+    }
     #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
     return msgCount;
@@ -665,10 +665,10 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
             value |= XEMACPS_DMACR_TCPCKSUM_MASK;
         #else
-            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-                {
-                    #warning Are you sure the EMAC should not calculate outgoing checksums?
-                }
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+            {
+                #warning Are you sure the EMAC should not calculate outgoing checksums?
+            }
             #endif
 
             value &= ~XEMACPS_DMACR_TCPCKSUM_MASK;
@@ -686,10 +686,10 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 )
             value |= XEMACPS_NWCFG_RXCHKSUMEN_MASK;
         #else
-            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-                {
-                    #warning Are you sure the EMAC should not calculate incoming checksums?
-                }
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+            {
+                #warning Are you sure the EMAC should not calculate incoming checksums?
+            }
             #endif
 
             value &= ~( ( uint32_t ) XEMACPS_NWCFG_RXCHKSUMEN_MASK );
