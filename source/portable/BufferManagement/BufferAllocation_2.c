@@ -64,7 +64,7 @@
 #endif /* ipconfigUSE_TCP == 1 */
 
 #define baALIGNMENT_BYTES            ( sizeof( size_t ) )
-#define baALIGNMENT_MASK             ( sizeof( size_t ) - 1U )
+#define baALIGNMENT_MASK             ( baALIGNMENT_BYTES - 1U )
 #define baADD_WILL_OVERFLOW( a, b )    ( ( a ) > ( SIZE_MAX - ( b ) ) )
 
 /* Compile time assertion with zero runtime effects
