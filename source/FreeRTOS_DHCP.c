@@ -56,9 +56,6 @@
 
     #include "FreeRTOS_Routing.h"
 
-/* The following define is temporary and serves to make the /single source
- * code more similar to the /multi version. */
-
     #define EP_DHCPData         pxEndPoint->xDHCPData                 /**< Temporary define to make /single source similar to /multi version. */
     #define EP_IPv4_SETTINGS    pxEndPoint->ipv4_settings             /**< Temporary define to make /single source similar to /multi version. */
 
