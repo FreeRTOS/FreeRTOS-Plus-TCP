@@ -1455,7 +1455,7 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
 
             if( xIPCouples[ xIndex ].eType == eIPv6_Loopback )
             {
-                if( xIsIPv6Loopback( &pxAddress ) != pdFALSE )
+                if( xIsIPv6Loopback( pxAddress ) != pdFALSE )
                 {
                     eResult = eIPv6_Loopback;
                     break;
