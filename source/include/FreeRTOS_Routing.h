@@ -337,12 +337,15 @@
     }
     IPv6_Type_t;
 
+    #if ( ipconfigUSE_IPv6 != 0 )
+
 /**
  * @brief Check the type of an IPv16 address.
  *
  * @return A value from enum IPv6_Type_t.
  */
-    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+        IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+    #endif
 
     #ifdef __cplusplus
 }         /* extern "C" */

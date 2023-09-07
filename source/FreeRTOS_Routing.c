@@ -1431,6 +1431,7 @@ struct xIPv6_Couple
  * @param[in] pxAddress The IPv6 address whose type needs to be returned.
  * @returns The IP type of the given address.
  */
+#if ( ipconfigUSE_IPv6 != 0 )
 IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
 {
     IPv6_Type_t eResult = eIPv6_Unknown;
@@ -1472,6 +1473,7 @@ IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
 
     return eResult;
 }
+#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
