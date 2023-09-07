@@ -493,7 +493,7 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 
     EP_DHCPData.eDHCPState = eLeasedAddress;
 
-    iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
+    iptraceDHCP_SUCCEEDED( EP_DHCPData.ulOfferedIPAddress );
 
     /* Close socket to ensure packets don't queue on it. */
     prvCloseDHCPv6Socket( pxEndPoint );
@@ -773,15 +773,15 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
     else
     {
         #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-            {
-                static eDHCPState_t lastState = eNotUsingLeasedAddress;
+        {
+            static eDHCPState_t lastState = eNotUsingLeasedAddress;
 
-                if( lastState != EP_DHCPData.eDHCPState )
-                {
-                    lastState = EP_DHCPData.eDHCPState;
-                    FreeRTOS_debug_printf( ( "vDHCPv6ProcessEndPoint: enter %s (%d)\n", prvStateName( EP_DHCPData.eDHCPState ), EP_DHCPData.eDHCPState ) );
-                }
+            if( lastState != EP_DHCPData.eDHCPState )
+            {
+                lastState = EP_DHCPData.eDHCPState;
+                FreeRTOS_debug_printf( ( "vDHCPv6ProcessEndPoint: enter %s (%d)\n", prvStateName( EP_DHCPData.eDHCPState ), EP_DHCPData.eDHCPState ) );
             }
+        }
         #endif /* ( ipconfigHAS_DEBUG_PRINTF == 1 ) */
 
         xGivingUp = xDHCPv6ProcessEndPoint_HandleState( pxEndPoint, pxDHCPMessage );
@@ -910,7 +910,7 @@ static void prvCreateDHCPv6Socket( NetworkEndPoint_t * pxEndPoint )
 static void prvInitialiseDHCPv6( NetworkEndPoint_t * pxEndPoint )
 {
     /* Initialise the parameters that will be set by the DHCP process. Per
-     * https://www.ietf.org/rfc/rfc2131.txt, Transaction ID should be a random
+     * https://www.ietf.org/rfc/rfc2131.txt Transaction ID should be a random
      * value chosen by the client. */
 
     /* Check for random number generator API failure. */

@@ -679,7 +679,7 @@ void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
  * @brief This function validates sending packet back to
  *        peer socket is set to NULL and release is set to true.
  */
-void test_prvTCPReturnPacket_Null_Socket_Relase_True( void )
+void test_prvTCPReturnPacket_Null_Socket_Release_True( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;

@@ -242,16 +242,16 @@ static TickType_t xLastGratuitousARPTime = 0U;
 
                 /* Process received ARP frame to see if there is a clash. */
                 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
-                    {
-                        NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 );
+                {
+                    NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 );
 
-                        if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
-                        {
-                            xARPHadIPClash = pdTRUE;
-                            /* Remember the MAC-address of the other device which has the same IP-address. */
-                            ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
-                        }
+                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
+                    {
+                        xARPHadIPClash = pdTRUE;
+                        /* Remember the MAC-address of the other device which has the same IP-address. */
+                        ( void ) memcpy( xARPClashMacAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, sizeof( xARPClashMacAddress.ucBytes ) );
                     }
+                }
                 #endif /* ipconfigARP_USE_CLASH_DETECTION */
             }
             else
@@ -310,8 +310,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
 
                                 /* Make sure target MAC address is either ff:ff:ff:ff:ff:ff or 00:00:00:00:00:00 and senders MAC
                                  * address is not matching with the endpoint MAC address. */
-                                if( ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
-                                      ( ( memcmp( &( pxARPHeader->xTargetHardwareAddress ), xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
+                                if( ( ( memcmp( ( const void * ) pxARPHeader->xTargetHardwareAddress.ucBytes, xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
+                                      ( ( memcmp( ( const void * ) pxARPHeader->xTargetHardwareAddress.ucBytes, xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
                                     ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                                 {
                                     MACAddress_t xHardwareAddress;
@@ -845,21 +845,21 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
              * is different.  Continue looping to find a possible match with
              * ulIPAddress. */
             #if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 )
-                {
-                    /* If ARP stores the MAC address of IP addresses outside the
-                     * network, than the MAC address of the gateway should not be
-                     * overwritten. */
-                    BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
+            {
+                /* If ARP stores the MAC address of IP addresses outside the
+                 * network, than the MAC address of the gateway should not be
+                 * overwritten. */
+                BaseType_t xOtherIsLocal = ( FreeRTOS_FindEndPointOnNetMask( xARPCache[ x ].ulIPAddress, 3 ) != NULL ) ? 1 : 0; /* ARP remote address. */
 
-                    if( xAddressIsLocal == xOtherIsLocal )
-                    {
-                        pxLocation->xMacEntry = x;
-                    }
-                }
-            #else /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
+                if( xAddressIsLocal == xOtherIsLocal )
                 {
                     pxLocation->xMacEntry = x;
                 }
+            }
+            #else /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
+            {
+                pxLocation->xMacEntry = x;
+            }
             #endif /* if ( ipconfigARP_STORES_REMOTE_ADDRESSES != 0 ) */
         }
 
@@ -1026,7 +1026,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
         eARPLookupResult_t eReturn = eARPCacheMiss;
         uint32_t ulAddressToLookup = *( pulIPAddress );
         NetworkEndPoint_t * pxEndPoint;
-        uint32_t ulOrginal = *pulIPAddress;
+        uint32_t ulOriginal = *pulIPAddress;
 
         /* It is assumed that devices with the same netmask are on the same
          * LAN and don't need a gateway. */
@@ -1084,10 +1084,10 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
             {
                 eReturn = prvCacheLookup( ulAddressToLookup, pxMACAddress, ppxEndPoint );
 
-                if( ( eReturn != eARPCacheHit ) || ( ulOrginal != ulAddressToLookup ) )
+                if( ( eReturn != eARPCacheHit ) || ( ulOriginal != ulAddressToLookup ) )
                 {
                     FreeRTOS_debug_printf( ( "ARP %xip %s using %xip\n",
-                                             ( unsigned ) FreeRTOS_ntohl( ulOrginal ),
+                                             ( unsigned ) FreeRTOS_ntohl( ulOriginal ),
                                              ( eReturn == eARPCacheHit ) ? "hit" : "miss",
                                              ( unsigned ) FreeRTOS_ntohl( ulAddressToLookup ) ) );
                 }
@@ -1291,19 +1291,19 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
                 vARPGenerateRequestPacket( pxNetworkBuffer );
 
                 #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
+                {
+                    if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
                     {
-                        if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+                        BaseType_t xIndex;
+
+                        for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
                         {
-                            BaseType_t xIndex;
-
-                            for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
-                            {
-                                pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
-                            }
-
-                            pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+                            pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
                         }
+
+                        pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
                     }
+                }
                 #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
                 if( xIsCallingFromIPTask() != pdFALSE )

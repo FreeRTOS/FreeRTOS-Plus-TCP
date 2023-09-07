@@ -43,10 +43,10 @@
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 /* The basic length for one IPv6 extension headers. */
-#define TEST_IPv6_EXTESION_HEADER_LENGTH             ( 8U )
+#define TEST_IPv6_EXTENSION_HEADER_LENGTH             ( 8U )
 
 /* The default length ofIPv6 extension headers in unit test. */
-#define TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH    ( 7U * TEST_IPv6_EXTESION_HEADER_LENGTH )
+#define TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH    ( 7U * TEST_IPv6_EXTENSION_HEADER_LENGTH )
 
 /* First IPv6 address is 2001:1234:5678::5 */
 const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
@@ -84,7 +84,7 @@ static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptorWithExtensionHe
 {
     static NetworkBufferDescriptor_t xNetworkBuffer;
     /* Ethernet header + IPv6 header + Maximum protocol header + IPv6 Extension Headers + 1 payload */
-    static uint8_t pcNetworkBuffer[ sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + sizeof( ICMPHeader_IPv6_t ) + 1U ];
+    static uint8_t pcNetworkBuffer[ sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH + sizeof( ICMPHeader_IPv6_t ) + 1U ];
     EthernetHeader_t * pxEthHeader = ( EthernetHeader_t * ) pcNetworkBuffer;
     IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pcNetworkBuffer[ sizeof( EthernetHeader_t ) ] );
     uint8_t * pxIPv6ExtHeader = ( uint8_t * ) &( pcNetworkBuffer[ sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) ] );
@@ -112,7 +112,7 @@ static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptorWithExtensionHe
     memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
     xNetworkBuffer.pxEndPoint = prvInitializeEndpoint();
     xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pcNetworkBuffer;
-    xNetworkBuffer.xDataLength = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + ucProtocolHeaderSize + 1U;
+    xNetworkBuffer.xDataLength = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH + ucProtocolHeaderSize + 1U;
 
     /* Initialize network buffer. */
     memset( pcNetworkBuffer, 0, sizeof( pcNetworkBuffer ) );
@@ -123,7 +123,7 @@ static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptorWithExtensionHe
     /* IP part. */
     memcpy( pxIPv6Header->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, sizeof( IPv6_Address_t ) );
     memcpy( pxIPv6Header->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, sizeof( IPv6_Address_t ) );
-    pxIPv6Header->usPayloadLength = FreeRTOS_htons( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + ucProtocolHeaderSize + 1U ); /* Extension header length + protocol header + payload */
+    pxIPv6Header->usPayloadLength = FreeRTOS_htons( TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH + ucProtocolHeaderSize + 1U ); /* Extension header length + protocol header + payload */
     pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
     /* Append extension headers */
     pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
