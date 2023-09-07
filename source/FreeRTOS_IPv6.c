@@ -265,7 +265,7 @@ static void xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address,
 /**
  * @brief Check if the IP-address is an IPv6 loopback address.
  *
- * @param[in] ulIPAddress The IP-address being checked.
+ * @param[in] pxAddress The IP-address being checked.
  *
  * @return pdTRUE if the IP-address is a loopback address or else, pdFALSE.
  */

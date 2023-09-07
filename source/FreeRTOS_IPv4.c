@@ -243,7 +243,7 @@ BaseType_t xBadIPv4Loopback( const IPHeader_t * const pxIPHeader )
 /**
  * @brief Is the IP address an IPv4 loopback address.
  *
- * @param[in] ulIPAddress The IP address being checked.
+ * @param[in] ulAddress The IP address being checked.
  *
  * @return pdTRUE if the IP address is a loopback address or else, pdFALSE.
  */
