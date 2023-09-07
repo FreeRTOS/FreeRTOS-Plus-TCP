@@ -98,11 +98,12 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
     BaseType_t xBadIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
 #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
 
-#if( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-    /*
-     * Check if the address is a loopback IP-address.
-     */
-    BaseType_t xIsIPv6Loopback( const IPv6_Address_t* pxAddress );
+#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+
+/*
+ * Check if the address is a loopback IP-address.
+ */
+    BaseType_t xIsIPv6Loopback( const IPv6_Address_t * pxAddress );
 #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
 
 /** @brief Handle the IPv6 extension headers. */
