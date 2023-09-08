@@ -155,7 +155,7 @@ void vLoggingPrintf( char const * pcFormat,
 
 /* The address of an echo server that will be used by the two demo echo client
  * tasks:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Echo_Clients.html,
+ * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Echo_Clients.html
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/UDP_Echo_Clients.html. */
 #define configECHO_SERVER_ADDR0              192
 #define configECHO_SERVER_ADDR1              168

@@ -29,7 +29,7 @@
     #define NETWORK_INTERFACE_H
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /* NOTE PUBLIC API FUNCTIONS. */

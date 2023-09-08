@@ -174,10 +174,10 @@ void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_large_ext_header_length()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_unknown_procotol
+ * @brief test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_unknown_protocol
  * The protocol in IP header is unknown. Check if prvAllowIPPacketIPv6 determines to release it.
  */
-void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_unknown_procotol()
+void test_prvAllowIPPacketIPv6_xCheckIPv6SizeFields_unknown_protocol()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();

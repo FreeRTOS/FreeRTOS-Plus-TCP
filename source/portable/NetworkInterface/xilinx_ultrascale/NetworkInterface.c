@@ -163,7 +163,7 @@ XEmacPs_Config mac_config =
 static uint32_t ulPHYLinkStatus = 0uL;
 
 #if ( ipconfigUSE_LLMNR == 1 )
-    static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
@@ -228,14 +228,14 @@ BaseType_t xNetworkInterfaceInitialise( void )
             XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
 
             #if ( ipconfigUSE_LLMNR == 1 )
-                {
-                    /* Also add LLMNR multicast MAC address. */
-                    XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
-                }
+            {
+                /* Also add LLMNR multicast MAC address. */
+                XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
+            }
             #endif /* ipconfigUSE_LLMNR == 1 */
 
             XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
-            ulPHYIndex = ulDetecPHY( pxEMAC_PS );
+            ulPHYIndex = ulDetectPHY( pxEMAC_PS );
 
             if( ulPHYIndex == ~0U )
             {
@@ -330,23 +330,23 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
     #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+    {
+        ProtocolPacket_t * pxPacket;
+
+        /* If the peripheral must calculate the checksum, it wants
+         * the protocol checksum to have a value of zero. */
+        pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
+
+        if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
+            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
         {
-            ProtocolPacket_t * pxPacket;
-
-            /* If the peripheral must calculate the checksum, it wants
-             * the protocol checksum to have a value of zero. */
-            pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
-
-            if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
-                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
-            {
-                /* The EMAC will calculate the checksum of the IP-header.
-                 * It can only calculate protocol checksums of UDP and TCP,
-                 * so for ICMP and other protocols it must be done manually. */
-                usGenerateProtocolChecksum( ( uint8_t * ) &( pxPacket->xUDPPacket ), pxBuffer->xDataLength, pdTRUE );
-            }
+            /* The EMAC will calculate the checksum of the IP-header.
+             * It can only calculate protocol checksums of UDP and TCP,
+             * so for ICMP and other protocols it must be done manually. */
+            usGenerateProtocolChecksum( ( uint8_t * ) &( pxPacket->xUDPPacket ), pxBuffer->xDataLength, pdTRUE );
         }
+    }
     #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
     if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0UL )
@@ -484,12 +484,12 @@ static void prvEMACHandlerTask( void * pvParameters )
     for( ; ; )
     {
         #if ( ipconfigHAS_PRINTF != 0 )
-            {
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-            }
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( ( xEMACpsif.isr_events & EMAC_IF_ALL_EVENT ) == 0 )

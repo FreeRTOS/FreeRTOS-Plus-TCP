@@ -281,7 +281,7 @@ typedef struct             /* Document DDI0194G_ssp_pl022_r1p3_trm.pdf */
 /* SSPRIS Raw interrupt status register */
 #define SSP_RIS_RORRIS_Pos      0              /* Raw Overrun  interrupt flag */
 #define SSP_RIS_RORRIS_Msk      ( 1UL << SSP_RIS_RORRIS_Pos )
-#define SSP_RIS_RTRIS_Pos       1              /* Raw Timemout interrupt flag */
+#define SSP_RIS_RTRIS_Pos       1              /* Raw Timeout interrupt flag */
 #define SSP_RIS_RTRIS_Msk       ( 1UL << SSP_RIS_RTRIS_Pos )
 #define SSP_RIS_RXRIS_Pos       2              /* Raw Receive  interrupt flag */
 #define SSP_RIS_RXRIS_Msk       ( 1UL << SSP_RIS_RXRIS_Pos )
@@ -291,7 +291,7 @@ typedef struct             /* Document DDI0194G_ssp_pl022_r1p3_trm.pdf */
 /* SSPMIS Masked interrupt status register */
 #define SSP_MIS_RORMIS_Pos      0              /* Masked Overrun  interrupt flag */
 #define SSP_MIS_RORMIS_Msk      ( 1UL << SSP_MIS_RORMIS_Pos )
-#define SSP_MIS_RTMIS_Pos       1              /* Masked Timemout interrupt flag */
+#define SSP_MIS_RTMIS_Pos       1              /* Masked Timeout interrupt flag */
 #define SSP_MIS_RTMIS_Msk       ( 1UL << SSP_MIS_RTMIS_Pos )
 #define SSP_MIS_RXMIS_Pos       2              /* Masked Receive  interrupt flag */
 #define SSP_MIS_RXMIS_Msk       ( 1UL << SSP_MIS_RXMIS_Pos )
@@ -301,7 +301,7 @@ typedef struct             /* Document DDI0194G_ssp_pl022_r1p3_trm.pdf */
 /* SSPICR Interrupt clear register */
 #define SSP_ICR_RORIC_Pos       0               /* Clears Overrun  interrupt flag */
 #define SSP_ICR_RORIC_Msk       ( 1UL << SSP_ICR_RORIC_Pos )
-#define SSP_ICR_RTIC_Pos        1               /* Clears Timemout interrupt flag */
+#define SSP_ICR_RTIC_Pos        1               /* Clears Timeout interrupt flag */
 #define SSP_ICR_RTIC_Msk        ( 1UL << SSP_ICR_RTIC_Pos )
 
 /* SSPDMACR DMA control register */
