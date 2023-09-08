@@ -1432,47 +1432,47 @@ struct xIPv6_Couple
  * @returns The IP type of the given address.
  */
 #if ( ipconfigUSE_IPv6 != 0 )
-IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
-{
-    IPv6_Type_t eResult = eIPv6_Unknown;
-    BaseType_t xIndex;
-    static const struct xIPv6_Couple xIPCouples[] =
+    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
     {
-        /*    IP-type          Mask     Value */
-        { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
-        { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
-        { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
-        { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
-        { eIPv6_Loopback,  0xFFFFU, 0x0000U }, /* 0000 0000 ::1 */
-    };
-
-    if( pxAddress != NULL )
-    {
-        for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
+        IPv6_Type_t eResult = eIPv6_Unknown;
+        BaseType_t xIndex;
+        static const struct xIPv6_Couple xIPCouples[] =
         {
-            uint16_t usAddress =
-                ( uint16_t ) ( ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
-                               ( ( uint16_t ) pxAddress->ucBytes[ 1 ] ) );
+            /*    IP-type          Mask     Value */
+            { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
+            { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+            { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+            { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+            { eIPv6_Loopback,  0xFFFFU, 0x0000U }, /* 0000 0000 ::1 */
+        };
 
-            if( xIPCouples[ xIndex ].eType == eIPv6_Loopback )
+        if( pxAddress != NULL )
+        {
+            for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
             {
-                if( xIsIPv6Loopback( pxAddress ) != pdFALSE )
+                uint16_t usAddress =
+                    ( uint16_t ) ( ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
+                                   ( ( uint16_t ) pxAddress->ucBytes[ 1 ] ) );
+
+                if( xIPCouples[ xIndex ].eType == eIPv6_Loopback )
                 {
-                    eResult = eIPv6_Loopback;
+                    if( xIsIPv6Loopback( pxAddress ) != pdFALSE )
+                    {
+                        eResult = eIPv6_Loopback;
+                        break;
+                    }
+                }
+
+                if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+                {
+                    eResult = xIPCouples[ xIndex ].eType;
                     break;
                 }
             }
-
-            if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
-            {
-                eResult = xIPCouples[ xIndex ].eType;
-                break;
-            }
         }
-    }
 
-    return eResult;
-}
+        return eResult;
+    }
 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
