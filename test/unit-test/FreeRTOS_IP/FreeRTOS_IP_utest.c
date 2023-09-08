@@ -2295,6 +2295,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPZeroLength( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxUDPPacket->xIPHeader ), pdFALSE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2381,6 +2382,8 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPHappyPath( void )
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxUDPPacket->xIPHeader ), pdFALSE );
+
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2424,6 +2427,8 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_UDPProcessFail( void )
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxUDPPacket->xIPHeader ), pdFALSE );
+
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdFAIL );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2470,6 +2475,8 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP( void )
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxUDPPacket->xIPHeader ), pdFALSE );
+
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
     xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
@@ -2520,6 +2527,8 @@ void test_prvProcessIPPacket_ARPResolutionReqd_UDP1( void )
     pxUDPPacket->xUDPHeader.usLength = FreeRTOS_ntohs( sizeof( UDPPacket_t ) );
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxUDPPacket->xIPHeader ), pdFALSE );
+
     xProcessReceivedUDPPacket_ExpectAndReturn( pxNetworkBuffer, pxUDPPacket->xUDPHeader.usDestinationPort, NULL, pdFAIL );
     xProcessReceivedUDPPacket_IgnoreArg_pxIsWaitingForARPResolution();
     xProcessReceivedUDPPacket_ReturnThruPtr_pxIsWaitingForARPResolution( &xReturnValue );
@@ -2651,6 +2660,7 @@ void test_prvProcessIPPacket_UDP_ExternalLoopback( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxIPPacket->xIPHeader ), pdFALSE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2689,6 +2699,7 @@ void test_prvProcessIPPacket_UDP_GreaterLoopbackAddress( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxIPPacket->xIPHeader ), pdFALSE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2727,6 +2738,7 @@ void test_prvProcessIPPacket_UDP_LessLoopbackAddress( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_UDP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
+    xBadIPv4Loopback_ExpectAndReturn( &( pxIPPacket->xIPHeader ), pdFALSE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 

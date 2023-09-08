@@ -2656,6 +2656,8 @@ void test_xIPv6_GetIPType_Unknown()
     const IPv6_Address_t xIPv6Address = { 0x12, 0x34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0x02 };
     IPv6_Type_t xReturn;
 
+    xIsIPv6Loopback_ExpectAndReturn( &xIPv6Address, pdFALSE );
+
     xReturn = xIPv6_GetIPType( &xIPv6Address );
     TEST_ASSERT_EQUAL( eIPv6_Unknown, xReturn );
 }
@@ -3452,6 +3454,8 @@ void test_FreeRTOS_MatchingEndpoint_Type()
     /* IP part. */
     memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+
+    xIsIPv6Loopback_ExpectAndReturn( &( xNonGlobalIPAddress_IPv6 ), pdFALSE );
 
     /* Query for e0. */
     pxEndPoint = FreeRTOS_MatchingEndpoint( &xNetworkInterface, ( const uint8_t * ) ( pxTCPPacket ) );
