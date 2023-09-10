@@ -638,7 +638,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
 
 /**
  * @brief  Unregister an ETH Callback
- *         ETH callabck is redirected to the weak predefined callback
+ *         ETH callback is redirected to the weak predefined callback
  * @param heth eth handle
  * @param CallbackID ID of the callback to be unregistered
  *        This parameter can be one of the following values:
@@ -977,7 +977,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 /* Set the ETH peripheral state to BUSY */
                 heth->gState = HAL_ETH_STATE_BUSY;
 
-                /* Disable intrrupts:
+                /* Disable interrupts:
                  * - Tx complete interrupt
                  * - Rx complete interrupt
                  * - Fatal bus interrupt
@@ -1065,7 +1065,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
 
                 tickstart = HAL_GetTick();
 
-                /* Wait for data to be transmitted or timeout occured */
+                /* Wait for data to be transmitted or timeout occurred */
                 while( ( dmatxdesc->DESC3 & ETH_DMATXNDESCWBF_OWN ) != ( uint32_t ) RESET )
                 {
                     if( ( heth->Instance->DMACSR & ETH_DMACSR_FBE ) != ( uint32_t ) RESET )
@@ -1558,15 +1558,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 if( __HAL_ETH_DMA_GET_IT_SOURCE( heth, ETH_DMACIER_RIE ) )
                 {
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                        {
-                            /*Call registered Receive complete callback*/
-                            heth->RxCpltCallback( heth );
-                        }
+                    {
+                        /*Call registered Receive complete callback*/
+                        heth->RxCpltCallback( heth );
+                    }
                     #else
-                        {
-                            /* Receive complete callback */
-                            HAL_ETH_RxCpltCallback( heth );
-                        }
+                    {
+                        /* Receive complete callback */
+                        HAL_ETH_RxCpltCallback( heth );
+                    }
                     #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                     /* Clear the Eth DMA Rx IT pending bits */
@@ -1580,15 +1580,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 if( __HAL_ETH_DMA_GET_IT_SOURCE( heth, ETH_DMACIER_TIE ) )
                 {
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                        {
-                            /*Call registered Transmit complete callback*/
-                            heth->TxCpltCallback( heth );
-                        }
+                    {
+                        /*Call registered Transmit complete callback*/
+                        heth->TxCpltCallback( heth );
+                    }
                     #else
-                        {
-                            /* Transfer complete callback */
-                            HAL_ETH_TxCpltCallback( heth );
-                        }
+                    {
+                        /* Transfer complete callback */
+                        HAL_ETH_TxCpltCallback( heth );
+                    }
                     #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                     /* Clear the Eth DMA Tx IT pending bits */
@@ -1603,7 +1603,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 {
                     heth->ErrorCode |= HAL_ETH_ERROR_DMA;
 
-                    /* if fatal bus error occured */
+                    /* if fatal bus error occurred */
                     if( __HAL_ETH_DMA_GET_IT( heth, ETH_DMACSR_FBE ) )
                     {
                         /* Get DMA error code  */
@@ -1627,15 +1627,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                     }
 
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                        {
-                            /* Call registered DMA Error callback*/
-                            heth->DMAErrorCallback( heth );
-                        }
+                    {
+                        /* Call registered DMA Error callback*/
+                        heth->DMAErrorCallback( heth );
+                    }
                     #else
-                        {
-                            /* Ethernet DMA Error callback */
-                            HAL_ETH_DMAErrorCallback( heth );
-                        }
+                    {
+                        /* Ethernet DMA Error callback */
+                        HAL_ETH_DMAErrorCallback( heth );
+                    }
                     #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
                 }
             }
@@ -1649,15 +1649,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 set_error_state( heth, HAL_ETH_STATE_ERROR );
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    {
-                        /* Call registered MAC Error callback*/
-                        heth->DMAErrorCallback( heth );
-                    }
+                {
+                    /* Call registered MAC Error callback*/
+                    heth->DMAErrorCallback( heth );
+                }
                 #else
-                    {
-                        /* Ethernet MAC Error callback */
-                        HAL_ETH_MACErrorCallback( heth );
-                    }
+                {
+                    /* Ethernet MAC Error callback */
+                    HAL_ETH_MACErrorCallback( heth );
+                }
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                 heth->MACErrorCode = ( uint32_t ) ( 0x0U );
@@ -1670,15 +1670,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 heth->MACWakeUpEvent = READ_BIT( heth->Instance->MACPCSR, ( ETH_MACPCSR_RWKPRCVD | ETH_MACPCSR_MGKPRCVD ) );
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    {
-                        /* Call registered PMT callback*/
-                        heth->PMTCallback( heth );
-                    }
+                {
+                    /* Call registered PMT callback*/
+                    heth->PMTCallback( heth );
+                }
                 #else
-                    {
-                        /* Ethernet PMT callback */
-                        HAL_ETH_PMTCallback( heth );
-                    }
+                {
+                    /* Ethernet PMT callback */
+                    HAL_ETH_PMTCallback( heth );
+                }
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                 heth->MACWakeUpEvent = ( uint32_t ) ( 0x0U );
@@ -1691,15 +1691,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 heth->MACLPIEvent = READ_BIT( heth->Instance->MACPCSR, 0x0000000FU );
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    {
-                        /* Call registered EEE callback*/
-                        heth->EEECallback( heth );
-                    }
+                {
+                    /* Call registered EEE callback*/
+                    heth->EEECallback( heth );
+                }
                 #else
-                    {
-                        /* Ethernet EEE callback */
-                        HAL_ETH_EEECallback( heth );
-                    }
+                {
+                    /* Ethernet EEE callback */
+                    HAL_ETH_EEECallback( heth );
+                }
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                 heth->MACLPIEvent = ( uint32_t ) ( 0x0U );
@@ -1714,15 +1714,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                         /* Clear ETH WAKEUP Exti pending bit */
                         __HAL_ETH_WAKEUP_EXTI_CLEAR_FLAG( ETH_WAKEUP_EXTI_LINE );
                         #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                            {
-                                /* Call registered WakeUp callback*/
-                                heth->WakeUpCallback( heth );
-                            }
+                        {
+                            /* Call registered WakeUp callback*/
+                            heth->WakeUpCallback( heth );
+                        }
                         #else
-                            {
-                                /* ETH WAKEUP callback */
-                                HAL_ETH_WakeUpCallback( heth );
-                            }
+                        {
+                            /* ETH WAKEUP callback */
+                            HAL_ETH_WakeUpCallback( heth );
+                        }
                         #endif
                     }
                 }
@@ -1734,15 +1734,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                         /* Clear ETH WAKEUP Exti pending bit */
                         __HAL_ETH_WAKEUP_EXTID2_CLEAR_FLAG( ETH_WAKEUP_EXTI_LINE );
                         #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                            {
-                                /* Call registered WakeUp callback*/
-                                heth->WakeUpCallback( heth );
-                            }
+                        {
+                            /* Call registered WakeUp callback*/
+                            heth->WakeUpCallback( heth );
+                        }
                         #else
-                            {
-                                /* ETH WAKEUP callback */
-                                HAL_ETH_WakeUpCallback( heth );
-                            }
+                        {
+                            /* ETH WAKEUP callback */
+                            HAL_ETH_WakeUpCallback( heth );
+                        }
                         #endif
                     }
                 }
@@ -1753,15 +1753,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                     /* Clear ETH WAKEUP Exti pending bit */
                     __HAL_ETH_WAKEUP_EXTI_CLEAR_FLAG( ETH_WAKEUP_EXTI_LINE );
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                        {
-                            /* Call registered WakeUp callback*/
-                            heth->WakeUpCallback( heth );
-                        }
+                    {
+                        /* Call registered WakeUp callback*/
+                        heth->WakeUpCallback( heth );
+                    }
                     #else
-                        {
-                            /* ETH WAKEUP callback */
-                            HAL_ETH_WakeUpCallback( heth );
-                        }
+                    {
+                        /* ETH WAKEUP callback */
+                        HAL_ETH_WakeUpCallback( heth );
+                    }
                     #endif
                 }
             #endif /* #if defined(DUAL_CORE) */
@@ -2169,56 +2169,6 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
             {
                 return HAL_ERROR;
             }
-        }
-
-/**
- * @brief  Configures the Clock range of ETH MDIO interface.
- * @param  heth: pointer to a ETH_HandleTypeDef structure that contains
- *         the configuration information for ETHERNET module
- * @retval None
- */
-        void HAL_ETH_SetMDIOClockRange( ETH_HandleTypeDef * heth )
-        {
-            uint32_t tmpreg, hclk;
-
-            /* Get the ETHERNET MACMDIOAR value */
-            tmpreg = ( heth->Instance )->MACMDIOAR;
-
-            /* Clear CSR Clock Range bits */
-            tmpreg &= ~ETH_MACMDIOAR_CR;
-
-            /* Get hclk frequency value */
-            hclk = HAL_RCC_GetHCLKFreq();
-
-            /* Set CR bits depending on hclk value */
-            if( ( hclk >= 20000000U ) && ( hclk < 35000000U ) )
-            {
-                /* CSR Clock Range between 20-35 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV16;
-            }
-            else if( ( hclk >= 35000000U ) && ( hclk < 60000000U ) )
-            {
-                /* CSR Clock Range between 35-60 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV26;
-            }
-            else if( ( hclk >= 60000000U ) && ( hclk < 100000000U ) )
-            {
-                /* CSR Clock Range between 60-100 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV42;
-            }
-            else if( ( hclk >= 100000000U ) && ( hclk < 150000000U ) )
-            {
-                /* CSR Clock Range between 100-150 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV62;
-            }
-            else /* (hclk >= 150000000)&&(hclk <= 200000000) */
-            {
-                /* CSR Clock Range between 150-200 MHz */
-                tmpreg |= ( uint32_t ) ETH_MACMDIOAR_CR_DIV102;
-            }
-
-            /* Configure the CSR Clock Range */
-            ( heth->Instance )->MACMDIOAR = ( uint32_t ) tmpreg;
         }
 
 /**
@@ -2844,7 +2794,7 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 WRITE_REG( dmarxdesc->BackupAddr0, 0x0 );
                 WRITE_REG( dmarxdesc->BackupAddr1, 0x0 );
 
-                /* Set Rx descritors adresses */
+                /* Set Rx descritors addresses */
                 WRITE_REG( heth->RxDescList.RxDesc[ i ], ( uint32_t ) dmarxdesc );
             }
 
@@ -2880,25 +2830,25 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 }
 
                 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+                {
+                    NetworkBufferDescriptor_t * pxNetworkBuffer;
+                    uint8_t * ucPayLoad;
+
+                    ucPayLoad = ( uint8_t * ) xDMATxDescriptor->DESC0;
+
+                    if( ucPayLoad == NULL )
                     {
-                        NetworkBufferDescriptor_t * pxNetworkBuffer;
-                        uint8_t * ucPayLoad;
-
-                        ucPayLoad = ( uint8_t * ) xDMATxDescriptor->DESC0;
-
-                        if( ucPayLoad == NULL )
-                        {
-                            /* No buffer is assigned or DMA still OWNs this descriptor. */
-                            break;
-                        }
-
-                        pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
-
-                        if( pxNetworkBuffer != NULL )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                        }
+                        /* No buffer is assigned or DMA still OWNs this descriptor. */
+                        break;
                     }
+
+                    pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
+
+                    if( pxNetworkBuffer != NULL )
+                    {
+                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                    }
+                }
                 #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 
                 xDMATxDescriptor->DESC0 = ( uint32_t ) 0u;

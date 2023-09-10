@@ -1193,7 +1193,7 @@ void test_lTCPWindowTxAdd_len_gt_max_len( void )
     xTCPWindowLoggingLevel = xBackup;
 }
 
-void test_lTCPWindowTxAdd_lBytsLeft_gt_zero_pxSegment_NULL( void )
+void test_lTCPWindowTxAdd_lBytesLeft_gt_zero_pxSegment_NULL( void )
 {
     int32_t lDone;
     TCPWindow_t xWindow = { 0 };
@@ -1219,7 +1219,7 @@ void test_lTCPWindowTxAdd_lBytsLeft_gt_zero_pxSegment_NULL( void )
     free( xWindow.pxHeadSegment );
 }
 
-void test_lTCPWindowTxAdd_lBytsLeft_gt_zero_data_length_gt_maxlen( void )
+void test_lTCPWindowTxAdd_lBytesLeft_gt_zero_data_length_gt_maxlen( void )
 {
     int32_t lDone;
     TCPWindow_t xWindow = { 0 };

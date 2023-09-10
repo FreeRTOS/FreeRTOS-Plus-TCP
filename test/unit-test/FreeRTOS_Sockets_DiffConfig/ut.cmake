@@ -16,13 +16,12 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include/event_groups.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/portable.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_ARP.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DNS.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_DHCP.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Sockets.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv6_Sockets.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
-            "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkInterface.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_DiffConfig_list_macros.h"
         )
 
@@ -33,8 +32,8 @@ list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
         )
 
 set(mock_define_list "")
@@ -74,8 +73,6 @@ list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
         )
 
 # =============================  (end edit)  ===================================

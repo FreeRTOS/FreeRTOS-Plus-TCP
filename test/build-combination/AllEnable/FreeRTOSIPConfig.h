@@ -34,12 +34,43 @@
 #ifndef FREERTOS_IP_CONFIG_H
 #define FREERTOS_IP_CONFIG_H
 
+#define ipconfigUSE_DHCPv6                         1
+#define ipconfigIPv4_BACKWARD_COMPATIBLE           1
+#define ipconfigUSE_ARP_REVERSED_LOOKUP            1
+#define ipconfigUSE_ARP_REMOVE_ENTRY               1
+#define ipconfigARP_STORES_REMOTE_ADDRESSES        1
+#define ipconfigUSE_LINKED_RX_MESSAGES             1
+#define ipconfigFORCE_IP_DONT_FRAGMENT             1
+#define ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS     1
+#define ipconfigDHCP_FALL_BACK_AUTO_IP             1
+#define ipconfigARP_USE_CLASH_DETECTION            1
+#define ipconfigUSE_LLMNR                          1
+#define ipconfigUSE_NBNS                           1
+#define ipconfigUSE_MDNS                           1
+#define ipconfigSUPPORT_OUTGOING_PINGS             1
+#define ipconfigETHERNET_DRIVER_FILTERS_PACKETS    1
+#define ipconfigZERO_COPY_TX_DRIVER                1
+#define ipconfigZERO_COPY_RX_DRIVER                1
+#define ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM     1
+#define ipconfigSOCKET_HAS_USER_SEMAPHORE          1
+#define ipconfigSELECT_USES_NOTIFY                 1
+#define ipconfigSUPPORT_SIGNALS                    1
+#define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES     1
+#define ipconfigDNS_USE_CALLBACKS                  1
+#define ipconfigCOMPATIBLE_WITH_SINGLE             1
+#define ipconfigIGNORE_UNKNOWN_PACKETS             1
+#define ipconfigCHECK_IP_QUEUE_SPACE               1
+#define ipconfigUDP_MAX_RX_PACKETS                 1
+#define ipconfigETHERNET_MINIMUM_PACKET_BYTES      1
+#define ipconfigTCP_IP_SANITY                      1
+#define ipconfigSUPPORT_NETWORK_DOWN_EVENT         1
+
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
  * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF    1
+#define ipconfigHAS_DEBUG_PRINTF                   1
 #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-    #define FreeRTOS_debug_printf( X )    configPRINTF( X )
+    #define FreeRTOS_debug_printf( X )    printf X
 #endif
 
 /* Set to 1 to print out non debugging messages, for example the output of the
@@ -48,15 +79,15 @@
  * messages. */
 #define ipconfigHAS_PRINTF    1
 #if ( ipconfigHAS_PRINTF == 1 )
-    #define FreeRTOS_printf( X )    configPRINTF( X )
+    #define FreeRTOS_printf( X )    printf X
 #endif
 
 /* Define the byte order of the target MCU (the MCU FreeRTOS+TCP is executing
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
 #define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
 
-/* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
- * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
+/* If the network card/driver includes checksum offloading then set
+ * ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
 #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
 

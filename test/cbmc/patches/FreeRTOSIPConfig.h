@@ -57,8 +57,8 @@
     #define ipconfigBYTE_ORDER    pdFREERTOS_LITTLE_ENDIAN
 #endif
 
-/* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
- * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
+/* If the network card/driver includes checksum offloading then set
+ * ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
 #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     1
 
@@ -135,7 +135,9 @@ extern uint32_t ulRand();
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
 #define ipconfigUSE_DHCP                         1
+
 #define ipconfigDHCP_REGISTER_HOSTNAME           1
+
 #define ipconfigDHCP_USES_UNICAST                1
 
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must

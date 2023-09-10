@@ -84,4 +84,48 @@ BaseType_t listLIST_IS_INITIALISED( List_t * pxList );
  */
 BaseType_t xIPIsNetworkTaskReady( void );
 
+/*
+ * The same as above, but a struct as a parameter, containing:
+ *      eIPEvent_t eEventType;
+ *      void *pvData;
+ */
+BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
+                                     TickType_t uxTimeout );
+
+/* Returns pdTRUE is this function is called from the IP-task */
+BaseType_t xIsCallingFromIPTask( void );
+
+/* Get the size of the IP-header.
+ * 'usFrameType' must be filled in if IPv6is to be recognised. */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+/*
+ * Returns a pointer to the original NetworkBuffer from a pointer to a UDP
+ * payload buffer.
+ */
+NetworkBufferDescriptor_t * pxUDPPayloadBuffer_to_NetworkBuffer( const void * pvBuffer );
+
+/*
+ * Send the event eEvent to the IP task event queue, using a block time of
+ * zero.  Return pdPASS if the message was sent successfully, otherwise return
+ * pdFALSE.
+ */
+BaseType_t xSendEventToIPTask( eIPEvent_t eEvent );
+
+/*
+ * Internal: Sets a new state for a TCP socket and performs the necessary
+ * actions like calling a OnConnected handler to notify the socket owner.
+ */
+#if ( ipconfigUSE_TCP == 1 )
+    void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
+                          enum eTCP_STATE eTCPState );
+#endif /* ipconfigUSE_TCP */
+
+/* Check a single socket for retransmissions and timeouts */
+BaseType_t xTCPSocketCheck( FreeRTOS_Socket_t * pxSocket );
+
+/* Get the size of the IP-header.
+ * The socket is checked for its type: IPv4 or IPv6. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket );
+
 #endif /* ifndef LIST_MACRO_H */

@@ -723,7 +723,7 @@ void smsc9220_init_irqs( const struct smsc9220_eth_dev_t * dev )
     smsc9220_disable_all_interrupts( dev );
     smsc9220_clear_all_interrupts( dev );
 
-    /* Set IRQ deassertion interval */
+    /* Set IRQ de-assertion interval */
     SET_BIT_FIELD( register_map->irq_cfg, IRQ_CFG_INT_DEAS_MASK,
                    IRQ_CFG_INT_DEAS_POS, IRQ_CFG_INT_DEAS_10US );
 
@@ -979,7 +979,7 @@ uint32_t smsc9220_get_tx_data_fifo_size( const struct smsc9220_eth_dev_t * dev )
 }
 
 enum smsc9220_error_t smsc9220_init( const struct smsc9220_eth_dev_t * dev,
-                                     void ( *wait_ms_function )( uint32_t ) )
+                                     void ( * wait_ms_function )( uint32_t ) )
 {
     uint32_t phyreset = 0;
     enum smsc9220_error_t error = SMSC9220_ERROR_NONE;

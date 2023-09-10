@@ -39,8 +39,18 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DHCP.h"
 
-#define mainHOST_NAME    "Build Combination"
+#include <string.h>
+#include <stdarg.h>
+#include <time.h>
 
+#define mainHOST_NAME           "Build Combination"
+#define mainDEVICE_NICK_NAME    "Build_Combination"
+
+#if defined( _MSC_VER ) && ( _MSC_VER <= 1600 )
+    #define local_stricmp       _stricmp
+#else
+    #define local_stricmp       strcasecmp
+#endif
 /*-----------------------------------------------------------*/
 
 /* Notes if the trace is running or not. */
@@ -105,21 +115,32 @@ int main( void )
      * vApplicationIPNetworkEventHook() below).  The address values passed in here
      * are used if ipconfigUSE_DHCP is set to 0, or if ipconfigUSE_DHCP is set to 1
      * but a DHCP server cannot be contacted. */
-    FreeRTOS_printf( ( "FreeRTOS_IPInit\n" ) );
-    FreeRTOS_IPInit(
-        ucIPAddress,
-        ucNetMask,
-        ucGatewayAddress,
-        ucDNSServerAddress,
-        ucMACAddress );
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) && ( ipconfigUSE_IPv4 != 0 )
+        FreeRTOS_printf( ( "FreeRTOS_IPInit\n" ) );
+        FreeRTOS_IPInit(
+            ucIPAddress,
+            ucNetMask,
+            ucGatewayAddress,
+            ucDNSServerAddress,
+            ucMACAddress );
+    #else
+        FreeRTOS_printf( ( "FreeRTOS_IPInit_Multi\n" ) );
+        FreeRTOS_IPInit_Multi();
+    #endif
 
     vTaskStartScheduler();
 
     return 0;
 }
 /*-----------------------------------------------------------*/
-
-void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+/* *INDENT-OFF* */
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+    void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
+#else
+    void vApplicationIPNetworkEventHook_Multi( eIPCallbackEvent_t eNetworkEvent,
+                                               struct xNetworkEndPoint * pxEndPoint )
+#endif
+/* *INDENT-ON* */
 {
     static BaseType_t xTasksAlreadyCreated = pdFALSE;
 
@@ -157,11 +178,11 @@ void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent )
         /* Determine if a name lookup is for this node.  Two names are given
          * to this node: that returned by pcApplicationHostnameHook() and that set
          * by mainDEVICE_NICK_NAME. */
-        if( _stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
+        if( local_stricmp( pcName, pcApplicationHostnameHook() ) == 0 )
         {
             xReturn = pdPASS;
         }
-        else if( _stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
+        else if( local_stricmp( pcName, mainDEVICE_NICK_NAME ) == 0 )
         {
             xReturn = pdPASS;
         }
@@ -189,26 +210,17 @@ void vApplicationIdleHook( void )
 
     /* Exit. Just a stub. */
 }
+
 /*-----------------------------------------------------------*/
 
-void vAssertCalled( const char * pcFile,
-                    uint32_t ulLine )
+void vLoggingPrintf( const char * pcFormat,
+                     ... )
 {
-    const uint32_t ulLongSleep = 1000UL;
-    volatile uint32_t ulBlockVariable = 0UL;
-    volatile char * pcFileName = ( volatile char * ) pcFile;
-    volatile uint32_t ulLineNumber = ulLine;
+    va_list arg;
 
-    ( void ) pcFileName;
-    ( void ) ulLineNumber;
-
-    taskDISABLE_INTERRUPTS();
-    {
-        while( 1 )
-        {
-        }
-    }
-    taskENABLE_INTERRUPTS();
+    va_start( arg, pcFormat );
+    vprintf( pcFormat, arg );
+    va_end( arg );
 }
 /*-----------------------------------------------------------*/
 
@@ -230,10 +242,12 @@ UBaseType_t uxRand( void )
 
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 {
-    *pulNumber = uxRand();
+    *pulNumber = ( uint32_t ) uxRand();
 
     return pdTRUE;
 }
+
+/*-----------------------------------------------------------*/
 
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
@@ -242,6 +256,19 @@ void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
     /* Provide a stub for this function. */
 }
 
+/*-----------------------------------------------------------*/
+
+void vApplicationTickHook( void )
+{
+    /* Provide a stub for this function. */
+}
+
+/*-----------------------------------------------------------*/
+
+void vApplicationDaemonTaskStartupHook( void )
+{
+    /* Provide a stub for this function. */
+}
 
 /*
  * Callback that provides the inputs necessary to generate a randomized TCP
@@ -259,7 +286,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     ( void ) ulDestinationAddress;
     ( void ) usDestinationPort;
 
-    return uxRand();
+    return ( uint32_t ) uxRand();
 }
 
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
@@ -274,7 +301,8 @@ void vApplicationMallocFailedHook( void )
     /* Provide a stub for this function. */
 }
 
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkBuffer,
+BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                    NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
     /* Provide a stub for this function. */
@@ -287,17 +315,56 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return pdTRUE;
 }
 
-#if ( ( ipconfigUSE_TCP == 1 ) && ( ipconfigUSE_DHCP_HOOK != 0 ) )
-    eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
-                                                uint32_t ulIPAddress )
+struct xNetworkInterface * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      struct xNetworkInterface * pxInterface )
+{
+    return pxInterface;
+}
+
+#if ( ipconfigUSE_DHCP_HOOK != 0 )
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
+                                                    uint32_t ulIPAddress )
+    #else
+        eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
+                                                          struct xNetworkEndPoint * pxEndPoint,
+                                                          IP_Address_t * pxIPAddress )
+    #endif
     {
         /* Provide a stub for this function. */
         return eDHCPContinue;
     }
-#endif
+#endif /* ( ipconfigUSE_DHCP_HOOK != 0 ) */
 
+#if ( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES != 0 )
+
+/*
+ * The stack will call this user hook for all Ethernet frames that it
+ * does not support, i.e. other than IPv4, IPv6 and ARP ( for the moment )
+ * If this hook returns eReleaseBuffer or eProcessBuffer, the stack will
+ * release and reuse the network buffer.  If this hook returns
+ * eReturnEthernetFrame, that means user code has reused the network buffer
+ * to generate a response and the stack will send that response out.
+ * If this hook returns eFrameConsumed, the user code has ownership of the
+ * network buffer and has to release it when it's done.
+ */
+    eFrameProcessingResult_t eApplicationProcessCustomFrameHook( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+    {
+        ( void ) ( pxNetworkBuffer );
+        return eProcessBuffer;
+    }
+
+#endif
 void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
                                 uint16_t usIdentifier )
 {
     /* Provide a stub for this function. */
 }
+
+#if ( ipconfigUSE_IPv6 != 0 ) && ( ipconfigUSE_DHCPv6 != 0 )
+    /* DHCPv6 needs a time-stamp, seconds after 1970. */
+    uint32_t ulApplicationTimeHook( void )
+    {
+        return ( uint32_t ) time( NULL );
+    }
+#endif

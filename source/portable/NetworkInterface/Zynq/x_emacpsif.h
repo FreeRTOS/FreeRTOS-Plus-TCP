@@ -19,10 +19,6 @@
 #ifndef __NETIF_XEMACPSIF_H__
     #define __NETIF_XEMACPSIF_H__
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
     #include <stdint.h>
 
     #include "xstatus.h"
@@ -38,14 +34,20 @@
     #include "xscugic.h"
     #include "xemacps.h" /* defines XEmacPs API */
 
-/*#include "netif/xpqueue.h" */
-/*#include "xlwipconfig.h" */
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
+
+    #define XPAR_PS7_ETHERNET_1_DEVICE_ID    1
+    #define XPAR_PS7_ETHERNET_1_BASEADDR     0xE000C000
+
+    extern XEmacPs_Config mac_configs[ XPAR_XEMACPS_NUM_INSTANCES ];
+
 
     void xemacpsif_setmac( uint32_t index,
                            uint8_t * addr );
     uint8_t * xemacpsif_getmac( uint32_t index );
-/*int   xemacpsif_init(struct netif *netif); */
-/*int   xemacpsif_input(struct netif *netif); */
+
     #ifdef NOTNOW_BHILL
         unsigned get_IEEE_phy_speed( XLlTemac * xlltemacp );
     #endif
@@ -111,7 +113,8 @@
 
     struct xNETWORK_BUFFER;
 
-    int emacps_check_rx( xemacpsif_s * xemacpsif );
+    int emacps_check_rx( xemacpsif_s * xemacpsif,
+                         NetworkInterface_t * pxInterface );
     void emacps_check_tx( xemacpsif_s * xemacpsif );
     int emacps_check_errors( xemacpsif_s * xemacps );
     void emacps_set_rx_buffers( xemacpsif_s * xemacpsif,
@@ -125,8 +128,8 @@
     extern XStatus init_dma( xemacpsif_s * xemacpsif );
     extern void start_emacps( xemacpsif_s * xemacpsif );
 
-    void EmacEnableIntr( void );
-    void EmacDisableIntr( void );
+    void EmacEnableIntr( int xEMACIndex );
+    void EmacDisableIntr( int xEMACIndex );
 
     XStatus init_axi_dma( xemacpsif_s * xemacpsif );
     void process_sent_bds( xemacpsif_s * xemacpsif );
@@ -142,8 +145,13 @@
     void clean_dma_txdescs( xemacpsif_s * xemacpsif );
     void resetrx_on_no_rxdata( xemacpsif_s * xemacpsif );
 
+/**
+ * @brief Initialise the interface number 'xIndex'. Do not call directly.
+ */
+    void vInitialiseOnIndex( BaseType_t xIndex );
+
     #ifdef __cplusplus
-        }
+}
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */

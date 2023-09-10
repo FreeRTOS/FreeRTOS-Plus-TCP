@@ -60,20 +60,27 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#ifndef PHY_LS_HIGH_CHECK_TIME_MS
+#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
+    #error please use the new defines with 'ipconfig' prefix
+#endif
 
-/* Check if the LinkSStatus in the PHY is still high after 15 seconds of not
+#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+
+/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
  * receiving packets. */
-    #define PHY_LS_HIGH_CHECK_TIME_MS    15000
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
 #endif
 
-#ifndef PHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkSStatus in the PHY is still low every second. */
-    #define PHY_LS_LOW_CHECK_TIME_MS    1000
+#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
+    /* Check if the LinkStatus in the PHY is still low every second. */
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
 #endif
+
 
 #if ( ipconfigNETWORK_MTU > 1526 )
-    #warning the use of Jumbo Frames has not been tested sufficiently yet.
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning the use of Jumbo Frames has not been tested sufficiently yet.
+    #endif
     #define USE_JUMBO_FRAMES    1
 #endif
 
@@ -104,7 +111,9 @@
 #endif
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 || ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-    #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+        #warning Please define both 'ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM' and 'ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM' as 1
+    #endif
 #endif
 
 #ifndef nicUSE_UNCACHED_MEMORY
@@ -154,7 +163,7 @@ XEmacPs_Config mac_config =
 static uint32_t ulPHYLinkStatus = 0uL;
 
 #if ( ipconfigUSE_LLMNR == 1 )
-    static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
+static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
@@ -219,14 +228,14 @@ BaseType_t xNetworkInterfaceInitialise( void )
             XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
 
             #if ( ipconfigUSE_LLMNR == 1 )
-                {
-                    /* Also add LLMNR multicast MAC address. */
-                    XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
-                }
+            {
+                /* Also add LLMNR multicast MAC address. */
+                XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
+            }
             #endif /* ipconfigUSE_LLMNR == 1 */
 
             XEmacPs_SetMdioDivisor( pxEMAC_PS, MDC_DIV_224 );
-            ulPHYIndex = ulDetecPHY( pxEMAC_PS );
+            ulPHYIndex = ulDetectPHY( pxEMAC_PS );
 
             if( ulPHYIndex == ~0U )
             {
@@ -321,23 +330,23 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
                                     BaseType_t bReleaseAfterSend )
 {
     #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+    {
+        ProtocolPacket_t * pxPacket;
+
+        /* If the peripheral must calculate the checksum, it wants
+         * the protocol checksum to have a value of zero. */
+        pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
+
+        if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
+            ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
         {
-            ProtocolPacket_t * pxPacket;
-
-            /* If the peripheral must calculate the checksum, it wants
-             * the protocol checksum to have a value of zero. */
-            pxPacket = ( ProtocolPacket_t * ) ( pxBuffer->pucEthernetBuffer );
-
-            if( ( pxPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_UDP ) &&
-                ( pxPacket->xICMPPacket.xIPHeader.ucProtocol != ipPROTOCOL_TCP ) )
-            {
-                /* The EMAC will calculate the checksum of the IP-header.
-                 * It can only calculate protocol checksums of UDP and TCP,
-                 * so for ICMP and other protocols it must be done manually. */
-                usGenerateProtocolChecksum( ( uint8_t * ) &( pxPacket->xUDPPacket ), pxBuffer->xDataLength, pdTRUE );
-            }
+            /* The EMAC will calculate the checksum of the IP-header.
+             * It can only calculate protocol checksums of UDP and TCP,
+             * so for ICMP and other protocols it must be done manually. */
+            usGenerateProtocolChecksum( ( uint8_t * ) &( pxPacket->xUDPPacket ), pxBuffer->xDataLength, pdTRUE );
         }
+    }
     #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
     if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0UL )
@@ -470,17 +479,17 @@ static void prvEMACHandlerTask( void * pvParameters )
     iptraceEMAC_TASK_STARTING();
 
     vTaskSetTimeOutState( &xPhyTime );
-    xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+    xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
 
     for( ; ; )
     {
         #if ( ipconfigHAS_PRINTF != 0 )
-            {
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-            }
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         if( ( xEMACpsif.isr_events & EMAC_IF_ALL_EVENT ) == 0 )
@@ -512,7 +521,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             /* A packet was received. No need to check for the PHY status now,
              * but set a timer to check it later on. */
             vTaskSetTimeOutState( &xPhyTime );
-            xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+            xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             xResult = 0;
 
             if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) == 0uL )
@@ -537,11 +546,11 @@ static void prvEMACHandlerTask( void * pvParameters )
 
             if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL )
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }
             else
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
             }
         }
     }

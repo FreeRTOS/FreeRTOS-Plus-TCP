@@ -29,7 +29,7 @@
     #define NETWORK_BUFFER_MANAGEMENT_H
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /* NOTE PUBLIC API FUNCTIONS. */
@@ -68,7 +68,7 @@
     #endif
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* NETWORK_BUFFER_MANAGEMENT_H */

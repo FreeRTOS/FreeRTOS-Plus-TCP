@@ -40,7 +40,7 @@
     #define PHYHANDLING_H
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 
@@ -155,7 +155,7 @@
     ( ( ( ( uint32_t ) 1u ) << ( pxPhyObject )->xPortCount ) - 1u )
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* ifndef PHYHANDLING_H */

@@ -34,6 +34,13 @@
 #endif
 /* *INDENT-ON* */
 
+#include "FreeRTOS_IP.h"
+
+/* _HT_ Two macro's needed while debugging/testing, please ignore. */
+
+#define BUFFER_FROM_WHERE_DECL
+#define BUFFER_FROM_WHERE_CALL( aWhere )
+
 /* NOTE PUBLIC API FUNCTIONS. */
 BaseType_t xNetworkBuffersInitialise( void );
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,

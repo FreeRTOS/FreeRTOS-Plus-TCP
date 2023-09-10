@@ -29,12 +29,6 @@
 #ifndef FREERTOS_DNS_CALLBACK_H
 #define FREERTOS_DNS_CALLBACK_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 
@@ -45,24 +39,30 @@
 
 /* Standard includes. */
 #include <stdint.h>
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
 /* Application level configuration options. */
 
 #if ( ( ipconfigDNS_USE_CALLBACKS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 
-    BaseType_t xDNSDoCallback( TickType_t uxIdentifier,
-                               const char * pcName,
-                               uint32_t ulIPAddress );
+    BaseType_t xDNSDoCallback( ParseSet_t * pxSet,
+                               struct freertos_addrinfo * pxAddress );
 
     void vDNSSetCallBack( const char * pcHostName,
                           void * pvSearchID,
                           FOnDNSEvent pCallbackFunction,
                           TickType_t uxTimeout,
-                          TickType_t uxIdentifier );
+                          TickType_t uxIdentifier,
+                          BaseType_t xIsIPv6 );
 
     void vDNSCheckCallBack( void * pvSearchID );
 
-
-    void vDNSCallbackInitialise();
+    void vDNSCallbackInitialise( void );
 
 #endif /* ipconfigDNS_USE_CALLBACKS  && ipconfigUSE_DNS */
 

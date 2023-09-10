@@ -40,12 +40,17 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-volatile BaseType_t xInsideInterrupt = pdFALSE;
+/* =========================== EXTERN VARIABLES =========================== */
+
+NetworkInterface_t xInterfaces[ 1 ];
+
+#if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
+    BaseType_t xCallEventHook;
+#endif
+
 
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
-const MACAddress_t xLLMNR_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
 
 QueueHandle_t xNetworkEventQueue;
 
@@ -67,19 +72,9 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
     }
 };
 
-void vPortEnterCritical( void )
-{
-}
-void vPortExitCritical( void )
-{
-}
+/* ============================ Stubs Functions =========================== */
 
-void * pvPortMalloc( size_t xNeeded )
+static BaseType_t xNetworkInterfaceInitialise_test( struct xNetworkInterface * pxDescriptor )
 {
-    return malloc( xNeeded );
-}
-
-void vPortFree( void * ptr )
-{
-    free( ptr );
+    return pdPASS;
 }

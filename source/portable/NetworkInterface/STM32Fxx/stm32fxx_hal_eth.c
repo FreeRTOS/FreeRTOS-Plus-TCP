@@ -270,29 +270,29 @@
                 else
                 {
                     #if ( stm_is_F1 != 0 )
+                    {
+                        /* The STM32F1xx has a frequency up to 72 MHz. */
+                        /* CSR Clock Range between 60-72 MHz */
+                        tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
+                    }
+                    #else
+                    {
+                        if( ( hclk >= 60000000uL ) && ( hclk < 100000000uL ) )
                         {
-                            /* The STM32F1xx has a frequency up to 72 MHz. */
-                            /* CSR Clock Range between 60-72 MHz */
+                            /* CSR Clock Range between 60-100 MHz */
                             tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
                         }
-                    #else
+                        else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
                         {
-                            if( ( hclk >= 60000000uL ) && ( hclk < 100000000uL ) )
-                            {
-                                /* CSR Clock Range between 60-100 MHz */
-                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div42;
-                            }
-                            else if( ( hclk >= 100000000uL ) && ( hclk < 150000000uL ) )
-                            {
-                                /* CSR Clock Range between 100-150 MHz */
-                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
-                            }
-                            else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
-                            {
-                                /* CSR Clock Range between 150-183 MHz */
-                                tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
-                            }
+                            /* CSR Clock Range between 100-150 MHz */
+                            tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div62;
                         }
+                        else /* ( ( hclk >= 150000000uL ) && ( hclk <= 183000000uL ) ) */
+                        {
+                            /* CSR Clock Range between 150-183 MHz */
+                            tmpreg |= ( uint32_t ) ETH_MACMIIAR_CR_Div102;
+                        }
+                    }
                     #endif /* if ( stm_is_F1 != 0 ) */
                 }
             #else /* if !defined( STM32F2xx ) */
@@ -330,6 +330,16 @@
 
             /* Set ETH HAL State to Ready */
             heth->State = HAL_ETH_STATE_READY;
+
+            /*
+             * Disable the interrupts that are related to the MMC counters.
+             * These interrupts are enabled by default. The interrupt can
+             * only be acknowledged by reading the corresponding counter.
+             */
+
+            heth->Instance->MACIMR = ETH_MACIMR_TSTIM | ETH_MACIMR_PMTIM;
+            heth->Instance->MMCRIMR = ETH_MMCRIMR_RGUFM | ETH_MMCRIMR_RFAEM | ETH_MMCRIMR_RFCEM;
+            heth->Instance->MMCTIMR = ETH_MMCTIMR_TGFM | ETH_MMCTIMR_TGFMSCM | ETH_MMCTIMR_TGFSCM;
 
             /* Return function status */
             return HAL_OK;
@@ -1166,7 +1176,9 @@
             macinit.BroadcastFramesReception = ETH_BROADCASTFRAMESRECEPTION_ENABLE;
             macinit.DestinationAddrFilter = ETH_DESTINATIONADDRFILTER_NORMAL;
             macinit.PromiscuousMode = ETH_PROMISCUOUS_MODE_DISABLE;
-            macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_PERFECT;
+            /* Allow all multicast addresses while testing. */
+            /* macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_PERFECT; */
+            macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_NONE;
             macinit.UnicastFramesFilter = ETH_UNICASTFRAMESFILTER_PERFECT;
             macinit.HashTableHigh = 0x0uL;
             macinit.HashTableLow = 0x0uL;
@@ -1331,7 +1343,7 @@
             /* Set the RPBL and 4*PBL bits according to ETH RxDMABurstLength value */
             /* Set the PBL and 4*PBL bits according to ETH TxDMABurstLength value */
             /* Set the Enhanced DMA descriptors bit according to ETH EnhancedDescriptorFormat value*/
-            /* Set the DSL bit according to ETH DesciptorSkipLength value */
+            /* Set the DSL bit according to ETH DescriptorSkipLength value */
             /* Set the PR and DA bits according to ETH DMAArbitration value */
             heth->Instance->DMABMR = ( uint32_t ) ( dmainit.AddressAlignedBeats |
                                                     dmainit.FixedBurst |

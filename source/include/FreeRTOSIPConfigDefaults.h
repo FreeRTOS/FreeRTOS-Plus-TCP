@@ -70,6 +70,10 @@
     #error now called: ipconfigPACKET_FILLER_SIZE
 #endif
 
+#ifndef ipconfigENDPOINT_DNS_ADDRESS_COUNT
+    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    2U
+#endif
+
 #ifdef dnsMAX_REQUEST_ATTEMPTS
     #error now called: ipconfigDNS_REQUEST_ATTEMPTS
 #endif
@@ -157,7 +161,15 @@
  * configMAX_PRIORITIES is a standard FreeRTOS configuration parameter defined in
  * FreeRTOSConfig.h, not FreeRTOSIPConfig.h. Consideration needs to be given as to
  * the priority assigned to the task executing the IP stack relative to the
- * priority assigned to tasks that use the IP stack. */
+ * priority assigned to tasks that use the IP stack.
+ *
+ * Define the priority of the IP-task.  It is recommended to use this
+ * order of priorities:
+ * Highest : network interface, handling transmission and reception.
+ * Medium  : the IP-task handling API calls from the application.
+ * Lower   : the tasks that make use of the IP-stack.
+ * For other tasks any priority can be chosen.
+ */
 #ifndef ipconfigIP_TASK_PRIORITY
     #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
 #endif
@@ -175,6 +187,19 @@
  * When defined as zero, the application is UDP-only. */
 #ifndef ipconfigUSE_TCP
     #define ipconfigUSE_TCP    ( 1 )
+#endif
+
+#ifndef ipconfigCOMPATIBLE_WITH_SINGLE
+    #define ipconfigCOMPATIBLE_WITH_SINGLE    ( 0 )
+#endif
+
+#ifndef ipconfigMULTI_INTERFACE
+    #define ipconfigMULTI_INTERFACE    ( 1 )
+#endif
+
+/* Disable DHCPv6 by default. */
+#ifndef ipconfigUSE_DHCPv6
+    #define ipconfigUSE_DHCPv6    ( 0 )
 #endif
 
 #if ( ipconfigUSE_TCP != 0 )
@@ -210,6 +235,30 @@
  */
 #ifndef ipconfigTCP_MAY_LOG_PORT
     #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
+#endif
+
+/* Include all API's and code that is needed for the IPv4 protocol.
+ * When defined as zero, the application should uses IPv6. */
+#ifndef ipconfigUSE_IPv4
+    #define ipconfigUSE_IPv4    ( 1 )
+#endif
+
+/* Include all API's and code that is needed for the IPv6 protocol.
+ * When defined as zero, the application should uses IPv4. */
+#ifndef ipconfigUSE_IPv6
+    #define ipconfigUSE_IPv6    ( 1 )
+#endif
+
+#if ( ipconfigUSE_IPv4 != 1 ) && ( ipconfigUSE_IPv6 != 1 )
+    #error "Invalid build configuration"
+#endif
+
+/*
+ * If defined this macro enables the APIs that are backward compatible
+ * with single end point IPv4 version of the FreeRTOS+TCP library.
+ */
+#ifndef ipconfigIPv4_BACKWARD_COMPATIBLE
+    #define ipconfigIPv4_BACKWARD_COMPATIBLE    0
 #endif
 
 /* Determine the number of clock ticks that the API's FreeRTOS_recv() and
@@ -259,9 +308,9 @@
 
 #ifndef FreeRTOS_debug_printf
     #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )
-    /* MISRA Ref 20.5.1 [Use of undef] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
-    /* coverity[misra_c_2012_rule_20_5_violation] */
+/* MISRA Ref 20.5.1 [Use of undef] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+/* coverity[misra_c_2012_rule_20_5_violation] */
     #undef ipconfigHAS_DEBUG_PRINTF
     #define ipconfigHAS_DEBUG_PRINTF    0
 #endif
@@ -285,9 +334,9 @@
 
 #ifndef FreeRTOS_printf
     #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
-    /* MISRA Ref 20.5.1 [Use of undef] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
-    /* coverity[misra_c_2012_rule_20_5_violation] */
+/* MISRA Ref 20.5.1 [Use of undef] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
+/* coverity[misra_c_2012_rule_20_5_violation] */
     #undef ipconfigHAS_PRINTF
     #define ipconfigHAS_PRINTF    0
 #endif
@@ -341,7 +390,9 @@
 #endif
 
 /* 'ipconfigUSE_NETWORK_EVENT_HOOK' indicates if an application hook is available
- * called 'vApplicationIPNetworkEventHook()'.  This function will be called when
+ * called 'vApplicationIPNetworkEventHook()' ( if ipconfigIPv4_BACKWARD_COMPATIBLE enabled,
+ * otherwise vApplicationIPNetworkEventHook_Multi() ).
+ * This function will be called when
  * the network goes up and when it goes down.  See also FREERTOS_IP.h for further
  * explanation. */
 #ifndef ipconfigUSE_NETWORK_EVENT_HOOK
@@ -532,26 +583,6 @@
     #define ipconfigUDP_MAX_RX_PACKETS    0U
 #endif
 
-/* Define the priority of the IP-task.  It is recommended to use this
- * order of priorities:
- * Highest : network interface, handling transmission and reception.
- * Medium  : the IP-task handling API calls from the application.
- * Lower   : the tasks that make use of the IP-stack.
- * For other tasks any priority can be chosen.
- */
-#ifndef ipconfigIP_TASK_PRIORITY
-    #define ipconfigIP_TASK_PRIORITY    ( configMAX_PRIORITIES - 2 )
-#endif
-
-/* The size, in words (not bytes), of the stack allocated to the FreeRTOS+TCP
- * task.  This setting is less important when the FreeRTOS Win32 simulator is used
- * as the Win32 simulator only stores a fixed amount of information on the task
- * stack.  FreeRTOS includes optional stack overflow detection, see:
- * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
-#ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
-    #define ipconfigIP_TASK_STACK_SIZE_WORDS    ( configMINIMAL_STACK_SIZE * 5 )
-#endif
-
 /* When non-zero, the module FreeRTOS_DHCP.c will be included and called.
  * Note that the application can override decide to ignore the outcome
  * of the DHCP negotiation and use a static IP-address. */
@@ -564,7 +595,7 @@
  * if the DHCP offer shall be accepted.
  */
 #ifndef ipconfigUSE_DHCP_HOOK
-    #define ipconfigUSE_DHCP_HOOK    0
+    #define ipconfigUSE_DHCP_HOOK    1
 #endif
 
 /* DHCP servers have a table with information about each clients.  One
@@ -701,6 +732,10 @@
     #define ipconfigUSE_DNS    1
 #endif
 
+#if ( ipconfigUSE_IPv4 == 0 ) && ( ipconfigUSE_DNS != 0 )
+    #error "IPv4 (ipconfigUSE_IPv4) needs to be enabled to use DNS"
+#endif
+
 /* When looking up a host with DNS, this macro determines how long the
  * call to FreeRTOS_recvfrom() will wait for a reply.
  * When there is no reply, the request will be repeated up to
@@ -722,12 +757,12 @@
 
 /* The results of DNS lookup's can be stored in a cache table. */
 #ifndef ipconfigUSE_DNS_CACHE
-    #define ipconfigUSE_DNS_CACHE    0
+    #define ipconfigUSE_DNS_CACHE    1
 #endif
 
 #if ( ipconfigUSE_DNS_CACHE != 0 )
 
-/* Per https://tools.ietf.org/html/rfc1035, 253 is the maximum string length
+/* Per https://tools.ietf.org/html/rfc1035 253 is the maximum string length
  * of a DNS name.  The following default accounts for a null terminator. */
     #ifndef ipconfigDNS_CACHE_NAME_LENGTH
         #define ipconfigDNS_CACHE_NAME_LENGTH    254U
@@ -770,6 +805,11 @@
 /* Include support for NBNS: NetBIOS Name Server. */
 #ifndef ipconfigUSE_NBNS
     #define ipconfigUSE_NBNS    0
+#endif
+
+/* Include support for MDNS: Multicast DNS. */
+#ifndef ipconfigUSE_MDNS
+    #define ipconfigUSE_MDNS    0
 #endif
 
 /* It is recommended to let the application respond to incoming ping
@@ -926,7 +966,11 @@
 
 /* When ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM is enabled,
  * the network interface is responsible for checking the checksums
- * of the incoming packets.
+ * of the incoming packets. If hardware supports checking TCP checksum only,
+ * the network interface layer should handle the same for other protocols,
+ * such as IP/UDP/ICMP/etc, and give the checksum verified packets to the
+ * FreeRTOS-plus-TCP stack.
+ *
  * This can be either done in hardware, or by calling the checksum
  * functions.
  */
@@ -1066,6 +1110,54 @@
  * which will be called by the stack for any frame with an unsupported EtherType. */
 #ifndef ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES
     #define ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES    0
+#endif
+
+/* Set to 1 if you want to receive eNetworkDown notification via vApplicationIPNetworkEventHook() callback.
+ * Not all drivers support this feature. */
+#ifndef ipconfigSUPPORT_NETWORK_DOWN_EVENT
+    #define ipconfigSUPPORT_NETWORK_DOWN_EVENT    0
+#endif
+
+#ifndef ipconfigND_CACHE_ENTRIES
+    #define ipconfigND_CACHE_ENTRIES    24
+#endif
+
+#ifndef ipconfigHAS_ROUTING_STATISTICS
+    #define ipconfigHAS_ROUTING_STATISTICS    1
+#endif
+
+#ifndef ipconfigUSE_RA
+    #define ipconfigUSE_RA    1
+#endif
+
+/* RA or Router Advertisement/SLAAC: see end-point flag 'bWantRA'.
+ * An Router Solicitation will be sent. It will wait for ipconfigRA_SEARCH_TIME_OUT_MSEC ms.
+ * When there is no response, it will be repeated ipconfigRA_SEARCH_COUNT times.
+ * Then it will be checked if the chosen IP-address already exists, repeating this
+ * ipconfigRA_IP_TEST_COUNT times, each time with a timeout of ipconfigRA_IP_TEST_TIME_OUT_MSEC ms.
+ * Finally the end-point will go in the UP state.
+ */
+#ifndef ipconfigRA_SEARCH_COUNT
+    #define ipconfigRA_SEARCH_COUNT    ( 3U )
+#endif
+
+#ifndef ipconfigRA_SEARCH_TIME_OUT_MSEC
+    #define ipconfigRA_SEARCH_TIME_OUT_MSEC    ( 10000U )
+#endif
+
+#ifndef ipconfigRA_IP_TEST_COUNT
+    #define ipconfigRA_IP_TEST_COUNT    ( 3 )
+#endif
+
+#ifndef ipconfigRA_IP_TEST_TIME_OUT_MSEC
+    #define ipconfigRA_IP_TEST_TIME_OUT_MSEC    ( 1500U )
+#endif
+
+/* For some use cases, users set the configurations that issues warning messages.
+ * This configuration is used to suppress warning in portable layers to make compilation clean.
+ */
+#ifndef ipconfigPORT_SUPPRESS_WARNING
+    #define ipconfigPORT_SUPPRESS_WARNING    ( 0 )
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

@@ -53,16 +53,20 @@
     #define BMSR_LINK_STATUS    0x0004          /*!< Link status */
 #endif
 
-#ifndef PHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkSStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define PHY_LS_HIGH_CHECK_TIME_MS    15000
+#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
+    #error please use the new defines with 'ipconfig' prefix
 #endif
 
-#ifndef PHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkSStatus in the PHY is still low every second. */
-    #define PHY_LS_LOW_CHECK_TIME_MS    1000
+#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+
+/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
+ * receiving packets. */
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
+#endif
+
+#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
+    /* Check if the LinkStatus in the PHY is still low every second. */
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
 #endif
 
 /* Interrupt events to process.  Currently only the Rx event is processed
@@ -288,19 +292,19 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                configASSERT( bReleaseAfterSend != pdFALSE );
-            }
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            configASSERT( bReleaseAfterSend != pdFALSE );
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
         gmac_dev_write( &gs_gmac_dev, ( void * ) pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength, prvTxCallback );
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Confirm that the pxDescriptor may be kept by the driver. */
-                bReleaseAfterSend = pdFALSE;
-            }
+        {
+            /* Confirm that the pxDescriptor may be kept by the driver. */
+            bReleaseAfterSend = pdFALSE;
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
         /* Not interested in a call-back after TX. */
         iptraceNETWORK_INTERFACE_TRANSMIT();
@@ -533,7 +537,7 @@ static void prvEMACHandlerTask( void * pvParameters )
     configASSERT( xEMACTaskHandle != NULL );
 
     vTaskSetTimeOutState( &xPhyTime );
-    xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+    xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
 
     for( ; ; )
     {
@@ -549,17 +553,17 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
 
         #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
-            {
-                uxCurrentCount = uxGetMinimumIPQueueSpace();
+        {
+            uxCurrentCount = uxGetMinimumIPQueueSpace();
 
-                if( uxLastMinQueueSpace != uxCurrentCount )
-                {
-                    /* The logging produced below may be helpful
-                     * while tuning +TCP: see how many buffers are in use. */
-                    uxLastMinQueueSpace = uxCurrentCount;
-                    FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-                }
+            if( uxLastMinQueueSpace != uxCurrentCount )
+            {
+                /* The logging produced below may be helpful
+                 * while tuning +TCP: see how many buffers are in use. */
+                uxLastMinQueueSpace = uxCurrentCount;
+                FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
             }
+        }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
         if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
@@ -585,23 +589,23 @@ static void prvEMACHandlerTask( void * pvParameters )
             while( xQueueReceive( xTxBufferQueue, &pucBuffer, 0 ) != pdFALSE )
             {
                 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                    {
-                        pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
+                {
+                    pxBuffer = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
 
-                        if( pxBuffer != NULL )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxBuffer );
-                            tx_release_count[ 0 ]++;
-                        }
-                        else
-                        {
-                            tx_release_count[ 1 ]++;
-                        }
-                    }
-                #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                    if( pxBuffer != NULL )
                     {
+                        vReleaseNetworkBufferAndDescriptor( pxBuffer );
                         tx_release_count[ 0 ]++;
                     }
+                    else
+                    {
+                        tx_release_count[ 1 ]++;
+                    }
+                }
+                #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
+                {
+                    tx_release_count[ 0 ]++;
+                }
                 #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
                 uxCount = uxQueueMessagesWaiting( ( QueueHandle_t ) xTXDescriptorSemaphore );
 
@@ -624,7 +628,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             /* A packet was received. No need to check for the PHY status now,
              * but set a timer to check it later on. */
             vTaskSetTimeOutState( &xPhyTime );
-            xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+            xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             xResult = 0;
         }
         else if( xTaskCheckForTimeOut( &xPhyTime, &xPhyRemTime ) != pdFALSE )
@@ -642,11 +646,11 @@ static void prvEMACHandlerTask( void * pvParameters )
 
             if( ( ulPHYLinkStatus & BMSR_LINK_STATUS ) != 0 )
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_HIGH_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }
             else
             {
-                xPhyRemTime = pdMS_TO_TICKS( PHY_LS_LOW_CHECK_TIME_MS );
+                xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
             }
         }
     }

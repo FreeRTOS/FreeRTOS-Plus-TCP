@@ -114,6 +114,14 @@
     #define iptraceARP_TABLE_ENTRY_CREATED( ulIPAddress, ucMACAddress )
 #endif
 
+#ifndef iptraceND_TABLE_ENTRY_WILL_EXPIRE
+    #define iptraceND_TABLE_ENTRY_WILL_EXPIRE( pxIPAddress )
+#endif
+
+#ifndef iptraceND_TABLE_ENTRY_EXPIRED
+    #define iptraceND_TABLE_ENTRY_EXPIRED( pxIPAddress )
+#endif
+
 #ifndef iptraceSENDING_UDP_PACKET
     #define iptraceSENDING_UDP_PACKET( ulIPAddress )
 #endif
@@ -174,6 +182,10 @@
     #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ulIPAddress )
 #endif
 
+#ifndef iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS
+    #define iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( xIPAddress )
+#endif
+
 #ifndef iptraceSENDING_DHCP_DISCOVER
     #define iptraceSENDING_DHCP_DISCOVER()
 #endif
@@ -182,8 +194,16 @@
     #define iptraceSENDING_DHCP_REQUEST()
 #endif
 
-#ifndef iptraceDHCP_SUCCEDEED
-    #define iptraceDHCP_SUCCEDEED( address )
+#ifndef iptraceDHCP_SUCCEEDED
+    #define iptraceDHCP_SUCCEEDED( address )
+#endif
+
+#ifndef iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
+    #define iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ipv6_address )
+#endif
+
+#ifndef iptraceRA_SUCCEEDED
+    #define iptraceRA_SUCCEEDED( ipv6_address )
 #endif
 
 #ifndef iptraceNETWORK_INTERFACE_TRANSMIT
