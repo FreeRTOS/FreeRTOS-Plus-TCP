@@ -185,14 +185,6 @@ uint16_t usPacketIdentifier = 0U;
  * reference. */
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 
-/** @brief Default values for the above struct in case DHCP
- * does not lead to a confirmed request. */
-
-/* MISRA Ref 8.9.1 [File scoped variables] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-/* coverity[misra_c_2012_rule_8_9_violation] */
-NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
-
 /** @brief Used to ensure network down events cannot be missed when they cannot be
  * posted to the network event queue because the network event queue is already
  * full. */
