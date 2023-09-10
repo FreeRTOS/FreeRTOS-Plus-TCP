@@ -103,11 +103,6 @@
 #define dhcpADDRESS_TYPE_ETHERNET       ( 1U )                /**< Address type: ethernet opcode. */
 #define dhcpETHERNET_ADDRESS_LENGTH     ( 6U )                /**< Ethernet address length opcode. */
 
-/* The following define is temporary and serves to make the /single source
- * code more similar to the /multi version. TODO */
-//#define EP_DHCPData                     xDHCPData              /**< Temporary define to make /single source similar to /multi version. */
-//#define EP_IPv4_SETTINGS                xNetworkAddressing     /**< Temporary define to make /single source similar to /multi version. */
-
 /** @brief If a lease time is not received, use the default of two days (48 hours in ticks).
  * Can not use pdMS_TO_TICKS() as integer overflow can occur. */
 #define dhcpDEFAULT_LEASE_TIME          ( ( 48UL * 60UL * 60UL ) * configTICK_RATE_HZ )
