@@ -4425,7 +4425,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
         /* Confirm that this is a TCP socket before dereferencing structure
          * member pointers. */
-        if( prvValidSocket( pxSocket, FR EERTOS_IPPROTO_TCP, pdFALSE ) == pdTRUE )
+        if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdFALSE ) == pdTRUE )
         {
             pxBuffer = pxSocket->u.xTCP.txStream;
 
