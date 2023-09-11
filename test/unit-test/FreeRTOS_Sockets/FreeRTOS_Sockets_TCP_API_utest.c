@@ -794,7 +794,6 @@ void test_FreeRTOS_get_tx_head_InvalidParams( void )
     /* NULL socket. */
     pucReturn = FreeRTOS_get_tx_head( NULL, &xLength );
     TEST_ASSERT_EQUAL( NULL, pucReturn );
-
 }
 
 /**
@@ -813,7 +812,7 @@ void test_FreeRTOS_get_tx_head_NoStream( void )
 
     /* NULL stream. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    pvPortMalloc_ExpectAnyArgsAndReturn(ucStream);
+    pvPortMalloc_ExpectAnyArgsAndReturn( ucStream );
     uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxRemainingSize );
     pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
     TEST_ASSERT_EQUAL_PTR( &( ( ( StreamBuffer_t * ) ucStream )->ucArray[ 0 ] ), pucReturn );

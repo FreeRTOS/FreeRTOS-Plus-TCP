@@ -4389,7 +4389,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( ( pxBuffer == NULL ) && ( pxSocket->u.xTCP.bits.bMallocError != pdTRUE ) )
             {
-
                 /* Create the outgoing stream only when it is needed */
                 ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
                 pxBuffer = pxSocket->u.xTCP.txStream;
