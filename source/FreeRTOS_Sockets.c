@@ -4372,11 +4372,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @return Head of the circular transmit buffer if all checks pass. Or else, NULL
  *         is returned.
  */
-    uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
+    uint8_t * FreeRTOS_get_tx_head( Socket_t xSocket,
                                     BaseType_t * pxLength )
     {
         uint8_t * pucReturn = NULL;
-        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+        FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
         StreamBuffer_t * pxBuffer = NULL;
 
         *pxLength = 0;
@@ -4386,6 +4386,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdFALSE ) == pdTRUE )
         {
             pxBuffer = pxSocket->u.xTCP.txStream;
+
+            if( ( pxBuffer == NULL ) && ( pxSocket->u.xTCP.bits.bMallocError != pdTRUE ) )
+            {
+
+                /* Create the outgoing stream only when it is needed */
+                ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
+                pxBuffer = pxSocket->u.xTCP.txStream;
+            }
 
             if( pxBuffer != NULL )
             {
