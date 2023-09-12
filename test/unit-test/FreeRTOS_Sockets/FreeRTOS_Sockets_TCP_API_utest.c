@@ -832,7 +832,7 @@ void test_FreeRTOS_get_tx_head_NoStreamMallocError( void )
 
     /* NULL stream. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
-    xSocket.u.xTCP.bits.bMallocError = pdTRUE;
+    xSocket.u.xTCP.bits.bMallocError = pdTRUE_UNSIGNED;
     pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
     TEST_ASSERT_EQUAL_PTR( NULL, pucReturn );
     TEST_ASSERT_EQUAL( 0, xLength );

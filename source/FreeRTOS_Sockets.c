@@ -4387,7 +4387,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             pxBuffer = pxSocket->u.xTCP.txStream;
 
-            if( ( pxBuffer == NULL ) && ( pxSocket->u.xTCP.bits.bMallocError != pdTRUE ) )
+            if( ( pxBuffer == NULL ) && ( pxSocket->u.xTCP.bits.bMallocError != pdTRUE_UNSIGNED ) )
             {
                 /* Create the outgoing stream only when it is needed */
                 ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
@@ -5057,7 +5057,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         if( pxBuffer == NULL )
         {
             FreeRTOS_debug_printf( ( "prvTCPCreateStream: malloc failed\n" ) );
-            pxSocket->u.xTCP.bits.bMallocError = pdTRUE;
+            pxSocket->u.xTCP.bits.bMallocError = pdTRUE_UNSIGNED;
             vTCPStateChange( pxSocket, eCLOSE_WAIT );
         }
         else
