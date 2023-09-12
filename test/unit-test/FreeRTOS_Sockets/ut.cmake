@@ -19,12 +19,27 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv4_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IPv6_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Routing.h"
+            "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Sockets.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_Stream_Buffer.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_TCP_WIN.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_list_macros.h"
         )
+
+#  Without 'FreeRTOS_Sockets.h':
+#
+#   1 - FreeRTOS_Sockets_GenericAPI_utest (Not Run)
+#   2 - FreeRTOS_Sockets_TCP_API_utest (Not Run)
+#   3 - FreeRTOS_Sockets_UDP_API_utest (Not Run)
+#   4 - FreeRTOS_Sockets_privates_utest (Not Run)
+#
+#  With 'FreeRTOS_Sockets.h':
+#
+#   3 - FreeRTOS_Sockets_UDP_API_utest (Failed)
+#
+#   FAIL:Function FreeRTOS_recvfrom.  Called more times than expected.
+#   FAIL:Function FreeRTOS_sendto.  Called more times than expected.
 
 set(mock_include_list "")
 # list the directories your mocks need
