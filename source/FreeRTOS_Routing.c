@@ -159,6 +159,7 @@ struct xIPv6_Couple
             {
                 /* No other interfaces are set yet, so this is the first in the list. */
                 pxNetworkInterfaces = pxInterface;
+                pxInterface->pxNext = NULL;
             }
             else
             {
