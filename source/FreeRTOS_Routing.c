@@ -109,7 +109,12 @@ struct xIPv6_Couple
             /* Fill in and add an end-point to a network interface.
              * The user must make sure that the object pointed to by 'pxEndPoint'
              * will remain to exist. */
+
+            /* As the endpoint might be part of a linked list,
+               protect the field pxNext from being overwritten. */
+            NetworkEndPoint_t * pxNext = pxEndPoint->pxNext;
             ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+            pxEndPoint->pxNext = pxNext;
 
             ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
             pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
