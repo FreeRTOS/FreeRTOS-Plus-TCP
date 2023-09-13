@@ -111,7 +111,7 @@ struct xIPv6_Couple
              * will remain to exist. */
 
             /* As the endpoint might be part of a linked list,
-               protect the field pxNext from being overwritten. */
+             * protect the field pxNext from being overwritten. */
             NetworkEndPoint_t * pxNext = pxEndPoint->pxNext;
             ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
             pxEndPoint->pxNext = pxNext;
