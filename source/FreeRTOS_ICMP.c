@@ -102,17 +102,17 @@
             {
                 case ipICMP_ECHO_REQUEST:
                     #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 )
-                        {
-                            eReturn = prvProcessICMPEchoRequest( pxICMPPacket, pxNetworkBuffer );
-                        }
+                    {
+                        eReturn = prvProcessICMPEchoRequest( pxICMPPacket, pxNetworkBuffer );
+                    }
                     #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) */
                     break;
 
                 case ipICMP_ECHO_REPLY:
                     #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                        {
-                            prvProcessICMPEchoReply( pxICMPPacket );
-                        }
+                    {
+                        prvProcessICMPEchoReply( pxICMPPacket );
+                    }
                     #endif /* ipconfigSUPPORT_OUTGOING_PINGS */
                     break;
 
@@ -171,24 +171,24 @@
         #endif
 
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-            {
-                /* calculate the IP header checksum, in case the driver won't do that. */
-                pxIPHeader->usHeaderChecksum = 0x00U;
-                pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSizePacket( pxNetworkBuffer ) );
-                pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+        {
+            /* calculate the IP header checksum, in case the driver won't do that. */
+            pxIPHeader->usHeaderChecksum = 0x00U;
+            pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSizePacket( pxNetworkBuffer ) );
+            pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
-                /* calculate the ICMP checksum for an outgoing packet. */
-                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxICMPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
-            }
+            /* calculate the ICMP checksum for an outgoing packet. */
+            ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxICMPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
+        }
         #else
-            {
-                /* Just to prevent compiler warnings about unused parameters. */
-                ( void ) pxNetworkBuffer;
+        {
+            /* Just to prevent compiler warnings about unused parameters. */
+            ( void ) pxNetworkBuffer;
 
-                /* Many EMAC peripherals will only calculate the ICMP checksum
-                 * correctly if the field is nulled beforehand. */
-                pxICMPHeader->usChecksum = 0U;
-            }
+            /* Many EMAC peripherals will only calculate the ICMP checksum
+             * correctly if the field is nulled beforehand. */
+            pxICMPHeader->usChecksum = 0U;
+        }
         #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
         return eReturnEthernetFrame;

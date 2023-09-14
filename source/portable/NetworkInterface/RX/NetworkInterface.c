@@ -284,12 +284,12 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     for( ; ; )
     {
         #if ( ipconfigHAS_PRINTF != 0 )
-            {
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-            }
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
@@ -479,7 +479,7 @@ static int InitializeNetwork( void )
     BaseType_t return_code = pdFALSE;
     ether_param_t param;
 
-    /* Read the mac address after it has been initilized by the FreeRTOS IP Stack, rather than from defines
+    /* Read the mac address after it has been initialized by the FreeRTOS IP Stack, rather than from defines
      * as the mac address is usually read from the EEPROM, and it might be different to the mac address in
      * the defines, especially in production environments
      */

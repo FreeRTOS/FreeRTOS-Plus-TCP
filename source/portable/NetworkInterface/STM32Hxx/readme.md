@@ -8,7 +8,7 @@ Number of DMA descriptors, for transmission and for reception.
 The descriptors for transmission are protected with a counting semaphore.
 By the time that a packet has been sent, the other TX descriptor becomes
 available already.
-The number of descriptors has an incluence on the performance.  But that also depends on the size
+The number of descriptors has an influence on the performance.  But that also depends on the size
 of the TCP buffers and TCP window sizes.
 
 When ETH_RX_DESC_CNT is too low, the adapter may miss incoming packets, they will be dropped.

@@ -31,7 +31,7 @@
     #include <time.h>
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
     extern uint32_t ulSeconds, ulMsec;

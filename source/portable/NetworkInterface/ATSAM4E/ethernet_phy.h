@@ -47,7 +47,7 @@
     #include "compiler.h"
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /* IEEE defined Registers */

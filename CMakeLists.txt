@@ -27,7 +27,7 @@ option(FREERTOS_PLUS_TCP_BUILD_TEST "Build the test for FreeRTOS Plus TCP" OFF)
 #   Optional: set(FREERTOS_PLUS_TCP_COMPILER "" CACHE STRING "" FORCE)
 #   Required: set(FREERTOS_PLUS_TCP_NETWORK_IF "POSIX" CACHE STRING "" FORCE)
 
-# Select the appropriate buffer allocaiton method.
+# Select the appropriate buffer allocation method.
 # See: https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
 if (NOT FREERTOS_PLUS_TCP_BUFFER_ALLOCATION)
     message(STATUS "Using default FREERTOS_PLUS_TCP_BUFFER_ALLOCATION = 2")
@@ -58,6 +58,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     DRIVER_SAM
     ESP32
     KSZ8851SNL
+    LIBSLIRP
     LPC17xx LPC18xx LPC54018
     M487
     MPS2_AN385
@@ -96,6 +97,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " DRIVER_SAM             Target: Driver SAM         Tested: TODO\n"
         " ESP32                  Target: ESP-32             Tested: TODO\n"
         " KSZ8851SNL             Target: ksz8851snl         Tested: TODO\n"
+        " LIBSLIRP               Target: libslirp           Tested: TODO\n"
         " POSIX                  Target: linux/Posix\n"
         " LPC17xx                Target: LPC17xx            Tested: TODO\n"
         " LPC18xx                Target: LPC18xx            Tested: TODO\n"
@@ -129,7 +131,7 @@ elseif((FREERTOS_PORT STREQUAL "A_CUSTOM_PORT") AND (NOT TARGET freertos_kernel_
     "   target_include_directories(freertos_plus_tcp_network_if\n"
     "     PUBLIC\n"
     "      .)\n\n"
-    "   taget_link_libraries(freertos_plus_tcp_network_if\n"
+    "   target_link_libraries(freertos_plus_tcp_network_if\n"
     "     PUBLIC\n"
     "       freertos_plus_tcp_port\n"
     "       freertos_plus_tcp_network_if_common\n"

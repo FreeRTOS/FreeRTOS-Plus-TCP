@@ -2296,14 +2296,14 @@ void test_prvTCPSendCheck_InvalidValues( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, lReturn );
 
     /* No memory. */
-    xSocket.u.xTCP.bits.bMallocError = pdTRUE;
+    xSocket.u.xTCP.bits.bMallocError = pdTRUE_UNSIGNED;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
     lReturn = prvTCPSendCheck( &xSocket, uxDataLength );
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOMEM, lReturn );
 
     /* Invalid states. */
-    xSocket.u.xTCP.bits.bMallocError = pdFALSE;
+    xSocket.u.xTCP.bits.bMallocError = pdFALSE_UNSIGNED;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
     for( unsigned int i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t ); i++ )

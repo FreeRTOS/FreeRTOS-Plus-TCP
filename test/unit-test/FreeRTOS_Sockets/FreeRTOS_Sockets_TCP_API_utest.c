@@ -751,7 +751,7 @@ void test_FreeRTOS_recv_SocketClosing( void )
 }
 
 /**
- * @brief Socket is in eClise_Wait in receive procedure.
+ * @brief Socket is in eClose_Wait in receive procedure.
  */
 void test_FreeRTOS_recv_SocketCloseWait( void )
 {
@@ -794,11 +794,48 @@ void test_FreeRTOS_get_tx_head_InvalidParams( void )
     /* NULL socket. */
     pucReturn = FreeRTOS_get_tx_head( NULL, &xLength );
     TEST_ASSERT_EQUAL( NULL, pucReturn );
+}
+
+/**
+ * @brief Socket with stream not yet created is passed to the function.
+ */
+void test_FreeRTOS_get_tx_head_NoStream( void )
+{
+    uint8_t * pucReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xLength;
+    uint8_t ucStream[ ipconfigTCP_MSS ];
+    const size_t uxRemainingSize = 5;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( ucStream, 0, ipconfigTCP_MSS );
 
     /* NULL stream. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    pvPortMalloc_ExpectAnyArgsAndReturn( ucStream );
+    uxStreamBufferGetSpace_ExpectAndReturn( ( StreamBuffer_t * ) ucStream, uxRemainingSize );
     pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
-    TEST_ASSERT_EQUAL( NULL, pucReturn );
+    TEST_ASSERT_EQUAL_PTR( &( ( ( StreamBuffer_t * ) ucStream )->ucArray[ 0 ] ), pucReturn );
+    TEST_ASSERT_EQUAL( uxRemainingSize, xLength );
+}
+
+/**
+ * @brief Socket with stream not created but malloc failed previously.
+ */
+void test_FreeRTOS_get_tx_head_NoStreamMallocError( void )
+{
+    uint8_t * pucReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xLength;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    /* NULL stream. */
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.bits.bMallocError = pdTRUE_UNSIGNED;
+    pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
+    TEST_ASSERT_EQUAL_PTR( NULL, pucReturn );
+    TEST_ASSERT_EQUAL( 0, xLength );
 }
 
 /**

@@ -110,9 +110,9 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
 
             ( void ) memset( &xTempBuffer, 0, sizeof( xTempBuffer ) );
             #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                {
-                    pxNetworkBuffer->pxNextBuffer = NULL;
-                }
+            {
+                pxNetworkBuffer->pxNextBuffer = NULL;
+            }
             #endif
             pxNetworkBuffer->pucEthernetBuffer = pxSocket->u.xTCP.xPacket.u.ucLastPacket;
             pxNetworkBuffer->xDataLength = sizeof( pxSocket->u.xTCP.xPacket.u.ucLastPacket );
@@ -120,23 +120,23 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+        {
+            if( xDoRelease == pdFALSE )
             {
-                if( xDoRelease == pdFALSE )
-                {
-                    /* A zero-copy network driver wants to pass the packet buffer
-                     * to DMA, so a new buffer must be created. */
-                    pxNetworkBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, ( size_t ) pxNetworkBuffer->xDataLength );
+                /* A zero-copy network driver wants to pass the packet buffer
+                 * to DMA, so a new buffer must be created. */
+                pxNetworkBuffer = pxDuplicateNetworkBufferWithDescriptor( pxNetworkBuffer, ( size_t ) pxNetworkBuffer->xDataLength );
 
-                    if( pxNetworkBuffer != NULL )
-                    {
-                        xDoRelease = pdTRUE;
-                    }
-                    else
-                    {
-                        FreeRTOS_debug_printf( ( "prvTCPReturnPacket: duplicate failed\n" ) );
-                    }
+                if( pxNetworkBuffer != NULL )
+                {
+                    xDoRelease = pdTRUE;
+                }
+                else
+                {
+                    FreeRTOS_debug_printf( ( "prvTCPReturnPacket: duplicate failed\n" ) );
                 }
             }
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -209,15 +209,15 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             #endif
 
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
-                {
-                    /* calculate the IP header checksum, in case the driver won't do that. */
-                    pxIPHeader->usHeaderChecksum = 0x00U;
-                    pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSize );
-                    pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
+            {
+                /* calculate the IP header checksum, in case the driver won't do that. */
+                pxIPHeader->usHeaderChecksum = 0x00U;
+                pxIPHeader->usHeaderChecksum = usGenerateChecksum( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), uxIPHeaderSize );
+                pxIPHeader->usHeaderChecksum = ( uint16_t ) ~FreeRTOS_htons( pxIPHeader->usHeaderChecksum );
 
-                    /* calculate the TCP checksum for an outgoing packet. */
-                    ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
-                }
+                /* calculate the TCP checksum for an outgoing packet. */
+                ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
+            }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
             vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
@@ -227,9 +227,9 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             pxNetworkBuffer->xDataLength += ipSIZE_OF_ETH_HEADER;
 
             #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-                {
-                    pxNetworkBuffer->pxNextBuffer = NULL;
-                }
+            {
+                pxNetworkBuffer->pxNextBuffer = NULL;
+            }
             #endif
 
             pvCopySource = &pxEthernetHeader->xSourceAddress;
@@ -262,19 +262,19 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
             #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
+            {
+                if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
                 {
-                    if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+                    BaseType_t xIndex;
+
+                    for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
                     {
-                        BaseType_t xIndex;
-
-                        for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
-                        {
-                            pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
-                        }
-
-                        pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+                        pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
                     }
+
+                    pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
                 }
+            }
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
             /* Send! */
@@ -331,10 +331,10 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
     uint32_t ulInitialSequenceNumber = 0;
 
     #if ( ipconfigHAS_PRINTF != 0 )
-        {
-            /* Only necessary for nicer logging. */
-            ( void ) memset( xEthAddress.ucBytes, 0, sizeof( xEthAddress.ucBytes ) );
-        }
+    {
+        /* Only necessary for nicer logging. */
+        ( void ) memset( xEthAddress.ucBytes, 0, sizeof( xEthAddress.ucBytes ) );
+    }
     #endif /* ipconfigHAS_PRINTF != 0 */
 
     ulRemoteIP = FreeRTOS_htonl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
@@ -474,32 +474,32 @@ BaseType_t prvTCPSendSpecialPktHelper_IPV4( NetworkBufferDescriptor_t * pxNetwor
         ( void ) pxNetworkBuffer;
         ( void ) ucTCPFlags;
     #else
-        {
-            /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
+    {
+        /* Map the ethernet buffer onto the TCPPacket_t struct for easy access to the fields. */
 
-            /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-            const uint32_t ulSendLength =
-                ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        TCPPacket_t * pxTCPPacket = ( ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        const uint32_t ulSendLength =
+            ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER; /* Plus 0 options. */
 
-            uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
-            pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
-            pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
+        uint8_t ucFlagsReceived = pxTCPPacket->xTCPHeader.ucTCPFlags;
+        pxTCPPacket->xTCPHeader.ucTCPFlags = ucTCPFlags;
+        pxTCPPacket->xTCPHeader.ucTCPOffset = ( ipSIZE_OF_TCP_HEADER ) << 2;
 
-            if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
-            {
-                /* A synchronize packet is received. It counts as 1 pseudo byte of data,
-                 * so increase the variable with 1. Before sending a reply, the values of
-                 * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
-                uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
-                ulSequenceNumber++;
-                pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
-            }
-
-            prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );
+        if( ( ucFlagsReceived & tcpTCP_FLAG_SYN ) != 0U )
+        {
+            /* A synchronize packet is received. It counts as 1 pseudo byte of data,
+             * so increase the variable with 1. Before sending a reply, the values of
+             * 'ulSequenceNumber' and 'ulAckNr' will be swapped. */
+            uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPPacket->xTCPHeader.ulSequenceNumber );
+            ulSequenceNumber++;
+            pxTCPPacket->xTCPHeader.ulSequenceNumber = FreeRTOS_htonl( ulSequenceNumber );
         }
+
+        prvTCPReturnPacket( NULL, pxNetworkBuffer, ulSendLength, pdFALSE );
+    }
     #endif /* !ipconfigIGNORE_UNKNOWN_PACKETS */
 
     /* The packet was not consumed. */
