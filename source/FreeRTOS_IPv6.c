@@ -238,11 +238,6 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0
 /*-----------------------------------------------------------*/
 
 /**
- * This variable is initialized by the system to contain the unspecified IPv6 address.
- */
-static const struct xIPv6_Address xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-
-/**
  * @brief Get the group ID and stored into IPv6_Address_t.
  *
  * @param[in] pxIPv6Address The multicast address to filter group ID.
@@ -350,7 +345,7 @@ BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
          * - ..
          * - 0xFF0F:: */
         else if( ( IPv6MC_GET_FLAGS_VALUE( pxIPAddress ) == 0U ) &&
-                 ( memcmp( xGroupIDAddress.ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+                 ( memcmp( xGroupIDAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             xReturn = pdFALSE;
         }
@@ -480,8 +475,8 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 
         /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
          * either in source or destination address. */
-        if( ( memcmp( pxDestinationIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
-            ( memcmp( pxSourceIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        if( ( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
+            ( memcmp( pxSourceIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             xHasUnspecifiedAddress = pdTRUE;
         }

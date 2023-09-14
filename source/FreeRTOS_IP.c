@@ -1707,16 +1707,6 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     {
         eReturn = eReleaseBuffer;
     }
-
-    #if ( ipconfigUSE_IPv4 != 0 )
-        else if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-                 ( xBadIPv4Loopback( &( pxUDPPacket->xIPHeader ) ) != pdFALSE ) )
-        {
-            /* The local loopback addresses must never appear outside a host. See RFC 1122
-             * section 3.2.1.3. */
-            eReturn = eReleaseBuffer;
-        }
-    #endif
     else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
              ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
