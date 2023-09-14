@@ -344,7 +344,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                         }
                         else
                         {
-                            xICMPChecksumResult = ipCORRECT_CRC; /* Reset the result value in case this is not an ICMP packet. */
+                            xICMPChecksumResult = ipCORRECT_CRC;     /* Reset the result value in case this is not an ICMP packet. */
                         }
                     }
                     #endif /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 ) */
