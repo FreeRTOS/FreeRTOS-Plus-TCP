@@ -1702,12 +1702,15 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* Note the header values required prior to the checksum
      * generation as the checksum pseudo header may clobber some of
      * these values. */
+	#if ( ipconfigUSE_IPv4 != 0 )
     if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
         ( usLength > ( FreeRTOS_ntohs( pxUDPPacket->xIPHeader.usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) ) )
     {
         eReturn = eReleaseBuffer;
     }
-    else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
+    else
+	#endif /* ( ipconfigUSE_IPv4 != 0 ) */
+	if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
              ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
