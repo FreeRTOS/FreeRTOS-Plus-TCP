@@ -177,10 +177,10 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
                      * connection had gone.  Send a RST in order to get a new connect
                      * request. */
                     #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
-                    {
-                        FreeRTOS_debug_printf( ( "TCP: Server can't handle flags: %s from %xip:%u to port %u\n",
-                                                 prvTCPFlagMeaning( ( UBaseType_t ) ucTCPFlags ), ( unsigned ) xRemoteIP.xIPAddress.ulIP_IPv4, usRemotePort, usLocalPort ) );
-                    }
+                        {
+                            FreeRTOS_debug_printf( ( "TCP: Server can't handle flags: %s from %xip:%u to port %u\n",
+                                                     prvTCPFlagMeaning( ( UBaseType_t ) ucTCPFlags ), ( unsigned ) xRemoteIP.xIPAddress.ulIP_IPv4, usRemotePort, usLocalPort ) );
+                        }
                     #endif /* ipconfigHAS_DEBUG_PRINTF */
 
                     if( ( ucTCPFlags & tcpTCP_FLAG_RST ) == 0U )
@@ -297,15 +297,15 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
                 usWindow = FreeRTOS_ntohs( pxProtocolHeaders->xTCPHeader.usWindow );
                 pxSocket->u.xTCP.ulWindowSize = ( uint32_t ) usWindow;
                 #if ( ipconfigUSE_TCP_WIN == 1 )
-                {
-                    /* rfc1323 : The Window field in a SYN (i.e., a <SYN> or <SYN,ACK>)
-                     * segment itself is never scaled. */
-                    if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_SYN ) == 0U )
                     {
-                        pxSocket->u.xTCP.ulWindowSize =
-                            ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
+                        /* rfc1323 : The Window field in a SYN (i.e., a <SYN> or <SYN,ACK>)
+                         * segment itself is never scaled. */
+                        if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_SYN ) == 0U )
+                        {
+                            pxSocket->u.xTCP.ulWindowSize =
+                                ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
+                        }
                     }
-                }
                 #endif /* ipconfigUSE_TCP_WIN */
 
                 /* In prvTCPHandleState() the incoming messages will be handled
@@ -315,9 +315,9 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
                     /* prvTCPHandleState() has sent a message, see if there are more to
                      * be transmitted. */
                     #if ( ipconfigUSE_TCP_WIN == 1 )
-                    {
-                        ( void ) prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
-                    }
+                        {
+                            ( void ) prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
+                        }
                     #endif /* ipconfigUSE_TCP_WIN */
                 }
 

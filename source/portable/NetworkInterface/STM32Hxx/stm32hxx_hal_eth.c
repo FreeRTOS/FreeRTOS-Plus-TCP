@@ -1558,15 +1558,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 if( __HAL_ETH_DMA_GET_IT_SOURCE( heth, ETH_DMACIER_RIE ) )
                 {
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    {
-                        /*Call registered Receive complete callback*/
-                        heth->RxCpltCallback( heth );
-                    }
+                        {
+                            /*Call registered Receive complete callback*/
+                            heth->RxCpltCallback( heth );
+                        }
                     #else
-                    {
-                        /* Receive complete callback */
-                        HAL_ETH_RxCpltCallback( heth );
-                    }
+                        {
+                            /* Receive complete callback */
+                            HAL_ETH_RxCpltCallback( heth );
+                        }
                     #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                     /* Clear the Eth DMA Rx IT pending bits */
@@ -1580,15 +1580,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 if( __HAL_ETH_DMA_GET_IT_SOURCE( heth, ETH_DMACIER_TIE ) )
                 {
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    {
-                        /*Call registered Transmit complete callback*/
-                        heth->TxCpltCallback( heth );
-                    }
+                        {
+                            /*Call registered Transmit complete callback*/
+                            heth->TxCpltCallback( heth );
+                        }
                     #else
-                    {
-                        /* Transfer complete callback */
-                        HAL_ETH_TxCpltCallback( heth );
-                    }
+                        {
+                            /* Transfer complete callback */
+                            HAL_ETH_TxCpltCallback( heth );
+                        }
                     #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                     /* Clear the Eth DMA Tx IT pending bits */
@@ -1627,15 +1627,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                     }
 
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    {
-                        /* Call registered DMA Error callback*/
-                        heth->DMAErrorCallback( heth );
-                    }
+                        {
+                            /* Call registered DMA Error callback*/
+                            heth->DMAErrorCallback( heth );
+                        }
                     #else
-                    {
-                        /* Ethernet DMA Error callback */
-                        HAL_ETH_DMAErrorCallback( heth );
-                    }
+                        {
+                            /* Ethernet DMA Error callback */
+                            HAL_ETH_DMAErrorCallback( heth );
+                        }
                     #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
                 }
             }
@@ -1649,15 +1649,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 set_error_state( heth, HAL_ETH_STATE_ERROR );
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                {
-                    /* Call registered MAC Error callback*/
-                    heth->DMAErrorCallback( heth );
-                }
+                    {
+                        /* Call registered MAC Error callback*/
+                        heth->DMAErrorCallback( heth );
+                    }
                 #else
-                {
-                    /* Ethernet MAC Error callback */
-                    HAL_ETH_MACErrorCallback( heth );
-                }
+                    {
+                        /* Ethernet MAC Error callback */
+                        HAL_ETH_MACErrorCallback( heth );
+                    }
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                 heth->MACErrorCode = ( uint32_t ) ( 0x0U );
@@ -1670,15 +1670,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 heth->MACWakeUpEvent = READ_BIT( heth->Instance->MACPCSR, ( ETH_MACPCSR_RWKPRCVD | ETH_MACPCSR_MGKPRCVD ) );
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                {
-                    /* Call registered PMT callback*/
-                    heth->PMTCallback( heth );
-                }
+                    {
+                        /* Call registered PMT callback*/
+                        heth->PMTCallback( heth );
+                    }
                 #else
-                {
-                    /* Ethernet PMT callback */
-                    HAL_ETH_PMTCallback( heth );
-                }
+                    {
+                        /* Ethernet PMT callback */
+                        HAL_ETH_PMTCallback( heth );
+                    }
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                 heth->MACWakeUpEvent = ( uint32_t ) ( 0x0U );
@@ -1691,15 +1691,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 heth->MACLPIEvent = READ_BIT( heth->Instance->MACPCSR, 0x0000000FU );
 
                 #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                {
-                    /* Call registered EEE callback*/
-                    heth->EEECallback( heth );
-                }
+                    {
+                        /* Call registered EEE callback*/
+                        heth->EEECallback( heth );
+                    }
                 #else
-                {
-                    /* Ethernet EEE callback */
-                    HAL_ETH_EEECallback( heth );
-                }
+                    {
+                        /* Ethernet EEE callback */
+                        HAL_ETH_EEECallback( heth );
+                    }
                 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
 
                 heth->MACLPIEvent = ( uint32_t ) ( 0x0U );
@@ -1714,15 +1714,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                         /* Clear ETH WAKEUP Exti pending bit */
                         __HAL_ETH_WAKEUP_EXTI_CLEAR_FLAG( ETH_WAKEUP_EXTI_LINE );
                         #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                        {
-                            /* Call registered WakeUp callback*/
-                            heth->WakeUpCallback( heth );
-                        }
+                            {
+                                /* Call registered WakeUp callback*/
+                                heth->WakeUpCallback( heth );
+                            }
                         #else
-                        {
-                            /* ETH WAKEUP callback */
-                            HAL_ETH_WakeUpCallback( heth );
-                        }
+                            {
+                                /* ETH WAKEUP callback */
+                                HAL_ETH_WakeUpCallback( heth );
+                            }
                         #endif
                     }
                 }
@@ -1734,15 +1734,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                         /* Clear ETH WAKEUP Exti pending bit */
                         __HAL_ETH_WAKEUP_EXTID2_CLEAR_FLAG( ETH_WAKEUP_EXTI_LINE );
                         #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                        {
-                            /* Call registered WakeUp callback*/
-                            heth->WakeUpCallback( heth );
-                        }
+                            {
+                                /* Call registered WakeUp callback*/
+                                heth->WakeUpCallback( heth );
+                            }
                         #else
-                        {
-                            /* ETH WAKEUP callback */
-                            HAL_ETH_WakeUpCallback( heth );
-                        }
+                            {
+                                /* ETH WAKEUP callback */
+                                HAL_ETH_WakeUpCallback( heth );
+                            }
                         #endif
                     }
                 }
@@ -1753,15 +1753,15 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                     /* Clear ETH WAKEUP Exti pending bit */
                     __HAL_ETH_WAKEUP_EXTI_CLEAR_FLAG( ETH_WAKEUP_EXTI_LINE );
                     #if ( USE_HAL_ETH_REGISTER_CALLBACKS == 1 )
-                    {
-                        /* Call registered WakeUp callback*/
-                        heth->WakeUpCallback( heth );
-                    }
+                        {
+                            /* Call registered WakeUp callback*/
+                            heth->WakeUpCallback( heth );
+                        }
                     #else
-                    {
-                        /* ETH WAKEUP callback */
-                        HAL_ETH_WakeUpCallback( heth );
-                    }
+                        {
+                            /* ETH WAKEUP callback */
+                            HAL_ETH_WakeUpCallback( heth );
+                        }
                     #endif
                 }
             #endif /* #if defined(DUAL_CORE) */
@@ -2830,25 +2830,25 @@ extern SemaphoreHandle_t xTXDescriptorSemaphore;
                 }
 
                 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                {
-                    NetworkBufferDescriptor_t * pxNetworkBuffer;
-                    uint8_t * ucPayLoad;
-
-                    ucPayLoad = ( uint8_t * ) xDMATxDescriptor->DESC0;
-
-                    if( ucPayLoad == NULL )
                     {
-                        /* No buffer is assigned or DMA still OWNs this descriptor. */
-                        break;
-                    }
+                        NetworkBufferDescriptor_t * pxNetworkBuffer;
+                        uint8_t * ucPayLoad;
 
-                    pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
+                        ucPayLoad = ( uint8_t * ) xDMATxDescriptor->DESC0;
 
-                    if( pxNetworkBuffer != NULL )
-                    {
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                        if( ucPayLoad == NULL )
+                        {
+                            /* No buffer is assigned or DMA still OWNs this descriptor. */
+                            break;
+                        }
+
+                        pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
+
+                        if( pxNetworkBuffer != NULL )
+                        {
+                            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                        }
                     }
-                }
                 #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 
                 xDMATxDescriptor->DESC0 = ( uint32_t ) 0u;

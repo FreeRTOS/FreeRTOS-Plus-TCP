@@ -36,7 +36,7 @@
     #include "xemacps.h" /* defines XEmacPs API */
 
     #ifdef __cplusplus
-    extern "C" {
+        extern "C" {
     #endif
 
     void xemacpsif_setmac( uint32_t index,

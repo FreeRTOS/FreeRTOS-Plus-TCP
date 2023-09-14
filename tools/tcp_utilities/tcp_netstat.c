@@ -78,42 +78,42 @@ BaseType_t vGetMetrics( MetricsType_t * pxMetrics )
         usLastPort = 0U;
 
         #if ( ipconfigUSE_TCP == 1 )
-        {
-            vTaskSuspendAll();
             {
-                for( pxIterator = listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
-                     pxIterator != pxEndTCP;
-                     pxIterator = listGET_NEXT( pxIterator ) )
+                vTaskSuspendAll();
                 {
-                    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator );
-
-                    if( pxMetrics->xTCPPortList.uxCount < nstatMAX_TCP_PORTS )
+                    for( pxIterator = listGET_HEAD_ENTRY( &xBoundTCPSocketsList );
+                         pxIterator != pxEndTCP;
+                         pxIterator = listGET_NEXT( pxIterator ) )
                     {
-                        if( usLastPort != pxSocket->usLocalPort )
+                        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator );
+
+                        if( pxMetrics->xTCPPortList.uxCount < nstatMAX_TCP_PORTS )
                         {
-                            pxMetrics->xTCPPortList.usTCPPortList[ pxMetrics->xTCPPortList.uxCount ] = pxSocket->usLocalPort;
-                            pxMetrics->xTCPPortList.uxCount++;
-                            usLastPort = pxSocket->usLocalPort;
+                            if( usLastPort != pxSocket->usLocalPort )
+                            {
+                                pxMetrics->xTCPPortList.usTCPPortList[ pxMetrics->xTCPPortList.uxCount ] = pxSocket->usLocalPort;
+                                pxMetrics->xTCPPortList.uxCount++;
+                                usLastPort = pxSocket->usLocalPort;
+                            }
+                        }
+
+                        if( pxMetrics->xTCPSocketList.uxCount < nstatMAX_TCP_PORTS )
+                        {
+                            size_t uxCount = pxMetrics->xTCPSocketList.uxCount;
+
+                            pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usLocalPort = pxSocket->usLocalPort;
+                            pxMetrics->xTCPSocketList.xTCPList[ uxCount ].ulRemoteIP = pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4;
+                            pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usRemotePort = pxSocket->u.xTCP.usRemotePort;
+                            pxMetrics->xTCPSocketList.uxCount++;
                         }
                     }
+                }
 
-                    if( pxMetrics->xTCPSocketList.uxCount < nstatMAX_TCP_PORTS )
-                    {
-                        size_t uxCount = pxMetrics->xTCPSocketList.uxCount;
-
-                        pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usLocalPort = pxSocket->usLocalPort;
-                        pxMetrics->xTCPSocketList.xTCPList[ uxCount ].ulRemoteIP = pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4;
-                        pxMetrics->xTCPSocketList.xTCPList[ uxCount ].usRemotePort = pxSocket->u.xTCP.usRemotePort;
-                        pxMetrics->xTCPSocketList.uxCount++;
-                    }
+                if( xTaskResumeAll() == 0 )
+                {
+                    taskYIELD();
                 }
             }
-
-            if( xTaskResumeAll() == 0 )
-            {
-                taskYIELD();
-            }
-        }
         #endif /* ( ipconfigUSE_TCP == 1 ) */
 
         vTaskSuspendAll();
@@ -157,25 +157,25 @@ void vShowMetrics( const MetricsType_t * pxMetrics )
                        pxMetrics->xOutput.uxByteCount ) );
 
     #if ( ipconfigUSE_TCP == 1 )
-    {
-        FreeRTOS_printf( ( "TCP ports:\n" ) );
-
-        for( uxIndex = 0; uxIndex < pxMetrics->xTCPPortList.uxCount; uxIndex++ )
         {
-            FreeRTOS_printf( ( "    local port: %u\n",
-                               pxMetrics->xTCPPortList.usTCPPortList[ uxIndex ] ) );
-        }
+            FreeRTOS_printf( ( "TCP ports:\n" ) );
 
-        FreeRTOS_printf( ( "TCP sockets:\n" ) );
+            for( uxIndex = 0; uxIndex < pxMetrics->xTCPPortList.uxCount; uxIndex++ )
+            {
+                FreeRTOS_printf( ( "    local port: %u\n",
+                                   pxMetrics->xTCPPortList.usTCPPortList[ uxIndex ] ) );
+            }
 
-        for( uxIndex = 0; uxIndex < pxMetrics->xTCPSocketList.uxCount; uxIndex++ )
-        {
-            FreeRTOS_printf( ( "    local port: %u remote IP %xip:%u\n",
-                               pxMetrics->xTCPSocketList.xTCPList[ uxIndex ].usLocalPort,
-                               pxMetrics->xTCPSocketList.xTCPList[ uxIndex ].ulRemoteIP,
-                               pxMetrics->xTCPSocketList.xTCPList[ uxIndex ].usRemotePort ) );
+            FreeRTOS_printf( ( "TCP sockets:\n" ) );
+
+            for( uxIndex = 0; uxIndex < pxMetrics->xTCPSocketList.uxCount; uxIndex++ )
+            {
+                FreeRTOS_printf( ( "    local port: %u remote IP %xip:%u\n",
+                                   pxMetrics->xTCPSocketList.xTCPList[ uxIndex ].usLocalPort,
+                                   pxMetrics->xTCPSocketList.xTCPList[ uxIndex ].ulRemoteIP,
+                                   pxMetrics->xTCPSocketList.xTCPList[ uxIndex ].usRemotePort ) );
+            }
         }
-    }
     #endif /* ( ipconfigUSE_TCP == 1 ) */
 
     FreeRTOS_printf( ( "UDP ports:\n" ) );

@@ -479,9 +479,9 @@ struct xIPv6_Couple
         NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-        {
-            xRoutingStatistics.ulOnMAC++;
-        }
+            {
+                xRoutingStatistics.ulOnMAC++;
+            }
         #endif
 
         /* If input MAC address is NULL, return NULL. */
@@ -914,16 +914,16 @@ struct xIPv6_Couple
         /* Check if 'pucEthernetBuffer()' has the expected alignment,
          * which is 32-bits + 2. */
         #ifndef _lint
-        {
-            /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-            /* coverity[misra_c_2012_rule_11_4_violation] */
-            uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer;
-            uxAddress += 2U;
-            configASSERT( ( uxAddress % 4U ) == 0U );
-            /* And in case configASSERT is not defined. */
-            ( void ) uxAddress;
-        }
+            {
+                /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+                /* coverity[misra_c_2012_rule_11_4_violation] */
+                uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer;
+                uxAddress += 2U;
+                configASSERT( ( uxAddress % 4U ) == 0U );
+                /* And in case configASSERT is not defined. */
+                ( void ) uxAddress;
+            }
         #endif /* ifndef _lint */
 
         /* An Ethernet packet has been received. Inspect the contents to see which
@@ -931,10 +931,10 @@ struct xIPv6_Couple
          */
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
-        {
-            /* Some stats while developing. */
-            xRoutingStatistics.ulMatching++;
-        }
+            {
+                /* Some stats while developing. */
+                xRoutingStatistics.ulMatching++;
+            }
         #endif
         {
             uint16_t usFrameType = pxPacket->xUDPPacket.xEthernetHeader.usFrameType;
@@ -963,30 +963,30 @@ struct xIPv6_Couple
 
                     /* Handle ARP frame types if ipconfigUSE_IPv4 != 0 */
                     #if ( ipconfigUSE_IPv4 != 0 )
-                    {
-                        /* MISRA Ref 11.3.1 [Misaligned access] */
-                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                        /* coverity[misra_c_2012_rule_11_3_violation] */
-                        const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
+                        {
+                            /* MISRA Ref 11.3.1 [Misaligned access] */
+                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                            /* coverity[misra_c_2012_rule_11_3_violation] */
+                            const ARPPacket_t * pxARPFrame = ( const ARPPacket_t * ) pucEthernetBuffer;
 
-                        if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
-                        {
-                            ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
-                            xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
-                        }
-                        else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
-                        {
-                            ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
-                            xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
-                        }
-                        else
-                        {
-                            /* do nothing, coverity happy */
-                        }
+                            if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REQUEST )
+                            {
+                                ( void ) memcpy( xIPAddressFrom.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                                xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                            }
+                            else if( pxARPFrame->xARPHeader.usOperation == ( uint16_t ) ipARP_REPLY )
+                            {
+                                ( void ) memcpy( xIPAddressTo.xIP_IPv6.ucBytes, pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress, sizeof( uint32_t ) );
+                                xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                            }
+                            else
+                            {
+                                /* do nothing, coverity happy */
+                            }
 
-                        FreeRTOS_debug_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
-                    }
-                    xDoProcessPacket = pdTRUE;
+                            FreeRTOS_debug_printf( ( "pxEasyFit: ARP %xip -> %xip\n", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                        }
+                        xDoProcessPacket = pdTRUE;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                     break;

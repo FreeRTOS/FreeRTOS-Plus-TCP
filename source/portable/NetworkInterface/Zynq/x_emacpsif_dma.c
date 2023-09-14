@@ -391,18 +391,18 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
          * This is a deferred handler taskr, not a real interrupt, so it is ok to
          * use the task level function here. */
         #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-        {
-            do
             {
-                NetworkBufferDescriptor_t * pxNext = pxDescriptor->pxNextBuffer;
-                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-                pxDescriptor = pxNext;
-            } while( pxDescriptor != NULL );
-        }
+                do
+                {
+                    NetworkBufferDescriptor_t * pxNext = pxDescriptor->pxNextBuffer;
+                    vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+                    pxDescriptor = pxNext;
+                } while( pxDescriptor != NULL );
+            }
         #else
-        {
-            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-        }
+            {
+                vReleaseNetworkBufferAndDescriptor( pxDescriptor );
+            }
         #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
         iptraceETHERNET_RX_EVENT_LOST();
         FreeRTOS_printf( ( "prvPassEthMessages: Can not queue return packet!\n" ) );
@@ -434,51 +434,51 @@ BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
     }
 
     #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 1 )
-    {
-        const IPHeader_t * pxIPHeader = &( pxProtPacket->xTCPPacket.xIPHeader );
-
-        /* Ensure that the incoming packet is not fragmented (only outgoing packets
-         * can be fragmented) as these are the only handled IP frames currently. */
-        if( ( pxIPHeader->usFragmentOffset & FreeRTOS_ntohs( ipFRAGMENT_OFFSET_BIT_MASK ) ) != 0U )
         {
-            return pdFALSE;
-        }
+            const IPHeader_t * pxIPHeader = &( pxProtPacket->xTCPPacket.xIPHeader );
 
-        /* HT: Might want to make the following configurable because
-         * most IP messages have a standard length of 20 bytes */
-
-        /* 0x45 means: IPv4 with an IP header of 5 x 4 = 20 bytes
-         * 0x47 means: IPv4 with an IP header of 7 x 4 = 28 bytes */
-        if( ( pxIPHeader->ucVersionHeaderLength < 0x45 ) || ( pxIPHeader->ucVersionHeaderLength > 0x4F ) )
-        {
-            return pdFALSE;
-        }
-
-        if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
-        {
-            uint16_t usSourcePort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usSourcePort );
-            uint16_t usDestinationPort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort );
-
-            if( ( xPortHasUDPSocket( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort ) == pdFALSE )
-                #if ipconfigUSE_LLMNR == 1
-                    && ( usDestinationPort != ipLLMNR_PORT ) &&
-                    ( usSourcePort != ipLLMNR_PORT )
-                #endif
-                #if ipconfigUSE_NBNS == 1
-                    && ( usDestinationPort != ipNBNS_PORT ) &&
-                    ( usSourcePort != ipNBNS_PORT )
-                #endif
-                #if ipconfigUSE_DNS == 1
-                    && ( usSourcePort != ipDNS_PORT )
-                #endif
-                )
+            /* Ensure that the incoming packet is not fragmented (only outgoing packets
+             * can be fragmented) as these are the only handled IP frames currently. */
+            if( ( pxIPHeader->usFragmentOffset & FreeRTOS_ntohs( ipFRAGMENT_OFFSET_BIT_MASK ) ) != 0U )
             {
-                /* Drop this packet, not for this device. */
-                /* FreeRTOS_printf( ( "Drop: UDP port %d -> %d\n", usSourcePort, usDestinationPort ) ); */
                 return pdFALSE;
             }
+
+            /* HT: Might want to make the following configurable because
+             * most IP messages have a standard length of 20 bytes */
+
+            /* 0x45 means: IPv4 with an IP header of 5 x 4 = 20 bytes
+             * 0x47 means: IPv4 with an IP header of 7 x 4 = 28 bytes */
+            if( ( pxIPHeader->ucVersionHeaderLength < 0x45 ) || ( pxIPHeader->ucVersionHeaderLength > 0x4F ) )
+            {
+                return pdFALSE;
+            }
+
+            if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
+            {
+                uint16_t usSourcePort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usSourcePort );
+                uint16_t usDestinationPort = FreeRTOS_ntohs( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort );
+
+                if( ( xPortHasUDPSocket( pxProtPacket->xUDPPacket.xUDPHeader.usDestinationPort ) == pdFALSE )
+                    #if ipconfigUSE_LLMNR == 1
+                        && ( usDestinationPort != ipLLMNR_PORT ) &&
+                        ( usSourcePort != ipLLMNR_PORT )
+                    #endif
+                    #if ipconfigUSE_NBNS == 1
+                        && ( usDestinationPort != ipNBNS_PORT ) &&
+                        ( usSourcePort != ipNBNS_PORT )
+                    #endif
+                    #if ipconfigUSE_DNS == 1
+                        && ( usSourcePort != ipDNS_PORT )
+                    #endif
+                    )
+                {
+                    /* Drop this packet, not for this device. */
+                    /* FreeRTOS_printf( ( "Drop: UDP port %d -> %d\n", usSourcePort, usDestinationPort ) ); */
+                    return pdFALSE;
+                }
+            }
         }
-    }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
     return pdTRUE;
 }
@@ -559,26 +559,26 @@ int emacps_check_rx( xemacpsif_s * xemacpsif,
              * different handler. */
             iptraceNETWORK_INTERFACE_RECEIVE();
             #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-            {
-                pxBuffer->pxNextBuffer = NULL;
-
-                if( pxFirstDescriptor == NULL )
                 {
-                    /* Becomes the first message */
-                    pxFirstDescriptor = pxBuffer;
-                }
-                else if( pxLastDescriptor != NULL )
-                {
-                    /* Add to the tail */
-                    pxLastDescriptor->pxNextBuffer = pxBuffer;
-                }
+                    pxBuffer->pxNextBuffer = NULL;
 
-                pxLastDescriptor = pxBuffer;
-            }
+                    if( pxFirstDescriptor == NULL )
+                    {
+                        /* Becomes the first message */
+                        pxFirstDescriptor = pxBuffer;
+                    }
+                    else if( pxLastDescriptor != NULL )
+                    {
+                        /* Add to the tail */
+                        pxLastDescriptor->pxNextBuffer = pxBuffer;
+                    }
+
+                    pxLastDescriptor = pxBuffer;
+                }
             #else /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
-            {
-                prvPassEthMessages( pxBuffer );
-            }
+                {
+                    prvPassEthMessages( pxBuffer );
+                }
             #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
             msgCount++;
@@ -617,12 +617,12 @@ int emacps_check_rx( xemacpsif_s * xemacpsif,
     }
 
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
-    {
-        if( pxFirstDescriptor != NULL )
         {
-            prvPassEthMessages( pxFirstDescriptor );
+            if( pxFirstDescriptor != NULL )
+            {
+                prvPassEthMessages( pxFirstDescriptor );
+            }
         }
-    }
     #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 
     return msgCount;
@@ -731,10 +731,10 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
             value |= XEMACPS_DMACR_TCPCKSUM_MASK;
         #else
-        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-            {
-                #warning Are you sure the EMAC should not calculate outgoing checksums?
-            }
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+                {
+                    #warning Are you sure the EMAC should not calculate outgoing checksums?
+                }
             #endif
 
             value &= ~XEMACPS_DMACR_TCPCKSUM_MASK;
@@ -752,10 +752,10 @@ XStatus init_dma( xemacpsif_s * xemacpsif )
         #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 )
             value |= XEMACPS_NWCFG_RXCHKSUMEN_MASK;
         #else
-        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-            {
-                #warning Are you sure the EMAC should not calculate incoming checksums?
-            }
+            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+                {
+                    #warning Are you sure the EMAC should not calculate incoming checksums?
+                }
             #endif
 
             value &= ~( ( uint32_t ) XEMACPS_NWCFG_RXCHKSUMEN_MASK );

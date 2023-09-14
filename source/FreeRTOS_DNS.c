@@ -96,8 +96,8 @@
                                       BaseType_t xFamily );
 
     #if ( ipconfigUSE_LLMNR == 1 )
-    /** @brief The MAC address used for LLMNR. */
-    const MACAddress_t xLLMNR_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
+        /** @brief The MAC address used for LLMNR. */
+        const MACAddress_t xLLMNR_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
     #endif /* ipconfigUSE_LLMNR == 1 */
 
 /*-----------------------------------------------------------*/
@@ -155,8 +155,8 @@
 
 
     #if ( ipconfigUSE_MDNS == 1 )
-    /** @brief The MAC address used for MDNS. */
-    const MACAddress_t xMDNS_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
+        /** @brief The MAC address used for MDNS. */
+        const MACAddress_t xMDNS_MacAdress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
     #endif /* ipconfigUSE_MDNS == 1 */
 
 /** @brief This global variable is being used to indicate to the driver which IP type
@@ -417,13 +417,13 @@
             #endif
             {
                 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-                {
-                    ulResult = prvPrepareLookup( pcName, ppxResult, xFamily, pCallback, pvSearchID, uxTimeout );
-                }
+                    {
+                        ulResult = prvPrepareLookup( pcName, ppxResult, xFamily, pCallback, pvSearchID, uxTimeout );
+                    }
                 #else
-                {
-                    ulResult = prvPrepareLookup( pcName, ppxResult, xFamily );
-                }
+                    {
+                        ulResult = prvPrepareLookup( pcName, ppxResult, xFamily );
+                    }
                 #endif /* ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
                 if( ulResult != 0U )
@@ -611,26 +611,26 @@
         #endif
 
         #if ( ipconfigUSE_DNS_CACHE != 0 )
-        {
-            if( pcHostName != NULL )
             {
-                size_t uxLength = strlen( pcHostName ) + 1U;
+                if( pcHostName != NULL )
+                {
+                    size_t uxLength = strlen( pcHostName ) + 1U;
 
-                if( uxLength <= ipconfigDNS_CACHE_NAME_LENGTH )
-                {
-                    /* The name is not too long. */
-                    xLengthOk = pdTRUE;
-                }
-                else
-                {
-                    FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %u > %u )\n",
-                                       ( unsigned ) uxLength,
-                                       ( unsigned ) ipconfigDNS_CACHE_NAME_LENGTH ) );
+                    if( uxLength <= ipconfigDNS_CACHE_NAME_LENGTH )
+                    {
+                        /* The name is not too long. */
+                        xLengthOk = pdTRUE;
+                    }
+                    else
+                    {
+                        FreeRTOS_printf( ( "prvPrepareLookup: name is too long ( %u > %u )\n",
+                                           ( unsigned ) uxLength,
+                                           ( unsigned ) ipconfigDNS_CACHE_NAME_LENGTH ) );
+                    }
                 }
             }
-        }
 
-        if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
+            if( ( pcHostName != NULL ) && ( xLengthOk != pdFALSE ) )
         #else /* if ( ipconfigUSE_DNS_CACHE != 0 ) */
             if( pcHostName != NULL )
         #endif /* ( ipconfigUSE_DNS_CACHE != 0 ) */
@@ -638,9 +638,9 @@
             /* If the supplied hostname is an IP address, put it in ppxAddressInfo
              * and return. */
             #if ( ipconfigINCLUDE_FULL_INET_ADDR == 1 )
-            {
-                ulIPAddress = prvPrepare_ReadIPAddress( pcHostName, xFamily, ppxAddressInfo );
-            }
+                {
+                    ulIPAddress = prvPrepare_ReadIPAddress( pcHostName, xFamily, ppxAddressInfo );
+                }
             #endif /* ipconfigINCLUDE_FULL_INET_ADDR == 1 */
 
             /* If a DNS cache is used then check the cache before issuing another DNS
@@ -679,30 +679,30 @@
             }
 
             #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-            {
-                if( pCallbackFunction != NULL )
                 {
-                    if( ulIPAddress == 0U )
+                    if( pCallbackFunction != NULL )
                     {
-                        /* The user has provided a callback function, so do not block on recvfrom() */
-                        if( xHasRandom != pdFALSE )
+                        if( ulIPAddress == 0U )
                         {
-                            uxReadTimeOut_ticks = 0U;
-                            vDNSSetCallBack( pcHostName,
-                                             pvSearchID,
-                                             pCallbackFunction,
-                                             uxTimeout,
-                                             ( TickType_t ) uxIdentifier,
-                                             ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
+                            /* The user has provided a callback function, so do not block on recvfrom() */
+                            if( xHasRandom != pdFALSE )
+                            {
+                                uxReadTimeOut_ticks = 0U;
+                                vDNSSetCallBack( pcHostName,
+                                                 pvSearchID,
+                                                 pCallbackFunction,
+                                                 uxTimeout,
+                                                 ( TickType_t ) uxIdentifier,
+                                                 ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
+                            }
+                        }
+                        else /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
+                        {
+                            /* The IP address is known, do the call-back now. */
+                            pCallbackFunction( pcHostName, pvSearchID, *( ppxAddressInfo ) );
                         }
                     }
-                    else     /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
-                    {
-                        /* The IP address is known, do the call-back now. */
-                        pCallbackFunction( pcHostName, pvSearchID, *( ppxAddressInfo ) );
-                    }
                 }
-            }
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
             if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
@@ -883,79 +883,79 @@
             /* Looking for e.g. "mydevice" or "mydevice.local",
              * while using either mDNS or LLMNR. */
             #if ( ipconfigUSE_MDNS == 1 )
-            {
-                if( bHasLocal )
                 {
-                    /* Looking up a name like "mydevice.local".
-                     * Use mDNS addresses. */
-
-                    pxAddress->sin_port = ipMDNS_PORT;
-                    pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
-                    xNeed_Endpoint = pdTRUE;
-
-                    switch( xDNS_IP_Preference )
+                    if( bHasLocal )
                     {
-                        #if ( ipconfigUSE_IPv4 != 0 )
-                            case xPreferenceIPv4:
-                                pxAddress->sin_address.ulIP_IPv4 = ipMDNS_IP_ADDRESS;     /* Is in network byte order. */
-                                /* sin_family is default set to FREERTOS_AF_INET */
-                                break;
-                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                        /* Looking up a name like "mydevice.local".
+                         * Use mDNS addresses. */
 
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            case xPreferenceIPv6:
-                                memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
-                                        ipMDNS_IP_ADDR_IPv6.ucBytes,
-                                        ipSIZE_OF_IPv6_ADDRESS );
-                                pxAddress->sin_family = FREERTOS_AF_INET6;
-                                break;
-                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                        pxAddress->sin_port = ipMDNS_PORT;
+                        pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
+                        xNeed_Endpoint = pdTRUE;
 
-                        default:
-                            /* MISRA 16.4 Compliance */
-                            xNeed_Endpoint = pdFALSE;
-                            FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference \n" ) );
-                            break;
+                        switch( xDNS_IP_Preference )
+                        {
+                            #if ( ipconfigUSE_IPv4 != 0 )
+                                case xPreferenceIPv4:
+                                    pxAddress->sin_address.ulIP_IPv4 = ipMDNS_IP_ADDRESS; /* Is in network byte order. */
+                                    /* sin_family is default set to FREERTOS_AF_INET */
+                                    break;
+                            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                            #if ( ipconfigUSE_IPv6 != 0 )
+                                case xPreferenceIPv6:
+                                    memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
+                                            ipMDNS_IP_ADDR_IPv6.ucBytes,
+                                            ipSIZE_OF_IPv6_ADDRESS );
+                                    pxAddress->sin_family = FREERTOS_AF_INET6;
+                                    break;
+                            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                            default:
+                                /* MISRA 16.4 Compliance */
+                                xNeed_Endpoint = pdFALSE;
+                                FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference \n" ) );
+                                break;
+                        }
                     }
                 }
-            }
             #endif /* if ( ipconfigUSE_MDNS == 1 ) */
             #if ( ipconfigUSE_LLMNR == 1 )
-            {
-                /* The hostname doesn't have a dot. */
-                if( bHasDot == pdFALSE )
                 {
-                    /* Use LLMNR addressing. */
-                    pxAddress->sin_port = ipLLMNR_PORT;
-                    pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
-                    xNeed_Endpoint = pdTRUE;
-
-                    switch( xDNS_IP_Preference )
+                    /* The hostname doesn't have a dot. */
+                    if( bHasDot == pdFALSE )
                     {
-                        #if ( ipconfigUSE_IPv4 != 0 )
-                            case xPreferenceIPv4:
-                                pxAddress->sin_address.ulIP_IPv4 = ipLLMNR_IP_ADDR;     /* Is in network byte order. */
-                                pxAddress->sin_family = FREERTOS_AF_INET;
-                                break;
-                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                        /* Use LLMNR addressing. */
+                        pxAddress->sin_port = ipLLMNR_PORT;
+                        pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
+                        xNeed_Endpoint = pdTRUE;
 
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            case xPreferenceIPv6:
-                                memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
-                                        ipLLMNR_IP_ADDR_IPv6.ucBytes,
-                                        ipSIZE_OF_IPv6_ADDRESS );
-                                pxAddress->sin_family = FREERTOS_AF_INET6;
-                                break;
-                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                        switch( xDNS_IP_Preference )
+                        {
+                            #if ( ipconfigUSE_IPv4 != 0 )
+                                case xPreferenceIPv4:
+                                    pxAddress->sin_address.ulIP_IPv4 = ipLLMNR_IP_ADDR; /* Is in network byte order. */
+                                    pxAddress->sin_family = FREERTOS_AF_INET;
+                                    break;
+                            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                        default:
-                            /* MISRA 16.4 Compliance */
-                            xNeed_Endpoint = pdFALSE;
-                            FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference (LLMNR) \n" ) );
-                            break;
+                            #if ( ipconfigUSE_IPv6 != 0 )
+                                case xPreferenceIPv6:
+                                    memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
+                                            ipLLMNR_IP_ADDR_IPv6.ucBytes,
+                                            ipSIZE_OF_IPv6_ADDRESS );
+                                    pxAddress->sin_family = FREERTOS_AF_INET6;
+                                    break;
+                            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                            default:
+                                /* MISRA 16.4 Compliance */
+                                xNeed_Endpoint = pdFALSE;
+                                FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference (LLMNR) \n" ) );
+                                break;
+                        }
                     }
                 }
-            }
             #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
             #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 )
@@ -1173,15 +1173,15 @@
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
             #if ( ipconfigUSE_LLMNR == 1 )
-            {
-                if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
                 {
-                    /* MISRA Ref 11.3.1 [Misaligned access] */
-                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                    /* coverity[misra_c_2012_rule_11_3_violation] */
-                    ( ( ( DNSMessage_t * ) xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
+                    if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
+                    {
+                        /* MISRA Ref 11.3.1 [Misaligned access] */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+                        /* coverity[misra_c_2012_rule_11_3_violation] */
+                        ( ( ( DNSMessage_t * ) xDNSBuf.pucPayloadBuffer ) )->usFlags = 0;
+                    }
                 }
-            }
             #endif
 
             /* A two-step conversion to conform to MISRA. */
