@@ -372,7 +372,7 @@
  * In case the buffer was not yet created, it will be created in
  * this call.
  */
-        uint8_t * FreeRTOS_get_tx_base( ConstSocket_t xSocket );
+        uint8_t * FreeRTOS_get_tx_base( Socket_t xSocket );
 
 /* For advanced applications only:
  * Get a direct pointer to the circular transmit buffer.

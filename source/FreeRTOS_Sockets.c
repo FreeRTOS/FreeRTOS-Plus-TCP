@@ -4371,7 +4371,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
  * @return Address the first byte in the circular transmit buffer if all checks pass.
  *         Or else, NULL is returned.
  */
-    uint8_t * FreeRTOS_get_tx_base( ConstSocket_t xSocket )
+    uint8_t * FreeRTOS_get_tx_base( Socket_t xSocket )
     {
         uint8_t * pucReturn = NULL;
         const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
@@ -4385,7 +4385,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* If the TX buffer hasn't been created yet,
              * and if no malloc error has occurred on this socket yet. */
             if( ( pxBuffer == NULL ) &&
-                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE ) )
+                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE_UNSIGNED ) )
             {
                 /* Create the outgoing stream only when it is needed */
                 ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
@@ -4432,7 +4432,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* If the TX buffer hasn't been created yet,
              * and if no malloc error has occurred on this socket yet. */
             if( ( pxBuffer == NULL ) &&
-                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE ) )
+                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE_UNSIGNED ) )
             {
                 /* Create the outgoing stream only when it is needed */
                 ( void ) prvTCPCreateStream( pxSocket, pdFALSE );

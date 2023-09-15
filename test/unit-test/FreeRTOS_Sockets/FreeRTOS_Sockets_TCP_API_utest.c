@@ -784,9 +784,9 @@ void test_FreeRTOS_get_tx_head_InvalidParams( void )
     uint8_t * pucReturn;
     FreeRTOS_Socket_t xSocket;
     BaseType_t xLength;
-	size_t uxLength = 128;
-	size_t uxMallocSize;
-	StreamBuffer_t * pxBuffer;
+    size_t uxLength = 128;
+    size_t uxMallocSize;
+    StreamBuffer_t * pxBuffer;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     xSocket.u.xTCP.uxTxStreamSize = uxLength;
@@ -799,16 +799,16 @@ void test_FreeRTOS_get_tx_head_InvalidParams( void )
     pucReturn = FreeRTOS_get_tx_head( NULL, &xLength );
     TEST_ASSERT_EQUAL( NULL, pucReturn );
 
-//  FAIL: Memory Mismatch. Byte 0 Expected 0xB0 Was 0xE0.
-//  Function pvPortMalloc Argument xSize. Function called with unexpected argument value.
+/*  FAIL: Memory Mismatch. Byte 0 Expected 0xB0 Was 0xE0. */
+/*  Function pvPortMalloc Argument xSize. Function called with unexpected argument value. */
 
-	/* Add an extra 4 (or 8) bytes. */
-	uxLength += sizeof( size_t );
+    /* Add an extra 4 (or 8) bytes. */
+    uxLength += sizeof( size_t );
 
-	/* And make the length a multiple of sizeof( size_t ). */
-	uxLength &= ~( sizeof( size_t ) - 1U );
+    /* And make the length a multiple of sizeof( size_t ). */
+    uxLength &= ~( sizeof( size_t ) - 1U );
 
-	uxMallocSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
+    uxMallocSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
 
     pvPortMalloc_ExpectAndReturn( uxMallocSize, NULL );
 
