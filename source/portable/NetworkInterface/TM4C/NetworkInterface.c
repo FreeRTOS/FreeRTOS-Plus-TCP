@@ -132,7 +132,7 @@ static tEMACDMADescriptor _rx_descriptors[ niEMAC_RX_DMA_DESC_COUNT ];
 static tDescriptorList _tx_descriptor_list = { .number_descriptors = niEMAC_TX_DMA_DESC_COUNT, 0 };
 static tDescriptorList _rx_descriptor_list = { .number_descriptors = niEMAC_RX_DMA_DESC_COUNT, 0 };
 
-static uint8_t _network_buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ BUFFER_SIZE_ROUNDED_UP ] __attribute__((aligned(4)));
+static uint8_t _network_buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ BUFFER_SIZE_ROUNDED_UP ] __attribute__( ( aligned( 4 ) ) );
 
 static EthernetPhy_t xPhyObject;
 
