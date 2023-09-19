@@ -312,8 +312,8 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
             /* Can not handle, unknown or invalid header version. */
             eReturn = eReleaseBuffer;
         }
-        else if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-                 ( xBadIPv4Loopback( &( pxUDPPacket->xIPHeader ) ) == pdTRUE ) )
+        else if( ( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+                 ( xBadIPv4Loopback( &( pxIPPacket->xIPHeader ) ) == pdTRUE ) )
         {
             /* The local loopback addresses must never appear outside a host. See RFC 1122
              * section 3.2.1.3. */
