@@ -40,7 +40,7 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-extern const struct xIPv6_Address xIPv6UnspecifiedAddress;
+extern const struct xIPv6_Address FreeRTOS_in6addr_any;
 
 /* First IPv6 address is 2001:1234:5678::5 */
 const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
