@@ -57,8 +57,8 @@
 #include "NetworkInterface.h"
 #include "phyHandling.h"
 
-#define BUFFER_SIZE                ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
-#define BUFFER_SIZE_ROUNDED_UP     ( ( BUFFER_SIZE + 7 ) & ~0x7UL )
+#define BUFFER_SIZE             ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER + ipBUFFER_PADDING )
+#define BUFFER_SIZE_ROUNDED_UP  ( ( BUFFER_SIZE + 7 ) & ~0x7UL )
 #define PHY_PHYS_ADDR              0
 
 #ifndef niEMAC_SYSCONFIG_HZ
@@ -446,7 +446,7 @@ static BaseType_t _ethernet_mac_get( uint8_t * mac_address_bytes )
 static void _dma_descriptors_init( void )
 {
     uint32_t i;
-    size_t buffer_size_requested;
+    const size_t buffer_size_requested = ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER;
     NetworkBufferDescriptor_t * stack_descriptor;
 
     /* Initialize the TX DMA descriptors */
@@ -592,6 +592,7 @@ static BaseType_t _process_received_packet( void )
     IPStackEvent_t event;
     BaseType_t result = pdTRUE;
     const TickType_t max_block_time = pdMS_TO_MIN_TICKS( 50 );
+    const size_t buffer_size_requested = ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER;
 
     /* Go through the list of RX DMA descriptors */
     for( i = 0; i < niEMAC_RX_DMA_DESC_COUNT; i++ )
@@ -665,7 +666,8 @@ static BaseType_t _process_received_packet( void )
         } /* end if frame had error. In this case, give the buffer back to the DMA for the next RX */
 
         /* Set up the DMA descriptor for the next receive transaction */
-        dma_descriptor->ui32Count = DES1_RX_CTRL_CHAINED | ipTOTAL_ETHERNET_FRAME_SIZE;
+        dma_descriptor->ui32Count = DES1_RX_CTRL_CHAINED | ( ( buffer_size_requested << DES1_RX_CTRL_BUFF1_SIZE_S ) & DES1_RX_CTRL_BUFF1_SIZE_M );
+
         dma_descriptor->ui32CtrlStatus = DES0_RX_CTRL_OWN;
 
         _rx_descriptor_list.write++;
