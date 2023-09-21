@@ -787,6 +787,10 @@ static void prvEthernetUpdateConfig( void )
         /* iptraceNETWORK_INTERFACE_STATUS_CHANGE(); */
         xHalResult = HAL_ETH_Stop_IT( &xEthHandle );
         configASSERT( xHalResult == HAL_OK );
+
+        #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+            FreeRTOS_NetworkDown( pxMyInterface );
+        #endif
     }
 }
 
