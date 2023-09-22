@@ -4594,16 +4594,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                               size_t uxDataLength,
                               BaseType_t xFlags )
     {
-        BaseType_t xByteCount = -pdFREERTOS_ERRNO_EINVAL;
+        BaseType_t xByteCount;
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
-        if( pvBuffer != NULL )
-        {
-            /* Check if this is a valid TCP socket, affirm that it is not closed or closing,
-             * affirm that there was not malloc-problem, test if uxDataLength is non-zero,
-             * and if the connection is not in a confirmed FIN state. */
-            xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
-        }
+        xByteCount = ( BaseType_t ) prvTCPSendCheck( pxSocket, uxDataLength );
 
         if( xByteCount > 0 )
         {
