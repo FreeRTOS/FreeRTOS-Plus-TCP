@@ -396,7 +396,10 @@ static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 
         case eMACInitComplete:
             configASSERT( xEthHandle.gState != HAL_ETH_STATE_ERROR );
-            xInitResult = pdPASS;
+            if( xSTM32_GetPhyLinkStatus( pxInterface ) == pdPASS )
+            {
+                xInitResult = pdPASS;
+            }
     }
 
     return xInitResult;
