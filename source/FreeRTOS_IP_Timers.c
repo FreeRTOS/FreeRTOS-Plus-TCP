@@ -55,6 +55,16 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_DNS.h"
+/*-----------------------------------------------------------*/
+
+/** @brief 'xAllNetworksUp' becomes pdTRUE as soon as all network interfaces have
+ * been initialised. */
+/* MISRA Ref 8.9.1 [File scoped variables] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
+/* coverity[misra_c_2012_rule_8_9_violation] */
+static BaseType_t xAllNetworksUp = pdFALSE;
+
+/*-----------------------------------------------------------*/
 
 /*
  * Utility functions for the light weight IP timers.
@@ -303,14 +313,22 @@ void vCheckNetworkTimers( void )
     #endif /* ipconfigUSE_TCP == 1 */
 
     /* Is it time to trigger the repeated NetworkDown events? */
-    if( prvIPTimerCheck( &( xNetworkTimer ) ) != pdFALSE )
+    if( xAllNetworksUp == pdFALSE )
     {
-        for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
+        if( prvIPTimerCheck( &( xNetworkTimer ) ) != pdFALSE )
         {
-            if( pxInterface->bits.bInterfaceUp == pdFALSE_UNSIGNED )
+            BaseType_t xUp = pdTRUE;
+
+            for( pxInterface = pxNetworkInterfaces; pxInterface != NULL; pxInterface = pxInterface->pxNext )
             {
-                FreeRTOS_NetworkDown( pxInterface );
+                if( pxInterface->bits.bInterfaceUp == pdFALSE_UNSIGNED )
+                {
+                    xUp = pdFALSE;
+                    FreeRTOS_NetworkDown( pxInterface );
+                }
             }
+
+            xAllNetworksUp = xUp;
         }
     }
 }
