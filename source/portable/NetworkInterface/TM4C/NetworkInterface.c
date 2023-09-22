@@ -57,8 +57,8 @@
 #include "NetworkInterface.h"
 #include "phyHandling.h"
 
-#define BUFFER_SIZE             ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER + ipBUFFER_PADDING )
-#define BUFFER_SIZE_ROUNDED_UP  ( ( BUFFER_SIZE + 7 ) & ~0x7UL )
+#define BUFFER_SIZE                ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER + ipBUFFER_PADDING )
+#define BUFFER_SIZE_ROUNDED_UP     ( ( BUFFER_SIZE + 7 ) & ~0x7UL )
 #define PHY_PHYS_ADDR              0
 
 #ifndef niEMAC_SYSCONFIG_HZ
