@@ -27,11 +27,6 @@
 
 #ifndef FREERTOS_IP_PRIVATE_H
 #define FREERTOS_IP_PRIVATE_H
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
@@ -50,13 +45,22 @@
 
 #include "event_groups.h"
 
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
 #ifdef TEST
     int ipFOREVER( void );
 #else
     #define ipFOREVER()    1
 #endif
 
-typedef enum
+/* Forward declaration. */
+struct xNetworkEndPoint;
+
+typedef enum eFrameProcessingResult
 {
     eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
     eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
@@ -335,15 +339,6 @@ typedef union xUDPPacketHeader
 extern UDPPacketHeader_t xDefaultPartUDPPacketHeader;
 
 
-/* Structure that stores the netmask, gateway address and DNS server addresses. */
-extern NetworkAddressingParameters_t xNetworkAddressing;
-
-/* Structure that stores the defaults for netmask, gateway address and DNS.
- * These values will be copied to 'xNetworkAddressing' in case DHCP is not used,
- * and also in case DHCP does not lead to a confirmed request. */
-/*lint -e9003*/
-extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could define variable 'xDefaultAddressing' at block scope [MISRA 2012 Rule 8.9, advisory]. */
-
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
 extern const BaseType_t xBufferAllocFixedSize;
 
@@ -410,11 +405,7 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 /** @brief Macro calculates the number of elements in an array as a size_t. */
 #ifndef ARRAY_SIZE_X
     #ifndef _WINDOWS_
-        #define ARRAY_SIZE_X( x )                            \
-    ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
-        BaseType_t xCount = ( BaseType_t ) uxCount;          \
-        xCount; }                                            \
-    )
+        #define ARRAY_SIZE_X( x )    ( ( BaseType_t ) sizeof( x ) / ( BaseType_t ) sizeof( x[ 0 ] ) )
     #else
         #define ARRAY_SIZE_X( x )    ( sizeof( x ) / sizeof( x[ 0 ] ) )
     #endif
@@ -538,15 +529,15 @@ BaseType_t xIPIsNetworkTaskReady( void );
     {
         struct
         {
-            uint64_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 64-bit variable. */
+            uint32_t ullAlignmentWord; /**< Increase the alignment of this union by adding a 32-bit variable. */
         } a;                           /**< A struct to increase alignment. */
         struct
         {
             /* The next field only serves to give 'ucLastPacket' a correct
-             * alignment of 8 + 2.  See comments in FreeRTOS_IP.h */
+             * alignment of 4 + 2.  See comments in FreeRTOS_IP.h */
             uint8_t ucFillPacket[ ipconfigPACKET_FILLER_SIZE ];
             uint8_t ucLastPacket[ TCP_PACKET_SIZE ];
-        } u; /**< The structure to give an alignment of 8 + 2 */
+        } u; /**< The structure to give an alignment of 4 + 2 */
     } LastTCPPacket_t;
 
 /**
@@ -721,12 +712,9 @@ struct xSOCKET
 
     union
     {
-        IPUDPSocket_t xUDP;           /**< Union member: UDP socket*/
+        IPUDPSocket_t xUDP;     /**< Union member: UDP socket*/
         #if ( ipconfigUSE_TCP == 1 )
-            IPTCPSocket_t xTCP;       /**< Union member: TCP socket */
-
-            uint64_t ullTCPAlignment; /**< Make sure that xTCP is 8-bytes aligned by
-                                       * declaring a 64-bit variable in the same union */
+            IPTCPSocket_t xTCP; /**< Union member: TCP socket */
         #endif /* ipconfigUSE_TCP */
     }
     u; /**< Union of TCP/UDP socket */
@@ -750,7 +738,7 @@ struct xSOCKET
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
                                            UBaseType_t uxLocalPort,
-                                           IP_Address_t ulRemoteIP,
+                                           IPv46_Address_t xRemoteIP,
                                            UBaseType_t uxRemotePort );
 
 #endif /* ipconfigUSE_TCP */
@@ -892,7 +880,7 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );
+void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

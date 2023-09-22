@@ -28,10 +28,6 @@
 #ifndef FREERTOS_SOCKETS_H
     #define FREERTOS_SOCKETS_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
 /* Standard includes. */
     #include <string.h>
 
@@ -51,6 +47,10 @@
 
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
+
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
     #ifndef INC_FREERTOS_H
         #error FreeRTOS.h must be included before FreeRTOS_Sockets.h.
@@ -370,7 +370,7 @@
 /* For advanced applications only:
  * Get a direct pointer to the circular transmit buffer.
  * '*pxLength' will contain the number of bytes that may be written. */
-        uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
+        uint8_t * FreeRTOS_get_tx_head( Socket_t xSocket,
                                         BaseType_t * pxLength );
 
 /* For the web server: borrow the circular Rx buffer for inspection
@@ -562,7 +562,7 @@
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* FREERTOS_SOCKETS_H */

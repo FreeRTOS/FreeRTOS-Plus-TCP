@@ -48,6 +48,8 @@
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_Sockets.h"
 #include "mock_FreeRTOS_Routing.h"
+#include "mock_FreeRTOS_ARP.h"
+#include "mock_FreeRTOS_Stream_Buffer.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -370,7 +372,7 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
 
     memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xEndPoint.pxNetworkInterface = &xInterfaces[ 0 ];
     xInterfaces->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
@@ -381,6 +383,8 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
 
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
@@ -388,6 +392,62 @@ void test_vReturnEthernetFrame_DuplicationSuccess( void )
     TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, xDuplicateNetworkBuffer.xDataLength );
     TEST_ASSERT_EACH_EQUAL_UINT8( 0x22, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
+    TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
+}
+
+/**
+ * @brief test_vReturnEthernetFrame_DuplicationSuccess
+ * To validate if vReturnEthernetFrame is able to handle duplicate network buffer descriptor with cache hit.
+ */
+void test_vReturnEthernetFrame_DuplicationSuccessCacheHit( void )
+{
+    NetworkBufferDescriptor_t xDuplicateNetworkBuffer;
+    BaseType_t xReleaseAfterSend = pdFALSE;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+    struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    MACAddress_t xCacheMACAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    memset( pxNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    memset( &xDuplicateNetworkBuffer, 0, sizeof( xDuplicateNetworkBuffer ) );
+
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    memset( ucEthBuffer, 0xAA, ipconfigTCP_MSS );
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    xDuplicateNetworkBuffer.pucEthernetBuffer = ucEthBuffer;
+
+    pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    memset( &pxEthernetHeader->xDestinationAddress, 0x11, sizeof( pxEthernetHeader->xDestinationAddress ) );
+    memset( &pxEthernetHeader->xSourceAddress, 0x22, sizeof( pxEthernetHeader->xSourceAddress ) );
+
+    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    xEndPoint.pxNetworkInterface = &xInterfaces[ 0 ];
+    xInterfaces->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+    ( ( ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer ) )->usFrameType = ipIPv4_FRAME_TYPE;
+
+    pxDuplicateNetworkBufferWithDescriptor_ExpectAndReturn( &xNetworkBuffer, xNetworkBuffer.xDataLength, &xDuplicateNetworkBuffer );
+
+    FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( pxEndPoint );
+
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ReturnMemThruPtr_pxMACAddress( &xCacheMACAddress, sizeof( MACAddress_t ) );
+
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    vReturnEthernetFrame( pxNetworkBuffer, xReleaseAfterSend );
+
+    TEST_ASSERT_EQUAL( ipconfigETHERNET_MINIMUM_PACKET_BYTES, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, xDuplicateNetworkBuffer.xDataLength );
+    TEST_ASSERT_EQUAL_MEMORY( xCacheMACAddress.ucBytes, &pxEthernetHeader->xDestinationAddress, sizeof( pxEthernetHeader->xDestinationAddress ) );
     TEST_ASSERT_EQUAL_MEMORY( ipLOCAL_MAC_ADDRESS, &pxEthernetHeader->xSourceAddress, sizeof( pxEthernetHeader->xSourceAddress ) );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
 }
@@ -417,7 +477,7 @@ void test_vReturnEthernetFrame_xReleaseAfterSend( void )
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES - 10;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xEndPoint.pxNetworkInterface = &xInterfaces[ 0 ];
     xInterfaces->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
@@ -460,7 +520,7 @@ void test_vReturnEthernetFrame_DataLenMoreThanRequired( void )
 
     pxNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    xEndPoint.pxNetworkInterface = &xInterfaces;
+    xEndPoint.pxNetworkInterface = &xInterfaces[ 0 ];
     xInterfaces->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 

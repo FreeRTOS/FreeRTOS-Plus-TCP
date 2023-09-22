@@ -213,6 +213,17 @@ void vApplicationIdleHook( void )
 
 /*-----------------------------------------------------------*/
 
+void vLoggingPrintf( const char * pcFormat,
+                     ... )
+{
+    va_list arg;
+
+    va_start( arg, pcFormat );
+    vprintf( pcFormat, arg );
+    va_end( arg );
+}
+/*-----------------------------------------------------------*/
+
 void getUserCmd( char * pucUserCmd )
 {
     /* Provide a stub for this function. */
@@ -231,7 +242,7 @@ UBaseType_t uxRand( void )
 
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 {
-    *pulNumber = uxRand();
+    *pulNumber = ( uint32_t ) uxRand();
 
     return pdTRUE;
 }
@@ -275,7 +286,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     ( void ) ulDestinationAddress;
     ( void ) usDestinationPort;
 
-    return uxRand();
+    return ( uint32_t ) uxRand();
 }
 
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
@@ -354,6 +365,6 @@ void vApplicationPingReplyHook( ePingReplyStatus_t eStatus,
     /* DHCPv6 needs a time-stamp, seconds after 1970. */
     uint32_t ulApplicationTimeHook( void )
     {
-        return time( NULL );
+        return ( uint32_t ) time( NULL );
     }
 #endif

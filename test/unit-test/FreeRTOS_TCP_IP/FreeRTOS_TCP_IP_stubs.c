@@ -40,9 +40,47 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* =========================  EXTERN VARIABLES  ========================= */
+
 BaseType_t xTCPWindowLoggingLevel = 0;
+
+static Socket_t xHandleConnectedSocket;
+static size_t xHandleConnectedLength;
 
 /* Defined in FreeRTOS_Sockets.c */
 #if ( ipconfigUSE_TCP == 1 )
     List_t xBoundTCPSocketsList;
 #endif
+
+/* ======================== Stub Callback Functions ========================= */
+
+/**
+ * @brief Process the received TCP packet.
+ */
+BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor )
+{
+    return pdTRUE;
+}
+
+static void HandleConnected( Socket_t xSocket,
+                             size_t xLength )
+{
+    TEST_ASSERT_EQUAL( xHandleConnectedSocket, xSocket );
+    TEST_ASSERT_EQUAL( xHandleConnectedLength, xLength );
+}
+
+/**
+ * @brief Set the ACK message to NULL.
+ */
+static void prvTCPReturnPacket_StubReturnNULL( FreeRTOS_Socket_t * pxSocket,
+                                               NetworkBufferDescriptor_t * pxDescriptor,
+                                               uint32_t ulLen,
+                                               BaseType_t xReleaseAfterSend,
+                                               int timesCalled )
+{
+    ( void ) pxDescriptor;
+    ( void ) ulLen;
+    ( void ) xReleaseAfterSend;
+    ( void ) timesCalled;
+    pxSocket->u.xTCP.pxAckMessage = NULL;
+}

@@ -194,16 +194,16 @@
     #define iptraceSENDING_DHCP_REQUEST()
 #endif
 
-#ifndef iptraceDHCP_SUCCEDEED
-    #define iptraceDHCP_SUCCEDEED( address )
+#ifndef iptraceDHCP_SUCCEEDED
+    #define iptraceDHCP_SUCCEEDED( address )
 #endif
 
 #ifndef iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS
     #define iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( ipv6_address )
 #endif
 
-#ifndef iptraceRA_SUCCEDEED
-    #define iptraceRA_SUCCEDEED( ipv6_address )
+#ifndef iptraceRA_SUCCEEDED
+    #define iptraceRA_SUCCEEDED( ipv6_address )
 #endif
 
 #ifndef iptraceNETWORK_INTERFACE_TRANSMIT

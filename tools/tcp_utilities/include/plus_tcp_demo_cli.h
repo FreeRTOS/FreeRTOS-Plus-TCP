@@ -28,7 +28,7 @@
 #ifndef PLUS_TCP_DEMO_CLI_H
 
     #if __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /*
@@ -55,7 +55,7 @@
 /*extern SemaphoreHandle_t xServerSemaphore; */
 
     #if __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
     extern int verboseLevel;

@@ -28,16 +28,18 @@
 #ifndef FREERTOS_ARP_H
 #define FREERTOS_ARP_H
 
+/* Application level configuration options. */
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
+#include "IPTraceMacroDefaults.h"
+
+#include "FreeRTOS_IP.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */
@@ -77,6 +79,13 @@ typedef struct xCacheLocation
     BaseType_t xUseEntry; /**< The index of the first free location. */
 } CacheLocation_t;
 
+/**
+ * Look for an IP-MAC couple in ARP cache and reset the 'age' field. If no match
+ * is found then no action will be taken.
+ */
+void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                               const uint32_t ulIPAddress );
+
 /*
  * If ulIPAddress is already in the ARP cache table then reset the age of the
  * entry back to its maximum value.  If ulIPAddress is not already in the ARP
@@ -110,7 +119,7 @@ void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
 
 BaseType_t xIsIPInARPCache( uint32_t ulAddressToLookup );
 
-BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
  * Look for ulIPAddress in the ARP cache.  If the IP address exists, copy the

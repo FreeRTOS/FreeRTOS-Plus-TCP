@@ -26,17 +26,16 @@
 #ifndef FREERTOS_IPV6_H
 #define FREERTOS_IPV6_H
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Common.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-#include "FreeRTOS.h"
-#include "task.h"
-#include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Common.h"
-#include "FreeRTOS_IPv6_Private.h"
 
 /* Some constants defining the sizes of several parts of a packet.
  * These defines come before including the configuration header files. */
@@ -51,7 +50,7 @@
 /* Some IPv6 ICMP requests. */
 #define ipICMP_DEST_UNREACHABLE_IPv6             ( ( uint8_t ) 1U )
 #define ipICMP_PACKET_TOO_BIG_IPv6               ( ( uint8_t ) 2U )
-#define ipICMP_TIME_EXEEDED_IPv6                 ( ( uint8_t ) 3U )
+#define ipICMP_TIME_EXCEEDED_IPv6                ( ( uint8_t ) 3U )
 #define ipICMP_PARAMETER_PROBLEM_IPv6            ( ( uint8_t ) 4U )
 #define ipICMP_PING_REQUEST_IPv6                 ( ( uint8_t ) 128U )
 #define ipICMP_PING_REPLY_IPv6                   ( ( uint8_t ) 129U )
@@ -88,7 +87,6 @@ struct xNetworkInterface;
 eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxIPv6Header,
                                                const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                UBaseType_t uxHeaderLength );
-
 
 /** @brief Handle the IPv6 extension headers. */
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,

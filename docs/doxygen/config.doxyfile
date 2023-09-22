@@ -48,7 +48,7 @@ PROJECT_NAME           = FreeRTOS-Plus-TCP
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = V4.0.0-rc2
+PROJECT_NUMBER         = V4.0.0
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -934,18 +934,18 @@ INPUT                  = ./ \
                         ./source/FreeRTOS_Sockets.c \
                         ./source/FreeRTOS_Stream_Buffer.c \
                         ./source/FreeRTOS_TCP_IP.c \
-                        ./source/FreeRTOS_TCP_IP_IPV4.c \
-                        ./source/FreeRTOS_TCP_IP_IPV6.c \
+                        ./source/FreeRTOS_TCP_IP_IPv4.c \
+                        ./source/FreeRTOS_TCP_IP_IPv6.c \
                         ./source/FreeRTOS_TCP_Reception.c \
                         ./source/FreeRTOS_TCP_State_Handling.c \
-                        ./source/FreeRTOS_TCP_State_Handling_IPV4.c       \
-                        ./source/FreeRTOS_TCP_State_Handling_IPV6.c \
+                        ./source/FreeRTOS_TCP_State_Handling_IPv4.c       \
+                        ./source/FreeRTOS_TCP_State_Handling_IPv6.c \
                         ./source/FreeRTOS_TCP_Transmission.c \
-                        ./source/FreeRTOS_TCP_Transmission_IPV4.c \
-                        ./source/FreeRTOS_TCP_Transmission_IPV6.c \
+                        ./source/FreeRTOS_TCP_Transmission_IPv4.c \
+                        ./source/FreeRTOS_TCP_Transmission_IPv6.c \
                         ./source/FreeRTOS_TCP_Utils.c \
-                        ./source/FreeRTOS_TCP_Utils_IPV4.c \
-                        ./source/FreeRTOS_TCP_Utils_IPV6.c \
+                        ./source/FreeRTOS_TCP_Utils_IPv4.c \
+                        ./source/FreeRTOS_TCP_Utils_IPv6.c \
                         ./source/FreeRTOS_TCP_WIN.c \
                         ./source/FreeRTOS_Tiny_TCP.c \
                         ./source/FreeRTOS_UDP_IP.c \

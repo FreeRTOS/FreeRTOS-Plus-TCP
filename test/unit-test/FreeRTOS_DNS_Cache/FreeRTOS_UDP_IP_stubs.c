@@ -42,6 +42,13 @@
 
 const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
+struct freertos_addrinfo pucAddrBuffer[ 2 ];
+struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
+
+/* ======================== Stub Callback Functions ========================= */
+
 void vPortEnterCritical( void )
 {
 }
@@ -54,12 +61,6 @@ BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
                                            const char * pcName )
 {
     return pdFALSE;
-}
-
-struct freertos_addrinfo * pxNew_AddrInfo( const char * pcName,
-                                           BaseType_t xFamily,
-                                           const uint8_t * pucAddress )
-{
 }
 
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )

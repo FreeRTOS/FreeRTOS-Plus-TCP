@@ -38,6 +38,7 @@
 #include "mock_FreeRTOS_Routing.h"
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IPv6_Utils.h"
 
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IPv6.h"
@@ -46,153 +47,20 @@
 
 #include "FreeRTOSIPConfig.h"
 
+#include "FreeRTOS_IPv6_stubs.c"
+
 /* ===========================  EXTERN VARIABLES  =========================== */
-
-/* The basic length for one IPv6 extension headers. */
-#define TEST_IPv6_EXTESION_HEADER_LENGTH             ( 8U )
-
-/* The default length ofIPv6 extension headers in unit test. */
-#define TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH    ( 7U * TEST_IPv6_EXTESION_HEADER_LENGTH )
 
 extern const struct xIPv6_Address xIPv6UnspecifiedAddress;
 extern const struct xIPv6_Address FreeRTOS_in6addr_loopback;
 
-/* First IPv6 address is 2001:1234:5678::5 */
-const IPv6_Address_t xIPAddressFive = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
-
-/* Second IPv6 address is 2001:1234:5678::10 */
-const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
-
-/* MAC Address for endpoint. */
-const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
-
-/* ======================== Stub Callback Functions ========================= */
-
-static NetworkEndPoint_t * prvInitializeEndpoint()
-{
-    static NetworkEndPoint_t xEndpoint;
-
-    memset( &xEndpoint, 0, sizeof( xEndpoint ) );
-    xEndpoint.bits.bIPv6 = 1U;
-    memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-
-    return &xEndpoint;
-}
-
-static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptor()
-{
-    static NetworkBufferDescriptor_t xNetworkBuffer;
-    static uint8_t pcNetworkBuffer[ sizeof( TCPPacket_IPv6_t ) ];
-    TCPPacket_IPv6_t * pxTCPPacket = ( TCPPacket_IPv6_t * ) pcNetworkBuffer;
-
-    /* Initialize network buffer descriptor. */
-    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
-    xNetworkBuffer.pxEndPoint = prvInitializeEndpoint();
-    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pxTCPPacket;
-    xNetworkBuffer.xDataLength = sizeof( TCPPacket_IPv6_t );
-
-    /* Initialize network buffer. */
-    memset( pcNetworkBuffer, 0, sizeof( pcNetworkBuffer ) );
-    /* Ethernet part. */
-    memcpy( pxTCPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
-    memcpy( pxTCPPacket->xEthernetHeader.xSourceAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
-    pxTCPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
-    /* IP part. */
-    memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPAddressTen.ucBytes, sizeof( IPv6_Address_t ) );
-    memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, sizeof( IPv6_Address_t ) );
-
-    return &xNetworkBuffer;
-}
-
-/*
- * Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to process it.
- *  - ipIPv6_EXT_HEADER_HOP_BY_HOP
- *  - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *  - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
- *  - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
- *  - ipIPv6_EXT_HEADER_AUTHEN_HEADER
- *  - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
- *  - ipIPv6_EXT_HEADER_MOBILITY_HEADER
- */
-static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptorWithExtensionHeader( uint8_t ucProtocol )
-{
-    static NetworkBufferDescriptor_t xNetworkBuffer;
-    /* Ethernet header + IPv6 header + Maximum protocol header + IPv6 Extension Headers + 1 payload */
-    static uint8_t pcNetworkBuffer[ sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + sizeof( ICMPHeader_IPv6_t ) + 1U ];
-    EthernetHeader_t * pxEthHeader = ( EthernetHeader_t * ) pcNetworkBuffer;
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pcNetworkBuffer[ sizeof( EthernetHeader_t ) ] );
-    uint8_t * pxIPv6ExtHeader = ( uint8_t * ) &( pcNetworkBuffer[ sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) ] );
-    size_t uxIndex = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t );
-    uint8_t ucProtocolHeaderSize;
-
-    if( ucProtocol == ipPROTOCOL_TCP )
-    {
-        ucProtocolHeaderSize = sizeof( TCPHeader_t );
-    }
-    else if( ucProtocol == ipPROTOCOL_UDP )
-    {
-        ucProtocolHeaderSize = sizeof( UDPHeader_t );
-    }
-    else if( ucProtocol == ipPROTOCOL_ICMP_IPv6 )
-    {
-        ucProtocolHeaderSize = sizeof( ICMPHeader_IPv6_t );
-    }
-    else
-    {
-        TEST_ASSERT_TRUE( false );
-    }
-
-    /* Initialize network buffer descriptor. */
-    memset( &xNetworkBuffer, 0, sizeof( xNetworkBuffer ) );
-    xNetworkBuffer.pxEndPoint = prvInitializeEndpoint();
-    xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pcNetworkBuffer;
-    xNetworkBuffer.xDataLength = sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + ucProtocolHeaderSize + 1U;
-
-    /* Initialize network buffer. */
-    memset( pcNetworkBuffer, 0, sizeof( pcNetworkBuffer ) );
-    /* Ethernet part. */
-    memcpy( pxEthHeader->xDestinationAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
-    memcpy( pxEthHeader->xSourceAddress.ucBytes, ucMACAddress, sizeof( ucMACAddress ) );
-    pxEthHeader->usFrameType = ipIPv6_FRAME_TYPE;
-    /* IP part. */
-    memcpy( pxIPv6Header->xSourceAddress.ucBytes, xIPAddressTen.ucBytes, sizeof( IPv6_Address_t ) );
-    memcpy( pxIPv6Header->xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, sizeof( IPv6_Address_t ) );
-    pxIPv6Header->usPayloadLength = FreeRTOS_htons( TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + ucProtocolHeaderSize + 1U ); /* Extension header length + protocol header + payload */
-    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
-    /* Append extension headers */
-    pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pcNetworkBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_FRAGMENT_HEADER;
-    pcNetworkBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_SECURE_PAYLOAD;
-    pcNetworkBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_AUTHEN_HEADER;
-    pcNetworkBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_DESTINATION_OPTIONS;
-    pcNetworkBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pcNetworkBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_MOBILITY_HEADER;
-    pcNetworkBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pcNetworkBuffer[ uxIndex ] = ucProtocol;
-    pcNetworkBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-
-    return &xNetworkBuffer;
-}
-
-/* ============================== Test Cases ============================== */
+/* =============================== Test Cases =============================== */
 
 /**
- * @brief test_prvAllowIPPacketIPv6_source_unspecified_address
- * Prepare a packet with unspecified address in source address.
- * Check if prvAllowIPPacketIPv6 determines to release it.
+ * @brief Prepare a packet with unspecified address in source address.
+ *        Check if prvAllowIPPacketIPv6 determines to release it.
  */
-void test_prvAllowIPPacketIPv6_source_unspecified_address()
+void test_prvAllowIPPacketIPv6_SourceUnspecifiedAddress()
 {
     IPHeader_IPv6_t xIPv6Address;
     eFrameProcessingResult_t eResult;
@@ -206,11 +74,10 @@ void test_prvAllowIPPacketIPv6_source_unspecified_address()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_destination_unspecified_address
- * Prepare a packet with unspecified address in destination address.
- * Check if prvAllowIPPacketIPv6 determines to release it.
+ * @brief Prepare a packet with unspecified address in destination address.
+ *        Check if prvAllowIPPacketIPv6 determines to release it.
  */
-void test_prvAllowIPPacketIPv6_destination_unspecified_address()
+void test_prvAllowIPPacketIPv6_DestinationUnspecifiedAddress()
 {
     IPHeader_IPv6_t xIPv6Address;
     eFrameProcessingResult_t eResult;
@@ -224,11 +91,10 @@ void test_prvAllowIPPacketIPv6_destination_unspecified_address()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_happy_path
- * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. And it's not a loopback packet.
- * Check if prvAllowIPPacketIPv6 determines to process it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. And it's not a loopback packet.
+ *        Check if prvAllowIPPacketIPv6 determines to process it.
  */
-void test_prvAllowIPPacketIPv6_happy_path()
+void test_prvAllowIPPacketIPv6_HappyPath()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -242,10 +108,9 @@ void test_prvAllowIPPacketIPv6_happy_path()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_multicast_address
- * Prepare a packet from 2001:1234:5678::5 -> FF02::1. Check if prvAllowIPPacketIPv6 determines to process it.
+ * @brief Prepare a packet from 2001:1234:5678::5 -> FF02::1. Check if prvAllowIPPacketIPv6 determines to process it.
  */
-void test_prvAllowIPPacketIPv6_multicast_address()
+void test_prvAllowIPPacketIPv6_MulticastAddress()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -263,11 +128,10 @@ void test_prvAllowIPPacketIPv6_multicast_address()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_loopback_address
- * Prepare a packet from 2001:1234:5678::5 -> ::1.
- * Check if prvAllowIPPacketIPv6 determines to process it.
+ * @brief Prepare a packet from 2001:1234:5678::5 -> ::1.
+ *        Check if prvAllowIPPacketIPv6 determines to process it.
  */
-void test_prvAllowIPPacketIPv6_loopback_address()
+void test_prvAllowIPPacketIPv6_LoopbackAddress()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -285,11 +149,10 @@ void test_prvAllowIPPacketIPv6_loopback_address()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_loopback_not_match_dest
- * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::11.
- * Check if prvAllowIPPacketIPv6 determines to process it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::11.
+ *        Check if prvAllowIPPacketIPv6 determines to process it.
  */
-void test_prvAllowIPPacketIPv6_loopback_not_match_dest()
+void test_prvAllowIPPacketIPv6_LoopbackNotMatchDest()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -307,11 +170,10 @@ void test_prvAllowIPPacketIPv6_loopback_not_match_dest()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_loopback_not_match_src
- * Prepare a packet from 2001:1234:5678::10 -> ::1.
- * Check if prvAllowIPPacketIPv6 determines to process it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> ::1.
+ *         Check if prvAllowIPPacketIPv6 determines to process it.
  */
-void test_prvAllowIPPacketIPv6_loopback_not_match_src()
+void test_prvAllowIPPacketIPv6_LoopbackNotMatchSrc()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -329,11 +191,10 @@ void test_prvAllowIPPacketIPv6_loopback_not_match_src()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_network_down
- * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::FFFF when network is down.
- * Check if prvAllowIPPacketIPv6 determines to process it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::FFFF when network is down.
+ *        Check if prvAllowIPPacketIPv6 determines to process it.
  */
-void test_prvAllowIPPacketIPv6_network_down()
+void test_prvAllowIPPacketIPv6_NetworkDown()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -351,11 +212,10 @@ void test_prvAllowIPPacketIPv6_network_down()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_happy_path
- * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. And the source MAC address in packet is same as endpoint.
- * Check if prvAllowIPPacketIPv6 determines to process it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. And the source MAC address in packet is same as endpoint.
+ *        Check if prvAllowIPPacketIPv6 determines to process it.
  */
-void test_prvAllowIPPacketIPv6_self_send()
+void test_prvAllowIPPacketIPv6_SelfSend()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -368,11 +228,10 @@ void test_prvAllowIPPacketIPv6_self_send()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_checksum_error
- * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. But the checksum is wrong.
- * Check if prvAllowIPPacketIPv6 determines to release it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. But the checksum is wrong.
+ *        Check if prvAllowIPPacketIPv6 determines to release it.
  */
-void test_prvAllowIPPacketIPv6_checksum_error()
+void test_prvAllowIPPacketIPv6_ChecksumError()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -386,11 +245,10 @@ void test_prvAllowIPPacketIPv6_checksum_error()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_invalid_packet
- * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. But there is no rule to process this packet.
- * Check if prvAllowIPPacketIPv6 determines to release it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. But there is no rule to process this packet.
+ *        Check if prvAllowIPPacketIPv6 determines to release it.
  */
-void test_prvAllowIPPacketIPv6_invalid_packet()
+void test_prvAllowIPPacketIPv6_InvalidPacket()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -406,11 +264,10 @@ void test_prvAllowIPPacketIPv6_invalid_packet()
 }
 
 /**
- * @brief test_prvAllowIPPacketIPv6_endpoint_different_address
- * Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. But the address in endpoint in network descriptor is different from packet.
- * Check if prvAllowIPPacketIPv6 determines to lease it.
+ * @brief Prepare a packet from 2001:1234:5678::10 -> 2001:1234:5678::5. But the address in endpoint in network descriptor is different from packet.
+ *        Check if prvAllowIPPacketIPv6 determines to lease it.
  */
-void test_prvAllowIPPacketIPv6_endpoint_different_address()
+void test_prvAllowIPPacketIPv6_EndpointDifferentAddress()
 {
     eFrameProcessingResult_t eResult;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
@@ -432,27 +289,32 @@ void test_prvAllowIPPacketIPv6_endpoint_different_address()
 }
 
 /**
- * @brief test_eHandleIPv6ExtensionHeaders_TCP_happy_path
- * Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to process it.
- *  - ipIPv6_EXT_HEADER_HOP_BY_HOP
- *  - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *  - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
- *  - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
- *  - ipIPv6_EXT_HEADER_AUTHEN_HEADER
- *  - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
- *  - ipIPv6_EXT_HEADER_MOBILITY_HEADER
- *  - ipPROTOCOL_TCP
- *     - 1 byte payload
+ * @brief Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to process it.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_TCP
+ *            - 1 byte payload
  */
-void test_eHandleIPv6ExtensionHeaders_TCP_happy_path()
+void test_eHandleIPv6ExtensionHeaders_TCPHappyPath()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    TCPHeader_t * pxProtocolHeader = ( TCPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_TCP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
+    TCPHeader_t * pxProtocolHeader = ( TCPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
+
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -460,27 +322,32 @@ void test_eHandleIPv6ExtensionHeaders_TCP_happy_path()
 }
 
 /**
- * @brief test_eHandleIPv6ExtensionHeaders_UDP_happy_path
- * Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to process it.
- *  - ipIPv6_EXT_HEADER_HOP_BY_HOP
- *  - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *  - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
- *  - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
- *  - ipIPv6_EXT_HEADER_AUTHEN_HEADER
- *  - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
- *  - ipIPv6_EXT_HEADER_MOBILITY_HEADER
- *  - ipPROTOCOL_UDP
- *     - 1 byte payload
+ * @brief Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to process it.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_UDP
+ *            - 1 byte payload
  */
-void test_eHandleIPv6ExtensionHeaders_UDP_happy_path()
+void test_eHandleIPv6ExtensionHeaders_UDPHappyPath()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_UDP );
-    UDPHeader_t * pxProtocolHeader = ( UDPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_UDP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
+    UDPHeader_t * pxProtocolHeader = ( UDPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
+
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -488,27 +355,32 @@ void test_eHandleIPv6ExtensionHeaders_UDP_happy_path()
 }
 
 /**
- * @brief test_eHandleIPv6ExtensionHeaders_ICMPv6_happy_path
- * Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to process it.
- *  - ipIPv6_EXT_HEADER_HOP_BY_HOP
- *  - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *  - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
- *  - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
- *  - ipIPv6_EXT_HEADER_AUTHEN_HEADER
- *  - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
- *  - ipIPv6_EXT_HEADER_MOBILITY_HEADER
- *  - ipPROTOCOL_ICMP_IPv6
- *     - 1 byte payload
+ * @brief Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to process it.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_ICMP_IPv6
+ *            - 1 byte payload
  */
-void test_eHandleIPv6ExtensionHeaders_ICMPv6_happy_path()
+void test_eHandleIPv6ExtensionHeaders_ICMPv6HappyPath()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_ICMP_IPv6 );
-    ICMPHeader_IPv6_t * pxProtocolHeader = ( ICMPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_ICMP_IPv6;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
+    ICMPHeader_IPv6_t * pxProtocolHeader = ( ICMPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
+
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
@@ -516,158 +388,81 @@ void test_eHandleIPv6ExtensionHeaders_ICMPv6_happy_path()
 }
 
 /**
- * @brief test_eHandleIPv6ExtensionHeaders_TCP_happy_path_not_remove
- * Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to release it due to not support.
- * And the extension headers still exist.
- *  - ipIPv6_EXT_HEADER_HOP_BY_HOP
- *  - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *  - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
- *  - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
- *  - ipIPv6_EXT_HEADER_AUTHEN_HEADER
- *  - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
- *  - ipIPv6_EXT_HEADER_MOBILITY_HEADER
- *  - ipPROTOCOL_TCP
- *     - 1 byte payload
+ * @brief Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to release it due to not support.
+ *        And the extension headers still exist.
+ *         - ipIPv6_EXT_HEADER_HOP_BY_HOP
+ *         - ipIPv6_EXT_HEADER_ROUTING_HEADER
+ *         - ipIPv6_EXT_HEADER_FRAGMENT_HEADER
+ *         - ipIPv6_EXT_HEADER_SECURE_PAYLOAD
+ *         - ipIPv6_EXT_HEADER_AUTHEN_HEADER
+ *         - ipIPv6_EXT_HEADER_DESTINATION_OPTIONS
+ *         - ipIPv6_EXT_HEADER_MOBILITY_HEADER
+ *         - ipPROTOCOL_TCP
+ *            - 1 byte payload
  */
-void test_eHandleIPv6ExtensionHeaders_TCP_happy_path_not_remove()
+void test_eHandleIPv6ExtensionHeaders_TCPHappyPathNotRemove()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    TCPHeader_t * pxProtocolHeader = ( TCPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH ] );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_TCP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
+    TCPHeader_t * pxProtocolHeader = ( TCPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH ] );
     uint8_t * pxPayload;
 
     pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
 
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+    usGetExtensionHeaderLength_ReturnThruPtr_pucProtocol( &ucProtocol );
+
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdFALSE );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
-    TEST_ASSERT_EQUAL( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTESION_HEADERS_LENGTH + sizeof( TCPHeader_t ) + 1U, pxNetworkBuffer->xDataLength );
+    TEST_ASSERT_EQUAL( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH + sizeof( TCPHeader_t ) + 1U, pxNetworkBuffer->xDataLength );
 }
 
 /**
- * @brief test_eHandleIPv6ExtensionHeaders_hop_by_hop_in_wrong_order
- * Prepare a packet have extension with following order. Check if eHandleIPv6ExtensionHeaders determines to release it.
- *  - ipIPv6_EXT_HEADER_ROUTING_HEADER
- *  - ipIPv6_EXT_HEADER_HOP_BY_HOP
- *  - ipPROTOCOL_TCP
+ * @brief Prepare a packet with 0 buffer length. Check if eHandleIPv6ExtensionHeaders determines to release it.
  */
-void test_eHandleIPv6ExtensionHeaders_hop_by_hop_in_wrong_order()
+void test_eHandleIPv6ExtensionHeaders_ShortBufferLength()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-
-    /* Modify the extension header */
-    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_HOP_BY_HOP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
-
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
-}
-
-/**
- * @brief test_eHandleIPv6ExtensionHeaders_short_buffer_length
- * Prepare a packet with 0 buffer length. Check if eHandleIPv6ExtensionHeaders determines to release it.
- */
-void test_eHandleIPv6ExtensionHeaders_short_buffer_length()
-{
-    eFrameProcessingResult_t eResult;
+    uint8_t ucExtHeaderNum = 7U;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptor();
 
     pxNetworkBuffer->xDataLength = 0;
 
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
+
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 /**
- * @brief test_eHandleIPv6ExtensionHeaders_small_IP_payload_length
- * Prepare a packet with small IP payload length. Check if eHandleIPv6ExtensionHeaders determines to release it.
+ * @brief Prepare a packet with small IP payload length. Check if eHandleIPv6ExtensionHeaders determines to release it.
  */
-void test_eHandleIPv6ExtensionHeaders_small_IP_payload_length()
+void test_eHandleIPv6ExtensionHeaders_SmallIPPayloadLength()
 {
     eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
+    uint8_t ucExtHeaderNum = 7U;
+    uint8_t ucProtocol = ipPROTOCOL_TCP;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
     IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
     pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( 20 ); /* Need to remove 56 bytes extension header but only 20 bytes length set in IP header. */
 
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
-}
-
-/**
- * @brief test_eHandleIPv6ExtensionHeaders_large_extension_header
- * Prepare a packet with large extension header length. Check if eHandleIPv6ExtensionHeaders determines to release it.
- */
-void test_eHandleIPv6ExtensionHeaders_large_extension_header()
-{
-    eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-
-    /* Modify the extension header */
-    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_HOP_BY_HOP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 200U; /* Extension header length is set to 200*8 + 8, which is larger than buffer size. */
-    uxIndex += 8;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipPROTOCOL_TCP;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0;
-    uxIndex += 8;
+    usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );
+    usGetExtensionHeaderLength_IgnoreArg_pucProtocol();
 
     eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 /**
- * @brief test_eHandleIPv6ExtensionHeaders_unknown_extension_header
- * Prepare a packet with unknown extension header. Check if eHandleIPv6ExtensionHeaders can skip it and process it.
+ * @brief Prepare a IPv6 addresses FF00:: ~ FFF0::. Check if xIsIPv6AllowedMulticast returns pdFALSE.
  */
-void test_eHandleIPv6ExtensionHeaders_unknown_extension_header()
-{
-    eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-
-    /* Modify the extension header to 0x7F (unknown) */
-    pxIPv6Header->ucNextHeader = 0x7F;
-
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
-}
-
-/**
- * @brief test_eHandleIPv6ExtensionHeaders_dest_then_routing
- * Prepare a packet with specific extension header order - destination -> routing.
- * Check if eHandleIPv6ExtensionHeaders determines to process it.
- */
-void test_eHandleIPv6ExtensionHeaders_dest_then_routing()
-{
-    eFrameProcessingResult_t eResult;
-    NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ipPROTOCOL_TCP );
-    IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-
-    pxIPv6Header->ucNextHeader = ipIPv6_EXT_HEADER_DESTINATION_OPTIONS;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex ] = ipIPv6_EXT_HEADER_ROUTING_HEADER;
-    pxNetworkBuffer->pucEthernetBuffer[ uxIndex + 1 ] = 0U;
-
-    eResult = eHandleIPv6ExtensionHeaders( pxNetworkBuffer, pdTRUE );
-    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
-}
-
-/**
- * @brief test_xIsIPv6AllowedMulticast_zero_scope
- * Prepare a IPv6 addresses FF00:: ~ FFF0::. Check if xIsIPv6AllowedMulticast returns pdFALSE.
- */
-void test_xIsIPv6AllowedMulticast_zero_scope()
+void test_xIsIPv6AllowedMulticast_ZeroScope()
 {
     IPv6_Address_t xMulticastZeroGroupID = { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     BaseType_t xReturn;
@@ -682,10 +477,9 @@ void test_xIsIPv6AllowedMulticast_zero_scope()
 }
 
 /**
- * @brief test_xIsIPv6AllowedMulticast_reserved_address
- * Prepare IPv6 addresses FF00:: ~ FF0F::. Check if xIsIPv6AllowedMulticast returns pdTRUE.
+ * @brief Prepare IPv6 addresses FF00:: ~ FF0F::. Check if xIsIPv6AllowedMulticast returns pdTRUE.
  */
-void test_xIsIPv6AllowedMulticast_reserved_address()
+void test_xIsIPv6AllowedMulticast_ReservedAddress()
 {
     IPv6_Address_t xMulticastZeroFlag = { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     BaseType_t xReturn;
@@ -700,10 +494,9 @@ void test_xIsIPv6AllowedMulticast_reserved_address()
 }
 
 /**
- * @brief test_xIsIPv6AllowedMulticast_valid_address
- * Prepare IPv6 address FF11::1. Check if xIsIPv6AllowedMulticast returns pdTRUE.
+ * @brief Prepare IPv6 address FF11::1. Check if xIsIPv6AllowedMulticast returns pdTRUE.
  */
-void test_xIsIPv6AllowedMulticast_valid_address()
+void test_xIsIPv6AllowedMulticast_ValidAddress()
 {
     IPv6_Address_t xMulticastZeroFlag = { 0xFF, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
     BaseType_t xReturn;
@@ -713,10 +506,7 @@ void test_xIsIPv6AllowedMulticast_valid_address()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_LLMNR
- * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
- *  - Left:  2001::00AB:CDEF
- *  - Right: FF02::FFAB:CDEF
+ * @brief Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
  */
 void test_xCompareIPv6_Address_LLMNR()
 {
@@ -729,12 +519,9 @@ void test_xCompareIPv6_Address_LLMNR()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_all_nodes
- * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
- *  - Left:  2001::00AB:CDEF
- *  - Right: FF02::1
+ * @brief Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
  */
-void test_xCompareIPv6_Address_all_nodes()
+void test_xCompareIPv6_Address_AllNodes()
 {
     BaseType_t xReturn;
     IPv6_Address_t xLeftAddress = { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0xcd, 0xef };
@@ -745,12 +532,9 @@ void test_xCompareIPv6_Address_all_nodes()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_both_local_addresses
- * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
- *  - Left:  FE80::1
- *  - Right: FE80::2
+ * @brief Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
  */
-void test_xCompareIPv6_Address_both_local_addresses()
+void test_xCompareIPv6_Address_BothLocalAddresses()
 {
     BaseType_t xReturn;
     IPv6_Address_t xLeftAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
@@ -761,12 +545,9 @@ void test_xCompareIPv6_Address_both_local_addresses()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_coverage_local_address_left_FF80
- * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
- *  - Left:  FF80::1
- *  - Right: FE80::2
+ * @brief Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
  */
-void test_xCompareIPv6_Address_coverage_local_address_left_FF80()
+void test_xCompareIPv6_Address_CoverageLocalAddressLeftFF80()
 {
     BaseType_t xReturn;
     IPv6_Address_t xLeftAddress = { 0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
@@ -777,12 +558,9 @@ void test_xCompareIPv6_Address_coverage_local_address_left_FF80()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_coverage_local_address_left_FE81
- * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
- *  - Left:  FE81::1
- *  - Right: FE80::2
+ * @brief Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
  */
-void test_xCompareIPv6_Address_coverage_local_address_left_FE81()
+void test_xCompareIPv6_Address_CoverageLocalAddressLeftFE81()
 {
     BaseType_t xReturn;
     IPv6_Address_t xLeftAddress = { 0xFE, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
@@ -793,12 +571,9 @@ void test_xCompareIPv6_Address_coverage_local_address_left_FE81()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_coverage_local_address_right_FF80
- * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
- *  - Left:  FE80::1
- *  - Right: FF80::2
+ * @brief Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
  */
-void test_xCompareIPv6_Address_coverage_local_address_right_FF80()
+void test_xCompareIPv6_Address_CoverageLocalAddressRightFF80()
 {
     BaseType_t xReturn;
     IPv6_Address_t xLeftAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
@@ -809,12 +584,9 @@ void test_xCompareIPv6_Address_coverage_local_address_right_FF80()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_coverage_local_address_right_FE81
- * Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
- *  - Left:  FE80::1
- *  - Right: FE81::2
+ * @brief Prepare IPv6 address below. Check if xIsIPv6AllowedMulticast returns 0.
  */
-void test_xCompareIPv6_Address_coverage_local_address_right_FE81()
+void test_xCompareIPv6_Address_CoverageLocalAddressRightFE81()
 {
     BaseType_t xReturn;
     IPv6_Address_t xLeftAddress = { 0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
@@ -825,12 +597,9 @@ void test_xCompareIPv6_Address_coverage_local_address_right_FE81()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_zero_prefix_length
- * Prepare IPv6 address below. With prefix length 0, xCompareIPv6_Address should take all IP address as same region.
- *  - Left:  2001:1234:5678::5
- *  - Right: 2001:1234:5678::10
+ * @brief Prepare IPv6 address below. With prefix length 0, xCompareIPv6_Address should take all IP address as same region.
  */
-void test_xCompareIPv6_Address_zero_prefix_length()
+void test_xCompareIPv6_Address_ZeroPrefixLength()
 {
     BaseType_t xReturn;
 
@@ -839,12 +608,9 @@ void test_xCompareIPv6_Address_zero_prefix_length()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_same_address_prefix_128
- * Prepare IPv6 address below. With prefix length 128, xCompareIPv6_Address should compare whole IP address.
- *  - Left:  2001:1234:5678::5
- *  - Right: 2001:1234:5678::5
+ * @brief Prepare IPv6 address below. With prefix length 128, xCompareIPv6_Address should compare whole IP address.
  */
-void test_xCompareIPv6_Address_same_address_prefix_128()
+void test_xCompareIPv6_Address_SameAddressPrefix128()
 {
     BaseType_t xReturn;
 
@@ -853,12 +619,9 @@ void test_xCompareIPv6_Address_same_address_prefix_128()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_same_region_prefix_64
- * Prepare IPv6 address below. With prefix length 64, xCompareIPv6_Address should compare first 64 bit of IP address.
- *  - Left:  2001:1234:5678::5
- *  - Right: 2001:1234:5678::10
+ * @brief Prepare IPv6 address below. With prefix length 64, xCompareIPv6_Address should compare first 64 bit of IP address.
  */
-void test_xCompareIPv6_Address_same_region_prefix_64()
+void test_xCompareIPv6_Address_SameRegionPrefix64()
 {
     BaseType_t xReturn;
 
@@ -867,12 +630,9 @@ void test_xCompareIPv6_Address_same_region_prefix_64()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_different_region_prefix_64
- * Prepare IPv6 address below. With prefix length 64, xCompareIPv6_Address should compare first 64 bit of IP address.
- *  - Left:  2001:1234:5678::5
- *  - Right: FF01::10
+ * @brief Prepare IPv6 address below. With prefix length 64, xCompareIPv6_Address should compare first 64 bit of IP address.
  */
-void test_xCompareIPv6_Address_different_region_prefix_64()
+void test_xCompareIPv6_Address_DifferentRegionPrefix64()
 {
     BaseType_t xReturn;
     IPv6_Address_t xRightAddress = { 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
@@ -882,12 +642,9 @@ void test_xCompareIPv6_Address_different_region_prefix_64()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_different_region_prefix_4
- * Prepare IPv6 address below. With prefix length 4, xCompareIPv6_Address should compare first 4 bit of IP address.
- *  - Left:  2001:1234:5678::5
- *  - Right: 4001:1234:5678::5
+ * @brief Prepare IPv6 address below. With prefix length 4, xCompareIPv6_Address should compare first 4 bit of IP address.
  */
-void test_xCompareIPv6_Address_different_region_prefix_4()
+void test_xCompareIPv6_Address_DifferentRegionPrefix4()
 {
     BaseType_t xReturn;
     IPv6_Address_t xRightAddress;
@@ -900,12 +657,9 @@ void test_xCompareIPv6_Address_different_region_prefix_4()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_different_region_prefix_44
- * Prepare IPv6 address below. With prefix length 44, xCompareIPv6_Address should compare first 44 bit of IP address.
- *  - Left:  2001:1234:5678::5
- *  - Right: 2001:1234:5688::5
+ * @brief Prepare IPv6 address below. With prefix length 44, xCompareIPv6_Address should compare first 44 bit of IP address.
  */
-void test_xCompareIPv6_Address_different_region_prefix_44()
+void test_xCompareIPv6_Address_DifferentRegionPrefix44()
 {
     BaseType_t xReturn;
     IPv6_Address_t xRightAddress;
@@ -918,15 +672,47 @@ void test_xCompareIPv6_Address_different_region_prefix_44()
 }
 
 /**
- * @brief test_xCompareIPv6_Address_same_region_prefix_44
- * Prepare IPv6 address below. With prefix length 44, xCompareIPv6_Address should compare first 44 bit of IP address.
- *  - Left:  2001:1234:5678::5
- *  - Right: 2001:1234:5678::10
+ * @brief Prepare IPv6 address below. With prefix length 44, xCompareIPv6_Address should compare first 44 bit of IP address.
  */
-void test_xCompareIPv6_Address_same_region_prefix_44()
+void test_xCompareIPv6_Address_SameRegionPrefix44()
 {
     BaseType_t xReturn;
 
     xReturn = xCompareIPv6_Address( &xIPAddressFive, &xIPAddressTen, 44 );
     TEST_ASSERT_EQUAL( 0, xReturn );
+}
+
+/**
+ * @brief Test xGetExtensionOrder.
+ */
+void test_xGetExtensionOrder()
+{
+    BaseType_t xReturn;
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_HOP_BY_HOP, 0U );
+    TEST_ASSERT_EQUAL( 1, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, 0U );
+    TEST_ASSERT_EQUAL( 7, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_DESTINATION_OPTIONS, ipIPv6_EXT_HEADER_ROUTING_HEADER );
+    TEST_ASSERT_EQUAL( 2, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_ROUTING_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 3, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_FRAGMENT_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 4, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_AUTHEN_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 5, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_SECURE_PAYLOAD, 0U );
+    TEST_ASSERT_EQUAL( 6, xReturn );
+
+    xReturn = xGetExtensionOrder( ipIPv6_EXT_HEADER_MOBILITY_HEADER, 0U );
+    TEST_ASSERT_EQUAL( 8, xReturn );
+
+    xReturn = xGetExtensionOrder( ipPROTOCOL_TCP, 0U );
+    TEST_ASSERT_EQUAL( -1, xReturn );
 }

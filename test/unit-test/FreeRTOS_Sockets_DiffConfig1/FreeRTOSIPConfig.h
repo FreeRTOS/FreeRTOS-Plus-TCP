@@ -35,6 +35,8 @@
 #define TEST                        1
 
 #define ipconfigUSE_IPv4            ( 1 )
+#define ipconfigUSE_IPv6            ( 1 )
+#define ipconfigTCP_MSS             ( ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER - 1 )
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
  * 1 then FreeRTOS_debug_printf should be defined to the function used to print
@@ -57,8 +59,8 @@
  * on).  Valid options are pdFREERTOS_BIG_ENDIAN and pdFREERTOS_LITTLE_ENDIAN. */
 #define ipconfigBYTE_ORDER                         pdFREERTOS_LITTLE_ENDIAN
 
-/* If the network card/driver includes checksum offloading (IP/TCP/UDP checksums)
- * then set ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
+/* If the network card/driver includes checksum offloading then set
+ * ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM to 1 to prevent the software
  * stack repeating the checksum calculations. */
 #define ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM     0
 

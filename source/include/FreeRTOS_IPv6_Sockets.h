@@ -28,16 +28,16 @@
 #ifndef FREERTOS_IPV6_SOCKETS_H
     #define FREERTOS_IPV6_SOCKETS_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
 /* Standard includes. */
     #include <string.h>
 
 /* FreeRTOS includes. */
     #include "FreeRTOS.h"
     #include "FreeRTOS_IP_Common.h"
+
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
 /** @brief When ucASCIIToHex() can not convert a character,
  *         the value 255 will be returned.
@@ -102,8 +102,7 @@
  *         is connected to a remote IP-address. It will be called from a loop
  *         iterating through all sockets. */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                const IPv6_Address_t * pxAddress_IPv6,
-                                                uint32_t ulRemoteIP );
+                                                const IPv46_Address_t * pxAddress );
 
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet
@@ -120,7 +119,7 @@
                               struct freertos_sockaddr * pxSourceAddress );
 
     #ifdef __cplusplus
-        } /* extern "C" */
+}         /* extern "C" */
     #endif
 
 #endif /* FREERTOS_IPV6_SOCKETS_H */

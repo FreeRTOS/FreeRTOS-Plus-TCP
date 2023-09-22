@@ -118,8 +118,8 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                            NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                            BaseType_t bReleaseAfterSend );
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface );
+NetworkInterface_t * pxLinux_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
@@ -339,9 +339,24 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /*-----------------------------------------------------------*/
 
+#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
-NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
-                                                NetworkInterface_t * pxInterface )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        return pxLinux_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif
+
+/*-----------------------------------------------------------*/
+
+NetworkInterface_t * pxLinux_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                      NetworkInterface_t * pxInterface )
 {
     static char pcName[ 17 ];
 
@@ -483,7 +498,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not activate promisuous mode\n" ) );
+            FreeRTOS_printf( ( "could not activate promiscuous mode\n" ) );
             break;
         }
 
@@ -492,7 +507,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set snaplen\n" ) );
+            FreeRTOS_printf( ( "could not set snaplen\n" ) );
             break;
         }
 
@@ -500,7 +515,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set timeout\n" ) );
+            FreeRTOS_printf( ( "could not set timeout\n" ) );
             break;
         }
 
@@ -509,7 +524,7 @@ static int prvSetDeviceModes()
 
         if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
         {
-            FreeRTOS_printf( ( "coult not set buffer size\n" ) );
+            FreeRTOS_printf( ( "could not set buffer size\n" ) );
             break;
         }
 
@@ -843,10 +858,10 @@ static void * prvLinuxPcapSendThread( void * pvParam )
         {
             uxStreamBufferGet( xSendBuffer, 0, ( uint8_t * ) &xLength, sizeof( xLength ), pdFALSE );
             uxStreamBufferGet( xSendBuffer, 0, ( uint8_t * ) ucBuffer, xLength, pdFALSE );
-            FreeRTOS_debug_printf( ( "Sending  ========== > data pcap_sendpadcket %lu\n", xLength ) );
+            FreeRTOS_debug_printf( ( "Sending  ========== > data pcap_sendpacket %lu\n", xLength ) );
             print_hex( ucBuffer, xLength );
 
-            if( pcap_sendpacket( pxOpenedInterfaceHandle, ucBuffer, xLength ) != 0 )
+            if( pcap_sendpacket( pxOpenedInterfaceHandle, ucBuffer, ( int ) xLength ) != 0 )
             {
                 FreeRTOS_printf( ( "pcap_sendpackeet: send failed %d\n", ulPCAPSendFailures ) );
                 ulPCAPSendFailures++;
@@ -964,9 +979,9 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         pxNetworkBuffer->xDataLength = ( size_t ) pxHeader->len;
 
                         #if ( niDISRUPT_PACKETS == 1 )
-                            {
-                                pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
-                            }
+                        {
+                            pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
+                        }
                         #endif /* niDISRUPT_PACKETS */
 
                         if( pxNetworkBuffer != NULL )

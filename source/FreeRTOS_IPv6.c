@@ -145,7 +145,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
             {
                 pxExtHeader = ( const IPExtHeader_IPv6_t * ) ( &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtHeaderLength ] ) );
                 /* The definition of length in extension header - Length of this header in 8-octet units, not including the first 8 octets. */
-                uxExtHeaderLength += ( 8 * pxExtHeader->ucHeaderExtLength ) + 8;
+                uxExtHeaderLength += ( size_t ) ( ( 8 * pxExtHeader->ucHeaderExtLength ) + 8 );
 
                 ucNextHeader = pxExtHeader->ucNextHeader;
 
@@ -452,94 +452,94 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
     eFrameProcessingResult_t eReturn;
 
     #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
+    {
+        /* In systems with a very small amount of RAM, it might be advantageous
+         * to have incoming messages checked earlier, by the network card driver.
+         * This method may decrease the usage of sparse network buffers. */
+        const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
+        const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
+        BaseType_t xHasUnspecifiedAddress = pdFALSE;
+
+        /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
+         * either in source or destination address. */
+        if( ( memcmp( pxDestinationIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
+            ( memcmp( pxSourceIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
-            /* In systems with a very small amount of RAM, it might be advantageous
-             * to have incoming messages checked earlier, by the network card driver.
-             * This method may decrease the usage of sparse network buffers. */
-            const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
-            const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
-            BaseType_t xHasUnspecifiedAddress = pdFALSE;
-
-            /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
-             * either in source or destination address. */
-            if( ( memcmp( pxDestinationIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
-                ( memcmp( pxSourceIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
-            {
-                xHasUnspecifiedAddress = pdTRUE;
-            }
-
-            /* Is the packet for this IP address? */
-            if( ( xHasUnspecifiedAddress == pdFALSE ) &&
-                ( pxNetworkBuffer->pxEndPoint != NULL ) &&
-                ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
-            {
-                eReturn = eProcessBuffer;
-            }
-            /* Is it the legal multicast address? */
-            else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
-                     ( ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) != pdFALSE ) ||
-                       /* Is it loopback address sent from this node? */
-                       ( xIsIPv6Loopback( pxIPv6Header ) != pdFALSE ) ||
-                       /* Or (during DHCP negotiation) we have no IP-address yet? */
-                       ( FreeRTOS_IsNetworkUp() == 0 ) ) )
-            {
-                eReturn = eProcessBuffer;
-            }
-            else
-            {
-                /* Packet is not for this node, or the network is still not up,
-                 * release it */
-                eReturn = eReleaseBuffer;
-                FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop %pip (from %pip)\n", pxDestinationIPAddress->ucBytes, pxIPv6Header->xSourceAddress.ucBytes ) );
-            }
+            xHasUnspecifiedAddress = pdTRUE;
         }
-    #else /* if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 ) */
+
+        /* Is the packet for this IP address? */
+        if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+            ( pxNetworkBuffer->pxEndPoint != NULL ) &&
+            ( memcmp( pxDestinationIPAddress->ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
-            ( void ) pxIPv6Header;
-            /* The packet has been checked by the network interface. */
             eReturn = eProcessBuffer;
         }
+        /* Is it the legal multicast address? */
+        else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+                 ( ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) != pdFALSE ) ||
+                   /* Is it loopback address sent from this node? */
+                   ( xIsIPv6Loopback( pxIPv6Header ) != pdFALSE ) ||
+                   /* Or (during DHCP negotiation) we have no IP-address yet? */
+                   ( FreeRTOS_IsNetworkUp() == 0 ) ) )
+        {
+            eReturn = eProcessBuffer;
+        }
+        else
+        {
+            /* Packet is not for this node, or the network is still not up,
+             * release it */
+            eReturn = eReleaseBuffer;
+            FreeRTOS_printf( ( "prvAllowIPPacketIPv6: drop %pip (from %pip)\n", pxDestinationIPAddress->ucBytes, pxIPv6Header->xSourceAddress.ucBytes ) );
+        }
+    }
+    #else /* if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 ) */
+    {
+        ( void ) pxIPv6Header;
+        /* The packet has been checked by the network interface. */
+        eReturn = eProcessBuffer;
+    }
     #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS */
 
     #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 )
+    {
+        /* Some drivers of NIC's with checksum-offloading will enable the above
+         * define, so that the checksum won't be checked again here */
+        if( eReturn == eProcessBuffer )
         {
-            /* Some drivers of NIC's with checksum-offloading will enable the above
-             * define, so that the checksum won't be checked again here */
-            if( eReturn == eProcessBuffer )
-            {
-                /* MISRA Ref 11.3.1 [Misaligned access] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-                /* coverity[misra_c_2012_rule_11_3_violation] */
-                const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-                const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+            const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xSourceAddress ), NULL );
 
-                /* IPv6 does not have a separate checksum in the IP-header */
-                /* Is the upper-layer checksum (TCP/UDP/ICMP) correct? */
-                /* Do not check the checksum of loop-back messages. */
-                if( pxEndPoint == NULL )
-                {
-                    if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
-                    {
-                        /* Protocol checksum not accepted. */
-                        eReturn = eReleaseBuffer;
-                    }
-                }
-            }
-        }
-    #else /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) */
-        {
-            if( eReturn == eProcessBuffer )
+            /* IPv6 does not have a separate checksum in the IP-header */
+            /* Is the upper-layer checksum (TCP/UDP/ICMP) correct? */
+            /* Do not check the checksum of loop-back messages. */
+            if( pxEndPoint == NULL )
             {
-                if( xCheckIPv6SizeFields( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ) != pdPASS )
+                if( usGenerateProtocolChecksum( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength, pdFALSE ) != ipCORRECT_CRC )
                 {
-                    /* Some of the length checks were not successful. */
+                    /* Protocol checksum not accepted. */
                     eReturn = eReleaseBuffer;
                 }
             }
-
-            /* to avoid warning unused parameters */
-            ( void ) pxNetworkBuffer;
         }
+    }
+    #else /* if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) */
+    {
+        if( eReturn == eProcessBuffer )
+        {
+            if( xCheckIPv6SizeFields( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength ) != pdPASS )
+            {
+                /* Some of the length checks were not successful. */
+                eReturn = eReleaseBuffer;
+            }
+        }
+
+        /* to avoid warning unused parameters */
+        ( void ) pxNetworkBuffer;
+    }
     #endif /* ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 */
     ( void ) uxHeaderLength;
 
@@ -625,88 +625,23 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
 {
     eFrameProcessingResult_t eResult = eReleaseBuffer;
     const size_t uxMaxLength = pxNetworkBuffer->xDataLength;
-    const uint8_t * pucSource = pxNetworkBuffer->pucEthernetBuffer;
     /* MISRA Ref 11.3.1 [Misaligned access] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     IPPacket_IPv6_t * pxIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    size_t uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
-    size_t uxHopSize = 0U;
     size_t xMoveLen = 0U;
     size_t uxRemovedBytes = 0U;
-    uint8_t ucCurrentHeader = pxIPPacket_IPv6->xIPHeader.ucNextHeader;
     uint8_t ucNextHeader = 0U;
-    BaseType_t xNextOrder = 0;
-    BaseType_t xExtHeaderCount = 0;
+    size_t uxIndex = 0U;
 
-    ( void ) xNextOrder;
-
-    while( ( uxIndex + 8U ) < uxMaxLength )
-    {
-        BaseType_t xCurrentOrder;
-        ucNextHeader = pucSource[ uxIndex ];
-
-        xCurrentOrder = xGetExtensionOrder( ucCurrentHeader, ucNextHeader );
-
-        /* To avoid compile warning if debug print is disabled. */
-        ( void ) xCurrentOrder;
-
-        /* Read the length expressed in number of octets. */
-        uxHopSize = ( size_t ) pucSource[ uxIndex + 1U ];
-        /* And multiply by 8 and add the minimum size of 8. */
-        uxHopSize = ( uxHopSize * 8U ) + 8U;
-
-        if( ( uxIndex + uxHopSize ) >= uxMaxLength )
-        {
-            FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxMaxLength ) );
-            uxIndex = uxMaxLength;
-            break;
-        }
-
-        uxIndex = uxIndex + uxHopSize;
-
-        if( ( ucNextHeader == ipPROTOCOL_TCP ) ||
-            ( ucNextHeader == ipPROTOCOL_UDP ) ||
-            ( ucNextHeader == ipPROTOCOL_ICMP_IPv6 ) )
-        {
-            FreeRTOS_debug_printf( ( "Stop at header %u\n", ucNextHeader ) );
-            break;
-        }
-
-        xNextOrder = xGetExtensionOrder( ucNextHeader, pucSource[ uxIndex ] );
-
-        FreeRTOS_debug_printf( ( "Going from header %2u (%d) to %2u (%d)\n",
-                                 ucCurrentHeader,
-                                 ( int ) xCurrentOrder,
-                                 ucNextHeader,
-                                 ( int ) xNextOrder ) );
-
-        xExtHeaderCount += 1;
-
-        /*
-         * IPv6 nodes must accept and attempt to process extension headers in
-         * any order and occurring any number of times in the same packet,
-         * except for the Hop-by-Hop Options header which is restricted to
-         * appear immediately after an IPv6 header only. Outlined
-         * by RFC 2460 section 4.1  Extension Header Order.
-         */
-        if( xNextOrder == 1 ) /* ipIPv6_EXT_HEADER_HOP_BY_HOP */
-        {
-            FreeRTOS_printf( ( "Wrong order. Hop-by-Hop Options header restricted to appear immediately after an IPv6 header\n" ) );
-            uxIndex = uxMaxLength;
-            break;
-        }
-
-        ucCurrentHeader = ucNextHeader;
-    }
+    uxRemovedBytes = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucNextHeader );
+    uxIndex = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxRemovedBytes;
 
     if( uxIndex < uxMaxLength )
     {
         uint8_t * pucTo;
         const uint8_t * pucFrom;
         uint16_t usPayloadLength = FreeRTOS_ntohs( pxIPPacket_IPv6->xIPHeader.usPayloadLength );
-
-        uxRemovedBytes = uxIndex - ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER );
 
         if( uxRemovedBytes >= ( size_t ) usPayloadLength )
         {
@@ -721,7 +656,7 @@ eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t 
             ( void ) memmove( pucTo, pucFrom, xMoveLen );
             pxNetworkBuffer->xDataLength -= uxRemovedBytes;
 
-            usPayloadLength -= ( uint16_t ) uxRemovedBytes;
+            usPayloadLength = ( uint16_t ) ( usPayloadLength - uxRemovedBytes );
             pxIPPacket_IPv6->xIPHeader.usPayloadLength = FreeRTOS_htons( usPayloadLength );
             eResult = eProcessBuffer;
         }

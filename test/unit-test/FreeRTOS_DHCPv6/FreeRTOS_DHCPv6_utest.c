@@ -52,8 +52,6 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-#define TEST_DHCPV6_DEBUG                    ( 1 )
-
 #define TEST_DHCPV6_IAID                     ( 0x27fe8f95 )
 
 #define TEST_DHCPv6_DEFAULT_DUID_TYPE        ( 1U )
@@ -61,75 +59,13 @@
 #define TEST_DHCPv6_DEFAULT_DUID_LENGTH      ( 14U )
 #define TEST_DHCPv6_DIFFERENT_DUID_LENGTH    ( 12U )
 
-#define TEST_DHCPV6_TRANSACTION_ID           ( 0x123456 )
-static uint8_t ucTestDHCPv6TransactionID[] = { 0x12, 0x34, 0x56 };
-
-#define TEST_DHCPV6_OPTION_CLIENT_ID         ( 0x00010001C792BC80121122334422 )
-static uint8_t ucTestDHCPv6OptionClientID[] = { 0x00, 0x01, 0x00, 0x01, 0xC7, 0x92, 0xBC, 0x80, 0x12, 0x11, 0x22, 0x33, 0x44, 0x22 };
-
-#define TEST_DHCPV6_OPTION_SERVER_ID         ( 0x28BADC54000ACD295EB6 )
-static uint8_t ucTestDHCPv6OptionServerID[] = { 0x28, 0xBA, 0xDC, 0x54, 0x00, 0x0A, 0xCD, 0x29, 0x5E, 0xB6 };
-
-const uint8_t ucDefaultMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
-const IPv6_Address_t xDefaultNetPrefix = { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
-/* Default IPv6 address is set to 2001:0470:EC54::5 */
-const IPv6_Address_t xDefaultIPAddress = { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
-const IPv6_Address_t xDNSAddress[ 3 ] =
-{
-    /* 2001:0470:EC54::FF */
-    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF },
-    /* 2001:0470:EC54::FE */
-    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE },
-    /* 2001:0470:EC54::FD */
-    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE },
-};
-
-Socket_t xStubFreeRTOS_setsockopt_xSocket;
-size_t xStubFreeRTOS_setsockopt_uxOptionLength;
-int32_t xStubFreeRTOS_setsockopt_lOptionName_BitMap;
-FreeRTOS_Socket_t * xStubvSocketBind_pxSocket;
-
-/* The maximum size in single read/write operation. */
-#define TEST_DHCPv6_BIT_OPERATION_MAX_SIZE              ( 64 )
-/* The maximum number of bit operations in a test case. */
-#define TEST_DHCPv6_BIT_OPERATION_MAX_NUM               ( 128 )
-/* The maximum size of debug message of bit operations. */
-#define TEST_DHCPv6_BIT_OPERATION_DEBUG_MSG_MAX_SIZE    ( 64 )
-
-typedef enum eTestDHCPv6BitOperationType
-{
-    eTestDHCPv6BitOperationNone = 0,
-    eTestDHCPv6BitOperationWrite8,
-    eTestDHCPv6BitOperationWrite16,
-    eTestDHCPv6BitOperationWrite32,
-    eTestDHCPv6BitOperationWriteCustom,
-    eTestDHCPv6BitOperationRead8,
-    eTestDHCPv6BitOperationRead16,
-    eTestDHCPv6BitOperationRead32,
-    eTestDHCPv6BitOperationReadCustom,
-    eTestDHCPv6BitOperationReadPeek,
-    eTestDHCPv6BitOperationSetError,
-    eTestDHCPv6BitOperationReturnFalse,
-} eTestDHCPv6BitOperationType_t;
-
-typedef struct xTestDHCPv6BitOperation
-{
-    eTestDHCPv6BitOperationType_t eOperationType;
-    uint32_t ulCustomLength;
-    union operationValue
-    {
-        uint8_t ucVal;
-        uint16_t usVal;
-        uint32_t ulVal;
-        uint8_t ucValCustom[ TEST_DHCPv6_BIT_OPERATION_MAX_SIZE ];
-    } val;
-    uint8_t ucDebugMsg[ TEST_DHCPv6_BIT_OPERATION_DEBUG_MSG_MAX_SIZE ];
-} xTestDHCPv6BitOperation_t;
-
-xTestDHCPv6BitOperation_t xTestDHCPv6BitOperation[ TEST_DHCPv6_BIT_OPERATION_MAX_NUM ];
-uint32_t ulTestDHCPv6BitOperationWriteIndex;
-uint32_t ulTestDHCPv6BitOperationReadIndex;
+extern void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint );
+extern void prvCloseDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
+extern const char * prvStateName( eDHCPState_t eState );
+extern BaseType_t prvDHCPv6_subOption( uint16_t usOption,
+                                       const DHCPOptionSet_t * pxSet,
+                                       DHCPMessage_IPv6_t * pxDHCPMessage,
+                                       BitConfig_t * pxMessage );
 
 /* ============================  Unity Fixtures  ============================ */
 
@@ -145,315 +81,6 @@ void setUp( void )
 /*! called after each test case */
 void tearDown( void )
 {
-}
-
-/* ======================== Stub Callback Functions ========================= */
-
-void prvSetCheckerAndReturn_FreeRTOS_setsockopt( Socket_t xSocket,
-                                                 size_t uxOptionLength )
-{
-    xStubFreeRTOS_setsockopt_xSocket = xSocket;
-    xStubFreeRTOS_setsockopt_uxOptionLength = uxOptionLength;
-    xStubFreeRTOS_setsockopt_lOptionName_BitMap = 0;
-}
-
-BaseType_t xStubFreeRTOS_setsockopt( Socket_t xSocket,
-                                     int32_t lLevel,
-                                     int32_t lOptionName,
-                                     const void * pvOptionValue,
-                                     size_t uxOptionLength,
-                                     int NumCalls )
-{
-    TEST_ASSERT_EQUAL( xStubFreeRTOS_setsockopt_xSocket, xSocket );
-    TEST_ASSERT_EQUAL( xStubFreeRTOS_setsockopt_uxOptionLength, uxOptionLength );
-
-    xStubFreeRTOS_setsockopt_lOptionName_BitMap |= ( 1 << lOptionName );
-
-    return pdTRUE;
-}
-
-void prvSetCheckerAndReturn_vSocketBind( FreeRTOS_Socket_t * pxSocket )
-{
-    xStubvSocketBind_pxSocket = pxSocket;
-}
-
-BaseType_t xStubvSocketBind( FreeRTOS_Socket_t * pxSocket,
-                             struct freertos_sockaddr * pxBindAddress,
-                             size_t uxAddressLength,
-                             BaseType_t xInternal,
-                             int NumCalls )
-{
-    TEST_ASSERT_EQUAL( xStubvSocketBind_pxSocket, pxSocket );
-    TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, pxBindAddress->sin_family );
-    TEST_ASSERT_EQUAL( sizeof( struct freertos_sockaddr ), pxBindAddress->sin_len );
-    TEST_ASSERT_EQUAL( ipDHCPv6_CLIENT_PORT, FreeRTOS_ntohs( pxBindAddress->sin_port ) );
-    TEST_ASSERT_EQUAL( pdFALSE, xInternal );
-
-    return 0;
-}
-
-BaseType_t xStubxApplicationGetRandomNumber( uint32_t * pulNumber,
-                                             int NumCalls )
-{
-    if( pulNumber != NULL )
-    {
-        *pulNumber = 0xFF000000 | TEST_DHCPV6_TRANSACTION_ID;
-    }
-
-    return pdPASS;
-}
-
-void xStubvBitConfig_write_8( BitConfig_t * pxConfig,
-                              uint8_t ucValue,
-                              int NumCalls )
-{
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationWrite8, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    TEST_ASSERT_EQUAL( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ucVal, ucValue );
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-}
-
-void xStubvBitConfig_write_16( BitConfig_t * pxConfig,
-                               uint16_t usValue,
-                               int NumCalls )
-{
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationWrite16, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    TEST_ASSERT_EQUAL( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.usVal, usValue );
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-}
-
-void xStubvBitConfig_write_32( BitConfig_t * pxConfig,
-                               uint32_t ulValue,
-                               int NumCalls )
-{
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationWrite32, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    TEST_ASSERT_EQUAL( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ulVal, ulValue );
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-}
-
-void xStubvBitConfig_write_uc( BitConfig_t * pxConfig,
-                               const uint8_t * pucData,
-                               size_t uxSize,
-                               int NumCalls )
-{
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationWriteCustom, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    TEST_ASSERT_EQUAL_MEMORY( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ucValCustom, pucData, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ulCustomLength );
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-}
-
-BaseType_t xStubxBitConfig_init( BitConfig_t * pxConfig,
-                                 const uint8_t * pucData,
-                                 size_t uxSize,
-                                 int NumCalls )
-{
-    BaseType_t xReturn = pdPASS;
-
-    memset( pxConfig, 0, sizeof( BitConfig_t ) );
-
-    pxConfig->uxSize = uxSize;
-    pxConfig->uxIndex = 0;
-    pxConfig->xHasError = pdFALSE;
-
-    return xReturn;
-}
-
-uint8_t xStubucBitConfig_read_8( BitConfig_t * pxConfig,
-                                 int NumCalls )
-{
-    uint8_t ucReturn = 0;
-
-    pxConfig->uxIndex++;
-
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationRead8, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    ucReturn = xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ucVal;
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-
-    return ucReturn;
-}
-
-BaseType_t xStubxBitConfig_read_uc( BitConfig_t * pxConfig,
-                                    uint8_t * pucData,
-                                    size_t uxSize,
-                                    int NumCalls )
-{
-    BaseType_t xReturn = pdTRUE;
-
-    pxConfig->uxIndex += uxSize;
-
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationReadCustom, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-
-    if( pucData != NULL )
-    {
-        memcpy( pucData, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ucValCustom, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ulCustomLength );
-    }
-
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-
-    return xReturn;
-}
-
-uint16_t xStubusBitConfig_read_16( BitConfig_t * pxConfig,
-                                   int NumCalls )
-{
-    uint16_t usReturn = 0;
-
-    pxConfig->uxIndex += 2;
-
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationRead16, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    usReturn = xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.usVal;
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-
-    return usReturn;
-}
-
-uint32_t xStubulBitConfig_read_32( BitConfig_t * pxConfig,
-                                   int NumCalls )
-{
-    uint32_t ulReturn = 0;
-
-    pxConfig->uxIndex += 4;
-
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationRead32, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    ulReturn = xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ulVal;
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-
-    return ulReturn;
-}
-
-BaseType_t xStubpucBitConfig_peek_last_index_uc( BitConfig_t * pxConfig,
-                                                 uint8_t * pucData,
-                                                 size_t uxSize,
-                                                 int NumCalls )
-{
-    BaseType_t xReturn = pdTRUE;
-
-    #if TEST_DHCPV6_DEBUG
-        FreeRTOS_debug_printf( ( "Checking %s\n", xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ucDebugMsg ) );
-    #endif
-
-    TEST_ASSERT_EQUAL( eTestDHCPv6BitOperationReadPeek, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType );
-    memcpy( pucData, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].val.ucValCustom, xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].ulCustomLength );
-    ulTestDHCPv6BitOperationReadIndex++;
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationSetError )
-    {
-        #if TEST_DHCPV6_DEBUG
-            FreeRTOS_debug_printf( ( "Setting Error\n" ) );
-        #endif
-        pxConfig->xHasError = pdTRUE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-
-    if( xTestDHCPv6BitOperation[ ulTestDHCPv6BitOperationReadIndex ].eOperationType == eTestDHCPv6BitOperationReturnFalse )
-    {
-        xReturn = pdFALSE;
-        ulTestDHCPv6BitOperationReadIndex++;
-    }
-
-    return xReturn;
 }
 
 /* ==============================  Test Cases  ============================== */
@@ -1009,8 +636,7 @@ static void prvAddOptionDomainSearchList( BaseType_t xIsWrite )
 }
 
 /**
- * @brief prvPrepareSolicitation
- * Prepare function calls for sending DHCPv6 solicitation message.
+ * @brief Prepare function calls for sending DHCPv6 solicitation message.
  */
 static void prvPrepareSolicitation()
 {
@@ -1023,8 +649,7 @@ static void prvPrepareSolicitation()
 }
 
 /**
- * @brief prvPrepareAdvertise
- * Prepare buffer content as DHCPv6 advertise.
+ * @brief Prepare buffer content as DHCPv6 advertise.
  */
 static void prvPrepareAdvertise()
 {
@@ -1055,8 +680,7 @@ static void prvPrepareAdvertise()
 }
 
 /**
- * @brief prvPrepareAdvertiseIATA
- * Prepare buffer content as DHCPv6 advertise with IA_TA option.
+ * @brief Prepare buffer content as DHCPv6 advertise with IA_TA option.
  */
 static void prvPrepareAdvertiseIATA()
 {
@@ -1075,8 +699,7 @@ static void prvPrepareAdvertiseIATA()
 }
 
 /**
- * @brief prvPrepareAdvertiseNoServerID
- * Prepare buffer content as DHCPv6 advertise without server ID.
+ * @brief Prepare buffer content as DHCPv6 advertise without server ID.
  */
 static void prvPrepareAdvertiseNoServerID()
 {
@@ -1105,8 +728,7 @@ static void prvPrepareAdvertiseNoServerID()
 }
 
 /**
- * @brief prvPrepareAdvertiseSubStatusCodeFail
- * Prepare buffer content as DHCPv6 advertise.
+ * @brief Prepare buffer content as DHCPv6 advertise.
  */
 static void prvPrepareAdvertiseSubStatusCodeFail()
 {
@@ -1144,8 +766,7 @@ static void prvPrepareAdvertiseSubStatusCodeFail()
 }
 
 /**
- * @brief prvPrepareRequest
- * Prepare function calls for sending DHCPv6 request message.
+ * @brief Prepare function calls for sending DHCPv6 request message.
  */
 static void prvPrepareRequest()
 {
@@ -1170,8 +791,7 @@ static void prvPrepareRequest()
 }
 
 /**
- * @brief prvPrepareReply
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReply()
 {
@@ -1195,8 +815,7 @@ static void prvPrepareReply()
 }
 
 /**
- * @brief prvPrepareReplyWithDomainSearchList
- * Append 1 DNS server info to reply message.
+ * @brief Append 1 DNS server info to reply message.
  */
 static void prvPrepareReplyWithDomainSearchList()
 {
@@ -1205,8 +824,7 @@ static void prvPrepareReplyWithDomainSearchList()
 }
 
 /**
- * @brief prvPrepareReplyWithDNS
- * Append 1 DNS server info to reply message.
+ * @brief Append 1 DNS server info to reply message.
  */
 static void prvPrepareReplyWithDNS()
 {
@@ -1215,8 +833,7 @@ static void prvPrepareReplyWithDNS()
 }
 
 /**
- * @brief prvPrepareReplyWithMultipleDNS
- * Append 3 DNS servers info ( more than ipconfigENDPOINT_DNS_ADDRESS_COUNT(2) ) to reply message.
+ * @brief Append 3 DNS servers info ( more than ipconfigENDPOINT_DNS_ADDRESS_COUNT ) to reply message.
  */
 static void prvPrepareReplyWithMultipleDNS()
 {
@@ -1225,8 +842,7 @@ static void prvPrepareReplyWithMultipleDNS()
 }
 
 /**
- * @brief prvPrepareReplyDifferentServerDUIDType
- * Prepare buffer content as DHCPv6 reply with different server DUID type.
+ * @brief Prepare buffer content as DHCPv6 reply with different server DUID type.
  */
 static void prvPrepareReplyDifferentServerDUIDType()
 {
@@ -1250,8 +866,7 @@ static void prvPrepareReplyDifferentServerDUIDType()
 }
 
 /**
- * @brief prvPrepareReplyDifferentServerLength
- * Prepare buffer content as DHCPv6 reply with different server DUID type.
+ * @brief Prepare buffer content as DHCPv6 reply with different server DUID type.
  */
 static void prvPrepareReplyDifferentServerLength()
 {
@@ -1275,8 +890,7 @@ static void prvPrepareReplyDifferentServerLength()
 }
 
 /**
- * @brief prvPrepareReplyDifferentServerDUID
- * Prepare buffer content as DHCPv6 reply with different server DUID.
+ * @brief Prepare buffer content as DHCPv6 reply with different server DUID.
  */
 static void prvPrepareReplyDifferentServerDUID()
 {
@@ -1300,8 +914,7 @@ static void prvPrepareReplyDifferentServerDUID()
 }
 
 /**
- * @brief prvPrepareReplyInvalidIA_NA
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyInvalidIA_NA()
 {
@@ -1319,8 +932,7 @@ static void prvPrepareReplyInvalidIA_NA()
 }
 
 /**
- * @brief prvPrepareReplyInvalidIA_NASubOption
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyInvalidIA_NASubOption()
 {
@@ -1352,8 +964,7 @@ static void prvPrepareReplyInvalidIA_NASubOption()
 }
 
 /**
- * @brief prvPrepareReplyInvalidIA_PD
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyInvalidIA_PD()
 {
@@ -1383,8 +994,7 @@ static void prvPrepareReplyInvalidIA_PD()
 }
 
 /**
- * @brief prvPrepareReplyClientIDTooSmall
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyClientIDTooSmall()
 {
@@ -1404,8 +1014,7 @@ static void prvPrepareReplyClientIDTooSmall()
 }
 
 /**
- * @brief prvPrepareReplyClientIDTooBig
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyClientIDTooBig()
 {
@@ -1429,8 +1038,7 @@ static void prvPrepareReplyClientIDTooBig()
 }
 
 /**
- * @brief prvPrepareReplyClientIDLengthWrong
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyClientIDLengthWrong()
 {
@@ -1456,8 +1064,7 @@ static void prvPrepareReplyClientIDLengthWrong()
 }
 
 /**
- * @brief prvPrepareReplyClientIDPeekFalse
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyClientIDPeekFalse()
 {
@@ -1485,8 +1092,7 @@ static void prvPrepareReplyClientIDPeekFalse()
 }
 
 /**
- * @brief prvPrepareReplyClientIDContentWrong
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyClientIDContentWrong()
 {
@@ -1514,8 +1120,7 @@ static void prvPrepareReplyClientIDContentWrong()
 }
 
 /**
- * @brief prvPrepareReplyServerIDTooSmall
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyServerIDTooSmall()
 {
@@ -1535,8 +1140,7 @@ static void prvPrepareReplyServerIDTooSmall()
 }
 
 /**
- * @brief prvPrepareReplyServerIDTooBig
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyServerIDTooBig()
 {
@@ -1560,8 +1164,7 @@ static void prvPrepareReplyServerIDTooBig()
 }
 
 /**
- * @brief prvPrepareReplyDNSLengthZero
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyDNSLengthZero()
 {
@@ -1574,8 +1177,7 @@ static void prvPrepareReplyDNSLengthZero()
 }
 
 /**
- * @brief prvPrepareReplyDNSLengthNotAllow
- * Prepare buffer content as DHCPv6 reply.
+ * @brief Prepare buffer content as DHCPv6 reply.
  */
 static void prvPrepareReplyDNSLengthNotAllow()
 {
@@ -1594,8 +1196,7 @@ static void prvPrepareReplyDNSLengthNotAllow()
 }
 
 /**
- * @brief prvPrepareUnknownMsgType
- * Prepare buffer content with known message type.
+ * @brief Prepare buffer content with known message type.
  */
 static void prvPrepareUnknownMsgType()
 {
@@ -1604,8 +1205,7 @@ static void prvPrepareUnknownMsgType()
 }
 
 /**
- * @brief prvPrepareWrongTransactionID
- * Prepare buffer content with different transaction ID.
+ * @brief Prepare buffer content with different transaction ID.
  */
 static void prvPrepareWrongTransactionID()
 {
@@ -1621,8 +1221,7 @@ static void prvPrepareWrongTransactionID()
 }
 
 /**
- * @brief prvPrepareErrorTransactionID
- * Prepare buffer content with transaction ID then set the error bit.
+ * @brief Prepare buffer content with transaction ID then set the error bit.
  */
 static void prvPrepareErrorTransactionID()
 {
@@ -1638,8 +1237,7 @@ static void prvPrepareErrorTransactionID()
 }
 
 /**
- * @brief prvPrepareErrorOption
- * Prepare operations for reading error on option.
+ * @brief Prepare operations for reading error on option.
  */
 static void prvPrepareErrorOption()
 {
@@ -1661,8 +1259,7 @@ static void prvPrepareErrorOption()
 }
 
 /**
- * @brief prvPrepareAdvertiseStatusCodeLengthTooSmall
- * Prepare content with status code but the option length is less than minimal requirement.
+ * @brief Prepare content with status code but the option length is less than minimal requirement.
  */
 static void prvPrepareAdvertiseStatusCodeLengthTooSmall()
 {
@@ -1691,8 +1288,7 @@ static void prvPrepareAdvertiseStatusCodeLengthTooSmall()
 }
 
 /**
- * @brief prvPrepareAdvertiseStatusCodeLengthTooBig
- * Prepare content with status code but the option length is larger than packet size.
+ * @brief Prepare content with status code but the option length is larger than packet size.
  */
 static void prvPrepareAdvertiseStatusCodeLengthTooBig()
 {
@@ -1709,8 +1305,7 @@ static void prvPrepareAdvertiseStatusCodeLengthTooBig()
 }
 
 /**
- * @brief prvPrepareAdvertiseStatusCodeLongMessage
- * Prepare status code with long message.
+ * @brief Prepare status code with long message.
  */
 static void prvPrepareAdvertiseStatusCodeLongMessage()
 {
@@ -1733,10 +1328,9 @@ static void prvPrepareAdvertiseStatusCodeLongMessage()
 }
 
 /**
- * @brief test_eGetDHCPv6State_happy_path
- * Check if eGetDHCPv6State can return DHCP state correctly.
+ * @brief Check if eGetDHCPv6State can return DHCP state correctly.
  */
-void test_eGetDHCPv6State_happy_path()
+void test_eGetDHCPv6State_HappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     eDHCPState_t eState = eInitialWait, eStateMax = eNotUsingLeasedAddress;
@@ -1753,29 +1347,26 @@ void test_eGetDHCPv6State_happy_path()
 }
 
 /**
- * @brief test_eGetDHCPv6State_null
- * Check if eGetDHCPv6State trigger assertion when input is NULL.
+ * @brief Check if eGetDHCPv6State trigger assertion when input is NULL.
  */
-void test_eGetDHCPv6State_null()
+void test_eGetDHCPv6State_NullInput()
 {
     catch_assert( eGetDHCPv6State( NULL ) );
 }
 
 /**
- * @brief test_vDHCPv6Process_null
- * Check if vDHCPv6Process trigger assertion when input is NULL.
+ * @brief Check if vDHCPv6Process trigger assertion when input is NULL.
  */
-void test_vDHCPv6Process_null()
+void test_vDHCPv6Process_NullInput()
 {
     catch_assert( vDHCPv6Process( pdTRUE, NULL ) );
     catch_assert( vDHCPv6Process( pdFALSE, NULL ) );
 }
 
 /**
- * @brief test_vDHCPv6Process_reset_from_init
- * Check if vDHCPv6Process can reset successfully from eInitialWait.
+ * @brief Check if vDHCPv6Process can reset successfully from eInitialWait.
  */
-void test_vDHCPv6Process_reset_from_init()
+void test_vDHCPv6Process_ResetFromInit()
 {
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xLocalDHCPv6Socket;
@@ -1786,7 +1377,7 @@ void test_vDHCPv6Process_reset_from_init()
     xEndPoint.xDHCPData.eDHCPState = eInitialWait;
     xEndPoint.xDHCPData.eExpectedState = eInitialWait;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -1804,10 +1395,9 @@ void test_vDHCPv6Process_reset_from_init()
 }
 
 /**
- * @brief test_vDHCPv6Process_reset_from_lease
- * Check if vDHCPv6Process can reset successfully from eLeasedAddress.
+ * @brief Check if vDHCPv6Process can reset successfully from eLeasedAddress.
  */
-void test_vDHCPv6Process_reset_from_lease()
+void test_vDHCPv6Process_ResetFromLease()
 {
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xLocalDHCPv6Socket;
@@ -1823,7 +1413,7 @@ void test_vDHCPv6Process_reset_from_lease()
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -1841,10 +1431,9 @@ void test_vDHCPv6Process_reset_from_lease()
 }
 
 /**
- * @brief test_vDHCPv6Process_reset_different_state
- * Check if vDHCPv6Process can reset successfully when state is different from expect state.
+ * @brief Check if vDHCPv6Process can reset successfully when state is different from expect state.
  */
-void test_vDHCPv6Process_reset_different_state()
+void test_vDHCPv6Process_ResetDifferentState()
 {
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xLocalDHCPv6Socket;
@@ -1860,7 +1449,7 @@ void test_vDHCPv6Process_reset_different_state()
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -1878,10 +1467,9 @@ void test_vDHCPv6Process_reset_different_state()
 }
 
 /**
- * @brief test_vDHCPv6Process_solicitation_happy_path
- * Check if vDHCPv6Process can continue from eWaitingSendFirstDiscover successfully.
+ * @brief Check if vDHCPv6Process can continue from eWaitingSendFirstDiscover successfully.
  */
-void test_vDHCPv6Process_solicitation_happy_path()
+void test_vDHCPv6Process_SolicitationHappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1920,10 +1508,9 @@ void test_vDHCPv6Process_solicitation_happy_path()
 }
 
 /**
- * @brief test_vDHCPv6Process_solicitation_different_state
- * Check if vDHCPv6Process can stop when state is different from expect state.
+ * @brief Check if vDHCPv6Process can stop when state is different from expect state.
  */
-void test_vDHCPv6Process_solicitation_different_state()
+void test_vDHCPv6Process_SolicitationDifferentState()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -1951,10 +1538,9 @@ void test_vDHCPv6Process_solicitation_different_state()
 }
 
 /**
- * @brief test_vDHCPv6Process_advertise_happy_path
- * Check if vDHCPv6Process can continue from eWaitingOffer successfully.
+ * @brief Check if vDHCPv6Process can continue from eWaitingOffer successfully.
  */
-void test_vDHCPv6Process_advertise_happy_path()
+void test_vDHCPv6Process_AdvertiseHappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2000,10 +1586,9 @@ void test_vDHCPv6Process_advertise_happy_path()
 }
 
 /**
- * @brief test_vDHCPv6Process_advertise_IATA_not_implemented
- * Check if vDHCPv6Process can ignore IA_TA option.
+ * @brief Check if vDHCPv6Process can ignore IA_TA option which is not supported.
  */
-void test_vDHCPv6Process_advertise_IATA_not_implemented()
+void test_vDHCPv6Process_AdvertiseIATA()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2049,10 +1634,9 @@ void test_vDHCPv6Process_advertise_IATA_not_implemented()
 }
 
 /**
- * @brief test_vDHCPv6Process_reply_happy_path
- * Check if vDHCPv6Process can continue from eWaitingAcknowledge successfully.
+ * @brief Check if vDHCPv6Process can continue from eWaitingAcknowledge successfully.
  */
-void test_vDHCPv6Process_reply_happy_path()
+void test_vDHCPv6Process_ReplyHappyPath()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2094,10 +1678,9 @@ void test_vDHCPv6Process_reply_happy_path()
 }
 
 /**
- * @brief test_vDHCPv6Process_dhcp_lease_timeout
- * The address of endpoint is timeout. Endpoint sends the DHCPv6 request to ask for renew.
+ * @brief The address of endpoint is timeout. Endpoint sends the DHCPv6 request to ask for renew.
  */
-void test_vDHCPv6Process_dhcp_lease_timeout()
+void test_vDHCPv6Process_DHCPLeaseTimeout()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2149,10 +1732,9 @@ void test_vDHCPv6Process_dhcp_lease_timeout()
 }
 
 /**
- * @brief test_vDHCPv6Process_giveup_when_socket_null
- * When the socket is failed on creation, we should use default setting as IP address.
+ * @brief When the socket is failed on creation, we should use default setting as IP address.
  */
-void test_vDHCPv6Process_giveup_when_socket_null()
+void test_vDHCPv6Process_GiveupWhenSocketNull()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2187,11 +1769,10 @@ void test_vDHCPv6Process_giveup_when_socket_null()
 }
 
 /**
- * @brief test_vDHCPv6Process_wait_reply_timeout
- * Check if vDHCPv6Process send another DHCPv6 reply when timeout triggered on waiting reply.
+ * @brief Check if vDHCPv6Process send another DHCPv6 reply when timeout triggered on waiting reply.
  * Then reset the state to initial when timeout period is out of bound.
  */
-void test_vDHCPv6Process_wait_reply_timeout()
+void test_vDHCPv6Process_WaitReplyTimeout()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2263,10 +1844,9 @@ void test_vDHCPv6Process_wait_reply_timeout()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6Analyse_unknown_msg_type
- * Check if vDHCPv6Process can drop packets with unknown message type.
+ * @brief Check if vDHCPv6Process can drop packets with unknown message type.
  */
-void test_vDHCPv6Process_prvDHCPv6Analyse_unknown_msg_type()
+void test_vDHCPv6Process_prvDHCPv6Analyse_UnknownMsgType()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2304,10 +1884,9 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_unknown_msg_type()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6Analyse_wrong_transaction_ID
- * Check if vDHCPv6Process can drop packets with wrong transaction ID.
+ * @brief Check if vDHCPv6Process can drop packets with wrong transaction ID.
  */
-void test_vDHCPv6Process_prvDHCPv6Analyse_wrong_transaction_ID()
+void test_vDHCPv6Process_prvDHCPv6Analyse_WrongTransactionID()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2345,10 +1924,9 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_wrong_transaction_ID()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error
- * Check if vDHCPv6Process can drop packets while error occurred on bit configuration.
+ * @brief Check if vDHCPv6Process can drop packets while error occurred on bit configuration.
  */
-void test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error()
+void test_vDHCPv6Process_prvDHCPv6Analyse_ReadTransactionIDError()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2386,10 +1964,9 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_read_transaction_ID_error()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6Analyse_read_option_error
- * Check if vDHCPv6Process can drop packets while error occurred on reading option.
+ * @brief Check if vDHCPv6Process can drop packets while error occurred on reading option.
  */
-void test_vDHCPv6Process_prvDHCPv6Analyse_read_option_error()
+void test_vDHCPv6Process_prvDHCPv6Analyse_ReadOptionError()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2427,10 +2004,9 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_read_option_error()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6Analyse_lack_server_ID
- * Check if vDHCPv6Process can drop packets while advertise message without server ID.
+ * @brief Check if vDHCPv6Process can drop packets while advertise message without server ID.
  */
-void test_vDHCPv6Process_prvDHCPv6Analyse_lack_server_ID()
+void test_vDHCPv6Process_prvDHCPv6Analyse_LackServerID()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2468,10 +2044,9 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_lack_server_ID()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6Analyse_bit_config_init_error
- * Check if vDHCPv6Process can drop packets while failing on initialization of bit configuration.
+ * @brief Check if vDHCPv6Process can drop packets while failing on initialization of bit configuration.
  */
-void test_vDHCPv6Process_prvDHCPv6Analyse_bit_config_init_error()
+void test_vDHCPv6Process_prvDHCPv6Analyse_BitConfigInitError()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2508,10 +2083,9 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_bit_config_init_error()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvIsOptionLengthValid_option_less_than_min_length
- * Check if vDHCPv6Process can drop packets when any option's length is less than minimal requirement.
+ * @brief Check if vDHCPv6Process can drop packets when any option's length is less than minimal requirement.
  */
-void test_vDHCPv6Process_prvIsOptionLengthValid_option_less_than_min_length()
+void test_vDHCPv6Process_prvIsOptionLengthValid_OptionLessThanMinLength()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2549,10 +2123,9 @@ void test_vDHCPv6Process_prvIsOptionLengthValid_option_less_than_min_length()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvIsOptionLengthValid_option_larger_than_max_length
- * Check if vDHCPv6Process can drop packets when any option's length is larger than packet size.
+ * @brief Check if vDHCPv6Process can drop packets when any option's length is larger than packet size.
  */
-void test_vDHCPv6Process_prvIsOptionLengthValid_option_larger_than_max_length()
+void test_vDHCPv6Process_prvIsOptionLengthValid_OptionLargerThanMaxLength()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2590,10 +2163,9 @@ void test_vDHCPv6Process_prvIsOptionLengthValid_option_larger_than_max_length()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleStatusCode_Message_too_long
- * Check if vDHCPv6Process can truncate the message in the local buffer.
+ * @brief Check if vDHCPv6Process can truncate the message in the local buffer.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleStatusCode_Message_too_long()
+void test_vDHCPv6Process_prvDHCPv6_handleStatusCode_MessageTooLong()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2631,10 +2203,9 @@ void test_vDHCPv6Process_prvDHCPv6_handleStatusCode_Message_too_long()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_empty_endpoint_list
- * Receive the message when global endpoint list is empty.
+ * @brief Receive the message when global endpoint list is empty.
  */
-void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_empty_endpoint_list()
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_EmptyEndpointList()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2670,10 +2241,9 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_empty_endpoint_list(
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_multiple_endpoints
- * Check if DHCPv6 can search endpoint correctly.
+ * @brief Check if DHCPv6 can search endpoint correctly.
  */
-void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_multiple_endpoints()
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_MultipleEndpoints()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2765,10 +2335,9 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_multiple_endpoints()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_DUID_type
- * The server DUID type in reply message is different from advertise.
+ * @brief The server DUID type in reply message is different from advertise.
  */
-void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_DUID_type()
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerDUIDType()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2809,10 +2378,9 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_DUI
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_length
- * The server ID length in reply message is different from advertise.
+ * @brief The server ID length in reply message is different from advertise.
  */
-void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_length()
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLength()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2853,10 +2421,53 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_len
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_DUID
- * The server DUID in reply message is different from advertise.
+ * @brief The server ID length in reply message is invalid.
  */
-void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_DUID()
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLength_HigherThanThreshold()
+{
+    NetworkEndPoint_t xEndPoint;
+    DHCPMessage_IPv6_t xDHCPMessage;
+    struct xSOCKET xLocalDHCPv6Socket;
+
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
+    memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
+
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
+    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.bits.bWantDHCP = pdTRUE;
+
+    xEndPoint.xDHCPData.eDHCPState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.eExpectedState = eWaitingAcknowledge;
+    xEndPoint.xDHCPData.ulTransactionId = TEST_DHCPV6_TRANSACTION_ID;
+    xEndPoint.xDHCPData.xDHCPSocket = &xLocalDHCPv6Socket;
+    memcpy( xEndPoint.xDHCPData.ucClientDUID, ucTestDHCPv6OptionClientID, sizeof( ucTestDHCPv6OptionClientID ) );
+
+    xEndPoint.pxDHCPMessage = &xDHCPMessage;
+    xDHCPMessage.xServerID.usDUIDType = 1U;
+    xDHCPMessage.xServerID.uxLength = 150U;
+    memcpy( xDHCPMessage.xServerID.pucID, ucTestDHCPv6OptionServerID, sizeof( ucTestDHCPv6OptionServerID ) );
+
+    FreeRTOS_recvfrom_IgnoreAndReturn( 100 );
+    FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
+    xTaskGetTickCount_IgnoreAndReturn( 0 );
+
+    prvPrepareReplyDifferentServerLength();
+
+    vDHCPv6Process( pdFALSE, &xEndPoint );
+
+    TEST_ASSERT_EQUAL( eWaitingAcknowledge, xEndPoint.xDHCPData.eDHCPState );
+}
+
+
+/**
+ * @brief The server DUID in reply message is different from advertise.
+ */
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerDUID()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2897,10 +2508,9 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_server_DUI
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_endpoint
- * DHCPv6 agent receives the message for different endpoint.
+ * @brief DHCPv6 agent receives the message for different endpoint.
  */
-void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_endpoint()
+void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentEndpoint()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -2959,10 +2569,9 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_different_endpoint()
 }
 
 /**
- * @brief test_vDHCPv6Process_reset_allocate_fail
- * DHCPv6 reset but get failure when allocating memory by pvPortMalloc.
+ * @brief DHCPv6 reset but get failure when allocating memory by pvPortMalloc.
  */
-void test_vDHCPv6Process_reset_allocate_fail()
+void test_vDHCPv6Process_ResetAllocateFail()
 {
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xLocalDHCPv6Socket;
@@ -2986,10 +2595,9 @@ void test_vDHCPv6Process_reset_allocate_fail()
 }
 
 /**
- * @brief test_vDHCPv6Process_recv_failure
- * FreeRTOS_recvfrom returns failure.
+ * @brief FreeRTOS_recvfrom returns failure.
  */
-void test_vDHCPv6Process_recv_failure()
+void test_vDHCPv6Process_RecvFailure()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3025,10 +2633,9 @@ void test_vDHCPv6Process_recv_failure()
 }
 
 /**
- * @brief test_vDHCPv6Process_recv_eagain
- * FreeRTOS_recvfrom returns pdFREERTOS_ERRNO_EAGAIN.
+ * @brief FreeRTOS_recvfrom returns pdFREERTOS_ERRNO_EAGAIN.
  */
-void test_vDHCPv6Process_recv_eagain()
+void test_vDHCPv6Process_RecvEagain()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3064,10 +2671,9 @@ void test_vDHCPv6Process_recv_eagain()
 }
 
 /**
- * @brief test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_with_DNS
- * Got 1 DNS server info from reply message.
+ * @brief Got 1 DNS server info from reply message.
  */
-void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_with_DNS()
+void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_WithDNS()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3109,10 +2715,9 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_with_DNS()
 }
 
 /**
- * @brief test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_many_DNS
- * Got multiple DNS server info from reply message.
+ * @brief Got multiple DNS server info from reply message.
  */
-void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_many_DNS()
+void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ManyDNS()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3154,10 +2759,9 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_many_DNS()
 }
 
 /**
- * @brief test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_short_lease_time
- * Got reply message with short lease time. Should update lease time to minimum value.
+ * @brief Got reply message with short lease time. Should update lease time to minimum value.
  */
-void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_short_lease_time()
+void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ShortLeaseTime()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3200,10 +2804,9 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_short_lease_time()
 }
 
 /**
- * @brief test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_custom_lease_time
- * Got reply message with valid lease time.
+ * @brief Got reply message with valid lease time.
  */
-void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_custom_lease_time()
+void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_CustomLeaseTime()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3246,10 +2849,9 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_custom_lease_time()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_hook_failure
- * xApplicationDHCPHook_Multi returns fail while receiving advertise.
+ * @brief xApplicationDHCPHook_Multi returns fail while receiving advertise.
  */
-void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_hook_failure()
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_HookFailure()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3289,10 +2891,9 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_hook_failure()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_hook_default
- * xApplicationDHCPHook_Multi returns eDHCPUseDefaults while receiving advertise.
+ * @brief xApplicationDHCPHook_Multi returns eDHCPUseDefaults while receiving advertise.
  */
-void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_hook_default()
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_HookDefault()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3333,10 +2934,9 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_hook_default()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_null_message
- * Check if xDHCPv6ProcessEndPoint_HandleState triggers assertion when receiving NULL message pointer.
+ * @brief Check if xDHCPv6ProcessEndPoint_HandleState triggers assertion when receiving NULL message pointer.
  */
-void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_null_message()
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_NullMessage()
 {
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xLocalDHCPv6Socket;
@@ -3368,10 +2968,9 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_null_message()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_hook_failure
- * DHCPv6 should skip sending solicitation when hook return fail.
+ * @brief DHCPv6 should skip sending solicitation when hook return fail.
  */
-void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_hook_failure()
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_HookFailure()
 {
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xLocalDHCPv6Socket;
@@ -3405,10 +3004,9 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_hook_failure()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_hook_default
- * DHCPv6 should skip sending solicitation when hook return eDHCPUseDefaults.
+ * @brief DHCPv6 should skip sending solicitation when hook return eDHCPUseDefaults.
  */
-void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_hook_default()
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_HookDefault()
 {
     NetworkEndPoint_t xEndPoint;
     struct xSOCKET xLocalDHCPv6Socket;
@@ -3442,11 +3040,10 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_hook_default()
 }
 
 /**
- * @brief test_vDHCPv6Process_wait_advertise_timeout
- * Check if vDHCPv6Process send another DHCPv6 solicitation when timeout triggered on waiting advertise.
+ * @brief Check if vDHCPv6Process send another DHCPv6 solicitation when timeout triggered on waiting advertise.
  * Then reset the state to initial when timeout period is out of bound.
  */
-void test_vDHCPv6Process_wait_advertise_timeout()
+void test_vDHCPv6Process_WaitAdvertiseTimeout()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3516,10 +3113,9 @@ void test_vDHCPv6Process_wait_advertise_timeout()
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_not_using_leased_address
- * Check if vDHCPv6Process disables the timer when the state is eNotUsingLeasedAddress.
+ * @brief Check if vDHCPv6Process disables the timer when the state is eNotUsingLeasedAddress.
  */
-void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_not_using_leased_address()
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_NotUsingLeasedAddress()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3551,10 +3147,9 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_not_using_leased_add
 }
 
 /**
- * @brief test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_unknown_state
- * Check if vDHCPv6Process ignore everything in unknown state.
+ * @brief Check if vDHCPv6Process ignore everything in unknown state.
  */
-void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_unknown_state()
+void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_UnknownState()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3585,10 +3180,9 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_unknown_state()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvCloseDHCPv6Socket_multiple_endpoints_close_sockets
- * Endpoints should close the socket when last endpoint request to close the socket.
+ * @brief Endpoints should close the socket when last endpoint request to close the socket.
  */
-void test_vDHCPv6Process_prvCloseDHCPv6Socket_multiple_endpoints_close_sockets()
+void test_vDHCPv6Process_prvCloseDHCPv6Socket_MultipleEndpointsCloseSockets()
 {
     NetworkEndPoint_t xEndPoint[ 2 ];
     DHCPMessage_IPv6_t xDHCPMessage[ 2 ];
@@ -3613,11 +3207,11 @@ void test_vDHCPv6Process_prvCloseDHCPv6Socket_multiple_endpoints_close_sockets()
 
     pxNetworkEndPoints = &xEndPoint[ 0 ];
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket[ 0 ] );
-    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
-    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket[ 0 ] );
+    xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket[ 0 ], pdTRUE );
+    prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket[ 0 ], sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
-    prvSetCheckerAndReturn_vSocketBind( &xLocalDHCPv6Socket );
+    prvSetCheckerAndReturn_vSocketBind( &xLocalDHCPv6Socket[ 0 ] );
     vSocketBind_Stub( xStubvSocketBind );
     vDHCP_RATimerReload_Expect( &xEndPoint[ 0 ], dhcpINITIAL_TIMER_PERIOD );
 
@@ -3661,17 +3255,16 @@ void test_vDHCPv6Process_prvCloseDHCPv6Socket_multiple_endpoints_close_sockets()
     FreeRTOS_recvfrom_IgnoreAndReturn( 0 );
     vAddStubsOperation( eTestStubsHookFail );
     vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint[ 1 ], pdFALSE );
-    vSocketClose_ExpectAndReturn( &xLocalDHCPv6Socket, NULL );
+    vSocketClose_ExpectAndReturn( &xLocalDHCPv6Socket[ 0 ], NULL );
     vIPNetworkUpCalls_Expect( &xEndPoint[ 1 ] );
     vDHCPv6Process( pdFALSE, &xEndPoint[ 1 ] );
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint[ 1 ].xDHCPData.eDHCPState );
 }
 
 /**
- * @brief test_prvCloseDHCPv6Socket_close_socket_without_create
- * When endpoint should do nothing when trying to close socket but no one created it.
+ * @brief When endpoint should do nothing when trying to close socket but no one created it.
  */
-void test_prvCloseDHCPv6Socket_close_socket_without_create()
+void test_prvCloseDHCPv6Socket_CloseSocketWithoutCreate()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3701,10 +3294,9 @@ void test_prvCloseDHCPv6Socket_close_socket_without_create()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvCreateDHCPv6Socket_create_socket_fail
- * Endpoints should trigger assertion when FreeRTOS_socket return invalid socket handler.
+ * @brief Endpoints should trigger assertion when FreeRTOS_socket return invalid socket handler.
  */
-void test_vDHCPv6Process_prvCreateDHCPv6Socket_create_socket_fail()
+void test_vDHCPv6Process_prvCreateDHCPv6Socket_CreateSocketFail()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3728,17 +3320,16 @@ void test_vDHCPv6Process_prvCreateDHCPv6Socket_create_socket_fail()
 
     pxNetworkEndPoints = &xEndPoint;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdFALSE );
 
     catch_assert( vDHCPv6Process( pdTRUE, &xEndPoint ) );
 }
 
 /**
- * @brief test_vDHCPv6Process_prvCreateDHCPv6Socket_bind_socket_fail
- * Endpoints should trigger assertion when vSocketBind return fail.
+ * @brief Endpoints should trigger assertion when vSocketBind return fail.
  */
-void test_vDHCPv6Process_prvCreateDHCPv6Socket_bind_socket_fail()
+void test_vDHCPv6Process_prvCreateDHCPv6Socket_BindSocketFail()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3762,7 +3353,7 @@ void test_vDHCPv6Process_prvCreateDHCPv6Socket_bind_socket_fail()
 
     pxNetworkEndPoints = &xEndPoint;
 
-    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
     xSocketValid_ExpectAndReturn( &xLocalDHCPv6Socket, pdTRUE );
     prvSetCheckerAndReturn_FreeRTOS_setsockopt( &xLocalDHCPv6Socket, sizeof( TickType_t ) );
     FreeRTOS_setsockopt_Stub( xStubFreeRTOS_setsockopt );
@@ -3772,18 +3363,17 @@ void test_vDHCPv6Process_prvCreateDHCPv6Socket_bind_socket_fail()
 }
 
 /**
- * @brief test_prvSendDHCPMessage_null_endpoint
+ * @brief NULL endpoint pointer.
  */
-void test_prvSendDHCPMessage_null_endpoint()
+void test_prvSendDHCPMessage_NullEndpoint()
 {
     catch_assert( prvSendDHCPMessage( NULL ) );
 }
 
 /**
- * @brief test_vDHCPv6Process_prvSendDHCPMessage_random_fail
- * Check if DHCPv6 skip sending solicitation when it fail to get random number.
+ * @brief Check if DHCPv6 skip sending solicitation when it fail to get random number.
  */
-void test_vDHCPv6Process_prvSendDHCPMessage_random_fail()
+void test_vDHCPv6Process_prvSendDHCPMessage_RandomFail()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3813,10 +3403,9 @@ void test_vDHCPv6Process_prvSendDHCPMessage_random_fail()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvSendDHCPMessage_null_socket
- * Check if DHCPv6 skip sending solicitation when its socket is NULL.
+ * @brief Check if DHCPv6 skip sending solicitation when its socket is NULL.
  */
-void test_vDHCPv6Process_prvSendDHCPMessage_null_socket()
+void test_vDHCPv6Process_prvSendDHCPMessage_NullSocket()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3845,10 +3434,9 @@ void test_vDHCPv6Process_prvSendDHCPMessage_null_socket()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvSendDHCPMessage_bit_config_init_fail
- * Check if DHCPv6 skip sending solicitation when it fail to init bit configuration.
+ * @brief Check if DHCPv6 skip sending solicitation when it fail to init bit configuration.
  */
-void test_vDHCPv6Process_prvSendDHCPMessage_bit_config_init_fail()
+void test_vDHCPv6Process_prvSendDHCPMessage_BitConfigInitFail()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3880,10 +3468,9 @@ void test_vDHCPv6Process_prvSendDHCPMessage_bit_config_init_fail()
 }
 
 /**
- * @brief test_prvSendDHCPMessage_unexpect_state
- * Check if prvSendDHCPMessage stop sending when the state is unexpected.
+ * @brief Check if prvSendDHCPMessage stop sending when the state is unexpected.
  */
-void test_prvSendDHCPMessage_unexpect_state()
+void test_prvSendDHCPMessage_UnexpectedState()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3910,10 +3497,9 @@ void test_prvSendDHCPMessage_unexpect_state()
 }
 
 /**
- * @brief test_vDHCPv6Process_reply_invalid_length_IA_NA
- * Check if vDHCPv6Process can drop packet with invalid length IA_NA.
+ * @brief Check if vDHCPv6Process can drop packet with invalid length IA_NA.
  */
-void test_vDHCPv6Process_reply_invalid_length_IA_NA()
+void test_vDHCPv6Process_ReplyInvalidLengthIANA()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3951,10 +3537,9 @@ void test_vDHCPv6Process_reply_invalid_length_IA_NA()
 }
 
 /**
- * @brief test_vDHCPv6Process_reply_invalid_length_IA_PD
- * Check if vDHCPv6Process can drop packet with invalid length IA_PD.
+ * @brief Check if vDHCPv6Process can drop packet with invalid length IA_PD.
  */
-void test_vDHCPv6Process_reply_invalid_length_IA_PD()
+void test_vDHCPv6Process_ReplyInvalidLengthIAPD()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -3992,10 +3577,9 @@ void test_vDHCPv6Process_reply_invalid_length_IA_PD()
 }
 
 /**
- * @brief test_vDHCPv6Process_reply_invalid_sub_option_IA_NA
- * Check if vDHCPv6Process can drop packet when sub-option is invalid in IA_NA.
+ * @brief Check if vDHCPv6Process can drop packet when sub-option is invalid in IA_NA.
  */
-void test_vDHCPv6Process_reply_invalid_sub_option_IA_NA()
+void test_vDHCPv6Process_ReplyInvalidSubOptionIANA()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4033,10 +3617,9 @@ void test_vDHCPv6Process_reply_invalid_sub_option_IA_NA()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_small
- * Check if vDHCPv6Process can drop packet when option length of client ID is too small.
+ * @brief Check if vDHCPv6Process can drop packet when option length of client ID is too small.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_small()
+void test_vDHCPv6Process_prvDHCPv6_handleOption_ClientLengthTooSmall()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4074,10 +3657,9 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_small()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_big
- * Check if vDHCPv6Process can drop packet when option length of client ID is too big.
+ * @brief Check if vDHCPv6Process can drop packet when option length of client ID is too big.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_big()
+void test_vDHCPv6Process_prvDHCPv6_handleOption_ClientLengthTooBig()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4115,10 +3697,9 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_client_length_too_big()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_wrong_client_id
- * Check if vDHCPv6Process can drop packet when option length of client ID is wrong.
+ * @brief Check if vDHCPv6Process can drop packet when option length of client ID is wrong.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleOption_wrong_client_id()
+void test_vDHCPv6Process_prvDHCPv6_handleOption_WrongClientID()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4166,10 +3747,9 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_wrong_client_id()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_small
- * Check if vDHCPv6Process can drop packet when option length of server ID is too small.
+ * @brief Check if vDHCPv6Process can drop packet when option length of server ID is too small.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_small()
+void test_vDHCPv6Process_prvDHCPv6_handleOption_ServerLengthTooSmall()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4207,10 +3787,9 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_small()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_big
- * Check if vDHCPv6Process can drop packet when option length of server ID is too big.
+ * @brief Check if vDHCPv6Process can drop packet when option length of server ID is too big.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_big()
+void test_vDHCPv6Process_prvDHCPv6_handleOption_ServerLengthTooBig()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4248,10 +3827,9 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_server_length_too_big()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_invalid_DNS_length
- * Check if vDHCPv6Process can drop packet when option length of DNS is invalid.
+ * @brief Check if vDHCPv6Process can drop packet when option length of DNS is invalid.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleOption_invalid_DNS_length()
+void test_vDHCPv6Process_prvDHCPv6_handleOption_InvalidDNSLength()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4297,10 +3875,9 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_invalid_DNS_length()
 }
 
 /**
- * @brief test_vDHCPv6Process_prvDHCPv6_handleOption_invalid_DNS_length
- * Check if vDHCPv6Process can drop packet when option length of DNS is invalid.
+ * @brief Check if vDHCPv6Process can drop packet when option length of DNS is invalid.
  */
-void test_vDHCPv6Process_prvDHCPv6_handleOption_domain_search_list()
+void test_vDHCPv6Process_prvDHCPv6_handleOption_DomainSearchList()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;
@@ -4342,20 +3919,18 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_domain_search_list()
 }
 
 /**
- * @brief test_prvStateName_coverage
- * To cover rare scenario in prvStateName
+ * @brief To cover rare scenario in prvStateName
  */
-void test_prvStateName_coverage()
+void test_prvStateName_Coverage()
 {
     ( void ) prvStateName( eNotUsingLeasedAddress );
     ( void ) prvStateName( eSendDHCPRequest );
 }
 
 /**
- * @brief test_prvDHCPv6_subOption_used_length_larger
- * Check if prvDHCPv6_subOption detects the invalid length.
+ * @brief Check if prvDHCPv6_subOption detects the invalid length.
  */
-void test_prvDHCPv6_subOption_used_length_larger()
+void test_prvDHCPv6_subOption_UsedLengthLarger()
 {
     DHCPOptionSet_t xSet;
     BitConfig_t xMessage;
@@ -4375,10 +3950,9 @@ void test_prvDHCPv6_subOption_used_length_larger()
 }
 
 /**
- * @brief test_vDHCPv6Process_advertise_status_fail
- * Check if vDHCPv6Process can ignore the advertise when sub-option status code returns fail.
+ * @brief Check if vDHCPv6Process can ignore the advertise when sub-option status code returns fail.
  */
-void test_vDHCPv6Process_advertise_status_fail()
+void test_vDHCPv6Process_AdvertiseStatusFail()
 {
     NetworkEndPoint_t xEndPoint;
     DHCPMessage_IPv6_t xDHCPMessage;

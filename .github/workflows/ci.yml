@@ -7,162 +7,272 @@ on:
     branches: ["**"]
   workflow_dispatch:
 
+env:
+  bashPass: \033[32;1mPASSED -
+  bashWarn: \033[33;1mWARNING -
+  bashFail: \033[31;1mFAILED -
+  bashEnd:  \033[0m
+
 jobs:
   unittest:
     runs-on: ubuntu-latest
     steps:
       - name: Clone This Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: Build
+      - env:
+          stepName: Build Unit Tests
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group::Install Dependencies"
           git submodule update --checkout
           cd tools/CMock
           git submodule update --init vendor/unity
           cd ../..
           sudo apt-get install -y lcov
           sudo apt-get install -y unifdef
+          echo "::endgroup::"
+
+          echo "::group:: ${{ env.stepName }}"
           cmake -S test/unit-test -B test/unit-test/build/
           make -C test/unit-test/build/ all
-      - name: Test
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Run Unit Tests
+        name: ${{ env.stepName }}
+        shell: bash
         run: |
-          cd test/unit-test/build/
-          ctest -E system --output-on-failure
-          cd ..
-      - name: Coverage
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
+          ctest --test-dir test/unit-test/build/ -E system --output-on-failure
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Test Line and Branch Coverage
+        name: ${{ env.stepName }}
+        shell: bash
         run: |
+          # ${{ env.stepName }}
+          echo "::group::Build Tests"
           make -C test/unit-test/build/ coverage
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} Built Coverage Tests ${{ env.bashEnd }}"
+
           lcov --list --rc lcov_branch_coverage=1 test/unit-test/build/coverage.info
-      # - name: Check Coverage
-      #   uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
-      #   with:
-      #     path: ./test/unit-test/build/coverage.info
+
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - name: Check Coverage
+        uses: FreeRTOS/CI-CD-Github-Actions/coverage-cop@main
+        with:
+          coverage-file: ./test/unit-test/build/coverage.info
 
   spell-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Parent Repo
-        uses: actions/checkout@v2
-        with:
-          ref: main
-          repository: aws/aws-iot-device-sdk-embedded-C
-          path: main
       - name: Clone This Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      - name: Run spellings check
+        uses: FreeRTOS/CI-CD-Github-Actions/spellings@main
         with:
-          path: ./tcp
-      - name: Install spell
-        run: |
-          sudo apt-get install spell
-          sudo apt-get install util-linux
-      - name: Check spelling
-        run: |
-          PATH=$PATH:main/tools/spell
-          # Make sure that the portable directory is not included in the spellcheck.
-          sed -i 's/find $DIRNAME/find $DIRNAME -not -path '*portable*'/g' main/tools/spell/find-unknown-comment-words
-          find-unknown-comment-words --directory tcp/ --lexicon tcp/.github/lexicon.txt
-          if [ "$?" = "0" ]; then
-            exit 0
-          else
-            exit 1
-          fi
+          path: ./
 
   formatting:
-    # Use only 18.04 since we want the uncrustify version to
-    # be 0.66.1_f to ensure proper formatting.
     runs-on: ubuntu-20.04
-    container: ubuntu:18.04
     steps:
       - uses: actions/checkout@v3
-      - name: Install Uncrustify
-        run: apt-get update && apt-get install uncrustify
-      - name: Run Uncrustify
-        run: |
-          uncrustify --version
-          find . -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
-          if [ "$?" = "0" ]; then
-            exit 0
-          else
-            echo -e "\033[31;1;43mFormatting check (using Uncrustify) failed...\033[0m"
-            echo -e "\033[32;3mTo have the code uncrustified for you, please comment '/bot run uncrustify' (without the quotes) on the Pull Request.\033[0m"
-            exit 1
-          fi
-      - name: Check For Trailing Whitespace
-        run: |
-          set +e
-          grep --exclude="README.md" -rnI -e "[[:blank:]]$" .
-          if [ "$?" = "0" ]; then
-            echo "Files have trailing whitespace."
-            exit 1
-          else
-            exit 0
-          fi
+      - name: Check formatting
+        uses: FreeRTOS/CI-CD-Github-Actions/formatting@main
+        with:
+          path: ./
 
   doxygen:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Run doxygen build
         uses: FreeRTOS/CI-CD-Github-Actions/doxygen@main
         with:
           path: ./
 
+  verify-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      # At time of writing the gitmodules are set not to pull
+      # Even when using fetch submodules. Need to run this command
+      # To force it to grab them.
+      - name: Perform Recursive Clone
+        shell: bash
+        run: git submodule update --checkout --init --recursive
+
+      - name: Run manifest verifier
+        uses: FreeRTOS/CI-CD-GitHub-Actions/manifest-verifier@main
+        with:
+          path: ./
+          fail-on-incorrect-version: true
+
+  link-verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check Links
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: FreeRTOS/CI-CD-Github-Actions/link-verifier@main
+
   build-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Build Install Dependencies
+      - uses: actions/checkout@v3
+      - env:
+          stepName: Build Install Dependencies
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           sudo apt-get install -y libpcap-dev
-      - name: Build checks (Enable all functionalities)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Enable all functionalities)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
           cmake --build build --target freertos_plus_tcp_build_test
-      - name: Build checks (Enable all functionalities IPv4)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Enable all functionalities IPv4)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
-      - name: Build checks (Enable all functionalities IPv6)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Enable all functionalities IPv6)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6
           cmake --build build --target freertos_plus_tcp_build_test
-      - name: Build checks (Enable all functionalities IPv4 IPv6)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Enable all functionalities IPv4 IPv6)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_IPV6
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
-      - name: Build checks (Enable all functionalities IPv4 TCP)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Enable all functionalities IPv4 TCP)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_TCP
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
-      - name: Build checks (Enable all functionalities IPv6 TCP)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Enable all functionalities IPv6 TCP)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6_TCP
           cmake --build build --target freertos_plus_tcp_build_test
-      - name: Build checks (Disable all functionalities)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Disable all functionalities)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
-      - name: Build checks (Default configuration)
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Default configuration)
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DEFAULT_CONF
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build checks (Header Self Contain)
+        shell: bash
+        run: |
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=HEADER_SELF_CONTAIN
+          cmake --build build --target clean
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DHCP
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DNS
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_IP
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_ND
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_Routing
+          cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_Sockets
+          cmake --build build --target freertos_plus_tcp_build_test_NetworkBufferManagement
+          cmake --build build --target freertos_plus_tcp_build_test_NetworkInterface
 
   complexity:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup
-        run: sudo apt-get install complexity
-      - name: Install Uncrustify
-        run: sudo apt-get install uncrustify
-      - name: Complexity
+      - uses: actions/checkout@v3
+      - env:
+          stepName: Setup
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
+          sudo apt-get install complexity
+          sudo apt-get install uncrustify
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Complexity
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           COMPLEXITY_PARAMS="--scores --threshold=10 --horrid-threshold=283"
           TEMP_DIR=./temp
           mkdir -p ${TEMP_DIR}
@@ -176,43 +286,71 @@ jobs:
           find ${TEMP_DIR} -iname '*.c' | xargs complexity ${COMPLEXITY_PARAMS}
           RESULT=$?
           rm -rf ${TEMP_DIR}
+          echo "::endgroup::"
           if [ "${RESULT}" = "0" ]; then
-              echo "All is good."
+              echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
               exit 0
           else
-              echo "Sources are too complex, rc = " ${RESULT}
+              echo -e "${{ env.bashFail }} Sources are too complex, rc = ${RESULT} ${{ env.bashEnd }}"
+              echo -e "${{ env.bashFail }} ${{ env.stepName }} ${{ env.bashEnd }}"
               exit 1
           fi
 
   git-secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Checkout awslabs/git-secrets
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: awslabs/git-secrets
           ref: master
           path: git-secrets
-      - name: Install git-secrets
-        run: cd git-secrets && sudo make install && cd ..
-      - name: Run git-secrets
+      - env:
+          stepName: Install git-secrets
+        name: ${{ env.stepName }}
         run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
+          cd git-secrets && sudo make install && cd ..
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Run git-secrets
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           git-secrets --register-aws
           git-secrets --scan
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
   proof_ci:
+    if: ${{ github.event.pull_request }}
     runs-on: cbmc_ubuntu-latest_16-core
     steps:
       - name: Set up CBMC runner
         uses: FreeRTOS/CI-CD-Github-Actions/set_up_cbmc_runner@main
         with:
           cbmc_version: "5.61.0"
-      - run: |
+
+      - env:
+          stepName: Install Dependencies
+        name: ${{ env.stepName }}
+        shell: bash
+        run: |
+          # ${{ env.stepName }}
+          echo "::group:: ${{ env.stepName }}"
           git submodule update --init --checkout --recursive
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends gcc-multilib
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
       - name: Run CBMC
         uses: FreeRTOS/CI-CD-Github-Actions/run_cbmc@main
         with:

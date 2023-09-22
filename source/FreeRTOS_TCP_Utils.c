@@ -65,7 +65,6 @@
  *
  * @return The string containing the flags.
  */
-        static char retString[ 10 ];
         const char * prvTCPFlagMeaning( UBaseType_t xFlags )
         {
             size_t uxFlags = ( size_t ) xFlags;
@@ -92,7 +91,7 @@
  */
     void prvSocketSetMSS( FreeRTOS_Socket_t * pxSocket )
     {
-        switch( pxSocket->bits.bIsIPv6 )
+        switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 case pdFALSE_UNSIGNED:
@@ -106,10 +105,10 @@
                     break;
             #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-            default:
+            default: /* LCOV_EXCL_LINE */
                 /* Shouldn't reach here */
                 /* MISRA 16.4 Compliance */
-                break;
+                break; /* LCOV_EXCL_LINE */
         }
     }
     /*-----------------------------------------------------------*/

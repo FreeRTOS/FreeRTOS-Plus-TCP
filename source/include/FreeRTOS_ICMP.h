@@ -33,12 +33,6 @@
 #ifndef FREERTOS_ICMP_H
 #define FREERTOS_ICMP_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
-
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
@@ -60,6 +54,12 @@
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_DNS.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /* ICMP protocol definitions. */
 #define ipICMP_ECHO_REQUEST    ( ( uint8_t ) 8 )              /**< ICMP echo request. */

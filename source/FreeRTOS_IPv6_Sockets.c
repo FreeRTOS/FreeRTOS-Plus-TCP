@@ -54,37 +54,38 @@
  *        is connected to a remote IP-address. It will be called from a loop
  *        iterating through all sockets.
  * @param[in] pxSocket The socket to be inspected.
- * @param[in] pxAddress_IPv6 The IPv6 address, or NULL if the peer has a IPv4 address.
- * @param[in] ulRemoteIP The IPv4 address.
+ * @param[in] pxAddress The IPv4/IPv6 address.
  * @return The socket in case it is connected to the remote IP-address.
  */
     FreeRTOS_Socket_t * pxTCPSocketLookup_IPv6( FreeRTOS_Socket_t * pxSocket,
-                                                const IPv6_Address_t * pxAddress_IPv6,
-                                                uint32_t ulRemoteIP )
+                                                const IPv46_Address_t * pxAddress )
     {
         FreeRTOS_Socket_t * pxResult = NULL;
 
-        if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+        if( ( pxSocket != NULL ) && ( pxAddress != NULL ) )
         {
-            if( pxAddress_IPv6 != NULL )
+            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
-                if( memcmp( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress_IPv6->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+                if( pxAddress->xIs_IPv6 != pdFALSE )
                 {
-                    /* For sockets not in listening mode, find a match with
-                     * uxLocalPort, ulRemoteIP AND uxRemotePort. */
-                    pxResult = pxSocket;
+                    if( memcmp( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, pxAddress->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+                    {
+                        /* For sockets not in listening mode, find a match with
+                         * uxLocalPort, ulRemoteIP AND uxRemotePort. */
+                        pxResult = pxSocket;
+                    }
                 }
             }
-        }
-        else
-        {
-            if( pxAddress_IPv6 == NULL )
+            else
             {
-                if( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 == ulRemoteIP )
+                if( pxAddress->xIs_IPv6 == pdFALSE )
                 {
-                    /* For sockets not in listening mode, find a match with
-                     * uxLocalPort, ulRemoteIP AND uxRemotePort. */
-                    pxResult = pxSocket;
+                    if( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 == pxAddress->xIPAddress.ulIP_IPv4 )
+                    {
+                        /* For sockets not in listening mode, find a match with
+                         * uxLocalPort, ulRemoteIP AND uxRemotePort. */
+                        pxResult = pxSocket;
+                    }
                 }
             }
         }
@@ -164,12 +165,12 @@ char cHexToChar( uint16_t usValue )
 
     if( usValue <= 9U )
     {
-        cReturn += usValue;
+        cReturn = ( char ) ( cReturn + usValue );
     }
     else if( usValue <= 15U )
     {
         cReturn = 'a';
-        cReturn += ( usValue - 10U );
+        cReturn = ( char ) ( cReturn + ( usValue - ( uint16_t ) 10 ) );
     }
     else
     {
@@ -198,7 +199,7 @@ socklen_t uxHexPrintShort( char * pcBuffer,
 {
     const size_t uxNibbleCount = 4U;
     size_t uxNibble;
-    size_t uxIndex = 0U;
+    socklen_t uxIndex = 0U;
     uint16_t usShifter = usValue;
     BaseType_t xHadNonZero = pdFALSE;
 
@@ -222,7 +223,7 @@ socklen_t uxHexPrintShort( char * pcBuffer,
             uxIndex++;
         }
 
-        usShifter <<= 4;
+        usShifter = ( uint16_t ) ( usShifter << 4 );
     }
 
     return uxIndex;

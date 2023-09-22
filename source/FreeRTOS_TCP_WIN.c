@@ -93,9 +93,11 @@
     #endif /* configUSE_TCP_WIN */
 /*-----------------------------------------------------------*/
 
-    static void vListInsertGeneric( List_t * const pxList,
-                                    ListItem_t * const pxNewListItem,
-                                    MiniListItem_t * pxWhere );
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        static void vListInsertGeneric( List_t * const pxList,
+                                        ListItem_t * const pxNewListItem,
+                                        MiniListItem_t * pxWhere );
+    #endif
 
 /*
  * All TCP sockets share a pool of segment descriptors (TCPSegment_t)
@@ -383,28 +385,30 @@
  * @param[in] pxNewListItem The item to be inserted.
  * @param[in] pxWhere Where should the item be inserted.
  */
-    static void vListInsertGeneric( List_t * const pxList,
-                                    ListItem_t * const pxNewListItem,
-                                    MiniListItem_t * pxWhere )
-    {
-        /* Insert a new list item into pxList, it does not sort the list,
-         * but it puts the item just before xListEnd, so it will be the last item
-         * returned by listGET_HEAD_ENTRY() */
+    #if ( ipconfigUSE_TCP_WIN == 1 )
+        static void vListInsertGeneric( List_t * const pxList,
+                                        ListItem_t * const pxNewListItem,
+                                        MiniListItem_t * pxWhere )
+        {
+            /* Insert a new list item into pxList, it does not sort the list,
+             * but it puts the item just before xListEnd, so it will be the last item
+             * returned by listGET_HEAD_ENTRY() */
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxNewListItem->pxNext = ( ( ListItem_t * ) pxWhere );
 
-        pxNewListItem->pxPrevious = pxWhere->pxPrevious;
-        pxWhere->pxPrevious->pxNext = pxNewListItem;
-        pxWhere->pxPrevious = pxNewListItem;
+            pxNewListItem->pxPrevious = pxWhere->pxPrevious;
+            pxWhere->pxPrevious->pxNext = pxNewListItem;
+            pxWhere->pxPrevious = pxNewListItem;
 
-        /* Remember which list the item is in. */
-        listLIST_ITEM_CONTAINER( pxNewListItem ) = ( struct xLIST * configLIST_VOLATILE ) pxList;
+            /* Remember which list the item is in. */
+            listLIST_ITEM_CONTAINER( pxNewListItem ) = ( struct xLIST * configLIST_VOLATILE ) pxList;
 
-        ( pxList->uxNumberOfItems )++;
-    }
+            ( pxList->uxNumberOfItems )++;
+        }
+    #endif /* if ( ipconfigUSE_TCP_WIN == 1 ) */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -442,10 +446,10 @@
                     * nulled already.  Set the owner to a segment descriptor. */
 
                     #if ( configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES == 1 )
-                        {
-                            vListInitialiseItem( &( xTCPSegments[ xIndex ].xSegmentItem ) );
-                            vListInitialiseItem( &( xTCPSegments[ xIndex ].xQueueItem ) );
-                        }
+                    {
+                        vListInitialiseItem( &( xTCPSegments[ xIndex ].xSegmentItem ) );
+                        vListInitialiseItem( &( xTCPSegments[ xIndex ].xQueueItem ) );
+                    }
                     #endif
 
                     listSET_LIST_ITEM_OWNER( &( xTCPSegments[ xIndex ].xSegmentItem ), ( void * ) &( xTCPSegments[ xIndex ] ) );
@@ -567,15 +571,15 @@
                 pxSegment->lDataLength = lCount;
                 pxSegment->ulSequenceNumber = ulSequenceNumber;
                 #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                    {
-                        static UBaseType_t xLowestLength = ipconfigTCP_WIN_SEG_COUNT;
-                        UBaseType_t xLength = listCURRENT_LIST_LENGTH( &xSegmentList );
+                {
+                    static UBaseType_t xLowestLength = ipconfigTCP_WIN_SEG_COUNT;
+                    UBaseType_t xLength = listCURRENT_LIST_LENGTH( &xSegmentList );
 
-                        if( xLowestLength > xLength )
-                        {
-                            xLowestLength = xLength;
-                        }
+                    if( xLowestLength > xLength )
+                    {
+                        xLowestLength = xLength;
                     }
+                }
                 #endif /* ipconfigHAS_DEBUG_PRINTF */
             }
 
@@ -783,19 +787,19 @@
         /* Create and initialize a window. */
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
+        {
+            if( xTCPSegments == NULL )
             {
-                if( xTCPSegments == NULL )
-                {
-                    ( void ) prvCreateSectors();
-                }
-
-                vListInitialise( &( pxWindow->xTxSegments ) );
-                vListInitialise( &( pxWindow->xRxSegments ) );
-
-                vListInitialise( &( pxWindow->xPriorityQueue ) ); /* Priority queue: segments which must be sent immediately */
-                vListInitialise( &( pxWindow->xTxQueue ) );       /* Transmit queue: segments queued for transmission */
-                vListInitialise( &( pxWindow->xWaitQueue ) );     /* Waiting queue:  outstanding segments */
+                ( void ) prvCreateSectors();
             }
+
+            vListInitialise( &( pxWindow->xTxSegments ) );
+            vListInitialise( &( pxWindow->xRxSegments ) );
+
+            vListInitialise( &( pxWindow->xPriorityQueue ) ); /* Priority queue: segments which must be sent immediately */
+            vListInitialise( &( pxWindow->xTxQueue ) );       /* Transmit queue: segments queued for transmission */
+            vListInitialise( &( pxWindow->xWaitQueue ) );     /* Waiting queue:  outstanding segments */
+        }
         #endif /* ipconfigUSE_TCP_WIN == 1 */
 
         if( xTCPWindowLoggingLevel != 0 )
@@ -844,9 +848,9 @@
         }
 
         #if ( ipconfigUSE_TCP_WIN == 0 )
-            {
-                pxWindow->xTxSegment.lMaxLength = ( int32_t ) pxWindow->usMSS;
-            }
+        {
+            pxWindow->xTxSegment.lMaxLength = ( int32_t ) pxWindow->usMSS;
+        }
         #endif /* ipconfigUSE_TCP_WIN == 1 */
 
         /*Start with a timeout of 2 * 500 ms (1 sec). */
@@ -892,7 +896,7 @@
                 xTCPSegments = NULL;
             }
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
 /*=============================================================================
@@ -979,7 +983,7 @@
 
             return pxBest;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1055,7 +1059,7 @@
 
             pxWindow->rx.ulCurrentSequenceNumber = ulCurrentSequenceNumber;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1166,7 +1170,7 @@
 
             return lReturn;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
     #if ( ipconfigUSE_TCP_WIN == 1 )
@@ -1296,7 +1300,7 @@
 
             return lReturn;
         }
-    #endif /* ipconfgiUSE_TCP_WIN == 1 */
+    #endif /* ipconfigUSE_TCP_WIN == 1 */
 /*-----------------------------------------------------------*/
 
 /*=============================================================================
@@ -1858,7 +1862,7 @@
                 if( ( pxSegment->u.bits.ucTransmitCount == MAX_TRANSMIT_COUNT_USING_LARGE_WINDOW ) &&
                     ( pxWindow->xSize.ulTxWindowLength > ( 2U * ( ( uint32_t ) pxWindow->usMSS ) ) ) )
                 {
-                    uint16_t usMSS2 = pxWindow->usMSS * 2U;
+                    uint16_t usMSS2 = ( uint16_t ) ( pxWindow->usMSS * 2U );
                     FreeRTOS_debug_printf( ( "ulTCPWindowTxGet[%u - %u]: Change Tx window: %u -> %u\n",
                                              pxWindow->usPeerPortNumber,
                                              pxWindow->usOurPortNumber,
@@ -2006,16 +2010,16 @@
                          * AAAAAAA BBBBBBB << acked
                          * aaaaaaa aaaa    << sent */
                         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-                            {
-                                uint32_t ulFirstSeq = pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber;
-                                FreeRTOS_debug_printf( ( "prvTCPWindowTxCheckAck[%u.%u]: %u - %u Partial sequence number %u - %u\n",
-                                                         pxWindow->usPeerPortNumber,
-                                                         pxWindow->usOurPortNumber,
-                                                         ( unsigned ) ( ulFirstSeq - pxWindow->tx.ulFirstSequenceNumber ),
-                                                         ( unsigned ) ( ulLast - pxWindow->tx.ulFirstSequenceNumber ),
-                                                         ( unsigned ) ulFirstSeq,
-                                                         ( unsigned ) ( ulFirstSeq + ulDataLength ) ) );
-                            }
+                        {
+                            uint32_t ulFirstSeq = pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber;
+                            FreeRTOS_debug_printf( ( "prvTCPWindowTxCheckAck[%u.%u]: %u - %u Partial sequence number %u - %u\n",
+                                                     pxWindow->usPeerPortNumber,
+                                                     pxWindow->usOurPortNumber,
+                                                     ( unsigned ) ( ulFirstSeq - pxWindow->tx.ulFirstSequenceNumber ),
+                                                     ( unsigned ) ( ulLast - pxWindow->tx.ulFirstSequenceNumber ),
+                                                     ( unsigned ) ulFirstSeq,
+                                                     ( unsigned ) ( ulFirstSeq + ulDataLength ) ) );
+                        }
                         #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
                         break;

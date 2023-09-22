@@ -419,10 +419,10 @@
             FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_SNDTIMEO, &xSendTimeOut, sizeof( xSendTimeOut ) );
 
             #if ( ipconfigUSE_TCP_WIN == 1 )
-                {
-                    /* Set the window and buffer sizes. */
-                    FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_WIN_PROPERTIES, ( void * ) &xWinProps, sizeof( xWinProps ) );
-                }
+            {
+                /* Set the window and buffer sizes. */
+                FreeRTOS_setsockopt( xSocket, 0, FREERTOS_SO_WIN_PROPERTIES, ( void * ) &xWinProps, sizeof( xWinProps ) );
+            }
             #endif /* ipconfigUSE_TCP_WIN */
 
             FreeRTOS_GetLocalAddress( xSocket, &xLocalAddress );

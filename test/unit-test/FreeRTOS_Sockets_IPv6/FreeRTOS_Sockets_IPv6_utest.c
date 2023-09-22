@@ -62,6 +62,19 @@
 
 #include "FreeRTOSIPConfig.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
+extern BaseType_t prv_ntop6_write_zeros( char * pcDestination,
+                                         size_t uxSize,
+                                         struct sNTOP6_Set * pxSet );
+extern BaseType_t prv_ntop6_write_short( char * pcDestination,
+                                         size_t uxSize,
+                                         struct sNTOP6_Set * pxSet );
+extern BaseType_t prv_inet_pton6_add_nibble( struct sPTON6_Set * pxSet,
+                                             uint8_t ucNew,
+                                             char ch );
+extern void prv_inet_pton6_set_zeros( struct sPTON6_Set * pxSet );
+
 #define SAMPLE_IPv4_ADDR               0xABCD1234
 #define NTOP_CHAR_BUFFER_SIZE          41
 #define NTOP_CHAR_BUFFER_LAST_INDEX    39
@@ -87,74 +100,98 @@ static const IPv6_Address_t xSampleAddress_IPv6_4 = { { 0xfe, 0x80, 0, 0, 0, 0, 
 static const IPv6_Address_t xSampleAddress_IPv6_5 = { { 0xfe, 0x80, 0, 0xde, 0, 0xde, 0, 0xde, 0, 0xde, 0xff, 0, 0xde, 0, 0x74, 0x08 } };
 static const IPv6_Address_t xSampleAddress_IPv6_6 = { { 0xfe, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-
-/* ============================== Test Cases ============================== */
-
+/* =============================== Test Cases =============================== */
 
 /**
- * @brief IPv6 address pointer passed but socket is not an IPv6 socket
+ * @brief Test with NULL socket handler
  */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NonNULLIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_NullSocket( void )
 {
-    FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
+    pxRetSocket = pxTCPSocketLookup_IPv6( NULL, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
 
 /**
- * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket
+ * @brief Test with NULL IP address pointer
  */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_NullIPPointer( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
     FreeRTOS_Socket_t * pxRetSocket;
-
-    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
-
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
-
-    TEST_ASSERT_EQUAL( NULL, pxRetSocket );
-}
-
-/**
- * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a matching IPv4 address is passed
- */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_MatchingIPv4Address( void )
-{
-    FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
-    IPv6_Address_t xAddress_IPv6;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
-    xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL );
+
+    TEST_ASSERT_EQUAL( NULL, pxRetSocket );
+}
+
+/**
+ * @brief Address is IPv6 but socket is not an IPv6 socket
+ */
+void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_IPv6Address( void )
+{
+    FreeRTOS_Socket_t xSocket;
+    IPv46_Address_t xAddress;
+    FreeRTOS_Socket_t * pxRetSocket;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    xAddress.xIs_IPv6 = pdTRUE;
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
+
+    TEST_ASSERT_EQUAL( NULL, pxRetSocket );
+}
+
+/**
+ * @brief IPv4 address pointer passed and socket is not an IPv6 socket, but a matching IPv4 address is passed
+ */
+void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NotIPv6Address_MatchingIPv4Address( void )
+{
+    FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
+    IPv46_Address_t xAddress;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
+
+    xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
+    xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
+    xAddress.xIs_IPv6 = pdFALSE;
+    xAddress.xIPAddress.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( &xSocket, pxRetSocket );
 }
 
 /**
- * @brief NULL IPv6 address pointer passed and socket is not an IPv6 socket, but a non matching IPv4 address is passed
+ * @brief IPv4 address pointer passed and socket is not an IPv6 socket, but a non matching IPv4 address is passed
  */
-void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Address( void )
+void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NotIPv6Address_NonMatchingIPv4Address( void )
 {
     FreeRTOS_Socket_t xSocket, * pxRetSocket = NULL;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
     xSocket.bits.bIsIPv6 = pdFALSE_UNSIGNED;
     xSocket.u.xTCP.xRemoteIP.ulIP_IPv4 = 0xDBCD1235;
+    xAddress.xIs_IPv6 = pdFALSE;
+    xAddress.xIPAddress.ulIP_IPv4 = SAMPLE_IPv4_ADDR;
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
@@ -162,15 +199,19 @@ void test_pxTCPSocketLookup_IPv6_NotIPv6Socket_NULLIPv6Address_NonMatchingIPv4Ad
 /**
  * @brief NULL IPv6 address pointer passed and socket is an IPv6 socket
  */
-void test_pxTCPSocketLookup_IPv6_IPv6Socket_NULLIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_IPv6Socket_NotIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, NULL, SAMPLE_IPv4_ADDR );
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    xAddress.xIs_IPv6 = pdFALSE;
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
@@ -178,17 +219,21 @@ void test_pxTCPSocketLookup_IPv6_IPv6Socket_NULLIPv6Address( void )
 /**
  * @brief Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses match
  */
-void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__MatchingIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNullIPv6Address_MatchingIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
-    memcpy( &xAddress_IPv6, &xSampleAddress_IPv6_1, sizeof( IPv6_Address_t ) );
-    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, &xSampleAddress_IPv6_1, sizeof( IPv6_Address_t ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xSampleAddress_IPv6_1.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, xSampleAddress_IPv6_1.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( &xSocket, pxRetSocket );
 }
@@ -196,17 +241,21 @@ void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__MatchingIPv6Addr
 /**
  * @brief Valid IPv6 address pointer passed and socket is an IPv6 socket, but the IPv6 addresses doesn't match
  */
-void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNULLIPv6Address__NonMatchingIPv6Address( void )
+void test_pxTCPSocketLookup_IPv6_IPv6Socket_NonNullIPv6Address_NonMatchingIPv6Address( void )
 {
     FreeRTOS_Socket_t xSocket;
-    IPv6_Address_t xAddress_IPv6;
+    IPv46_Address_t xAddress;
     FreeRTOS_Socket_t * pxRetSocket;
 
-    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
-    memcpy( &xAddress_IPv6, &xSampleAddress_IPv6_1, sizeof( IPv6_Address_t ) );
-    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, &xSampleAddress_IPv6_2, sizeof( IPv6_Address_t ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xAddress, 0, sizeof( xAddress ) );
 
-    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress_IPv6, SAMPLE_IPv4_ADDR );
+    xSocket.bits.bIsIPv6 = pdTRUE_UNSIGNED;
+    memcpy( xSocket.u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, xSampleAddress_IPv6_2.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xAddress.xIs_IPv6 = pdTRUE;
+    memcpy( xAddress.xIPAddress.xIP_IPv6.ucBytes, xSampleAddress_IPv6_1.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+
+    pxRetSocket = pxTCPSocketLookup_IPv6( &xSocket, &xAddress );
 
     TEST_ASSERT_EQUAL( NULL, pxRetSocket );
 }
@@ -448,7 +497,7 @@ void test_prv_ntop6_search_zeros( void )
     struct sNTOP6_Set xSet;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
 
     prv_ntop6_search_zeros( &( xSet ) );
 
@@ -464,7 +513,7 @@ void test_prv_ntop6_search_zeros_2( void )
     struct sNTOP6_Set xSet;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_3.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_3.ucBytes;
 
     prv_ntop6_search_zeros( &( xSet ) );
 
@@ -480,7 +529,7 @@ void test_prv_ntop6_search_zeros_3( void )
     struct sNTOP6_Set xSet;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_4.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_4.ucBytes;
 
     prv_ntop6_search_zeros( &( xSet ) );
 
@@ -496,7 +545,7 @@ void test_prv_ntop6_search_zeros_4( void )
     struct sNTOP6_Set xSet;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_6.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_6.ucBytes;
 
     prv_ntop6_search_zeros( &( xSet ) );
 
@@ -512,7 +561,7 @@ void test_prv_ntop6_search_zeros_NoZeroes( void )
     struct sNTOP6_Set xSet;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_5.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_5.ucBytes;
 
     prv_ntop6_search_zeros( &( xSet ) );
 
@@ -528,7 +577,7 @@ void test_prv_ntop6_search_zeros_ZeroLengthIsAlreadySet( void )
     struct sNTOP6_Set xSet;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_4.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_4.ucBytes;
     xSet.xZeroLength = 4;
     xSet.xZeroStart = 2;
 
@@ -548,7 +597,7 @@ void test_prv_ntop6_write_zeros( void )
     BaseType_t xReturn;
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
     xSet.xZeroLength = 6;
     xSet.xZeroStart = 1;
     xSet.xIndex = xSet.xZeroStart;
@@ -570,7 +619,7 @@ void test_prv_ntop6_write_zeros_AddressEndsInZeroes( void )
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
     xSet.xZeroLength = 7;
     xSet.xZeroStart = 1;
     xSet.xIndex = xSet.xZeroStart;
@@ -592,7 +641,7 @@ void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer( void )
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
     xSet.xZeroLength = 7;
     xSet.xZeroStart = 1;
     xSet.xIndex = xSet.xZeroStart;
@@ -613,7 +662,7 @@ void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer_2( void )
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
     xSet.xZeroLength = 7;
     xSet.xZeroStart = 1;
     xSet.xIndex = 1;
@@ -627,14 +676,14 @@ void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer_2( void )
 /**
  * @brief Case were target index is greater than size of the destination buffer.
  */
-void test_prv_ntop6_write_zeros_TargetndexGreater( void )
+void test_prv_ntop6_write_zeros_TargetIndexGreater( void )
 {
     struct sNTOP6_Set xSet;
     BaseType_t xReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
     xSet.xZeroLength = 7;
     xSet.xZeroStart = 1;
     xSet.xIndex = 1;
@@ -655,7 +704,7 @@ void test_prv_ntop6_write_short_SmallerBuffer( void )
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
     xSet.xIndex = 8;
     xSet.uxTargetIndex = NTOP_CHAR_BUFFER_LAST_INDEX;
 
@@ -675,7 +724,7 @@ void test_prv_ntop6_write_short_EnoughBuffer( void )
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_1.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_1.ucBytes;
     xSet.xIndex = 0;
     xSet.uxTargetIndex = 0;
 
@@ -697,7 +746,7 @@ void test_prv_ntop6_write_short_EnoughBuffer_StartAfterBeginning( void )
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_5.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_5.ucBytes;
     xSet.xIndex = 1;
     xSet.uxTargetIndex = 4;
 
@@ -718,7 +767,7 @@ void test_prv_ntop6_write_short_NotEnoughSpaceForShort( void )
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-    xSet.pusAddress = xSampleAddress_IPv6_5.ucBytes;
+    xSet.pusAddress = ( const uint16_t * ) xSampleAddress_IPv6_5.ucBytes;
     xSet.xIndex = 1;
     xSet.uxTargetIndex = 37;
 
@@ -732,7 +781,7 @@ void test_prv_ntop6_write_short_NotEnoughSpaceForShort( void )
  */
 void test_FreeRTOS_inet_ntop6_LowBufferSize( void )
 {
-    char * pcReturn;
+    const char * pcReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     pcReturn = FreeRTOS_inet_ntop6( xSampleAddress_IPv6_1.ucBytes, cDestination, 2 );
@@ -745,7 +794,7 @@ void test_FreeRTOS_inet_ntop6_LowBufferSize( void )
  */
 void test_FreeRTOS_inet_ntop6_HappyPath( void )
 {
-    char * pcReturn;
+    const char * pcReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     pcReturn = FreeRTOS_inet_ntop6( xSampleAddress_IPv6_1.ucBytes, cDestination, 40 );
@@ -756,9 +805,9 @@ void test_FreeRTOS_inet_ntop6_HappyPath( void )
 /**
  * @brief Test for fe80:0:de::7008.
  */
-void test_FreeRTOS_inet_ntop6_HappyPath_2( void )
+void test_FreeRTOS_inet_ntop6_HappyPath2( void )
 {
-    char * pcReturn;
+    const char * pcReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     pcReturn = FreeRTOS_inet_ntop6( xSampleAddress_IPv6_3.ucBytes, cDestination, 40 );
@@ -769,9 +818,9 @@ void test_FreeRTOS_inet_ntop6_HappyPath_2( void )
 /**
  * @brief Test for fe80:de:de:de:de:ff00:de00:7408.
  */
-void test_FreeRTOS_inet_ntop6_HappyPath_3( void )
+void test_FreeRTOS_inet_ntop6_HappyPath3( void )
 {
-    char * pcReturn;
+    const char * pcReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     pcReturn = FreeRTOS_inet_ntop6( xSampleAddress_IPv6_5.ucBytes, cDestination, 40 );
@@ -782,9 +831,9 @@ void test_FreeRTOS_inet_ntop6_HappyPath_3( void )
 /**
  * @brief Test for fe80::.
  */
-void test_FreeRTOS_inet_ntop6_HappyPath_4( void )
+void test_FreeRTOS_inet_ntop6_HappyPath4( void )
 {
-    char * pcReturn;
+    const char * pcReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     pcReturn = FreeRTOS_inet_ntop6( xSampleAddress_IPv6_6.ucBytes, cDestination, 40 );
@@ -798,7 +847,7 @@ void test_FreeRTOS_inet_ntop6_HappyPath_4( void )
  */
 void test_FreeRTOS_inet_ntop6_LesserBufferSize( void )
 {
-    char * pcReturn;
+    const char * pcReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     pcReturn = FreeRTOS_inet_ntop6( xSampleAddress_IPv6_6.ucBytes, cDestination, 5 );
@@ -812,7 +861,7 @@ void test_FreeRTOS_inet_ntop6_LesserBufferSize( void )
  */
 void test_FreeRTOS_inet_ntop6_LesserBufferSizeNonZero( void )
 {
-    char * pcReturn;
+    const char * pcReturn;
     char cDestination[ NTOP_CHAR_BUFFER_SIZE ] = { '\0' };
 
     pcReturn = FreeRTOS_inet_ntop6( xSampleAddress_IPv6_5.ucBytes, cDestination, 24 );

@@ -33,6 +33,10 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                             struct freertos_addrinfo ** ppxAddressInfo,
                             BaseType_t xExpected,
                             uint16_t usPort );
+size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+                                                                const char * pcHostName,
+                                                                TickType_t uxIdentifier,
+                                                                UBaseType_t uxHostType );
 
 /****************************************************************
 * We abstract:
@@ -162,10 +166,10 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 * unconstrained data and returns and unconstrained length.
 ****************************************************************/
 
-size_t prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
-                            const char * pcHostName,
-                            TickType_t uxIdentifier,
-                            UBaseType_t uxHostType )
+size_t __CPROVER_file_local_FreeRTOS_DNS_c_prvCreateDNSMessage( uint8_t * pucUDPPayloadBuffer,
+                                                                const char * pcHostName,
+                                                                TickType_t uxIdentifier,
+                                                                UBaseType_t uxHostType )
 {
     __CPROVER_havoc_object( pucUDPPayloadBuffer );
     size_t size;

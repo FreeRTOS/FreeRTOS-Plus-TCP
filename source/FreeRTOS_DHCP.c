@@ -56,9 +56,6 @@
 
     #include "FreeRTOS_Routing.h"
 
-/* The following define is temporary and serves to make the /single source
- * code more similar to the /multi version. */
-
     #define EP_DHCPData         pxEndPoint->xDHCPData                 /**< Temporary define to make /single source similar to /multi version. */
     #define EP_IPv4_SETTINGS    pxEndPoint->ipv4_settings             /**< Temporary define to make /single source similar to /multi version. */
 
@@ -222,7 +219,7 @@
             /* No need to initialise 'pucUDPPayload', it just looks nicer. */
             uint8_t * pucUDPPayload = NULL;
             const DHCPMessage_IPv4_t * pxDHCPMessage;
-            BaseType_t lBytes;
+            int32_t lBytes;
 
             while( xDHCPv4Socket != NULL )
             {
@@ -232,7 +229,7 @@
                 /* Peek the next UDP message. */
                 lBytes = FreeRTOS_recvfrom( xDHCPv4Socket, &( pucUDPPayload ), 0, xRecvFlags, NULL, NULL );
 
-                if( lBytes <= 0 )
+                if( lBytes < ( ( int32_t ) sizeof( DHCPMessage_IPv4_t ) ) )
                 {
                     if( ( lBytes < 0 ) && ( lBytes != -pdFREERTOS_ERRNO_EAGAIN ) )
                     {
@@ -438,21 +435,21 @@
                 FreeRTOS_debug_printf( ( "vDHCPProcess: giving up %lu > %lu ticks\n", EP_DHCPData.xDHCPTxPeriod, ipconfigMAXIMUM_DISCOVER_TX_PERIOD ) );
 
                 #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
-                    {
-                        /* Only use a fake Ack if the default IP address == 0x00
-                         * and the link local addressing is used.  Start searching
-                         * a free LinkLayer IP-address.  Next state will be
-                         * 'eGetLinkLayerAddress'. */
-                        prvPrepareLinkLayerIPLookUp( pxEndPoint );
+                {
+                    /* Only use a fake Ack if the default IP address == 0x00
+                     * and the link local addressing is used.  Start searching
+                     * a free LinkLayer IP-address.  Next state will be
+                     * 'eGetLinkLayerAddress'. */
+                    prvPrepareLinkLayerIPLookUp( pxEndPoint );
 
-                        /* Setting an IP address manually so set to not using
-                         * leased address mode. */
-                        EP_DHCPData.eDHCPState = eGetLinkLayerAddress;
-                    }
+                    /* Setting an IP address manually so set to not using
+                     * leased address mode. */
+                    EP_DHCPData.eDHCPState = eGetLinkLayerAddress;
+                }
                 #else
-                    {
-                        xGivingUp = pdTRUE;
-                    }
+                {
+                    xGivingUp = pdTRUE;
+                }
                 #endif /* ipconfigDHCP_FALL_BACK_AUTO_IP */
             }
         }
@@ -525,7 +522,7 @@
              * It is enough to set 'EP_IPv4_SETTINGS.ulIPAddress'. */
             *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
 
-            iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
+            iptraceDHCP_SUCCEEDED( EP_DHCPData.ulOfferedIPAddress );
 
             /* DHCP failed, the default configured IP-address will be used
              * Now call vIPNetworkUpCalls() to send the network-up event and
@@ -770,7 +767,7 @@
                                 if( xARPHadIPClash == pdFALSE )
                                 {
                                     /* ARP OK. proceed. */
-                                    iptraceDHCP_SUCCEDEED( EP_DHCPData.ulOfferedIPAddress );
+                                    iptraceDHCP_SUCCEEDED( EP_DHCPData.ulOfferedIPAddress );
 
                                     /* Auto-IP succeeded, the default configured IP-address will
                                      * be used.  Now call vIPNetworkUpCalls() to send the
@@ -909,7 +906,6 @@
                 /* Bind to the standard DHCP client port. */
                 xAddress.sin_port = ( uint16_t ) dhcpCLIENT_PORT_IPv4;
                 xReturn = vSocketBind( xDHCPv4Socket, &xAddress, sizeof( xAddress ), pdFALSE );
-                configASSERT( xReturn == 0 );
                 xDHCPSocketUserCount = 1;
                 FreeRTOS_printf( ( "DHCP-socket[%02x-%02x]: DHCP Socket Create\n",
                                    pxEndPoint->xMACAddress.ucBytes[ 4 ],
@@ -949,7 +945,7 @@
     static void prvInitialiseDHCP( NetworkEndPoint_t * pxEndPoint )
     {
         /* Initialise the parameters that will be set by the DHCP process. Per
-         * https://www.ietf.org/rfc/rfc2131.txt, Transaction ID should be a random
+         * https://www.ietf.org/rfc/rfc2131.txt Transaction ID should be a random
          * value chosen by the client. */
 
         /* Check for random number generator API failure. */
@@ -967,7 +963,7 @@
         }
         else
         {
-            /* There was a problem with the randomiser. */
+            FreeRTOS_debug_printf( ( "prvInitialiseDHCP: failed to generate a random Transaction ID\n" ) );
         }
     }
 /*-----------------------------------------------------------*/
@@ -1063,11 +1059,7 @@
                         {
                             EP_IPv4_SETTINGS.ulDNSServerAddresses[ uxTargetIndex ] = pxSet->ulParameter;
                             uxTargetIndex++;
-
-                            if( uxTargetIndex >= ipconfigENDPOINT_DNS_ADDRESS_COUNT )
-                            {
-                                break;
-                            }
+                            /* uxDNSCount <= ipconfigENDPOINT_DNS_ADDRESS_COUNT , hence check is removed. */
                         }
 
                         uxByteIndex += sizeof( uint32_t );
@@ -1457,31 +1449,31 @@
             ( void ) memcpy( &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET ] ), pucOptionsArray, *pxOptionsArraySize );
 
             #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
+            {
+                /* With this option, the hostname can be registered as well which makes
+                 * it easier to lookup a device in a router's list of DHCP clients. */
+
+                /* Point to where the OPTION_END was stored to add data. */
+                pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
+                pucPtr[ 0U ] = dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE;
+                pucPtr[ 1U ] = ( uint8_t ) uxNameLength;
+
+                /*
+                 * Use helper variables for memcpy() to remain
+                 * compliant with MISRA Rule 21.15.  These should be
+                 * optimized away.
+                 */
+                if( pucHostName != NULL )
                 {
-                    /* With this option, the hostname can be registered as well which makes
-                     * it easier to lookup a device in a router's list of DHCP clients. */
+                    pvCopySource = pucHostName;
+                    pvCopyDest = &pucPtr[ 2U ];
 
-                    /* Point to where the OPTION_END was stored to add data. */
-                    pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
-                    pucPtr[ 0U ] = dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE;
-                    pucPtr[ 1U ] = ( uint8_t ) uxNameLength;
-
-                    /*
-                     * Use helper variables for memcpy() to remain
-                     * compliant with MISRA Rule 21.15.  These should be
-                     * optimized away.
-                     */
-                    if( pucHostName != NULL )
-                    {
-                        pvCopySource = pucHostName;
-                        pvCopyDest = &pucPtr[ 2U ];
-
-                        ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
-                    }
-
-                    pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
-                    *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
+                    ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
                 }
+
+                pucPtr[ 2U + uxNameLength ] = ( uint8_t ) dhcpOPTION_END_BYTE;
+                *pxOptionsArraySize += ( size_t ) ( 2U + uxNameLength );
+            }
             #endif /* if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 ) */
 
             /* Map in the client identifier. */
@@ -1679,8 +1671,8 @@
 
             ( void ) xApplicationGetRandomNumber( &( ulNumbers[ 0 ] ) );
             ( void ) xApplicationGetRandomNumber( &( ulNumbers[ 1 ] ) );
-            ucLinkLayerIPAddress[ 0 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 0 ] % 0xFDU ); /* get value 1..254 for IP-address 3rd byte of IP address to try. */
-            ucLinkLayerIPAddress[ 1 ] = ( uint8_t ) 1 + ( uint8_t ) ( ulNumbers[ 1 ] % 0xFDU ); /* get value 1..254 for IP-address 4th byte of IP address to try. */
+            ucLinkLayerIPAddress[ 0 ] = ( uint8_t ) ( 1 + ( ulNumbers[ 0 ] % 0xFDU ) ); /* get value 1..254 for IP-address 3rd byte of IP address to try. */
+            ucLinkLayerIPAddress[ 1 ] = ( uint8_t ) ( 1 + ( ulNumbers[ 1 ] % 0xFDU ) ); /* get value 1..254 for IP-address 4th byte of IP address to try. */
 
             EP_IPv4_SETTINGS.ulGatewayAddress = 0U;
 

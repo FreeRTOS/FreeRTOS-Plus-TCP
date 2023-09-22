@@ -40,6 +40,8 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/* ===========================  EXTERN VARIABLES  =========================== */
+
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 QueueHandle_t xNetworkEventQueue = NULL;
@@ -64,6 +66,8 @@ UDPPacketHeader_t xDefaultPartUDPPacketHeader =
         0x00, 0x00, 0x00, 0x00               /* Source IP address. */
     }
 };
+
+/* ======================== Stub Callback Functions ========================= */
 
 void vPortEnterCritical( void )
 {
