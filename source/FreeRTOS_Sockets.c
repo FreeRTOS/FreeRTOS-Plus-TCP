@@ -4374,7 +4374,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     uint8_t * FreeRTOS_get_tx_base( Socket_t xSocket )
     {
         uint8_t * pucReturn = NULL;
-        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+        FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
         /* Confirm that this is a TCP socket before dereferencing structure
          * member pointers. */
