@@ -1252,10 +1252,40 @@ void test_FreeRTOS_send_DisconnectionOccursDuringWait( void )
 }
 
 /*
- * @brief IP task is calling send function with a NULL buffer. Also there are 20 bytes worth of space
- *        less in the stream buffer as the data length.
+ * @brief IP task is calling send function with a NULL buffer (TCP zero copy).
  */
 void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    size_t uxNettLength = 100;
+    BaseType_t xFlags = 0;
+    StreamBuffer_t xLocalStreamBuffer;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( &xLocalStreamBuffer, 0, sizeof( xLocalStreamBuffer ) );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.eTCPState = eESTABLISHED;
+    xSocket.u.xTCP.bits.bFinSent = pdFALSE_UNSIGNED;
+    xSocket.u.xTCP.txStream = &xLocalStreamBuffer;
+    xSocket.xSendBlockTime = 100;
+
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxNettLength );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, NULL, uxNettLength, uxNettLength );
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
+    xReturn = FreeRTOS_send( &xSocket, NULL, uxNettLength, xFlags );
+
+    TEST_ASSERT_EQUAL( uxNettLength, xReturn );
+}
+
+/*
+ * @brief IP task is calling send function with a NULL buffer (TCP zero copy). Also there are 20 bytes worth of space
+ *        less in the stream buffer as the data length.
+ */
+void test_FreeRTOS_send_IPTaskWithNULLBuffer_LessSpaceInStreamBuffer( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
@@ -1275,9 +1305,15 @@ void test_FreeRTOS_send_IPTaskWithNULLBuffer( void )
 
     uxDataLength = 100;
 
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    uxStreamBufferGetSpace_ExpectAndReturn( xSocket.u.xTCP.txStream, uxDataLength - 20 );
+    uxStreamBufferAdd_ExpectAndReturn( xSocket.u.xTCP.txStream, 0U, NULL, uxDataLength - 20, uxDataLength - 20 );
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+    xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
+
     xReturn = FreeRTOS_send( &xSocket, NULL, uxDataLength, xFlags );
 
-    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
+    TEST_ASSERT_EQUAL( uxDataLength - 20, xReturn );
 }
 
 /**
