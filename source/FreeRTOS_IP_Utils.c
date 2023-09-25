@@ -862,12 +862,21 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
          *  interface. */
         FreeRTOS_ClearARP( pxEndPoint );
 
-        #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
+        #if ( ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) )
             if( END_POINT_USES_DHCP( pxEndPoint ) )
             {
+                /* Stop the DHCP process for this end-point. */
                 vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
             }
-        #endif
+        #endif /* ( ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) ) */
+
+        #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            if( END_POINT_USES_RA( pxEndPoint ) )
+            {
+                /* Stop the RA/SLAAC process for this end-point. */
+                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+            }
+        #endif /* ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
     }
 
     /* The network has been disconnected (or is being initialised for the first
