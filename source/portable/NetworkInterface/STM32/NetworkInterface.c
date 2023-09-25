@@ -542,6 +542,11 @@ static UBaseType_t prvNetworkInterfaceInput( void )
     while ( ( HAL_ETH_ReadData( &xEthHandle, ( void ** ) &pxCurDescriptor ) == HAL_OK ) )
     {
         /*configASSERT( xEthHandle.RxDescList.RxDataLength <= EMAC_DATA_BUFFER_SIZE );*/
+        if( pxCurDescriptor == NULL )
+        {
+            /* Buffer was dropped, ignore packet */
+            continue;
+        }
         xResult++;
         pxCurDescriptor->pxInterface = pxMyInterface;
         pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxCurDescriptor->pucEthernetBuffer );;
