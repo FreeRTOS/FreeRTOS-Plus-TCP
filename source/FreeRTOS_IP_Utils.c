@@ -861,6 +861,13 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
          * treat network down as a "delivery problem" and flush the ARP cache for this
          *  interface. */
         FreeRTOS_ClearARP( pxEndPoint );
+
+        #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) || ( ipconfigUSE_DHCPv6 == 1 )
+            if( END_POINT_USES_DHCP( pxEndPoint ) )
+            {
+                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+            }
+        #endif
     }
 
     /* The network has been disconnected (or is being initialised for the first
