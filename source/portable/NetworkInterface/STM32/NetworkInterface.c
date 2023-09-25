@@ -547,6 +547,7 @@ static UBaseType_t prvNetworkInterfaceInput( void )
             /* Buffer was dropped, ignore packet */
             continue;
         }
+
         xResult++;
         pxCurDescriptor->pxInterface = pxMyInterface;
         pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxCurDescriptor->pucEthernetBuffer );;
