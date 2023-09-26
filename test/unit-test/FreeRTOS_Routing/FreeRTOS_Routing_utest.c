@@ -2607,6 +2607,24 @@ void test_xIPv6_GetIPType_LinkLocal()
 }
 
 /**
+ * @brief xIPv6_GetIPType returns eIPv6_Loopback if input address matches ::1/128.
+ *
+ * Test step:
+ *  - Create 1 IPv6 address.
+ *     - Set the IP address to ::1.
+ *  - Call xIPv6_GetIPType to check IP type.
+ *  - Check if it returns eIPv6_Loopback.
+ */
+void test_xIPv6_GetIPType_Loopback()
+{
+    const IPv6_Address_t xIPv6Address = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01 };
+    IPv6_Type_t xReturn;
+
+    xReturn = xIPv6_GetIPType( &xIPv6Address );
+    TEST_ASSERT_EQUAL( eIPv6_Loopback, xReturn );
+}
+
+/**
  * @brief xIPv6_GetIPType returns eIPv6_SiteLocal if input address matches FEC0::/10.
  *
  * Test step:
