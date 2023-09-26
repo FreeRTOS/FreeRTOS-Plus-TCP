@@ -564,10 +564,10 @@
         BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
                                         void * pvDestination );
 
-        /* Translate 32-bit IPv4 address representation dot-decimal notation. */
+/* Translate 32-bit IPv4 address representation dot-decimal notation. */
         const char * FreeRTOS_inet_ntop4( const void * pvSource,
-                                        char * pcDestination,
-                                        socklen_t uxSize );
+                                          char * pcDestination,
+                                          socklen_t uxSize );
     #endif
 
     #if ipconfigUSE_IPv6
@@ -575,13 +575,13 @@
         BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
                                         void * pvDestination );
 
-        /*
-        * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
-        * to a 16-byte IPv6 address
-        */
+/*
+ * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
+ * to a 16-byte IPv6 address
+ */
         const char * FreeRTOS_inet_ntop6( const void * pvSource,
-                                        char * pcDestination,
-                                        socklen_t uxSize );
+                                          char * pcDestination,
+                                          socklen_t uxSize );
 
     #endif
 
