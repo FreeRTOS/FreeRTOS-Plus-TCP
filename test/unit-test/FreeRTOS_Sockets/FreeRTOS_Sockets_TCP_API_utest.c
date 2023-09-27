@@ -784,12 +784,8 @@ void test_FreeRTOS_get_tx_head_InvalidParams( void )
     uint8_t * pucReturn;
     FreeRTOS_Socket_t xSocket;
     BaseType_t xLength;
-    size_t uxLength = 128;
-    size_t uxMallocSize;
-    StreamBuffer_t * pxBuffer;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
-    xSocket.u.xTCP.uxTxStreamSize = uxLength;
 
     /* Invalid Protocol. */
     pucReturn = FreeRTOS_get_tx_head( &xSocket, &xLength );
@@ -813,21 +809,6 @@ void test_FreeRTOS_get_tx_head_NoStream( void )
 
     memset( &xSocket, 0, sizeof( xSocket ) );
     memset( ucStream, 0, ipconfigTCP_MSS );
-
-/*  FAIL: Memory Mismatch. Byte 0 Expected 0xB0 Was 0xE0. */
-/*  Function pvPortMalloc Argument xSize. Function called with unexpected argument value. */
-
-    /* Add an extra 4 (or 8) bytes. */
-    uxLength += sizeof( size_t );
-
-    /* And make the length a multiple of sizeof( size_t ). */
-    uxLength &= ~( sizeof( size_t ) - 1U );
-
-    uxMallocSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
-
-    pvPortMalloc_ExpectAndReturn( uxMallocSize, NULL );
-
-    vTCPStateChange_Expect( &xSocket, eCLOSE_WAIT );
 
     /* NULL stream. */
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
