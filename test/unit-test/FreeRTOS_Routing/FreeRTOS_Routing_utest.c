@@ -2620,6 +2620,8 @@ void test_xIPv6_GetIPType_Loopback()
     const IPv6_Address_t xIPv6Address = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01 };
     IPv6_Type_t xReturn;
 
+    xIsIPv6Loopback_ExpectAndReturn( &xIPv6Address, pdTRUE );
+
     xReturn = xIPv6_GetIPType( &xIPv6Address );
     TEST_ASSERT_EQUAL( eIPv6_Loopback, xReturn );
 }
