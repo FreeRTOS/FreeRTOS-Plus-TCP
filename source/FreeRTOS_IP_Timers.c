@@ -57,8 +57,8 @@
 #include "FreeRTOS_DNS.h"
 /*-----------------------------------------------------------*/
 
-/** @brief 'xAllNetworksUp' becomes pdTRUE as soon as all network interfaces have
- * been initialised. */
+/** @brief 'xAllNetworksUp' becomes pdTRUE when all network interfaces are initialised
+ * and becomes pdFALSE when any network interface goes down. */
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
@@ -606,7 +606,9 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Mark that at least one interface is down so that the 'xNetworkTimer' is checked. Whenever the timer expires, all interfaces that are down will get a new NetworkDown event.
+ * @brief Mark that at least one interface is down so that the 'xNetworkTimer' is checked.
+ *        Whenever the timer expires, all interfaces that are down will get a new NetworkDown
+ *        event.
  */
 void vSetNotAllNetworksUp( void )
 {
