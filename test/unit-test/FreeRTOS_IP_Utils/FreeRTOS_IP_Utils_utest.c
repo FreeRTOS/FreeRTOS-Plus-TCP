@@ -482,6 +482,8 @@ void test_prvProcessNetworkDownEvent_Pass( void )
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
 
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
+
     vDHCPProcess_Expect( pdTRUE, &xEndPoint );
 
     prvProcessNetworkDownEvent( &xInterfaces[ 0 ] );
@@ -496,6 +498,8 @@ void test_prvProcessNetworkDownEvent_Pass( void )
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkDown, &xEndPoint );
 
     FreeRTOS_ClearARP_Expect( &xEndPoint );
+
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
 
     vDHCPProcess_Expect( pdTRUE, &xEndPoint );
 
@@ -575,6 +579,10 @@ void test_prvProcessNetworkDownEvent_InterfaceInitFail( void )
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
 
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
+
+    vSetNotAllNetworksUp_Expect();
+
     prvProcessNetworkDownEvent( &xInterface );
 }
 
@@ -600,6 +608,8 @@ void test_prvProcessNetworkDownEvent_PassDHCPv6( void )
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
+
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
 
     vDHCPv6Process_Expect( pdTRUE, &xEndPoint );
 
@@ -628,6 +638,8 @@ void test_prvProcessNetworkDownEvent_PassRA( void )
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
+
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint, pdFALSE );
 
     vRAProcess_Expect( pdTRUE, &xEndPoint );
 
