@@ -604,3 +604,11 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 
 #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Mark that at least one interface is down so that the 'xNetworkTimer' is checked. Whenever the timer expires, all interfaces that are down will get a new NetworkDown event.
+ */
+void vSetNotAllNetworksUp( void )
+{
+    xAllNetworksUp = pdFALSE;
+}
