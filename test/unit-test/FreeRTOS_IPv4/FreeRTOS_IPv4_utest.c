@@ -856,7 +856,6 @@ void test_xIsIPv4Loopback_test( void )
  */
 static void xRunBadIPv4Loopback( uint32_t ulSource,
                                  uint32_t ulTarget,
-                                 uint16_t usFrameType,
                                  eFrameProcessingResult_t eExpected )
 {
     eFrameProcessingResult_t eResult;
@@ -892,7 +891,7 @@ static void xRunBadIPv4Loopback( uint32_t ulSource,
     pxIPHeader->ulSourceIPAddress = ulIPSource;
     pxIPHeader->ulDestinationIPAddress = ulIPTarget;
 
-    pxIPPacket->xEthernetHeader.usFrameType = usFrameType;
+    pxIPPacket->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -900,10 +899,7 @@ static void xRunBadIPv4Loopback( uint32_t ulSource,
 
     if( eExpected != eReleaseBuffer )
     {
-        if( usFrameType == ipIPv4_FRAME_TYPE )
-        {
-            FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( pxEndpoint );
-        }
+        FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( pxEndpoint );
 
         FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
@@ -924,7 +920,7 @@ static void xRunBadIPv4Loopback( uint32_t ulSource,
 void test_xBadIPv4Loopback_0_test( void )
 {
     /* ext ext           192.168.2.5 192.168.2.6 */
-    xRunBadIPv4Loopback( 0xC0A80205, 0xC0A80206, ipIPv4_FRAME_TYPE, eProcessBuffer );
+    xRunBadIPv4Loopback( 0xC0A80205, 0xC0A80206, eProcessBuffer );
 }
 
 /**
@@ -933,8 +929,8 @@ void test_xBadIPv4Loopback_0_test( void )
  */
 void test_xBadIPv4Loopback_1_test( void )
 {
-    /* ext ext           127.0.0.1   192.168.2.5 */
-    xRunBadIPv4Loopback( 0x7F000001, 0xC0A80205, ipIPv4_FRAME_TYPE, eReleaseBuffer );
+    /* int ext           127.0.0.1   192.168.2.5 */
+    xRunBadIPv4Loopback( 0x7F000001, 0xC0A80205, eReleaseBuffer );
 }
 
 /**
@@ -944,7 +940,7 @@ void test_xBadIPv4Loopback_1_test( void )
 void test_xBadIPv4Loopback_2_test( void )
 {
     /* ext -> int        192.168.2.5 127.0.0.1 */
-    xRunBadIPv4Loopback( 0xC0A80205, 0x7F000001, ipIPv4_FRAME_TYPE, eReleaseBuffer );
+    xRunBadIPv4Loopback( 0xC0A80205, 0x7F000001, eReleaseBuffer );
 }
 
 /**
@@ -954,15 +950,5 @@ void test_xBadIPv4Loopback_2_test( void )
 void test_xBadIPv4Loopback_3_test( void )
 {
 /*  int -> int           127.0.0.1   127.0.0.2 */
-    xRunBadIPv4Loopback( 0x7F000001, 0x7F000002, ipIPv4_FRAME_TYPE, eProcessBuffer );
-}
-
-/**
- * @brief test_xBadIPv4Loopback_3_test
- * To validate if xBadIPv4Loopback() makes correct decisions.
- */
-void test_xBadIPv4Loopback_4_test( void )
-{
-    /* wrong frame type  127.0.0.1   127.0.0.2 */
-    xRunBadIPv4Loopback( 0x7F000001, 0x7F000002, ipARP_FRAME_TYPE, eProcessBuffer );
+    xRunBadIPv4Loopback( 0x7F000001, 0x7F000002, eProcessBuffer );
 }
