@@ -25,7 +25,7 @@
  * Project:      Register Interface Definitions for LAN91C111
  * -------------------------------------------------------------------- */
 
-/* This file is a copy of 
+/* This file is a copy of
  * https://github.com/ARM-software/CMSIS-Driver/blob/b91908d907b647bd212920e30b383b03809d68e0/ETH/ETH_LAN91C111.h
 */
 
@@ -217,7 +217,7 @@
 #define MSK_TX_EMPTY    0x04        // Tx FIFO empty int. mask
 #define MSK_TX_INT      0x02        // Tx Complete int. mask
 #define MSK_RCV         0x01        // Rx Complete int. mask
-    
+
 /* PHY Management Interface */
 #define MGMT_MSK_CRS100 0x0040      // Disables CRS100 detection in Tx Half Dup.
 #define MGMT_MDOE       0x0008      // MII - 1= MDO pin output, 0= MDO tristated

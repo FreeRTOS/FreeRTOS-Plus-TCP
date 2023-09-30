@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* This file is a copy of 
+/* This file is a copy of
  * https://gitlab.arm.com/iot/open-iot-sdk/arm-corstone-platform-bsp/-/blob/ce35a01596530637b16287234788d68b0d1c75a8/corstone300/Board/Platform/platform_irq.h
 */
 

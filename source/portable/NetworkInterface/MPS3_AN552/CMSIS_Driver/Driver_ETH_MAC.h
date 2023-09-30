@@ -53,7 +53,7 @@
  *    Initial release
  */
 
-/* This file is a copy of 
+/* This file is a copy of
  * https://github.com/ARM-software/CMSIS_5/blob/a75f01746df18bb5b929dfb8dc6c9407fac3a0f3/CMSIS/Driver/Include/Driver_ETH_MAC.h
 */
 
@@ -202,7 +202,7 @@ typedef struct _ARM_ETH_MAC_TIME {
   \param[in]   len    Frame buffer length in bytes
   \return      number of data bytes read or execution status
                  - value >= 0: number of data bytes read
-                 - value < 0: error occurred, value is execution status as defined with \ref execution_status 
+                 - value < 0: error occurred, value is execution status as defined with \ref execution_status
 */
 /**
   \fn          uint32_t ARM_ETH_MAC_GetRxFrameSize (void)

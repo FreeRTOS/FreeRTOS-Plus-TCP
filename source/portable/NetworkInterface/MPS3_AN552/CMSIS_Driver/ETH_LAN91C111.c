@@ -575,7 +575,7 @@ static int32_t MAC_SendFrame (const uint8_t *frame, uint32_t len, uint32_t flags
   \param[in]   len    Frame buffer length in bytes
   \return      number of data bytes read or execution status
                  - value >= 0: number of data bytes read
-                 - value < 0: error occurred, value is execution status as defined with \ref execution_status 
+                 - value < 0: error occurred, value is execution status as defined with \ref execution_status
 */
 static int32_t MAC_ReadFrame (uint8_t *frame, uint32_t len) {
   uint32_t stat,sz,data;

@@ -21,7 +21,7 @@
  * Git SHA: b5f0603d6a584d1724d952fd8b0737458b90d62b
  */
 
-/* This file is a copy of 
+/* This file is a copy of
  * https://gitlab.arm.com/iot/open-iot-sdk/arm-corstone-platform-bsp/-/blob/main/corstone300/Device/Include/system_SSE300MPS3.h
 */
 

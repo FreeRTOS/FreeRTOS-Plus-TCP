@@ -24,7 +24,7 @@
  * limitations under the License.
  */
 
-/* This file is a copy of 
+/* This file is a copy of
  * https://github.com/ARM-software/CMSIS_5/blob/a75f01746df18bb5b929dfb8dc6c9407fac3a0f3/CMSIS/Core/Include/cmsis_gcc.h
 */
 

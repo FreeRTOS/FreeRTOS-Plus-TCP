@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* This file is a copy of 
+/* This file is a copy of
  * https://gitlab.arm.com/iot/open-iot-sdk/arm-corstone-platform-bsp/-/blob/main/corstone300/Device/Include/SSE300MPS3.h
 */
 

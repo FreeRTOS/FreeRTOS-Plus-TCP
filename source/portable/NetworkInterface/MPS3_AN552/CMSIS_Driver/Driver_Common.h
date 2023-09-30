@@ -33,7 +33,7 @@
  *    Initial release
  */
 
-/* This file is a copy of 
+/* This file is a copy of
  * https://github.com/ARM-software/CMSIS_5/blob/a75f01746df18bb5b929dfb8dc6c9407fac3a0f3/CMSIS/Driver/Include/Driver_Common.h
 */
 
@@ -55,17 +55,17 @@ typedef struct _ARM_DRIVER_VERSION {
 } ARM_DRIVER_VERSION;
 
 /* General return codes */
-#define ARM_DRIVER_OK                 0 ///< Operation succeeded 
+#define ARM_DRIVER_OK                 0 ///< Operation succeeded
 #define ARM_DRIVER_ERROR             -1 ///< Unspecified error
 #define ARM_DRIVER_ERROR_BUSY        -2 ///< Driver is busy
 #define ARM_DRIVER_ERROR_TIMEOUT     -3 ///< Timeout occurred
 #define ARM_DRIVER_ERROR_UNSUPPORTED -4 ///< Operation not supported
 #define ARM_DRIVER_ERROR_PARAMETER   -5 ///< Parameter error
-#define ARM_DRIVER_ERROR_SPECIFIC    -6 ///< Start of driver specific errors 
+#define ARM_DRIVER_ERROR_SPECIFIC    -6 ///< Start of driver specific errors
 
 /**
 \brief General power states
-*/ 
+*/
 typedef enum _ARM_POWER_STATE {
   ARM_POWER_OFF,                        ///< Power off: no operation possible
   ARM_POWER_LOW,                        ///< Low Power mode: retain state, detect and signal wake-up events
