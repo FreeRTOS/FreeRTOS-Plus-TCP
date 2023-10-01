@@ -589,10 +589,10 @@ static int prvOpenInterface( const char * pucName )
 
 /*!
  * @brief Open the network interface. The number of the interface to be opened is
- *	       set by the configNETWORK_INTERFACE_TO_USE constant in FreeRTOSConfig.h
- *	       Calling this function will set the pxOpenedInterfaceHandle variable
- *	       If, after calling this function, pxOpenedInterfaceHandle
- *	       is equal to NULL, then the interface could not be opened.
+ *        set by the configNETWORK_INTERFACE_TO_USE constant in FreeRTOSConfig.h
+ *        Calling this function will set the pxOpenedInterfaceHandle variable
+ *        If, after calling this function, pxOpenedInterfaceHandle
+ *        is equal to NULL, then the interface could not be opened.
  * @param [in] pxAllNetworkInterfaces network interface list to choose from
  * @returns pdPASS on success or pdFAIL when something goes wrong
  */
@@ -717,7 +717,7 @@ static int prvConfigureCaptureBehaviour( void )
              ipLOCAL_MAC_ADDRESS[ 5 ] );
     FreeRTOS_debug_printf( ( "pcap filter to compile: %s\n", pcap_filter ) );
 
-    ulNetMask = ( configNET_MASK3 << 24UL ) | ( configNET_MASK2 << 16UL ) | ( configNET_MASK1 << 8L ) | configNET_MASK0;
+    ulNetMask = FreeRTOS_inet_addr_quick( configNET_MASK0, configNET_MASK1, configNET_MASK2, configNET_MASK3 );
 
     ret = pcap_compile( pxOpenedInterfaceHandle,
                         &xFilterCode,
@@ -960,7 +960,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                 if( pxHeader->len <= ipTOTAL_ETHERNET_FRAME_SIZE )
                 {
                     /* Obtain a buffer into which the data can be placed.  This
-                     * is only	an interrupt simulator, not a real interrupt, so it
+                     * is only an interrupt simulator, not a real interrupt, so it
                      * is ok to call the task level function here, but note that
                      * some buffer implementations cannot be called from a real
                      * interrupt. */
