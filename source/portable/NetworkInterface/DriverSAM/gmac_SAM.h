@@ -53,7 +53,7 @@
 /*/ @cond 0 */
 /**INDENT-OFF**/
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 /**INDENT-ON**/
 /*/ @endcond */
@@ -1469,7 +1469,7 @@
         }
 
 /**
- * \brief Set screening type 2 eherType register.
+ * \brief Set screening type 2 etherType register.
  *
  * \param p_gmac   Pointer to the GMAC instance.
  * \param ethertype  Ethertype compare value

@@ -192,7 +192,7 @@ include( ${UNIT_TEST_DIR}/TCPFilePaths.cmake )
 
 
 # ===========================================================================
-# Remove static qualifier from the souce files so that internal functions
+# Remove static qualifier from the source files so that internal functions
 # can be called directly.
 file( MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Annexed_TCP_Sources )
 

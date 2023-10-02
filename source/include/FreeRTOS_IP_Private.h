@@ -338,15 +338,6 @@ typedef union xUDPPacketHeader
 extern UDPPacketHeader_t xDefaultPartUDPPacketHeader;
 
 
-/* Structure that stores the netmask, gateway address and DNS server addresses. */
-extern NetworkAddressingParameters_t xNetworkAddressing;
-
-/* Structure that stores the defaults for netmask, gateway address and DNS.
- * These values will be copied to 'xNetworkAddressing' in case DHCP is not used,
- * and also in case DHCP does not lead to a confirmed request. */
-/*lint -e9003*/
-extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could define variable 'xDefaultAddressing' at block scope [MISRA 2012 Rule 8.9, advisory]. */
-
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
 extern const BaseType_t xBufferAllocFixedSize;
 

@@ -676,7 +676,7 @@ void test_prv_ntop6_write_zeros_NotEnoughSpaceInBuffer_2( void )
 /**
  * @brief Case were target index is greater than size of the destination buffer.
  */
-void test_prv_ntop6_write_zeros_TargetndexGreater( void )
+void test_prv_ntop6_write_zeros_TargetIndexGreater( void )
 {
     struct sNTOP6_Set xSet;
     BaseType_t xReturn;

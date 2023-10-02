@@ -253,7 +253,7 @@ static void vNetifReceiveTask( void * pvParameters )
             {
                 FreeRTOS_debug_printf( ( "Dropping TX frame of length: %lu. FreeRTOS+TCP event queue is full.\n",
                                          pxDescriptor->xDataLength ) );
-                /* Drop the frame and reuse the descriptor for the next incomming frame */
+                /* Drop the frame and reuse the descriptor for the next incoming frame */
                 iptraceETHERNET_RX_EVENT_LOST();
             }
         }

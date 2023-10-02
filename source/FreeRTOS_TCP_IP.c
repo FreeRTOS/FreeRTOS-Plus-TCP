@@ -162,59 +162,59 @@
         }
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
+        {
+            if( pxSocket->u.xTCP.pxAckMessage != NULL )
             {
-                if( pxSocket->u.xTCP.pxAckMessage != NULL )
+                /* The first task of this regular socket check is to send-out delayed
+                 * ACK's. */
+                if( pxSocket->u.xTCP.bits.bUserShutdown == pdFALSE_UNSIGNED )
                 {
-                    /* The first task of this regular socket check is to send-out delayed
-                     * ACK's. */
-                    if( pxSocket->u.xTCP.bits.bUserShutdown == pdFALSE_UNSIGNED )
+                    /* Earlier data was received but not yet acknowledged.  This
+                     * function is called when the TCP timer for the socket expires, the
+                     * ACK may be sent now. */
+                    if( pxSocket->u.xTCP.eTCPState != eCLOSED )
                     {
-                        /* Earlier data was received but not yet acknowledged.  This
-                         * function is called when the TCP timer for the socket expires, the
-                         * ACK may be sent now. */
-                        if( pxSocket->u.xTCP.eTCPState != eCLOSED )
+                        if( ( xTCPWindowLoggingLevel > 1 ) && ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) )
                         {
-                            if( ( xTCPWindowLoggingLevel > 1 ) && ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) )
-                            {
-                                FreeRTOS_debug_printf( ( "Send[%u->%u] del ACK %u SEQ %u (len %u)\n",
-                                                         pxSocket->usLocalPort,
-                                                         pxSocket->u.xTCP.usRemotePort,
-                                                         ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
-                                                         ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ),
-                                                         ( unsigned ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ) ) );
-                            }
-
-                            prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, ( uint32_t ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ), ipconfigZERO_COPY_TX_DRIVER );
-
-                            #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                                {
-                                    /* The ownership has been passed to the SEND routine,
-                                     * clear the pointer to it. */
-                                    pxSocket->u.xTCP.pxAckMessage = NULL;
-                                }
-                            #endif /* ipconfigZERO_COPY_TX_DRIVER */
+                            FreeRTOS_debug_printf( ( "Send[%u->%u] del ACK %u SEQ %u (len %u)\n",
+                                                     pxSocket->usLocalPort,
+                                                     pxSocket->u.xTCP.usRemotePort,
+                                                     ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber - pxSocket->u.xTCP.xTCPWindow.rx.ulFirstSequenceNumber ),
+                                                     ( unsigned ) ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber - pxSocket->u.xTCP.xTCPWindow.tx.ulFirstSequenceNumber ),
+                                                     ( unsigned ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ) ) );
                         }
 
-                        if( prvTCPNextTimeout( pxSocket ) > 1U )
+                        prvTCPReturnPacket( pxSocket, pxSocket->u.xTCP.pxAckMessage, ( uint32_t ) ( uxIPHeaderSizeSocket( pxSocket ) + ipSIZE_OF_TCP_HEADER ), ipconfigZERO_COPY_TX_DRIVER );
+
+                        #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
                         {
-                            /* Tell the code below that this function is ready. */
-                            xReady = pdTRUE;
+                            /* The ownership has been passed to the SEND routine,
+                             * clear the pointer to it. */
+                            pxSocket->u.xTCP.pxAckMessage = NULL;
                         }
-                    }
-                    else
-                    {
-                        /* The user wants to perform an active shutdown(), skip sending
-                         * the delayed ACK.  The function prvTCPSendPacket() will send the
-                         * FIN along with the ACK's. */
+                        #endif /* ipconfigZERO_COPY_TX_DRIVER */
                     }
 
-                    if( pxSocket->u.xTCP.pxAckMessage != NULL )
+                    if( prvTCPNextTimeout( pxSocket ) > 1U )
                     {
-                        vReleaseNetworkBufferAndDescriptor( pxSocket->u.xTCP.pxAckMessage );
-                        pxSocket->u.xTCP.pxAckMessage = NULL;
+                        /* Tell the code below that this function is ready. */
+                        xReady = pdTRUE;
                     }
                 }
+                else
+                {
+                    /* The user wants to perform an active shutdown(), skip sending
+                     * the delayed ACK.  The function prvTCPSendPacket() will send the
+                     * FIN along with the ACK's. */
+                }
+
+                if( pxSocket->u.xTCP.pxAckMessage != NULL )
+                {
+                    vReleaseNetworkBufferAndDescriptor( pxSocket->u.xTCP.pxAckMessage );
+                    pxSocket->u.xTCP.pxAckMessage = NULL;
+                }
             }
+        }
         #endif /* ipconfigUSE_TCP_WIN */
 
         if( xReady == pdFALSE )
@@ -230,11 +230,11 @@
             ( void ) prvTCPNextTimeout( pxSocket );
 
             #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-                {
-                    /* In all (non-connected) states in which keep-alive messages can not be sent
-                     * the anti-hang protocol will close sockets that are 'hanging'. */
-                    xResult = prvTCPStatusAgeCheck( pxSocket );
-                }
+            {
+                /* In all (non-connected) states in which keep-alive messages can not be sent
+                 * the anti-hang protocol will close sockets that are 'hanging'. */
+                xResult = prvTCPStatusAgeCheck( pxSocket );
+            }
             #endif
         }
 
@@ -254,18 +254,18 @@
     void prvTCPTouchSocket( struct xSOCKET * pxSocket )
     {
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
-            {
-                pxSocket->u.xTCP.xLastActTime = xTaskGetTickCount();
-            }
+        {
+            pxSocket->u.xTCP.xLastActTime = xTaskGetTickCount();
+        }
         #endif
 
         #if ( ipconfigTCP_KEEP_ALIVE == 1 )
-            {
-                pxSocket->u.xTCP.bits.bWaitKeepAlive = pdFALSE_UNSIGNED;
-                pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
-                pxSocket->u.xTCP.ucKeepRepCount = 0U;
-                pxSocket->u.xTCP.xLastAliveTime = xTaskGetTickCount();
-            }
+        {
+            pxSocket->u.xTCP.bits.bWaitKeepAlive = pdFALSE_UNSIGNED;
+            pxSocket->u.xTCP.bits.bSendKeepAlive = pdFALSE_UNSIGNED;
+            pxSocket->u.xTCP.ucKeepRepCount = 0U;
+            pxSocket->u.xTCP.xLastAliveTime = xTaskGetTickCount();
+        }
         #endif
 
         ( void ) pxSocket;
@@ -348,27 +348,27 @@
                         xParent->xEventBits |= ( EventBits_t ) eSOCKET_ACCEPT;
 
                         #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                        {
+                            /* Library support FreeRTOS_select().  Receiving a new
+                             * connection is being translated as a READ event. */
+                            if( ( xParent->xSelectBits & ( ( EventBits_t ) eSELECT_READ ) ) != 0U )
                             {
-                                /* Library support FreeRTOS_select().  Receiving a new
-                                 * connection is being translated as a READ event. */
-                                if( ( xParent->xSelectBits & ( ( EventBits_t ) eSELECT_READ ) ) != 0U )
-                                {
-                                    xParent->xEventBits |= ( ( EventBits_t ) eSELECT_READ ) << SOCKET_EVENT_BIT_COUNT;
-                                }
+                                xParent->xEventBits |= ( ( EventBits_t ) eSELECT_READ ) << SOCKET_EVENT_BIT_COUNT;
                             }
+                        }
                         #endif
 
                         #if ( ipconfigUSE_CALLBACKS == 1 )
+                        {
+                            if( ( ipconfigIS_VALID_PROG_ADDRESS( xParent->u.xTCP.pxHandleConnected ) ) &&
+                                ( xParent->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) )
                             {
-                                if( ( ipconfigIS_VALID_PROG_ADDRESS( xParent->u.xTCP.pxHandleConnected ) ) &&
-                                    ( xParent->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED ) )
-                                {
-                                    /* The listening socket does not become connected itself, in stead
-                                     * a child socket is created.
-                                     * Postpone a call the OnConnect event until the end of this function. */
-                                    xConnected = xParent;
-                                }
+                                /* The listening socket does not become connected itself, in stead
+                                 * a child socket is created.
+                                 * Postpone a call the OnConnect event until the end of this function. */
+                                xConnected = xParent;
                             }
+                        }
                         #endif
                     }
 
@@ -388,12 +388,12 @@
                     pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CONNECT;
 
                     #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                    {
+                        if( ( pxSocket->xSelectBits & ( ( EventBits_t ) eSELECT_WRITE ) ) != 0U )
                         {
-                            if( ( pxSocket->xSelectBits & ( ( EventBits_t ) eSELECT_WRITE ) ) != 0U )
-                            {
-                                pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT;
-                            }
+                            pxSocket->xEventBits |= ( ( EventBits_t ) eSELECT_WRITE ) << SOCKET_EVENT_BIT_COUNT;
                         }
+                    }
                     #endif
                 }
             }
@@ -403,23 +403,23 @@
                 xParent->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
 
                 #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
+                {
+                    if( ( xParent->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
                     {
-                        if( ( xParent->xSelectBits & ( EventBits_t ) eSELECT_EXCEPT ) != 0U )
-                        {
-                            xParent->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
-                        }
+                        xParent->xEventBits |= ( ( EventBits_t ) eSELECT_EXCEPT ) << SOCKET_EVENT_BIT_COUNT;
                     }
+                }
                 #endif
             }
 
             #if ( ipconfigUSE_CALLBACKS == 1 )
+            {
+                if( ( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleConnected ) ) && ( xConnected == NULL ) )
                 {
-                    if( ( ipconfigIS_VALID_PROG_ADDRESS( pxSocket->u.xTCP.pxHandleConnected ) ) && ( xConnected == NULL ) )
-                    {
-                        /* The 'connected' state has changed, call the user handler. */
-                        xConnected = pxSocket;
-                    }
+                    /* The 'connected' state has changed, call the user handler. */
+                    xConnected = pxSocket;
                 }
+            }
             #endif /* ipconfigUSE_CALLBACKS */
 
             if( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == 0 )
@@ -495,57 +495,57 @@
         prvTCPTouchSocket( pxSocket );
 
         #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
+        {
+            if( ( xTCPWindowLoggingLevel >= 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) ) )
             {
-                if( ( xTCPWindowLoggingLevel >= 0 ) && ( ipconfigTCP_MAY_LOG_PORT( pxSocket->usLocalPort ) ) )
+                char pcBuffer[ 40 ];
+
+                switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
-                    char pcBuffer[ 40 ];
+                    #if ( ipconfigUSE_IPv4 != 0 )
+                        case pdFALSE_UNSIGNED:
+                           {
+                               uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
+                               FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                   ( const uint8_t * ) &ulIPAddress,
+                                                   pcBuffer,
+                                                   sizeof( pcBuffer ) );
+                           }
+                           break;
+                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                    switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE */
-                    {
-                        #if ( ipconfigUSE_IPv4 != 0 )
-                            case pdFALSE_UNSIGNED:
-                               {
-                                   uint32_t ulIPAddress = FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 );
-                                   FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                       ( const uint8_t * ) &ulIPAddress,
-                                                       pcBuffer,
-                                                       sizeof( pcBuffer ) );
-                               }
-                               break;
-                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        case pdTRUE_UNSIGNED:
+                            FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
+                                                pcBuffer,
+                                                sizeof( pcBuffer ) );
+                            break;
+                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            case pdTRUE_UNSIGNED:
-                                FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                    pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes,
-                                                    pcBuffer,
-                                                    sizeof( pcBuffer ) );
-                                break;
-                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-                        default:   /* LCOV_EXCL_LINE */
-                            /* MISRA 16.4 Compliance */
-                            break; /* LCOV_EXCL_LINE */
-                    }
-
-                    FreeRTOS_debug_printf( ( "Socket %u -> [%s]:%u State %s->%s\n",
-                                             pxSocket->usLocalPort,
-                                             pcBuffer,
-                                             pxSocket->u.xTCP.usRemotePort,
-                                             FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
-                                             FreeRTOS_GetTCPStateName( ( UBaseType_t ) eTCPState ) ) );
+                    default:   /* LCOV_EXCL_LINE */
+                        /* MISRA 16.4 Compliance */
+                        break; /* LCOV_EXCL_LINE */
                 }
+
+                FreeRTOS_debug_printf( ( "Socket %u -> [%s]:%u State %s->%s\n",
+                                         pxSocket->usLocalPort,
+                                         pcBuffer,
+                                         pxSocket->u.xTCP.usRemotePort,
+                                         FreeRTOS_GetTCPStateName( ( UBaseType_t ) xPreviousState ),
+                                         FreeRTOS_GetTCPStateName( ( UBaseType_t ) eTCPState ) ) );
             }
+        }
         #endif /* ipconfigHAS_DEBUG_PRINTF */
 
         #if ( ipconfigUSE_CALLBACKS == 1 )
+        {
+            if( xConnected != NULL )
             {
-                if( xConnected != NULL )
-                {
-                    /* The 'connected' state has changed, call the OnConnect handler of the parent. */
-                    xConnected->u.xTCP.pxHandleConnected( ( Socket_t ) xConnected, bAfter );
-                }
+                /* The 'connected' state has changed, call the OnConnect handler of the parent. */
+                xConnected->u.xTCP.pxHandleConnected( ( Socket_t ) xConnected, bAfter );
             }
+        }
         #endif
 
         if( xParent != NULL )

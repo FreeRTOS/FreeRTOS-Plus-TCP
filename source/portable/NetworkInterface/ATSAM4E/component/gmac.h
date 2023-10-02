@@ -245,10 +245,10 @@
 #define GMAC_DCFGR_ESPA               ( 0x1u << 7 )                     /**< \brief (GMAC_DCFGR) Endian Swap Mode Enable for Packet Data Accesses */
 #define GMAC_DCFGR_RXBMS_Pos          8
 #define GMAC_DCFGR_RXBMS_Msk          ( 0x3u << GMAC_DCFGR_RXBMS_Pos )  /**< \brief (GMAC_DCFGR) Receiver Packet Buffer Memory Size Select */
-#define   GMAC_DCFGR_RXBMS_EIGHTH     ( 0x0u << 8 )                     /**< \brief (GMAC_DCFGR) 1 Kbyte Memory Size */
-#define   GMAC_DCFGR_RXBMS_QUARTER    ( 0x1u << 8 )                     /**< \brief (GMAC_DCFGR) 2 Kbytes Memory Size */
-#define   GMAC_DCFGR_RXBMS_HALF       ( 0x2u << 8 )                     /**< \brief (GMAC_DCFGR) 4 Kbytes Memory Size */
-#define   GMAC_DCFGR_RXBMS_FULL       ( 0x3u << 8 )                     /**< \brief (GMAC_DCFGR) 8 Kbytes Memory Size */
+#define   GMAC_DCFGR_RXBMS_EIGHTH     ( 0x0u << 8 )                     /**< \brief (GMAC_DCFGR) 1 KByte Memory Size */
+#define   GMAC_DCFGR_RXBMS_QUARTER    ( 0x1u << 8 )                     /**< \brief (GMAC_DCFGR) 2 KBytes Memory Size */
+#define   GMAC_DCFGR_RXBMS_HALF       ( 0x2u << 8 )                     /**< \brief (GMAC_DCFGR) 4 KBytes Memory Size */
+#define   GMAC_DCFGR_RXBMS_FULL       ( 0x3u << 8 )                     /**< \brief (GMAC_DCFGR) 8 KBytes Memory Size */
 #define GMAC_DCFGR_TXPBMS             ( 0x1u << 10 )                    /**< \brief (GMAC_DCFGR) Transmitter Packet Buffer Memory Size Select */
 #define GMAC_DCFGR_TXCOEN             ( 0x1u << 11 )                    /**< \brief (GMAC_DCFGR) Transmitter Checksum Generation Offload Enable */
 #define GMAC_DCFGR_DRBS_Pos           16

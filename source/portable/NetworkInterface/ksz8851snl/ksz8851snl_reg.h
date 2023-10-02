@@ -109,7 +109,7 @@
 #define   EEPROM_CHIP_SELECT          ( 0x0001 ) /* EEPROM chip select (EECS pin) */
 
 #define REG_MEM_BIST_INFO             ( 0x24 )   /* MBIR */
-#define   TX_MEM_TEST_FINISHED        ( 0x1000 ) /* TX memeory BIST test finish */
+#define   TX_MEM_TEST_FINISHED        ( 0x1000 ) /* TX memory BIST test finish */
 #define   TX_MEM_TEST_FAILED          ( 0x0800 ) /* TX memory BIST test fail */
 #define   TX_MEM_TEST_FAILED_COUNT    ( 0x0700 ) /* TX memory BIST test fail count */
 #define   RX_MEM_TEST_FINISHED        ( 0x0010 ) /* RX memory BIST test finish */
@@ -362,7 +362,7 @@
 #define   PME_FROM_ENERGY                ( 0x0100 ) /* PME asserted when energy is detected */
 #define   PME_EVENT_MASK                 ( 0x0F00 ) /* PME asserted event mask */
 #define   WAKEUP_AUTO_ENABLE             ( 0x0080 ) /* Enable auto wake-up in energy mode */
-#define   WAKEUP_NORMAL_AUTO_ENABLE      ( 0x0040 ) /* Enable auto goto normal mode from energy detecion mode */
+#define   WAKEUP_NORMAL_AUTO_ENABLE      ( 0x0040 ) /* Enable auto goto normal mode from energy detection mode */
 #define   WAKEUP_FROM_WKFRAME            ( 0x0020 ) /* Wake-up from wake-up frame event detected */
 #define   WAKEUP_FROM_MAGIC              ( 0x0010 ) /* Wake-up from magic packet event detected */
 #define   WAKEUP_FROM_LINKUP             ( 0x0008 ) /* Wake-up from link up event detected */

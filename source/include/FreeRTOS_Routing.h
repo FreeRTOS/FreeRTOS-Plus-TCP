@@ -38,7 +38,7 @@
     #endif
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /* Every NetworkInterface needs a set of access functions: */

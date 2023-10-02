@@ -627,13 +627,13 @@
 /*-----------------------------------------------------------------------*/
 
 /*
- * iptraceDHCP_SUCCEDEED
+ * iptraceDHCP_SUCCEEDED
  *
  * Called when DHCP negotiation is complete and the IP address in
  * ulOfferedIPAddress is offered to the device.
  */
-#ifndef iptraceDHCP_SUCCEDEED
-    #define iptraceDHCP_SUCCEDEED( ulOfferedIPAddress )
+#ifndef iptraceDHCP_SUCCEEDED
+    #define iptraceDHCP_SUCCEEDED( ulOfferedIPAddress )
 #endif
 
 /*-----------------------------------------------------------------------*/
@@ -792,10 +792,10 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * iptraceRA_SUCCEDEED
+ * iptraceRA_SUCCEEDED
  */
-#ifndef iptraceRA_SUCCEDEED
-    #define iptraceRA_SUCCEDEED( ipv6_address )
+#ifndef iptraceRA_SUCCEEDED
+    #define iptraceRA_SUCCEEDED( ipv6_address )
 #endif
 
 /*---------------------------------------------------------------------------*/

@@ -185,14 +185,6 @@ uint16_t usPacketIdentifier = 0U;
  * reference. */
 const MACAddress_t xBroadcastMACAddress = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 
-/** @brief Default values for the above struct in case DHCP
- * does not lead to a confirmed request. */
-
-/* MISRA Ref 8.9.1 [File scoped variables] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-/* coverity[misra_c_2012_rule_8_9_violation] */
-NetworkAddressingParameters_t xDefaultAddressing = { 0, 0, 0, 0, 0 };
-
 /** @brief Used to ensure network down events cannot be missed when they cannot be
  * posted to the network event queue because the network event queue is already
  * full. */
@@ -277,19 +269,19 @@ static void prvProcessIPEventsAndTimers( void )
     }
 
     #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+    {
+        if( xReceivedEvent.eEventType != eNoEvent )
         {
-            if( xReceivedEvent.eEventType != eNoEvent )
+            UBaseType_t uxCount;
+
+            uxCount = uxQueueSpacesAvailable( xNetworkEventQueue );
+
+            if( uxQueueMinimumSpace > uxCount )
             {
-                UBaseType_t uxCount;
-
-                uxCount = uxQueueSpacesAvailable( xNetworkEventQueue );
-
-                if( uxQueueMinimumSpace > uxCount )
-                {
-                    uxQueueMinimumSpace = uxCount;
-                }
+                uxQueueMinimumSpace = uxCount;
             }
         }
+    }
     #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
     iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
@@ -402,17 +394,17 @@ static void prvProcessIPEventsAndTimers( void )
              * vSocketSelect() will check which sockets actually have an event
              * and update the socket field xSocketBits. */
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                #if ( ipconfigSELECT_USES_NOTIFY != 0 )
-                    {
-                        SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
-                        vSocketSelect( pxMessage->pxSocketSet );
-                        ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
-                    }
-                #else
-                    {
-                        vSocketSelect( ( ( SocketSelect_t * ) xReceivedEvent.pvData ) );
-                    }
-                #endif /* ( ipconfigSELECT_USES_NOTIFY != 0 ) */
+            #if ( ipconfigSELECT_USES_NOTIFY != 0 )
+                {
+                    SocketSelectMessage_t * pxMessage = ( ( SocketSelectMessage_t * ) xReceivedEvent.pvData );
+                    vSocketSelect( pxMessage->pxSocketSet );
+                    ( void ) xTaskNotifyGive( pxMessage->xTaskhandle );
+                }
+            #else
+                {
+                    vSocketSelect( ( ( SocketSelect_t * ) xReceivedEvent.pvData ) );
+                }
+            #endif /* ( ipconfigSELECT_USES_NOTIFY != 0 ) */
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
             break;
 
@@ -461,13 +453,13 @@ static void prvProcessIPEventsAndTimers( void )
 
         case eSocketSetDeleteEvent:
             #if ( ipconfigSUPPORT_SELECT_FUNCTION == 1 )
-                {
-                    SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
+            {
+                SocketSelect_t * pxSocketSet = ( SocketSelect_t * ) ( xReceivedEvent.pvData );
 
-                    iptraceMEM_STATS_DELETE( pxSocketSet );
-                    vEventGroupDelete( pxSocketSet->xSelectGroup );
-                    vPortFree( ( void * ) pxSocketSet );
-                }
+                iptraceMEM_STATS_DELETE( pxSocketSet );
+                vEventGroupDelete( pxSocketSet->xSelectGroup );
+                vPortFree( ( void * ) pxSocketSet );
+            }
             #endif /* ipconfigSUPPORT_SELECT_FUNCTION == 1 */
             break;
 
@@ -510,28 +502,28 @@ static void prvIPTask_Initialise( void )
     }
 
     #if ( ipconfigUSE_TCP == 1 )
-        {
-            /* Initialise the TCP timer. */
-            vTCPTimerReload( pdMS_TO_TICKS( ipTCP_TIMER_PERIOD_MS ) );
-        }
+    {
+        /* Initialise the TCP timer. */
+        vTCPTimerReload( pdMS_TO_TICKS( ipTCP_TIMER_PERIOD_MS ) );
+    }
     #endif
 
     /* Mark the timer as inactive since we are not waiting on any ARP resolution as of now. */
     vIPSetARPResolutionTimerEnableState( pdFALSE );
 
     #if ( ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigUSE_DNS != 0 ) )
-        {
-            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
-             * this library */
-            vDNSInitialise();
-        }
+    {
+        /* The following function is declared in FreeRTOS_DNS.c and 'private' to
+         * this library */
+        vDNSInitialise();
+    }
     #endif /* ( ipconfigDNS_USE_CALLBACKS != 0 ) && ( ipconfigUSE_DNS != 0 ) */
 
     #if ( ( ipconfigUSE_DNS_CACHE != 0 ) && ( ipconfigUSE_DNS != 0 ) )
-        {
-            /* Clear the DNS cache once only. */
-            FreeRTOS_dnsclear();
-        }
+    {
+        /* Clear the DNS cache once only. */
+        FreeRTOS_dnsclear();
+    }
     #endif /* ( ( ipconfigUSE_DNS_CACHE != 0 ) && ( ipconfigUSE_DNS != 0 ) ) */
 
     /* Initialisation is complete and events can now be processed. */
@@ -587,31 +579,31 @@ static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint )
     #endif
     /* The DHCP state machine needs processing. */
     #if ( ipconfigUSE_DHCP == 1 )
+    {
+        if( ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED ) && ( xIsIPv6 == pdFALSE ) )
         {
-            if( ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED ) && ( xIsIPv6 == pdFALSE ) )
-            {
-                /* Process DHCP messages for a given end-point. */
-                vDHCPProcess( pdFALSE, pxEndPoint );
-            }
+            /* Process DHCP messages for a given end-point. */
+            vDHCPProcess( pdFALSE, pxEndPoint );
         }
+    }
     #endif /* ipconfigUSE_DHCP */
     #if ( ( ipconfigUSE_DHCPv6 == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+    {
+        if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
         {
-            if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantDHCP != pdFALSE_UNSIGNED ) )
-            {
-                /* Process DHCPv6 messages for a given end-point. */
-                vDHCPv6Process( pdFALSE, pxEndPoint );
-            }
+            /* Process DHCPv6 messages for a given end-point. */
+            vDHCPv6Process( pdFALSE, pxEndPoint );
         }
+    }
     #endif /* ipconfigUSE_DHCPv6 */
     #if ( ( ipconfigUSE_RA == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+    {
+        if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) )
         {
-            if( ( xIsIPv6 == pdTRUE ) && ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) )
-            {
-                /* Process RA messages for a given end-point. */
-                vRAProcess( pdFALSE, pxEndPoint );
-            }
+            /* Process RA messages for a given end-point. */
+            vRAProcess( pdFALSE, pxEndPoint );
         }
+    }
     #endif /* ( ( ipconfigUSE_RA == 1 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
 
     /* Mention pxEndPoint and xIsIPv6 in case they have not been used. */
@@ -642,24 +634,24 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
-        #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-            {
-                vApplicationIPNetworkEventHook( eNetworkUp );
-            }
-        #else
-            {
-                vApplicationIPNetworkEventHook_Multi( eNetworkUp, pxEndPoint );
-            }
-        #endif
+    #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+        {
+            vApplicationIPNetworkEventHook( eNetworkUp );
+        }
+    #else
+        {
+            vApplicationIPNetworkEventHook_Multi( eNetworkUp, pxEndPoint );
+        }
+    #endif
     #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-        {
-            /* The following function is declared in FreeRTOS_DNS.c and 'private' to
-             * this library */
-            extern void vDNSInitialise( void );
-            vDNSInitialise();
-        }
+    {
+        /* The following function is declared in FreeRTOS_DNS.c and 'private' to
+         * this library */
+        extern void vDNSInitialise( void );
+        vDNSInitialise();
+    }
     #endif /* ipconfigDNS_USE_CALLBACKS != 0 */
 
     /* Set remaining time to 0 so it will become active immediately. */
@@ -676,36 +668,36 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
 static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 {
     #if ( ipconfigUSE_LINKED_RX_MESSAGES == 0 )
-        {
-            /* When ipconfigUSE_LINKED_RX_MESSAGES is set to 0 then only one
-             * buffer will be sent at a time.  This is the default way for +TCP to pass
-             * messages from the MAC to the TCP/IP stack. */
-            prvProcessEthernetPacket( pxBuffer );
-        }
+    {
+        /* When ipconfigUSE_LINKED_RX_MESSAGES is set to 0 then only one
+         * buffer will be sent at a time.  This is the default way for +TCP to pass
+         * messages from the MAC to the TCP/IP stack. */
+        prvProcessEthernetPacket( pxBuffer );
+    }
     #else /* ipconfigUSE_LINKED_RX_MESSAGES */
+    {
+        NetworkBufferDescriptor_t * pxNextBuffer;
+
+        /* An optimisation that is useful when there is high network traffic.
+         * Instead of passing received packets into the IP task one at a time the
+         * network interface can chain received packets together and pass them into
+         * the IP task in one go.  The packets are chained using the pxNextBuffer
+         * member.  The loop below walks through the chain processing each packet
+         * in the chain in turn. */
+
+        /* While there is another packet in the chain. */
+        while( pxBuffer != NULL )
         {
-            NetworkBufferDescriptor_t * pxNextBuffer;
+            /* Store a pointer to the buffer after pxBuffer for use later on. */
+            pxNextBuffer = pxBuffer->pxNextBuffer;
 
-            /* An optimisation that is useful when there is high network traffic.
-             * Instead of passing received packets into the IP task one at a time the
-             * network interface can chain received packets together and pass them into
-             * the IP task in one go.  The packets are chained using the pxNextBuffer
-             * member.  The loop below walks through the chain processing each packet
-             * in the chain in turn. */
+            /* Make it NULL to avoid using it later on. */
+            pxBuffer->pxNextBuffer = NULL;
 
-            /* While there is another packet in the chain. */
-            while( pxBuffer != NULL )
-            {
-                /* Store a pointer to the buffer after pxBuffer for use later on. */
-                pxNextBuffer = pxBuffer->pxNextBuffer;
-
-                /* Make it NULL to avoid using it later on. */
-                pxBuffer->pxNextBuffer = NULL;
-
-                prvProcessEthernetPacket( pxBuffer );
-                pxBuffer = pxNextBuffer;
-            }
+            prvProcessEthernetPacket( pxBuffer );
+            pxBuffer = pxNextBuffer;
         }
+    }
     #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
 }
 /*-----------------------------------------------------------*/
@@ -932,9 +924,9 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
         FreeRTOS_FillEndPoint( &( xInterfaces[ 0 ] ), &( xEndPoints[ 0 ] ), ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
         #if ( ipconfigUSE_DHCP != 0 )
-            {
-                xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
-            }
+        {
+            xEndPoints[ 0 ].bits.bWantDHCP = pdTRUE;
+        }
         #endif /* ipconfigUSE_DHCP */
         return FreeRTOS_IPInit_Multi();
     }
@@ -959,30 +951,30 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
 
     /* Attempt to create the queue used to communicate with the IP task. */
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-        {
-            static StaticQueue_t xNetworkEventStaticQueue;
-            static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
-            xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
-                                                     sizeof( IPStackEvent_t ),
-                                                     ucNetworkEventQueueStorageArea,
-                                                     &xNetworkEventStaticQueue );
-        }
+    {
+        static StaticQueue_t xNetworkEventStaticQueue;
+        static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
+        xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                 sizeof( IPStackEvent_t ),
+                                                 ucNetworkEventQueueStorageArea,
+                                                 &xNetworkEventStaticQueue );
+    }
     #else
-        {
-            xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
-            configASSERT( xNetworkEventQueue != NULL );
-        }
+    {
+        xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
+        configASSERT( xNetworkEventQueue != NULL );
+    }
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
     if( xNetworkEventQueue != NULL )
     {
         #if ( configQUEUE_REGISTRY_SIZE > 0 )
-            {
-                /* A queue registry is normally used to assist a kernel aware
-                 * debugger.  If one is in use then it will be helpful for the debugger
-                 * to show information about the network event queue. */
-                vQueueAddToRegistry( xNetworkEventQueue, "NetEvnt" );
-            }
+        {
+            /* A queue registry is normally used to assist a kernel aware
+             * debugger.  If one is in use then it will be helpful for the debugger
+             * to show information about the network event queue. */
+            vQueueAddToRegistry( xNetworkEventQueue, "NetEvnt" );
+        }
         #endif /* configQUEUE_REGISTRY_SIZE */
 
         if( xNetworkBuffersInitialise() == pdPASS )
@@ -992,31 +984,31 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
 
             /* Create the task that processes Ethernet and stack events. */
             #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
-                {
-                    static StaticTask_t xIPTaskBuffer;
-                    static StackType_t xIPTaskStack[ ipconfigIP_TASK_STACK_SIZE_WORDS ];
-                    xIPTaskHandle = xTaskCreateStatic( prvIPTask,
-                                                       "IP-Task",
-                                                       ipconfigIP_TASK_STACK_SIZE_WORDS,
-                                                       NULL,
-                                                       ipconfigIP_TASK_PRIORITY,
-                                                       xIPTaskStack,
-                                                       &xIPTaskBuffer );
+            {
+                static StaticTask_t xIPTaskBuffer;
+                static StackType_t xIPTaskStack[ ipconfigIP_TASK_STACK_SIZE_WORDS ];
+                xIPTaskHandle = xTaskCreateStatic( prvIPTask,
+                                                   "IP-Task",
+                                                   ipconfigIP_TASK_STACK_SIZE_WORDS,
+                                                   NULL,
+                                                   ipconfigIP_TASK_PRIORITY,
+                                                   xIPTaskStack,
+                                                   &xIPTaskBuffer );
 
-                    if( xIPTaskHandle != NULL )
-                    {
-                        xReturn = pdTRUE;
-                    }
-                }
-            #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
+                if( xIPTaskHandle != NULL )
                 {
-                    xReturn = xTaskCreate( prvIPTask,
-                                           "IP-task",
-                                           ipconfigIP_TASK_STACK_SIZE_WORDS,
-                                           NULL,
-                                           ipconfigIP_TASK_PRIORITY,
-                                           &( xIPTaskHandle ) );
+                    xReturn = pdTRUE;
                 }
+            }
+            #else /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
+            {
+                xReturn = xTaskCreate( prvIPTask,
+                                       "IP-task",
+                                       ipconfigIP_TASK_STACK_SIZE_WORDS,
+                                       NULL,
+                                       ipconfigIP_TASK_PRIORITY,
+                                       &( xIPTaskHandle ) );
+            }
             #endif /* configSUPPORT_STATIC_ALLOCATION */
         }
         else
@@ -1391,22 +1383,22 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
         xSendMessage = pdTRUE;
 
         #if ( ipconfigUSE_TCP == 1 )
+        {
+            if( pxEvent->eEventType == eTCPTimerEvent )
             {
-                if( pxEvent->eEventType == eTCPTimerEvent )
-                {
-                    /* TCP timer events are sent to wake the timer task when
-                     * xTCPTimer has expired, but there is no point sending them if the
-                     * IP task is already awake processing other message. */
-                    vIPSetTCPTimerExpiredState( pdTRUE );
+                /* TCP timer events are sent to wake the timer task when
+                 * xTCPTimer has expired, but there is no point sending them if the
+                 * IP task is already awake processing other message. */
+                vIPSetTCPTimerExpiredState( pdTRUE );
 
-                    if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
-                    {
-                        /* Not actually going to send the message but this is not a
-                         * failure as the message didn't need to be sent. */
-                        xSendMessage = pdFALSE;
-                    }
+                if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
+                {
+                    /* Not actually going to send the message but this is not a
+                     * failure as the message didn't need to be sent. */
+                    xSendMessage = pdFALSE;
                 }
             }
+        }
         #endif /* ipconfigUSE_TCP */
 
         if( xSendMessage != pdFALSE )
@@ -1481,7 +1473,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         }
         else
         #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xLLMNR_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+            if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
             {
                 /* The packet is a request for LLMNR - process it. */
                 eReturn = eProcessBuffer;
@@ -1489,7 +1481,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
             else
         #endif /* ipconfigUSE_LLMNR */
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xMDNS_MacAdress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+            if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
             {
                 /* The packet is a request for MDNS - process it. */
                 eReturn = eProcessBuffer;
@@ -1511,21 +1503,21 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
     }
 
     #if ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1 )
+    {
+        uint16_t usFrameType;
+
+        if( eReturn == eProcessBuffer )
         {
-            uint16_t usFrameType;
+            usFrameType = pxEthernetHeader->usFrameType;
+            usFrameType = FreeRTOS_ntohs( usFrameType );
 
-            if( eReturn == eProcessBuffer )
+            if( usFrameType <= 0x600U )
             {
-                usFrameType = pxEthernetHeader->usFrameType;
-                usFrameType = FreeRTOS_ntohs( usFrameType );
-
-                if( usFrameType <= 0x600U )
-                {
-                    /* Not an Ethernet II frame. */
-                    eReturn = eReleaseBuffer;
-                }
+                /* Not an Ethernet II frame. */
+                eReturn = eReleaseBuffer;
             }
         }
+    }
     #endif /* ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1  */
 
     return eReturn;
@@ -1975,9 +1967,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                              * went wrong because it will not be able to validate what it
                              * receives. */
                             #if ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
-                                {
-                                    eReturn = ProcessICMPPacket( pxNetworkBuffer );
-                                }
+                            {
+                                eReturn = ProcessICMPPacket( pxNetworkBuffer );
+                            }
                             #endif /* ( ipconfigREPLY_TO_INCOMING_PINGS == 1 ) || ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) */
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -2038,21 +2030,21 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
     #endif
 
     #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
+    {
+        if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
         {
-            if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+            BaseType_t xIndex;
+
+            FreeRTOS_printf( ( "vReturnEthernetFrame: length %u\n", ( unsigned ) pxNetworkBuffer->xDataLength ) );
+
+            for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
             {
-                BaseType_t xIndex;
-
-                FreeRTOS_printf( ( "vReturnEthernetFrame: length %u\n", ( unsigned ) pxNetworkBuffer->xDataLength ) );
-
-                for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
-                {
-                    pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
-                }
-
-                pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+                pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
             }
+
+            pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
         }
+    }
     #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
     #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )

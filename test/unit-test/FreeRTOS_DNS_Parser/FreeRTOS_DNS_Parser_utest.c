@@ -1406,7 +1406,7 @@ void test_DNS_ParseDNSReply_fail_not_enough_space_lt_32( void )
 /**
  * @brief
  */
-void test_DNS_ParseDNSReply_ansswer_record_no_answers( void )
+void test_DNS_ParseDNSReply_answer_record_no_answers( void )
 {
     uint32_t ret;
     uint8_t pucUDPPayloadBuffer[ 250 ];
@@ -1442,7 +1442,7 @@ void test_DNS_ParseDNSReply_ansswer_record_no_answers( void )
 /**
  * @brief
  */
-void test_DNS_ParseDNSReply_ansswer_record_too_many_answers( void )
+void test_DNS_ParseDNSReply_answer_record_too_many_answers( void )
 {
     uint32_t ret;
     uint8_t pucUDPPayloadBuffer[ 250 ] = { 0 };
@@ -1873,7 +1873,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_diffUsType( void )
  * @brief ensures that the ip set in Setup is passed to the network with
  *        vReturnEthernetFrame : pxNetworkBuffer = NULL
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_NullNetworkBuffer( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply_NullNetworkBuffer( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -1950,7 +1950,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_NullNetworkBuffer( void )
  * @brief ensures that the ip set in Setup is passed to the network with
  *        vReturnEthernetFrame : usType = 0
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply4( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -2021,7 +2021,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply2( void )
  * @brief ensures that the ip set in Setup is passed to the network with
  *        vReturnEthernetFrame : usClass != dnsCLASS_IN
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply5( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -2093,7 +2093,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply3( void )
  * @brief ensures that when the dns query hook returns pdFALSE, the ip is not
  *        set and no packet is sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply_query_hook_false( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -2165,7 +2165,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_query_hook_false( void )
  * @brief ensures that when the duplicated network buffer is null, no packet is
  *        sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -2238,7 +2238,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer( void )
  * @brief ensures that when the duplicated network buffer is null, no packet is
  *        sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply_null_new_netbuffer2( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -2311,7 +2311,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_null_new_netbuffer2( void )
  * @brief ensures that when the duplicated network buffer is valid, packet is
  *        sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_valid_new_netbuffer( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -2402,7 +2402,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_valid_new_netbuffer( void )
  * @brief ensures that when the duplicated network buffer is valid, packet is
  *        sent over the network
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_valid_new_netbuffer2( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer2( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
@@ -2493,7 +2493,7 @@ void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_valid_new_netbuffer2( void )
  * @brief ensures that when the duplicated network buffer is valid, packet is
  *        sent over the network, buffer allocation 1 scheme is used
  */
-void test_DNS_ParseDNSReply_ansswer_lmmnr_reply_valid_new_netbuffer3( void )
+void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer3( void )
 {
     uint32_t ret;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
