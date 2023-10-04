@@ -1826,3 +1826,66 @@ void test_prvTCPSendLoop_NullBuffer()
 
     TEST_ASSERT_EQUAL( uxDataLength, xReturn );
 }
+
+/**
+ * @brief Invalid parameters passed to the function.
+ */
+void test_FreeRTOS_get_tx_base_InvalidParams( void )
+{
+    uint8_t * pucReturn;
+    FreeRTOS_Socket_t xSocket;
+    BaseType_t xLength;
+    size_t uxLength = 128;
+    size_t uxMallocSize;
+    StreamBuffer_t * pxBuffer;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    xSocket.u.xTCP.uxTxStreamSize = uxLength;
+
+    /* Invalid Protocol. */
+    pucReturn = FreeRTOS_get_tx_base( &xSocket );
+    TEST_ASSERT_EQUAL( NULL, pucReturn );
+
+    /* NULL socket. */
+    pucReturn = FreeRTOS_get_tx_base( NULL );
+    TEST_ASSERT_EQUAL( NULL, pucReturn );
+
+/*  FAIL: Memory Mismatch. Byte 0 Expected 0xB0 Was 0xE0. */
+/*  Function pvPortMalloc Argument xSize. Function called with unexpected argument value. */
+
+    /* Add an extra 4 (or 8) bytes. */
+    uxLength += sizeof( size_t );
+
+    /* And make the length a multiple of sizeof( size_t ). */
+    uxLength &= ~( sizeof( size_t ) - 1U );
+
+    uxMallocSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
+
+    pvPortMalloc_ExpectAndReturn( uxMallocSize, NULL );
+
+    vTCPStateChange_Expect( &xSocket, eCLOSE_WAIT );
+
+    /* NULL stream. */
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    pucReturn = FreeRTOS_get_tx_base( &xSocket );
+    TEST_ASSERT_EQUAL( NULL, pucReturn );
+}
+
+/**
+ * @brief All fields of the socket are NULL.
+ */
+void test_FreeRTOS_get_tx_base_AllNULL( void )
+{
+    uint8_t * pucReturn;
+    FreeRTOS_Socket_t xSocket;
+    uint8_t ucStream[ ipconfigTCP_MSS ];
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+    memset( ucStream, 0, ipconfigTCP_MSS );
+
+    xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xSocket.u.xTCP.txStream = ( StreamBuffer_t * ) ucStream;
+
+    pucReturn = FreeRTOS_get_tx_base( &xSocket );
+    TEST_ASSERT_EQUAL_PTR( ( ( StreamBuffer_t * ) ucStream )->ucArray, pucReturn );
+}
