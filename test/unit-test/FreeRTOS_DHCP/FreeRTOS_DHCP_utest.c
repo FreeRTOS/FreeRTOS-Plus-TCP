@@ -328,7 +328,7 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
         /* Expected state is incorrect, but we are trying to reset
          * the DHCP the state machine. */
         TEST_ASSERT_EQUAL( eWaitingSendFirstDiscover, pxEndPoint->xDHCPData.eDHCPState );
-        TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket  );
+        TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
         TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint->xDHCPData.xDHCPSocket );
         TEST_ASSERT_EQUAL( 0, pxEndPoint->xDHCPData.xUseBroadcast );
         /* This should be reset as well */
