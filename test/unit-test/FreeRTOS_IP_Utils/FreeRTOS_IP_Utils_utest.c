@@ -581,7 +581,7 @@ void test_prvProcessNetworkDownEvent_InterfaceInitFail( void )
 
     vDHCPStop_Expect( &xEndPoint );
 
-    vSetNotAllNetworksUp_Expect();
+    vSetAllNetworksUp_Expect( pdFALSE );
 
     prvProcessNetworkDownEvent( &xInterface );
 }

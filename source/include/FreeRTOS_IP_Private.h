@@ -882,8 +882,8 @@ BaseType_t xIsCallingFromIPTask( void );
 /* Send the network-up event and start the ARP timer. */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
 
-/* Mark that at least one interface is down to trigger repeated NetworkDown events. */
-void vSetNotAllNetworksUp( void );
+/* Mark whether all interfaces are up or at least one interface is down. */
+void vSetAllNetworksUp( BaseType_t xIsAllNetworksUp );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -328,7 +328,7 @@ void vCheckNetworkTimers( void )
                 }
             }
 
-            xAllNetworksUp = xUp;
+            vSetAllNetworksUp( xUp );
         }
     }
 }
@@ -606,11 +606,10 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Mark that at least one interface is down so that the 'xNetworkTimer' is checked.
- *        Whenever the timer expires, all interfaces that are down will get a new NetworkDown
- *        event.
+ * @brief Mark whether all interfaces are up or at least one interface is down.
+ *        If all interfaces are up, the 'xNetworkTimer' will not be checked.
  */
-void vSetNotAllNetworksUp( void )
+void vSetAllNetworksUp( BaseType_t xIsAllNetworksUp )
 {
-    xAllNetworksUp = pdFALSE;
+    xAllNetworksUp = xIsAllNetworksUp;
 }

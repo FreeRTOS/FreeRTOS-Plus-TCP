@@ -961,7 +961,8 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
     }
     else
     {
-        vSetNotAllNetworksUp();
+        /* At least one interface is down. */
+        vSetAllNetworksUp( pdFALSE );
 
         /* Nothing else to do. When the 'xNetworkTimer' expires, all interfaces
          * with bits.bInterfaceUp cleared will get a new 'eNetworkDownEvent' */
