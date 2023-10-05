@@ -306,6 +306,20 @@
     }
 
 /**
+ * @brief Stop the DHCP process. Close the DHCP socket when it's no longer used by any end-point.
+ *
+ * @param[in] pxEndPoint The end-point for which we want to stop the DHCP process.
+ */
+    void vDHCPStop( struct xNetworkEndPoint * pxEndPoint )
+    {
+        /* Disable the DHCP timer. */
+        vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+
+        /* Close socket to ensure packets don't queue on it. */
+        prvCloseDHCPSocket( pxEndPoint );
+    }
+
+/**
  * @brief Called by vDHCPProcessEndPoint(), this function handles the state 'eWaitingOffer'.
  *        If there is a reply, it will be examined, if there is a time-out, there may be a new
  *        new attempt, or it will give up.

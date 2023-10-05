@@ -862,13 +862,22 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
          *  interface. */
         FreeRTOS_ClearARP( pxEndPoint );
 
-        #if ( ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) )
+        #if ( ipconfigUSE_DHCP == 1 )
             if( END_POINT_USES_DHCP( pxEndPoint ) )
             {
-                /* Stop the DHCP process for this end-point. */
-                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+                #if ( ( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    {
+                        vDHCPv6Stop( pxEndPoint );
+                    }
+                    else
+                #endif /* (( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 )) */
+                {
+                    /* Stop the DHCP process for this end-point. */
+                    vDHCPStop( pxEndPoint );
+                }
             }
-        #endif /* ( ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) ) */
+        #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
         #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
             if( END_POINT_USES_RA( pxEndPoint ) )
@@ -876,7 +885,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                 /* Stop the RA/SLAAC process for this end-point. */
                 vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
             }
-        #endif /* ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) ) */
+        #endif /* ( (ipconfigUSE_RA != 0) && ( ipconfigUSE_IPv6 != 0 )) */
     }
 
     /* The network has been disconnected (or is being initialised for the first
