@@ -471,17 +471,17 @@
 /* Converts an IP address expressed as four separate numeric octets into an
  * IP address expressed as a 32-bit number in network byte order */
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet0 ) ) )
 
     #else /* ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN ) */
 
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet3 ) ) )
 
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
