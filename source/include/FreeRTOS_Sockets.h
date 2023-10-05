@@ -325,15 +325,12 @@
         BaseType_t FreeRTOS_shutdown( Socket_t xSocket,
                                       BaseType_t xHow );
 
-        #if ( ipconfigUSE_TCP == 1 )
-
 /* Release a TCP payload buffer that was obtained by
  * calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag,
  * and a pointer to a void pointer. */
-            BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
-                                                         void const * pvBuffer,
-                                                         BaseType_t xByteCount );
-        #endif /* ( ipconfigUSE_TCP == 1 ) */
+        BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
+                                                     void const * pvBuffer,
+                                                     BaseType_t xByteCount );
 
 /* Returns the number of bytes available in the Rx buffer. */
         BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
@@ -366,6 +363,13 @@
 
 /* For internal use only: return the connection status. */
         BaseType_t FreeRTOS_connstatus( ConstSocket_t xSocket );
+
+/* For advanced applications only:
+ * Get a direct pointer to the beginning of the circular transmit buffer.
+ * In case the buffer was not yet created, it will be created in
+ * this call.
+ */
+        uint8_t * FreeRTOS_get_tx_base( Socket_t xSocket );
 
 /* For advanced applications only:
  * Get a direct pointer to the circular transmit buffer.
@@ -467,17 +471,17 @@
 /* Converts an IP address expressed as four separate numeric octets into an
  * IP address expressed as a 32-bit number in network byte order */
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet0 ) ) )
 
     #else /* ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN ) */
 
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet3 ) ) )
 
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
