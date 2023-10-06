@@ -1211,46 +1211,6 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage( void )
     TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
 }
 
-void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_NullEndPoint( void )
-{
-    struct xSOCKET xTestSocket;
-    NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-    uint8_t * pucUDPPayload;
-
-    /* This should remain unchanged. */
-    xDHCPv4Socket = &xTestSocket;
-    xDHCPSocketUserCount = 1;
-    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
-    /* Put the required state. */
-    pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
-    pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
-    pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
-
-    /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->ipv4_settings.ulIPAddress = 0;
-    /* Put a verifiable value. */
-    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
-    /* Put a verifiable value. */
-    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
-
-    pxNetworkEndPoints = NULL;
-
-    /* Expect these arguments. */
-    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage );
-
-    FreeRTOS_ReleaseUDPPayloadBuffer_Expect( pucUDPBuffer );
-
-    FreeRTOS_IsEndPointUp_IgnoreAndReturn( pdFALSE );
-
-    /* Expect the DHCP timer to be reloaded. */
-    vDHCP_RATimerReload_Expect( &xEndPoint, pdMS_TO_TICKS( 5000U ) );
-
-    vDHCPProcess( pdFALSE, pxEndPoint );
-
-    /* Still in this phase. */
-    TEST_ASSERT_EQUAL( eLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
-}
-
 void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TransactionIDMismatch( void )
 {
     struct xSOCKET xTestSocket;
@@ -5846,6 +5806,56 @@ void test_vDHCPProcess_IncorrectState( void )
 
     /* Continue not using DHCP. */
     TEST_ASSERT_EQUAL( ( eNotUsingLeasedAddress << 1 ), pxEndPoint->xDHCPData.eDHCPState );
+}
+
+void test_vDHCPStop( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint_1 = { 0 }, * pxEndPoint_1 = &xEndPoint_1;
+    NetworkEndPoint_t xEndPoint_2 = { 0 }, * pxEndPoint_2 = &xEndPoint_2;
+    NetworkEndPoint_t xEndPoint_3 = { 0 }, * pxEndPoint_3 = &xEndPoint_3;
+
+    /* Socket is already created. */
+    xDHCPv4Socket = &xTestSocket;
+
+    /* 2 end-points opened the socket */
+    xDHCPSocketUserCount = 2;
+    pxEndPoint_1->xDHCPData.xDHCPSocket = FREERTOS_INVALID_SOCKET;
+    pxEndPoint_2->xDHCPData.xDHCPSocket = &xTestSocket;
+    pxEndPoint_3->xDHCPData.xDHCPSocket = &xTestSocket;
+
+    /* Stop DHCP for end-point 1 */
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint_1, pdFALSE );
+
+    vDHCPStop( pxEndPoint_1 );
+
+    TEST_ASSERT_EQUAL( 2, xDHCPSocketUserCount );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
+    TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, pxEndPoint_1->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_2->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_3->xDHCPData.xDHCPSocket );
+
+    /* Stop DHCP for end-point 2 */
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint_2, pdFALSE );
+
+    vDHCPStop( pxEndPoint_2 );
+
+    TEST_ASSERT_EQUAL( 1, xDHCPSocketUserCount );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint_2->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_3->xDHCPData.xDHCPSocket );
+
+    /* Stop DHCP for end-point 3 */
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint_3, pdFALSE );
+
+    /* Expect the socket to be closed. */
+    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+
+    vDHCPStop( pxEndPoint_3 );
+
+    TEST_ASSERT_EQUAL( 0, xDHCPSocketUserCount );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv4Socket );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint_3->xDHCPData.xDHCPSocket );
 }
 
 /*
