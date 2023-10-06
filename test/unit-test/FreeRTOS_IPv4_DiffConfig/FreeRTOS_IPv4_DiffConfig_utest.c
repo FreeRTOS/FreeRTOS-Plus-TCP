@@ -106,7 +106,8 @@ void test_prvAllowIPPacketIPv4_BroadcastSourceIP( void )
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* from xBadIPv4Loopback() */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -148,7 +149,8 @@ void test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* from xBadIPv4Loopback() */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -194,7 +196,8 @@ void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* from xBadIPv4Loopback() */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -246,7 +249,8 @@ void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
     /* Non-zero checksum. */
     pxProtPack->xUDPPacket.xUDPHeader.usChecksum = 0xFF12;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* from xBadIPv4Loopback() */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 
@@ -292,7 +296,8 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* from xBadIPv4Loopback() */
+    FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
 
     eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
 

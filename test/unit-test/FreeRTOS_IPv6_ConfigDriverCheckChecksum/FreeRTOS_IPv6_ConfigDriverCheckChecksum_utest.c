@@ -49,7 +49,7 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-extern const struct xIPv6_Address xIPv6UnspecifiedAddress;
+extern const struct xIPv6_Address FreeRTOS_in6addr_any;
 
 /* =============================== Test Cases =============================== */
 
@@ -259,7 +259,7 @@ void test_prvAllowIPPacketIPv6_source_unspecified_address()
 
     memset( &xIPv6Address, 0, sizeof( xIPv6Address ) );
     memcpy( xIPv6Address.xDestinationAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( xIPv6Address.xSourceAddress.ucBytes, xIPv6UnspecifiedAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xIPv6Address.xSourceAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     eResult = prvAllowIPPacketIPv6( &xIPv6Address, NULL, 0U );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
