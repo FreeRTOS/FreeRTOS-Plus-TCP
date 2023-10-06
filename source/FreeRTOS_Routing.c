@@ -109,7 +109,12 @@ struct xIPv6_Couple
             /* Fill in and add an end-point to a network interface.
              * The user must make sure that the object pointed to by 'pxEndPoint'
              * will remain to exist. */
+
+            /* As the endpoint might be part of a linked list,
+             * protect the field pxNext from being overwritten. */
+            NetworkEndPoint_t * pxNext = pxEndPoint->pxNext;
             ( void ) memset( pxEndPoint, 0, sizeof( *pxEndPoint ) );
+            pxEndPoint->pxNext = pxNext;
 
             ulIPAddress = FreeRTOS_inet_addr_quick( ucIPAddress[ 0 ], ucIPAddress[ 1 ], ucIPAddress[ 2 ], ucIPAddress[ 3 ] );
             pxEndPoint->ipv4_settings.ulNetMask = FreeRTOS_inet_addr_quick( ucNetMask[ 0 ], ucNetMask[ 1 ], ucNetMask[ 2 ], ucNetMask[ 3 ] );
@@ -155,18 +160,11 @@ struct xIPv6_Couple
 
         if( pxInterface != NULL )
         {
-            /* This interface will be added to the end of the list of interfaces, so
-             * there is no pxNext yet. */
-            pxInterface->pxNext = NULL;
-
-            /* The end point for this interface has not yet been set. */
-            /*_RB_ As per other comments, why not set the end point at the same time? */
-            pxInterface->pxEndPoint = NULL;
-
             if( pxNetworkInterfaces == NULL )
             {
                 /* No other interfaces are set yet, so this is the first in the list. */
                 pxNetworkInterfaces = pxInterface;
+                pxInterface->pxNext = NULL;
             }
             else
             {
@@ -189,6 +187,7 @@ struct xIPv6_Couple
                     if( pxIterator->pxNext == NULL )
                     {
                         pxIterator->pxNext = pxInterface;
+                        pxInterface->pxNext = NULL;
                         break;
                     }
 
@@ -248,10 +247,6 @@ struct xIPv6_Couple
     {
         NetworkEndPoint_t * pxIterator = NULL;
 
-        /* This end point will go to the end of the list, so there is no pxNext
-         * yet. */
-        pxEndPoint->pxNext = NULL;
-
         /* Double link between the NetworkInterface_t that is using the addressing
          * defined by this NetworkEndPoint_t structure. */
         pxEndPoint->pxNetworkInterface = pxInterface;
@@ -267,6 +262,7 @@ struct xIPv6_Couple
         {
             /* No other end points are defined yet - so this is the first in the
              * list. */
+            pxEndPoint->pxNext = NULL;
             pxNetworkEndPoints = pxEndPoint;
         }
         else
@@ -285,6 +281,7 @@ struct xIPv6_Couple
 
                 if( pxIterator->pxNext == NULL )
                 {
+                    pxEndPoint->pxNext = NULL;
                     pxIterator->pxNext = pxEndPoint;
                     break;
                 }
@@ -1441,37 +1438,49 @@ struct xIPv6_Couple
  * @param[in] pxAddress The IPv6 address whose type needs to be returned.
  * @returns The IP type of the given address.
  */
-IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
-{
-    IPv6_Type_t eResult = eIPv6_Unknown;
-    BaseType_t xIndex;
-    static const struct xIPv6_Couple xIPCouples[] =
+#if ( ipconfigUSE_IPv6 != 0 )
+    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress )
     {
-        /*    IP-type          Mask     Value */
-        { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
-        { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
-        { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
-        { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
-    };
-
-    if( pxAddress != NULL )
-    {
-        for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
+        IPv6_Type_t eResult = eIPv6_Unknown;
+        BaseType_t xIndex;
+        static const struct xIPv6_Couple xIPCouples[] =
         {
-            uint16_t usAddress =
-                ( uint16_t ) ( ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
-                               ( ( uint16_t ) pxAddress->ucBytes[ 1 ] ) );
+            /*    IP-type          Mask     Value */
+            { eIPv6_Global,    0xE000U, 0x2000U }, /* 001 */
+            { eIPv6_LinkLocal, 0xFFC0U, 0xFE80U }, /* 1111 1110 10 */
+            { eIPv6_SiteLocal, 0xFFC0U, 0xFEC0U }, /* 1111 1110 11 */
+            { eIPv6_Multicast, 0xFF00U, 0xFF00U }, /* 1111 1111 */
+            { eIPv6_Loopback,  0xFFFFU, 0x0000U }, /* 0000 0000 ::1 */
+        };
 
-            if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+        if( pxAddress != NULL )
+        {
+            for( xIndex = 0; xIndex < ARRAY_SIZE_X( xIPCouples ); xIndex++ )
             {
-                eResult = xIPCouples[ xIndex ].eType;
-                break;
+                uint16_t usAddress =
+                    ( uint16_t ) ( ( ( ( uint16_t ) pxAddress->ucBytes[ 0 ] ) << 8 ) |
+                                   ( ( uint16_t ) pxAddress->ucBytes[ 1 ] ) );
+
+                if( xIPCouples[ xIndex ].eType == eIPv6_Loopback )
+                {
+                    if( xIsIPv6Loopback( pxAddress ) != pdFALSE )
+                    {
+                        eResult = eIPv6_Loopback;
+                        break;
+                    }
+                }
+
+                if( ( usAddress & xIPCouples[ xIndex ].usMask ) == xIPCouples[ xIndex ].usExpected )
+                {
+                    eResult = xIPCouples[ xIndex ].eType;
+                    break;
+                }
             }
         }
-    }
 
-    return eResult;
-}
+        return eResult;
+    }
+#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**

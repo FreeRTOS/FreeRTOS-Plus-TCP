@@ -88,6 +88,16 @@ uint32_t FreeRTOS_GetIPAddress( void );
 /* Return pdTRUE if the IPv4 address is a multicast address. */
 BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress );
 
+/* Return pdTRUE if the IPv4 address is a loopback address. */
+BaseType_t xIsIPv4Loopback( uint32_t ulAddress );
+
+/*
+ * Return pdTRUE if either source or destination is a loopback address.
+ * A loopback IP-address may only communicate internally with another
+ * loopback IP-address.
+ */
+BaseType_t xBadIPv4Loopback( const IPHeader_t * const pxIPHeader );
+
 /* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
 enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
                                                   const struct xNETWORK_BUFFER * const pxNetworkBuffer,

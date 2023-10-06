@@ -62,7 +62,7 @@ const struct xIPv6_Address FreeRTOS_in6addr_any = { 0 };
 /**
  * This variable is initialized by the system to contain the loopback IPv6 address.
  */
-const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } };
+const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 1U } };
 
 #if ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 1 )
     /* Check IPv6 packet length. */
@@ -260,19 +260,6 @@ const struct xIPv6_Address FreeRTOS_in6addr_loopback = { { 0, 0, 0, 0, 0, 0, 0, 
 /*-----------------------------------------------------------*/
 
 /**
- * This variable is initialized by the system to contain the unspecified IPv6 address.
- */
-static const struct xIPv6_Address xIPv6UnspecifiedAddress = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
-
-#if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
-
-/*
- * Check if the packet is a loopback packet.
- */
-    static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header );
-#endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
-
-/**
  * @brief Get the group ID and stored into IPv6_Address_t.
  *
  * @param[in] pxIPv6Address The multicast address to filter group ID.
@@ -292,34 +279,60 @@ static void xGetIPv6MulticastGroupID( const IPv6_Address_t * pxIPv6Address,
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @brief Check if the IP-address is an IPv6 loopback address.
+ *
+ * @param[in] pxAddress The IP-address being checked.
+ *
+ * @return pdTRUE if the IP-address is a loopback address or else, pdFALSE.
+ */
+BaseType_t xIsIPv6Loopback( const IPv6_Address_t * pxAddress )
+{
+    BaseType_t xReturn = pdFALSE;
+
+    if( memcmp( pxAddress->ucBytes, FreeRTOS_in6addr_loopback.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+    {
+        xReturn = pdTRUE;
+    }
+
+    return xReturn;
+}
+
 #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 )
 
 /**
- * @brief Check if the packet is a loopback packet.
+ * @brief Check if the packet is an illegal loopback packet.
  *
- * @param[in] pxIPv6Header The IP packet in pxNetworkBuffer.
+ * @param[in] pxIPv6Header The IP-header of the packet.
  *
- * @return Returns pdTRUE if it's a legal loopback packet, pdFALSE if not .
+ * @return Returns pdTRUE if the packet should be stopped, because either the source
+ *         or the target address is a loopback address.
  */
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
 /* coverity[single_use] */
-    static BaseType_t xIsIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
+    BaseType_t xBadIPv6Loopback( const IPHeader_IPv6_t * const pxIPv6Header )
     {
         BaseType_t xReturn = pdFALSE;
         const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv6( &( pxIPv6Header->xSourceAddress ) );
 
         /* Allow loopback packets from this node itself only. */
-        if( ( pxEndPoint != NULL ) &&
-            ( memcmp( pxIPv6Header->xDestinationAddress.ucBytes, FreeRTOS_in6addr_loopback.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) &&
-            ( memcmp( pxIPv6Header->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        if( pxEndPoint != NULL )
         {
-            xReturn = pdTRUE;
+            BaseType_t x1 = ( xIsIPv6Loopback( &( pxIPv6Header->xDestinationAddress ) ) != 0 ) ? pdTRUE : pdFALSE;
+            BaseType_t x2 = ( xIsIPv6Loopback( &( pxIPv6Header->xSourceAddress ) ) != 0 ) ? pdTRUE : pdFALSE;
+
+            if( x1 != x2 )
+            {
+                /* Either source or the destination address is a loopback address. */
+                xReturn = pdTRUE;
+            }
         }
 
         return xReturn;
     }
+
 #endif /* ipconfigETHERNET_DRIVER_FILTERS_PACKETS == 0 */
 
 
@@ -354,7 +367,7 @@ BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
          * - ..
          * - 0xFF0F:: */
         else if( ( IPv6MC_GET_FLAGS_VALUE( pxIPAddress ) == 0U ) &&
-                 ( memcmp( xGroupIDAddress.ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+                 ( memcmp( xGroupIDAddress.ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             xReturn = pdFALSE;
         }
@@ -484,8 +497,8 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
 
         /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
          * either in source or destination address. */
-        if( ( memcmp( pxDestinationIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
-            ( memcmp( pxSourceIPAddress->ucBytes, xIPv6UnspecifiedAddress.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        if( ( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
+            ( memcmp( pxSourceIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             xHasUnspecifiedAddress = pdTRUE;
         }
@@ -498,10 +511,9 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
             eReturn = eProcessBuffer;
         }
         /* Is it the legal multicast address? */
-        else if( ( xHasUnspecifiedAddress == pdFALSE ) &&
+        else if( ( ( xHasUnspecifiedAddress == pdFALSE ) &&
+                   ( xBadIPv6Loopback( pxIPv6Header ) == pdFALSE ) ) &&
                  ( ( xIsIPv6AllowedMulticast( pxDestinationIPAddress ) != pdFALSE ) ||
-                   /* Is it loopback address sent from this node? */
-                   ( xIsIPv6Loopback( pxIPv6Header ) != pdFALSE ) ||
                    /* Or (during DHCP negotiation) we have no IP-address yet? */
                    ( FreeRTOS_IsNetworkUp() == 0 ) ) )
         {

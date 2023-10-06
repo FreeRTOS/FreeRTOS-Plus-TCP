@@ -1702,21 +1702,17 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
     /* Note the header values required prior to the checksum
      * generation as the checksum pseudo header may clobber some of
      * these values. */
-    if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-        ( usLength > ( FreeRTOS_ntohs( pxUDPPacket->xIPHeader.usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) ) )
-    {
-        eReturn = eReleaseBuffer;
-    }
-    else if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
-             ( ipFIRST_LOOPBACK_IPv4 <= ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) ) &&
-             ( ( FreeRTOS_ntohl( pxUDPPacket->xIPHeader.ulDestinationIPAddress ) ) < ipLAST_LOOPBACK_IPv4 ) )
-    {
-        /* The local loopback addresses must never appear outside a host. See RFC 1122
-         * section 3.2.1.3. */
-        eReturn = eReleaseBuffer;
-    }
-    else if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
-             ( uxLength >= sizeof( UDPHeader_t ) ) )
+    #if ( ipconfigUSE_IPv4 != 0 )
+        if( ( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE ) &&
+            ( usLength > ( FreeRTOS_ntohs( pxUDPPacket->xIPHeader.usLength ) - uxIPHeaderSizePacket( pxNetworkBuffer ) ) ) )
+        {
+            eReturn = eReleaseBuffer;
+        }
+        else
+    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+    if( ( pxNetworkBuffer->xDataLength >= uxMinSize ) &&
+        ( uxLength >= sizeof( UDPHeader_t ) ) )
     {
         size_t uxPayloadSize_1, uxPayloadSize_2;
 
