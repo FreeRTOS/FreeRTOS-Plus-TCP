@@ -1302,6 +1302,7 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TwoFlagOp
     /* This should remain unchanged. */
     xDHCPv4Socket = &xTestSocket;
     xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
     /* Put the required state. */
     pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
     pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
@@ -1339,6 +1340,7 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TwoFlagOp
     /* This should remain unchanged. */
     xDHCPv4Socket = &xTestSocket;
     xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
     /* Put the required state. */
     pxEndPoint->xDHCPData.eDHCPState = eLeasedAddress;
     pxEndPoint->xDHCPData.eExpectedState = eLeasedAddress;
@@ -1461,6 +1463,7 @@ void test_vDHCPProcess_eWaitingOffer_CorrectState_ValidBytesInMessage_MatchingEn
     /* This should remain unchanged. */
     xDHCPv4Socket = &xTestSocket;
     xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
     /* Put the required state. */
     pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
     pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
@@ -1501,6 +1504,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_CorrectState_ValidBytesInMessage_diff
     /* This should remain unchanged. */
     xDHCPv4Socket = &xTestSocket;
     xDHCPSocketUserCount = 1;
+    pxEndPoint->xDHCPData.xDHCPSocket = &xTestSocket;
     /* Put the required state. */
     pxEndPoint->xDHCPData.eDHCPState = eWaitingOffer;
     pxEndPoint->xDHCPData.eExpectedState = eWaitingOffer;
@@ -1530,6 +1534,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_CorrectState_ValidBytesInMessage_diff
     memset( &pxEndPoint_2->ipv4_defaults, 0xAA, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint_2;
+    pxEndPoint_2->pxNext = pxEndPoint;
 
     pxEndPoint->xDHCPData.xDHCPTxTime = 100;
     pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;

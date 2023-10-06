@@ -347,6 +347,13 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
                                                                                                  socklen_t * pxSourceAddressLength,
                                                                                                  int callbacks )
 {
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+    while ( pxIterator != NULL )
+    {
+        pxIterator->xDHCPData.xDHCPSocket = NULL;
+        pxIterator = pxIterator->pxNext;
+    }
+
     if( xFlags == FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK )
     {
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
@@ -358,7 +365,6 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
 
-    xDHCPv4Socket = NULL;
     return xSizeofUDPBuffer;
 }
 
@@ -371,8 +377,13 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
                                                                                                                           int callbacks )
 {
     int32_t lBytes = 0;
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
 
-    xDHCPv4Socket = NULL;
+    while ( pxIterator != NULL )
+    {
+        pxIterator->xDHCPData.xDHCPSocket = NULL;
+        pxIterator = pxIterator->pxNext;
+    }
 
     if( xFlags == FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK )
     {
@@ -402,7 +413,13 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
                                                                                                                            socklen_t * pxSourceAddressLength,
                                                                                                                            int callbacks )
 {
-    xDHCPv4Socket = NULL;
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+
+    while ( pxIterator != NULL )
+    {
+        pxIterator->xDHCPData.xDHCPSocket = NULL;
+        pxIterator = pxIterator->pxNext;
+    }
 
     if( xFlags == FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK )
     {
@@ -430,6 +447,14 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
                                                                                                                      socklen_t * pxSourceAddressLength,
                                                                                                                      int callbacks )
 {
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+
+    while ( pxIterator != NULL )
+    {
+        pxIterator->xDHCPData.xDHCPSocket = NULL;
+        pxIterator = pxIterator->pxNext;
+    }
+
     if( xFlags == FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK )
     {
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
@@ -441,7 +466,6 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREPLY_OPCODE;
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
 
-    xDHCPv4Socket = NULL;
     return xSizeofUDPBuffer;
 }
 
@@ -453,6 +477,14 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
                                                                                                                  socklen_t * pxSourceAddressLength,
                                                                                                                  int callbacks )
 {
+    NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
+
+    while ( pxIterator != NULL )
+    {
+        pxIterator->xDHCPData.xDHCPSocket = NULL;
+        pxIterator = pxIterator->pxNext;
+    }
+
     if( xFlags == FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK )
     {
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
@@ -464,7 +496,6 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ucOpcode = dhcpREQUEST_OPCODE;
     ( ( struct xDHCPMessage_IPv4 * ) pucUDPBuffer )->ulTransactionID = FreeRTOS_htonl( 0x01ABCDEF );
 
-    xDHCPv4Socket = NULL;
     return xSizeofUDPBuffer;
 }
 
