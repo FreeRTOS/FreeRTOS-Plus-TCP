@@ -348,7 +348,8 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
                                                                                                  int callbacks )
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
-    while ( pxIterator != NULL )
+
+    while( pxIterator != NULL )
     {
         pxIterator->xDHCPData.xDHCPSocket = NULL;
         pxIterator = pxIterator->pxNext;
@@ -379,7 +380,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     int32_t lBytes = 0;
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
 
-    while ( pxIterator != NULL )
+    while( pxIterator != NULL )
     {
         pxIterator->xDHCPData.xDHCPSocket = NULL;
         pxIterator = pxIterator->pxNext;
@@ -415,7 +416,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
 
-    while ( pxIterator != NULL )
+    while( pxIterator != NULL )
     {
         pxIterator->xDHCPData.xDHCPSocket = NULL;
         pxIterator = pxIterator->pxNext;
@@ -449,7 +450,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
 
-    while ( pxIterator != NULL )
+    while( pxIterator != NULL )
     {
         pxIterator->xDHCPData.xDHCPSocket = NULL;
         pxIterator = pxIterator->pxNext;
@@ -479,7 +480,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
 {
     NetworkEndPoint_t * pxIterator = pxNetworkEndPoints;
 
-    while ( pxIterator != NULL )
+    while( pxIterator != NULL )
     {
         pxIterator->xDHCPData.xDHCPSocket = NULL;
         pxIterator = pxIterator->pxNext;
