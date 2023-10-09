@@ -150,6 +150,11 @@
     #if ( ipconfigUSE_TCP == 1 )
         #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
     #endif
+
+    #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+        #define FREERTOS_SO_SOCKET_PRIORITY               ( 19 )
+    #endif
+
     #define FREERTOS_INADDR_ANY                           ( 0U ) /* The 0.0.0.0 IPv4 address. */
 
     #if ( 0 )                                                    /* Not Used */
