@@ -1254,7 +1254,8 @@
 
         if( xResult == pdPASS )
         {
-            configASSERT( ( uxPrefixLength > 0U ) && ( uxPrefixLength < ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
+            /* A loopback IP-address has a prefix of 128. */
+            configASSERT( ( uxPrefixLength > 0U ) && ( uxPrefixLength <= ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
 
             if( uxPrefixLength >= 8U )
             {

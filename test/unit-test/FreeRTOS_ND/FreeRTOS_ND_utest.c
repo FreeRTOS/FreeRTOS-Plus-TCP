@@ -1870,7 +1870,8 @@ void test_FreeRTOS_CreateIPv6Address_Assert1( void )
 void test_FreeRTOS_CreateIPv6Address_Assert2( void )
 {
     IPv6_Address_t xIPAddress, xPrefix;
-    size_t uxPrefixLength = 8U * ipSIZE_OF_IPv6_ADDRESS;
+    /* The maximum allowed prefix length was increased to 128 because of the loopback address. */
+    size_t uxPrefixLength = 8U * ipSIZE_OF_IPv6_ADDRESS + 1;
     BaseType_t xDoRandom = pdFALSE, xReturn, xIndex;
 
     catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom ) );
