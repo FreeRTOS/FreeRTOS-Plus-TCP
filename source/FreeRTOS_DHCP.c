@@ -1529,9 +1529,6 @@
                                                         &( uxOptionsLength ),
                                                         pxEndPoint );
 
-        /* MISRA Ref 11.4.1 [Socket error and integer to pointer conversion] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-        /* coverity[misra_c_2012_rule_11_4_violation] */
         if( ( xSocketValid( EP_DHCPData.xDHCPSocket ) == pdTRUE ) && ( pucUDPPayloadBuffer != NULL ) )
         {
             /* Copy in the IP address being requested. */
