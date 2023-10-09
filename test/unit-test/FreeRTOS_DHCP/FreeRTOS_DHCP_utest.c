@@ -5808,6 +5808,54 @@ void test_vDHCPProcess_IncorrectState( void )
     TEST_ASSERT_EQUAL( ( eNotUsingLeasedAddress << 1 ), pxEndPoint->xDHCPData.eDHCPState );
 }
 
+void test_vDHCPProcess_ResetWithRNGSuccessSocketSuccess_TwoEndPoints( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint_1 = { 0 }, * pxEndPoint_1 = &xEndPoint_1;
+    NetworkEndPoint_t xEndPoint_2 = { 0 }, * pxEndPoint_2 = &xEndPoint_2;
+
+    /* Socket not created. */
+    xDHCPv4Socket = NULL;
+    pxEndPoint_1->xDHCPData.xDHCPSocket = NULL;
+    pxEndPoint_2->xDHCPData.xDHCPSocket = NULL;
+
+    /* Make random number generation pass. */
+    xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint_1->xDHCPData.ulTransactionId ), pdTRUE );
+    /* Return a valid socket. */
+    FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xTestSocket );
+
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+    xSocketValid_ExpectAnyArgsAndReturn( pdTRUE );
+
+    /* Ignore the inputs to setting the socket options. */
+    FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
+    FreeRTOS_setsockopt_ExpectAnyArgsAndReturn( pdPASS );
+    /* Make sure that binding passes. Return zero. */
+    vSocketBind_ExpectAnyArgsAndReturn( 0 );
+    /* See if the timer is reloaded. */
+    vDHCP_RATimerReload_Expect( &xEndPoint_1, dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPProcess( pdTRUE, pxEndPoint_1 );
+
+    TEST_ASSERT_EQUAL( 1, xDHCPSocketUserCount );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_1->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint_2->xDHCPData.xDHCPSocket );
+
+    /* Make random number generation pass. */
+    xApplicationGetRandomNumber_ExpectAndReturn( &( pxEndPoint_2->xDHCPData.ulTransactionId ), pdTRUE );
+
+    /* See if the timer is reloaded. */
+    vDHCP_RATimerReload_Expect( &xEndPoint_2, dhcpINITIAL_TIMER_PERIOD );
+
+    vDHCPProcess( pdTRUE, pxEndPoint_2 );
+
+    TEST_ASSERT_EQUAL( 2, xDHCPSocketUserCount );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_1->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_2->xDHCPData.xDHCPSocket );
+}
+
 void test_vDHCPStop( void )
 {
     struct xSOCKET xTestSocket;
