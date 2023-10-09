@@ -99,6 +99,17 @@
     BaseType_t xProcessedTCPMessage;
 #endif
 
+/** @brief Keep track of the multi queues with events ready to be
+ * processed.
+ */
+#if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+    #define STACK_TX_EVENT                      ( 0U )
+    #define STACK_RX_EVENT                      ( 1U )
+    static volatile UBaseType_t uxNextTxRx;
+    static volatile UBaseType_t uxTopRxQueuePriority;
+    static volatile UBaseType_t uxTopTxQueuePriority;
+#endif
+
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
@@ -177,6 +188,14 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 
 /** @brief The queue used to pass events into the IP-task for processing. */
 QueueHandle_t xNetworkEventQueue = NULL;
+
+/** @brief Multi priority event queues for TX and RX, and their mapping.
+ */
+#if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+    QueueHandle_t xNetworkTxEventQueues[ ipconfigEVENT_QUEUES ] = { 0 };
+    QueueHandle_t xNetworkRxEventQueues[ ipconfigEVENT_QUEUES ] = { 0 };
+    uint8_t xQueueMapping[ ipconfigPACKET_PRIORITIES ] = ipconfigPACKET_PRIORITY_MAPPING;
+#endif
 
 /** @brief The IP packet ID. */
 uint16_t usPacketIdentifier = 0U;
