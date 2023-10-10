@@ -471,17 +471,17 @@
 /* Converts an IP address expressed as four separate numeric octets into an
  * IP address expressed as a 32-bit number in network byte order */
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet0 ) ) )
 
     #else /* ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN ) */
 
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet3 ) ) )
 
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
@@ -498,9 +498,6 @@
                                      const void * pvSource,
                                      char * pcDestination,
                                      socklen_t uxSize );
-
-    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                    void * pvDestination );
 
 /** @brief This function converts a human readable string, representing an 48-bit MAC address,
  * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
@@ -564,6 +561,33 @@
                                        const ConstSocketSet_t xSocketSet );
 
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
+
+
+    #if ipconfigUSE_IPv4
+        /* Translate from dot-decimal notation (example 192.168.1.1) to a 32-bit number. */
+        BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
+                                        void * pvDestination );
+
+/* Translate 32-bit IPv4 address representation dot-decimal notation. */
+        const char * FreeRTOS_inet_ntop4( const void * pvSource,
+                                          char * pcDestination,
+                                          socklen_t uxSize );
+    #endif
+
+    #if ipconfigUSE_IPv6
+        /* Translate hexadecimal IPv6 address to 16 bytes binary format */
+        BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
+                                        void * pvDestination );
+
+/*
+ * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
+ * to a 16-byte IPv6 address
+ */
+        const char * FreeRTOS_inet_ntop6( const void * pvSource,
+                                          char * pcDestination,
+                                          socklen_t uxSize );
+
+    #endif
 
     #ifdef __cplusplus
 }         /* extern "C" */
