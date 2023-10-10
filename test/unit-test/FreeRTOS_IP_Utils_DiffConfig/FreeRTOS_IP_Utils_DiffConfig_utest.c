@@ -104,6 +104,8 @@ void test_prvProcessNetworkDownEvent_Pass_DHCP_Enabled( void )
 
     FreeRTOS_ClearARP_Expect( &xEndPoint );
 
+    vDHCPStop_Expect( &xEndPoint );
+
     FreeRTOS_NextEndPoint_ExpectAndReturn( &xInterface, &xEndPoint, NULL );
 
     xInterface.pfInitialise = xNetworkInterfaceInitialise_test;
