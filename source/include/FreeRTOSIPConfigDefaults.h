@@ -97,11 +97,11 @@
 #endif
 
 #ifndef ipconfigIS_ENABLED
-    #define ipconfigIS_ENABLED( x )    ( x != ipconfigDISABLE )
+    #define ipconfigIS_ENABLED( x )    ( ( x ) != ipconfigDISABLE )
 #endif
 
 #ifndef ipconfigIS_DISABLED
-    #define ipconfigIS_DISABLED( x )    ( x == ipconfigDISABLE )
+    #define ipconfigIS_DISABLED( x )    ( ( x ) == ipconfigDISABLE )
 #endif
 
 /*---------------------------------------------------------------------------*/
