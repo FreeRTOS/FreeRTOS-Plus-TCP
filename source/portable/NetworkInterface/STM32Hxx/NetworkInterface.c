@@ -65,10 +65,15 @@
 #endif
 
 /* Interrupt events to process: reception, transmission and error handling. */
-#define EMAC_IF_RX_EVENT     1UL
-#define EMAC_IF_TX_EVENT     2UL
-#define EMAC_IF_ERR_EVENT    4UL
+#define EMAC_IF_RX_EVENT                1UL
+#define EMAC_IF_TX_EVENT                2UL
+#define EMAC_IF_ERR_EVENT               4UL
 
+/*
+ * Enable either Hash or Perfect Filter, Multicast filter - None,
+ * Enable Hash Multicast (HMC), and Enable Hash Unicast (HUC).
+ */
+#define ENABLE_HASH_FILTER_SETTINGS     ( ( uint32_t ) 0x00000416U )
 
 #ifndef niEMAC_HANDLER_TASK_NAME
     #define niEMAC_HANDLER_TASK_NAME    "EMAC-task"
@@ -205,33 +210,91 @@ const PhyProperties_t xPHYProperties =
 };
 /*-----------------------------------------------------------*/
 
-static void prvMACAddressConfig( ETH_HandleTypeDef * heth,
-                                 uint32_t ulIndex,
-                                 const uint8_t * Addr )
+/* Reverse the bits of a 32 bit unsigned integer */
+static uint32_t prvRevBits32( uint32_t ulValue )
 {
-    uint32_t ulTempReg;
-    uint32_t ulETH_MAC_ADDR_HBASE = ( uint32_t ) &( heth->Instance->MACA0HR );
-    uint32_t ulETH_MAC_ADDR_LBASE = ( uint32_t ) &( heth->Instance->MACA0LR );
+    uint32_t ulRev32;
+    int iIndex;
 
-    /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
-    configASSERT( ulIndex >= ETH_MAC_ADDRESS1 );
+    ulRev32 = 0;
 
-    /* STM32Hxx devices support 4 MAC address registers
-     * (ETH_MAC_ADDRESS0 - ETH_MAC_ADDRESS3), make sure ulIndex is not
-     * more than that. */
-    configASSERT( ulIndex <= ETH_MAC_ADDRESS3 );
+    for( iIndex = 0; iIndex < 32; iIndex++ )
+    {
+        if( ulValue & ( 1 << iIndex ) )
+        {
+            {
+                ulRev32 |= 1 << ( 31 - iIndex );
+            }
+        }
+    }
 
-    /* Calculate the selected MAC address high register. */
-    ulTempReg = 0xBF000000ul | ( ( uint32_t ) Addr[ 5 ] << 8 ) | ( uint32_t ) Addr[ 4 ];
+    return ulRev32;
+}
 
-    /* Load the selected MAC address high register. */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ulETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+/* Compute the CRC32 of the given MAC address as per IEEE 802.3 CRC32 */
+static uint32_t prvComputeCRC32_MAC( const uint8_t * pucMAC )
+{
+    int iiIndex, ijIndex;
+    uint32_t ulCRC32 = 0xFFFFFFFF;
 
-    /* Calculate the selected MAC address low register. */
-    ulTempReg = ( ( uint32_t ) Addr[ 3 ] << 24 ) | ( ( uint32_t ) Addr[ 2 ] << 16 ) | ( ( uint32_t ) Addr[ 1 ] << 8 ) | Addr[ 0 ];
+    for( ijIndex = 0; ijIndex < 6; ijIndex++ )
+    {
+        ulCRC32 = ulCRC32 ^ ( uint32_t ) pucMAC[ ijIndex ];
 
-    /* Load the selected MAC address low register */
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ulETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
+        for( iiIndex = 0; iiIndex < 8; iiIndex++ )
+        {
+            if( ulCRC32 & 1 )
+            {
+                ulCRC32 = ( ulCRC32 >> 1 ) ^ prvRevBits32( 0x04C11DB7 ); /* IEEE 802.3 CRC32 polynomial - 0x04C11DB7 */
+            }
+            else
+            {
+                ulCRC32 = ( ulCRC32 >> 1 );
+            }
+        }
+    }
+
+    ulCRC32 = ~( ulCRC32 );
+    return ulCRC32;
+}
+
+/* Compute the hash value of a given MAC address to index the bits in the Hash Table
+ * Registers (ETH_MACHT0R and ETH_MACHT1R) */
+static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC )
+{
+    uint32_t ulCRC32;
+    uint32_t ulHash;
+
+    /*  Calculate the 32-bit CRC for the MAC */
+    ulCRC32 = prvComputeCRC32_MAC( pucMAC );
+
+    /* Perform bitwise reversal on the CRC32 */
+    ulHash = prvRevBits32( ulCRC32 );
+
+    /* Take the upper 6 bits of the above result */
+    return( ulHash >> 26 );
+}
+
+/* Update the Hash Table Registers
+ * (ETH_MACHT0R and ETH_MACHT1R) with hash value of the given MAC address */
+static void prvSetMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle,
+                                  const uint8_t * pucMAC )
+{
+    uint32_t ulHash;
+
+    /* Compute the hash */
+    ulHash = prvComputeEthernet_MACHash( pucMAC );
+
+    /* Use the upper (MACHT1R) or lower (MACHT0R) Hash Table Registers
+     * to set the required bit based on the ulHash */
+    if( ulHash < 32 )
+    {
+        pxEthHandle->Instance->MACHT0R |= ( 1 << ulHash );
+    }
+    else
+    {
+        pxEthHandle->Instance->MACHT1R |= ( 1 << ( ulHash % 32 ) );
+    }
 }
 
 /*-----------------------------------------------------------*/
@@ -264,7 +327,6 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
     NetworkEndPoint_t * pxEndPoint;
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
-    BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
     if( xMacInitStatus == eMACInit )
     {
@@ -293,6 +355,9 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
         /* Only for inspection by debugger. */
         ( void ) xHalEthInitStatus;
+
+        /* Update MAC filter settings */
+        xEthHandle.Instance->MACPFR |= ENABLE_HASH_FILTER_SETTINGS;
 
         /* Configuration for HAL_ETH_Transmit(_IT). */
         memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
@@ -340,27 +405,23 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         #if ( ipconfigUSE_MDNS == 1 )
         {
             /* Program the MDNS address. */
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
-            xMACEntry += 8;
+            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
         }
         #endif
         #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
         {
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv6.ucBytes );
-            xMACEntry += 8;
+            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAddressIPv6.ucBytes );
         }
         #endif
         #if ( ipconfigUSE_LLMNR == 1 )
         {
             /* Program the LLMNR address. */
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
-            xMACEntry += 8;
+            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
         }
         #endif
         #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
         {
-            prvMACAddressConfig( &xEthHandle, xMACEntry, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
-            xMACEntry += 8;
+            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
         }
         #endif
 
@@ -377,8 +438,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                             if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
                             {
-                                prvMACAddressConfig( &xEthHandle, xMACEntry, pxEndPoint->xMACAddress.ucBytes );
-                                xMACEntry += 8;
+                                prvSetMAC_HashFilter( &xEthHandle, pxEndPoint->xMACAddress.ucBytes );
                             }
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -394,8 +454,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
                                /* Allow traffic destined to Solicited-Node multicast address of this endpoint
                                 * for Duplicate Address Detection (DAD) */
-                               prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
-                               xMACEntry += 8;
+                               prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
                            }
                            break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
@@ -404,25 +463,14 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
                         /* MISRA 16.4 Compliance */
                         break;
                 }
-
-                if( xMACEntry > ( BaseType_t ) ETH_MAC_ADDRESS3 )
-                {
-                    /* No more locations available. */
-                    break;
-                }
             }
         }
 
         #if ( ipconfigUSE_IPv6 != 0 )
         {
-            if( xMACEntry <= ( BaseType_t ) ETH_MAC_ADDRESS3 )
-            {
-                /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
-                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
-
-                prvMACAddressConfig( &xEthHandle, xMACEntry, ucMACAddress );
-                xMACEntry += 8;
-            }
+            /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
+            const uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+            prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
         }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
