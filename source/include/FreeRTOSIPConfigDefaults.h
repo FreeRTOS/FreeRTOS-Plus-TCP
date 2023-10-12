@@ -115,10 +115,6 @@
  * temporary kernel version check. To be removed in a future version.
  */
 
-/*#ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
- #error Missing pdFREERTOS_ERRNO_EAFNOSUPPORT definition, please update FreeRTOS-Kernel
- #endif*/
-
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
@@ -196,10 +192,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigND_CACHE_ENTRIES
  *
@@ -223,7 +215,7 @@
     #error ipconfigND_CACHE_ENTRIES overflows a size_t
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigUSE_RA
@@ -241,11 +233,7 @@
     #error Invalid ipconfigUSE_RA configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
-
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_RA ) )*/
-
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigRA_SEARCH_COUNT
@@ -275,7 +263,7 @@
     #error ipconfigRA_SEARCH_COUNT overflows a UBaseType_t
 #endif
 
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigRA_SEARCH_TIME_OUT_MSEC
@@ -301,7 +289,7 @@
     #error ipconfigRA_SEARCH_TIME_OUT_MSEC must be at most portMAX_DELAY * portTICK_PERIOD_MS
 #endif
 
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigRA_IP_TEST_COUNT
@@ -326,7 +314,7 @@
     #error ipconfigRA_IP_TEST_COUNT overflows a UBaseType_t
 #endif
 
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigRA_IP_TEST_TIME_OUT_MSEC
@@ -350,14 +338,6 @@
 #if ( ipconfigRA_IP_TEST_TIME_OUT_MSEC > SIZE_MAX )
     #error ipconfigRA_IP_TEST_TIME_OUT_MSEC must be at most portMAX_DELAY * portTICK_PERIOD_MS
 #endif
-
-/*-------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_RA ) ) */
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -758,10 +738,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES
  *
@@ -784,10 +760,6 @@
 #if ( ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES != ipconfigDISABLE ) && ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES != ipconfigENABLE ) )
     #error Invalid ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES configuration
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -1132,14 +1104,6 @@
     #define ipconfigIP_TASK_STACK_SIZE_WORDS    configMINIMAL_STACK_SIZE
 #endif
 
-/*#if ( ipconfigIP_TASK_STACK_SIZE_WORDS < 0 )
- #error ipconfigIP_TASK_STACK_SIZE_WORDS must be at least configMINIMAL_STACK_SIZE
- #endif
- *
- #if ( ipconfigIP_TASK_STACK_SIZE_WORDS > SIZE_MAX )
- #error ipconfigIP_TASK_STACK_SIZE_WORDS overflows a size_t
- #endif*/
-
 /*---------------------------------------------------------------------------*/
 
 /*
@@ -1233,10 +1197,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigIGNORE_UNKNOWN_PACKETS
  *
@@ -1259,7 +1219,7 @@
     #error Invalid ipconfigIGNORE_UNKNOWN_PACKETS configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_HANG_PROTECTION
@@ -1290,11 +1250,7 @@
     #error Invalid ipconfigTCP_HANG_PROTECTION configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
-
-/*#if ( ipconfigIS_ENABLED( ipconfigTCP_HANG_PROTECTION ) )*/
-
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_HANG_PROTECTION_TIME
@@ -1326,11 +1282,7 @@
     #error ipconfigTCP_HANG_PROTECTION_TIME must be at most portMAX_DELAY / configTICK_RATE_HZ
 #endif
 
-/*-------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigTCP_HANG_PROTECTION ) ) */
-
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_KEEP_ALIVE
@@ -1368,11 +1320,7 @@
     #error Invalid ipconfigTCP_KEEP_ALIVE configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
-
-/*#if ( ipconfigIS_ENABLED( ipconfigTCP_KEEP_ALIVE ) )*/
-
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_KEEP_ALIVE_INTERVAL
@@ -1403,11 +1351,7 @@
     #error ipconfigTCP_KEEP_ALIVE_INTERVAL must be at most portMAX_DELAY / configTICK_RATE_HZ
 #endif
 
-/*-------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigTCP_KEEP_ALIVE ) ) */
-
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_MSS
@@ -1445,7 +1389,7 @@
     #error ipconfigTCP_MSS overflows a size_t
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_RX_BUFFER_LENGTH
@@ -1487,7 +1431,7 @@
     #error ipconfigTCP_RX_BUFFER_LENGTH overflows a size_t
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_TX_BUFFER_LENGTH
@@ -1512,7 +1456,7 @@
     #error ipconfigTCP_TX_BUFFER_LENGTH overflows a size_t
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_TIME_TO_LIVE
@@ -1538,7 +1482,7 @@
     #error ipconfigTCP_TIME_TO_LIVE overflows a uint8_t
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigUSE_TCP_WIN
@@ -1576,11 +1520,7 @@
     #error Invalid ipconfigUSE_TCP_WIN configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
-
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN ) )*/
-
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_SRTT_MINIMUM_VALUE_MS
@@ -1608,7 +1548,7 @@
     #error ipconfigTCP_SRTT_MINIMUM_VALUE_MS overflows a uint32_t
 #endif
 
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigTCP_WIN_SEG_COUNT
@@ -1649,11 +1589,7 @@
     #error ipconfigTCP_WIN_SEG_COUNT overflows a size_t
 #endif
 
-/*-------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN ) */
-
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * pvPortMallocLarge / vPortFreeLarge
@@ -1668,10 +1604,6 @@
 #ifndef vPortFreeLarge
     #define vPortFreeLarge( ptr )    vPortFree( ptr )
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* ( ipconfigIS_ENABLED( ipconfigUSE_TCP ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -1862,10 +1794,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigSELECT_USES_NOTIFY
  *
@@ -1889,10 +1817,6 @@
 #if ( ( ipconfigSELECT_USES_NOTIFY != ipconfigDISABLE ) && ( ipconfigSELECT_USES_NOTIFY != ipconfigENABLE ) )
     #error Invalid ipconfigSELECT_USES_NOTIFY configuration
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigSUPPORT_SELECT_FUNCTION ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2123,10 +2047,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_CALLBACKS ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigIS_VALID_PROG_ADDRESS
  *
@@ -2149,14 +2069,6 @@
 #ifndef ipconfigIS_VALID_PROG_ADDRESS
     #define ipconfigIS_VALID_PROG_ADDRESS( pxAddress )    ( ( pxAddress ) != NULL )
 #endif
-
-/*#if ( ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 0 ) && ( ipconfigIS_VALID_PROG_ADDRESS( 0 ) != 1 ) )
- #error ipconfigIS_VALID_PROG_ADDRESS() should equate to pdFALSE or pdTRUE
- #endif*/
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_CALLBACKS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2247,10 +2159,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigDHCP_REGISTER_HOSTNAME
  *
@@ -2274,15 +2182,7 @@
     #error Invalid ipconfigDHCP_REGISTER_HOSTNAME configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) ) */
-
 /*---------------------------------------------------------------------------*/
-
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) || ipconfigIS_ENABLED( ipconfigUSE_DHCPv6 ) )*/
-
-/*-----------------------------------------------------------------------*/
 
 /*
  * ipconfigUSE_DHCP_HOOK
@@ -2309,7 +2209,7 @@
     #error Invalid ipconfigUSE_DHCP_HOOK configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDHCP_FALL_BACK_AUTO_IP
@@ -2332,7 +2232,7 @@
     #error Invalid ipconfigDHCP_FALL_BACK_AUTO_IP configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigMAXIMUM_DISCOVER_TX_PERIOD
@@ -2363,10 +2263,6 @@
         #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    pdMS_TO_TICKS( 30000 )
     #endif
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) || ipconfigIS_ENABLED( ipconfigUSE_DHCPv6 ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2408,10 +2304,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DNS ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigUSE_DNS_CACHE
  *
@@ -2430,11 +2322,7 @@
     #error Invalid ipconfigUSE_DNS_CACHE configuration
 #endif
 
-/*-----------------------------------------------------------------------*/
-
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) )*/
-
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDNS_CACHE_ENTRIES
@@ -2460,7 +2348,7 @@
     #error ipconfigDNS_CACHE_ENTRIES overflows a size_t
 #endif
 
-/*-------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDNS_CACHE_NAME_LENGTH
@@ -2494,11 +2382,7 @@
     #error ipconfigDNS_CACHE_NAME_LENGTH overflows a size_t
 #endif
 
-/*-------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DNS_CACHE ) ) */
-
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY
@@ -2524,7 +2408,7 @@
     #error ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY overflows a size_t
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDNS_REQUEST_ATTEMPTS
@@ -2553,7 +2437,7 @@
     #error ipconfigDNS_REQUEST_ATTEMPTS overflows a size_t
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS
@@ -2576,7 +2460,7 @@
     #define ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 5000 )
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDNS_SEND_BLOCK_TIME_TICKS
@@ -2597,7 +2481,7 @@
     #define ipconfigDNS_SEND_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 500 )
 #endif
 
-/*-----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /*
  * ipconfigDNS_USE_CALLBACKS
@@ -2627,10 +2511,6 @@
 #if ( ( ipconfigDNS_USE_CALLBACKS != ipconfigDISABLE ) && ( ipconfigDNS_USE_CALLBACKS != ipconfigENABLE ) )
     #error Invalid ipconfigDNS_USE_CALLBACKS configuration
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_DNS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2817,7 +2697,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#else /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) && ipconfigIS_ENABLED( ipconfigDHCP_FALL_BACK_AUTO_IP ) ) */
+#else /* ( ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) && ipconfigIS_ENABLED( ipconfigDHCP_FALL_BACK_AUTO_IP ) ) */
 
 /*-----------------------------------------------------------------------*/
 
@@ -2831,7 +2711,7 @@
 
 /*-----------------------------------------------------------------------*/
 
-#endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) && ipconfigIS_ENABLED( ipconfigDHCP_FALL_BACK_AUTO_IP ) ) */
+#endif /* ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) && ipconfigIS_ENABLED( ipconfigDHCP_FALL_BACK_AUTO_IP ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -2984,10 +2864,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigICMP_TIME_TO_LIVE
  *
@@ -3014,10 +2890,6 @@
 #if ( ipconfigICMP_TIME_TO_LIVE > UINT8_MAX )
     #error ipconfigICMP_TIME_TO_LIVE overflows a uint8_t
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -3073,10 +2945,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_DISABLED( ipconfigCOMPATIBLE_WITH_SINGLE ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigHAS_ROUTING_STATISTICS
  *
@@ -3090,10 +2958,6 @@
 #if ( ( ipconfigHAS_ROUTING_STATISTICS != ipconfigDISABLE ) && ( ipconfigHAS_ROUTING_STATISTICS != ipconfigENABLE ) )
     #error Invalid ipconfigHAS_ROUTING_STATISTICS configuration
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_DISABLED( ipconfigCOMPATIBLE_WITH_SINGLE ) ) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -3366,10 +3230,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*#if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_MEM_STATS ) )*/
-
-/*-----------------------------------------------------------------------*/
-
 /*
  * ipconfigTCP_MEM_STATS_MAX_ALLOCATION
  *
@@ -3391,10 +3251,6 @@
 #if ( ipconfigTCP_MEM_STATS_MAX_ALLOCATION > SIZE_MAX )
     #error ipconfigTCP_MEM_STATS_MAX_ALLOCATION overflows a size_t
 #endif
-
-/*-----------------------------------------------------------------------*/
-
-/*#endif*/ /* if ( ipconfigIS_ENABLED( ipconfigUSE_TCP_MEM_STATS ) ) */
 
 /*---------------------------------------------------------------------------*/
 
