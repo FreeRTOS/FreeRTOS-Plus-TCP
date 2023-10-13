@@ -651,6 +651,12 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
         if( ulResult != GMAC_OK )
         {
             TX_STAT_INCREMENT( tx_write_fail );
+
+			/* On a successful write to GMAC, the ownership of the TX descriptor will eventually get returned back to the network 
+			 * driver and prvEMACHandlerTask will give back the xTXDescriptorSemaphore counting semaphore. In this case however,
+			 * writing to the GMAC failed, so there will be no EMAC_IF_TX_EVENT sent to prvEMACHandlerTask and the counting
+			 * semaphore will not be given back. Give it back now. */
+			xSemaphoreGive( xTXDescriptorSemaphore );
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
