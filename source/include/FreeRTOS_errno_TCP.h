@@ -28,6 +28,12 @@
 #ifndef FREERTOS_ERRNO_TCP
 #define FREERTOS_ERRNO_TCP
 
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
 /* The following definitions will be included in the core FreeRTOS code in
  * future versions of FreeRTOS - hence the 'pd' (ProjDefs) prefix - at which time
  * this file will be removed. */
@@ -94,5 +100,11 @@
 const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
                                   char * pcBuffer,
                                   size_t uxLength );
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_ERRNO_TCP */

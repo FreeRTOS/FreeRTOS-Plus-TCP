@@ -1,5 +1,3 @@
-/* *INDENT-OFF* */
-
 /*
  * Copyright (c) 2013-2020 ARM Limited. All rights reserved.
  *
@@ -60,10 +58,11 @@
 #ifndef DRIVER_ETH_MAC_H_
 #define DRIVER_ETH_MAC_H_
 
-#ifdef  __cplusplus
-extern "C"
-{
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
 #include "Driver_ETH.h"
 
@@ -309,10 +308,10 @@ typedef struct _ARM_DRIVER_ETH_MAC {
   int32_t                  (*PHY_Write)       (uint8_t phy_addr, uint8_t reg_addr, uint16_t  data);  ///< Pointer to \ref ARM_ETH_MAC_PHY_Write : Write Ethernet PHY Register through Management Interface.
 } const ARM_DRIVER_ETH_MAC;
 
-#ifdef  __cplusplus
-}
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
 #endif
+/* *INDENT-ON* */
 
 #endif /* DRIVER_ETH_MAC_H_ */
-
-/* *INDENT-ON* */

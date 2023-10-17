@@ -26,9 +26,11 @@
 /* Includes ------------------------------------------------------------------*/
     #include "stm32h7xx_hal_def.h"
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
     #if defined( ETH )
 
@@ -1864,9 +1866,11 @@
 
     #endif /* ETH */
 
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* STM32Hxx_HAL_ETH_H */
 

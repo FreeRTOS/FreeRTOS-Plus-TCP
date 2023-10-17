@@ -113,4 +113,4 @@ enum eFrameProcessingResult prvCheckIP4HeaderOptions( struct xNETWORK_BUFFER * c
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_H */
+#endif /* FREERTOS_IPV4_H */

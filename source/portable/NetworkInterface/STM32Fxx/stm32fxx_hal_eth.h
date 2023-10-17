@@ -52,9 +52,11 @@
         #include "stm32f2xx_hal.h"
     #endif
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /** @addtogroup STM32Fxx_HAL_Driver
  * @{
@@ -2403,9 +2405,11 @@
 /**
  * @}
  */
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* __STM32Fxx_HAL_ETH_H */
 

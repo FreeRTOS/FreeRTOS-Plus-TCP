@@ -22,9 +22,11 @@
     #include "Zynq/x_emacpsif.h"
 /*#include "lwip/netif.h" */
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
     XEmacPs_Config * lookup_config( unsigned mac_base );
 
@@ -32,8 +34,10 @@
 
     int emacps_check_errors( xemacpsif_s * xemacps );
 
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
-#endif /* ifndef __XEMACPSIF_HW_H_ */
+#endif /* __XEMACPSIF_HW_H_ */

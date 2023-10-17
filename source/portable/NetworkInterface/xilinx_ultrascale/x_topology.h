@@ -19,9 +19,11 @@
 #ifndef __XTOPOLOGY_H_
     #define __XTOPOLOGY_H_
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
     enum xemac_types
     {
@@ -43,8 +45,10 @@
 
     int x_topology_find_index( unsigned base );
 
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
-#endif /* ifndef __XTOPOLOGY_H_ */
+#endif /* __XTOPOLOGY_H_ */

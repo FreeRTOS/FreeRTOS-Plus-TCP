@@ -34,9 +34,11 @@
 /* FreeRTOS includes. */
     #include "FreeRTOS.h"
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet
@@ -52,7 +54,10 @@
     size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
                               struct freertos_sockaddr * pxSourceAddress );
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
+
 #endif /* FREERTOS_IPV4_SOCKETS_H */

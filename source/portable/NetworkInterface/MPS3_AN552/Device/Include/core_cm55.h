@@ -1,5 +1,3 @@
-/* *INDENT-OFF* */
-
 /**************************************************************************//**
  * @file     core_cm55.h
  * @brief    CMSIS Cortex-M55 Core Peripheral Access Layer Header File
@@ -42,9 +40,11 @@
 
 #include <stdint.h>
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
- extern "C" {
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
 /**
   \page CMSIS_MISRA_Exceptions  MISRA-C:2004 Compliance Exceptions
@@ -214,9 +214,11 @@
 #include "cmsis_compiler.h"               /* CMSIS compiler specific defines */
 
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-}
+    } /* extern "C" */
 #endif
+/* *INDENT-ON* */
 
 #endif /* __CORE_CM55_H_GENERIC */
 
@@ -225,9 +227,11 @@
 #ifndef __CORE_CM55_H_DEPENDANT
 #define __CORE_CM55_H_DEPENDANT
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
- extern "C" {
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
 /* check device defines and use defaults */
 #if defined __CHECK_DEVICE_DEFINES
@@ -4909,12 +4913,12 @@ __STATIC_INLINE int32_t ITM_CheckChar (void)
 
 
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-}
+    } /* extern "C" */
 #endif
+/* *INDENT-ON* */
 
 #endif /* __CORE_CM55_H_DEPENDANT */
 
 #endif /* __CMSIS_GENERIC */
-
-/* *INDENT-ON* */

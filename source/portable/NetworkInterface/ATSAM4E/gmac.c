@@ -58,11 +58,11 @@
 #include "ethernet_phy.h"
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-extern "C" {
+    extern "C" {
 #endif
-/**INDENT-ON**/
+/* *INDENT-ON* */
 /*/ @endcond */
 
 #ifndef ARRAY_SIZE
@@ -1028,9 +1028,9 @@ void gmac_handler( gmac_device_t * p_gmac_dev )
 /*@} */
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-}
+    } /* extern "C" */
 #endif
-/**INDENT-ON**/
+/* *INDENT-ON* */
 /*/ @endcond */

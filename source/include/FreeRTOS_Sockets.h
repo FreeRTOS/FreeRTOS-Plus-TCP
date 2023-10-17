@@ -48,9 +48,11 @@
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
     #ifndef INC_FREERTOS_H
         #error FreeRTOS.h must be included before FreeRTOS_Sockets.h.
@@ -589,8 +591,10 @@
 
     #endif
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_SOCKETS_H */

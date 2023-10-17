@@ -26,9 +26,11 @@
     #include <stdbool.h>
     #include <stdint.h>
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /** SMSC9220 device configuration structure */
     struct smsc9220_eth_dev_cfg_t
@@ -540,8 +542,10 @@
     uint32_t smsc9220_peek_next_packet_size( const struct
                                              smsc9220_eth_dev_t * dev );
 
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* __SMSC9220_ETH_H__ */

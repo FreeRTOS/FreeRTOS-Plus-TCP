@@ -34,9 +34,11 @@
     #include "xscugic.h"
     #include "xemacps.h" /* defines XEmacPs API */
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
     #define XPAR_PS7_ETHERNET_1_DEVICE_ID    1
     #define XPAR_PS7_ETHERNET_1_BASEADDR     0xE000C000
@@ -150,8 +152,10 @@
  */
     void vInitialiseOnIndex( BaseType_t xIndex );
 
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* __NETIF_XAXIEMACIF_H__ */

@@ -35,9 +35,11 @@
     #include "FreeRTOS.h"
     #include "FreeRTOS_IP_Common.h"
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /** @brief When ucASCIIToHex() can not convert a character,
  *         the value 255 will be returned.
@@ -118,8 +120,10 @@
     size_t xRecv_Update_IPv6( const NetworkBufferDescriptor_t * pxNetworkBuffer,
                               struct freertos_sockaddr * pxSourceAddress );
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_IPV6_SOCKETS_H */

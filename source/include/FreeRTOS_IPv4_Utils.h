@@ -64,4 +64,4 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_UTILS_H */
+#endif /* FREERTOS_IPV4_UTILS_H */

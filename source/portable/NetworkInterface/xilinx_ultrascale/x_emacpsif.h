@@ -35,9 +35,11 @@
     #include "xscugic.h"
     #include "xemacps.h" /* defines XEmacPs API */
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
     void xemacpsif_setmac( uint32_t index,
                            uint8_t * addr );
@@ -150,8 +152,10 @@
     void clean_dma_txdescs( xemacpsif_s * xemacpsif );
     void resetrx_on_no_rxdata( xemacpsif_s * xemacpsif );
 
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* __NETIF_XAXIEMACIF_H__ */

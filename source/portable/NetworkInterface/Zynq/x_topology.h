@@ -19,9 +19,11 @@
 #ifndef __XTOPOLOGY_H_
     #define __XTOPOLOGY_H_
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
     enum xemac_types
     {
@@ -40,8 +42,10 @@
 
     extern struct xtopology_t xXTopologies[ XPAR_XEMACPS_NUM_INSTANCES ];
 
-    #ifdef __cplusplus
-}
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
-#endif /* ifndef __XTOPOLOGY_H_ */
+#endif /* __XTOPOLOGY_H_ */

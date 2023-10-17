@@ -47,11 +47,11 @@
     #include "compiler.h"
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
-/**INDENT-ON**/
+#endif
+/* *INDENT-ON* */
 /*/ @endcond */
 
 /** The buffer addresses written into the descriptors must be aligned, so the
@@ -1228,11 +1228,11 @@
     void gmac_handler( gmac_device_t * p_gmac_dev );
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
-    #ifdef __cplusplus
-}
-    #endif
-/**INDENT-ON**/
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 /*/ @endcond */
 
 /**

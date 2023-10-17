@@ -1,5 +1,3 @@
-/* *INDENT-OFF* */
-
 /*
  * Copyright (c) 2021-2022 Arm Limited. All rights reserved.
  *
@@ -23,9 +21,11 @@
 #ifndef __AN552_H__
 #define __AN552_H__
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-extern "C" {
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
 /* ======================  Start of section using anonymous unions  ============== */
 #if   defined (__CC_ARM)
@@ -91,10 +91,10 @@ extern "C" {
   #warning Not supported compiler type
 #endif
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-}
+    } /* extern "C" */
 #endif
+/* *INDENT-ON* */
 
 #endif /* __AN552_H__ */
-
-/* *INDENT-ON* */

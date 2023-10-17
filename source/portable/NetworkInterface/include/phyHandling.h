@@ -39,9 +39,11 @@
 
     #define PHYHANDLING_H
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 
     #ifndef ipconfigPHY_MAX_PORTS
@@ -154,8 +156,10 @@
     #define xPhyGetMask( pxPhyObject ) \
     ( ( ( ( uint32_t ) 1u ) << ( pxPhyObject )->xPortCount ) - 1u )
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
-#endif /* ifndef PHYHANDLING_H */
+#endif /* PHYHANDLING_H */

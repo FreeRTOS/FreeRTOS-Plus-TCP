@@ -37,9 +37,11 @@
         #include "FreeRTOS_DHCPv6.h"
     #endif
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /* Every NetworkInterface needs a set of access functions: */
 
@@ -347,8 +349,10 @@
         IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
     #endif
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 #endif /* FREERTOS_ROUTING_H */

@@ -46,9 +46,11 @@
 
     #include "compiler.h"
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /* IEEE defined Registers */
     #define GMII_BMCR        0x00 /* Basic Control */
@@ -280,8 +282,10 @@
     } PhyProps_t;
     extern PhyProps_t phy_props;
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
-#endif /* #ifndef ETHERNET_PHY_H_INCLUDED */
+#endif /* ETHERNET_PHY_H_INCLUDED */

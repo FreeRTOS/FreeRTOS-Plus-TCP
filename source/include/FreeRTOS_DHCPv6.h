@@ -31,9 +31,11 @@
     #include "FreeRTOSIPConfig.h"
     #include "IPTraceMacroDefaults.h"
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /* IPv6 option numbers. */
 /** @brief IPv6 DHCP option number - Solicit */
@@ -158,13 +160,15 @@
  */
     void vDHCPv6Stop( struct xNetworkEndPoint * pxEndPoint );
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
 /* The application should supply the following time-function.
  * It must return the number of seconds that have passed since
  * 1/1/1970. */
     extern uint32_t ulApplicationTimeHook( void );
 
-#endif /* FREERTOS_DHCPv6_H */
+#endif /* FREERTOS_DHCPV6_H */

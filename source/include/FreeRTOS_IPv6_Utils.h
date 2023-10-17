@@ -72,4 +72,4 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_UTILS_H */
+#endif /* FREERTOS_IPV6_UTILS_H */

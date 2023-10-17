@@ -129,8 +129,8 @@ BaseType_t xGetExtensionOrder( uint8_t ucProtocol,
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
-    }         /* extern "C" */
+    } /* extern "C" */
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_H */
+#endif /* FREERTOS_IPV6_H */

@@ -1,5 +1,3 @@
-/* *INDENT-OFF* */
-
 /*
  * Copyright (c) 2009-2020 Arm Limited
  *
@@ -30,9 +28,11 @@
 
 #include <stdint.h>
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-extern "C" {
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
 extern uint32_t SystemCoreClock;  /*!< System Clock Frequency (Core Clock)  */
 extern uint32_t PeripheralClock;  /*!< Peripheral Clock Frequency */
@@ -47,10 +47,10 @@ extern void SystemInit(void);
  */
 extern void SystemCoreClockUpdate(void);
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-}
+    } /* extern "C" */
 #endif
+/* *INDENT-ON* */
 
 #endif /* __SYSTEM_CORE_INIT_H__ */
-
-/* *INDENT-ON* */

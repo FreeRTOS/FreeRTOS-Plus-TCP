@@ -35,9 +35,11 @@
 #ifndef FREERTOS_BITCONFIG_H
     #define FREERTOS_BITCONFIG_H
 
-    #ifdef __cplusplus
+/* *INDENT-OFF* */
+#ifdef __cplusplus
     extern "C" {
-    #endif
+#endif
+/* *INDENT-ON* */
 
 /**< @brief The struct BitConfig_t holds a character array, its length and an index. */
     typedef struct xBitConfig
@@ -75,8 +77,10 @@
     void vBitConfig_release( BitConfig_t * pxConfig );
 
 
-    #ifdef __cplusplus
-}         /* extern "C" */
-    #endif
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
+#endif
+/* *INDENT-ON* */
 
-#endif /* !defined( FREERTOS_STREAM_BUFFER_H ) */
+#endif /* FREERTOS_STREAM_BUFFER_H */

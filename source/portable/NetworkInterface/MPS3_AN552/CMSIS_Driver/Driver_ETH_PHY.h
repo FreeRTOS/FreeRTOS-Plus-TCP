@@ -1,5 +1,3 @@
-/* *INDENT-OFF* */
-
 /*
  * Copyright (c) 2013-2020 ARM Limited. All rights reserved.
  *
@@ -45,10 +43,11 @@
 #ifndef DRIVER_ETH_PHY_H_
 #define DRIVER_ETH_PHY_H_
 
-#ifdef  __cplusplus
-extern "C"
-{
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
 #include "Driver_ETH.h"
 
@@ -142,10 +141,10 @@ typedef struct _ARM_DRIVER_ETH_PHY {
   ARM_ETH_LINK_INFO  (*GetLinkInfo)  (void);                          ///< Pointer to \ref ARM_ETH_PHY_GetLinkInfo : Get Ethernet PHY Device Link information.
 } const ARM_DRIVER_ETH_PHY;
 
-#ifdef  __cplusplus
-}
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    } /* extern "C" */
 #endif
+/* *INDENT-ON* */
 
 #endif /* DRIVER_ETH_PHY_H_ */
-
-/* *INDENT-ON* */
