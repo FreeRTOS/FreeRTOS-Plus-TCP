@@ -16,7 +16,7 @@
 
 /* This file is a copy of
  * https://gitlab.arm.com/iot/open-iot-sdk/arm-corstone-platform-bsp/-/blob/main/corstone300/Device/Include/SSE300MPS3.h
-*/
+ */
 
 #ifndef __AN552_H__
 #define __AN552_H__
@@ -28,26 +28,26 @@
 /* *INDENT-ON* */
 
 /* ======================  Start of section using anonymous unions  ============== */
-#if   defined (__CC_ARM)
-  #pragma push
-  #pragma anon_unions
-#elif defined (__ICCARM__)
-  #pragma language=extended
-#elif defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wc11-extensions"
-  #pragma clang diagnostic ignored "-Wreserved-id-macro"
-#elif defined (__GNUC__)
-  /* anonymous unions are enabled by default */
-#elif defined (__TMS470__)
-  /* anonymous unions are enabled by default */
-#elif defined (__TASKING__)
-  #pragma warning 586
-#elif defined (__CSMC__)
-  /* anonymous unions are enabled by default */
-#else
-  #warning Not supported compiler type
-#endif
+#if   defined( __CC_ARM )
+    #pragma push
+    #pragma anon_unions
+#elif defined( __ICCARM__ )
+    #pragma language=extended
+#elif defined( __ARMCC_VERSION ) && ( __ARMCC_VERSION >= 6010050 )
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wc11-extensions"
+    #pragma clang diagnostic ignored "-Wreserved-id-macro"
+#elif defined( __GNUC__ )
+    /* anonymous unions are enabled by default */
+#elif defined( __TMS470__ )
+    /* anonymous unions are enabled by default */
+#elif defined( __TASKING__ )
+    #pragma warning 586
+#elif defined( __CSMC__ )
+    /* anonymous unions are enabled by default */
+#else  /* if   defined( __CC_ARM ) */
+    #warning Not supported compiler type
+#endif /* if   defined( __CC_ARM ) */
 
 
 /* ========  Configuration of Core Peripherals  ================================== */
@@ -66,30 +66,30 @@
 #define __DCACHE_PRESENT          1U        /* Data Cache present */
 
 #include "platform_irq.h"
-#include "core_cm55.h"                 /* Processor and core peripherals */
+#include "core_cm55.h" /* Processor and core peripherals */
 #include "platform_base_address.h"
 #include "platform_regs.h"
 #include "platform_pins.h"
 #include "system_SSE300MPS3.h"
 
 /* =====================  End of section using anonymous unions  ================ */
-#if   defined (__CC_ARM)
-  #pragma pop
-#elif defined (__ICCARM__)
-  /* leave anonymous unions enabled */
-#elif (__ARMCC_VERSION >= 6010050)
-  #pragma clang diagnostic pop
-#elif defined (__GNUC__)
-  /* anonymous unions are enabled by default */
-#elif defined (__TMS470__)
-  /* anonymous unions are enabled by default */
-#elif defined (__TASKING__)
-  #pragma warning restore
-#elif defined (__CSMC__)
-  /* anonymous unions are enabled by default */
-#else
-  #warning Not supported compiler type
-#endif
+#if   defined( __CC_ARM )
+    #pragma pop
+#elif defined( __ICCARM__ )
+    /* leave anonymous unions enabled */
+#elif ( __ARMCC_VERSION >= 6010050 )
+    #pragma clang diagnostic pop
+#elif defined( __GNUC__ )
+    /* anonymous unions are enabled by default */
+#elif defined( __TMS470__ )
+    /* anonymous unions are enabled by default */
+#elif defined( __TASKING__ )
+    #pragma warning restore
+#elif defined( __CSMC__ )
+    /* anonymous unions are enabled by default */
+#else  /* if   defined( __CC_ARM ) */
+    #warning Not supported compiler type
+#endif /* if   defined( __CC_ARM ) */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -33,7 +33,7 @@
  */
 
 #ifndef FREERTOS_BITCONFIG_H
-    #define FREERTOS_BITCONFIG_H
+#define FREERTOS_BITCONFIG_H
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -42,39 +42,39 @@
 /* *INDENT-ON* */
 
 /**< @brief The struct BitConfig_t holds a character array, its length and an index. */
-    typedef struct xBitConfig
-    {
-        uint8_t * ucContents; /**< An allocated buffer to hold the binary data stream. */
-        size_t uxIndex;       /**< Points to the next character to analyse or write. */
-        size_t uxSize;        /**< The size of the allocated buffer 'uxContents'. */
-        BaseType_t xHasError; /**< It will be set to pdTRUE in case an error occurred, usually because the buffer is too small. */
-    } BitConfig_t;
+typedef struct xBitConfig
+{
+    uint8_t * ucContents;     /**< An allocated buffer to hold the binary data stream. */
+    size_t uxIndex;           /**< Points to the next character to analyse or write. */
+    size_t uxSize;            /**< The size of the allocated buffer 'uxContents'. */
+    BaseType_t xHasError;     /**< It will be set to pdTRUE in case an error occurred, usually because the buffer is too small. */
+} BitConfig_t;
 
-    BaseType_t xBitConfig_init( BitConfig_t * pxConfig,
-                                const uint8_t * pucData,
-                                size_t uxSize );
+BaseType_t xBitConfig_init( BitConfig_t * pxConfig,
+                            const uint8_t * pucData,
+                            size_t uxSize );
 
-    uint8_t ucBitConfig_read_8( BitConfig_t * pxConfig );
-    uint16_t usBitConfig_read_16( BitConfig_t * pxConfig );
-    uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig );
-    BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
-                                   uint8_t * pucData,
-                                   size_t uxSize );
-    BaseType_t pucBitConfig_peek_last_index_uc( BitConfig_t * pxConfig,
-                                                uint8_t * pucData,
-                                                size_t uxSize );
+uint8_t ucBitConfig_read_8( BitConfig_t * pxConfig );
+uint16_t usBitConfig_read_16( BitConfig_t * pxConfig );
+uint32_t ulBitConfig_read_32( BitConfig_t * pxConfig );
+BaseType_t xBitConfig_read_uc( BitConfig_t * pxConfig,
+                               uint8_t * pucData,
+                               size_t uxSize );
+BaseType_t pucBitConfig_peek_last_index_uc( BitConfig_t * pxConfig,
+                                            uint8_t * pucData,
+                                            size_t uxSize );
 
-    void vBitConfig_write_8( BitConfig_t * pxConfig,
-                             uint8_t ucValue );
-    void vBitConfig_write_16( BitConfig_t * pxConfig,
-                              uint16_t usValue );
-    void vBitConfig_write_32( BitConfig_t * pxConfig,
-                              uint32_t ulValue );
-    void vBitConfig_write_uc( BitConfig_t * pxConfig,
-                              const uint8_t * pucData,
-                              size_t uxSize );
+void vBitConfig_write_8( BitConfig_t * pxConfig,
+                         uint8_t ucValue );
+void vBitConfig_write_16( BitConfig_t * pxConfig,
+                          uint16_t usValue );
+void vBitConfig_write_32( BitConfig_t * pxConfig,
+                          uint32_t ulValue );
+void vBitConfig_write_uc( BitConfig_t * pxConfig,
+                          const uint8_t * pucData,
+                          size_t uxSize );
 
-    void vBitConfig_release( BitConfig_t * pxConfig );
+void vBitConfig_release( BitConfig_t * pxConfig );
 
 
 /* *INDENT-OFF* */
