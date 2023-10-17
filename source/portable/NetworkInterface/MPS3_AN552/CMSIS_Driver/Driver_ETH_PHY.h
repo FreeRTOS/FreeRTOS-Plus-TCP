@@ -132,10 +132,10 @@
 
 typedef int32_t (* ARM_ETH_PHY_Read_t)  ( uint8_t phy_addr,
                                           uint8_t reg_addr,
-                                          uint16_t * data );                                 /*/< Pointer to \ref ARM_ETH_MAC_PHY_Read : Read Ethernet PHY Register. */
+                                          uint16_t * data ); /*/< Pointer to \ref ARM_ETH_MAC_PHY_Read : Read Ethernet PHY Register. */
 typedef int32_t (* ARM_ETH_PHY_Write_t) ( uint8_t phy_addr,
                                           uint8_t reg_addr,
-                                          uint16_t data );                                   /*/< Pointer to \ref ARM_ETH_MAC_PHY_Write : Write Ethernet PHY Register. */
+                                          uint16_t data ); /*/< Pointer to \ref ARM_ETH_MAC_PHY_Write : Write Ethernet PHY Register. */
 
 
 /**
@@ -143,15 +143,15 @@ typedef int32_t (* ARM_ETH_PHY_Write_t) ( uint8_t phy_addr,
  */
 typedef struct _ARM_DRIVER_ETH_PHY
 {
-    ARM_DRIVER_VERSION ( * GetVersion )( void );                      /*/< Pointer to \ref ARM_ETH_PHY_GetVersion : Get driver version. */
+    ARM_DRIVER_VERSION ( * GetVersion )( void );              /*/< Pointer to \ref ARM_ETH_PHY_GetVersion : Get driver version. */
     int32_t ( * Initialize )( ARM_ETH_PHY_Read_t fn_read,
-                              ARM_ETH_PHY_Write_t fn_write );         /*/< Pointer to \ref ARM_ETH_PHY_Initialize : Initialize PHY Device. */
-    int32_t ( * Uninitialize )( void );                               /*/< Pointer to \ref ARM_ETH_PHY_Uninitialize : De-initialize PHY Device. */
-    int32_t ( * PowerControl )( ARM_POWER_STATE state );              /*/< Pointer to \ref ARM_ETH_PHY_PowerControl : Control PHY Device Power. */
-    int32_t ( * SetInterface )( uint32_t interface );                 /*/< Pointer to \ref ARM_ETH_PHY_SetInterface : Set Ethernet Media Interface. */
-    int32_t ( * SetMode )( uint32_t mode );                           /*/< Pointer to \ref ARM_ETH_PHY_SetMode : Set Ethernet PHY Device Operation mode. */
-    ARM_ETH_LINK_STATE ( * GetLinkState )( void );                    /*/< Pointer to \ref ARM_ETH_PHY_GetLinkState : Get Ethernet PHY Device Link state. */
-    ARM_ETH_LINK_INFO ( * GetLinkInfo )( void );                      /*/< Pointer to \ref ARM_ETH_PHY_GetLinkInfo : Get Ethernet PHY Device Link information. */
+                              ARM_ETH_PHY_Write_t fn_write ); /*/< Pointer to \ref ARM_ETH_PHY_Initialize : Initialize PHY Device. */
+    int32_t ( * Uninitialize )( void );                       /*/< Pointer to \ref ARM_ETH_PHY_Uninitialize : De-initialize PHY Device. */
+    int32_t ( * PowerControl )( ARM_POWER_STATE state );      /*/< Pointer to \ref ARM_ETH_PHY_PowerControl : Control PHY Device Power. */
+    int32_t ( * SetInterface )( uint32_t interface );         /*/< Pointer to \ref ARM_ETH_PHY_SetInterface : Set Ethernet Media Interface. */
+    int32_t ( * SetMode )( uint32_t mode );                   /*/< Pointer to \ref ARM_ETH_PHY_SetMode : Set Ethernet PHY Device Operation mode. */
+    ARM_ETH_LINK_STATE ( * GetLinkState )( void );            /*/< Pointer to \ref ARM_ETH_PHY_GetLinkState : Get Ethernet PHY Device Link state. */
+    ARM_ETH_LINK_INFO ( * GetLinkInfo )( void );              /*/< Pointer to \ref ARM_ETH_PHY_GetLinkInfo : Get Ethernet PHY Device Link information. */
 } const ARM_DRIVER_ETH_PHY;
 
 /* *INDENT-OFF* */

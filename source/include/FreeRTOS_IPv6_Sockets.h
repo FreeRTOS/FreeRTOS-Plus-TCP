@@ -50,11 +50,11 @@
  * It passes this set to a few helper functions. */
 struct sNTOP6_Set
 {
-    const uint16_t * pusAddress;     /**< The network address, 8 short values. */
-    BaseType_t xZeroStart;           /**< The position of the first byte of the longest train of zero values. */
-    BaseType_t xZeroLength;          /**< The number of short values in the longest train of zero values. */
-    BaseType_t xIndex;               /**< The read index in the array of short values, the network address. */
-    socklen_t uxTargetIndex;         /**< The write index in 'pcDestination'. */
+    const uint16_t * pusAddress; /**< The network address, 8 short values. */
+    BaseType_t xZeroStart;       /**< The position of the first byte of the longest train of zero values. */
+    BaseType_t xZeroLength;      /**< The number of short values in the longest train of zero values. */
+    BaseType_t xIndex;           /**< The read index in the array of short values, the network address. */
+    socklen_t uxTargetIndex;     /**< The write index in 'pcDestination'. */
 };
 
 /** @brief The struct sNTOP6_Set is a set of parameters used by  the function FreeRTOS_inet_ntop6().
@@ -62,12 +62,12 @@ struct sNTOP6_Set
  */
 struct sPTON6_Set
 {
-    uint32_t ulValue;             /**< A 32-bit accumulator, only 16 bits are used. */
-    BaseType_t xHadDigit;         /**< Becomes pdTRUE as soon as ulValue has valid data. */
-    BaseType_t xTargetIndex;      /**< The index in the array pucTarget to write the next byte. */
-    BaseType_t xColon;            /**< The position in the output where the train of zero's will start. */
-    BaseType_t xHighestIndex;     /**< The highest allowed value of xTargetIndex. */
-    uint8_t * pucTarget;          /**< The array of bytes in which the resulting IPv6 address is written. */
+    uint32_t ulValue;         /**< A 32-bit accumulator, only 16 bits are used. */
+    BaseType_t xHadDigit;     /**< Becomes pdTRUE as soon as ulValue has valid data. */
+    BaseType_t xTargetIndex;  /**< The index in the array pucTarget to write the next byte. */
+    BaseType_t xColon;        /**< The position in the output where the train of zero's will start. */
+    BaseType_t xHighestIndex; /**< The highest allowed value of xTargetIndex. */
+    uint8_t * pucTarget;      /**< The array of bytes in which the resulting IPv6 address is written. */
 };
 
 /**

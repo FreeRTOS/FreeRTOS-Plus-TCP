@@ -35,29 +35,29 @@
 /** SMSC9220 device configuration structure */
 struct smsc9220_eth_dev_cfg_t
 {
-    const uint32_t base;     /*!< SMSC9220 base address */
+    const uint32_t base; /*!< SMSC9220 base address */
 };
 
 /** SMSC9220 device data structure */
 struct smsc9220_eth_dev_data_t
 {
-    uint32_t state;                          /*!< Indicates if the SMSC9220 driver
-                                              *   is initialized and enabled */
-    void (* wait_ms) ( uint32_t );           /*!< function pointer to system's millisec delay
-                                              * function, will be used for delays */
-    uint32_t ongoing_packet_length;          /*!< size in bytes of the packet
-                                              *       is being sent */
-    uint32_t ongoing_packet_length_sent;     /*!< size in bytes of the packet
-                                              *       has been sent */
-    uint32_t current_rx_size_words;          /*!< Data length in words,
-                                              *        currently is being read */
+    uint32_t state;                      /*!< Indicates if the SMSC9220 driver
+                                          *   is initialized and enabled */
+    void (* wait_ms) ( uint32_t );       /*!< function pointer to system's millisec delay
+                                          * function, will be used for delays */
+    uint32_t ongoing_packet_length;      /*!< size in bytes of the packet
+                                          *       is being sent */
+    uint32_t ongoing_packet_length_sent; /*!< size in bytes of the packet
+                                          *       has been sent */
+    uint32_t current_rx_size_words;      /*!< Data length in words,
+                                          *        currently is being read */
 };
 
 /** SMSC9220 device structure */
 struct smsc9220_eth_dev_t
 {
-    const struct smsc9220_eth_dev_cfg_t * const cfg;     /*!< configuration */
-    struct smsc9220_eth_dev_data_t * const data;         /*!< data */
+    const struct smsc9220_eth_dev_cfg_t * const cfg; /*!< configuration */
+    struct smsc9220_eth_dev_data_t * const data;     /*!< data */
 };
 
 /**
@@ -66,11 +66,11 @@ struct smsc9220_eth_dev_t
  */
 enum smsc9220_error_t
 {
-    SMSC9220_ERROR_NONE = 0U,        /*!< no error */
-    SMSC9220_ERROR_TIMEOUT = 1U,     /*!< timeout */
-    SMSC9220_ERROR_BUSY = 2U,        /*!< no error */
-    SMSC9220_ERROR_PARAM = 3U,       /*!< invalid parameter */
-    SMSC9220_ERROR_INTERNAL = 4U     /*!< internal error */
+    SMSC9220_ERROR_NONE = 0U,    /*!< no error */
+    SMSC9220_ERROR_TIMEOUT = 1U, /*!< timeout */
+    SMSC9220_ERROR_BUSY = 2U,    /*!< no error */
+    SMSC9220_ERROR_PARAM = 3U,   /*!< invalid parameter */
+    SMSC9220_ERROR_INTERNAL = 4U /*!< internal error */
 };
 
 /**

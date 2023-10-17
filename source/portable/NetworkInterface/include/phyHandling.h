@@ -68,7 +68,7 @@ typedef BaseType_t ( * xApplicationPhyWriteHook_t )( BaseType_t xAddress,
 typedef struct xPhyProperties
 {
     uint8_t ucSpeed;
-    uint8_t ucMDI_X;     /* MDI-X : Medium Dependent Interface - Crossover */
+    uint8_t ucMDI_X; /* MDI-X : Medium Dependent Interface - Crossover */
     uint8_t ucDuplex;
     uint8_t ucSpare;
 } PhyProperties_t;

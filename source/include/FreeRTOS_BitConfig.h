@@ -44,10 +44,10 @@
 /**< @brief The struct BitConfig_t holds a character array, its length and an index. */
 typedef struct xBitConfig
 {
-    uint8_t * ucContents;     /**< An allocated buffer to hold the binary data stream. */
-    size_t uxIndex;           /**< Points to the next character to analyse or write. */
-    size_t uxSize;            /**< The size of the allocated buffer 'uxContents'. */
-    BaseType_t xHasError;     /**< It will be set to pdTRUE in case an error occurred, usually because the buffer is too small. */
+    uint8_t * ucContents; /**< An allocated buffer to hold the binary data stream. */
+    size_t uxIndex;       /**< Points to the next character to analyse or write. */
+    size_t uxSize;        /**< The size of the allocated buffer 'uxContents'. */
+    BaseType_t xHasError; /**< It will be set to pdTRUE in case an error occurred, usually because the buffer is too small. */
 } BitConfig_t;
 
 BaseType_t xBitConfig_init( BitConfig_t * pxConfig,

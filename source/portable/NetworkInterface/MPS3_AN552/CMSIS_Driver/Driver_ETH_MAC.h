@@ -127,8 +127,8 @@
  */
 typedef struct _ARM_ETH_MAC_TIME
 {
-    uint32_t ns;                        /*/< Nano seconds */
-    uint32_t sec;                       /*/< Seconds */
+    uint32_t ns;  /*/< Nano seconds */
+    uint32_t sec; /*/< Seconds */
 } ARM_ETH_MAC_TIME;
 
 
@@ -284,23 +284,23 @@ typedef void (* ARM_ETH_MAC_SignalEvent_t) ( uint32_t event ); /*/< Pointer to \
  */
 typedef struct _ARM_ETH_MAC_CAPABILITIES
 {
-    uint32_t checksum_offload_rx_ip4  : 1;      /*/< 1 = IPv4 header checksum verified on receive */
-    uint32_t checksum_offload_rx_ip6  : 1;      /*/< 1 = IPv6 checksum verification supported on receive */
-    uint32_t checksum_offload_rx_udp  : 1;      /*/< 1 = UDP payload checksum verified on receive */
-    uint32_t checksum_offload_rx_tcp  : 1;      /*/< 1 = TCP payload checksum verified on receive */
-    uint32_t checksum_offload_rx_icmp : 1;      /*/< 1 = ICMP payload checksum verified on receive */
-    uint32_t checksum_offload_tx_ip4  : 1;      /*/< 1 = IPv4 header checksum generated on transmit */
-    uint32_t checksum_offload_tx_ip6  : 1;      /*/< 1 = IPv6 checksum generation supported on transmit */
-    uint32_t checksum_offload_tx_udp  : 1;      /*/< 1 = UDP payload checksum generated on transmit */
-    uint32_t checksum_offload_tx_tcp  : 1;      /*/< 1 = TCP payload checksum generated on transmit */
-    uint32_t checksum_offload_tx_icmp : 1;      /*/< 1 = ICMP payload checksum generated on transmit */
-    uint32_t media_interface          : 2;      /*/< Ethernet Media Interface type */
-    uint32_t mac_address              : 1;      /*/< 1 = driver provides initial valid MAC address */
-    uint32_t event_rx_frame           : 1;      /*/< 1 = callback event \ref ARM_ETH_MAC_EVENT_RX_FRAME generated */
-    uint32_t event_tx_frame           : 1;      /*/< 1 = callback event \ref ARM_ETH_MAC_EVENT_TX_FRAME generated */
-    uint32_t event_wakeup             : 1;      /*/< 1 = wakeup event \ref ARM_ETH_MAC_EVENT_WAKEUP generated */
-    uint32_t precision_timer          : 1;      /*/< 1 = Precision Timer supported */
-    uint32_t reserved                 : 15;     /*/< Reserved (must be zero) */
+    uint32_t checksum_offload_rx_ip4  : 1;  /*/< 1 = IPv4 header checksum verified on receive */
+    uint32_t checksum_offload_rx_ip6  : 1;  /*/< 1 = IPv6 checksum verification supported on receive */
+    uint32_t checksum_offload_rx_udp  : 1;  /*/< 1 = UDP payload checksum verified on receive */
+    uint32_t checksum_offload_rx_tcp  : 1;  /*/< 1 = TCP payload checksum verified on receive */
+    uint32_t checksum_offload_rx_icmp : 1;  /*/< 1 = ICMP payload checksum verified on receive */
+    uint32_t checksum_offload_tx_ip4  : 1;  /*/< 1 = IPv4 header checksum generated on transmit */
+    uint32_t checksum_offload_tx_ip6  : 1;  /*/< 1 = IPv6 checksum generation supported on transmit */
+    uint32_t checksum_offload_tx_udp  : 1;  /*/< 1 = UDP payload checksum generated on transmit */
+    uint32_t checksum_offload_tx_tcp  : 1;  /*/< 1 = TCP payload checksum generated on transmit */
+    uint32_t checksum_offload_tx_icmp : 1;  /*/< 1 = ICMP payload checksum generated on transmit */
+    uint32_t media_interface          : 2;  /*/< Ethernet Media Interface type */
+    uint32_t mac_address              : 1;  /*/< 1 = driver provides initial valid MAC address */
+    uint32_t event_rx_frame           : 1;  /*/< 1 = callback event \ref ARM_ETH_MAC_EVENT_RX_FRAME generated */
+    uint32_t event_tx_frame           : 1;  /*/< 1 = callback event \ref ARM_ETH_MAC_EVENT_TX_FRAME generated */
+    uint32_t event_wakeup             : 1;  /*/< 1 = wakeup event \ref ARM_ETH_MAC_EVENT_WAKEUP generated */
+    uint32_t precision_timer          : 1;  /*/< 1 = Precision Timer supported */
+    uint32_t reserved                 : 15; /*/< Reserved (must be zero) */
 } ARM_ETH_MAC_CAPABILITIES;
 
 
@@ -309,33 +309,33 @@ typedef struct _ARM_ETH_MAC_CAPABILITIES
  */
 typedef struct _ARM_DRIVER_ETH_MAC
 {
-    ARM_DRIVER_VERSION ( * GetVersion )( void );                                                     /*/< Pointer to \ref ARM_ETH_MAC_GetVersion : Get driver version. */
-    ARM_ETH_MAC_CAPABILITIES ( * GetCapabilities )( void );                                          /*/< Pointer to \ref ARM_ETH_MAC_GetCapabilities : Get driver capabilities. */
-    int32_t ( * Initialize )( ARM_ETH_MAC_SignalEvent_t cb_event );                                  /*/< Pointer to \ref ARM_ETH_MAC_Initialize : Initialize Ethernet MAC Device. */
-    int32_t ( * Uninitialize )( void );                                                              /*/< Pointer to \ref ARM_ETH_MAC_Uninitialize : De-initialize Ethernet MAC Device. */
-    int32_t ( * PowerControl )( ARM_POWER_STATE state );                                             /*/< Pointer to \ref ARM_ETH_MAC_PowerControl : Control Ethernet MAC Device Power. */
-    int32_t ( * GetMacAddress )( ARM_ETH_MAC_ADDR * ptr_addr );                                      /*/< Pointer to \ref ARM_ETH_MAC_GetMacAddress : Get Ethernet MAC Address. */
-    int32_t ( * SetMacAddress )( const ARM_ETH_MAC_ADDR * ptr_addr );                                /*/< Pointer to \ref ARM_ETH_MAC_SetMacAddress : Set Ethernet MAC Address. */
+    ARM_DRIVER_VERSION ( * GetVersion )( void );                      /*/< Pointer to \ref ARM_ETH_MAC_GetVersion : Get driver version. */
+    ARM_ETH_MAC_CAPABILITIES ( * GetCapabilities )( void );           /*/< Pointer to \ref ARM_ETH_MAC_GetCapabilities : Get driver capabilities. */
+    int32_t ( * Initialize )( ARM_ETH_MAC_SignalEvent_t cb_event );   /*/< Pointer to \ref ARM_ETH_MAC_Initialize : Initialize Ethernet MAC Device. */
+    int32_t ( * Uninitialize )( void );                               /*/< Pointer to \ref ARM_ETH_MAC_Uninitialize : De-initialize Ethernet MAC Device. */
+    int32_t ( * PowerControl )( ARM_POWER_STATE state );              /*/< Pointer to \ref ARM_ETH_MAC_PowerControl : Control Ethernet MAC Device Power. */
+    int32_t ( * GetMacAddress )( ARM_ETH_MAC_ADDR * ptr_addr );       /*/< Pointer to \ref ARM_ETH_MAC_GetMacAddress : Get Ethernet MAC Address. */
+    int32_t ( * SetMacAddress )( const ARM_ETH_MAC_ADDR * ptr_addr ); /*/< Pointer to \ref ARM_ETH_MAC_SetMacAddress : Set Ethernet MAC Address. */
     int32_t ( * SetAddressFilter )( const ARM_ETH_MAC_ADDR * ptr_addr,
-                                    uint32_t num_addr );                                             /*/< Pointer to \ref ARM_ETH_MAC_SetAddressFilter : Configure Address Filter. */
+                                    uint32_t num_addr );              /*/< Pointer to \ref ARM_ETH_MAC_SetAddressFilter : Configure Address Filter. */
     int32_t ( * SendFrame )( const uint8_t * frame,
                              uint32_t len,
-                             uint32_t flags );                                                       /*/< Pointer to \ref ARM_ETH_MAC_SendFrame : Send Ethernet frame. */
+                             uint32_t flags );               /*/< Pointer to \ref ARM_ETH_MAC_SendFrame : Send Ethernet frame. */
     int32_t ( * ReadFrame )( uint8_t * frame,
-                             uint32_t len );                                                         /*/< Pointer to \ref ARM_ETH_MAC_ReadFrame : Read data of received Ethernet frame. */
-    uint32_t ( * GetRxFrameSize )( void );                                                           /*/< Pointer to \ref ARM_ETH_MAC_GetRxFrameSize : Get size of received Ethernet frame. */
-    int32_t ( * GetRxFrameTime )( ARM_ETH_MAC_TIME * time );                                         /*/< Pointer to \ref ARM_ETH_MAC_GetRxFrameTime : Get time of received Ethernet frame. */
-    int32_t ( * GetTxFrameTime )( ARM_ETH_MAC_TIME * time );                                         /*/< Pointer to \ref ARM_ETH_MAC_GetTxFrameTime : Get time of transmitted Ethernet frame. */
+                             uint32_t len );                 /*/< Pointer to \ref ARM_ETH_MAC_ReadFrame : Read data of received Ethernet frame. */
+    uint32_t ( * GetRxFrameSize )( void );                   /*/< Pointer to \ref ARM_ETH_MAC_GetRxFrameSize : Get size of received Ethernet frame. */
+    int32_t ( * GetRxFrameTime )( ARM_ETH_MAC_TIME * time ); /*/< Pointer to \ref ARM_ETH_MAC_GetRxFrameTime : Get time of received Ethernet frame. */
+    int32_t ( * GetTxFrameTime )( ARM_ETH_MAC_TIME * time ); /*/< Pointer to \ref ARM_ETH_MAC_GetTxFrameTime : Get time of transmitted Ethernet frame. */
     int32_t ( * ControlTimer )( uint32_t control,
-                                ARM_ETH_MAC_TIME * time );                                           /*/< Pointer to \ref ARM_ETH_MAC_ControlTimer : Control Precision Timer. */
+                                ARM_ETH_MAC_TIME * time );   /*/< Pointer to \ref ARM_ETH_MAC_ControlTimer : Control Precision Timer. */
     int32_t ( * Control )( uint32_t control,
-                           uint32_t arg );                                                           /*/< Pointer to \ref ARM_ETH_MAC_Control : Control Ethernet Interface. */
+                           uint32_t arg );                   /*/< Pointer to \ref ARM_ETH_MAC_Control : Control Ethernet Interface. */
     int32_t ( * PHY_Read )( uint8_t phy_addr,
                             uint8_t reg_addr,
-                            uint16_t * data );                                                       /*/< Pointer to \ref ARM_ETH_MAC_PHY_Read : Read Ethernet PHY Register through Management Interface. */
+                            uint16_t * data ); /*/< Pointer to \ref ARM_ETH_MAC_PHY_Read : Read Ethernet PHY Register through Management Interface. */
     int32_t ( * PHY_Write )( uint8_t phy_addr,
                              uint8_t reg_addr,
-                             uint16_t data );                                                        /*/< Pointer to \ref ARM_ETH_MAC_PHY_Write : Write Ethernet PHY Register through Management Interface. */
+                             uint16_t data ); /*/< Pointer to \ref ARM_ETH_MAC_PHY_Write : Write Ethernet PHY Register through Management Interface. */
 } const ARM_DRIVER_ETH_MAC;
 
 /* *INDENT-OFF* */

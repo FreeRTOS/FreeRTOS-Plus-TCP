@@ -109,36 +109,36 @@
 /** @brief The ID of a client or a server. */
 typedef struct xClientServerID
 {
-    uint16_t usDUIDType;                                     /**< A DHCP Unique Identifier ( DUID ). */
-    uint16_t usHardwareType;                                 /**< The hardware type: 1 = Ethernet. */
-    uint8_t pucID[ DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH ];     /**< Universally Unique IDentifier (UUID) format. */
-    size_t uxLength;                                         /**< The number of valid bytes within 'pucID'. */
+    uint16_t usDUIDType;                                 /**< A DHCP Unique Identifier ( DUID ). */
+    uint16_t usHardwareType;                             /**< The hardware type: 1 = Ethernet. */
+    uint8_t pucID[ DHCPv6_MAX_CLIENT_SERVER_ID_LENGTH ]; /**< Universally Unique IDentifier (UUID) format. */
+    size_t uxLength;                                     /**< The number of valid bytes within 'pucID'. */
 } ClientServerID_t;
 
 /** @brief DHCPMessage_IPv6_t holds all data of a DHCP client. */
 typedef struct xDHCPMessage_IPv6
 {
-    uint8_t uxMessageType;                                              /**< The type of the last message received: Advertise / Confirm / Reply / Decline */
-    uint8_t ucTransactionID[ 3 ];                                       /**< ID of a transaction, shall be renewed when the transaction is ready ( and a reply has been received ). */
-    uint32_t ulTransactionID;                                           /**< The same as above but now as a long integer. */
-    IP_Address_t xDNSServers[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];     /**< The IP-address of the DNS server. */
-    size_t uxDNSCount;                                                  /**< The number of the DNS server stored in xDNSServers. */
-    uint32_t ulPreferredLifeTime;                                       /**< The preferred life time. */
-    uint32_t ulValidLifeTime;                                           /**< The valid life time. */
-    uint32_t ulTimeStamp;                                               /**< DUID Time: seconds since 1-1-2000. */
-    uint8_t ucprefixLength;                                             /**< The length of the prefix offered. */
-    uint8_t ucHasUID;                                                   /**< When pdFALSE: a transaction ID must be created. */
-    IP_Address_t xPrefixAddress;                                        /**< The prefix offered. */
-    IP_Address_t xIPAddress;                                            /**< The IP-address offered. */
-    ClientServerID_t xClientID;                                         /**< The UUID of the client. */
-    ClientServerID_t xServerID;                                         /**< The UUID of the server. */
+    uint8_t uxMessageType;                                          /**< The type of the last message received: Advertise / Confirm / Reply / Decline */
+    uint8_t ucTransactionID[ 3 ];                                   /**< ID of a transaction, shall be renewed when the transaction is ready ( and a reply has been received ). */
+    uint32_t ulTransactionID;                                       /**< The same as above but now as a long integer. */
+    IP_Address_t xDNSServers[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< The IP-address of the DNS server. */
+    size_t uxDNSCount;                                              /**< The number of the DNS server stored in xDNSServers. */
+    uint32_t ulPreferredLifeTime;                                   /**< The preferred life time. */
+    uint32_t ulValidLifeTime;                                       /**< The valid life time. */
+    uint32_t ulTimeStamp;                                           /**< DUID Time: seconds since 1-1-2000. */
+    uint8_t ucprefixLength;                                         /**< The length of the prefix offered. */
+    uint8_t ucHasUID;                                               /**< When pdFALSE: a transaction ID must be created. */
+    IP_Address_t xPrefixAddress;                                    /**< The prefix offered. */
+    IP_Address_t xIPAddress;                                        /**< The IP-address offered. */
+    ClientServerID_t xClientID;                                     /**< The UUID of the client. */
+    ClientServerID_t xServerID;                                     /**< The UUID of the server. */
 } DHCPMessage_IPv6_t;
 
 /** @brief A struct describing an option. */
 typedef struct xDHCPOptionSet
 {
-    size_t uxOptionLength;     /**<  The length of the option being handled. */
-    size_t uxStart;            /**<  The position in xMessage where the option starts. */
+    size_t uxOptionLength; /**<  The length of the option being handled. */
+    size_t uxStart;        /**<  The position in xMessage where the option starts. */
 } DHCPOptionSet_t;
 
 struct xNetworkEndPoint;

@@ -45,7 +45,7 @@
     #pragma warning 586
 #elif defined( __CSMC__ )
     /* anonymous unions are enabled by default */
-#else  /* if   defined( __CC_ARM ) */
+#else /* if   defined( __CC_ARM ) */
     #warning Not supported compiler type
 #endif /* if   defined( __CC_ARM ) */
 
@@ -87,7 +87,7 @@
     #pragma warning restore
 #elif defined( __CSMC__ )
     /* anonymous unions are enabled by default */
-#else  /* if   defined( __CC_ARM ) */
+#else /* if   defined( __CC_ARM ) */
     #warning Not supported compiler type
 #endif /* if   defined( __CC_ARM ) */
 

@@ -23,7 +23,7 @@
 
 #include "xstatus.h"
 #include "xparameters.h"
-#include "xparameters_ps.h"     /* defines XPAR values */
+#include "xparameters_ps.h" /* defines XPAR values */
 #include "xil_types.h"
 #include "xil_assert.h"
 #include "xil_io.h"
@@ -32,7 +32,7 @@
 #include "xil_cache.h"
 #include "xuartps.h"
 #include "xscugic.h"
-#include "xemacps.h"     /* defines XEmacPs API */
+#include "xemacps.h" /* defines XEmacPs API */
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -132,13 +132,13 @@ extern "C" {
  */
 typedef enum
 {
-    GMAC_OK = 0,             /** 0  Operation OK */
-    GMAC_TIMEOUT = 1,        /** 1  GMAC operation timeout */
-    GMAC_TX_BUSY,            /** 2  TX in progress */
-    GMAC_RX_NULL,            /** 3  No data received */
-    GMAC_SIZE_TOO_SMALL,     /** 4  Buffer size not enough */
-    GMAC_PARAM,              /** 5  Parameter error, TX packet invalid or RX size too small */
-    GMAC_INVALID = 0xFF,     /* Invalid */
+    GMAC_OK = 0,         /** 0  Operation OK */
+    GMAC_TIMEOUT = 1,    /** 1  GMAC operation timeout */
+    GMAC_TX_BUSY,        /** 2  TX in progress */
+    GMAC_RX_NULL,        /** 3  No data received */
+    GMAC_SIZE_TOO_SMALL, /** 4  Buffer size not enough */
+    GMAC_PARAM,          /** 5  Parameter error, TX packet invalid or RX size too small */
+    GMAC_INVALID = 0xFF, /* Invalid */
 } gmac_status_t;
 
 /**
@@ -146,9 +146,9 @@ typedef enum
  */
 typedef enum
 {
-    GMAC_PHY_MII = 0,            /** MII mode */
-    GMAC_PHY_RMII = 1,           /** Reduced MII mode */
-    GMAC_PHY_INVALID = 0xFF,     /* Invalid mode*/
+    GMAC_PHY_MII = 0,        /** MII mode */
+    GMAC_PHY_RMII = 1,       /** Reduced MII mode */
+    GMAC_PHY_INVALID = 0xFF, /* Invalid mode*/
 } gmac_mii_mode_t;
 
 /** Receive buffer descriptor struct */
@@ -160,32 +160,32 @@ typedef struct gmac_rx_descriptor
         uint32_t val;
         struct gmac_rx_addr_bm
         {
-            uint32_t b_ownership : 1,     /**< User clear, GMAC sets this to 1 once it has successfully written a frame to memory */
-                     b_wrap : 1,          /**< Marks last descriptor in receive buffer */
-                     addr_dw : 30;        /**< Address in number of DW */
+            uint32_t b_ownership : 1, /**< User clear, GMAC sets this to 1 once it has successfully written a frame to memory */
+                     b_wrap : 1,      /**< Marks last descriptor in receive buffer */
+                     addr_dw : 30;    /**< Address in number of DW */
         } bm;
-    } addr;                               /**< Address, Wrap & Ownership */
+    } addr;                           /**< Address, Wrap & Ownership */
     union gmac_rx_status
     {
         uint32_t val;
         struct gmac_rx_status_bm
         {
-            uint32_t len : 13,                    /**  0..12  Length of frame including FCS */
-                     b_fcs : 1,                   /**  13     Receive buffer offset,  bits 13:12 of frame length for jumbo frame */
-                     b_sof : 1,                   /**  14     Start of frame */
-                     b_eof : 1,                   /**  15     End of frame */
-                     b_cfi : 1,                   /**  16     Concatenation Format Indicator */
-                     vlan_priority : 3,           /**  17..19 VLAN priority (if VLAN detected) */
-                     b_priority_detected : 1,     /**  20     Priority tag detected */
-                     b_vlan_detected : 1,         /**  21     VLAN tag detected */
-                     b_type_id_match : 2,         /**  22..23 Type ID match */
-                     b_checksumoffload : 1,       /**  24     Checksum offload specific function */
-                     b_addrmatch : 2,             /**  25..26 Address register match */
-                     b_ext_addr_match : 1,        /**  27     External address match found */
-                     reserved : 1,                /**  28     */
-                     b_uni_hash_match : 1,        /**  29     Unicast hash match */
-                     b_multi_hash_match : 1,      /**  30     Multicast hash match */
-                     b_boardcast_detect : 1;      /**  31     Global broadcast address detected */
+            uint32_t len : 13,                /**  0..12  Length of frame including FCS */
+                     b_fcs : 1,               /**  13     Receive buffer offset,  bits 13:12 of frame length for jumbo frame */
+                     b_sof : 1,               /**  14     Start of frame */
+                     b_eof : 1,               /**  15     End of frame */
+                     b_cfi : 1,               /**  16     Concatenation Format Indicator */
+                     vlan_priority : 3,       /**  17..19 VLAN priority (if VLAN detected) */
+                     b_priority_detected : 1, /**  20     Priority tag detected */
+                     b_vlan_detected : 1,     /**  21     VLAN tag detected */
+                     b_type_id_match : 2,     /**  22..23 Type ID match */
+                     b_checksumoffload : 1,   /**  24     Checksum offload specific function */
+                     b_addrmatch : 2,         /**  25..26 Address register match */
+                     b_ext_addr_match : 1,    /**  27     External address match found */
+                     reserved : 1,            /**  28     */
+                     b_uni_hash_match : 1,    /**  29     Unicast hash match */
+                     b_multi_hash_match : 1,  /**  30     Multicast hash match */
+                     b_boardcast_detect : 1;  /**  31     Global broadcast address detected */
         } bm;
     } status;
 } gmac_rx_descriptor_t;
@@ -200,19 +200,19 @@ typedef struct gmac_tx_descriptor
         uint32_t val;
         struct gmac_tx_status_bm
         {
-            uint32_t len : 14,                  /**  0..13 Length of buffer */
-                     reserved : 1,              /** 14            */
-                     b_last_buffer : 1,         /** 15     Last buffer (in the current frame) */
-                     b_no_crc : 1,              /** 16     No CRC */
-                     reserved1 : 3,             /** 17..19        */
-                     b_checksumoffload : 3,     /** 20..22 Transmit checksum generation offload errors */
-                     reserved2 : 3,             /** 23..25        */
-                     b_lco : 1,                 /** 26     Late collision, transmit error detected */
-                     b_exhausted : 1,           /** 27     Buffer exhausted in mid frame */
-                     b_underrun : 1,            /** 28     Transmit underrun */
-                     b_error : 1,               /** 29     Retry limit exceeded, error detected */
-                     b_wrap : 1,                /** 30     Marks last descriptor in TD list */
-                     b_used : 1;                /** 31     User clear, GMAC sets this to 1 once a frame has been successfully transmitted */
+            uint32_t len : 14,              /**  0..13 Length of buffer */
+                     reserved : 1,          /** 14            */
+                     b_last_buffer : 1,     /** 15     Last buffer (in the current frame) */
+                     b_no_crc : 1,          /** 16     No CRC */
+                     reserved1 : 3,         /** 17..19        */
+                     b_checksumoffload : 3, /** 20..22 Transmit checksum generation offload errors */
+                     reserved2 : 3,         /** 23..25        */
+                     b_lco : 1,             /** 26     Late collision, transmit error detected */
+                     b_exhausted : 1,       /** 27     Buffer exhausted in mid frame */
+                     b_underrun : 1,        /** 28     Transmit underrun */
+                     b_error : 1,           /** 29     Retry limit exceeded, error detected */
+                     b_wrap : 1,            /** 30     Marks last descriptor in TD list */
+                     b_used : 1;            /** 31     User clear, GMAC sets this to 1 once a frame has been successfully transmitted */
         } bm;
     } status;
 } gmac_tx_descriptor_t;
@@ -1475,16 +1475,16 @@ void gmac_handler( gmac_device_t * p_gmac_dev );
     #define MK_PAIR( NAME )    # NAME, GMAC_IER_ ## NAME, GMAC_IDX_ ## NAME
     static const struct SIntPair intPairs[] =
     {
-        { MK_PAIR( RXUBR ) },    /* Enable receive used bit read interrupt. */
-        { MK_PAIR( TUR )   },    /* Enable transmit underrun interrupt. */
-        { MK_PAIR( RLEX )  },    /* Enable retry limit  exceeded interrupt. */
-        { MK_PAIR( TFC )   },    /* Enable transmit buffers exhausted in mid-frame interrupt. */
-        { MK_PAIR( RCOMP ) },    /* Receive complete */
-        { MK_PAIR( TCOMP ) },    /* Enable transmit complete interrupt. */
-        { MK_PAIR( ROVR )  },    /* Enable receive overrun interrupt. */
-        { MK_PAIR( HRESP ) },    /* Enable Hresp not OK interrupt. */
-        { MK_PAIR( PFNZ )  },    /* Enable pause frame received interrupt. */
-        { MK_PAIR( PTZ )   }     /* Enable pause time zero interrupt. */
+        { MK_PAIR( RXUBR ) }, /* Enable receive used bit read interrupt. */
+        { MK_PAIR( TUR )   }, /* Enable transmit underrun interrupt. */
+        { MK_PAIR( RLEX )  }, /* Enable retry limit  exceeded interrupt. */
+        { MK_PAIR( TFC )   }, /* Enable transmit buffers exhausted in mid-frame interrupt. */
+        { MK_PAIR( RCOMP ) }, /* Receive complete */
+        { MK_PAIR( TCOMP ) }, /* Enable transmit complete interrupt. */
+        { MK_PAIR( ROVR )  }, /* Enable receive overrun interrupt. */
+        { MK_PAIR( HRESP ) }, /* Enable Hresp not OK interrupt. */
+        { MK_PAIR( PFNZ )  }, /* Enable pause frame received interrupt. */
+        { MK_PAIR( PTZ )   }  /* Enable pause time zero interrupt. */
     };
 
     void gmac_show_irq_counts();

@@ -59,7 +59,7 @@
 #endif
 
 #ifndef INC_TASK_H
-    #ifndef TASK_H     /* For compatibility with older FreeRTOS versions. */
+    #ifndef TASK_H /* For compatibility with older FreeRTOS versions. */
         #error The FreeRTOS header file task.h must be included before FreeRTOS_Sockets.h.
     #endif
 #endif
@@ -152,9 +152,9 @@
 #if ( ipconfigUSE_TCP == 1 )
     #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
 #endif
-#define FREERTOS_INADDR_ANY                           ( 0U )     /* The 0.0.0.0 IPv4 address. */
+#define FREERTOS_INADDR_ANY                           ( 0U ) /* The 0.0.0.0 IPv4 address. */
 
-#if ( 0 )                                                        /* Not Used */
+#if ( 0 )                                                    /* Not Used */
     #define FREERTOS_NOT_LAST_IN_FRAGMENTED_PACKET    ( 0x80 )
     #define FREERTOS_FRAGMENTED_PACKET                ( 0x40 )
 #endif
@@ -175,11 +175,11 @@
  */
 struct freertos_sockaddr
 {
-    uint8_t sin_len;              /**< length of this structure. */
-    uint8_t sin_family;           /**< FREERTOS_AF_INET. */
-    uint16_t sin_port;            /**< The port. */
-    uint32_t sin_flowinfo;        /**< IPv6 flow information, not used in this library. */
-    IP_Address_t sin_address;     /**< The IPv4/IPv6 address. */
+    uint8_t sin_len;          /**< length of this structure. */
+    uint8_t sin_family;       /**< FREERTOS_AF_INET. */
+    uint16_t sin_port;        /**< The port. */
+    uint32_t sin_flowinfo;    /**< IPv6 flow information, not used in this library. */
+    IP_Address_t sin_address; /**< The IPv4/IPv6 address. */
 };
 
 #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
@@ -279,12 +279,12 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
     typedef struct xWIN_PROPS
     {
         /* Properties of the Tx buffer and Tx window. */
-        int32_t lTxBufSize;     /**< Unit: bytes. */
-        int32_t lTxWinSize;     /**< Unit: MSS. */
+        int32_t lTxBufSize; /**< Unit: bytes. */
+        int32_t lTxWinSize; /**< Unit: MSS. */
 
         /* Properties of the Rx buffer and Rx window. */
-        int32_t lRxBufSize;     /**< Unit: bytes. */
-        int32_t lRxWinSize;     /**< Unit: MSS. */
+        int32_t lRxBufSize; /**< Unit: bytes. */
+        int32_t lRxWinSize; /**< Unit: MSS. */
     } WinProperties_t;
 
 /**
@@ -292,8 +292,8 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
  */
     typedef struct xLOW_HIGH_WATER
     {
-        size_t uxLittleSpace;     /**< Send a STOP when buffer space drops below X bytes */
-        size_t uxEnoughSpace;     /**< Send a GO when buffer space grows above X bytes */
+        size_t uxLittleSpace; /**< Send a STOP when buffer space drops below X bytes */
+        size_t uxEnoughSpace; /**< Send a GO when buffer space grows above X bytes */
     } LowHighWater_t;
 
 /* Connect a TCP socket to a remote socket. */
@@ -452,11 +452,11 @@ size_t FreeRTOS_GetLocalAddress( ConstSocket_t xSocket,
  * to set the callback handlers options. */
     typedef struct xTCP_UDP_HANDLER
     {
-        FOnConnected_t pxOnTCPConnected;     /* FREERTOS_SO_TCP_CONN_HANDLER */
-        FOnTCPReceive_t pxOnTCPReceive;      /* FREERTOS_SO_TCP_RECV_HANDLER */
-        FOnTCPSent_t pxOnTCPSent;            /* FREERTOS_SO_TCP_SENT_HANDLER */
-        FOnUDPReceive_t pxOnUDPReceive;      /* FREERTOS_SO_UDP_RECV_HANDLER */
-        FOnUDPSent_t pxOnUDPSent;            /* FREERTOS_SO_UDP_SENT_HANDLER */
+        FOnConnected_t pxOnTCPConnected; /* FREERTOS_SO_TCP_CONN_HANDLER */
+        FOnTCPReceive_t pxOnTCPReceive;  /* FREERTOS_SO_TCP_RECV_HANDLER */
+        FOnTCPSent_t pxOnTCPSent;        /* FREERTOS_SO_TCP_SENT_HANDLER */
+        FOnUDPReceive_t pxOnUDPReceive;  /* FREERTOS_SO_UDP_RECV_HANDLER */
+        FOnUDPSent_t pxOnUDPSent;        /* FREERTOS_SO_UDP_SENT_HANDLER */
     } F_TCP_UDP_Handler_t;
 
 #endif /* ( ipconfigUSE_CALLBACKS == 1 ) */

@@ -59,20 +59,20 @@ typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface *
 /** @brief These NetworkInterface access functions are collected in a struct: */
 typedef struct xNetworkInterface
 {
-    const char * pcName;                                   /**< Just for logging, debugging. */
-    void * pvArgument;                                     /**< Will be passed to the access functions. */
-    NetworkInterfaceInitialiseFunction_t pfInitialise;     /**< This function will be called upon initialisation and repeated until it returns pdPASS. */
-    NetworkInterfaceOutputFunction_t pfOutput;             /**< This function is supposed to send out a packet. */
-    GetPhyLinkStatusFunction_t pfGetPhyLinkStatus;         /**< This function will return pdTRUE as long as the PHY Link Status is high. */
+    const char * pcName;                               /**< Just for logging, debugging. */
+    void * pvArgument;                                 /**< Will be passed to the access functions. */
+    NetworkInterfaceInitialiseFunction_t pfInitialise; /**< This function will be called upon initialisation and repeated until it returns pdPASS. */
+    NetworkInterfaceOutputFunction_t pfOutput;         /**< This function is supposed to send out a packet. */
+    GetPhyLinkStatusFunction_t pfGetPhyLinkStatus;     /**< This function will return pdTRUE as long as the PHY Link Status is high. */
     struct
     {
         uint32_t
-            bInterfaceUp : 1,                 /**< Non-zero as soon as the interface is up. */
-            bCallDownEvent : 1;               /**< The down-event must be called. */
-    } bits;                                   /**< A collection of boolean flags. */
+            bInterfaceUp : 1,             /**< Non-zero as soon as the interface is up. */
+            bCallDownEvent : 1;           /**< The down-event must be called. */
+    } bits;                               /**< A collection of boolean flags. */
 
-    struct xNetworkEndPoint * pxEndPoint;     /**< A list of end-points bound to this interface. */
-    struct xNetworkInterface * pxNext;        /**< The next interface in a linked list. */
+    struct xNetworkEndPoint * pxEndPoint; /**< A list of end-points bound to this interface. */
+    struct xNetworkInterface * pxNext;    /**< The next interface in a linked list. */
 } NetworkInterface_t;
 
 /*
@@ -89,23 +89,23 @@ typedef struct xNetworkInterface
 /** @brief The network settings for IPv4. */
 typedef struct xIPV4Parameters
 {
-    uint32_t ulIPAddress;                                                    /**< The actual IPv4 address. Will be 0 as long as end-point is still down. */
-    uint32_t ulNetMask;                                                      /**< The netmask. */
-    uint32_t ulGatewayAddress;                                               /**< The IP-address of the gateway. */
-    uint32_t ulDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];     /**< IP-addresses of DNS servers. */
-    uint32_t ulBroadcastAddress;                                             /**< The local broadcast address, e.g. '192.168.1.255'. */
-    uint8_t ucDNSIndex;                                                      /**< The index of the next DNS address to be used. */
+    uint32_t ulIPAddress;                                                /**< The actual IPv4 address. Will be 0 as long as end-point is still down. */
+    uint32_t ulNetMask;                                                  /**< The netmask. */
+    uint32_t ulGatewayAddress;                                           /**< The IP-address of the gateway. */
+    uint32_t ulDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ]; /**< IP-addresses of DNS servers. */
+    uint32_t ulBroadcastAddress;                                         /**< The local broadcast address, e.g. '192.168.1.255'. */
+    uint8_t ucDNSIndex;                                                  /**< The index of the next DNS address to be used. */
 } IPV4Parameters_t;
 
 #if ( ipconfigUSE_IPv6 != 0 )
     typedef struct xIPV6Parameters
     {
-        IPv6_Address_t xIPAddress;          /* The actual IPv4 address. Will be 0 as long as end-point is still down. */
-        size_t uxPrefixLength;              /* Number of valid bytes in the network prefix. */
-        IPv6_Address_t xPrefix;             /* The network prefix, e.g. fe80::/10 */
-        IPv6_Address_t xGatewayAddress;     /* Gateway to the web. */
+        IPv6_Address_t xIPAddress;      /* The actual IPv4 address. Will be 0 as long as end-point is still down. */
+        size_t uxPrefixLength;          /* Number of valid bytes in the network prefix. */
+        IPv6_Address_t xPrefix;         /* The network prefix, e.g. fe80::/10 */
+        IPv6_Address_t xGatewayAddress; /* Gateway to the web. */
         IPv6_Address_t xDNSServerAddresses[ ipconfigENDPOINT_DNS_ADDRESS_COUNT ];
-        uint8_t ucDNSIndex;                 /**< The index of the next DNS address to be used. */
+        uint8_t ucDNSIndex;             /**< The index of the next DNS address to be used. */
     } IPV6Parameters_t;
 #endif
 
@@ -113,12 +113,12 @@ typedef struct xIPV4Parameters
 /* Router Advertisement (RA). End-points can obtain their IP-address by asking for a RA. */
     typedef enum xRAState
     {
-        eRAStateApply,        /* Send a Router Solicitation. */
-        eRAStateWait,         /* Wait for a Router Advertisement. */
-        eRAStateIPTest,       /* Take a random IP address, test if another device is using it already. */
-        eRAStateIPWait,       /* Wait for a reply, if any */
-        eRAStatePreLease,     /* The device is ready to go to the 'eRAStateLease' state. */
-        eRAStateLease,        /* The device is up, repeat the RA-process when timer expires. */
+        eRAStateApply,    /* Send a Router Solicitation. */
+        eRAStateWait,     /* Wait for a Router Advertisement. */
+        eRAStateIPTest,   /* Take a random IP address, test if another device is using it already. */
+        eRAStateIPWait,   /* Wait for a reply, if any */
+        eRAStatePreLease, /* The device is ready to go to the 'eRAStateLease' state. */
+        eRAStateLease,    /* The device is up, repeat the RA-process when timer expires. */
         eRAStateFailed,
     } eRAState_t;
 
@@ -147,50 +147,50 @@ typedef struct xNetworkEndPoint
     {
         struct
         {
-            IPV4Parameters_t ipv4_settings;     /**< Actual IPv4 settings used by the end-point. */
-            IPV4Parameters_t ipv4_defaults;     /**< Use values form "ipv4_defaults" in case DHCP has failed. */
+            IPV4Parameters_t ipv4_settings; /**< Actual IPv4 settings used by the end-point. */
+            IPV4Parameters_t ipv4_defaults; /**< Use values form "ipv4_defaults" in case DHCP has failed. */
         };
         #if ( ipconfigUSE_IPv6 != 0 )
             struct
             {
-                IPV6Parameters_t ipv6_settings;     /**< Actual IPv6 settings used by the end-point. */
-                IPV6Parameters_t ipv6_defaults;     /**< Use values form "ipv6_defaults" in case DHCP has failed. */
+                IPV6Parameters_t ipv6_settings; /**< Actual IPv6 settings used by the end-point. */
+                IPV6Parameters_t ipv6_defaults; /**< Use values form "ipv6_defaults" in case DHCP has failed. */
             };
         #endif
     };
-    MACAddress_t xMACAddress;     /**< The MAC-address assigned to this end-point. */
+    MACAddress_t xMACAddress; /**< The MAC-address assigned to this end-point. */
     struct
     {
         uint32_t
-            bIsDefault : 1,     /**< This bit will be removed. */
+            bIsDefault : 1, /**< This bit will be removed. */
         #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 )
-            bWantDHCP : 1,      /**< This end-point wants to use DHCPv4 to obtain an IP-address. */
+            bWantDHCP : 1,  /**< This end-point wants to use DHCPv4 to obtain an IP-address. */
         #endif /* ipconfigUSE_DHCP */
         #if ( ipconfigUSE_RA != 0 )
-            bWantRA : 1,             /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
+            bWantRA : 1,         /**< This end-point wants to use RA/SLAAC to obtain an IP-address. */
         #endif /* ipconfigUSE_RA */
-        bIPv6 : 1,                   /**< This end-point has an IP-address of type IPv6. */
+        bIPv6 : 1,               /**< This end-point has an IP-address of type IPv6. */
         #if ( ipconfigUSE_NETWORK_EVENT_HOOK != 0 )
-            bCallDownHook : 1,       /**< The network down hook-must be called for this end-point. */
+            bCallDownHook : 1,   /**< The network down hook-must be called for this end-point. */
         #endif /* ipconfigUSE_NETWORK_EVENT_HOOK */
-        bEndPointUp : 1;             /**< The end-point is up. */
-    } bits;                          /**< A collection of boolean properties. */
-    uint8_t usDNSType;               /**< A LLMNR/mDNS lookup is being done for an IPv6 address.
-                                      * This field is only valid while xApplicationDNSQueryHook() is called. */
+        bEndPointUp : 1;         /**< The end-point is up. */
+    } bits;                      /**< A collection of boolean properties. */
+    uint8_t usDNSType;           /**< A LLMNR/mDNS lookup is being done for an IPv6 address.
+                                  * This field is only valid while xApplicationDNSQueryHook() is called. */
     #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 )
-        IPTimer_t xDHCP_RATimer;     /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
+        IPTimer_t xDHCP_RATimer; /**<  The timer used to call the DHCP/DHCPv6/RA state machine. */
     #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_RA != 0 ) */
     #if ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 )
-        DHCPData_t xDHCPData;     /**< A description of the DHCP client state machine. */
+        DHCPData_t xDHCPData; /**< A description of the DHCP client state machine. */
     #endif /* ( ipconfigUSE_DHCP != 0 ) || ( ipconfigUSE_DHCPv6 != 0 ) */
     #if ( ipconfigUSE_IPv6 != 0 )
-        DHCPMessage_IPv6_t * pxDHCPMessage;     /**< A description of the DHCPv6 client state machine. */
+        DHCPMessage_IPv6_t * pxDHCPMessage; /**< A description of the DHCPv6 client state machine. */
     #endif
     #if ( ipconfigUSE_RA != 0 )
-        RAData_t xRAData;                        /**< A description of the Router Advertisement ( RA ) client state machine. */
+        RAData_t xRAData;                    /**< A description of the Router Advertisement ( RA ) client state machine. */
     #endif /* ( ipconfigUSE_RA != 0 ) */
-    NetworkInterface_t * pxNetworkInterface;     /**< The network interface that owns this end-point. */
-    struct xNetworkEndPoint * pxNext;            /**< The next end-point in the chain. */
+    NetworkInterface_t * pxNetworkInterface; /**< The network interface that owns this end-point. */
+    struct xNetworkEndPoint * pxNext;        /**< The next end-point in the chain. */
 } NetworkEndPoint_t;
 
 #define END_POINT_USES_DHCP( pxEndPoint )    ( ( pxEndPoint )->bits.bWantDHCP != pdFALSE_UNSIGNED )
@@ -301,7 +301,7 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
                                      const IPv6_Address_t * pxNetPrefix,
                                      size_t uxPrefixLength,
                                      const IPv6_Address_t * pxGatewayAddress,
-                                     const IPv6_Address_t * pxDNSServerAddress,     /* Not used yet. */
+                                     const IPv6_Address_t * pxDNSServerAddress, /* Not used yet. */
                                      const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] );
 #endif
 
@@ -309,12 +309,12 @@ void FreeRTOS_FillEndPoint( NetworkInterface_t * pxNetworkInterface,
 /** @brief Some simple network statistics. */
     typedef struct xRoutingStats
     {
-        UBaseType_t ulOnIp;                 /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
-        UBaseType_t ulOnMAC;                /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
-        UBaseType_t ulOnNetMask;            /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
-        UBaseType_t ulMatching;             /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
-        UBaseType_t ulLocations[ 14 ];      /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
-        UBaseType_t ulLocationsIP[ 8 ];     /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
+        UBaseType_t ulOnIp;             /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called. */
+        UBaseType_t ulOnMAC;            /**< The number of times 'FreeRTOS_FindEndPointOnMAC()' has been called. */
+        UBaseType_t ulOnNetMask;        /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called. */
+        UBaseType_t ulMatching;         /**< The number of times 'FreeRTOS_MatchingEndpoint()' has been called. */
+        UBaseType_t ulLocations[ 14 ];  /**< The number of times 'FreeRTOS_InterfaceEndPointOnNetMask()' has been called from a particular location. */
+        UBaseType_t ulLocationsIP[ 8 ]; /**< The number of times 'FreeRTOS_FindEndPointOnIP_IPv4()' has been called from a particular location. */
     } RoutingStats_t;
 
     extern RoutingStats_t xRoutingStatistics;
@@ -330,12 +330,12 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
 
 typedef enum
 {
-    eIPv6_Global,        /* 001           */
-    eIPv6_LinkLocal,     /* 1111 1110 10  */
-    eIPv6_SiteLocal,     /* 1111 1110 11  */
-    eIPv6_Multicast,     /* 1111 1111     */
-    eIPv6_Loopback,      /* 1111 (::1)    */
-    eIPv6_Unknown,       /* Not implemented. */
+    eIPv6_Global,    /* 001           */
+    eIPv6_LinkLocal, /* 1111 1110 10  */
+    eIPv6_SiteLocal, /* 1111 1110 11  */
+    eIPv6_Multicast, /* 1111 1111     */
+    eIPv6_Loopback,  /* 1111 (::1)    */
+    eIPv6_Unknown,   /* Not implemented. */
 }
 IPv6_Type_t;
 
