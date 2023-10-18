@@ -143,7 +143,7 @@ typedef struct _ARM_DRIVER_ETH_PHY {
 } const ARM_DRIVER_ETH_PHY;
 
 #ifdef  __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif /* DRIVER_ETH_PHY_H_ */

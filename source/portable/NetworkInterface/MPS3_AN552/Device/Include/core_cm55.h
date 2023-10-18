@@ -215,7 +215,7 @@
 
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif /* __CORE_CM55_H_GENERIC */
@@ -4910,7 +4910,7 @@ __STATIC_INLINE int32_t ITM_CheckChar (void)
 
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif /* __CORE_CM55_H_DEPENDANT */
