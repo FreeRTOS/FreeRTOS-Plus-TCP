@@ -33,7 +33,7 @@
     int emacps_check_errors( xemacpsif_s * xemacps );
 
     #ifdef __cplusplus
-    } /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* __XEMACPSIF_HW_H_ */

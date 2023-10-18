@@ -155,7 +155,7 @@
     ( ( ( ( uint32_t ) 1u ) << ( pxPhyObject )->xPortCount ) - 1u )
 
     #ifdef __cplusplus
-    } /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* PHYHANDLING_H */

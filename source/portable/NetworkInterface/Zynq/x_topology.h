@@ -41,7 +41,7 @@
     extern struct xtopology_t xXTopologies[ XPAR_XEMACPS_NUM_INSTANCES ];
 
     #ifdef __cplusplus
-    } /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* __XTOPOLOGY_H_ */

@@ -44,7 +44,7 @@
     int x_topology_find_index( unsigned base );
 
     #ifdef __cplusplus
-    } /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* __XTOPOLOGY_H_ */
