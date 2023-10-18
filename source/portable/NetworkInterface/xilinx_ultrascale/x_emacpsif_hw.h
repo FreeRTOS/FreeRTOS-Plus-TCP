@@ -21,11 +21,9 @@
 
 #include "x_emacpsif.h"
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
-/* *INDENT-ON* */
 
 XEmacPs_Config * lookup_config( unsigned mac_base );
 
@@ -37,10 +35,8 @@ int emacps_check_errors( xemacpsif_s * xemacps );
 uint32_t ulDetectPHY( XEmacPs * xemacpsp );
 
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
 #endif
-/* *INDENT-ON* */
 
 #endif /* __XEMACPSIF_HW_H_ */
