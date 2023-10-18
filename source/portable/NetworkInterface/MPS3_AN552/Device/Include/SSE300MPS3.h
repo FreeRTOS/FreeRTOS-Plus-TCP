@@ -19,82 +19,78 @@
  */
 
 #ifndef __AN552_H__
-#define __AN552_H__
+    #define __AN552_H__
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
+    #ifdef __cplusplus
     extern "C" {
-#endif
-/* *INDENT-ON* */
+    #endif
 
 /* ======================  Start of section using anonymous unions  ============== */
-#if   defined( __CC_ARM )
-    #pragma push
-    #pragma anon_unions
-#elif defined( __ICCARM__ )
-    #pragma language=extended
-#elif defined( __ARMCC_VERSION ) && ( __ARMCC_VERSION >= 6010050 )
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wc11-extensions"
-    #pragma clang diagnostic ignored "-Wreserved-id-macro"
-#elif defined( __GNUC__ )
-    /* anonymous unions are enabled by default */
-#elif defined( __TMS470__ )
-    /* anonymous unions are enabled by default */
-#elif defined( __TASKING__ )
-    #pragma warning 586
-#elif defined( __CSMC__ )
-    /* anonymous unions are enabled by default */
-#else /* if   defined( __CC_ARM ) */
-    #warning Not supported compiler type
-#endif /* if   defined( __CC_ARM ) */
+    #if   defined( __CC_ARM )
+        #pragma push
+        #pragma anon_unions
+    #elif defined( __ICCARM__ )
+        #pragma language=extended
+    #elif defined( __ARMCC_VERSION ) && ( __ARMCC_VERSION >= 6010050 )
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wc11-extensions"
+        #pragma clang diagnostic ignored "-Wreserved-id-macro"
+    #elif defined( __GNUC__ )
+        /* anonymous unions are enabled by default */
+    #elif defined( __TMS470__ )
+        /* anonymous unions are enabled by default */
+    #elif defined( __TASKING__ )
+        #pragma warning 586
+    #elif defined( __CSMC__ )
+        /* anonymous unions are enabled by default */
+    #else /* if   defined( __CC_ARM ) */
+        #warning Not supported compiler type
+    #endif /* if   defined( __CC_ARM ) */
 
 
 /* ========  Configuration of Core Peripherals  ================================== */
-#define __CM55_REV                0x0100U   /* Core revision r1p0 */
-#define __SAUREGION_PRESENT       1U        /* SAU regions present */
-#define __MPU_PRESENT             1U        /* MPU present */
-#define __VTOR_PRESENT            1U        /* VTOR present */
-#define __NVIC_PRIO_BITS          3U        /* Number of Bits used for Priority Levels */
-#define __Vendor_SysTickConfig    0U        /* Set to 1 if different SysTick Config is used */
-#define __FPU_PRESENT             1U        /* FPU present */
-#define __FPU_DP                  1U        /* double precision FPU */
-#define __DSP_PRESENT             1U        /* DSP extension present */
-#define __PMU_PRESENT             1U        /* PMU present */
-#define __PMU_NUM_EVENTCNT        8U        /* Number of PMU event counters */
-#define __ICACHE_PRESENT          1U        /* Instruction Cache present */
-#define __DCACHE_PRESENT          1U        /* Data Cache present */
+    #define __CM55_REV                0x0100U /* Core revision r1p0 */
+    #define __SAUREGION_PRESENT       1U      /* SAU regions present */
+    #define __MPU_PRESENT             1U      /* MPU present */
+    #define __VTOR_PRESENT            1U      /* VTOR present */
+    #define __NVIC_PRIO_BITS          3U      /* Number of Bits used for Priority Levels */
+    #define __Vendor_SysTickConfig    0U      /* Set to 1 if different SysTick Config is used */
+    #define __FPU_PRESENT             1U      /* FPU present */
+    #define __FPU_DP                  1U      /* double precision FPU */
+    #define __DSP_PRESENT             1U      /* DSP extension present */
+    #define __PMU_PRESENT             1U      /* PMU present */
+    #define __PMU_NUM_EVENTCNT        8U      /* Number of PMU event counters */
+    #define __ICACHE_PRESENT          1U      /* Instruction Cache present */
+    #define __DCACHE_PRESENT          1U      /* Data Cache present */
 
-#include "platform_irq.h"
-#include "core_cm55.h" /* Processor and core peripherals */
-#include "platform_base_address.h"
-#include "platform_regs.h"
-#include "platform_pins.h"
-#include "system_SSE300MPS3.h"
+    #include "platform_irq.h"
+    #include "core_cm55.h" /* Processor and core peripherals */
+    #include "platform_base_address.h"
+    #include "platform_regs.h"
+    #include "platform_pins.h"
+    #include "system_SSE300MPS3.h"
 
 /* =====================  End of section using anonymous unions  ================ */
-#if   defined( __CC_ARM )
-    #pragma pop
-#elif defined( __ICCARM__ )
-    /* leave anonymous unions enabled */
-#elif ( __ARMCC_VERSION >= 6010050 )
-    #pragma clang diagnostic pop
-#elif defined( __GNUC__ )
-    /* anonymous unions are enabled by default */
-#elif defined( __TMS470__ )
-    /* anonymous unions are enabled by default */
-#elif defined( __TASKING__ )
-    #pragma warning restore
-#elif defined( __CSMC__ )
-    /* anonymous unions are enabled by default */
-#else /* if   defined( __CC_ARM ) */
-    #warning Not supported compiler type
-#endif /* if   defined( __CC_ARM ) */
+    #if   defined( __CC_ARM )
+        #pragma pop
+    #elif defined( __ICCARM__ )
+        /* leave anonymous unions enabled */
+    #elif ( __ARMCC_VERSION >= 6010050 )
+        #pragma clang diagnostic pop
+    #elif defined( __GNUC__ )
+        /* anonymous unions are enabled by default */
+    #elif defined( __TMS470__ )
+        /* anonymous unions are enabled by default */
+    #elif defined( __TASKING__ )
+        #pragma warning restore
+    #elif defined( __CSMC__ )
+        /* anonymous unions are enabled by default */
+    #else /* if   defined( __CC_ARM ) */
+        #warning Not supported compiler type
+    #endif /* if   defined( __CC_ARM ) */
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
+    #ifdef __cplusplus
     } /* extern "C" */
-#endif
-/* *INDENT-ON* */
+    #endif
 
 #endif /* __AN552_H__ */

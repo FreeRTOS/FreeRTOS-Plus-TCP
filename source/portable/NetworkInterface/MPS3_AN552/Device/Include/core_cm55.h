@@ -41,11 +41,9 @@
 
     #include <stdint.h>
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
+    #ifdef __cplusplus
     extern "C" {
-#endif
-/* *INDENT-ON* */
+    #endif
 
 /**
  * \page CMSIS_MISRA_Exceptions  MISRA-C:2004 Compliance Exceptions
@@ -217,11 +215,9 @@
     #include "cmsis_compiler.h" /* CMSIS compiler specific defines */
 
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
+    #ifdef __cplusplus
     } /* extern "C" */
-#endif
-/* *INDENT-ON* */
+    #endif
 
 #endif /* __CORE_CM55_H_GENERIC */
 
@@ -230,11 +226,9 @@
     #ifndef __CORE_CM55_H_DEPENDANT
         #define __CORE_CM55_H_DEPENDANT
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
+        #ifdef __cplusplus
+        extern "C" {
+        #endif
 
 /* check device defines and use defaults */
         #if defined __CHECK_DEVICE_DEFINES
@@ -4944,11 +4938,9 @@
 
 
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    } /* extern "C" */
-#endif
-/* *INDENT-ON* */
+        #ifdef __cplusplus
+        } /* extern "C" */
+        #endif
 
     #endif /* __CORE_CM55_H_DEPENDANT */
 
