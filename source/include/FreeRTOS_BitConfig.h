@@ -76,7 +76,8 @@
 
 
     #ifdef __cplusplus
-}     /* extern "C" */
+	/* extern "C" */
+    }
     #endif
 
 #endif /* FREERTOS_STREAM_BUFFER_H */
