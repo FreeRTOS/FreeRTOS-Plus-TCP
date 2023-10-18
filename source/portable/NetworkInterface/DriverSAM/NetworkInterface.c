@@ -661,8 +661,12 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
         {
-            /* Confirm that the pxDescriptor may be kept by the driver. */
-            bReleaseAfterSend = pdFALSE;
+            if( ulResult == GMAC_OK )
+            {
+                /* The message was send in a zero-copy way.
+                 * It will be released after a succeful transmission. */
+                bReleaseAfterSend = pdFALSE;
+            }
         }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
         /* Not interested in a call-back after TX. */
