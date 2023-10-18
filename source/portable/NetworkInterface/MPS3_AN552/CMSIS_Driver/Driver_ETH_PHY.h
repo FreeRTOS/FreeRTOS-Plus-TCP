@@ -1,3 +1,5 @@
+/* *INDENT-OFF* */
+
 /*
  * Copyright (c) 2013-2020 ARM Limited. All rights reserved.
  *
@@ -157,3 +159,5 @@
     #endif
 
 #endif /* DRIVER_ETH_PHY_H_ */
+
+/* *INDENT-ON* */

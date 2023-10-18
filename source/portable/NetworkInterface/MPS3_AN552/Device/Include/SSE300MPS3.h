@@ -1,3 +1,5 @@
+/* *INDENT-OFF* */
+
 /*
  * Copyright (c) 2021-2022 Arm Limited. All rights reserved.
  *
@@ -94,3 +96,5 @@
     #endif
 
 #endif /* __AN552_H__ */
+
+/* *INDENT-ON* */

@@ -1,3 +1,5 @@
+/* *INDENT-OFF* */
+
 /**************************************************************************//**
 * @file     core_cm55.h
 * @brief    CMSIS Cortex-M55 Core Peripheral Access Layer Header File
@@ -4945,3 +4947,5 @@
     #endif /* __CORE_CM55_H_DEPENDANT */
 
 #endif /* __CMSIS_GENERIC */
+
+/* *INDENT-ON* */
