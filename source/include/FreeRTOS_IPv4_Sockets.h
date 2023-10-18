@@ -26,38 +26,34 @@
  */
 
 #ifndef FREERTOS_IPV4_SOCKETS_H
-#define FREERTOS_IPV4_SOCKETS_H
+    #define FREERTOS_IPV4_SOCKETS_H
 
 /* Standard includes. */
-#include <string.h>
+    #include <string.h>
 
 /* FreeRTOS includes. */
-#include "FreeRTOS.h"
+    #include "FreeRTOS.h"
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
+    #ifdef __cplusplus
     extern "C" {
-#endif
-/* *INDENT-ON* */
+    #endif
 
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet
  *        fields and IPv4 address for the packet to be send.
  */
-void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                              const struct freertos_sockaddr * pxDestinationAddress );
+    void * xSend_UDP_Update_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                  const struct freertos_sockaddr * pxDestinationAddress );
 
 /**
  * @brief Called by FreeRTOS_recvfrom(), this function will update socket
  *        address with IPv4 address from the packet received.
  */
-size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
-                          struct freertos_sockaddr * pxSourceAddress );
+    size_t xRecv_Update_IPv4( const NetworkBufferDescriptor_t * pxNetworkBuffer,
+                              struct freertos_sockaddr * pxSourceAddress );
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
+    #ifdef __cplusplus
     } /* extern "C" */
-#endif
-/* *INDENT-ON* */
+    #endif
 
 #endif /* FREERTOS_IPV4_SOCKETS_H */
