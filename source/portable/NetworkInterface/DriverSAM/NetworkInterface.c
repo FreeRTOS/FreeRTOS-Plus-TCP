@@ -664,7 +664,7 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
             if( ulResult == GMAC_OK )
             {
                 /* The message was send in a zero-copy way.
-                 * It will be released after a succeful transmission. */
+                 * It will be released after a successful transmission. */
                 bReleaseAfterSend = pdFALSE;
             }
         }
