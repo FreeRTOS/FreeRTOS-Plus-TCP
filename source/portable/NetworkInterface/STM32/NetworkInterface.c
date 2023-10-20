@@ -50,14 +50,13 @@
 
 /* ST includes. */
 #if defined( STM32F4 )
-    #include "stm32f4xx_hal_eth.h"
+    #include "stm32f4xx_hal.h"
 #elif defined( STM32F7 )
-    #include "stm32f7xx_hal_eth.h"
+    #include "stm32f7xx_hal.h"
 #elif defined( STM32H7 )
-    #include "stm32h7xx_hal_eth.h"
+    #include "stm32h7xx_hal.h"
 #elif defined( STM32H5 )
-    /* Untested */
-    #include "stm32h5xx_hal_eth.h"
+    #include "stm32h5xx_hal.h"
 #else
     #error Unknown STM32 Family for NetworkInterface
 #endif
