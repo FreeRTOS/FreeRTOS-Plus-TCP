@@ -395,7 +395,11 @@ static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 
         case eMACInitComplete:
             configASSERT( xEthHandle.gState != HAL_ETH_STATE_ERROR );
-            xInitResult = pdPASS;
+
+            if( xSTM32_GetPhyLinkStatus( pxInterface ) == pdPASS )
+            {
+                xInitResult = pdPASS;
+            }
     }
 
     return xInitResult;
@@ -696,16 +700,6 @@ static void prvEMACHandlerTask( void * pvParameters )
         if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
             prvEthernetUpdateConfig();
-
-            /*
-             #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
-                {
-                    if( xGetPhyLinkStatus() == pdFALSE )
-                    {
-                        FreeRTOS_NetworkDown();
-                    }
-                }
-            */
         }
     }
 }
@@ -792,6 +786,10 @@ static void prvEthernetUpdateConfig( void )
         /* iptraceNETWORK_INTERFACE_STATUS_CHANGE(); */
         xHalResult = HAL_ETH_Stop_IT( &xEthHandle );
         configASSERT( xHalResult == HAL_OK );
+
+        #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+            FreeRTOS_NetworkDown( pxMyInterface );
+        #endif
     }
 }
 
