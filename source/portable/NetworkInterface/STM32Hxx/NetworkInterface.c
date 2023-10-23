@@ -640,7 +640,9 @@ static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
                 if( HAL_ETH_Transmit_IT( &( xEthHandle ), &( xTxConfig ) ) == HAL_OK )
                 {
                     xResult = pdPASS;
-
+                }
+                else
+                {
                     /* As the transmission packet was not queued,
                      * the counting semaphore should be given. */
                     xSemaphoreGive( xTXDescriptorSemaphore );
