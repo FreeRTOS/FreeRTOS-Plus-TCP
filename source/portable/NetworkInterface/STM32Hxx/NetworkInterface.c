@@ -65,9 +65,9 @@
 #endif
 
 /* Interrupt events to process: reception, transmission and error handling. */
-#define EMAC_IF_RX_EVENT                1UL
-#define EMAC_IF_TX_EVENT                2UL
-#define EMAC_IF_ERR_EVENT               4UL
+#define EMAC_IF_RX_EVENT                1U
+#define EMAC_IF_TX_EVENT                2U
+#define EMAC_IF_ERR_EVENT               4U
 
 /*
  * Enable either Hash or Perfect Filter, Multicast filter - None,
@@ -323,7 +323,7 @@ static uint8_t * pucGetRXBuffer( size_t uxSize )
 
 static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
-    BaseType_t xResult;
+    BaseType_t xResult = pdFAIL;
     NetworkEndPoint_t * pxEndPoint;
     HAL_StatusTypeDef xHalEthInitStatus;
     size_t uxIndex = 0;
@@ -353,156 +353,156 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
         xHalEthInitStatus = HAL_ETH_Init( &( xEthHandle ) );
 
-        /* Only for inspection by debugger. */
-        ( void ) xHalEthInitStatus;
-
-        /* Update MAC filter settings */
-        xEthHandle.Instance->MACPFR |= ENABLE_HASH_FILTER_SETTINGS;
-
-        /* Configuration for HAL_ETH_Transmit(_IT). */
-        memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
-        xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
-
-        #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+        if( xHalEthInitStatus == HAL_OK )
         {
-            /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
-            xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
-            xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
-        }
-        #else
-        {
-            xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
-        }
-        #endif
-        xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
+            /* Update MAC filter settings */
+            xEthHandle.Instance->MACPFR |= ENABLE_HASH_FILTER_SETTINGS;
 
-        /* This counting semaphore will count the number of free TX DMA descriptors. */
-        xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT );
-        configASSERT( xTXDescriptorSemaphore );
+            /* Configuration for HAL_ETH_Transmit(_IT). */
+            memset( &( xTxConfig ), 0, sizeof( ETH_TxPacketConfig ) );
+            xTxConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
 
-        xTransmissionMutex = xSemaphoreCreateMutex();
-        configASSERT( xTransmissionMutex );
-
-        /* Assign Rx memory buffers to a DMA Rx descriptor */
-        for( uxIndex = 0; uxIndex < ETH_RX_DESC_CNT; uxIndex++ )
-        {
-            uint8_t * pucBuffer;
-
-            #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
             {
-                pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
-                configASSERT( pucBuffer != NULL );
+                /*xTxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC; */
+                xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
+                xTxConfig.ChecksumCtrl = ETH_DMATXNDESCRF_CIC_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
             }
             #else
             {
-                pucBuffer = Rx_Buff[ uxIndex ];
+                xTxConfig.ChecksumCtrl = ETH_CHECKSUM_DISABLE;
+            }
+            #endif
+            xTxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
+
+            /* This counting semaphore will count the number of free TX DMA descriptors. */
+            xTXDescriptorSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ETH_TX_DESC_CNT, ( UBaseType_t ) ETH_TX_DESC_CNT );
+            configASSERT( xTXDescriptorSemaphore );
+
+            xTransmissionMutex = xSemaphoreCreateMutex();
+            configASSERT( xTransmissionMutex );
+
+            /* Assign Rx memory buffers to a DMA Rx descriptor */
+            for( uxIndex = 0; uxIndex < ETH_RX_DESC_CNT; uxIndex++ )
+            {
+                uint8_t * pucBuffer;
+
+                #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
+                {
+                    pucBuffer = pucGetRXBuffer( ETH_RX_BUF_SIZE );
+                    configASSERT( pucBuffer != NULL );
+                }
+                #else
+                {
+                    pucBuffer = Rx_Buff[ uxIndex ];
+                }
+                #endif
+
+                HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
+            }
+
+            #if ( ipconfigUSE_MDNS == 1 )
+            {
+                /* Program the MDNS address. */
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
+            }
+            #endif
+            #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            {
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAddressIPv6.ucBytes );
+            }
+            #endif
+            #if ( ipconfigUSE_LLMNR == 1 )
+            {
+                /* Program the LLMNR address. */
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
+            }
+            #endif
+            #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            {
+                prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
             }
             #endif
 
-            HAL_ETH_DescAssignMemory( &( xEthHandle ), uxIndex, pucBuffer, NULL );
-        }
-
-        #if ( ipconfigUSE_MDNS == 1 )
-        {
-            /* Program the MDNS address. */
-            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
-        }
-        #endif
-        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-        {
-            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xMDNS_MacAddressIPv6.ucBytes );
-        }
-        #endif
-        #if ( ipconfigUSE_LLMNR == 1 )
-        {
-            /* Program the LLMNR address. */
-            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
-        }
-        #endif
-        #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 ) )
-        {
-            prvSetMAC_HashFilter( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
-        }
-        #endif
-
-        {
-            /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
-            for( ;
-                 pxEndPoint != NULL;
-                 pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
             {
-                switch( pxEndPoint->bits.bIPv6 )
+                /* The EMAC address of the first end-point has been registered in HAL_ETH_Init(). */
+                for( ;
+                     pxEndPoint != NULL;
+                     pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
                 {
-                    #if ( ipconfigUSE_IPv4 != 0 )
-                        case pdFALSE_UNSIGNED:
+                    switch( pxEndPoint->bits.bIPv6 )
+                    {
+                        #if ( ipconfigUSE_IPv4 != 0 )
+                            case pdFALSE_UNSIGNED:
 
-                            if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
-                            {
-                                prvSetMAC_HashFilter( &xEthHandle, pxEndPoint->xMACAddress.ucBytes );
-                            }
+                                if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
+                                {
+                                    prvSetMAC_HashFilter( &xEthHandle, pxEndPoint->xMACAddress.ucBytes );
+                                }
+                                break;
+                        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+                        #if ( ipconfigUSE_IPv6 != 0 )
+                            case pdTRUE_UNSIGNED:
+                               {
+                                   uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
+
+                                   ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                                   ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                                   ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+
+                                   /* Allow traffic destined to Solicited-Node multicast address of this endpoint
+                                    * for Duplicate Address Detection (DAD) */
+                                   prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
+                               }
+                               break;
+                        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                        default:
+                            /* MISRA 16.4 Compliance */
                             break;
-                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        case pdTRUE_UNSIGNED:
-                           {
-                               uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
-
-                               ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                               ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                               ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-
-                               /* Allow traffic destined to Solicited-Node multicast address of this endpoint
-                                * for Duplicate Address Detection (DAD) */
-                               prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
-                           }
-                           break;
-                    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-                    default:
-                        /* MISRA 16.4 Compliance */
-                        break;
+                    }
                 }
             }
-        }
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-        {
-            /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
-            const uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
-            prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
-        }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            #if ( ipconfigUSE_IPv6 != 0 )
+            {
+                /* Allow traffic destined to IPv6 all nodes multicast MAC 33:33:00:00:00:01 */
+                const uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+                prvSetMAC_HashFilter( &xEthHandle, ucMACAddress );
+            }
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-        /* Initialize the MACB and set all PHY properties */
-        prvMACBProbePhy();
+            /* Initialize the MACB and set all PHY properties */
+            prvMACBProbePhy();
 
-        /* Force a negotiation with the Switch or Router and wait for LS. */
-        prvEthernetUpdateConfig( pdTRUE );
+            /* Force a negotiation with the Switch or Router and wait for LS. */
+            prvEthernetUpdateConfig( pdTRUE );
 
-        /* The deferred interrupt handler task is created at the highest
-         *  possible priority to ensure the interrupt handler can return directly
-         *  to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
-         *  notify the task when there is something to process. */
-        if( xTaskCreate( prvEMACHandlerTask, niEMAC_HANDLER_TASK_NAME, niEMAC_HANDLER_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
-        {
-            /* The task was created successfully. */
-            xMacInitStatus = eMACPass;
+            /* The deferred interrupt handler task is created at the highest
+             *  possible priority to ensure the interrupt handler can return directly
+             *  to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
+             *  notify the task when there is something to process. */
+            if( xTaskCreate( prvEMACHandlerTask, niEMAC_HANDLER_TASK_NAME, niEMAC_HANDLER_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
+            {
+                /* The task was created successfully. */
+                xMacInitStatus = eMACPass;
+            }
+            else
+            {
+                xMacInitStatus = eMACFailed;
+            }
         }
         else
         {
+            /* HAL_ETH_Init() returned an error, the driver gets into a fatal error sate. */
             xMacInitStatus = eMACFailed;
         }
     } /* ( xMacInitStatus == eMACInit ) */
 
-    if( xMacInitStatus != eMACPass )
+    if( xMacInitStatus == eMACPass )
     {
-        /* EMAC initialisation failed, return pdFAIL. */
-        xResult = pdFAIL;
-    }
-    else
-    {
-        if( xPhyObject.ulLinkStatusMask != 0uL )
+        if( xPhyObject.ulLinkStatusMask != 0U )
         {
             xResult = pdPASS;
             FreeRTOS_printf( ( "Link Status is high\n" ) );
@@ -511,7 +511,6 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
         {
             /* For now pdFAIL will be returned. But prvEMACHandlerTask() is running
              * and it will keep on checking the PHY and set 'ulLinkStatusMask' when necessary. */
-            xResult = pdFAIL;
         }
     }
 
@@ -641,6 +640,12 @@ static BaseType_t xSTM32H_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
                 if( HAL_ETH_Transmit_IT( &( xEthHandle ), &( xTxConfig ) ) == HAL_OK )
                 {
                     xResult = pdPASS;
+                }
+                else
+                {
+                    /* As the transmission packet was not queued,
+                     * the counting semaphore should be given. */
+                    xSemaphoreGive( xTXDescriptorSemaphore );
                 }
 
                 /* And release the mutex. */
@@ -1078,7 +1083,7 @@ static void prvEMACHandlerTask( void * pvParameters )
 /* When sending a packet, all descriptors in the transmission channel may
  * be occupied.  In stat case, the program will wait (block) for the counting
  * semaphore. */
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
+    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100U );
 
     #if ( ipconfigHAS_PRINTF != 0 )
         size_t uxTXDescriptorsUsed = 0U;
@@ -1161,7 +1166,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             xResult += prvNetworkInterfaceInput();
         }
 
-        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != 0 )
+        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
             /*
              * The function xPhyCheckLinkStatus() returns pdTRUE if the
