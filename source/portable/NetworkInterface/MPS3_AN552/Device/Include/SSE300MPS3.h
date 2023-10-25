@@ -92,7 +92,7 @@ extern "C" {
 #endif
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif /* __AN552_H__ */

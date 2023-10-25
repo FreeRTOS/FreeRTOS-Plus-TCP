@@ -72,4 +72,4 @@
 #endif
 /* *INDENT-ON* */
 
-#endif /* ifndef FREERTOS_DNS_CALLBACK_H */
+#endif /* FREERTOS_DNS_CALLBACK_H */

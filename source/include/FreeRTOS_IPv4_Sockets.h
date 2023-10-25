@@ -53,6 +53,7 @@
                               struct freertos_sockaddr * pxSourceAddress );
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
+
 #endif /* FREERTOS_IPV4_SOCKETS_H */

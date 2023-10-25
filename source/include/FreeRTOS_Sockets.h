@@ -590,7 +590,7 @@
     #endif
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* FREERTOS_SOCKETS_H */

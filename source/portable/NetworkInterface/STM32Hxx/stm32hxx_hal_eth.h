@@ -1865,7 +1865,7 @@
     #endif /* ETH */
 
     #ifdef __cplusplus
-}
+}     /* extern "C" */
     #endif
 
 #endif /* STM32Hxx_HAL_ETH_H */

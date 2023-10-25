@@ -61,8 +61,7 @@
 #define DRIVER_ETH_MAC_H_
 
 #ifdef  __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include "Driver_ETH.h"
@@ -310,7 +309,7 @@ typedef struct _ARM_DRIVER_ETH_MAC {
 } const ARM_DRIVER_ETH_MAC;
 
 #ifdef  __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif /* DRIVER_ETH_MAC_H_ */

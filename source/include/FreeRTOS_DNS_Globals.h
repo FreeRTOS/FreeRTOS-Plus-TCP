@@ -324,4 +324,4 @@
     #define ipMDNS_IP_ADDRESS    0xfb0000e0U /* 224.0.0.251 */
 #endif
 
-#endif /* ifndef FREERTOS_DNS_GLOBALS_H */
+#endif /* FREERTOS_DNS_GLOBALS_H */

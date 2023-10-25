@@ -119,7 +119,7 @@
                               struct freertos_sockaddr * pxSourceAddress );
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* FREERTOS_IPV6_SOCKETS_H */

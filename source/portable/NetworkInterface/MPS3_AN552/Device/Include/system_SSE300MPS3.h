@@ -1,5 +1,3 @@
-/* *INDENT-OFF* */
-
 /*
  * Copyright (c) 2009-2020 Arm Limited
  *
@@ -23,34 +21,36 @@
 
 /* This file is a copy of
  * https://gitlab.arm.com/iot/open-iot-sdk/arm-corstone-platform-bsp/-/blob/main/corstone300/Device/Include/system_SSE300MPS3.h
-*/
+ */
 
 #ifndef __SYSTEM_CORE_INIT_H__
 #define __SYSTEM_CORE_INIT_H__
 
 #include <stdint.h>
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-extern "C" {
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
-extern uint32_t SystemCoreClock;  /*!< System Clock Frequency (Core Clock)  */
-extern uint32_t PeripheralClock;  /*!< Peripheral Clock Frequency */
+extern uint32_t SystemCoreClock; /*!< System Clock Frequency (Core Clock)  */
+extern uint32_t PeripheralClock; /*!< Peripheral Clock Frequency */
 
 /**
  * \brief  Initializes the system
  */
-extern void SystemInit(void);
+extern void SystemInit( void );
 
 /**
  * \brief  Restores system core clock
  */
-extern void SystemCoreClockUpdate(void);
+extern void SystemCoreClockUpdate( void );
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-}
+    } /* extern "C" */
 #endif
+/* *INDENT-ON* */
 
 #endif /* __SYSTEM_CORE_INIT_H__ */
-
-/* *INDENT-ON* */
