@@ -98,6 +98,8 @@ target_compile_options(freertos_plus_tcp_build_test
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-variable>
 )
 
+set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
+
 target_link_libraries(freertos_plus_tcp_build_test
     PRIVATE
     freertos_plus_tcp

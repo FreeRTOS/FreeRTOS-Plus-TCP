@@ -59,6 +59,8 @@
 #define TEST_DHCPv6_DEFAULT_DUID_LENGTH      ( 14U )
 #define TEST_DHCPv6_DIFFERENT_DUID_LENGTH    ( 12U )
 
+extern BaseType_t xDHCPv6SocketUserCount;
+
 extern void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint );
 extern void prvCloseDHCPv6Socket( NetworkEndPoint_t * pxEndPoint );
 extern const char * prvStateName( eDHCPState_t eState );
@@ -3993,4 +3995,54 @@ void test_vDHCPv6Process_AdvertiseStatusFail()
     /* The endpoint receives the DHCPv6 Advertise message from DHCPv6 server.
      * Then change the state to eWaitingAcknowledge. */
     TEST_ASSERT_EQUAL( eWaitingOffer, xEndPoint.xDHCPData.eDHCPState );
+}
+
+void test_vDHCPv6Stop( void )
+{
+    struct xSOCKET xTestSocket;
+    NetworkEndPoint_t xEndPoint_1 = { 0 }, * pxEndPoint_1 = &xEndPoint_1;
+    NetworkEndPoint_t xEndPoint_2 = { 0 }, * pxEndPoint_2 = &xEndPoint_2;
+    NetworkEndPoint_t xEndPoint_3 = { 0 }, * pxEndPoint_3 = &xEndPoint_3;
+
+    /* Socket is already created. */
+    xDHCPv6Socket = &xTestSocket;
+
+    /* 2 end-points opened the socket */
+    xDHCPv6SocketUserCount = 2;
+    pxEndPoint_1->xDHCPData.xDHCPSocket = FREERTOS_INVALID_SOCKET;
+    pxEndPoint_2->xDHCPData.xDHCPSocket = &xTestSocket;
+    pxEndPoint_3->xDHCPData.xDHCPSocket = &xTestSocket;
+
+    /* Stop DHCP for end-point 1 */
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint_1, pdFALSE );
+
+    vDHCPv6Stop( pxEndPoint_1 );
+
+    TEST_ASSERT_EQUAL( 2, xDHCPv6SocketUserCount );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv6Socket );
+    TEST_ASSERT_EQUAL( FREERTOS_INVALID_SOCKET, pxEndPoint_1->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_2->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_3->xDHCPData.xDHCPSocket );
+
+    /* Stop DHCP for end-point 2 */
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint_2, pdFALSE );
+
+    vDHCPv6Stop( pxEndPoint_2 );
+
+    TEST_ASSERT_EQUAL( 1, xDHCPv6SocketUserCount );
+    TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv6Socket );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint_2->xDHCPData.xDHCPSocket );
+    TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint_3->xDHCPData.xDHCPSocket );
+
+    /* Stop DHCP for end-point 3 */
+    vIPSetDHCP_RATimerEnableState_Expect( &xEndPoint_3, pdFALSE );
+
+    /* Expect the socket to be closed. */
+    vSocketClose_ExpectAndReturn( &xTestSocket, NULL );
+
+    vDHCPv6Stop( pxEndPoint_3 );
+
+    TEST_ASSERT_EQUAL( 0, xDHCPv6SocketUserCount );
+    TEST_ASSERT_EQUAL( NULL, xDHCPv6Socket );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint_3->xDHCPData.xDHCPSocket );
 }

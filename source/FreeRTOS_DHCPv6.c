@@ -464,6 +464,20 @@ void vDHCPv6Process( BaseType_t xReset,
         vDHCPv6ProcessEndPoint( xReset, pxEndPoint, pxEndPoint->pxDHCPMessage );
     }
 }
+
+/**
+ * @brief Stop the DHCP process. Close the DHCP socket when it's no longer used by any end-point.
+ *
+ * @param[in] pxEndPoint The end-point for which we want to stop the DHCP process.
+ */
+void vDHCPv6Stop( struct xNetworkEndPoint * pxEndPoint )
+{
+    /* Disable the DHCP timer. */
+    vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+
+    /* Close socket to ensure packets don't queue on it. */
+    prvCloseDHCPv6Socket( pxEndPoint );
+}
 /*-----------------------------------------------------------*/
 
 /**

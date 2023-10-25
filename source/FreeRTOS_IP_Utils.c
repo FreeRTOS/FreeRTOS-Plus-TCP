@@ -861,6 +861,31 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
          * treat network down as a "delivery problem" and flush the ARP cache for this
          *  interface. */
         FreeRTOS_ClearARP( pxEndPoint );
+
+        #if ( ipconfigUSE_DHCP == 1 )
+            if( END_POINT_USES_DHCP( pxEndPoint ) )
+            {
+                #if ( ( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    {
+                        vDHCPv6Stop( pxEndPoint );
+                    }
+                    else
+                #endif /* (( ipconfigUSE_DHCPv6 != 0 ) && ( ipconfigUSE_IPv6 != 0 )) */
+                {
+                    /* Stop the DHCP process for this end-point. */
+                    vDHCPStop( pxEndPoint );
+                }
+            }
+        #endif /* ( ipconfigUSE_DHCP == 1 ) */
+
+        #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+            if( END_POINT_USES_RA( pxEndPoint ) )
+            {
+                /* Stop the RA/SLAAC process for this end-point. */
+                vIPSetDHCP_RATimerEnableState( pxEndPoint, pdFALSE );
+            }
+        #endif /* ( (ipconfigUSE_RA != 0) && ( ipconfigUSE_IPv6 != 0 )) */
     }
 
     /* The network has been disconnected (or is being initialised for the first
@@ -936,7 +961,10 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
     }
     else
     {
-        /* Nothing to do. When the 'xNetworkTimer' expires, all interfaces
+        /* At least one interface is down. */
+        vSetAllNetworksUp( pdFALSE );
+
+        /* Nothing else to do. When the 'xNetworkTimer' expires, all interfaces
          * with bits.bInterfaceUp cleared will get a new 'eNetworkDownEvent' */
     }
 }

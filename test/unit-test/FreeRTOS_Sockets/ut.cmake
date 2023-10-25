@@ -26,6 +26,20 @@ list(APPEND mock_list
             "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_list_macros.h"
         )
 
+#  Without 'FreeRTOS_Sockets.h':
+#
+#   1 - FreeRTOS_Sockets_GenericAPI_utest (Not Run)
+#   2 - FreeRTOS_Sockets_TCP_API_utest (Not Run)
+#   3 - FreeRTOS_Sockets_UDP_API_utest (Not Run)
+#   4 - FreeRTOS_Sockets_privates_utest (Not Run)
+#
+#  With 'FreeRTOS_Sockets.h':
+#
+#   3 - FreeRTOS_Sockets_UDP_API_utest (Failed)
+#
+#   FAIL:Function FreeRTOS_recvfrom.  Called more times than expected.
+#   FAIL:Function FreeRTOS_sendto.  Called more times than expected.
+
 set(mock_include_list "")
 # list the directories your mocks need
 list(APPEND mock_include_list

@@ -4362,7 +4362,49 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 #if ( ipconfigUSE_TCP == 1 )
 
 /**
- * @brief Get a direct pointer to the circular transmit buffer.
+ * @brief Get a direct pointer to the beginning of the circular transmit buffer.
+ *
+ * @param[in] xSocket: The socket owning the buffer.
+ *
+ * @return Address the first byte in the circular transmit buffer if all checks pass.
+ *         Or else, NULL is returned.
+ */
+    uint8_t * FreeRTOS_get_tx_base( Socket_t xSocket )
+    {
+        uint8_t * pucReturn = NULL;
+        FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
+
+        /* Confirm that this is a TCP socket before dereferencing structure
+         * member pointers. */
+        if( prvValidSocket( pxSocket, FREERTOS_IPPROTO_TCP, pdFALSE ) == pdTRUE )
+        {
+            StreamBuffer_t * pxBuffer = pxSocket->u.xTCP.txStream;
+
+            /* If the TX buffer hasn't been created yet,
+             * and if no malloc error has occurred on this socket yet. */
+            if( ( pxBuffer == NULL ) &&
+                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE_UNSIGNED ) )
+            {
+                /* Create the outgoing stream only when it is needed */
+                ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
+                pxBuffer = pxSocket->u.xTCP.txStream;
+            }
+
+            if( pxBuffer != NULL )
+            {
+                pucReturn = pxBuffer->ucArray;
+            }
+        }
+
+        return pucReturn;
+    }
+#endif /* ipconfigUSE_TCP */
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_TCP == 1 )
+
+/**
+ * @brief Get a direct pointer to the TX head of the circular transmit buffer.
  *
  * @param[in] xSocket The socket owning the buffer.
  * @param[in] pxLength This will contain the number of bytes that may be written.
@@ -4385,7 +4427,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         {
             pxBuffer = pxSocket->u.xTCP.txStream;
 
-            if( ( pxBuffer == NULL ) && ( pxSocket->u.xTCP.bits.bMallocError != pdTRUE_UNSIGNED ) )
+            /* If the TX buffer hasn't been created yet,
+             * and if no malloc error has occurred on this socket yet. */
+            if( ( pxBuffer == NULL ) &&
+                ( pxSocket->u.xTCP.bits.bMallocError == pdFALSE_UNSIGNED ) )
             {
                 /* Create the outgoing stream only when it is needed */
                 ( void ) prvTCPCreateStream( pxSocket, pdFALSE );
