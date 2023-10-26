@@ -107,20 +107,12 @@
  * http://www.freertos.org/Stacks-and-stack-overflow-checking.html. */
 #define ipconfigIP_TASK_STACK_SIZE_WORDS           ( configMINIMAL_STACK_SIZE * 5 )
 
-/* ipconfigRAND32() is called by the IP stack to generate random numbers for
- * things such as a DHCP transaction number or initial sequence number.  Random
- * number generation is performed via this macro to allow applications to use their
- * own random number generation method.  For example, it might be possible to
- * generate a random number by sampling noise on an analogue input. */
-extern uint32_t ulRand();
-#define ipconfigRAND32()    ulRand()
-
 /* If ipconfigUSE_NETWORK_EVENT_HOOK is set to 1 then FreeRTOS+TCP will call the
  * network event hook at the appropriate times.  If ipconfigUSE_NETWORK_EVENT_HOOK
  * is not set to 1 then the network event hook will never be called. See:
  * http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_UDP/API/vApplicationIPNetworkEventHook.shtml.
  */
-#define ipconfigUSE_NETWORK_EVENT_HOOK            1
+#define ipconfigUSE_NETWORK_EVENT_HOOK             1
 
 /* Sockets have a send block time attribute.  If FreeRTOS_sendto() is called but
  * a network buffer cannot be obtained then the calling task is held in the Blocked
@@ -134,7 +126,7 @@ extern uint32_t ulRand();
  * ipconfigMAX_SEND_BLOCK_TIME_TICKS is specified in RTOS ticks.  A time in
  * milliseconds can be converted to a time in ticks by dividing the time in
  * milliseconds by portTICK_PERIOD_MS. */
-#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS     ( 5000U / portTICK_PERIOD_MS )
+#define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS      ( 5000U / portTICK_PERIOD_MS )
 
 /* If ipconfigUSE_DHCP is 1 then FreeRTOS+TCP will attempt to retrieve an IP
  * address, netmask, DNS server address and gateway address from a DHCP server.  If
@@ -143,16 +135,16 @@ extern uint32_t ulRand();
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                          1
-#define ipconfigDHCP_REGISTER_HOSTNAME            1
-#define ipconfigDHCP_USES_UNICAST                 1
+#define ipconfigUSE_DHCP                           1
+#define ipconfigDHCP_REGISTER_HOSTNAME             1
+#define ipconfigDHCP_USES_UNICAST                  1
 
-#define ipconfigENDPOINT_DNS_ADDRESS_COUNT        2
+#define ipconfigENDPOINT_DNS_ADDRESS_COUNT         2
 
 /* If ipconfigDHCP_USES_USER_HOOK is set to 1 then the application writer must
  * provide an implementation of the DHCP callback function,
  * xApplicationDHCPUserHook(). */
-#define ipconfigUSE_DHCP_HOOK                     1
+#define ipconfigUSE_DHCP_HOOK                      1
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
  * increasing time intervals until either a reply is received from a DHCP server
@@ -161,7 +153,7 @@ extern uint32_t ulRand();
  * static IP address passed as a parameter to FreeRTOS_IPInit() if the
  * re-transmission time interval reaches ipconfigMAXIMUM_DISCOVER_TX_PERIOD without
  * a DHCP reply being received. */
-#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD        ( 30000U / portTICK_PERIOD_MS )
+#define ipconfigMAXIMUM_DISCOVER_TX_PERIOD         ( 30000U / portTICK_PERIOD_MS )
 
 /* The ARP cache is a table that maps IP addresses to MAC addresses.  The IP
  * stack can only send a UDP message to a remove IP address if it knowns the MAC
@@ -172,19 +164,19 @@ extern uint32_t ulRand();
  * cache then the UDP message is replaced by a ARP message that solicits the
  * required MAC address information.  ipconfigARP_CACHE_ENTRIES defines the maximum
  * number of entries that can exist in the ARP table at any one time. */
-#define ipconfigARP_CACHE_ENTRIES                 6
+#define ipconfigARP_CACHE_ENTRIES                  6
 
 /* ARP requests that do not result in an ARP response will be re-transmitted a
  * maximum of ipconfigMAX_ARP_RETRANSMISSIONS times before the ARP request is
  * aborted. */
-#define ipconfigMAX_ARP_RETRANSMISSIONS           ( 5 )
+#define ipconfigMAX_ARP_RETRANSMISSIONS            ( 5 )
 
 /* ipconfigMAX_ARP_AGE defines the maximum time between an entry in the ARP
  * table being created or refreshed and the entry being removed because it is stale.
  * New ARP requests are sent for ARP cache entries that are nearing their maximum
  * age.  ipconfigMAX_ARP_AGE is specified in tens of seconds, so a value of 150 is
  * equal to 1500 seconds (or 25 minutes). */
-#define ipconfigMAX_ARP_AGE                       150
+#define ipconfigMAX_ARP_AGE                        150
 
 /* Implementing FreeRTOS_inet_addr() necessitates the use of string handling
  * routines, which are relatively large.  To save code space the full
@@ -196,13 +188,13 @@ extern uint32_t ulRand();
  * ipconfigINCLUDE_FULL_INET_ADDR is set to 1 then both FreeRTOS_inet_addr() and
  * FreeRTOS_indet_addr_quick() are available.  If ipconfigINCLUDE_FULL_INET_ADDR is
  * not set to 1 then only FreeRTOS_indet_addr_quick() is available. */
-#define ipconfigINCLUDE_FULL_INET_ADDR            1
+#define ipconfigINCLUDE_FULL_INET_ADDR             1
 
 /* ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS defines the total number of network buffer that
  * are available to the IP stack.  The total number of network buffers is limited
  * to ensure the total amount of RAM that can be consumed by the IP stack is capped
  * to a pre-determinable value. */
-#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    60
+#define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS     60
 
 /* A FreeRTOS queue is used to send events from application tasks to the IP
  * stack.  ipconfigEVENT_QUEUE_LENGTH sets the maximum number of events that can

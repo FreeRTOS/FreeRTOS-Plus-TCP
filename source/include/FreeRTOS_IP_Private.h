@@ -32,7 +32,6 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_Sockets.h"
-#include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #include "FreeRTOS_Routing.h"
 
@@ -881,6 +880,9 @@ BaseType_t xIsCallingFromIPTask( void );
 
 /* Send the network-up event and start the ARP timer. */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
+
+/* Mark whether all interfaces are up or at least one interface is down. */
+void vSetAllNetworksUp( BaseType_t xIsAllNetworksUp );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

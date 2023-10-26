@@ -572,10 +572,9 @@ static BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
             {
                 uint16_t usDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
 
-                if( pxSocket->u.xTCP.usMSS > usDifference )
-                {
-                    pxSocket->u.xTCP.usMSS = ( uint16_t ) ( pxSocket->u.xTCP.usMSS - usDifference );
-                }
+                /* Because ipconfigTCP_MSS is guaranteed not less than tcpMINIMUM_SEGMENT_LENGTH by FreeRTOSIPConfigDefaults.h,
+                 * it's unnecessary to check if xSocket->u.xTCP.usMSS is greater than difference. */
+                pxSocket->u.xTCP.usMSS = ( uint16_t ) ( pxSocket->u.xTCP.usMSS - usDifference );
             }
         #endif /* ipconfigUSE_IPv6 != 0 */
 
@@ -1259,8 +1258,7 @@ static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
  *                  (24-bytes) for compatibility.
  *
  * @return The number of bytes received. Or else, an error code is returned. When it
- *         returns a negative value, the cause can be looked-up in
- *         'FreeRTOS_errno_TCP.h'.
+ *         returns a negative value, the cause can be looked-up in 'FreeRTOS-Kernel/projdefs.h'.
  */
 int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
                            void * pvBuffer,
@@ -1570,7 +1568,7 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
  *                  Berkeley sockets standard. Else, it is not used.
  *
  * @return When positive: the total number of bytes sent, when negative an error
- *         has occurred: it can be looked-up in 'FreeRTOS_errno_TCP.h'.
+ *         has occurred: it can be looked-up in 'FreeRTOS-Kernel/projdefs.h'.
  */
 int32_t FreeRTOS_sendto( Socket_t xSocket,
                          const void * pvBuffer,

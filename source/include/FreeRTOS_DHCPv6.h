@@ -29,7 +29,6 @@
 /* Application level configuration options. */
     #include "FreeRTOS_DHCP.h"
     #include "FreeRTOSIPConfig.h"
-    #include "IPTraceMacroDefaults.h"
 
     #ifdef __cplusplus
     extern "C" {
@@ -151,6 +150,12 @@
  */
     void vDHCPv6Process( BaseType_t xReset,
                          struct xNetworkEndPoint * pxEndPoint );
+
+/*
+ * NOT A PUBLIC API FUNCTION.
+ * It will be called when the network interface, that the endpoint is associated with, goes down.
+ */
+    void vDHCPv6Stop( struct xNetworkEndPoint * pxEndPoint );
 
     #ifdef __cplusplus
 }         /* extern "C" */

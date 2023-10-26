@@ -34,7 +34,6 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
