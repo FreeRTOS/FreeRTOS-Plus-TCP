@@ -923,7 +923,7 @@
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
  *
- * Set to 1 if you want to receive eNetworkDown notification via vApplicationIPNetworkEventHook() callback.
+ * Set to 1 if you want to receive eNetworkDown notification via vApplicationIPNetworkEventHook_Multi() callback.
  * Not all drivers support this feature.
  */
 
@@ -2197,8 +2197,16 @@
  *
  * Function Prototype:
  *
+ * Function prototype if ipconfigIPv4_BACKWARD_COMPATIBLE is enabled:
+ *
  * eDHCPCallbackAnswer_t xApplicationDHCPHook( eDHCPCallbackPhase_t eDHCPPhase,
  *                                             uint32_t ulIPAddress )
+ *
+ * Function prototype by default:
+ *
+ * eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
+ *                                                   struct xNetworkEndPoint * pxEndPoint,
+ *                                                   IP_Address_t * pxIPAddress );
  */
 
 #ifndef ipconfigUSE_DHCP_HOOK
@@ -3058,7 +3066,7 @@
     #ifdef configPRINTF
         #define FreeRTOS_debug_printf( MSG )    if( ipconfigHAS_DEBUG_PRINTF ) configPRINTF( MSG )
     #else
-        #define FreeRTOS_debug_printf( MSG )    do {} while( pdFALSE )
+        #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )
     #endif
 #endif
 
@@ -3094,7 +3102,7 @@
     #ifdef configPRINTF
         #define FreeRTOS_printf( MSG )    if( ipconfigHAS_PRINTF ) configPRINTF( MSG )
     #else
-        #define FreeRTOS_printf( MSG )    do {} while( pdFALSE )
+        #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
     #endif
 #endif
 
@@ -3111,7 +3119,7 @@
  */
 
 #ifndef FreeRTOS_flush_logging
-    #define FreeRTOS_flush_logging()    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) do {} while( pdFALSE )
+    #define FreeRTOS_flush_logging()    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) do {} while( ipFALSE_BOOL )
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -3178,7 +3186,7 @@
  */
 
 #ifndef ipconfigWATCHDOG_TIMER
-    #define ipconfigWATCHDOG_TIMER()    do {} while( pdFALSE )
+    #define ipconfigWATCHDOG_TIMER()    do {} while( ipFALSE_BOOL )
 #endif
 
 /*---------------------------------------------------------------------------*/
