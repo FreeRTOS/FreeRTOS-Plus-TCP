@@ -5,7 +5,7 @@
   [
     "--unwind 1",
     "--nondet-static",
-    "--unwindset usGetExtensionHeaderLength.3:{MAX_EXT_HEADER_NUM}",
+    "--unwindset usGetExtensionHeaderLength.0:{MAX_EXT_HEADER_NUM}",
     "--unwindset prvPrepareExtensionHeaders.0:{MAX_EXT_HEADER_NUM}",
     "--flush"
   ],
@@ -26,6 +26,7 @@
   [
     "FREERTOS_TCP_ENABLE_VERIFICATION",
     "ipconfigNETWORK_MTU=200",
+    "ipconfigTCP_MSS=586",
     "ipconfigUSE_DHCP=0"
   ],
   "INC":

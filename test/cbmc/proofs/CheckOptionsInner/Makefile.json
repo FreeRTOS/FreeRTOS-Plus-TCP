@@ -2,8 +2,8 @@
   "ENTRY": "CheckOptionsInner",
   "CBMCFLAGS": [
       "--unwind 1",
-      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowTxCheckAck.1:2",
-      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowFastRetransmit.2:2"
+      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowTxCheckAck.0:2",
+      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowFastRetransmit.1:2"
   ],
   "OPT":
   [

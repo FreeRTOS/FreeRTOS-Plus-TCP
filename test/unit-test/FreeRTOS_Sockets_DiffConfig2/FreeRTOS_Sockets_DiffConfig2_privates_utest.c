@@ -91,3 +91,18 @@ void test_prvDetermineSocketSize_TCPv6Socket( void )
 
     catch_assert( prvDetermineSocketSize( xDomain, xType, xProtocol, &xSocketSize ) );
 }
+
+/**
+ * @brief Trying to bind an NULL bind address.
+ */
+void test_vSocketBind_CatchAssert( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    size_t uxAddressLength;
+    BaseType_t xInternal;
+
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    catch_assert( vSocketBind( &xSocket, NULL, uxAddressLength, xInternal ) );
+}

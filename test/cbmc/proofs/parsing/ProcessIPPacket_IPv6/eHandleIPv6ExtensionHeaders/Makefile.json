@@ -4,7 +4,7 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
-    "--unwindset usGetExtensionHeaderLength.3:{MAX_EXT_HEADER_NUM}",
+    "--unwindset usGetExtensionHeaderLength.0:{MAX_EXT_HEADER_NUM}",
     "--nondet-static"
   ],
   "OPT":
@@ -21,6 +21,7 @@
   "DEF":
   [
     "ipconfigNETWORK_MTU=200",
+    "ipconfigTCP_MSS=586",
     "ipconfigUSE_DHCP=0"
   ],
   "INC":
