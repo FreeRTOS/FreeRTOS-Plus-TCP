@@ -1160,4 +1160,20 @@
     #define ipconfigPORT_SUPPRESS_WARNING    ( 0 )
 #endif
 
+#ifndef ipconfigEVENT_QUEUES
+    #define ipconfigEVENT_QUEUES    1
+#endif
+
+#ifndef ipconfigBUDGET_MAPPING
+    #if ( ipconfigEVENT_QUEUES == 8 )
+        #define ipconfigBUDGET_MAPPING { 8, 8, 6, 6, 4, 4, 2, 2, }
+    #endif
+#endif
+
+#ifndef ipconfigPACKET_PRIORITY_QUEUE_MAPPING
+    #if ( ipconfigEVENT_QUEUES == 8 )
+        #define ipconfigPACKET_PRIORITY_QUEUE_MAPPING     { 7, 6, 5, 4, 3, 2, 1, 0 }
+    #endif
+#endif
+
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */

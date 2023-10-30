@@ -105,9 +105,10 @@
 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
     #define STACK_TX_EVENT                      ( 0U )
     #define STACK_RX_EVENT                      ( 1U )
-    static volatile UBaseType_t uxNextTxRx;
-    static volatile UBaseType_t uxTopRxQueuePriority;
-    static volatile UBaseType_t uxTopTxQueuePriority;
+
+    static volatile UBaseType_t uxNextTxRx[ipconfigEVENT_QUEUES] = { STACK_TX_EVENT };
+    static volatile UBaseType_t uxIsEmptyQueue[ipconfigEVENT_QUEUES][ 2 ] = { { 0 } };
+    static volatile UBaseType_t uxCurrentBudget[ipconfigEVENT_QUEUES] = ipconfigBUDGET_MAPPING;
 #endif
 
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
@@ -192,9 +193,8 @@ QueueHandle_t xNetworkEventQueue = NULL;
 /** @brief Multi priority event queues for TX and RX, and their mapping.
  */
 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
-    QueueHandle_t xNetworkTxEventQueues[ ipconfigEVENT_QUEUES ] = { 0 };
-    QueueHandle_t xNetworkRxEventQueues[ ipconfigEVENT_QUEUES ] = { 0 };
-    uint8_t xQueueMapping[ ipconfigPACKET_PRIORITIES ] = ipconfigPACKET_PRIORITY_MAPPING;
+    QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } };
+    uint8_t xQueueMapping[ ipconfigEVENT_QUEUES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
 #endif
 
 /** @brief The IP packet ID. */
@@ -269,6 +269,8 @@ static void prvProcessIPEventsAndTimers( void )
     TickType_t xNextIPSleep;
     FreeRTOS_Socket_t * pxSocket;
     struct freertos_sockaddr xAddress;
+    BaseType_t xCurQueueIndex = ipconfigEVENT_QUEUES - 1;
+    BaseType_t xQueueReceiveRet;
 
     ipconfigWATCHDOG_TIMER();
 
@@ -282,10 +284,76 @@ static void prvProcessIPEventsAndTimers( void )
     /* Wait until there is something to do. If the following call exits
      * due to a time out rather than a message being received, set a
      * 'NoEvent' value. */
-    if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
-    {
-        xReceivedEvent.eEventType = eNoEvent;
-    }
+    #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+        if( ulTaskNotifyTake( pdFALSE, xNextIPSleep ) == pdFALSE )
+        {
+            xReceivedEvent.eEventType = eNoEvent;
+        }
+        else
+        {
+            while( pdTRUE )
+            {
+                xQueueReceiveRet = pdFALSE;
+                
+                if( uxQueueMessagesWaiting( xNetworkTxRxEventQueues[ xCurQueueIndex ][ uxNextTxRx[ xCurQueueIndex ] ] ) > 0 )
+                {
+                    xQueueReceiveRet = xQueueReceive( xNetworkTxRxEventQueues[ xCurQueueIndex ][ uxNextTxRx[ xCurQueueIndex ] ], &xReceivedEvent, 0 );
+
+                    /* Reduce the budget for the current TX RX queues */
+                    uxCurrentBudget[ xCurQueueIndex ]--;
+
+                    /* Reset empty queue flag if it was set before */
+                    if( uxIsEmptyQueue[ xCurQueueIndex ][ uxNextTxRx[ xCurQueueIndex ] ] == 1 )
+                    {
+                        uxIsEmptyQueue[ xCurQueueIndex ][ uxNextTxRx[ xCurQueueIndex ] ] = 0;
+                    }
+                }
+                else
+                {
+                    /* Mark the current queue as empty */
+                    uxIsEmptyQueue[ xCurQueueIndex ][ uxNextTxRx[ xCurQueueIndex ] ] = 1;
+                }
+
+                /* Switch between TX and RX queues */
+                uxNextTxRx[ xCurQueueIndex ] = ( uxNextTxRx[ xCurQueueIndex ] == STACK_TX_EVENT ) ? STACK_RX_EVENT : STACK_TX_EVENT;
+
+                /* If both queues are empty in the last check or budget is exhausted move on to the next queue */
+                if( ( uxIsEmptyQueue[ xCurQueueIndex ][ 0 ] && uxIsEmptyQueue[ xCurQueueIndex ][ 1 ] ) || ( uxCurrentBudget[ xCurQueueIndex ] == 0 ) )
+                {
+                    /* Restore budget of the current queue */
+                    uxCurrentBudget[ xCurQueueIndex ] = xQueueMapping[ xCurQueueIndex ];
+
+                    /* Reset empty queue trackers */
+                    uxIsEmptyQueue[ xCurQueueIndex ][ 0 ] = 0;
+                    uxIsEmptyQueue[ xCurQueueIndex ][ 1 ] = 0;
+
+                    if( xCurQueueIndex == 0 )
+                    {
+                        /* Start over from first queue */
+                        xCurQueueIndex = ipconfigEVENT_QUEUES - 1;
+                    }
+                    else
+                    {
+                        /* Decrement the queue index to the next queue */
+                        xCurQueueIndex--;
+                    }
+                    
+                }
+
+                if( xQueueReceiveRet == pdTRUE )
+                {
+                    /* Break the event scheduler loop and process the event */
+                    break;
+                }
+            
+            }
+        }
+    #else
+        if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
+        {
+            xReceivedEvent.eEventType = eNoEvent;
+        }
+    #endif /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
 
     #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
     {
