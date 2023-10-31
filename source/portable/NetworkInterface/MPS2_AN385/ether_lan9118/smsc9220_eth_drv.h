@@ -541,7 +541,7 @@
                                              smsc9220_eth_dev_t * dev );
 
     #ifdef __cplusplus
-}
+}     /* extern "C" */
     #endif
 
 #endif /* __SMSC9220_ETH_H__ */

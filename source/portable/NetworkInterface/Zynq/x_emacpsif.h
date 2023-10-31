@@ -151,7 +151,7 @@
     void vInitialiseOnIndex( BaseType_t xIndex );
 
     #ifdef __cplusplus
-}
+}     /* extern "C" */
     #endif
 
 #endif /* __NETIF_XAXIEMACIF_H__ */

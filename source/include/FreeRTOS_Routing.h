@@ -348,7 +348,7 @@
     #endif
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* FREERTOS_ROUTING_H */

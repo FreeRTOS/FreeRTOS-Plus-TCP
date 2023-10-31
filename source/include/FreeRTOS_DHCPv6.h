@@ -101,7 +101,7 @@
 
 /** @brief Default v6 DHCP client port. */
     #define ipDHCPv6_CLIENT_PORT                       546U
-    /** @brief Default v6 DHCP server port. */
+/** @brief Default v6 DHCP server port. */
     #define ipDHCPv6_SERVER_PORT                       547U
 
 /** @brief The ID of a client or a server. */
@@ -152,8 +152,14 @@
     void vDHCPv6Process( BaseType_t xReset,
                          struct xNetworkEndPoint * pxEndPoint );
 
+/*
+ * NOT A PUBLIC API FUNCTION.
+ * It will be called when the network interface, that the endpoint is associated with, goes down.
+ */
+    void vDHCPv6Stop( struct xNetworkEndPoint * pxEndPoint );
+
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 /* The application should supply the following time-function.
@@ -161,4 +167,4 @@
  * 1/1/1970. */
     extern uint32_t ulApplicationTimeHook( void );
 
-#endif /* FREERTOS_DHCPv6_H */
+#endif /* FREERTOS_DHCPV6_H */

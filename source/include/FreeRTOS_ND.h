@@ -210,7 +210,7 @@
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
-    }
+    } /* extern "C" */
 #endif
 /* *INDENT-ON* */
 

@@ -237,6 +237,12 @@ eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
 void vDHCPProcess( BaseType_t xReset,
                     struct xNetworkEndPoint * pxEndPoint );
 
+/*
+ * NOT A PUBLIC API FUNCTION.
+ * It will be called when the network interface, that the endpoint is associated with, goes down.
+ */
+void vDHCPStop( struct xNetworkEndPoint * pxEndPoint );
+
 /* Internal call: returns true if socket is the current DHCP socket */
 BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );
 

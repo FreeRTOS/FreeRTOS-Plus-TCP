@@ -131,4 +131,4 @@ typedef struct xTCP_PACKET TCPPacket_t;
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_PRIVATE_H */
+#endif /* FREERTOS_IPV4_PRIVATE_H */

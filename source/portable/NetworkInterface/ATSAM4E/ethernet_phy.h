@@ -281,7 +281,7 @@
     extern PhyProps_t phy_props;
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* #ifndef ETHERNET_PHY_H_INCLUDED */

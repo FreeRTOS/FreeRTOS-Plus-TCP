@@ -62,6 +62,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     LPC17xx LPC18xx LPC54018
     M487
     MPS2_AN385
+    MPS3_AN552
     MW300_RD
     PIC32MZEF_ETH PIC32MZEF_WIFI
     POSIX WIN_PCAP  # Native Linux & Windows respectively
@@ -104,6 +105,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " LPC54018               Target: LPC54018           Tested: TODO\n"
         " M487                   Target: M487               Tested: TODO\n"
         " MPS2_AN385             Target: MPS2_AN385         Tested: TODO\n"
+        " MPS3_AN552             Target: MPS3_AN552"
         " MW300_RD               Target: mw300_rd           Tested: TODO\n"
         " PIC32MZEF_ETH          Target: pic32mzef ethernet Tested: TODO\n"
         " PIC32MZEF_WIFI         Target: pic32mzef Wifi     Tested: TODO\n"
