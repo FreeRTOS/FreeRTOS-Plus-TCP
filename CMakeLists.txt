@@ -158,6 +158,7 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6 UDP
     DISABLE_ALL             # Disable all configuration settings
     HEADER_SELF_CONTAIN     # Enable header self contain test
+    ENABLE_ALL_TSN          # Enable all configuration settings with TSN
     DEFAULT_CONF            # Default (typical) configuration
 )
 if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)

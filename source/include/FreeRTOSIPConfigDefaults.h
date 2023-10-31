@@ -1161,7 +1161,11 @@
 #endif
 
 #ifndef ipconfigEVENT_QUEUES
-    #define ipconfigEVENT_QUEUES    1
+    #define ipconfigEVENT_QUEUES                    ( 1 )
+#endif
+
+#if ( ipconfigEVENT_QUEUES > 1 )
+    #define ipconfigMULTI_PRIORITY_EVENT_QUEUES     ( 1 )
 #endif
 
 #ifndef ipconfigBUDGET_MAPPING

@@ -187,14 +187,14 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 
 /*-----------------------------------------------------------*/
 
-/** @brief The queue used to pass events into the IP-task for processing. */
-QueueHandle_t xNetworkEventQueue = NULL;
-
-/** @brief Multi priority event queues for TX and RX, and their mapping.
- */
 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+    /** @brief Multi priority event queues for TX and RX, and their mapping.
+     */
     QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } };
     uint8_t xQueueMapping[ ipconfigEVENT_QUEUES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
+#else
+    /** @brief The queue used to pass events into the IP-task for processing. */
+    QueueHandle_t xNetworkEventQueue = NULL;
 #endif
 
 /** @brief The IP packet ID. */
