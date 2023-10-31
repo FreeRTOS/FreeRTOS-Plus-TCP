@@ -268,8 +268,11 @@ static void prvProcessIPEventsAndTimers( void )
     TickType_t xNextIPSleep;
     FreeRTOS_Socket_t * pxSocket;
     struct freertos_sockaddr xAddress;
-    BaseType_t xCurQueueIndex = ipconfigEVENT_QUEUES - 1;
-    BaseType_t xQueueReceiveRet;
+
+    #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+        BaseType_t xQueueReceiveRet;
+        BaseType_t xCurQueueIndex = ipconfigEVENT_QUEUES - 1;
+    #endif
 
     ipconfigWATCHDOG_TIMER();
 
