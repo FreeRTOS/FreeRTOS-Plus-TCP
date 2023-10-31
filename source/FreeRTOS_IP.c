@@ -187,14 +187,13 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 
 /*-----------------------------------------------------------*/
 
+/** @brief The queue used to pass events into the IP-task for processing. */
+QueueHandle_t xNetworkEventQueue = NULL;
 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
     /** @brief Multi priority event queues for TX and RX, and their mapping.
      */
     QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } };
     uint8_t xQueueMapping[ ipconfigEVENT_QUEUES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
-#else
-    /** @brief The queue used to pass events into the IP-task for processing. */
-    QueueHandle_t xNetworkEventQueue = NULL;
 #endif
 
 /** @brief The IP packet ID. */
@@ -1028,6 +1027,11 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 BaseType_t FreeRTOS_IPInit_Multi( void )
 {
     BaseType_t xReturn = pdFALSE;
+    BaseType_t xQueueCreateStatus = pdFALSE;
+
+    #if ( ipconfigEVENT_QUEUES > 1 )
+        BaseType_t xIndex;
+    #endif
 
     /* There must be at least one interface and one end-point. */
     configASSERT( FreeRTOS_FirstNetworkInterface() != NULL );
@@ -1039,21 +1043,72 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
     /* Attempt to create the queue used to communicate with the IP task. */
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
     {
-        static StaticQueue_t xNetworkEventStaticQueue;
-        static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
-        xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
-                                                 sizeof( IPStackEvent_t ),
-                                                 ucNetworkEventQueueStorageArea,
-                                                 &xNetworkEventStaticQueue );
+        #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+            static StaticQueue_t xNetworkEventStaticQueue[ ipconfigEVENT_QUEUES ][ 2 ];
+            static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUES ][ 2 ][ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
+
+            xQueueCreateStatus = pdTRUE;
+
+            for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
+            {
+                xNetworkTxRxEventQueues[ xIndex ][ 0 ] = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                                    sizeof( IPStackEvent_t ),
+                                                                    ucNetworkEventQueueStorageArea[ xIndex ][ 0 ],
+                                                                    &xNetworkEventStaticQueue[ xIndex ][ 0 ] );
+                xQueueCreateStatus &= ( xNetworkTxRxEventQueues[ xIndex ][ 0 ] != NULL );
+
+                xNetworkTxRxEventQueues[ xIndex ][ 1 ] = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                                    sizeof( IPStackEvent_t ),
+                                                                    ucNetworkEventQueueStorageArea[ xIndex ][ 1 ],
+                                                                    &xNetworkEventStaticQueue[ xIndex ][ 1 ] );
+                xQueueCreateStatus &= ( xNetworkTxRxEventQueues[ xIndex ][ 1 ] != NULL );
+
+            }
+
+            xNetworkEventQueue = xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES - 1 ][ 0 ];
+
+        #else
+            static StaticQueue_t xNetworkEventStaticQueue;
+            static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
+
+            xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
+                                                    sizeof( IPStackEvent_t ),
+                                                    ucNetworkEventQueueStorageArea,
+                                                    &xNetworkEventStaticQueue );
+
+            xQueueCreateStatus = ( xNetworkEventQueue != NULL );
+
+        #endif
     }
     #else
     {
-        xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
-        configASSERT( xNetworkEventQueue != NULL );
+        #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+            xQueueCreateStatus = pdTRUE;
+
+            for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
+            {
+                xNetworkTxRxEventQueues[ xIndex ][ 0 ] = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
+                configASSERT( xNetworkTxRxEventQueues[ xIndex ][ 0 ] != NULL );
+                xQueueCreateStatus &= ( xNetworkTxRxEventQueues[ xIndex ][ 0 ] != NULL );
+
+                xNetworkTxRxEventQueues[ xIndex ][ 1 ] = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
+                configASSERT( xNetworkTxRxEventQueues[ xIndex ][ 1 ] != NULL );
+                xQueueCreateStatus &= ( xNetworkTxRxEventQueues[ xIndex ][ 1 ] != NULL );
+            }
+
+            xNetworkEventQueue = xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES - 1 ][ 0 ];
+
+        #else
+
+            xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
+            configASSERT( xNetworkEventQueue != NULL );
+            xQueueCreateStatus = ( xNetworkEventQueue != NULL );
+        
+        #endif
     }
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
-    if( xNetworkEventQueue != NULL )
+    if( xQueueCreateStatus != pdFALSE )
     {
         #if ( configQUEUE_REGISTRY_SIZE > 0 )
         {
