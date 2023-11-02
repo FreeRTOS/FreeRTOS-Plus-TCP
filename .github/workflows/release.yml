@@ -146,7 +146,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Delete branch created SBOM generator
+      - name: Delete branch created for Tag by SBOM generator
         run: |
           # Delete the branch created for Tag by SBOM generator
           git push -u origin --delete refs/heads/${{ github.event.inputs.version_number }}
