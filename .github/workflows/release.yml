@@ -138,3 +138,15 @@ jobs:
           asset_path: ./FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           asset_name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           asset_content_type: application/zip
+  cleanup:
+    needs:
+      - create-release
+    name: Cleanup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Delete branch created for Tag by SBOM generator
+        run: |
+          # Delete the branch created for Tag by SBOM generator
+          git push -u origin --delete refs/heads/${{ github.event.inputs.version_number }}
