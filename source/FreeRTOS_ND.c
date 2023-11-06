@@ -285,6 +285,8 @@
     {
         BaseType_t x;
         BaseType_t xFreeEntry = -1, xEntryFound = -1;
+        BaseType_t xOldestValue = ipconfigMAX_ARP_AGE + 1;
+        BaseType_t xOldestEntry = 0;
 
         /* For each entry in the ND cache table. */
         for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
@@ -304,29 +306,45 @@
             else
             {
                 /* Entry is valid but the IP-address doesn't match. */
+
+                /* Keep track of the oldest entry in case we need to overwrite it. The problem we are trying to avoid is
+                 * that there may be a queued packet in pxARPWaitingNetworkBuffer and we may have just received the
+                 * neighbor advertisement needed for that packet. If we don't store this network advertisement in cache,
+                 * the parting of the frame from pxARPWaitingNetworkBuffer will cause the sending of neighbor solicitation
+                 * and stores the frame in pxARPWaitingNetworkBuffer. This becomes a vicious circle with thousands of
+                 * neighbor solicitation/advertisement packets going back and forth because the ND cache is full.
+                 * Overwriting the oldest cache entry is not a fool-proof solution, but it's something. */
+                if( xNDCache[ x ].ucAge < xOldestValue )
+                {
+                    xOldestValue = xNDCache[ x ].ucAge;
+                    xOldestEntry = x;
+                }
             }
         }
 
         if( xEntryFound < 0 )
         {
             /* The IP-address was not found, use the first free location. */
-            xEntryFound = xFreeEntry;
+            if( xFreeEntry >= 0 )
+            {
+                xEntryFound = xFreeEntry;
+            }
+            else
+            {
+                /* No free location. Overwrite the oldest. */
+                xEntryFound = xOldestEntry;
+                FreeRTOS_printf( ( "vNDRefreshCacheEntry: Cache FULL! Overwriting oldest entry %i with %02X-%02X-%02X-%02X-%02X-%02X\n", ( int ) xEntryFound, pxMACAddress->ucBytes[ 0 ], pxMACAddress->ucBytes[ 1 ], pxMACAddress->ucBytes[ 2 ], pxMACAddress->ucBytes[ 3 ], pxMACAddress->ucBytes[ 4 ], pxMACAddress->ucBytes[ 5 ] ) );
+            }
         }
 
-        if( xEntryFound >= 0 )
-        {
-            /* Copy the IP-address. */
-            ( void ) memcpy( xNDCache[ xEntryFound ].xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            /* Copy the MAC-address. */
-            ( void ) memcpy( xNDCache[ xEntryFound ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( MACAddress_t ) );
-            xNDCache[ xEntryFound ].pxEndPoint = pxEndPoint;
-            xNDCache[ xEntryFound ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
-            xNDCache[ xEntryFound ].ucValid = ( uint8_t ) pdTRUE;
-        }
-        else
-        {
-            FreeRTOS_printf( ( "vNDRefreshCacheEntry: %pip not found\n", ( void * ) pxIPAddress->ucBytes ) );
-        }
+        /* At this point, xEntryFound is always a valid index. */
+        /* Copy the IP-address. */
+        ( void ) memcpy( xNDCache[ xEntryFound ].xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        /* Copy the MAC-address. */
+        ( void ) memcpy( xNDCache[ xEntryFound ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( MACAddress_t ) );
+        xNDCache[ xEntryFound ].pxEndPoint = pxEndPoint;
+        xNDCache[ xEntryFound ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
+        xNDCache[ xEntryFound ].ucValid = ( uint8_t ) pdTRUE;
     }
 /*-----------------------------------------------------------*/
 
@@ -482,7 +500,7 @@
             char pcBuffer[ 40 ];
 
             /* Loop through each entry in the ND cache. */
-            for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+            for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
             {
                 if( xNDCache[ x ].ucValid != ( uint8_t ) 0U )
                 {
