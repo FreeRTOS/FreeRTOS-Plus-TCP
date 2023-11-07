@@ -974,8 +974,8 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 }
 
 /**
- * @brief success path, BufferAllocation_1.c is used, the Network Buffers can contain at least
- *  ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
+ * @brief success path, static buffer allocation is used, the Network Buffers
+ * can contain at least ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
  */
 void test_DNS_TreatNBNS_Fail_BufferAllocation1( void )
 {
@@ -1003,8 +1003,8 @@ void test_DNS_TreatNBNS_Fail_BufferAllocation1( void )
 }
 
 /**
- * @brief success path, BufferAllocation_1.c is used, the Network Buffers can contain at least
- *  ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
+ * @brief success path, static buffer allocation is used, the Network Buffers
+ * can contain at least ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
  */
 void test_DNS_TreatNBNS_success_BufferAllocation1( void )
 {

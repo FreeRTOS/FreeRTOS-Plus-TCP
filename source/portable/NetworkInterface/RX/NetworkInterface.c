@@ -51,7 +51,7 @@
 /***********************************************************************************************************************
  * Macro definitions
  **********************************************************************************************************************/
-#define ETHER_BUFSIZE_MIN    60
+#define ETHER_BUFSIZE_MIN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
 
 #if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) || defined( BSP_MCU_RX72M ) || defined( BSP_MCU_RX72N )
     #if ETHER_CFG_MODE_SEL == 0
@@ -66,22 +66,6 @@
         #define R_ETHER_PinSet_CHANNEL_0()    R_ETHER_PinSet_ETHERC_RMII()
     #endif
 #endif /* if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) */
-
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 2 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    2000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
 
 
 /***********************************************************************************************************************
@@ -102,6 +86,12 @@ static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
 /* Pointer to the interface object of this NIC */
 static NetworkInterface_t * pxMyInterface = NULL;
+
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
+    const UBaseType_t uxBufferAllocFixedSize = ETHER_CFG_BUFSIZE;
+#else
+    #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for RX
+#endif
 
 static int16_t SendData( uint8_t * pucBuffer,
                          size_t length );
@@ -420,37 +410,6 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
         }
     }
 } /* End of function prvEMACDeferredInterruptHandlerTask() */
-
-
-/***********************************************************************************************************************
- * Function Name: vNetworkInterfaceAllocateRAMToBuffers ()
- * Description  : .
- * Arguments    : pxNetworkBuffers
- * Return Value : none
- **********************************************************************************************************************/
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint32_t ul;
-    uint8_t * buffer_address;
-    portPOINTER_SIZE_TYPE uxStartAddress;
-
-    static uint8_t ETH_BUFFERS[ ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETHER_CFG_BUFSIZE ) + portBYTE_ALIGNMENT ];
-
-    /* Align the buffer start address to portBYTE_ALIGNMENT bytes */
-    uxStartAddress = ( portPOINTER_SIZE_TYPE ) & ETH_BUFFERS[ 0 ];
-    uxStartAddress += portBYTE_ALIGNMENT;
-    uxStartAddress &= ~( ( portPOINTER_SIZE_TYPE ) portBYTE_ALIGNMENT_MASK );
-
-    buffer_address = ( uint8_t * ) uxStartAddress;
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = buffer_address + ipBUFFER_PADDING;
-        *( ( unsigned * ) buffer_address ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-        buffer_address += ETHER_CFG_BUFSIZE;
-    }
-} /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
 
 /***********************************************************************************************************************
  * Function Name: prvLinkStatusChange ()

@@ -181,11 +181,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
     return ( xInterfaceState == INTERFACE_UP && ret == WM_SUCCESS ) ? pdTRUE : pdFALSE;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    /* FIX ME. */
-}
-
 BaseType_t xGetPhyLinkStatus( void )
 {
     /* FIX ME. */

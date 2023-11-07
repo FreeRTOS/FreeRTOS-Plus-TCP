@@ -44,9 +44,23 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE )
+
     NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes );
+
     BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-#endif
+
+    void vNetworkBufferAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] );
+
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
+        extern const UBaseType_t uxBufferAllocFixedSize;
+    #endif
+
+#else
+
+    /* Increase the size of a Network Buffer. */
+    NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                                     size_t xNewSizeBytes );
+#endif /* ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE ) */
 
 /* Get the current number of free network buffers. */
 UBaseType_t uxGetNumberOfFreeNetworkBuffers( void );
@@ -57,12 +71,6 @@ UBaseType_t uxGetMinimumFreeNetworkBuffers( void );
 /* Copy a network buffer into a bigger buffer. */
 NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                                     size_t uxNewLength );
-
-#if ipconfigIS_DISABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE )
-    /* Increase the size of a Network Buffer. */
-    NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                                     size_t xNewSizeBytes );
-#endif
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -100,9 +100,9 @@ void harness()
     BaseType_t xDataSize;
 
     /* The pucEthernetBuffer is re adjusted to the following size before the
-     * call to prepareReplyDNSMessage by pxResizeNetworkBufferWithDescriptor. If buffer allocation
-     * scheme #1 (BufferAllocation_1.c) is used we assert if the needed size is actually present
-     * in the buffer.  */
+     * call to prepareReplyDNSMessage by pxResizeNetworkBufferWithDescriptor.
+     * If the static buffer allocation scheme is used we assert if the needed
+     * size is actually present in the buffer.  */
     __CPROVER_assume( ( xDataSize > ( sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) && ( xDataSize < ipconfigNETWORK_MTU ) );
 
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );

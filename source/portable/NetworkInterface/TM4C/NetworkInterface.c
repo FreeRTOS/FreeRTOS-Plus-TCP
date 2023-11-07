@@ -133,8 +133,6 @@ static tEMACDMADescriptor _rx_descriptors[ niEMAC_RX_DMA_DESC_COUNT ];
 static tDescriptorList _tx_descriptor_list = { .number_descriptors = niEMAC_TX_DMA_DESC_COUNT, 0 };
 static tDescriptorList _rx_descriptor_list = { .number_descriptors = niEMAC_RX_DMA_DESC_COUNT, 0 };
 
-static uint8_t _network_buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ BUFFER_SIZE_ROUNDED_UP ] __attribute__( ( aligned( 4 ) ) );
-
 static EthernetPhy_t xPhyObject;
 
 static TaskHandle_t _deferred_task_handle = NULL;
@@ -401,20 +399,6 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     }
 
     return success;
-}
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    BaseType_t i;
-
-    for( i = 0; i < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; i++ )
-    {
-        /* Assign buffers to each descriptor */
-        pxNetworkBuffers[ i ].pucEthernetBuffer = &_network_buffers[ i ][ ipBUFFER_PADDING ];
-
-        /* Set the 'hidden' reference to the descriptor for use in DMA interrupts */
-        *( ( uint32_t * ) &_network_buffers[ i ][ 0 ] ) = ( uint32_t ) &( ( pxNetworkBuffers[ i ] ) );
-    }
 }
 
 static BaseType_t _ethernet_mac_get( uint8_t * mac_address_bytes )

@@ -270,6 +270,12 @@ const PhyProperties_t xPHYProperties =
  * see "../Common/phyHandling.c". */
 static EthernetPhy_t xPhyObject;
 
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
+    const UBaseType_t uxBufferAllocFixedSize = NETWORK_BUFFER_SIZE;
+#else
+    #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for DriverSAM
+#endif
+
 /*-----------------------------------------------------------*/
 
 /*
@@ -1112,23 +1118,6 @@ static void vCheckBuffersAndQueue( void )
             FreeRTOS_printf( ( "TX DMA buffers: lowest %lu\n", uxLowestSemCount ) );
         }
     }
-}
-/*-----------------------------------------------------------*/
-
-extern uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint8_t * ucRAMBuffer = ucNetworkPackets;
-    uint32_t ulIndex;
-
-    for( ulIndex = 0; ulIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ulIndex++ )
-    {
-        pxNetworkBuffers[ ulIndex ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ulIndex ] ) );
-        ucRAMBuffer += NETWORK_BUFFER_SIZE;
-    }
-
-    cache_clean_invalidate();
 }
 /*-----------------------------------------------------------*/
 

@@ -1,6 +1,4 @@
-/* This harness is linked against
- * libraries/freertos_plus/standard/freertos_plus_tcp/source/portable/BufferManagement/BufferAllocation_2.goto
- */
+/* This harness uses the dynamic buffer allocation method */
 #include <stdint.h>
 #include <stdio.h>
 

@@ -1,5 +1,5 @@
 This is the memory safety proof for ```FreeRTOS_OutputARPRequest```
-method combined with the BufferAllocation_1.c allocation strategy.
+method combined with the static BufferAllocation.c allocation strategy.
 
 This proof is a work-in-progress.  Proof assumptions are described in
 the harness.  The proof also assumes the following functions are

@@ -867,6 +867,14 @@
         #define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); }
     #endif
 
+    #ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE
+        #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ipconfigDISABLE
+    #endif
+
+    #ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE
+        #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE ipconfigDISABLE
+    #endif
+
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -3172,27 +3180,6 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * ipconfigTCP_IP_SANITY
- *
- * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_IP_SANITY
- *
- * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
- *
- * Enables warnings when irregularities are detected when using
- * BufferAllocation_1.c.
- */
-
-#ifndef ipconfigTCP_IP_SANITY
-    #define ipconfigTCP_IP_SANITY    ipconfigDISABLE
-#endif
-
-#if ( ( ipconfigTCP_IP_SANITY != ipconfigDISABLE ) && ( ipconfigTCP_IP_SANITY != ipconfigENABLE ) )
-    #error Invalid ipconfigTCP_IP_SANITY configuration
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
  * ipconfigTCP_MAY_LOG_PORT
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_MAY_LOG_PORT
@@ -3335,22 +3322,6 @@
 
 #ifndef ipconfigPORT_SUPPRESS_WARNING
     #define ipconfigPORT_SUPPRESS_WARNING    ipconfigDISABLE
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
- * ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
- *
- * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
- *
- * The macro 'ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS' was
- * introduced to enable a tracing system. Currently it is only used in
- * BufferAllocation_2.c.
- */
-
-#ifndef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
-    #define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS    ipconfigDISABLE
 #endif
 
 /*---------------------------------------------------------------------------*/

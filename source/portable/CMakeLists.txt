@@ -1,10 +1,12 @@
 add_library( freertos_plus_tcp_port STATIC )
 
-target_sources( freertos_plus_tcp_port
-  PRIVATE
-    BufferManagement/BufferAllocation_${FREERTOS_PLUS_TCP_BUFFER_ALLOCATION}.c
-    # TODO: There's NetworkInterface/pic32mzef that has it's own BufferAllocation_2.c
-)
+if (NOT ( (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "PIC32MZEF_ETH") OR
+          (FREERTOS_PLUS_TCP_NETWORK_IF STREQUAL "PIC32MZEF_WIFI") ) )
+    target_sources( freertos_plus_tcp_port
+      PRIVATE
+        BufferManagement/BufferAllocation.c
+    )
+endif()
 
 target_include_directories( freertos_plus_tcp_port
   PUBLIC

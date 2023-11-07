@@ -27,7 +27,7 @@ set( UNIT_TEST_DIR ${MODULE_ROOT_DIR}/test/unit-test CACHE INTERNAL "Unit-test d
 
 set( KERNEL_DIRECTORY ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
 
-# See if FreRTOS-Kernel is submoduled
+# See if FreeRTOS-Kernel is submoduled
 if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
     # Inform the user of the actions
     message( STATUS "FreeRTOS-Kernel is required for this build. Submoduling it..." )
@@ -117,8 +117,8 @@ foreach( file ${TCP_INCLUDES} )
     endif()
 
     # Remove IPConfigDefaults from the file
-    execute_process( COMMAND sed "s,#include \"FreeRTOSIPConfigDefaults.h\",,g" ${file}
-                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h )
+    #execute_process( COMMAND sed "s,#include \"FreeRTOSIPConfigDefaults.h\",,g" ${file}
+    #                 OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h )
 
     # Add the FreeRTOSIPConfig file to each directory
     execute_process( COMMAND sed "1 i\#include \"FreeRTOSIPConfig.h\"" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h

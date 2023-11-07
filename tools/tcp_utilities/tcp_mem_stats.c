@@ -239,7 +239,6 @@
         {
             size_t uxBytes;
 
-            /* Using BufferAllocation_1.c */
             uxPacketSize = ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER + ipBUFFER_PADDING + 31 ) & ~0x1FuL;
             uxBytes = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ( uxPacketSize + sizeof( NetworkBufferDescriptor_t ) );
 
@@ -254,7 +253,6 @@
         {
             size_t uxBytes;
 
-            /* Using BufferAllocation_2.c */
             uxBytes = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * sizeof( NetworkBufferDescriptor_t );
             STATS_PRINTF( ( "TCPMemStat,NUM_NETWORK_BUFFER_DESCRIPTORS,%u,%u,=B%d*C%d,Descriptors only\n",
                             ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
@@ -328,7 +326,7 @@
         {
             size_t uxBytes;
 
-            /* BufferAllocation_2.c uses HEAP to store network packets. */
+            /* Dynamic buffer allocation uses HEAP to store network packets. */
             uxPacketSize = ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER + ipBUFFER_PADDING + 3 ) & ~0x03uL;
             uxBytes = ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * uxPacketSize;
             STATS_PRINTF( ( "TCPMemStat,Network buffers in HEAP,%u,%u,=B%d*C%d\n",
@@ -337,7 +335,7 @@
                             xCurrentLine,
                             xCurrentLine ) );
             uxStaticSize += uxBytes;
-            snprintf( pucComment, sizeof pucComment, "Actual size fluctuates because BufferAllocation_2.c is used" );
+            snprintf( pucComment, sizeof pucComment, "Actual size fluctuates because dynamic buffer allocation is used" );
         }
         #endif
 

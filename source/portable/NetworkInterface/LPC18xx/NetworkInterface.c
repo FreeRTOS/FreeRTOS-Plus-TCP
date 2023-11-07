@@ -50,23 +50,6 @@
 /* The size of the stack allocated to the task that handles Rx packets. */
 #define nwRX_TASK_STACK_SIZE    140
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
-
 #ifndef configUSE_RMII
     #define configUSE_RMII    1
 #endif
@@ -342,24 +325,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
     }
 
     return xReturn;
-}
-/*-----------------------------------------------------------*/
-
-#define niBUFFER_1_PACKET_SIZE    1536
-
-static __attribute__( ( section( "._ramAHB32" ) ) ) uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint8_t * ucRAMBuffer = ucNetworkPackets;
-    uint32_t ul;
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-        ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-    }
 }
 /*-----------------------------------------------------------*/
 

@@ -1,6 +1,4 @@
-/* This harness is linked against
- * libraries/freertos_plus/standard/freertos_plus_tcp/source/portable/BufferManagement/BufferAllocation_1.goto
- */
+/* This harness uses the static buffer allocation method */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -43,9 +41,8 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
  * triggered when the allocation fails. Nevertheless, the code is perfectly
  * guarded against a failing Semaphore allocation. To make the assert pass,
  * it is assumed for now, that pvPortMalloc doesn't fail. Using a model allowing
- * failures of the allocation might be possible
- * after removing the assert in l.105 of BufferAllocation_1.c, from a memory
- * safety point of view. */
+ * failures of the allocation might be possible after removing the assert in
+ * BufferAllocation.c, from a memory safety point of view. */
 void * pvPortMalloc( size_t xWantedSize )
 {
     void * ptr = malloc( xWantedSize );

@@ -60,23 +60,6 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
-
 #if ( ipconfigNETWORK_MTU > 1526 )
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning the use of Jumbo Frames has not been tested sufficiently yet.
@@ -84,12 +67,15 @@
     #define USE_JUMBO_FRAMES    1
 #endif
 
-/* The size of each buffer when BufferAllocation_1 is used:
+/* The size of each buffer when static buffer allocation is used:
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
 #if ( USE_JUMBO_FRAMES == 1 )
     #define niBUFFER_1_PACKET_SIZE    10240
-#else
-    #define niBUFFER_1_PACKET_SIZE    1536
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = niBUFFER_1_PACKET_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for xilinx_ultrascale if USE_JUMBO_FRAMES is enabled
+    #endif
 #endif
 
 /* Naming and numbering of PHY registers. */
@@ -406,44 +392,38 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 }
 /*-----------------------------------------------------------*/
 
-#if ( nicUSE_UNCACHED_MEMORY == 0 )
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-    {
-        static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-        uint8_t * ucRAMBuffer = ucNetworkPackets;
-        uint32_t ul;
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE )
 
-        for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+    #if ( nicUSE_UNCACHED_MEMORY != 0 )
+
+        void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
         {
-            pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-            *( ( uintptr_t * ) ucRAMBuffer ) = ( uintptr_t ) &( pxNetworkBuffers[ ul ] );
-            ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-        }
-    }
-#else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-    {
-        static uint8_t * pucNetworkPackets = NULL;
+            static uint8_t * pucNetworkPackets = NULL;
 
-        if( pucNetworkPackets == NULL )
-        {
-            pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
-
-            if( pucNetworkPackets != NULL )
+            if( pucNetworkPackets == NULL )
             {
-                uint8_t * ucRAMBuffer = pucNetworkPackets;
-                uint32_t ul;
+                pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
 
-                for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+                if( pucNetworkPackets != NULL )
                 {
-                    pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-                    *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-                    ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
+                    uint8_t * ucRAMBuffer = pucNetworkPackets;
+                    uint32_t ul;
+
+                    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+                    {
+                        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+                        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+                        ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
+                    }
                 }
             }
         }
-    }
-#endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
+
+    #else
+        #error no custom cached buffer allocation method for xilinx ultrascale is defined
+    #endif  /* if ( nicUSE_UNCACHED_MEMORY != 0 ) */
+
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ) */
 /*-----------------------------------------------------------*/
 
 BaseType_t xGetPhyLinkStatus( void )

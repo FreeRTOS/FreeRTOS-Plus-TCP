@@ -63,27 +63,6 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
-
-/* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#define niBUFFER_1_PACKET_SIZE    1536
-
 /* Naming and numbering of PHY registers. */
 #define PHY_REG_01_BMSR           0x01  /* Basic mode status register */
 
@@ -482,44 +461,38 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 }
 /*-----------------------------------------------------------*/
 
-#if ( nicUSE_UNCACHED_MEMORY == 0 )
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-    {
-        static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-        uint8_t * ucRAMBuffer = ucNetworkPackets;
-        uint32_t ul;
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE )
 
-        for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+    #if ( nicUSE_UNCACHED_MEMORY != 0 )
+
+        void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
         {
-            pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-            *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-            ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-        }
-    }
-#else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-    {
-        static uint8_t * pucNetworkPackets = NULL;
+            static uint8_t * pucNetworkPackets = NULL;
 
-        if( pucNetworkPackets == NULL )
-        {
-            pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
-
-            if( pucNetworkPackets != NULL )
+            if( pucNetworkPackets == NULL )
             {
-                uint8_t * ucRAMBuffer = pucNetworkPackets;
-                uint32_t ul;
+                pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE );
 
-                for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+                if( pucNetworkPackets != NULL )
                 {
-                    pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-                    *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-                    ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
+                    uint8_t * ucRAMBuffer = pucNetworkPackets;
+                    uint32_t ul;
+
+                    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+                    {
+                        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+                        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+                        ucRAMBuffer += ipTOTAL_ETHERNET_FRAME_SIZE;
+                    }
                 }
             }
         }
-    }
-#endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
+
+        #else
+            #error no custom cached buffer allocation method for zynq is defined
+        #endif  /* if ( nicUSE_UNCACHED_MEMORY != 0 ) */
+
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ) */
 /*-----------------------------------------------------------*/
 
 static BaseType_t xZynqGetPhyLinkStatus( NetworkInterface_t * pxInterface )
