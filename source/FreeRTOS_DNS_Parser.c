@@ -911,9 +911,10 @@
             IPHeader_t * pxIPHeader;
             UDPHeader_t * pxUDPHeader;
             size_t uxDataLength;
-            NetworkEndPoint_t * pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
+            NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
             const size_t uxIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
 
+            configASSERT( pxEndPoint != NULL );
             pxUDPPacket = ( ( UDPPacket_t * )
                             pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
