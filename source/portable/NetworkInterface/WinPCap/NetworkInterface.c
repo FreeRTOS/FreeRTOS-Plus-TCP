@@ -864,7 +864,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                             if( pxNetworkBuffer->pxEndPoint == NULL )
                             {
                                 FreeRTOS_printf( ( "Network interface: dropped packet\n" ) );
-                                vReleaseNetworkBufferAndDescriptor( BUFFER_FROM_WHERE_CALL( 153 ) pxNetworkBuffer );
+                                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
                             }
                             else
                             {

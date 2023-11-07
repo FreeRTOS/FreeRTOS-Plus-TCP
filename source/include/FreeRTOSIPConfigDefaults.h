@@ -825,6 +825,53 @@
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigBUFFER_ALLOC_FIXED_SIZE
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * Sets the buffer allocation method to use fixed static memory of size
+ * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE.
+ * If disabled then a memory allocator that will not fragment the heap
+ * should be used.
+ */
+
+#ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE
+    #define ipconfigBUFFER_ALLOC_FIXED_SIZE    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigBUFFER_ALLOC_FIXED_SIZE != ipconfigDISABLE ) && ( ipconfigBUFFER_ALLOC_FIXED_SIZE != ipconfigENABLE ) )
+    #error Invalid ipconfigBUFFER_ALLOC_FIXED_SIZE configuration
+#endif
+
+#ifndef ipconfigBUFFER_ALLOC_INIT
+    #define ipconfigBUFFER_ALLOC_INIT() do {} while( ipFALSE_BOOL )
+#endif
+
+#ifndef ipconfigBUFFER_ALLOC_LOCK
+    #define ipconfigBUFFER_ALLOC_LOCK() taskENTER_CRITICAL()
+#endif
+
+#ifndef ipconfigBUFFER_ALLOC_UNLOCK
+    #define ipconfigBUFFER_ALLOC_UNLOCK()   taskEXIT_CRITICAL()
+#endif
+
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE )
+
+    #ifndef ipconfigBUFFER_ALLOC_LOCK_FROM_ISR
+        #define ipconfigBUFFER_ALLOC_LOCK_FROM_ISR()    UBaseType_t uxSavedInterruptStatus = ( UBaseType_t ) portSET_INTERRUPT_MASK_FROM_ISR(); {
+    #endif
+
+    #ifndef ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR
+        #define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); }
+    #endif
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigUSE_LINKED_RX_MESSAGES
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_LINKED_RX_MESSAGES

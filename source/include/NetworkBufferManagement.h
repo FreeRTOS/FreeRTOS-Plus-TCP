@@ -36,24 +36,17 @@
 
 #include "FreeRTOS_IP.h"
 
-/* _HT_ Two macro's needed while debugging/testing, please ignore. */
-
-#define BUFFER_FROM_WHERE_DECL
-#define BUFFER_FROM_WHERE_CALL( aWhere )
-
 /* NOTE PUBLIC API FUNCTIONS. */
+
 BaseType_t xNetworkBuffersInitialise( void );
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks );
-
-/* The definition of the below function is only available if BufferAllocation_2.c has been linked into the source. */
-NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes );
 void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-/* The definition of the below function is only available if BufferAllocation_2.c has been linked into the source. */
-BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes );
-void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer );
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE )
+    NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeBytes );
+    BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer );
+#endif
 
 /* Get the current number of free network buffers. */
 UBaseType_t uxGetNumberOfFreeNetworkBuffers( void );
@@ -65,19 +58,10 @@ UBaseType_t uxGetMinimumFreeNetworkBuffers( void );
 NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                                     size_t uxNewLength );
 
-/* Increase the size of a Network Buffer.
- * In case BufferAllocation_2.c is used, the new space must be allocated. */
-NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                                                 size_t xNewSizeBytes );
-
-#if ipconfigTCP_IP_SANITY
-
-/*
- * Check if an address is a valid pointer to a network descriptor
- * by looking it up in the array of network descriptors
- */
-    UBaseType_t bIsValidNetworkDescriptor( const NetworkBufferDescriptor_t * pxDesc );
-    BaseType_t prvIsFreeBuffer( const NetworkBufferDescriptor_t * pxDescr );
+#if ipconfigIS_DISABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE )
+    /* Increase the size of a Network Buffer. */
+    NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                                                     size_t xNewSizeBytes );
 #endif
 
 /* *INDENT-OFF* */

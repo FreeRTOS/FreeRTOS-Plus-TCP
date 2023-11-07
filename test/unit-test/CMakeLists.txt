@@ -124,14 +124,6 @@ foreach( file ${TCP_INCLUDES} )
     execute_process( COMMAND sed "1 i\#include \"FreeRTOSIPConfig.h\"" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
 
-    if(${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
-        execute_process( COMMAND sed "s/extern const BaseType_t xBufferAllocFixedSize/extern BaseType_t xBufferAllocFixedSize/g" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
-                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.h )
-        execute_process( COMMAND mv ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.h ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
-    endif()
-
-
-
     # Use this tool to process all conditional declarations.
     if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Routing" OR ${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
         execute_process( COMMAND unifdefall -U${Guard} -USEND_REPEATED_COUNT

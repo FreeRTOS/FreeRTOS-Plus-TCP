@@ -491,7 +491,7 @@
                             uint8_t * pucNewBuffer = NULL;
                             size_t uxExtraLength;
 
-                            if( xBufferAllocFixedSize == pdFALSE )
+                            #if( ipconfigBUFFER_ALLOC_FIXED_SIZE == 0 )
                             {
                                 size_t uxDataLength = uxBufferLength +
                                                       sizeof( UDPHeader_t ) +
@@ -541,10 +541,11 @@
                                     pxNetworkBuffer = NULL;
                                 }
                             }
-                            else
+                            #else
                             {
                                 pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ uxUDPOffset ] );
                             }
+                            #endif
 
                             if( ( pxNetworkBuffer != NULL ) )
                             {
@@ -1168,9 +1169,9 @@
                  * that were already present. */
                 uxSizeNeeded = pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t );
 
-                if( xBufferAllocFixedSize == pdFALSE )
+                #if( ipconfigBUFFER_ALLOC_FIXED_SIZE == 0 )
                 {
-                    /* We're linked with BufferAllocation_2.c
+                    /* Dynamic buffers are used,
                      * pxResizeNetworkBufferWithDescriptor() will malloc a new bigger buffer,
                      * and memcpy the data. The old buffer will be free'd.
                      */
@@ -1186,12 +1187,13 @@
                     pxNetworkBuffer->xDataLength = uxSizeNeeded;
                     pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
                 }
-                else
+                #else
                 {
-                    /* BufferAllocation_1.c is used, the Network Buffers can contain at least
+                    /* Fixed buffers are used, the Network Buffers can contain at least
                      * ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER. */
                     configASSERT( uxSizeNeeded < ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER );
                 }
+                #endif
 
                 pxNetworkBuffer->xDataLength = uxSizeNeeded;
 

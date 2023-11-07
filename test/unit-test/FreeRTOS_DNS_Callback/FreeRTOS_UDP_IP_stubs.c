@@ -40,8 +40,6 @@
 #include "FreeRTOS_IP_Private.h"
 
 
-const BaseType_t xBufferAllocFixedSize = pdTRUE;
-
 void vPortEnterCritical( void )
 {
 }

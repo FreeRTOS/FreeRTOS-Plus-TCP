@@ -782,11 +782,6 @@ static BaseType_t prvNetworkInterfaceInput( void )
             if( data_buffer.buffer != NULL )
             {
                 pxReceivedBuffer = pxPacketBuffer_to_NetworkBuffer( data_buffer.buffer );
-                #if ( ipconfigTCP_IP_SANITY != 0 )
-                {
-                    configASSERT( bIsValidNetworkDescriptor( pxReceivedBuffer ) != 0 );
-                }
-                #endif
             }
 
             if( pxReceivedBuffer == NULL )

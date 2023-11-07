@@ -576,7 +576,7 @@ static void handle_arpq( char * pcBuffer )
 
                 #if ( ipconfigUSE_IPv6 != 0 )
                     case ipTYPE_IPv6:
-                        pxBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 180 ) uxNeededSize, pdMS_TO_TICKS( 100U ) );
+                        pxBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, pdMS_TO_TICKS( 100U ) );
 
                         if( pxBuffer != NULL )
                         {
