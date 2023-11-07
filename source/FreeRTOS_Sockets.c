@@ -2929,6 +2929,25 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         break;
                 #endif /* ipconfigUSE_TCP == 1 */
 
+                #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+                    case FREERTOS_SO_SOCKET_PRIORITY:
+                       {
+                           BaseType_t * pxValue = ( BaseType_t * ) pvOptionValue;
+
+                           if( pxValue == NULL )
+                           {
+                               xReturn = pdFREERTOS_ERRNO_EINVAL;
+                           }
+                           else
+                           {
+                               pxSocket->ucPriority = *pxValue;
+                               xReturn = pdPASS;
+                           }
+
+                           break;
+                       }
+                #endif /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
+
             default:
                 /* No other options are handled. */
                 xReturn = -pdFREERTOS_ERRNO_ENOPROTOOPT;
