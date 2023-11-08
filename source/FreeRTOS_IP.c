@@ -1032,7 +1032,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
     BaseType_t xReturn = pdFALSE;
     BaseType_t xQueueCreateStatus = pdFALSE;
 
-    #if ( ipconfigEVENT_QUEUES > 1 )
+    #if ( configSUPPORT_STATIC_ALLOCATION > 1 )
         BaseType_t xIndex;
     #endif
 
@@ -1161,8 +1161,23 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             FreeRTOS_debug_printf( ( "FreeRTOS_IPInit_Multi: xNetworkBuffersInitialise() failed\n" ) );
 
             /* Clean up. */
-            vQueueDelete( xNetworkEventQueue );
-            xNetworkEventQueue = NULL;
+            #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES > 1 )
+                for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
+                {
+                    vQueueDelete( xNetworkTxRxEventQueues[ xIndex ][ 0 ] );
+                    xNetworkTxRxEventQueues[ xIndex ][ 0 ] = NULL;
+
+                    vQueueDelete( xNetworkTxRxEventQueues[ xIndex ][ 1 ] );
+                    xNetworkTxRxEventQueues[ xIndex ][ 1 ] = NULL;
+
+                }
+
+                xNetworkEventQueue = NULL;
+
+            #else
+                vQueueDelete( xNetworkEventQueue );
+                xNetworkEventQueue = NULL;
+            #endif
         }
     }
     else
