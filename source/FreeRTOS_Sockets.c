@@ -2932,7 +2932,7 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
                     case FREERTOS_SO_SOCKET_PRIORITY:
                        {
-                           BaseType_t * pxValue = ( BaseType_t * ) pvOptionValue;
+                           uint8_t * pxValue = ( uint8_t * ) pvOptionValue;
 
                            if( pxValue == NULL )
                            {

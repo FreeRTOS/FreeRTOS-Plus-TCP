@@ -192,7 +192,7 @@ QueueHandle_t xNetworkEventQueue = NULL;
 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
     /** @brief Multi priority event queues for TX and RX, and their mapping.
      */
-    QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } };
+    QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } }; /**< 0 - TX Queue, 1 - RX Queue */
     uint8_t xQueueMapping[ ipconfigEVENT_QUEUES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
 #endif
 
@@ -1032,7 +1032,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
     BaseType_t xReturn = pdFALSE;
     BaseType_t xQueueCreateStatus = pdFALSE;
 
-    #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES > 1 )
+    #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
         BaseType_t xIndex;
     #endif
 
@@ -1161,7 +1161,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             FreeRTOS_debug_printf( ( "FreeRTOS_IPInit_Multi: xNetworkBuffersInitialise() failed\n" ) );
 
             /* Clean up. */
-            #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES > 1 )
+            #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
                 for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
                 {
                     vQueueDelete( xNetworkTxRxEventQueues[ xIndex ][ 0 ] );
@@ -1551,7 +1551,11 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                  * IP task is already awake processing other message. */
                 vIPSetTCPTimerExpiredState( pdTRUE );
 
-                if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
+                #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+                    if( ulTaskNotifyValueClear( xIPTaskHandle, 0 ) != 0U )
+                #else
+                    if( uxQueueMessagesWaiting( xNetworkEventQueue ) != 0U )
+                #endif
                 {
                     /* Not actually going to send the message but this is not a
                      * failure as the message didn't need to be sent. */
@@ -1570,7 +1574,33 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                 uxUseTimeout = ( TickType_t ) 0;
             }
 
-            xReturn = xQueueSendToBack( xNetworkEventQueue, pxEvent, uxUseTimeout );
+            #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+            {
+                QueueHandle_t xQueue = xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES - 1 ][ 0 ];
+
+                if( ( pxEvent->eEventType == eNetworkTxEvent ) || ( pxEvent->eEventType == eStackTxEvent ) )
+                {
+                    NetworkBufferDescriptor_t * pxBuffer = ( NetworkBufferDescriptor_t * ) pxEvent->pvData;
+                    xQueue = xNetworkTxRxEventQueues[ xQueueMapping[ pxBuffer->ucPriority ] ][ 0 ]  ;
+                }
+                else if( pxEvent->eEventType == eNetworkRxEvent )
+                {
+                    NetworkBufferDescriptor_t * pxBuffer = ( NetworkBufferDescriptor_t * ) pxEvent->pvData;
+                    xQueue = xNetworkTxRxEventQueues[ xQueueMapping[ pxBuffer->ucPriority ] ][ 1 ]  ;
+                }
+
+                xReturn = xQueueSendToBack( xQueue, pxEvent, uxUseTimeout );
+
+                if( xReturn != pdFAIL )
+                {
+                    xTaskNotifyGive( xIPTaskHandle );
+                }
+            }
+            #else /* #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
+            {
+                xReturn = xQueueSendToBack( xNetworkEventQueue, pxEvent, uxUseTimeout );
+            }
+            #endif /* #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
 
             if( xReturn == pdFAIL )
             {
