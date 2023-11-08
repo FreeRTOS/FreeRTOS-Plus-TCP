@@ -1032,7 +1032,7 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
     BaseType_t xReturn = pdFALSE;
     BaseType_t xQueueCreateStatus = pdFALSE;
 
-    #if ( configSUPPORT_STATIC_ALLOCATION > 1 )
+    #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES > 1 )
         BaseType_t xIndex;
     #endif
 
