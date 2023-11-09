@@ -758,6 +758,9 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             pxSocket->xSendBlockTime = ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME;
             pxSocket->ucSocketOptions = ( uint8_t ) FREERTOS_SO_UDPCKSUM_OUT;
             pxSocket->ucProtocol = ( uint8_t ) xProtocolCpy; /* protocol: UDP or TCP */
+            #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+                pxSocket->ucPriority = ipconfig_DEFAULT_EVENT_PRIORITY;
+            #endif
 
             xReturn = pxSocket;
         }

@@ -109,6 +109,7 @@
     static volatile UBaseType_t uxNextTxRx[ipconfigEVENT_QUEUES] = { STACK_TX_EVENT };
     static volatile UBaseType_t uxIsEmptyQueue[ipconfigEVENT_QUEUES][ 2 ] = { { 0 } };
     static volatile UBaseType_t uxCurrentBudget[ipconfigEVENT_QUEUES] = ipconfigBUDGET_MAPPING;
+    static volatile const UBaseType_t uxAllottedBudget[ipconfigEVENT_QUEUES] = ipconfigBUDGET_MAPPING;
 #endif
 
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
@@ -193,7 +194,7 @@ QueueHandle_t xNetworkEventQueue = NULL;
     /** @brief Multi priority event queues for TX and RX, and their mapping.
      */
     QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } }; /**< 0 - TX Queue, 1 - RX Queue */
-    uint8_t xQueueMapping[ ipconfigEVENT_QUEUES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
+    uint8_t xQueueMapping[ ipconfigEVENT_PRIORITIES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
 #endif
 
 /** @brief The IP packet ID. */
@@ -323,7 +324,7 @@ static void prvProcessIPEventsAndTimers( void )
                 if( ( uxIsEmptyQueue[ xCurQueueIndex ][ 0 ] && uxIsEmptyQueue[ xCurQueueIndex ][ 1 ] ) || ( uxCurrentBudget[ xCurQueueIndex ] == 0 ) )
                 {
                     /* Restore budget of the current queue */
-                    uxCurrentBudget[ xCurQueueIndex ] = xQueueMapping[ xCurQueueIndex ];
+                    uxCurrentBudget[ xCurQueueIndex ] = uxAllottedBudget[ xCurQueueIndex ];
 
                     /* Reset empty queue trackers */
                     uxIsEmptyQueue[ xCurQueueIndex ][ 0 ] = 0;

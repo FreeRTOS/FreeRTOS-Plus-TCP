@@ -1164,6 +1164,14 @@
     #define ipconfigEVENT_QUEUES                    ( 1 )
 #endif
 
+#ifndef ipconfigEVENT_PRIORITIES
+    #if ( ipconfigEVENT_QUEUES > 1 )
+        #define ipconfigEVENT_PRIORITIES            ( 8 )
+    #else
+        #define ipconfigEVENT_PRIORITIES            ( 1 )
+    #endif
+#endif
+
 #if ( ipconfigEVENT_QUEUES > 1 )
     #define ipconfigMULTI_PRIORITY_EVENT_QUEUES     ( 1 )
 #endif
@@ -1175,9 +1183,13 @@
 #endif
 
 #ifndef ipconfigPACKET_PRIORITY_QUEUE_MAPPING
-    #if ( ipconfigEVENT_QUEUES == 8 )
+    #if ( ipconfigEVENT_PRIORITIES == 8 )
         #define ipconfigPACKET_PRIORITY_QUEUE_MAPPING     { 0, 1, 2, 3, 4, 5, 6, 7 }
     #endif
+#endif
+
+#ifndef ipconfig_DEFAULT_EVENT_PRIORITY
+    #define ipconfig_DEFAULT_EVENT_PRIORITY         ( 1 )
 #endif
 
 #endif /* FREERTOS_DEFAULT_IP_CONFIG_H */
