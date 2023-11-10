@@ -361,6 +361,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     pxReturn->xDataLength = xRequestedSizeBytesCopy;
                     pxReturn->pxInterface = NULL;
                     pxReturn->pxEndPoint = NULL;
+                    #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
+                        pxReturn->ucPriority = ipconfig_DEFAULT_EVENT_PRIORITY;
+                    #endif
 
                     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                     {
