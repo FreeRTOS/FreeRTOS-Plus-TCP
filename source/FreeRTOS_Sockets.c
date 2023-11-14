@@ -4546,7 +4546,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 xBytesLeft -= xByteCount;
                 xBytesSent += xByteCount;
 
-                if( ( xBytesLeft == 0 ) && ( pvBuffer == NULL ) )
+                if( ( xBytesLeft == 0 ) || ( pvBuffer == NULL ) )
                 {
                     /* pvBuffer can be NULL in case TCP zero-copy transmissions are used. */
                     break;
