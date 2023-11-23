@@ -70,10 +70,10 @@
 /* Compile time assertion with zero runtime effects
  * it will assert on 'e' not being zero, as it tries to divide by it,
  * will also print the line where the error occurred in case of failure */
-/* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
-/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
-/* coverity[misra_c_2012_rule_20_10_violation] */
 #if defined( ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+    /* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
+    /* coverity[misra_c_2012_rule_20_10_violation] */
     #define ASSERT_CONCAT_( a, b )    a ## b
     #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
     #define STATIC_ASSERT( e ) \
