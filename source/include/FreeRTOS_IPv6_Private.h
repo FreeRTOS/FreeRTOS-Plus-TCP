@@ -57,10 +57,10 @@
 
 /* The offset into an IP packet into which the IP data (payload) starts. */
 #define ipIPv6_PAYLOAD_OFFSET    ( sizeof( IPPacket_IPv6_t ) )
+/* The maximum UDP payload length. */
 /* MISRA Ref 20.5.1 [Use of undef] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
 /* coverity[misra_c_2012_rule_20_5_violation] */
-/* The maximum UDP payload length. */
 #undef ipMAX_UDP_PAYLOAD_LENGTH
 #define ipMAX_UDP_PAYLOAD_LENGTH     ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
