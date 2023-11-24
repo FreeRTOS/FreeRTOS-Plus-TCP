@@ -905,7 +905,7 @@
                 ( void ) FreeRTOS_setsockopt( xDHCPv4Socket, 0, FREERTOS_SO_RCVTIMEO, &( xTimeoutTime ), sizeof( TickType_t ) );
                 ( void ) FreeRTOS_setsockopt( xDHCPv4Socket, 0, FREERTOS_SO_SNDTIMEO, &( xTimeoutTime ), sizeof( TickType_t ) );
 
-                memset( &xAddress, 0, sizeof( xAddress ) );
+                ( void ) memset( &xAddress, 0, sizeof( xAddress ) );
                 xAddress.sin_family = FREERTOS_AF_INET4;
                 xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
                 /* Bind to the standard DHCP client port. */
