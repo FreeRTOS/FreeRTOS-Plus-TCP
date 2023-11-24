@@ -843,7 +843,7 @@
  *        using it.
  * @param[in] pxEndPoint The end-point that stops using the socket.
  */
-    void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
         if( ( EP_DHCPData.xDHCPSocket == NULL ) || ( EP_DHCPData.xDHCPSocket != xDHCPv4Socket ) )
         {
