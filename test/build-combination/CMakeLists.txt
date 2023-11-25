@@ -47,6 +47,12 @@ target_include_directories(freertos_plus_tcp_config_default INTERFACE DefaultCon
 target_link_libraries(freertos_plus_tcp_config_default INTERFACE freertos_plus_tcp_config_common)
 
 # -------------------------------------------------------------------
+add_library( freertos_plus_tcp_config_all_enable_tsn INTERFACE)
+target_include_directories(freertos_plus_tcp_config_all_enable_tsn INTERFACE Enable_TSN)
+target_link_libraries(freertos_plus_tcp_config_all_enable_tsn INTERFACE freertos_plus_tcp_config_common)
+
+# -------------------------------------------------------------------
+
 # Configuration for FreeRTOS-Kernel
 if(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM" )
     # Check Config target is available. And then do nothing.
@@ -70,6 +76,8 @@ elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_IPV4_IPV6" )
 elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "HEADER_SELF_CONTAIN" )
     add_library( freertos_config ALIAS freertos_plus_tcp_config_header_self_contain)
     include( Header_Self_Contain/headerSelfContain.cmake )
+elseif(FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "ENABLE_ALL_TSN" )
+    add_library( freertos_config ALIAS freertos_plus_tcp_config_all_enable_tsn)
 else()
     add_library( freertos_config ALIAS freertos_plus_tcp_config_default)
 endif()
@@ -97,6 +105,8 @@ target_compile_options(freertos_plus_tcp_build_test
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-unused-variable>
 )
+
+set( FREERTOS_HEAP "4" CACHE STRING "" FORCE)
 
 target_link_libraries(freertos_plus_tcp_build_test
     PRIVATE

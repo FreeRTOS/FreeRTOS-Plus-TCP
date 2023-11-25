@@ -51,11 +51,9 @@
     #include "compiler.h"
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
     #ifdef __cplusplus
     extern "C" {
     #endif
-/**INDENT-ON**/
 /*/ @endcond */
 
 /** The buffer addresses written into the descriptors must be aligned, so the
@@ -1545,11 +1543,9 @@
                                        size_t uxLength );
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
     #ifdef __cplusplus
-}
+}     /* extern "C" */
     #endif
-/**INDENT-ON**/
 /*/ @endcond */
 
     #ifndef GMAC_STATS

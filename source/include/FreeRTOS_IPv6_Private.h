@@ -271,4 +271,4 @@ eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t *
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_PRIVATE_H */
+#endif /* FREERTOS_IPV6_PRIVATE_H */

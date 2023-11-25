@@ -211,6 +211,58 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Check if the packet is an illegal loopback packet.
+ *
+ * @param[in] pxIPHeader The IP-header being checked.
+ *
+ * @return Returns pdTRUE if the packet should be stopped, because either the source
+ *         or the target address is a loopback address.
+ */
+BaseType_t xBadIPv4Loopback( const IPHeader_t * const pxIPHeader )
+{
+    BaseType_t xReturn = pdFALSE;
+    const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxIPHeader->ulSourceIPAddress, 3 );
+
+    /* Allow loopback packets from this node itself only. */
+    if( pxEndPoint != NULL )
+    {
+        BaseType_t x1 = ( xIsIPv4Loopback( pxIPHeader->ulDestinationIPAddress ) != 0 ) ? pdTRUE : pdFALSE;
+        BaseType_t x2 = ( xIsIPv4Loopback( pxIPHeader->ulSourceIPAddress ) != 0 ) ? pdTRUE : pdFALSE;
+
+        if( x1 != x2 )
+        {
+            /* Either the source or the destination address is an IPv4 loopback address. */
+            xReturn = pdTRUE;
+        }
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Is the IP address an IPv4 loopback address.
+ *
+ * @param[in] ulAddress The IP address being checked.
+ *
+ * @return pdTRUE if the IP address is a loopback address or else, pdFALSE.
+ */
+BaseType_t xIsIPv4Loopback( uint32_t ulAddress )
+{
+    BaseType_t xReturn = pdFALSE;
+    uint32_t ulIP = FreeRTOS_ntohl( ulAddress );
+
+    if( ( ulIP >= ipFIRST_LOOPBACK_IPv4 ) &&
+        ( ulIP < ipLAST_LOOPBACK_IPv4 ) )
+    {
+        xReturn = pdTRUE;
+    }
+
+    return xReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Check whether this IPv4 packet is to be allowed or to be dropped.
  *
  * @param[in] pxIPPacket The IP packet under consideration.
@@ -258,6 +310,12 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
                  ( pxIPHeader->ucVersionHeaderLength > ipIPV4_VERSION_HEADER_LENGTH_MAX ) )
         {
             /* Can not handle, unknown or invalid header version. */
+            eReturn = eReleaseBuffer;
+        }
+        else if( xBadIPv4Loopback( &( pxIPPacket->xIPHeader ) ) == pdTRUE )
+        {
+            /* The local loopback addresses must never appear outside a host. See RFC 1122
+             * section 3.2.1.3. */
             eReturn = eReleaseBuffer;
         }
         else if(

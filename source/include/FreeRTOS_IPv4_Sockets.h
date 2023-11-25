@@ -38,15 +38,6 @@
     extern "C" {
     #endif
 
-
-/* Translate from 192.168.1.1 to a 32-bit number. */
-    BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
-                                    void * pvDestination );
-
-    const char * FreeRTOS_inet_ntop4( const void * pvSource,
-                                      char * pcDestination,
-                                      socklen_t uxSize );
-
 /**
  * @brief Called by prvSendUDPPacket(), this function will UDP packet
  *        fields and IPv4 address for the packet to be send.
@@ -62,6 +53,7 @@
                               struct freertos_sockaddr * pxSourceAddress );
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
+
 #endif /* FREERTOS_IPV4_SOCKETS_H */

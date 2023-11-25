@@ -332,19 +332,23 @@
         eIPv6_LinkLocal, /* 1111 1110 10  */
         eIPv6_SiteLocal, /* 1111 1110 11  */
         eIPv6_Multicast, /* 1111 1111     */
+        eIPv6_Loopback,  /* 1111 (::1)    */
         eIPv6_Unknown,   /* Not implemented. */
     }
     IPv6_Type_t;
+
+    #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief Check the type of an IPv16 address.
  *
  * @return A value from enum IPv6_Type_t.
  */
-    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+        IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+    #endif
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* FREERTOS_ROUTING_H */
