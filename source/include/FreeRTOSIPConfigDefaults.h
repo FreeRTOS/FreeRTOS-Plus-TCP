@@ -3122,7 +3122,13 @@
  */
 
 #ifndef FreeRTOS_flush_logging
-    #define FreeRTOS_flush_logging()    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) do {} while( ipFALSE_BOOL )
+    #define FreeRTOS_flush_logging()    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) \
+                                        { \
+                                            do {} while( ipFALSE_BOOL ); \
+                                        } \
+                                        else \
+                                        { \
+                                        }
 #endif
 
 /*---------------------------------------------------------------------------*/
