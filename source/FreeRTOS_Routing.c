@@ -869,7 +869,7 @@ struct xIPv6_Couple
                                                    pcBufferFrom,
                                                    sizeof( pcBufferFrom ) );
 
-                FreeRTOS_debug_printf( ( "EasyFit[%x]: %d %d %d ( %s ->%s ) BAD\n",
+                FreeRTOS_printf( ( "EasyFit[%x]: %d %d %d ( %s ->%s ) BAD\n",
                                          usFrameType,
                                          ( unsigned ) xCount[ 0 ],
                                          ( unsigned ) xCount[ 1 ],
