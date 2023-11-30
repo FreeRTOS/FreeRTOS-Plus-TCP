@@ -1929,7 +1929,7 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
             /* Clear the address: */
             ( void ) memset( pxAddress, 0, sizeof( struct freertos_sockaddr ) );
 
-            if( pxSocket->bits.bIsIPv6 == pdFALSE_UNSIGNED )
+            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
             {
                 pxAddress->sin_family = FREERTOS_AF_INET6;
             }
