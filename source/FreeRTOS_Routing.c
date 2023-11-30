@@ -870,12 +870,12 @@ struct xIPv6_Couple
                                                    sizeof( pcBufferFrom ) );
 
                 FreeRTOS_printf( ( "EasyFit[%x]: %d %d %d ( %s ->%s ) BAD\n",
-                                         usFrameType,
-                                         ( unsigned ) xCount[ 0 ],
-                                         ( unsigned ) xCount[ 1 ],
-                                         ( unsigned ) xCount[ 2 ],
-                                         ( xRetNtopFrom == NULL ) ? "INVALID" : pcBufferFrom,
-                                         ( xRetNtopTo == NULL ) ? "INVALID" : pcBufferTo ) );
+                                   usFrameType,
+                                   ( unsigned ) xCount[ 0 ],
+                                   ( unsigned ) xCount[ 1 ],
+                                   ( unsigned ) xCount[ 2 ],
+                                   ( xRetNtopFrom == NULL ) ? "INVALID" : pcBufferFrom,
+                                   ( xRetNtopTo == NULL ) ? "INVALID" : pcBufferTo ) );
             }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
