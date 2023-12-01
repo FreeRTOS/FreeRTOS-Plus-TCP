@@ -259,13 +259,13 @@ static TickType_t xLastGratuitousARPTime = 0U;
                 traceARP_PACKET_RECEIVED();
 
                 /* Some extra logging while still testing. */
-                #if ( ipconfigHAS_PRINTF != 0 )
+                #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
                     if( pxARPHeader->usOperation == ( uint16_t ) ipARP_REPLY )
                     {
-                        FreeRTOS_printf( ( "ipARP_REPLY from %xip to %xip end-point %xip\n",
-                                           ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
-                                           ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                                           ( unsigned ) FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
+                        FreeRTOS_debug_printf( ( "ipARP_REPLY from %xip to %xip end-point %xip\n",
+                                                 ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
+                                                 ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
+                                                 ( unsigned ) FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
                     }
                 #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
