@@ -842,33 +842,6 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
     {
         if( heth->DMAErrorCode )
         {
-             /*volatile uint32_t errs = heth->Instance->DMASR;
-             #if defined ( STM32H5 ) || defined ( STM32H7 )
-                ETH_DMARXNDESCWBF_ERRORS_MASK
-             #elif defined ( STM32F4 ) || defined ( STM32F7 )
-                 HAL_StatusTypeDef HAL_ETH_GetRxDataErrorCode(ETH_HandleTypeDef *heth, uint32_t *pErrorCode)
-                ETH_DMARXDESC_ERRORS_MASK
-            #endif*/
-            /*ETH_DMA_RX_NO_ERROR_FLAG
-            ETH_DMA_RX_DESC_READ_ERROR_FLAG
-            ETH_DMA_RX_DESC_WRITE_ERROR_FLAG
-            ETH_DMA_RX_BUFFER_READ_ERROR_FLAG
-            ETH_DMA_RX_BUFFER_WRITE_ERROR_FLAG
-            ETH_DMA_TX_NO_ERROR_FLAG
-            ETH_DMA_TX_DESC_READ_ERROR_FLAG
-            ETH_DMA_TX_DESC_WRITE_ERROR_FLAG
-            ETH_DMA_TX_BUFFER_READ_ERROR_FLAG
-            ETH_DMA_TX_BUFFER_WRITE_ERROR_FLAG
-            ETH_DMA_CONTEXT_DESC_ERROR_FLAG
-            ETH_DMA_FATAL_BUS_ERROR_FLAG
-            ETH_DMA_EARLY_TX_IT_FLAG
-            ETH_DMA_RX_WATCHDOG_TIMEOUT_FLAG
-            ETH_DMA_RX_PROCESS_STOPPED_FLAG
-            ETH_DMA_RX_BUFFER_UNAVAILABLE_FLAG
-            ETH_DMA_TX_PROCESS_STOPPED_FLAG
-            ETH_DMA_OVERFLOW_RXFIFOCOUNTER
-            ETH_DMA_OVERFLOW_MISSEDFRAMECOUNTER*/
-
             if( heth->gState == HAL_ETH_STATE_ERROR )
             {
                 /* fatal bus error occurred */
@@ -889,15 +862,6 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
                     if( ( heth->DMAErrorCode & ETH_DMASR_RBUS ) == ETH_DMASR_RBUS)
                     {
                         ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventErrRx, eSetBits, &xHigherPriorityTaskWoken );
-                        /*ETH_DRIBBLE_BIT_ERROR
-                        ETH_RECEIVE_ERROR
-                        ETH_RECEIVE_OVERFLOW
-                        ETH_WATCHDOG_TIMEOUT
-                        ETH_GIANT_PACKET
-                        ETH_CRC_ERROR
-                        ETH_VLAN_FILTER_PASS
-                        ETH_DEST_ADDRESS_FAIL
-                        ETH_SOURCE_ADDRESS_FAIL*/
                     }
                 #endif
             }
@@ -908,16 +872,10 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
     {
         if( heth->MACErrorCode )
         {
-            /*ETH_RECEIVE_WATCHDOG_TIMEOUT
-            ETH_EXECESSIVE_COLLISIONS
-            ETH_LATE_COLLISIONS
-            ETH_EXECESSIVE_DEFERRAL
-            ETH_LOSS_OF_CARRIER
-            ETH_NO_CARRIER
-            ETH_TRANSMIT_JABBR_TIMEOUT*/
             ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventErrMac, eSetBits, &xHigherPriorityTaskWoken );
         }
     }
+
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
