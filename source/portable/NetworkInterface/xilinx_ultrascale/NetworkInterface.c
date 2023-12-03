@@ -392,7 +392,7 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 }
 /*-----------------------------------------------------------*/
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE )
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE ) && ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE )
 
     #if ( nicUSE_UNCACHED_MEMORY != 0 )
 
@@ -423,7 +423,7 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
         #error no custom cached buffer allocation method for xilinx ultrascale is defined
     #endif  /* if ( nicUSE_UNCACHED_MEMORY != 0 ) */
 
-#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ) */
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE ) && ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ) */
 /*-----------------------------------------------------------*/
 
 BaseType_t xGetPhyLinkStatus( void )

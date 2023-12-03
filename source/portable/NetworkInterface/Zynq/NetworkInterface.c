@@ -461,7 +461,7 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 }
 /*-----------------------------------------------------------*/
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE )
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE ) && ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE )
 
     #if ( nicUSE_UNCACHED_MEMORY != 0 )
 
@@ -492,7 +492,7 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
             #error no custom cached buffer allocation method for zynq is defined
         #endif  /* if ( nicUSE_UNCACHED_MEMORY != 0 ) */
 
-#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ) */
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE ) && ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ) */
 /*-----------------------------------------------------------*/
 
 static BaseType_t xZynqGetPhyLinkStatus( NetworkInterface_t * pxInterface )

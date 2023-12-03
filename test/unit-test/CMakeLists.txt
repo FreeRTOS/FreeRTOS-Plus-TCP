@@ -57,9 +57,7 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
-                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ND.h"
-                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_BitConfig.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
@@ -117,8 +115,8 @@ foreach( file ${TCP_INCLUDES} )
     endif()
 
     # Remove IPConfigDefaults from the file
-    #execute_process( COMMAND sed "s,#include \"FreeRTOSIPConfigDefaults.h\",,g" ${file}
-    #                 OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h )
+    execute_process( COMMAND sed "s,#include \"FreeRTOSIPConfigDefaults.h\",,g" ${file}
+                     OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h )
 
     # Add the FreeRTOSIPConfig file to each directory
     execute_process( COMMAND sed "1 i\#include \"FreeRTOSIPConfig.h\"" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h

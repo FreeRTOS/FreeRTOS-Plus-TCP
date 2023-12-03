@@ -867,14 +867,14 @@
         #define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); }
     #endif
 
-    #ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE
-        #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ipconfigDISABLE
-    #endif
+#endif
 
-    #ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE
-        #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE ipconfigDISABLE
-    #endif
+#ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE
+    #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ipconfigDISABLE
+#endif
 
+#ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE
+    #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE ipconfigDISABLE
 #endif
 
 /*---------------------------------------------------------------------------*/
