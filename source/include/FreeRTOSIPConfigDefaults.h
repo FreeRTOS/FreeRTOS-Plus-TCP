@@ -825,7 +825,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * ipconfigBUFFER_ALLOC_FIXED_SIZE
+ * ipconfigBUFFER_ALLOC_STATIC
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
  *
@@ -837,12 +837,12 @@
  * should be used.
  */
 
-#ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE
-    #define ipconfigBUFFER_ALLOC_FIXED_SIZE    ipconfigDISABLE
+#ifndef ipconfigBUFFER_ALLOC_STATIC
+    #define ipconfigBUFFER_ALLOC_STATIC    ipconfigDISABLE
 #endif
 
-#if ( ( ipconfigBUFFER_ALLOC_FIXED_SIZE != ipconfigDISABLE ) && ( ipconfigBUFFER_ALLOC_FIXED_SIZE != ipconfigENABLE ) )
-    #error Invalid ipconfigBUFFER_ALLOC_FIXED_SIZE configuration
+#if ( ( ipconfigBUFFER_ALLOC_STATIC != ipconfigDISABLE ) && ( ipconfigBUFFER_ALLOC_STATIC != ipconfigENABLE ) )
+    #error Invalid ipconfigBUFFER_ALLOC_STATIC configuration
 #endif
 
 #ifndef ipconfigBUFFER_ALLOC_INIT
@@ -857,7 +857,7 @@
     #define ipconfigBUFFER_ALLOC_UNLOCK()   taskEXIT_CRITICAL()
 #endif
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE )
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
 
     #ifndef ipconfigBUFFER_ALLOC_LOCK_FROM_ISR
         #define ipconfigBUFFER_ALLOC_LOCK_FROM_ISR()    UBaseType_t uxSavedInterruptStatus = ( UBaseType_t ) portSET_INTERRUPT_MASK_FROM_ISR(); {
@@ -867,14 +867,18 @@
         #define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); }
     #endif
 
+    #ifndef ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION
+        #define ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION ipconfigDISABLE
+    #endif
+
+    #ifndef ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION_STRING
+        #define ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION_STRING ".EthBuffersSection"
+    #endif
+
 #endif
 
-#ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE
-    #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ipconfigDISABLE
-#endif
-
-#ifndef ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE
-    #define ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE ipconfigDISABLE
+#ifndef ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE
+    #define ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE ipconfigDISABLE
 #endif
 
 /*---------------------------------------------------------------------------*/

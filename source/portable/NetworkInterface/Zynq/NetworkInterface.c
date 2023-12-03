@@ -461,38 +461,32 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 }
 /*-----------------------------------------------------------*/
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE ) && ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE )
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 )
 
-    #if ( nicUSE_UNCACHED_MEMORY != 0 )
+void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+{
+    static uint8_t * pucNetworkPackets = NULL;
 
-        void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+    if( pucNetworkPackets == NULL )
+    {
+        pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE );
+
+        if( pucNetworkPackets != NULL )
         {
-            static uint8_t * pucNetworkPackets = NULL;
+            uint8_t * ucRAMBuffer = pucNetworkPackets;
+            uint32_t ul;
 
-            if( pucNetworkPackets == NULL )
+            for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
             {
-                pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE );
-
-                if( pucNetworkPackets != NULL )
-                {
-                    uint8_t * ucRAMBuffer = pucNetworkPackets;
-                    uint32_t ul;
-
-                    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-                    {
-                        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-                        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-                        ucRAMBuffer += ipTOTAL_ETHERNET_FRAME_SIZE;
-                    }
-                }
+                pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+                *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+                ucRAMBuffer += ipTOTAL_ETHERNET_FRAME_SIZE;
             }
         }
+    }
+}
 
-        #else
-            #error no custom cached buffer allocation method for zynq is defined
-        #endif  /* if ( nicUSE_UNCACHED_MEMORY != 0 ) */
-
-#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE ) && ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_ALLOCATE ) */
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 ) */
 /*-----------------------------------------------------------*/
 
 static BaseType_t xZynqGetPhyLinkStatus( NetworkInterface_t * pxInterface )

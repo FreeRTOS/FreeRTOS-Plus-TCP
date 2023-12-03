@@ -87,10 +87,12 @@ static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 /* Pointer to the interface object of this NIC */
 static NetworkInterface_t * pxMyInterface = NULL;
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
-    const UBaseType_t uxBufferAllocFixedSize = ETHER_CFG_BUFSIZE;
-#else
-    #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for RX
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ETHER_CFG_BUFSIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for RX
+    #endif
 #endif
 
 static int16_t SendData( uint8_t * pucBuffer,
@@ -346,7 +348,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
                         /* Make a call to the standard trace macro to log the occurrence. */
                         iptraceETHERNET_RX_EVENT_LOST();
-                        clear_all_ether_rx_discriptors( 0 );
+                        clear_all_ether_rx_descriptors( 0 );
                     }
                     else
                     {
@@ -367,7 +369,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 /* The event was lost because a network buffer was not available.
                  * Call the standard trace macro to log the occurrence. */
                 iptraceETHERNET_RX_EVENT_LOST();
-                clear_all_ether_rx_discriptors( 1 );
+                clear_all_ether_rx_descriptors( 1 );
                 FreeRTOS_printf( ( "R_ETHER_Read_ZC2: Cleared descriptors\n" ) );
             }
         }
@@ -562,7 +564,7 @@ void EINT_Trig_isr( void * ectrl )
 } /* End of function EINT_Trig_isr() */
 
 
-static void clear_all_ether_rx_discriptors( uint32_t event )
+static void clear_all_ether_rx_descriptors( uint32_t event )
 {
     int32_t xBytesReceived;
     uint8_t * buffer_pointer;

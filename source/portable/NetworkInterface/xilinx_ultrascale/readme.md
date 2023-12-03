@@ -38,7 +38,7 @@ It is obligatory to define these in your FreeRTOSIPConfig.h :
 #define ipconfigZERO_COPY_TX_DRIVER               1
 
 
-Please enable ipconfigBUFFER_ALLOC_FIXED_SIZE.
+Please enable ipconfigBUFFER_ALLOC_STATIC.
 
 The following option causes the memory of the network packets to be allocated
 in normal ( cached ) memory.  With this option, TCP processing seems a faster

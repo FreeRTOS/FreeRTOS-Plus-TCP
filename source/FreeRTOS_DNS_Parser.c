@@ -491,7 +491,7 @@
                             uint8_t * pucNewBuffer = NULL;
                             size_t uxExtraLength;
 
-                            #if( ipconfigBUFFER_ALLOC_FIXED_SIZE == 0 )
+                            #if( ipconfigBUFFER_ALLOC_STATIC == 0 )
                             {
                                 size_t uxDataLength = uxBufferLength +
                                                       sizeof( UDPHeader_t ) +
@@ -1169,7 +1169,7 @@
                  * that were already present. */
                 uxSizeNeeded = pxNetworkBuffer->xDataLength + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t );
 
-                #if( ipconfigBUFFER_ALLOC_FIXED_SIZE == 0 )
+                #if( ipconfigBUFFER_ALLOC_STATIC == 0 )
                 {
                     /* Dynamic buffers are used,
                      * pxResizeNetworkBufferWithDescriptor() will malloc a new bigger buffer,

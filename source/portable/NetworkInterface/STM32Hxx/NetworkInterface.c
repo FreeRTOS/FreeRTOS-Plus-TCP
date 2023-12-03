@@ -144,10 +144,12 @@ ETH_DMADescTypeDef DMATxDscrTab[ ETH_TX_DESC_CNT ]    __attribute__( ( section( 
     uint8_t Tx_Buff[ ETH_TX_DESC_CNT ][ ETH_TX_BUF_SIZE ]                __attribute__( ( section( ".ethernet_data" ), aligned( 32 ) ) );
 #endif
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
-    const UBaseType_t uxBufferAllocFixedSize = ETH_RX_BUF_SIZE;
-#else
-    #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for STM32Hxx
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ETH_RX_BUF_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for STM32Hxx
+    #endif
 #endif
 
 /* This function binds PHY IO functions, then inits and configures */

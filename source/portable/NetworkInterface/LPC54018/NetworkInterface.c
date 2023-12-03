@@ -116,10 +116,12 @@ uint32_t rxbuffer[ ENET_RXBD_NUM ];
 
 TaskHandle_t receiveTaskHandle;
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
-    const UBaseType_t uxBufferAllocFixedSize = ENET_RXBUFF_SIZE;
-#else
-    #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for lpc54018
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ENET_RXBUFF_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for lpc54018
+    #endif
 #endif
 
 void ENET_IntCallback( ENET_Type * base,

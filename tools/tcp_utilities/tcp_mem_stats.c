@@ -235,7 +235,7 @@
         STATS_PRINTF( ( "TCPMemStat,ipconfig item,Value,PerUnit,Total\n" ) );
         xFirstLineNr = xCurrentLine;
 
-        #if( ipconfigBUFFER_ALLOC_FIXED_SIZE != 0 )
+        #if( ipconfigBUFFER_ALLOC_STATIC != 0 )
         {
             size_t uxBytes;
 
@@ -318,7 +318,7 @@
         /*
          * End of fixed RAM allocations.
          */
-        #if( ipconfigBUFFER_ALLOC_FIXED_SIZE != 0 )
+        #if( ipconfigBUFFER_ALLOC_STATIC != 0 )
         {
             pucComment[ 0 ] = 0;
         }

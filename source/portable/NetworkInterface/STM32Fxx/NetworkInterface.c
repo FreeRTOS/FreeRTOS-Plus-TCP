@@ -171,10 +171,12 @@ typedef enum
 
 static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
-    const UBaseType_t uxBufferAllocFixedSize = ETH_MAX_PACKET_SIZE;
-#else
-    #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for STM32Fxx
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ETH_MAX_PACKET_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for STM32Fxx
+    #endif
 #endif
 
 /*-----------------------------------------------------------*/

@@ -270,10 +270,12 @@ const PhyProperties_t xPHYProperties =
  * see "../Common/phyHandling.c". */
 static EthernetPhy_t xPhyObject;
 
-#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE )
-    const UBaseType_t uxBufferAllocFixedSize = NETWORK_BUFFER_SIZE;
-#else
-    #error ipconfigBUFFER_ALLOC_FIXED_SIZE_CUSTOM_BUFFER_SIZE must be enabled for DriverSAM
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = NETWORK_BUFFER_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for DriverSAM
+    #endif
 #endif
 
 /*-----------------------------------------------------------*/
