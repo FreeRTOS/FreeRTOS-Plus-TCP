@@ -664,7 +664,7 @@ static BaseType_t prvNetworkInterfaceInput()
         {
             xResult++;
 
-            eResult = ipCONSIDER_FRAME_FOR_PROCESSING( ( const uint8_t * const ) ( xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD ) );
+            eResult = EMAC_CONSIDER_FRAME_FOR_PROCESSING( ( const uint8_t * const ) ( xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD ) );
 
             if( eResult == eProcessBuffer )
             {

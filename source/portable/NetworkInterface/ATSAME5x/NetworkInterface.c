@@ -336,7 +336,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                     * to be processed.  NOTE! It is preferable to do this in
                     * the interrupt service routine itself, which would remove the need
                     * to unblock this task for packets that don't need processing. */
-                    if( ( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer ) &&
+                    if( ( EMAC_CONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer ) &&
                         ( xICMPChecksumResult == ipCORRECT_CRC ) )
                     {
                         /* The event about to be sent to the TCP/IP is an Rx event. */

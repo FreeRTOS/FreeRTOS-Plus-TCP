@@ -220,7 +220,7 @@ static void vNetifReceiveTask( void * pvParameters )
             pxDescriptor->xDataLength = uxMessageLen;
 
             /* eConsiderFrameForProcessing is interrupt safe */
-            xFrameProcess = ipCONSIDER_FRAME_FOR_PROCESSING( pxDescriptor->pucEthernetBuffer );
+            xFrameProcess = EMAC_CONSIDER_FRAME_FOR_PROCESSING( pxDescriptor->pucEthernetBuffer );
 
             if( xFrameProcess != eProcessBuffer )
             {

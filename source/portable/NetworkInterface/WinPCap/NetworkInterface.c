@@ -803,7 +803,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
             /* Check for minimal size. */
             if( pxHeader->len >= sizeof( EthernetHeader_t ) )
             {
-                eResult = ipCONSIDER_FRAME_FOR_PROCESSING( pucPacketData );
+                eResult = EMAC_CONSIDER_FRAME_FOR_PROCESSING( pucPacketData );
             }
             else
             {

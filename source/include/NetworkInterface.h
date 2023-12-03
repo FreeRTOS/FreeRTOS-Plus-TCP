@@ -35,6 +35,7 @@
 /* *INDENT-ON* */
 
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
 
 #define EMAC_HANDLER_TASK_NAME    "EMAC"
 #define EMAC_MAX_BLOCK_TIME_MS    100ul
@@ -45,6 +46,20 @@
 #define EMAC_IF_TX_EVENT              2UL
 #define EMAC_IF_ERR_EVENT             4UL
 #define EMAC_IF_ALL_EVENT             ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
+
+/** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
+ * driver will filter incoming packets and only pass the stack those packets it
+ * considers need processing.  In this case EMAC_CONSIDER_FRAME_FOR_PROCESSING() can
+ * be #-defined away.  If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 0
+ * then the Ethernet driver will pass all received packets to the stack, and the
+ * stack must do the filtering itself.  In this case EMAC_CONSIDER_FRAME_FOR_PROCESSING
+ * needs to call eConsiderFrameForProcessing.
+ */
+#if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0
+    #define EMAC_CONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
+#else
+    #define EMAC_CONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+#endif
 
 /* INTERNAL API FUNCTIONS. */
 

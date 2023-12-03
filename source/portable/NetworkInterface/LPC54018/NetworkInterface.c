@@ -135,7 +135,7 @@ static void prvProcessFrame( int length )
         ENET_ReadFrame( ENET, &g_handle, pxBufferDescriptor->pucEthernetBuffer, length, 0 );
         pxBufferDescriptor->xDataLength = length;
 
-        if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+        if( EMAC_CONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
         {
             IPStackEvent_t xRxEvent;
             xRxEvent.eEventType = eNetworkRxEvent;

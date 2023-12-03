@@ -638,7 +638,7 @@ static void prvProcessFrame( int length )
         }
         else
         {
-            if( ipCONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+            if( EMAC_CONSIDER_FRAME_FOR_PROCESSING( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
             {
                 IPStackEvent_t xRxEvent;
                 xRxEvent.eEventType = eNetworkRxEvent;
