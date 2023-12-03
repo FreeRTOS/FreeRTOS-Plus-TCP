@@ -63,23 +63,6 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
-
 /* The size of each buffer when BufferAllocation_1 is used:
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
 #define niBUFFER_1_PACKET_SIZE    1536

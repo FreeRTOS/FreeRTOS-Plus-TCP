@@ -42,15 +42,6 @@
 
 #include "m480_eth.h"
 
-/* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
- * driver will filter incoming packets and only pass the stack those packets it
- * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#endif
-
 /* Default the size of the stack used by the EMAC deferred handler task to twice
  * the size of the stack used by the idle task - but allow this to be overridden in
  * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */

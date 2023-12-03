@@ -447,6 +447,20 @@ eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * px
  */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer );
 
+/** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
+ * driver will filter incoming packets and only pass the stack those packets it
+ * considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
+ * be #-defined away.  If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 0
+ * then the Ethernet driver will pass all received packets to the stack, and the
+ * stack must do the filtering itself.  In this case ipCONSIDER_FRAME_FOR_PROCESSING
+ * needs to call eConsiderFrameForProcessing.
+ */
+#if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
+#else
+    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
+#endif
+
 /*
  * Return the checksum generated over xDataLengthBytes from pucNextData.
  */

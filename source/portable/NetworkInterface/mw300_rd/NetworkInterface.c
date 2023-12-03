@@ -57,15 +57,6 @@
     static struct netif * netif_arr[ MAX_INTERFACES_SUPPORTED ];
 #endif
 
-/* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
- * driver will filter incoming packets and only pass the stack those packets it
- * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#endif
-
 #define IP_ADDR_ANY          ( ( ip_addr_t * ) &ip_addr_any )
 #define IP_ADDR_BROADCAST    ( ( ip_addr_t * ) &ip_addr_broadcast )
 

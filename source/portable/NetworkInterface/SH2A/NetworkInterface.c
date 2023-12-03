@@ -45,12 +45,6 @@
 /* Demo includes. */
 #include "NetworkInterface.h"
 
-#if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES != 1
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#endif
-
 /* When a packet is ready to be sent, if it cannot be sent immediately then the
  * task performing the transmit will block for niTX_BUFFER_FREE_WAIT
  * milliseconds.  It will do this a maximum of niMAX_TX_ATTEMPTS before giving

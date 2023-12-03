@@ -51,12 +51,6 @@
 #include "FreeRTOS_ARP.h"
 #include "NetworkInterface.h"
 
-#if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES != 1
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#endif
-
 /* MDIO operations. */
 #define EXAMPLE_MDIO_OPS      enet_ops
 

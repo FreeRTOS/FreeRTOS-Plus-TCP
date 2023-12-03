@@ -100,22 +100,6 @@ static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 /* Copied from FreeRTOS_IP.c. Used for ICMP CRC calculation */
 #define ipCORRECT_CRC    0xffffU
 
-/* Also copied from FreeRTOS_IP.c */
-
-/** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
- * driver will filter incoming packets and only pass the stack those packets it
- * considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
- * be #-defined away.  If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 0
- * then the Ethernet driver will pass all received packets to the stack, and the
- * stack must do the filtering itself.  In this case ipCONSIDER_FRAME_FOR_PROCESSING
- * needs to call eConsiderFrameForProcessing.
- */
-#if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#endif
-
 /* Ethernet buffers for BufferAllocation_1.c scheme.
  * Set ipUSE_STATIC_ALLOCATION to 1 if using BufferAllocation_1.c,
  * otherwise to 0, to save RAM. From Iperf testing, there is no point in using

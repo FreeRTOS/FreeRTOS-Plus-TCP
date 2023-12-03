@@ -50,23 +50,6 @@
 /* The size of the stack allocated to the task that handles Rx packets. */
 #define nwRX_TASK_STACK_SIZE    140
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
-
 #ifndef configUSE_RMII
     #define configUSE_RMII    1
 #endif
@@ -126,15 +109,6 @@
 #define EMAC_IF_TX_EVENT     2UL
 #define EMAC_IF_ERR_EVENT    4UL
 #define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
-
-/* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
- * driver will filter incoming packets and only pass the stack those packets it
- * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#endif
 
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 ) || ( ipconfigZERO_COPY_TX_DRIVER == 0 )
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )

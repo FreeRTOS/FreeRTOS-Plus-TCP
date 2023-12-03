@@ -76,15 +76,6 @@
     #endif
 #endif /* if defined( __GNUC__ ) */
 
-/* If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
- * driver will filter incoming packets and only pass the stack those packets it
- * considers need processing. */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#endif
-
 #ifndef NETWORK_INTERFACE_RX_PRIORITY
     #define NETWORK_INTERFACE_RX_PRIORITY    ( configMAX_PRIORITIES - 1 )
 #endif

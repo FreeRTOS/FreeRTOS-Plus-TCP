@@ -52,14 +52,6 @@
 /* ========================== Local includes =================================*/
 #include <utils/wait_for_event.h>
 
-/* ======================== Macro Definitions =============================== */
-#if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer ) \
-    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#endif
-
 /* ============================== Definitions =============================== */
 #define xSEND_BUFFER_SIZE    32768
 #define xRECV_BUFFER_SIZE    32768
