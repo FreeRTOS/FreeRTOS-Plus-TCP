@@ -106,7 +106,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
             pxSet->pxProtocolHeaders = ( ( ProtocolHeaders_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxExtensionHeaderLength ] ) );
             pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket_IPv6->usPayloadLength );
             /* For IPv6, the number of bytes in the protocol is indicated. */
-            pxSet->usProtocolBytes = pxSet->usPayloadLength - ( uint16_t ) uxExtensionHeaderLength;
+            pxSet->usProtocolBytes = ( uint16_t ) ( pxSet->usPayloadLength - uxExtensionHeaderLength );
 
             size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
             uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
@@ -162,9 +162,9 @@ BaseType_t prvChecksumICMPv6Checks( size_t uxBufferLength,
     {
         pxSet->uxProtocolHeaderLength = xICMPLength;
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
-            {
-                pxSet->pcType = "ICMP_IPv6";
-            }
+        {
+            pxSet->pcType = "ICMP_IPv6";
+        }
         #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
     }
 

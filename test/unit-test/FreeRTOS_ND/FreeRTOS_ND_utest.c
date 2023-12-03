@@ -980,7 +980,7 @@ void test_SendPingRequestIPv6_bIPv6_NotEnoughSpace( void )
  * @brief This function handles case when we do not
  *        have enough space for the Number of bytes to be send.
  */
-void test_SendPingRequestIPv6_IncorectBytesSend( void )
+void test_SendPingRequestIPv6_IncorrectBytesSend( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     IPv6_Address_t xIPAddress;
@@ -1209,9 +1209,9 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PACKET_TOO_BIG_IPv6( void )
 
 /**
  * @brief This function process ICMP message when message type is
- *        ipICMP_TIME_EXEEDED_IPv6.
+ *        ipICMP_TIME_EXCEEDED_IPv6.
  */
-void test_prvProcessICMPMessage_IPv6_ipICMP_TIME_EXEEDED_IPv6( void )
+void test_prvProcessICMPMessage_IPv6_ipICMP_TIME_EXCEEDED_IPv6( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1219,7 +1219,7 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_TIME_EXEEDED_IPv6( void )
     eFrameProcessingResult_t eReturn;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_TIME_EXEEDED_IPv6;
+    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_TIME_EXCEEDED_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
@@ -1489,7 +1489,7 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitationNullEP( void )
  *        It handles case where when data length is less than
  *        expected.
  */
-void test_prvProcessICMPMessage_IPv6_NeighborSolicitationInorrectLen( void )
+void test_prvProcessICMPMessage_IPv6_NeighborSolicitationIncorrectLen( void )
 {
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
     ICMPPacket_IPv6_t xICMPPacket;
@@ -1870,7 +1870,8 @@ void test_FreeRTOS_CreateIPv6Address_Assert1( void )
 void test_FreeRTOS_CreateIPv6Address_Assert2( void )
 {
     IPv6_Address_t xIPAddress, xPrefix;
-    size_t uxPrefixLength = 8U * ipSIZE_OF_IPv6_ADDRESS;
+    /* The maximum allowed prefix length was increased to 128 because of the loopback address. */
+    size_t uxPrefixLength = 8U * ipSIZE_OF_IPv6_ADDRESS + 1;
     BaseType_t xDoRandom = pdFALSE, xReturn, xIndex;
 
     catch_assert( FreeRTOS_CreateIPv6Address( &xIPAddress, &xPrefix, uxPrefixLength, xDoRandom ) );
@@ -1947,7 +1948,7 @@ void test_pcMessageType_All( void )
     xType = ipICMP_PACKET_TOO_BIG_IPv6;
     ( void ) pcMessageType( xType );
 
-    xType = ipICMP_TIME_EXEEDED_IPv6;
+    xType = ipICMP_TIME_EXCEEDED_IPv6;
     ( void ) pcMessageType( xType );
 
     xType = ipICMP_PARAMETER_PROBLEM_IPv6;

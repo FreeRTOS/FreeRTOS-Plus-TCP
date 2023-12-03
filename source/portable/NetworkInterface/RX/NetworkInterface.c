@@ -53,7 +53,7 @@
  **********************************************************************************************************************/
 #define ETHER_BUFSIZE_MIN    60
 
-#if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) || defined( BSP_MCU_RX72M )
+#if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) || defined( BSP_MCU_RX72M ) || defined( BSP_MCU_RX72N )
     #if ETHER_CFG_MODE_SEL == 0
         #define R_ETHER_PinSet_CHANNEL_0()    R_ETHER_PinSet_ETHERC0_MII()
     #elif ETHER_CFG_MODE_SEL == 1
@@ -100,6 +100,9 @@ static BaseType_t xPHYLinkStatus;
 static BaseType_t xReportedStatus;
 static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
+/* Pointer to the interface object of this NIC */
+static NetworkInterface_t * pxMyInterface = NULL;
+
 static int16_t SendData( uint8_t * pucBuffer,
                          size_t length );
 static int InitializeNetwork( void );
@@ -113,18 +116,57 @@ void get_random_number( uint8_t * data,
 
 void prvLinkStatusChange( BaseType_t xStatus );
 
+/*-----------------------------------------------------------*/
+
+NetworkInterface_t * pxRX_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                   NetworkInterface_t * pxInterface );
+
+/* Function to initialise the network interface */
+BaseType_t xRX_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
+
+BaseType_t xRX_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                       NetworkBufferDescriptor_t * const pxDescriptor,
+                                       BaseType_t bReleaseAfterSend );
+
+static inline BaseType_t xRX_PHYGetLinkStatus( NetworkInterface_t * pxInterface );
+
+NetworkInterface_t * pxRX_FillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                   NetworkInterface_t * pxInterface )
+{
+    static char pcName[ 17 ];
+
+    /* This function pxRX_FillInterfaceDescriptor() adds a network-interface.
+     * Make sure that the object pointed to by 'pxInterface'
+     * is declared static or global, and that it will remain to exist. */
+
+    snprintf( pcName, sizeof( pcName ), "eth%u", ( unsigned ) xEMACIndex );
+
+    memset( pxInterface, '\0', sizeof( *pxInterface ) );
+    pxInterface->pcName = pcName;                    /* Just for logging, debugging. */
+    pxInterface->pvArgument = ( void * ) xEMACIndex; /* Has only meaning for the driver functions. */
+    pxInterface->pfInitialise = xRX_NetworkInterfaceInitialise;
+    pxInterface->pfOutput = xRX_NetworkInterfaceOutput;
+    pxInterface->pfGetPhyLinkStatus = xRX_PHYGetLinkStatus;
+
+    FreeRTOS_AddNetworkInterface( pxInterface );
+
+    return pxInterface;
+}
+
 /***********************************************************************************************************************
- * Function Name: xNetworkInterfaceInitialise ()
+ * Function Name: xRX_NetworkInterfaceInitialise ()
  * Description  : Initialization of Ethernet driver.
- * Arguments    : none
+ * Arguments    : Pointer to the interface desc
  * Return Value : pdPASS, pdFAIL
  **********************************************************************************************************************/
-BaseType_t xNetworkInterfaceInitialise( void )
+BaseType_t xRX_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     BaseType_t xReturn;
 
     if( xMacInitStatus == eMACInit )
     {
+        pxMyInterface = pxInterface;
+
         /*
          * Perform the hardware specific network initialization here using the Ethernet driver library to initialize the
          * Ethernet hardware, initialize DMA descriptors, and perform a PHY auto-negotiation to obtain a network link.
@@ -160,15 +202,19 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
 
 /***********************************************************************************************************************
- * Function Name: xNetworkInterfaceOutput ()
+ * Function Name: xRX_NetworkInterfaceOutput ()
  * Description  : Simple network output interface.
- * Arguments    : pxDescriptor, xReleaseAfterSend
+ * Arguments    : pxInterface, pxDescriptor, xReleaseAfterSend
  * Return Value : pdTRUE, pdFALSE
  **********************************************************************************************************************/
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
+BaseType_t xRX_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+                                       NetworkBufferDescriptor_t * const pxDescriptor,
+                                       BaseType_t xReleaseAfterSend )
 {
     BaseType_t xReturn = pdFALSE;
+
+    /* As there is only a single instance of the EMAC, there is only one pxInterface object. */
+    ( void ) pxInterface;
 
     /* Simple network interfaces (as opposed to more efficient zero copy network
      * interfaces) just use Ethernet peripheral driver library functions to copy
@@ -238,12 +284,12 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     for( ; ; )
     {
         #if ( ipconfigHAS_PRINTF != 0 )
-            {
-                /* Call a function that monitors resources: the amount of free network
-                 * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
-                 * for more detailed comments. */
-                vPrintResourceStats();
-            }
+        {
+            /* Call a function that monitors resources: the amount of free network
+             * buffers and the amount of free space on the heap.  See FreeRTOS_IP.c
+             * for more detailed comments. */
+            vPrintResourceStats();
+        }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
@@ -259,7 +305,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
         if( xBytesReceived < 0 )
         {
             /* This is an error. Logged. */
-            FreeRTOS_printf( ( "R_ETHER_Read_ZC2: rc = %d\n", xBytesReceived ) );
+            FreeRTOS_debug_printf( ( "R_ETHER_Read_ZC2: rc = %d\n", xBytesReceived ) );
         }
         else if( xBytesReceived > 0 )
         {
@@ -284,6 +330,8 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
                 /* Set the actual packet length, in case a larger buffer was returned. */
                 pxBufferDescriptor->xDataLength = ( size_t ) xBytesReceived;
+                pxBufferDescriptor->pxInterface = pxMyInterface;
+                pxBufferDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pxBufferDescriptor->pucEthernetBuffer );
 
                 R_ETHER_Read_ZC2_BufRelease( ETHER_CHANNEL_0 );
 
@@ -291,7 +339,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 * to be processed.  NOTE! It is preferable to do this in
                 * the interrupt service routine itself, which would remove the need
                 * to unblock this task for packets that don't need processing. */
-                if( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer )
+                if( ( eConsiderFrameForProcessing( pxBufferDescriptor->pucEthernetBuffer ) == eProcessBuffer ) && ( pxBufferDescriptor->pxEndPoint != NULL ) )
                 {
                     /* The event about to be sent to the TCP/IP is an Rx event. */
                     xRxEvent.eEventType = eNetworkRxEvent;
@@ -380,26 +428,34 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
  * Arguments    : pxNetworkBuffers
  * Return Value : none
  **********************************************************************************************************************/
+
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
     uint32_t ul;
     uint8_t * buffer_address;
+    portPOINTER_SIZE_TYPE uxStartAddress;
 
-    R_BSP_SECTION_OPERATORS_INIT( B_ETHERNET_BUFFERS_1 )
+    static uint8_t ETH_BUFFERS[ ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETHER_CFG_BUFSIZE ) + portBYTE_ALIGNMENT ];
 
-    buffer_address = R_BSP_SECTOP( B_ETHERNET_BUFFERS_1 );
+    /* Align the buffer start address to portBYTE_ALIGNMENT bytes */
+    uxStartAddress = ( portPOINTER_SIZE_TYPE ) & ETH_BUFFERS[ 0 ];
+    uxStartAddress += portBYTE_ALIGNMENT;
+    uxStartAddress &= ~( ( portPOINTER_SIZE_TYPE ) portBYTE_ALIGNMENT_MASK );
+
+    buffer_address = ( uint8_t * ) uxStartAddress;
 
     for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
     {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ( buffer_address + ( ETHER_CFG_BUFSIZE * ul ) );
+        pxNetworkBuffers[ ul ].pucEthernetBuffer = buffer_address + ipBUFFER_PADDING;
+        *( ( unsigned * ) buffer_address ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+        buffer_address += ETHER_CFG_BUFSIZE;
     }
 } /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
-
 
 /***********************************************************************************************************************
  * Function Name: prvLinkStatusChange ()
  * Description  : Function will be called when the Link Status of the phy has changed ( see ether_callback.c )
- * Arguments    : xStatus : true when statyus has become high
+ * Arguments    : xStatus : true when status has become high
  * Return Value : void
  **********************************************************************************************************************/
 void prvLinkStatusChange( BaseType_t xStatus )
@@ -423,11 +479,12 @@ static int InitializeNetwork( void )
     BaseType_t return_code = pdFALSE;
     ether_param_t param;
 
-    /* Read the mac address after it has been initilized by the FreeRTOS IP Stack, rather than from defines
+    /* Read the mac address after it has been initialized by the FreeRTOS IP Stack, rather than from defines
      * as the mac address is usually read from the EEPROM, and it might be different to the mac address in
      * the defines, especially in production environments
      */
-    const uint8_t * myethaddr = FreeRTOS_GetMACAddress();
+    configASSERT( pxMyInterface );
+    const uint8_t * myethaddr = &pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 0 ];
 
     R_ETHER_PinSet_CHANNEL_0();
     R_ETHER_Initial();
@@ -574,6 +631,13 @@ static void clear_all_ether_rx_discriptors( uint32_t event )
         }
     }
 }
+
+static inline BaseType_t xRX_PHYGetLinkStatus( NetworkInterface_t * pxInterface )
+{
+    ( void ) pxInterface;
+    return( xPHYLinkStatus != 0 );
+}
+
 
 /***********************************************************************************************************************
  * End of file "NetworkInterface.c"

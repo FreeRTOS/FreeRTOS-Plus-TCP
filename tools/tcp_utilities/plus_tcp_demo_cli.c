@@ -146,17 +146,9 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
                                                BaseType_t xAsynchronous,
                                                BaseType_t xDoClear );
 
-#if ( ipconfigUSE_IPv6 == 0 )
-    /* In the old days, an IP-address was just a number. */
-    static void vDNSEvent( const char * pcName,
-                           void * pvSearchID,
-                           uint32_t ulIPAddress );
-#else
-    /* freertos_addrinfo can contain either an IPv4 or an IPv6 address. */
-    static void vDNSEvent( const char * pcName,
-                           void * pvSearchID,
-                           struct freertos_addrinfo * pxAddrInfo );
-#endif
+static void vDNSEvent( const char * pcName,
+                       void * pvSearchID,
+                       struct freertos_addrinfo * pxAddrInfo );
 
 #if ( ipconfigMULTI_INTERFACE != 0 )
     /* Defined in FreeRTOS_DNS.c */
@@ -189,7 +181,7 @@ static struct xCommandCouple xCommands[] =
     { "ifconfig",   8U,  handle_ifconfig,          "Show a few network parameters\n"                            },
     { "help",       4U,  handle_help,              "Show this help\n"                                           },
     #if ( ipconfigUSE_NTP_DEMO != 0 )
-        { "ntp",        3U,  handle_ntp,               "Contact an NTP server and ask the time.\n"                  },
+    { "ntp",        3U,  handle_ntp,               "Contact an NTP server and ask the time.\n"                  },
     #endif
 };
 
@@ -476,7 +468,7 @@ static void handle_arpq( char * pcBuffer )
 {
     CommandOptions_t xOptions;
     char * ptr = pcBuffer;
-    eARPLookupResult_t eResult;
+    eARPLookupResult_t eResult = eARPCacheMiss;
     uint32_t ulIPAddress;
     uint32_t ulLookUpIP;
     MACAddress_t xMACAddress;
@@ -698,10 +690,10 @@ static void handle_arpq( char * pcBuffer )
             if( xOptions.xDoClear )
             {
                 #if ( ipconfigUSE_DNS_CACHE != 0 )
-                    {
-                        FreeRTOS_dnsclear();
-                        FreeRTOS_printf( ( "Clear DNS cache and ARP\n" ) );
-                    }
+                {
+                    FreeRTOS_dnsclear();
+                    FreeRTOS_printf( ( "Clear DNS cache and ARP\n" ) );
+                }
                 #endif /* ipconfigUSE_DNS_CACHE */
                 #if ( ipconfigMULTI_INTERFACE != 0 )
                     FreeRTOS_ClearARP( NULL );
@@ -753,32 +745,32 @@ static void handle_arpq( char * pcBuffer )
 
             FreeRTOS_printf( ( "%s : %xip\n", ptr, ( unsigned ) FreeRTOS_ntohl( ip ) ) );
             #if ( ipconfigUSE_DNS_CACHE == 0 )
-                {
-                    FreeRTOS_printf( ( "DNS caching not enabled\n" ) );
-                }
+            {
+                FreeRTOS_printf( ( "DNS caching not enabled\n" ) );
+            }
             #else
+            {
+                uint32_t ulFirstIPAddress = 0U;
+                BaseType_t xIndex;
+
+                for( xIndex = 0; xIndex < ( BaseType_t ) ipconfigDNS_CACHE_ENTRIES; xIndex++ )
                 {
-                    uint32_t ulFirstIPAddress = 0U;
-                    BaseType_t xIndex;
+                    /* Note: 'FreeRTOS_dnslookup' is only defined when
+                     * 'ipconfigUSE_DNS_CACHE' is enabled. */
+                    uint32_t ulThisIPAddress = FreeRTOS_dnslookup( ptr );
 
-                    for( xIndex = 0; xIndex < ( BaseType_t ) ipconfigDNS_CACHE_ENTRIES; xIndex++ )
+                    if( xIndex == 0 )
                     {
-                        /* Note: 'FreeRTOS_dnslookup' is only defined when
-                         * 'ipconfigUSE_DNS_CACHE' is enabled. */
-                        uint32_t ulThisIPAddress = FreeRTOS_dnslookup( ptr );
-
-                        if( xIndex == 0 )
-                        {
-                            ulFirstIPAddress = ulThisIPAddress;
-                        }
-                        else if( ulFirstIPAddress == ulThisIPAddress )
-                        {
-                            break;
-                        }
-
-                        FreeRTOS_printf( ( "Cache[%d]: %xip\n", ( int ) xIndex, ( unsigned ) FreeRTOS_ntohl( ulThisIPAddress ) ) );
+                        ulFirstIPAddress = ulThisIPAddress;
                     }
+                    else if( ulFirstIPAddress == ulThisIPAddress )
+                    {
+                        break;
+                    }
+
+                    FreeRTOS_printf( ( "Cache[%d]: %xip\n", ( int ) xIndex, ( unsigned ) FreeRTOS_ntohl( ulThisIPAddress ) ) );
                 }
+            }
             #endif /* ( ipconfigUSE_DNS_CACHE == 0 ) */
         }
         else
@@ -1325,10 +1317,10 @@ void xHandleTesting()
         if( xDoClear )
         {
             #if ( ipconfigUSE_DNS_CACHE != 0 )
-                {
-                    FreeRTOS_dnsclear();
-                    FreeRTOS_printf( ( "Clear DNS cache\n" ) );
-                }
+            {
+                FreeRTOS_dnsclear();
+                FreeRTOS_printf( ( "Clear DNS cache\n" ) );
+            }
             #endif /* ipconfigUSE_DNS_CACHE */
             #if ( ipconfigMULTI_INTERFACE != 0 )
                 FreeRTOS_ClearARP( NULL );
@@ -1485,95 +1477,80 @@ void xHandleTesting()
 #endif /* ( ipconfigMULTI_INTERFACE != 0 ) */
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_IPv6 != 0 )
-    static void vDNSEvent( const char * pcName,
-                           void * pvSearchID,
-                           struct freertos_addrinfo * pxAddrInfo )
+
+static void vDNSEvent( const char * pcName,
+                       void * pvSearchID,
+                       struct freertos_addrinfo * pxAddrInfo )
+{
+    ( void ) pvSearchID;
+
+    if( pxAddrInfo == NULL )
     {
-        ( void ) pvSearchID;
+        FreeRTOS_printf( ( "vDNSEvent(%s) : nothing found\n", pcName ) );
+    }
+    else
+    {
+        FreeRTOS_printf( ( "vDNSEvent: family = %d\n", ( int ) pxAddrInfo->ai_family ) );
 
-        if( pxAddrInfo == NULL )
+        switch( pxAddrInfo->ai_family )
         {
-            FreeRTOS_printf( ( "vDNSEvent(%s) : nothing found\n", pcName ) );
-        }
-        else
-        {
-            FreeRTOS_printf( ( "vDNSEvent: family = %d\n", ( int ) pxAddrInfo->ai_family ) );
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case FREERTOS_AF_INET:
+                   {
+                       uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
 
-            switch( pxAddrInfo->ai_family )
-            {
-                #if ( ipconfigUSE_IPv4 != 0 )
-                    case FREERTOS_AF_INET:
+                       if( ulIPaddress == 0uL )
                        {
-                           uint32_t ulIPaddress = pxAddrInfo->ai_addr->sin_address.ulIP_IPv4;
+                           FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
+                       }
+                       else
+                       {
+                           FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
+                       }
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                           if( ulIPaddress == 0uL )
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case FREERTOS_AF_INET6:
+                   {
+                       BaseType_t xIsEmpty = pdTRUE, xIndex;
+
+                       for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
+                       {
+                           if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
                            {
-                               FreeRTOS_printf( ( "vDNSEvent/v4: '%s' timed out\n", pcName ) );
-                           }
-                           else
-                           {
-                               FreeRTOS_printf( ( "vDNSEvent/v4: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPaddress ) ) );
+                               xIsEmpty = pdFALSE;
+                               break;
                            }
                        }
-                       break;
-                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    case FREERTOS_AF_INET6:
+                       if( xIsEmpty )
                        {
-                           BaseType_t xIsEmpty = pdTRUE, xIndex;
-
-                           for( xIndex = 0; xIndex < ( BaseType_t ) ARRAY_SIZE( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ); xIndex++ )
-                           {
-                               if( pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes[ xIndex ] != ( uint8_t ) 0u )
-                               {
-                                   xIsEmpty = pdFALSE;
-                                   break;
-                               }
-                           }
-
-                           if( xIsEmpty )
-                           {
-                               FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
-                           }
-                           else
-                           {
-                               FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
-                           }
+                           FreeRTOS_printf( ( "vDNSEvent/v6: '%s' timed out\n", pcName ) );
                        }
-                       break;
-                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+                       else
+                       {
+                           FreeRTOS_printf( ( "vDNSEvent/v6: found '%s' on %pip\n", pcName, pxAddrInfo->ai_addr->sin_address.xIP_IPv6.ucBytes ) );
+                       }
+                   }
+                   break;
+            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                default:
-                    /* MISRA 16.4 Compliance */
-                    FreeRTOS_debug_printf( ( "vDNSEvent: Undefined Family Type \n" ) );
-                    break;
-            }
-        }
-
-        if( xServerWorkTaskHandle != NULL )
-        {
-            xDNSCount++;
-            xTaskNotifyGive( xServerWorkTaskHandle );
+            default:
+                /* MISRA 16.4 Compliance */
+                FreeRTOS_debug_printf( ( "vDNSEvent: Undefined Family Type \n" ) );
+                break;
         }
     }
-#else /* if ( ipconfigUSE_IPv6 != 0 ) */
-    static void vDNSEvent( const char * pcName,
-                           void * pvSearchID,
-                           uint32_t ulIPAddress )
+
+    if( xServerWorkTaskHandle != NULL )
     {
-        ( void ) pvSearchID;
-
-        FreeRTOS_printf( ( "vDNSEvent: found '%s' on %lxip\n", pcName, FreeRTOS_ntohl( ulIPAddress ) ) );
-
-        if( xServerWorkTaskHandle != NULL )
-        {
-            xDNSCount++;
-            xTaskNotifyGive( xServerWorkTaskHandle );
-        }
+        xDNSCount++;
+        xTaskNotifyGive( xServerWorkTaskHandle );
     }
-#endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+}
+
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigMULTI_INTERFACE != 0 )
@@ -1670,12 +1647,12 @@ void xHandleTesting()
 static void clear_caches()
 {
     #if ( ipconfigUSE_DNS_CACHE != 0 )
-        {
-            FreeRTOS_dnsclear();
-            #if ( ipconfigUSE_IPv6 != 0 )
-                FreeRTOS_ClearND();
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-        }
+    {
+        FreeRTOS_dnsclear();
+        #if ( ipconfigUSE_IPv6 != 0 )
+            FreeRTOS_ClearND();
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+    }
     #endif /* ipconfigUSE_DNS_CACHE */
     #if ( ipconfigMULTI_INTERFACE != 0 )
         FreeRTOS_ClearARP( NULL );

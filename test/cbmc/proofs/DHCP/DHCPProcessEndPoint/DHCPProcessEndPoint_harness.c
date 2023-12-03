@@ -46,6 +46,8 @@
 
 #include "cbmc.h"
 
+#include "../../utility/memory_assignments.c"
+
 /* Static members defined in FreeRTOS_DHCP.c */
 extern DHCPData_t xDHCPData;
 extern Socket_t xDHCPv4Socket;
@@ -135,6 +137,15 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void * pvBuffer )
     free( ( ( ( uint8_t * ) pvBuffer ) - ( ipUDP_PAYLOAD_OFFSET_IPv4 + ipIP_TYPE_OFFSET ) ) );
 }
 
+/* Abstraction of FreeRTOS_socket. Return NULL or valid socket handler. */
+Socket_t FreeRTOS_socket( BaseType_t xDomain,
+                          BaseType_t xType,
+                          BaseType_t xProtocol )
+{
+    return ensure_FreeRTOS_Socket_t_is_allocated();
+}
+
+
 /****************************************************************
 * The proof of vDHCPProcess
 ****************************************************************/
@@ -166,6 +177,7 @@ void harness()
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     __CPROVER_assume( pxNetworkEndPoint_Temp != NULL );
     pxNetworkEndPoint_Temp->pxNext = NULL;
+    pxNetworkEndPoint_Temp->xDHCPData.xDHCPSocket = NULL;
 
     /****************************************************************
     * Initialize the counter used to bound the number of times
@@ -175,6 +187,8 @@ void harness()
     #ifdef CBMC_GETNETWORKBUFFER_FAILURE_BOUND
         GetNetworkBuffer_failure_count = 0;
     #endif
+
+    xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
     /****************************************************************
     * Assume a valid socket in most states of the DHCP state machine.
@@ -188,8 +202,6 @@ void harness()
     {
         prvCreateDHCPSocket( pxNetworkEndPoint_Temp );
     }
-
-    xDHCPv4Socket = FreeRTOS_socket( FREERTOS_AF_INET, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP );
 
     __CPROVER_file_local_FreeRTOS_DHCP_c_vDHCPProcessEndPoint( xReset, xDoCheck, pxNetworkEndPoint_Temp );
 }

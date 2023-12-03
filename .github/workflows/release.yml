@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.commit_id }}
       - name: Configure git identity
@@ -53,7 +53,7 @@ jobs:
       - name: Install ZIP tools
         run: sudo apt-get install zip unzip
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.commit_id }}
           path: FreeRTOS-Plus-TCP
@@ -138,3 +138,15 @@ jobs:
           asset_path: ./FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           asset_name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           asset_content_type: application/zip
+  cleanup:
+    needs:
+      - create-release
+    name: Cleanup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Delete branch created for Tag by SBOM generator
+        run: |
+          # Delete the branch created for Tag by SBOM generator
+          git push -u origin --delete refs/heads/${{ github.event.inputs.version_number }}

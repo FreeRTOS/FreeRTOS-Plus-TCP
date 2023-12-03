@@ -59,4 +59,4 @@
     void DNS_CloseSocket( Socket_t xDNSSocket );
 
 #endif /* if ( ipconfigUSE_DNS != 0 ) */
-#endif /* ifndef FREERTOS_DNS_NETWORKING_H */
+#endif /* FREERTOS_DNS_NETWORKING_H */

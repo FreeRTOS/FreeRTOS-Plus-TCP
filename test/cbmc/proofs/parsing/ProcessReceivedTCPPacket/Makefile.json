@@ -14,9 +14,9 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Timers.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP_IPV4.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP_IPv4.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission_IPV4.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission_IPv4.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_State_Handling.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Utils.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Reception.goto"

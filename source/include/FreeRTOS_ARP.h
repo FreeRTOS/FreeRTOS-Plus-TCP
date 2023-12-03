@@ -28,16 +28,17 @@
 #ifndef FREERTOS_ARP_H
 #define FREERTOS_ARP_H
 
+/* Application level configuration options. */
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
+
+#include "FreeRTOS_IP.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 /*-----------------------------------------------------------*/
 /* Miscellaneous structure and definitions. */

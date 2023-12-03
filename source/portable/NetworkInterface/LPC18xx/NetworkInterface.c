@@ -223,7 +223,7 @@ static uint32_t ulNextRxDescriptorToProcess;
 static TaskHandle_t xRxHanderTask = NULL;
 
 #if ( ipconfigUSE_LLMNR == 1 )
-    static const uint8_t xLLMNR_MACAddress[] = { '\x01', '\x00', '\x5E', '\x00', '\x00', '\xFC' };
+static const uint8_t xLLMNR_MACAddress[] = { '\x01', '\x00', '\x5E', '\x00', '\x00', '\xFC' };
 #endif /* ipconfigUSE_LLMNR == 1 */
 
 /* xTXDescriptorSemaphore is a counting semaphore with
@@ -258,9 +258,9 @@ BaseType_t xNetworkInterfaceInitialise( void )
     LPC_ETHERNET->MAC_HASHTABLE_LOW = 0;
 
     #if ( ipconfigUSE_LLMNR == 1 )
-        {
-            prvAddMACAddress( xLLMNR_MACAddress );
-        }
+    {
+        prvAddMACAddress( xLLMNR_MACAddress );
+    }
     #endif /* ipconfigUSE_LLMNR == 1 */
 
     /* Promiscuous flag (PR) and Receive All flag (RA) set to zero.  The
@@ -269,25 +269,25 @@ BaseType_t xNetworkInterfaceInitialise( void )
     LPC_ETHERNET->MAC_FRAME_FILTER = MAC_FF_HMC;
 
     #if ( configUSE_RMII == 1 )
+    {
+        if( lpc_phy_init( pdTRUE, prvDelay ) != SUCCESS )
         {
-            if( lpc_phy_init( pdTRUE, prvDelay ) != SUCCESS )
-            {
-                xReturn = pdFAIL;
-            }
+            xReturn = pdFAIL;
         }
+    }
     #else
+    {
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         {
-            #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-                {
-                    #warning This path has not been tested.
-                }
-            #endif
-
-            if( lpc_phy_init( pdFALSE, prvDelay ) != SUCCESS )
-            {
-                xReturn = pdFAIL;
-            }
+            #warning This path has not been tested.
         }
+        #endif
+
+        if( lpc_phy_init( pdFALSE, prvDelay ) != SUCCESS )
+        {
+            xReturn = pdFAIL;
+        }
+    }
     #endif /* if ( configUSE_RMII == 1 ) */
 
     if( xReturn == pdPASS )
@@ -386,20 +386,20 @@ static void vClearTXBuffers()
         }
 
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
+        {
+            ucPayLoad = ( uint8_t * ) xDMATxDescriptors[ ulTxDescriptorToClear ].B1ADD;
+
+            if( ucPayLoad != NULL )
             {
-                ucPayLoad = ( uint8_t * ) xDMATxDescriptors[ ulTxDescriptorToClear ].B1ADD;
+                /* B1ADD points to a pucEthernetBuffer of a Network Buffer descriptor. */
+                pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
 
-                if( ucPayLoad != NULL )
-                {
-                    /* B1ADD points to a pucEthernetBuffer of a Network Buffer descriptor. */
-                    pxNetworkBuffer = pxPacketBuffer_to_NetworkBuffer( ucPayLoad );
+                configASSERT( pxNetworkBuffer != NULL );
 
-                    configASSERT( pxNetworkBuffer != NULL );
-
-                    vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    xDMATxDescriptors[ ulTxDescriptorToClear ].B1ADD = ( uint32_t ) 0u;
-                }
+                vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                xDMATxDescriptors[ ulTxDescriptorToClear ].B1ADD = ( uint32_t ) 0u;
             }
+        }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
         /* Move onto the next descriptor, wrapping if necessary. */
@@ -449,25 +449,25 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
         else
         {
             #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-                {
-                    /* bReleaseAfterSend should always be set when using the zero
-                     * copy driver. */
-                    configASSERT( bReleaseAfterSend != pdFALSE );
+            {
+                /* bReleaseAfterSend should always be set when using the zero
+                 * copy driver. */
+                configASSERT( bReleaseAfterSend != pdFALSE );
 
-                    /* The DMA's descriptor to point directly to the data in the
-                     * network buffer descriptor.  The data is not copied. */
-                    xDMATxDescriptors[ ulNextFreeTxDescriptor ].B1ADD = ( uint32_t ) pxDescriptor->pucEthernetBuffer;
+                /* The DMA's descriptor to point directly to the data in the
+                 * network buffer descriptor.  The data is not copied. */
+                xDMATxDescriptors[ ulNextFreeTxDescriptor ].B1ADD = ( uint32_t ) pxDescriptor->pucEthernetBuffer;
 
-                    /* The DMA descriptor will 'own' this Network Buffer,
-                     * until it has been sent.  So don't release it now. */
-                    bReleaseAfterSend = false;
-                }
+                /* The DMA descriptor will 'own' this Network Buffer,
+                 * until it has been sent.  So don't release it now. */
+                bReleaseAfterSend = false;
+            }
             #else /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
-                {
-                    /* The data is copied from the network buffer descriptor into
-                     * the DMA's descriptor. */
-                    memcpy( ( void * ) xDMATxDescriptors[ ulNextFreeTxDescriptor ].B1ADD, ( void * ) pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
-                }
+            {
+                /* The data is copied from the network buffer descriptor into
+                 * the DMA's descriptor. */
+                memcpy( ( void * ) xDMATxDescriptors[ ulNextFreeTxDescriptor ].B1ADD, ( void * ) pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength );
+            }
             #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 
             xDMATxDescriptors[ ulNextFreeTxDescriptor ].BSIZE = ( uint32_t ) TDES_ENH_BS1( pxDescriptor->xDataLength );
@@ -529,22 +529,22 @@ static void prvSetupTxDescriptors( void )
     for( x = 0; x < configNUM_TX_DESCRIPTORS; x++ )
     {
         #if ( ipconfigZERO_COPY_TX_DRIVER != 0 )
-            {
-                /* Nothing to do, B1ADD will be set when data is ready to transmit.
-                 * Currently the memset above will have set it to NULL. */
-            }
+        {
+            /* Nothing to do, B1ADD will be set when data is ready to transmit.
+             * Currently the memset above will have set it to NULL. */
+        }
         #else
-            {
-                /* Allocate a buffer to the Tx descriptor.  This is the most basic
-                 * way of creating a driver as the data is then copied into the
-                 * buffer. */
-                xDMATxDescriptors[ x ].B1ADD = ( uint32_t ) pvPortMalloc( ipTOTAL_ETHERNET_FRAME_SIZE );
+        {
+            /* Allocate a buffer to the Tx descriptor.  This is the most basic
+             * way of creating a driver as the data is then copied into the
+             * buffer. */
+            xDMATxDescriptors[ x ].B1ADD = ( uint32_t ) pvPortMalloc( ipTOTAL_ETHERNET_FRAME_SIZE );
 
-                /* Use an assert to check the allocation as +TCP applications will
-                 * often not use a malloc() failed hook as the TCP stack will recover
-                 * from allocation failures. */
-                configASSERT( xDMATxDescriptors[ x ].B1ADD != 0U );
-            }
+            /* Use an assert to check the allocation as +TCP applications will
+             * often not use a malloc() failed hook as the TCP stack will recover
+             * from allocation failures. */
+            configASSERT( xDMATxDescriptors[ x ].B1ADD != 0U );
+        }
         #endif /* if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) */
 
         /* Buffers hold an entire frame so all buffers are both the start and
@@ -586,25 +586,25 @@ static void prvSetupRxDescriptors( void )
          * known what size received frames will be. */
 
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-            {
-                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ipTOTAL_ETHERNET_FRAME_SIZE, 0 );
+        {
+            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ipTOTAL_ETHERNET_FRAME_SIZE, 0 );
 
-                /* During start-up there should be enough Network Buffers available,
-                 * so it is safe to use configASSERT().
-                 * In case this assert fails, please check: configNUM_RX_DESCRIPTORS,
-                 * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, and in case BufferAllocation_2.c
-                 * is included, check the amount of available heap. */
-                configASSERT( pxNetworkBuffer != NULL );
+            /* During start-up there should be enough Network Buffers available,
+             * so it is safe to use configASSERT().
+             * In case this assert fails, please check: configNUM_RX_DESCRIPTORS,
+             * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, and in case BufferAllocation_2.c
+             * is included, check the amount of available heap. */
+            configASSERT( pxNetworkBuffer != NULL );
 
-                /* Pass the actual buffer to DMA. */
-                xDMARxDescriptors[ x ].B1ADD = ( uint32_t ) pxNetworkBuffer->pucEthernetBuffer;
-            }
+            /* Pass the actual buffer to DMA. */
+            xDMARxDescriptors[ x ].B1ADD = ( uint32_t ) pxNetworkBuffer->pucEthernetBuffer;
+        }
         #else
-            {
-                /* All DMA descriptors are populated with permanent memory blocks.
-                 * Their contents will be copy to Network Buffers. */
-                xDMARxDescriptors[ x ].B1ADD = ( uint32_t ) pvPortMalloc( ipTOTAL_ETHERNET_FRAME_SIZE );
-            }
+        {
+            /* All DMA descriptors are populated with permanent memory blocks.
+             * Their contents will be copy to Network Buffers. */
+            xDMARxDescriptors[ x ].B1ADD = ( uint32_t ) pvPortMalloc( ipTOTAL_ETHERNET_FRAME_SIZE );
+        }
         #endif /* ipconfigZERO_COPY_RX_DRIVER */
 
         /* Use an assert to check the allocation as +TCP applications will often
@@ -685,7 +685,7 @@ static BaseType_t prvNetworkInterfaceInput()
         NetworkBufferDescriptor_t * pxNewDescriptor;
     #endif /* ipconfigZERO_COPY_RX_DRIVER */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES == 0 )
-        IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
+    IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     #endif
 
     /* Process each descriptor that is not still in use by the DMA. */
@@ -739,36 +739,36 @@ static BaseType_t prvNetworkInterfaceInput()
                     usLength = RDES_FLMSK( ulStatus );
 
                     #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
-                        {
-                            /* Replace the character buffer 'B1ADD'. */
-                            pucBuffer = ( const uint8_t * const ) ( xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD );
-                            xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD = ( uint32_t ) pxNewDescriptor->pucEthernetBuffer;
+                    {
+                        /* Replace the character buffer 'B1ADD'. */
+                        pucBuffer = ( const uint8_t * const ) ( xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD );
+                        xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD = ( uint32_t ) pxNewDescriptor->pucEthernetBuffer;
 
-                            /* 'B1ADD' contained the address of a 'pucEthernetBuffer' that
-                             * belongs to a Network Buffer.  Find the original Network Buffer. */
-                            pxDescriptor = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
+                        /* 'B1ADD' contained the address of a 'pucEthernetBuffer' that
+                         * belongs to a Network Buffer.  Find the original Network Buffer. */
+                        pxDescriptor = pxPacketBuffer_to_NetworkBuffer( pucBuffer );
 
-                            /* This zero-copy driver makes sure that every 'xDMARxDescriptors' contains
-                             * a reference to a Network Buffer at any time.
-                             * In case it runs out of Network Buffers, a DMA buffer won't be replaced,
-                             * and the received messages is dropped. */
-                            configASSERT( pxDescriptor != NULL );
-                        }
+                        /* This zero-copy driver makes sure that every 'xDMARxDescriptors' contains
+                         * a reference to a Network Buffer at any time.
+                         * In case it runs out of Network Buffers, a DMA buffer won't be replaced,
+                         * and the received messages is dropped. */
+                        configASSERT( pxDescriptor != NULL );
+                    }
                     #else /* if ( ipconfigZERO_COPY_RX_DRIVER != 0 ) */
-                        {
-                            /* Create a buffer of exactly the required length. */
-                            pxDescriptor = pxGetNetworkBufferWithDescriptor( usLength, xDescriptorWaitTime );
-                        }
+                    {
+                        /* Create a buffer of exactly the required length. */
+                        pxDescriptor = pxGetNetworkBufferWithDescriptor( usLength, xDescriptorWaitTime );
+                    }
                     #endif /* ipconfigZERO_COPY_RX_DRIVER */
 
                     if( pxDescriptor != NULL )
                     {
                         pxDescriptor->xDataLength = ( size_t ) usLength;
                         #if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
-                            {
-                                /* Copy the data into the allocated buffer. */
-                                memcpy( ( void * ) pxDescriptor->pucEthernetBuffer, ( void * ) xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD, usLength );
-                            }
+                        {
+                            /* Copy the data into the allocated buffer. */
+                            memcpy( ( void * ) pxDescriptor->pucEthernetBuffer, ( void * ) xDMARxDescriptors[ ulNextRxDescriptorToProcess ].B1ADD, usLength );
+                        }
                         #endif /* ipconfigZERO_COPY_RX_DRIVER */
 
                         /* It is possible that more data was copied than
@@ -1027,19 +1027,19 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
 
         #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
+        {
+            static UBaseType_t uxLastMinQueueSpace = 0;
+
+            uxCurrentCount = uxGetMinimumIPQueueSpace();
+
+            if( uxLastMinQueueSpace != uxCurrentCount )
             {
-                static UBaseType_t uxLastMinQueueSpace = 0;
-
-                uxCurrentCount = uxGetMinimumIPQueueSpace();
-
-                if( uxLastMinQueueSpace != uxCurrentCount )
-                {
-                    /* The logging produced below may be helpful
-                     * while tuning +TCP: see how many buffers are in use. */
-                    uxLastMinQueueSpace = uxCurrentCount;
-                    FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
-                }
+                /* The logging produced below may be helpful
+                 * while tuning +TCP: see how many buffers are in use. */
+                uxLastMinQueueSpace = uxCurrentCount;
+                FreeRTOS_printf( ( "Queue space: lowest %lu\n", uxCurrentCount ) );
             }
+        }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
         ulTaskNotifyTake( pdTRUE, xBlockTime );

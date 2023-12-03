@@ -57,8 +57,8 @@
 #include "FreeRTOS_DNS.h"
 /*-----------------------------------------------------------*/
 
-/** @brief 'xAllNetworksUp' becomes pdTRUE as soon as all network interfaces have
- * been initialised. */
+/** @brief 'xAllNetworksUp' becomes pdTRUE when all network interfaces are initialised
+ * and becomes pdFALSE when any network interface goes down. */
 /* MISRA Ref 8.9.1 [File scoped variables] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
 /* coverity[misra_c_2012_rule_8_9_violation] */
@@ -146,46 +146,46 @@ TickType_t xCalculateSleepTime( void )
     }
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+    {
+        const NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+        while( pxEndPoint != NULL )
         {
-            const NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            while( pxEndPoint != NULL )
+            if( pxEndPoint->xDHCP_RATimer.bActive != pdFALSE_UNSIGNED )
             {
-                if( pxEndPoint->xDHCP_RATimer.bActive != pdFALSE_UNSIGNED )
+                if( pxEndPoint->xDHCP_RATimer.ulRemainingTime < uxMaximumSleepTime )
                 {
-                    if( pxEndPoint->xDHCP_RATimer.ulRemainingTime < uxMaximumSleepTime )
-                    {
-                        uxMaximumSleepTime = pxEndPoint->xDHCP_RATimer.ulRemainingTime;
-                    }
+                    uxMaximumSleepTime = pxEndPoint->xDHCP_RATimer.ulRemainingTime;
                 }
-
-                pxEndPoint = pxEndPoint->pxNext;
             }
+
+            pxEndPoint = pxEndPoint->pxNext;
         }
+    }
     #endif /* ipconfigUSE_DHCP */
 
     #if ( ipconfigUSE_TCP == 1 )
+    {
+        if( xTCPTimer.bActive != pdFALSE_UNSIGNED )
         {
-            if( xTCPTimer.bActive != pdFALSE_UNSIGNED )
+            if( xTCPTimer.ulRemainingTime < uxMaximumSleepTime )
             {
-                if( xTCPTimer.ulRemainingTime < uxMaximumSleepTime )
-                {
-                    uxMaximumSleepTime = xTCPTimer.ulRemainingTime;
-                }
+                uxMaximumSleepTime = xTCPTimer.ulRemainingTime;
             }
         }
+    }
     #endif
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+    {
+        if( xDNSTimer.bActive != pdFALSE_UNSIGNED )
         {
-            if( xDNSTimer.bActive != pdFALSE_UNSIGNED )
+            if( xDNSTimer.ulRemainingTime < uxMaximumSleepTime )
             {
-                if( xDNSTimer.ulRemainingTime < uxMaximumSleepTime )
-                {
-                    uxMaximumSleepTime = xDNSTimer.ulRemainingTime;
-                }
+                uxMaximumSleepTime = xDNSTimer.ulRemainingTime;
             }
         }
+    }
     #endif
 
     return uxMaximumSleepTime;
@@ -230,86 +230,86 @@ void vCheckNetworkTimers( void )
     }
 
     #if ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+    {
+        /* Is it time for DHCP processing? */
+        NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+        while( pxEndPoint != NULL )
         {
-            /* Is it time for DHCP processing? */
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            while( pxEndPoint != NULL )
+            if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
             {
-                if( prvIPTimerCheck( &( pxEndPoint->xDHCP_RATimer ) ) != pdFALSE )
-                {
-                    #if ( ipconfigUSE_DHCP == 1 )
-                        if( END_POINT_USES_DHCP( pxEndPoint ) )
-                        {
-                            ( void ) xSendDHCPEvent( pxEndPoint );
-                        }
-                    #endif /* ( ipconfigUSE_DHCP == 1 ) */
+                #if ( ipconfigUSE_DHCP == 1 )
+                    if( END_POINT_USES_DHCP( pxEndPoint ) )
+                    {
+                        ( void ) xSendDHCPEvent( pxEndPoint );
+                    }
+                #endif /* ( ipconfigUSE_DHCP == 1 ) */
 
-                    #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
-                        if( END_POINT_USES_RA( pxEndPoint ) )
-                        {
-                            vRAProcess( pdFALSE, pxEndPoint );
-                        }
-                    #endif /* ( ipconfigUSE_RA != 0 ) */
-                }
-
-                pxEndPoint = pxEndPoint->pxNext;
+                #if ( ( ipconfigUSE_RA != 0 ) && ( ipconfigUSE_IPv6 != 0 ) )
+                    if( END_POINT_USES_RA( pxEndPoint ) )
+                    {
+                        vRAProcess( pdFALSE, pxEndPoint );
+                    }
+                #endif /* ( ipconfigUSE_RA != 0 ) */
             }
+
+            pxEndPoint = pxEndPoint->pxNext;
         }
+    }
     #endif /* ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA != 0 ) */
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
+    {
+        /* Is it time for DNS processing? */
+        if( prvIPTimerCheck( &xDNSTimer ) != pdFALSE )
         {
-            /* Is it time for DNS processing? */
-            if( prvIPTimerCheck( &xDNSTimer ) != pdFALSE )
-            {
-                vDNSCheckCallBack( NULL );
-            }
+            vDNSCheckCallBack( NULL );
         }
+    }
     #endif /* ipconfigDNS_USE_CALLBACKS */
 
     #if ( ipconfigUSE_TCP == 1 )
+    {
+        BaseType_t xWillSleep;
+        TickType_t xNextTime;
+        BaseType_t xCheckTCPSockets;
+
+        /* If the IP task has messages waiting to be processed then
+         * it will not sleep in any case. */
+        if( uxQueueMessagesWaiting( xNetworkEventQueue ) == 0U )
         {
-            BaseType_t xWillSleep;
-            TickType_t xNextTime;
-            BaseType_t xCheckTCPSockets;
-
-            /* If the IP task has messages waiting to be processed then
-             * it will not sleep in any case. */
-            if( uxQueueMessagesWaiting( xNetworkEventQueue ) == 0U )
-            {
-                xWillSleep = pdTRUE;
-            }
-            else
-            {
-                xWillSleep = pdFALSE;
-            }
-
-            /* Sockets need to be checked if the TCP timer has expired. */
-            xCheckTCPSockets = prvIPTimerCheck( &xTCPTimer );
-
-            /* Sockets will also be checked if there are TCP messages but the
-            * message queue is empty (indicated by xWillSleep being true). */
-            if( xWillSleep != pdFALSE )
-            {
-                xCheckTCPSockets = pdTRUE;
-            }
-
-            if( xCheckTCPSockets != pdFALSE )
-            {
-                /* Attend to the sockets, returning the period after which the
-                 * check must be repeated. */
-                xNextTime = xTCPTimerCheck( xWillSleep );
-                prvIPTimerStart( &xTCPTimer, xNextTime );
-                xProcessedTCPMessage = 0;
-            }
+            xWillSleep = pdTRUE;
+        }
+        else
+        {
+            xWillSleep = pdFALSE;
         }
 
-        /* See if any socket was planned to be closed. */
-        vSocketCloseNextTime( NULL );
+        /* Sockets need to be checked if the TCP timer has expired. */
+        xCheckTCPSockets = prvIPTimerCheck( &xTCPTimer );
 
-        /* See if any reusable socket needs to go back to 'eTCP_LISTEN' state. */
-        vSocketListenNextTime( NULL );
+        /* Sockets will also be checked if there are TCP messages but the
+        * message queue is empty (indicated by xWillSleep being true). */
+        if( xWillSleep != pdFALSE )
+        {
+            xCheckTCPSockets = pdTRUE;
+        }
+
+        if( xCheckTCPSockets != pdFALSE )
+        {
+            /* Attend to the sockets, returning the period after which the
+             * check must be repeated. */
+            xNextTime = xTCPTimerCheck( xWillSleep );
+            prvIPTimerStart( &xTCPTimer, xNextTime );
+            xProcessedTCPMessage = 0;
+        }
+    }
+
+    /* See if any socket was planned to be closed. */
+    vSocketCloseNextTime( NULL );
+
+    /* See if any reusable socket needs to go back to 'eTCP_LISTEN' state. */
+    vSocketListenNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 
     /* Is it time to trigger the repeated NetworkDown events? */
@@ -328,7 +328,7 @@ void vCheckNetworkTimers( void )
                 }
             }
 
-            xAllNetworksUp = xUp;
+            vSetAllNetworksUp( xUp );
         }
     }
 }
@@ -604,3 +604,12 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 
 #endif /* ipconfigDNS_USE_CALLBACKS == 1 */
 /*-----------------------------------------------------------*/
+
+/**
+ * @brief Mark whether all interfaces are up or at least one interface is down.
+ *        If all interfaces are up, the 'xNetworkTimer' will not be checked.
+ */
+void vSetAllNetworksUp( BaseType_t xIsAllNetworksUp )
+{
+    xAllNetworksUp = xIsAllNetworksUp;
+}

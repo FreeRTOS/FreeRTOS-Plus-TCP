@@ -27,7 +27,7 @@ option(FREERTOS_PLUS_TCP_BUILD_TEST "Build the test for FreeRTOS Plus TCP" OFF)
 #   Optional: set(FREERTOS_PLUS_TCP_COMPILER "" CACHE STRING "" FORCE)
 #   Required: set(FREERTOS_PLUS_TCP_NETWORK_IF "POSIX" CACHE STRING "" FORCE)
 
-# Select the appropriate buffer allocaiton method.
+# Select the appropriate buffer allocation method.
 # See: https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
 if (NOT FREERTOS_PLUS_TCP_BUFFER_ALLOCATION)
     message(STATUS "Using default FREERTOS_PLUS_TCP_BUFFER_ALLOCATION = 2")
@@ -58,9 +58,11 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     DRIVER_SAM
     ESP32
     KSZ8851SNL
+    LIBSLIRP
     LPC17xx LPC18xx LPC54018
     M487
     MPS2_AN385
+    MPS3_AN552
     MW300_RD
     PIC32MZEF_ETH PIC32MZEF_WIFI
     POSIX WIN_PCAP  # Native Linux & Windows respectively
@@ -96,12 +98,14 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " DRIVER_SAM             Target: Driver SAM         Tested: TODO\n"
         " ESP32                  Target: ESP-32             Tested: TODO\n"
         " KSZ8851SNL             Target: ksz8851snl         Tested: TODO\n"
+        " LIBSLIRP               Target: libslirp           Tested: TODO\n"
         " POSIX                  Target: linux/Posix\n"
         " LPC17xx                Target: LPC17xx            Tested: TODO\n"
         " LPC18xx                Target: LPC18xx            Tested: TODO\n"
         " LPC54018               Target: LPC54018           Tested: TODO\n"
         " M487                   Target: M487               Tested: TODO\n"
         " MPS2_AN385             Target: MPS2_AN385         Tested: TODO\n"
+        " MPS3_AN552             Target: MPS3_AN552"
         " MW300_RD               Target: mw300_rd           Tested: TODO\n"
         " PIC32MZEF_ETH          Target: pic32mzef ethernet Tested: TODO\n"
         " PIC32MZEF_WIFI         Target: pic32mzef Wifi     Tested: TODO\n"
@@ -128,7 +132,7 @@ elseif((FREERTOS_PORT STREQUAL "A_CUSTOM_PORT") AND (NOT TARGET freertos_kernel_
     "   target_include_directories(freertos_plus_tcp_network_if\n"
     "     PUBLIC\n"
     "      .)\n\n"
-    "   taget_link_libraries(freertos_plus_tcp_network_if\n"
+    "   target_link_libraries(freertos_plus_tcp_network_if\n"
     "     PUBLIC\n"
     "       freertos_plus_tcp_port\n"
     "       freertos_plus_tcp_network_if_common\n"
@@ -154,6 +158,7 @@ set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
     ENABLE_ALL_IPV6_TCP     # Enable all configuration settings IPv6 TCP
     ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6 UDP
     DISABLE_ALL             # Disable all configuration settings
+    HEADER_SELF_CONTAIN     # Enable header self contain test
     DEFAULT_CONF            # Default (typical) configuration
 )
 if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)
@@ -195,10 +200,22 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wall>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wpedantic>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wconversion>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wunused-variable>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
 
-    # TODO: Add in other Compilers here.
+    # Suppressions required to build clean with clang.
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-switch-enum>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-declaration-after-statement>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-padded>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-covered-switch-default>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
+    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-align>
 )
 
 ########################################################################

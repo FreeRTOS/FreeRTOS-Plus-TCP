@@ -28,16 +28,18 @@
 #ifndef FREERTOS_DNS_H
 #define FREERTOS_DNS_H
 
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
+#include "FreeRTOS.h"
 
 /* Application level configuration options. */
 #include "FreeRTOS_DNS_Globals.h"
 #include "FreeRTOS_DNS_Callback.h"
 #include "FreeRTOS_DNS_Cache.h"
+
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
 
 /*
  * LLMNR is very similar to DNS, so is handled by the DNS routines.
@@ -46,7 +48,7 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 #if ( ipconfigUSE_LLMNR == 1 )
     /* The LLMNR MAC address is 01:00:5e:00:00:fc */
-    extern const MACAddress_t xLLMNR_MacAdress;
+    extern const MACAddress_t xLLMNR_MacAddress;
 #endif /* ipconfigUSE_LLMNR */
 
 #if ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_IPv6 != 0 )
@@ -55,12 +57,12 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     extern const IPv6_Address_t ipLLMNR_IP_ADDR_IPv6;
 
 /* The LLMNR IPv6 MAC address is 33:33:00:01:00:03 */
-    extern const MACAddress_t xLLMNR_MacAdressIPv6;
+    extern const MACAddress_t xLLMNR_MacAddressIPv6;
 #endif /* ipconfigUSE_LLMNR */
 
 #if ( ipconfigUSE_MDNS == 1 )
     /* The MDNS MAC address is 01:00:5e:00:00:fc */
-    extern const MACAddress_t xMDNS_MacAdress;
+    extern const MACAddress_t xMDNS_MacAddress;
 #endif /* ipconfigUSE_MDNS */
 
 #if ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 )
@@ -69,7 +71,7 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
 
 /* The MDNS IPv6 MAC address is 33:33:00:01:00:03 */
-    extern const MACAddress_t xMDNS_MACAdressIPv6;
+    extern const MACAddress_t xMDNS_MACAddressIPv6;
 #endif /* ipconfigUSE_MDNS */
 
 /** @brief While doing integration tests, it is necessary to influence the choice

@@ -34,8 +34,8 @@ list(APPEND mock_include_list
             .
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 
@@ -73,8 +73,6 @@ list(APPEND test_include_directories
             .
             ${CMOCK_DIR}/vendor/unity/src
             ${TCP_INCLUDE_DIRS}
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
         )
 

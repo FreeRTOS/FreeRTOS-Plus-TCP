@@ -53,7 +53,7 @@
     #endif
 
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
 
 /** @addtogroup STM32Fxx_HAL_Driver
@@ -994,9 +994,9 @@
     #define ETH_DMAPTPRXDESC_PTPMT_FOLLOWUP                     ( ( uint32_t ) 0x00000200U ) /* FollowUp message (all clock types) */
     #define ETH_DMAPTPRXDESC_PTPMT_DELAYREQ                     ( ( uint32_t ) 0x00000300U ) /* DelayReq message (all clock types) */
     #define ETH_DMAPTPRXDESC_PTPMT_DELAYRESP                    ( ( uint32_t ) 0x00000400U ) /* DelayResp message (all clock types) */
-    #define ETH_DMAPTPRXDESC_PTPMT_PDELAYREQ_ANNOUNCE           ( ( uint32_t ) 0x00000500U ) /* PdelayReq message (peer-to-peer transparent clock) or Announce message (Ordinary or Boundary clock) */
-    #define ETH_DMAPTPRXDESC_PTPMT_PDELAYRESP_MANAG             ( ( uint32_t ) 0x00000600U ) /* PdelayResp message (peer-to-peer transparent clock) or Management message (Ordinary or Boundary clock)  */
-    #define ETH_DMAPTPRXDESC_PTPMT_PDELAYRESPFOLLOWUP_SIGNAL    ( ( uint32_t ) 0x00000700U ) /* PdelayRespFollowUp message (peer-to-peer transparent clock) or Signaling message (Ordinary or Boundary clock) */
+    #define ETH_DMAPTPRXDESC_PTPMT_PDELAYREQ_ANNOUNCE           ( ( uint32_t ) 0x00000500U ) /* PDelayReq message (peer-to-peer transparent clock) or Announce message (Ordinary or Boundary clock) */
+    #define ETH_DMAPTPRXDESC_PTPMT_PDELAYRESP_MANAG             ( ( uint32_t ) 0x00000600U ) /* PDelayResp message (peer-to-peer transparent clock) or Management message (Ordinary or Boundary clock)  */
+    #define ETH_DMAPTPRXDESC_PTPMT_PDELAYRESPFOLLOWUP_SIGNAL    ( ( uint32_t ) 0x00000700U ) /* PDelayRespFollowUp message (peer-to-peer transparent clock) or Signaling message (Ordinary or Boundary clock) */
     #define ETH_DMAPTPRXDESC_IPV6PR                             ( ( uint32_t ) 0x00000080U ) /* IPv6 Packet Received */
     #define ETH_DMAPTPRXDESC_IPV4PR                             ( ( uint32_t ) 0x00000040U ) /* IPv4 Packet Received */
     #define ETH_DMAPTPRXDESC_IPCB                               ( ( uint32_t ) 0x00000020U ) /* IP Checksum Bypassed */
@@ -2404,7 +2404,7 @@
  * @}
  */
     #ifdef __cplusplus
-}
+}     /* extern "C" */
     #endif
 
 #endif /* __STM32Fxx_HAL_ETH_H */

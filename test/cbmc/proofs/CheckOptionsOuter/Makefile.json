@@ -3,7 +3,7 @@
   "CBMCFLAGS":
   [
       "--unwind 1",
-      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions.2:32"
+      "--unwindset __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions.0:32"
   ],
   "OPT":
   [

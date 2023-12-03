@@ -28,11 +28,11 @@
 #ifndef PORTMACRO_H
     #define PORTMACRO_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
     #include <limits.h>
+
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
 /*-----------------------------------------------------------
  * Port specific definitions.
@@ -112,6 +112,16 @@
     #define portTASK_FUNCTION_PROTO( vFunction, pvParameters )         void vFunction( void * pvParameters )
     #define portTASK_FUNCTION( vFunction, pvParameters )               void vFunction( void * pvParameters )
 /*-----------------------------------------------------------*/
+
+/** We need to define it here because CMock does not recognize the
+ * #if ( portUSING_MPU_WRAPPERS == 1 ) guard around xTaskGetMPUSettings
+ * and then complains about the missing xMPU_SETTINGS type in the
+ * generated mocks. */
+    typedef struct MPU_SETTINGS
+    {
+        uint32_t ulDummy;
+    } xMPU_SETTINGS;
+
 
 /*
  * Tasks run in their own pthreads and context switches between them

@@ -27,17 +27,11 @@
 
 #ifndef FREERTOS_IP_PRIVATE_H
 #define FREERTOS_IP_PRIVATE_H
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_Sockets.h"
-#include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #include "FreeRTOS_Routing.h"
 
@@ -50,13 +44,22 @@
 
 #include "event_groups.h"
 
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
 #ifdef TEST
     int ipFOREVER( void );
 #else
     #define ipFOREVER()    1
 #endif
 
-typedef enum
+/* Forward declaration. */
+struct xNetworkEndPoint;
+
+typedef enum eFrameProcessingResult
 {
     eReleaseBuffer = 0,   /* Processing the frame did not find anything to do - just release the buffer. */
     eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
@@ -335,15 +338,6 @@ typedef union xUDPPacketHeader
 extern UDPPacketHeader_t xDefaultPartUDPPacketHeader;
 
 
-/* Structure that stores the netmask, gateway address and DNS server addresses. */
-extern NetworkAddressingParameters_t xNetworkAddressing;
-
-/* Structure that stores the defaults for netmask, gateway address and DNS.
- * These values will be copied to 'xNetworkAddressing' in case DHCP is not used,
- * and also in case DHCP does not lead to a confirmed request. */
-/*lint -e9003*/
-extern NetworkAddressingParameters_t xDefaultAddressing; /*lint !e9003 could define variable 'xDefaultAddressing' at block scope [MISRA 2012 Rule 8.9, advisory]. */
-
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
 extern const BaseType_t xBufferAllocFixedSize;
 
@@ -410,11 +404,7 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 /** @brief Macro calculates the number of elements in an array as a size_t. */
 #ifndef ARRAY_SIZE_X
     #ifndef _WINDOWS_
-        #define ARRAY_SIZE_X( x )                            \
-    ( { size_t uxCount = ( sizeof( x ) / sizeof( x[ 0 ] ) ); \
-        BaseType_t xCount = ( BaseType_t ) uxCount;          \
-        xCount; }                                            \
-    )
+        #define ARRAY_SIZE_X( x )    ( ( BaseType_t ) sizeof( x ) / ( BaseType_t ) sizeof( x[ 0 ] ) )
     #else
         #define ARRAY_SIZE_X( x )    ( sizeof( x ) / sizeof( x[ 0 ] ) )
     #endif
@@ -889,7 +879,10 @@ BaseType_t xIsCallingFromIPTask( void );
 #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
 /* Send the network-up event and start the ARP timer. */
-void vIPNetworkUpCalls( NetworkEndPoint_t * pxEndPoint );
+void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint );
+
+/* Mark whether all interfaces are up or at least one interface is down. */
+void vSetAllNetworksUp( BaseType_t xIsAllNetworksUp );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

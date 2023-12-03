@@ -140,8 +140,8 @@
     #define iptraceSENDING_DHCP_REQUEST()
 #endif
 
-#ifndef iptraceDHCP_SUCCEDEED
-    #define iptraceDHCP_SUCCEDEED( address )
+#ifndef iptraceDHCP_SUCCEEDED
+    #define iptraceDHCP_SUCCEEDED( address )
 #endif
 
 #ifndef iptraceNETWORK_INTERFACE_TRANSMIT

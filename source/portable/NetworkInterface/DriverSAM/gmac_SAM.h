@@ -51,11 +51,9 @@
     #include "compiler.h"
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
     #ifdef __cplusplus
-        extern "C" {
+    extern "C" {
     #endif
-/**INDENT-ON**/
 /*/ @endcond */
 
 /** The buffer addresses written into the descriptors must be aligned, so the
@@ -1469,7 +1467,7 @@
         }
 
 /**
- * \brief Set screening type 2 eherType register.
+ * \brief Set screening type 2 etherType register.
  *
  * \param p_gmac   Pointer to the GMAC instance.
  * \param ethertype  Ethertype compare value
@@ -1545,11 +1543,9 @@
                                        size_t uxLength );
 
 /*/ @cond 0 */
-/**INDENT-OFF**/
     #ifdef __cplusplus
-}
+}     /* extern "C" */
     #endif
-/**INDENT-ON**/
 /*/ @endcond */
 
     #ifndef GMAC_STATS

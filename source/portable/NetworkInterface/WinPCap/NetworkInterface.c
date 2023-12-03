@@ -460,16 +460,16 @@ static pcap_if_t * prvPrintAvailableNetworkInterfaces( void )
                 printf( "              (%s)\n", prvRemoveSpaces( cBuffer, sizeof( cBuffer ), xInterface->description ? xInterface->description : "No description" ) );
                 printf( "\n" );
                 #ifdef configNETWORK_INTERFACE_TYPE_TO_USE
+                {
+                    if( xInterface->description != NULL )
                     {
-                        if( xInterface->description != NULL )
+                        if( xDesiredAdapter( xInterface->description ) )
                         {
-                            if( xDesiredAdapter( xInterface->description ) )
-                            {
-                                printf( "The description of adapter %d matches with '%s'\n", lInterfaceNumber, configNETWORK_INTERFACE_TYPE_TO_USE );
-                                xConfigNetworkInterfaceToUse = lInterfaceNumber;
-                            }
+                            printf( "The description of adapter %d matches with '%s'\n", lInterfaceNumber, configNETWORK_INTERFACE_TYPE_TO_USE );
+                            xConfigNetworkInterfaceToUse = lInterfaceNumber;
                         }
                     }
+                }
                 #endif /* ifdef configNETWORK_INTERFACE_TYPE_TO_USE */
                 lInterfaceNumber++;
             }
@@ -601,7 +601,7 @@ static void prvConfigureCaptureBehaviour( const NetworkInterface_t * pxInterface
     snprintf( cErrorBuffer, sizeof( cErrorBuffer ), "broadcast or multicast or ether host %x:%x:%x:%x:%x:%x",
               pucMAC[ 0 ], pucMAC[ 1 ], pucMAC[ 2 ], pucMAC[ 3 ], pucMAC[ 4 ], pucMAC[ 5 ] );
 
-    ulNetMask = ( configNET_MASK3 << 24UL ) | ( configNET_MASK2 << 16UL ) | ( configNET_MASK1 << 8L ) | configNET_MASK0;
+    ulNetMask = FreeRTOS_inet_addr_quick( configNET_MASK0, configNET_MASK1, configNET_MASK2, configNET_MASK3 );
 
     if( pcap_compile( pxOpenedInterfaceHandle, &xFilterCode, cErrorBuffer, 1, ulNetMask ) < 0 )
     {
@@ -697,7 +697,7 @@ DWORD WINAPI prvWinPcapRecvThread( void * pvParam )
 {
     ( void ) pvParam;
 
-    /* THIS IS A WINDOWS THREAD - DO NOT ATTEMPT ANY FREERTOS CALLS	OR TO PRINT
+    /* THIS IS A WINDOWS THREAD - DO NOT ATTEMPT ANY FREERTOS CALLS OR TO PRINT
      * OUT MESSAGES HERE. */
 
     for( ; ; )
@@ -714,7 +714,7 @@ DWORD WINAPI prvWinPcapSendThread( void * pvParam )
     static char cErrorMessage[ 1024 ];
     const DWORD xMaxMSToWait = 1000;
 
-    /* THIS IS A WINDOWS THREAD - DO NOT ATTEMPT ANY FREERTOS CALLS	OR TO PRINT
+    /* THIS IS A WINDOWS THREAD - DO NOT ATTEMPT ANY FREERTOS CALLS OR TO PRINT
      * OUT MESSAGES HERE. */
 
     /* Remove compiler warnings about unused parameters. */
@@ -829,7 +829,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                     BaseType_t xBounced = xPacketBouncedBack( pucPacketData );
 
                     /* Obtain a buffer into which the data can be placed.  This
-                     * is only	an interrupt simulator, not a real interrupt, so it
+                     * is only an interrupt simulator, not a real interrupt, so it
                      * is ok to call the task level function here, but note that
                      * some buffer implementations cannot be called from a real
                      * interrupt. */
@@ -848,9 +848,9 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                         pxNetworkBuffer->xDataLength = ( size_t ) pxHeader->len;
 
                         #if ( niDISRUPT_PACKETS == 1 )
-                            {
-                                pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
-                            }
+                        {
+                            pxNetworkBuffer = vRxFaultInjection( pxNetworkBuffer, pucPacketData );
+                        }
                         #endif /* niDISRUPT_PACKETS */
 
                         if( pxNetworkBuffer != NULL )

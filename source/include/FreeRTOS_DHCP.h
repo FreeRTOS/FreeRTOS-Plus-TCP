@@ -28,17 +28,17 @@
 #ifndef FREERTOS_DHCP_H
 #define FREERTOS_DHCP_H
 
+#include "FreeRTOS.h"
+
+/* Application level configuration options. */
+#include "FreeRTOSIPConfig.h"
+
+#include "FreeRTOS_Sockets.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
-
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_Routing.h"
-
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "IPTraceMacroDefaults.h"
 
 #if ( ipconfigUSE_DHCP != 0 ) && ( ipconfigNETWORK_MTU < 586U )
 
@@ -101,11 +101,6 @@
 #define dhcpREPLY_OPCODE                ( 2U )                /**< DHCP reply opcode. */
 #define dhcpADDRESS_TYPE_ETHERNET       ( 1U )                /**< Address type: ethernet opcode. */
 #define dhcpETHERNET_ADDRESS_LENGTH     ( 6U )                /**< Ethernet address length opcode. */
-
-/* The following define is temporary and serves to make the /single source
- * code more similar to the /multi version. TODO */
-//#define EP_DHCPData                     xDHCPData              /**< Temporary define to make /single source similar to /multi version. */
-//#define EP_IPv4_SETTINGS                xNetworkAddressing     /**< Temporary define to make /single source similar to /multi version. */
 
 /** @brief If a lease time is not received, use the default of two days (48 hours in ticks).
  * Can not use pdMS_TO_TICKS() as integer overflow can occur. */
@@ -240,6 +235,12 @@ eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
  */
 void vDHCPProcess( BaseType_t xReset,
                     struct xNetworkEndPoint * pxEndPoint );
+
+/*
+ * NOT A PUBLIC API FUNCTION.
+ * It will be called when the network interface, that the endpoint is associated with, goes down.
+ */
+void vDHCPStop( struct xNetworkEndPoint * pxEndPoint );
 
 /* Internal call: returns true if socket is the current DHCP socket */
 BaseType_t xIsDHCPSocket( const ConstSocket_t xSocket );

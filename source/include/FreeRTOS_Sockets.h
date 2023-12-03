@@ -28,10 +28,6 @@
 #ifndef FREERTOS_SOCKETS_H
     #define FREERTOS_SOCKETS_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
-
 /* Standard includes. */
     #include <string.h>
 
@@ -51,6 +47,10 @@
 
 /* Event bit definitions are required by the select functions. */
     #include "event_groups.h"
+
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
     #ifndef INC_FREERTOS_H
         #error FreeRTOS.h must be included before FreeRTOS_Sockets.h.
@@ -325,15 +325,12 @@
         BaseType_t FreeRTOS_shutdown( Socket_t xSocket,
                                       BaseType_t xHow );
 
-        #if ( ipconfigUSE_TCP == 1 )
-
 /* Release a TCP payload buffer that was obtained by
  * calling FreeRTOS_recv() with the FREERTOS_ZERO_COPY flag,
  * and a pointer to a void pointer. */
-            BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
-                                                         void const * pvBuffer,
-                                                         BaseType_t xByteCount );
-        #endif /* ( ipconfigUSE_TCP == 1 ) */
+        BaseType_t FreeRTOS_ReleaseTCPPayloadBuffer( Socket_t xSocket,
+                                                     void const * pvBuffer,
+                                                     BaseType_t xByteCount );
 
 /* Returns the number of bytes available in the Rx buffer. */
         BaseType_t FreeRTOS_rx_size( ConstSocket_t xSocket );
@@ -368,9 +365,16 @@
         BaseType_t FreeRTOS_connstatus( ConstSocket_t xSocket );
 
 /* For advanced applications only:
+ * Get a direct pointer to the beginning of the circular transmit buffer.
+ * In case the buffer was not yet created, it will be created in
+ * this call.
+ */
+        uint8_t * FreeRTOS_get_tx_base( Socket_t xSocket );
+
+/* For advanced applications only:
  * Get a direct pointer to the circular transmit buffer.
  * '*pxLength' will contain the number of bytes that may be written. */
-        uint8_t * FreeRTOS_get_tx_head( ConstSocket_t xSocket,
+        uint8_t * FreeRTOS_get_tx_head( Socket_t xSocket,
                                         BaseType_t * pxLength );
 
 /* For the web server: borrow the circular Rx buffer for inspection
@@ -467,17 +471,17 @@
 /* Converts an IP address expressed as four separate numeric octets into an
  * IP address expressed as a 32-bit number in network byte order */
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet3 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet0 ) ) )
 
     #else /* ( ipconfigBYTE_ORDER == pdFREERTOS_BIG_ENDIAN ) */
 
         #define FreeRTOS_inet_addr_quick( ucOctet0, ucOctet1, ucOctet2, ucOctet3 ) \
-    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16UL ) |                                  \
-      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8UL ) |                                   \
+    ( ( ( ( uint32_t ) ( ucOctet0 ) ) << 24 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet1 ) ) << 16 ) |                                    \
+      ( ( ( uint32_t ) ( ucOctet2 ) ) << 8 ) |                                     \
       ( ( uint32_t ) ( ucOctet3 ) ) )
 
     #endif /* ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN ) */
@@ -494,9 +498,6 @@
                                      const void * pvSource,
                                      char * pcDestination,
                                      socklen_t uxSize );
-
-    BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
-                                    void * pvDestination );
 
 /** @brief This function converts a human readable string, representing an 48-bit MAC address,
  * into a 6-byte address. Valid inputs are e.g. "62:48:5:83:A0:b2" and "0-12-34-fe-dc-ba". */
@@ -561,8 +562,35 @@
 
     #endif /* ( ipconfigSUPPORT_SELECT_FUNCTION == 1 ) */
 
+
+    #if ipconfigUSE_IPv4
+        /* Translate from dot-decimal notation (example 192.168.1.1) to a 32-bit number. */
+        BaseType_t FreeRTOS_inet_pton4( const char * pcSource,
+                                        void * pvDestination );
+
+/* Translate 32-bit IPv4 address representation dot-decimal notation. */
+        const char * FreeRTOS_inet_ntop4( const void * pvSource,
+                                          char * pcDestination,
+                                          socklen_t uxSize );
+    #endif
+
+    #if ipconfigUSE_IPv6
+        /* Translate hexadecimal IPv6 address to 16 bytes binary format */
+        BaseType_t FreeRTOS_inet_pton6( const char * pcSource,
+                                        void * pvDestination );
+
+/*
+ * Convert a string like 'fe80::8d11:cd9b:8b66:4a80'
+ * to a 16-byte IPv6 address
+ */
+        const char * FreeRTOS_inet_ntop6( const void * pvSource,
+                                          char * pcDestination,
+                                          socklen_t uxSize );
+
+    #endif
+
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* FREERTOS_SOCKETS_H */

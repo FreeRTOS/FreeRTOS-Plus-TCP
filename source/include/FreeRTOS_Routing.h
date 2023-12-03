@@ -26,9 +26,8 @@
 #ifndef FREERTOS_ROUTING_H
     #define FREERTOS_ROUTING_H
 
-    #ifdef __cplusplus
-        extern "C" {
-    #endif
+    #include "FreeRTOS.h"
+    #include "FreeRTOS_IP.h"
 
     #if ( ipconfigUSE_DHCP != 0 )
         #include "FreeRTOS_DHCP.h"
@@ -38,10 +37,11 @@
         #include "FreeRTOS_DHCPv6.h"
     #endif
 
-/* Every NetworkInterface needs a set of access functions: */
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
-/* Forward declaration of 'struct xNetworkInterface'. */
-    struct xNetworkInterface;
+/* Every NetworkInterface needs a set of access functions: */
 
 /* Initialise the interface. */
     typedef BaseType_t ( * NetworkInterfaceInitialiseFunction_t ) ( struct xNetworkInterface * pxDescriptor );
@@ -332,19 +332,23 @@
         eIPv6_LinkLocal, /* 1111 1110 10  */
         eIPv6_SiteLocal, /* 1111 1110 11  */
         eIPv6_Multicast, /* 1111 1111     */
+        eIPv6_Loopback,  /* 1111 (::1)    */
         eIPv6_Unknown,   /* Not implemented. */
     }
     IPv6_Type_t;
+
+    #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
  * @brief Check the type of an IPv16 address.
  *
  * @return A value from enum IPv6_Type_t.
  */
-    IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+        IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
+    #endif
 
     #ifdef __cplusplus
-}         /* extern "C" */
+}     /* extern "C" */
     #endif
 
 #endif /* FREERTOS_ROUTING_H */

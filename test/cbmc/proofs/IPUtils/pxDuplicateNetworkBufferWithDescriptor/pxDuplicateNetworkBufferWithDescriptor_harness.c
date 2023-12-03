@@ -61,7 +61,7 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
     size_t xReturn;
 
-    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer shouldnt be NULL" );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer should not be NULL" );
     __CPROVER_assume( ( xReturn == ipSIZE_OF_IPv4_HEADER ) || ( xReturn == ipSIZE_OF_IPv6_HEADER ) );
 
     return xReturn;

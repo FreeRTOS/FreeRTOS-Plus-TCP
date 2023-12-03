@@ -27,18 +27,12 @@
 
 #ifndef FREERTOS_IPV6_PRIVATE_H
 #define FREERTOS_IPV6_PRIVATE_H
-/* *INDENT-OFF* */
-#ifdef __cplusplus
-    extern "C" {
-#endif
-/* *INDENT-ON* */
 
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_IP_Common.h"
 #include "FreeRTOS_Sockets.h"
-#include "IPTraceMacroDefaults.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
@@ -49,16 +43,18 @@
 
 #include "event_groups.h"
 
+/* *INDENT-OFF* */
+#ifdef __cplusplus
+    extern "C" {
+#endif
+/* *INDENT-ON* */
+
 /* MISRA Ref 20.5.1 [Use of undef] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2051 */
 /* coverity[misra_c_2012_rule_20_5_violation] */
 #undef TCP_PACKET_SIZE
 #define TCP_PACKET_SIZE          ( sizeof( TCPPacket_IPv6_t ) )
 
-/* The offset from the UDP payload where the IP type will be stored.
- * For IPv4 packets, this it located 6 bytes before pucEthernetBuffer.
- * For IPv6 packets, this it located in the usual 'ucVersionTrafficClass'. */
-#define ipIP_TYPE_OFFSET         ( 6U )
 /* The offset into an IP packet into which the IP data (payload) starts. */
 #define ipIPv6_PAYLOAD_OFFSET    ( sizeof( IPPacket_IPv6_t ) )
 /* MISRA Ref 20.5.1 [Use of undef] */
@@ -66,11 +62,9 @@
 /* coverity[misra_c_2012_rule_20_5_violation] */
 /* The maximum UDP payload length. */
 #undef ipMAX_UDP_PAYLOAD_LENGTH
-#define ipMAX_UDP_PAYLOAD_LENGTH          ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
+#define ipMAX_UDP_PAYLOAD_LENGTH     ( ( ipconfigNETWORK_MTU - ipSIZE_OF_IPv6_HEADER ) - ipSIZE_OF_UDP_HEADER )
 /* The offset into a UDP packet at which the UDP data (payload) starts. */
-#define ipUDP_PAYLOAD_OFFSET_IPv6         ( sizeof( UDPPacket_IPv6_t ) )
-/* The value of 'ipUDP_PAYLOAD_IP_TYPE_OFFSET' is 42 + 6 = 48 bytes. */
-#define ipUDP_PAYLOAD_IPv6_TYPE_OFFSET    ( sizeof( UDPPacket_IPv6_t ) + ipIP_TYPE_OFFSET )
+#define ipUDP_PAYLOAD_OFFSET_IPv6    ( sizeof( UDPPacket_IPv6_t ) )
 
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
 
@@ -276,4 +270,4 @@ eFrameProcessingResult_t prvProcessICMPMessage_IPv6( NetworkBufferDescriptor_t *
 #endif
 /* *INDENT-ON* */
 
-#endif /* FREERTOS_IP_PRIVATE_H */
+#endif /* FREERTOS_IPV6_PRIVATE_H */

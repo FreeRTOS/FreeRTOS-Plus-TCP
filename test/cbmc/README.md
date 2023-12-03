@@ -84,7 +84,7 @@ and Linux, you will need Make.
     package into the top-level CBMC source directory.
   - Change into the top-level CBMC source directory and run
     ```
-    cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -DWITH_JBMC=OFF
+    cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -DWITH_CBMC=OFF
     cmake --build build
     ```
 

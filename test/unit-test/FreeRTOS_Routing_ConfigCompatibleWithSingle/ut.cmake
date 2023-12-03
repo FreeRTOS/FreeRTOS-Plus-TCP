@@ -33,8 +33,8 @@ list(APPEND mock_include_list
             ${MODULE_ROOT_DIR}/test/unit-test/${project_name}
             ${TCP_INCLUDE_DIRS}
             ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/include
-            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
             ${MODULE_ROOT_DIR}/test/unit-test/ConfigFiles
+            ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
         )
 
 set(mock_define_list "")
