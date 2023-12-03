@@ -95,14 +95,6 @@
       DMA_IE_RWE /* Receive watchdog timeout enable */ |   \
       DMA_IE_FBE ) /* Fatal bus error enable */
 
-/* Interrupt events to process.  Currently only the RX/TX events are processed
- * although code for other events is included to allow for possible future
- * expansion. */
-#define EMAC_IF_RX_EVENT     1UL
-#define EMAC_IF_TX_EVENT     2UL
-#define EMAC_IF_ERR_EVENT    4UL
-#define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
-
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 ) || ( ipconfigZERO_COPY_TX_DRIVER == 0 )
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning It is adviced to enable both macros

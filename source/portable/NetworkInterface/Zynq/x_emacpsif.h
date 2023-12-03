@@ -73,11 +73,6 @@
  */
     #define XEMACPS_DMACR_DISC_WHEN_NO_AHB_MASK    0x01000000
 
-    #define EMAC_IF_RX_EVENT                       1
-    #define EMAC_IF_TX_EVENT                       2
-    #define EMAC_IF_ERR_EVENT                      4
-    #define EMAC_IF_ALL_EVENT                      7
-
 /* structure within each netif, encapsulating all information required for
  * using a particular temac instance
  */

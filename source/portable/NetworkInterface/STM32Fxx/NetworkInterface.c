@@ -68,15 +68,6 @@
     #error What part?
 #endif /* if defined( STM32F7xx ) */
 
-
-/* Interrupt events to process.  Currently only the Rx event is processed
- * although code for other events is included to allow for possible future
- * expansion. */
-#define EMAC_IF_RX_EVENT        1UL
-#define EMAC_IF_TX_EVENT        2UL
-#define EMAC_IF_ERR_EVENT       4UL
-#define EMAC_IF_ALL_EVENT       ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
-
 /* Calculate the maximum packet size that the DMA can receive. */
 #define EMAC_DMA_BUFFER_SIZE    ( ( uint32_t ) ( ETH_MAX_PACKET_SIZE - ipBUFFER_PADDING ) )
 

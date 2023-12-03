@@ -38,16 +38,13 @@
 
 #define EMAC_HANDLER_TASK_NAME    "EMAC"
 
-/* INTERNAL API FUNCTIONS. */
+/* Interrupt events to process. */
+#define EMAC_IF_RX_EVENT              1UL
+#define EMAC_IF_TX_EVENT              2UL
+#define EMAC_IF_ERR_EVENT             4UL
+#define EMAC_IF_ALL_EVENT             ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
-/* Since there are multiple interfaces, there are multiple versions
- * of the following functions.
- * These are now declared static in NetworkInterface.c and their addresses
- * are stored in a struct NetworkInterfaceDescriptor_t.
- *
- *  BaseType_t xNetworkInterfaceInitialise( struct xNetworkInterface *pxInterface );
- *  BaseType_t xGetPhyLinkStatus( struct xNetworkInterface *pxInterface );
- */
+/* INTERNAL API FUNCTIONS. */
 
 /* The following function is defined only when BufferAllocation_1.c is linked in the project. */
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] );

@@ -193,15 +193,6 @@
 
 #define BMSR_LINK_STATUS        0x0004  /*!< Link status */
 
-
-/* Interrupt events to process.  Currently only the Rx event is processed
- * although code for other events is included to allow for possible future
- * expansion. */
-#define EMAC_IF_RX_EVENT          1UL
-#define EMAC_IF_TX_EVENT          2UL
-#define EMAC_IF_ERR_EVENT         4UL
-#define EMAC_IF_ALL_EVENT         ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
-
 #define ETHERNET_CONF_PHY_ADDR    BOARD_GMAC_PHY_ADDR
 
 #ifdef ipconfigHAS_TX_CRC_OFFLOADING
