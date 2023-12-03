@@ -425,9 +425,6 @@ static BaseType_t prvNXP1060_NetworkInterfaceOutput( NetworkInterface_t * pxInte
     status_t result;
     BaseType_t xReturn = pdFAIL;
 
-    /* Avoid warning about unused parameter. */
-    ( void ) pxInterface;
-
     do
     {
         if( xCheckLoopback( pxNetworkBuffer, xReleaseAfterSend ) != 0 )
@@ -439,7 +436,7 @@ static BaseType_t prvNXP1060_NetworkInterfaceOutput( NetworkInterface_t * pxInte
             break;
         }
 
-        if( bGlobalLinkStatus == true )
+        if( prvNXP1060_GetPhyLinkStatus( pxInterface ) == pdTRUE )
         {
             /* ENET_SendFrame copies the data before sending it. Therefore, the network buffer can
              * be released without worrying about the buffer memory being used by the ENET_SendFrame
@@ -539,7 +536,7 @@ static void prvEMACHandlerTask( void * parameter )
                         bGlobalLinkStatus = true;
                     }
                 }
-            } while( bGlobalLinkStatus == false );
+            } while( prvNXP1060_GetPhyLinkStatus( pxMyInterface ) == pdFALSE );
         }
         else
         {

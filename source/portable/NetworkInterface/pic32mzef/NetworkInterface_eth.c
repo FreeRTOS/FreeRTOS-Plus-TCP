@@ -678,7 +678,7 @@
                 ( macObject->TCPIP_MAC_Tasks )( macObjHandle );
                 bool linkCurr = ( macObject->TCPIP_MAC_LinkCheck )( macCliHandle ); /* check link status */
 
-                if( macLinkStatus != linkCurr )
+                if( xPIC32_Eth_GetPhyLinkStatus( pxMyInterface ) != linkCurr )
                 { /* link status changed; some event could ve fired here if needed */
                     PIC32_MAC_DbgPrint( " MAC link: %s!\r\n", linkCurr ? "ON" : "OFF" );
                     macLinkStatus = linkCurr;

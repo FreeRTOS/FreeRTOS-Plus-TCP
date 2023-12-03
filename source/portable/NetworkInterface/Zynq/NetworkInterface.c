@@ -386,7 +386,7 @@ static BaseType_t xZynqNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     }
     #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
-    if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0UL )
+    if( xZynqGetPhyLinkStatus( pxInterface ) != pdFALSE )
     {
         iptraceNETWORK_INTERFACE_TRANSMIT();
 
@@ -436,7 +436,7 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 
         ulPHYLinkStates[ xEMACIndex ] = ulReadMDIO( xEMACIndex, PHY_REG_01_BMSR );
 
-        if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0U )
+        if( xZynqGetPhyLinkStatus( pxMyInterfaces[ xEMACIndex ] ) != pdFALSE )
         {
             xReturn = pdTRUE;
             break;
@@ -621,15 +621,15 @@ static void prvEMACHandlerTask( void * pvParameters )
         {
             xStatus = ulReadMDIO( xEMACIndex, PHY_REG_01_BMSR );
 
-            if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != ( xStatus & niBMSR_LINK_STATUS ) )
+            if( xZynqGetPhyLinkStatus( pxMyInterfaces[ xEMACIndex ] ) != ( xStatus & niBMSR_LINK_STATUS ) )
             {
                 ulPHYLinkStates[ xEMACIndex ] = xStatus;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0 ) );
+                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", xZynqGetPhyLinkStatus( pxMyInterfaces[ xEMACIndex ] ) != pdFALSE ) );
             }
 
             vTaskSetTimeOutState( &xPhyTime );
 
-            if( ( ulPHYLinkStates[ xEMACIndex ] & niBMSR_LINK_STATUS ) != 0 )
+            if( xZynqGetPhyLinkStatus( pxMyInterfaces[ xEMACIndex ] ) != pdFALSE )
             {
                 xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }

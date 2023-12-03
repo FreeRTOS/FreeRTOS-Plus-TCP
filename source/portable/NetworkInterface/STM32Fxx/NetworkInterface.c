@@ -608,7 +608,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
     }
     else
     {
-        if( xPhyObject.ulLinkStatusMask != 0U )
+        if( xSTM32F_GetPhyLinkStatus( pxInterface ) != pdFALSE )
         {
             xETH.Instance->DMAIER |= ETH_DMA_ALL_INTS;
             xResult = pdPASS;
@@ -773,9 +773,6 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
 /* Do not wait too long for a free TX DMA buffer. */
     const TickType_t xBlockTimeTicks = pdMS_TO_TICKS( 50u );
 
-    /* As there is only a single instance of the EMAC, there is only one pxInterface object. */
-    ( void ) pxInterface;
-
     /* Open a do {} while ( 0 ) loop to be able to call break. */
     do
     {
@@ -824,7 +821,7 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
         }
         #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
-        if( xPhyObject.ulLinkStatusMask != 0 )
+        if( xSTM32F_GetPhyLinkStatus( pxInterface ) != pdFALSE )
         {
             if( xSemaphoreTake( xTXDescriptorSemaphore, xBlockTimeTicks ) != pdPASS )
             {
@@ -1277,10 +1274,10 @@ void vMACBProbePhy( void )
 static void prvEthernetUpdateConfig( BaseType_t xForce )
 {
     FreeRTOS_printf( ( "prvEthernetUpdateConfig: LS mask %02lX Force %d\n",
-                       xPhyObject.ulLinkStatusMask,
+                       xSTM32F_GetPhyLinkStatus( pxMyInterface ),
                        ( int ) xForce ) );
 
-    if( ( xForce != pdFALSE ) || ( xPhyObject.ulLinkStatusMask != 0 ) )
+    if( ( xForce != pdFALSE ) || ( xSTM32F_GetPhyLinkStatus( pxMyInterface ) != pdFALSE ) )
     {
         /* Restart the auto-negotiation. */
         if( xETH.Init.AutoNegotiation != ETH_AUTONEGOTIATION_DISABLE )

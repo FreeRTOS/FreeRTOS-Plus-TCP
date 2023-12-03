@@ -668,10 +668,10 @@ static BaseType_t prvNetworkInterfaceInput()
 
             if( eResult == eProcessBuffer )
             {
-                if( ( ulPHYLinkStatus & PHY_LINK_CONNECTED ) == 0 )
+                if( xGetPhyLinkStatus() == pdFALSE )
                 {
                     ulPHYLinkStatus |= PHY_LINK_CONNECTED;
-                    FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d (message received)\n", ( ulPHYLinkStatus & PHY_LINK_CONNECTED ) != 0 ) );
+                    FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d (message received)\n", xGetPhyLinkStatus() != pdFALSE ) );
                 }
 
                 #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
@@ -1040,15 +1040,15 @@ static void prvEMACHandlerTask( void * pvParameters )
         {
             ulStatus = lpcPHYStsPoll();
 
-            if( ( ulPHYLinkStatus & PHY_LINK_CONNECTED ) != ( ulStatus & PHY_LINK_CONNECTED ) )
+            if( xGetPhyLinkStatus() != ( ulStatus & PHY_LINK_CONNECTED ) )
             {
                 ulPHYLinkStatus = ulStatus;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d (polled PHY)\n", ( ulPHYLinkStatus & PHY_LINK_CONNECTED ) != 0 ) );
+                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d (polled PHY)\n", xGetPhyLinkStatus() != pdFALSE ) );
             }
 
             vTaskSetTimeOutState( &xPhyTime );
 
-            if( ( ulPHYLinkStatus & PHY_LINK_CONNECTED ) != 0 )
+            if( xGetPhyLinkStatus() != pdFALSE )
             {
                 xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }

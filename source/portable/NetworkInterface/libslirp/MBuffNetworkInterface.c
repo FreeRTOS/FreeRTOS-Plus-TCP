@@ -87,10 +87,8 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
 
     MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
 
-    if( pxDriverCtx->xInterfaceState == pdFALSE )
+    if( xGetPhyLinkStatus( pxNetif ) == pdFALSE )
     {
-        pxDriverCtx->xInterfaceState = pdFALSE;
-
         #if defined( _WIN32 )
             pxDriverCtx->pvSendEvent = CreateEvent( NULL, FALSE, TRUE, NULL );
         #else
@@ -275,7 +273,7 @@ static BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxNetif,
 
     FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: %p:%p\n", pxNetworkBuffer, pxNetworkBuffer->pucEthernetBuffer ) );
 
-    if( pxDriverCtx->xInterfaceState == pdTRUE )
+    if( xGetPhyLinkStatus( pxNetif ) == pdTRUE )
     {
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );

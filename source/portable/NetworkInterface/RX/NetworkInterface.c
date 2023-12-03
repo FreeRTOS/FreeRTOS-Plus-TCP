@@ -171,7 +171,7 @@ BaseType_t xRX_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 
     if( xMacInitStatus == eMACPass )
     {
-        xReturn = xPHYLinkStatus;
+        xReturn = xRX_PHYGetLinkStatus( pxInterface );
     }
     else
     {
@@ -207,7 +207,7 @@ BaseType_t xRX_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
      * data to be sent as two separate parameters.  The start of the data is located
      * by pxDescriptor->pucEthernetBuffer.  The length of the data is located
      * by pxDescriptor->xDataLength. */
-    if( xPHYLinkStatus != 0 )
+    if( xRX_PHYGetLinkStatus( pxInterface ) != pdFALSE )
     {
         if( SendData( pxDescriptor->pucEthernetBuffer, pxDescriptor->xDataLength ) >= 0 )
         {
@@ -375,25 +375,25 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
             /* Indicate that the Link Status is high, so that
              * xNetworkInterfaceOutput() can send packets. */
-            if( xPHYLinkStatus == 0 )
+            if( xRX_PHYGetLinkStatus( pxMyInterface ) == pdFALSE )
             {
                 xPHYLinkStatus = 1;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS assume %d\n", xPHYLinkStatus ) );
+                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS assume %d\n", xRX_PHYGetLinkStatus( pxMyInterface ) ) );
             }
         }
         else if( ( xTaskCheckForTimeOut( &xPhyTime, &xPhyRemTime ) != pdFALSE ) || ( FreeRTOS_IsNetworkUp() == pdFALSE ) )
         {
             R_ETHER_LinkProcess( ETHER_CHANNEL_0 );
 
-            if( xPHYLinkStatus != xReportedStatus )
+            if( xRX_PHYGetLinkStatus( pxMyInterface ) != xReportedStatus )
             {
                 xPHYLinkStatus = xReportedStatus;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", xPHYLinkStatus ) );
+                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", xRX_PHYGetLinkStatus( pxMyInterface ) ) );
             }
 
             vTaskSetTimeOutState( &xPhyTime );
 
-            if( xPHYLinkStatus != 0 )
+            if( xRX_PHYGetLinkStatus( pxMyInterface ) != pdFALSE )
             {
                 xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }

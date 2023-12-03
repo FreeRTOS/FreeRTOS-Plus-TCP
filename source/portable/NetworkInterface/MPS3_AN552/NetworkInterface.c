@@ -137,7 +137,7 @@ static void prvLAN91C111_CheckEthertnetLinkStatus()
     ARM_ETH_LINK_STATE eEthernetLinkState;
     IPStackEvent_t xRxEvent;
 
-    eEthernetLinkState = xEthernetInterface0.pxEthernetPHYDriver->GetLinkState();
+    eEthernetLinkState = xLAN91C111_GetPhyLinkStatus( pxMyInterface );
 
     /* If the ethernet link status has not changed, then return without taking
      * any actions */
@@ -263,8 +263,6 @@ static BaseType_t xLAN91C111_NetworkInterfaceInitialise( NetworkInterface_t * px
     ARM_ETH_LINK_INFO xEthernetLinkInfo;
     uint32_t ulMACControlArg;
 
-    ( void ) pxInterface;
-
     switch( eEMACState )
     {
         case xEMAC_Init:
@@ -342,7 +340,7 @@ static BaseType_t xLAN91C111_NetworkInterfaceInitialise( NetworkInterface_t * px
 
             /* Wait for the Ethernet link to be up */
             vTaskDelay( xEthernetLinkStateTimeOut );
-            xEthernetInterface0.eEthernetLinkState = xEthernetInterface0.pxEthernetPHYDriver->GetLinkState();
+            xEthernetInterface0.eEthernetLinkState = xLAN91C111_GetPhyLinkStatus( pxInterface );
 
             if( xEthernetInterface0.eEthernetLinkState == ARM_ETH_LINK_DOWN )
             {

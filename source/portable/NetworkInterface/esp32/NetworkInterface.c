@@ -105,7 +105,7 @@ static BaseType_t xESP32_Eth_NetworkInterfaceInitialise( NetworkInterface_t * px
     static BaseType_t xMACAdrInitialized = pdFALSE;
     uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
 
-    if( xInterfaceState == INTERFACE_UP )
+    if( xESP32_Eth_GetPhyLinkStatus( pxInterface ) != pdFALSE )
     {
         if( xMACAdrInitialized == pdFALSE )
         {
@@ -144,7 +144,7 @@ static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
 
     esp_err_t ret;
 
-    if( xInterfaceState == INTERFACE_DOWN )
+    if( xESP32_Eth_GetPhyLinkStatus( pxInterface ) == pdFALSE )
     {
         ESP_LOGD( TAG, "Interface down" );
         ret = ESP_FAIL;
@@ -178,12 +178,15 @@ static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
 
 void vNetworkNotifyIFDown()
 {
-    IPStackEvent_t xRxEvent = { eNetworkDownEvent, NULL };
-
-    if( xInterfaceState != INTERFACE_DOWN )
+    if( xESP32_Eth_GetPhyLinkStatus( pxMyInterface ) != pdFALSE )
     {
         xInterfaceState = INTERFACE_DOWN;
-        xSendEventStructToIPTask( &xRxEvent, 0 );
+        #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+            if( xGetPhyLinkStatus( pxMyInterface ) == pdFALSE )
+            {
+                FreeRTOS_NetworkDown( pxMyInterface );
+            }
+        #endif /* ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 ) */
     }
 }
 

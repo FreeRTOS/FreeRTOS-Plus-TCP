@@ -169,7 +169,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     FreeRTOS_UpdateMACAddress( mac_addr.mac );
 
-    return ( xInterfaceState == INTERFACE_UP && ret == WM_SUCCESS ) ? pdTRUE : pdFALSE;
+    return ( xGetPhyLinkStatus() != pdFALSE && ret == WM_SUCCESS ) ? pdTRUE : pdFALSE;
 }
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
@@ -179,8 +179,14 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 
 BaseType_t xGetPhyLinkStatus( void )
 {
-    /* FIX ME. */
-    return pdFALSE;
+    BaseType_t xResult = pdFALSE;
+
+    if( xInterfaceState == INTERFACE_UP )
+    {
+        xResult = pdTRUE;
+    }
+
+    return xResult;
 }
 void vNetworkNotifyIFDown()
 {

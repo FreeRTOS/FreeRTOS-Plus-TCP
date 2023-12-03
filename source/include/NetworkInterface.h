@@ -38,6 +38,7 @@
 
 #define EMAC_HANDLER_TASK_NAME    "EMAC"
 #define EMAC_MAX_BLOCK_TIME_MS    100ul
+#define EMAC_DESCRIPTOR_WAIT_TIME_MS    100ul
 
 /* Interrupt events to process. */
 #define EMAC_IF_RX_EVENT              1UL

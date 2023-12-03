@@ -177,8 +177,6 @@ static BaseType_t xWinPcap_NetworkInterfaceInitialise( NetworkInterface_t * pxIn
     BaseType_t xReturn = pdFALSE;
     pcap_if_t * pxAllNetworkInterfaces;
 
-    ( void ) pxInterface;
-
     /* Query the computer the simulation is being executed on to find the
      * network interfaces it has installed. */
     pxAllNetworkInterfaces = prvPrintAvailableNetworkInterfaces();
@@ -193,7 +191,7 @@ static BaseType_t xWinPcap_NetworkInterfaceInitialise( NetworkInterface_t * pxIn
         prvOpenSelectedNetworkInterface( pxAllNetworkInterfaces, pxInterface );
     }
 
-    if( pxOpenedInterfaceHandle != NULL )
+    if( xWinPcap_GetPhyLinkStatus( pxInterface ) != pdFALSE )
     {
         xReturn = pdPASS;
     }
@@ -526,7 +524,7 @@ static int prvOpenInterface( const char * pucName,
                                          cErrorBuffer
                                          );
 
-    if( pxOpenedInterfaceHandle == NULL )
+    if( xWinPcap_GetPhyLinkStatus( pxInterface ) == pdFALSE )
     {
         printf( "\n%s is not supported by WinPcap and cannot be opened\n", pucInterfaceName );
         return 1;

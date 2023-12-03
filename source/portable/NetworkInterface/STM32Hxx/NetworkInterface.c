@@ -489,7 +489,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
 
     if( xMacInitStatus == eMACPass )
     {
-        if( xPhyObject.ulLinkStatusMask != 0U )
+        if( xSTM32H_GetPhyLinkStatus( pxInterface ) != pdFALSE )
         {
             xResult = pdPASS;
             FreeRTOS_printf( ( "Link Status is high\n" ) );
@@ -682,10 +682,10 @@ static void prvEthernetUpdateConfig( BaseType_t xForce )
     uint32_t speed = 0, duplex = 0;
 
     FreeRTOS_printf( ( "prvEthernetUpdateConfig: LS mask %02lX Force %d\n",
-                       xPhyObject.ulLinkStatusMask,
+                       xSTM32H_GetPhyLinkStatus( pxMyInterface ),
                        ( int ) xForce ) );
 
-    if( ( xForce != pdFALSE ) || ( xPhyObject.ulLinkStatusMask != 0 ) )
+    if( ( xForce != pdFALSE ) || ( xSTM32H_GetPhyLinkStatus( pxMyInterface ) != pdFALSE ) )
     {
         /* Restart the auto-negotiation. */
         xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &( xPhyObject ) ) );

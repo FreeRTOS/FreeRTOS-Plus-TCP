@@ -316,7 +316,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxBuffer,
     }
     #endif /* ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM */
 
-    if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0UL )
+    if( xGetPhyLinkStatus() != pdFALSE )
     {
         iptraceNETWORK_INTERFACE_TRANSMIT();
         emacps_send_message( &xEMACpsif, pxBuffer, bReleaseAfterSend );
@@ -360,7 +360,7 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 
         ulPHYLinkStatus = ulReadMDIO( PHY_REG_01_BMSR );
 
-        if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL )
+        if( xGetPhyLinkStatus() != pdFALSE )
         {
             xReturn = pdTRUE;
             break;
@@ -436,7 +436,6 @@ static void prvEMACHandlerTask( void * pvParameters )
     TickType_t xPhyRemTime;
     BaseType_t xResult = 0;
     uint32_t xStatus;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
 
     /* Remove compiler warnings about unused parameters. */
     ( void ) pvParameters;
@@ -462,7 +461,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         if( ( xEMACpsif.isr_events & EMAC_IF_ALL_EVENT ) == 0 )
         {
             /* No events to process now, wait for the next. */
-            ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
+            ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
         }
 
         if( ( xEMACpsif.isr_events & EMAC_IF_RX_EVENT ) != 0 )
@@ -491,7 +490,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             xResult = 0;
 
-            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) == 0uL )
+            if( xGetPhyLinkStatus() == pdFALSE )
             {
                 /* Indicate that the Link Status is high, so that
                  * xNetworkInterfaceOutput() can send packets. */
@@ -503,15 +502,15 @@ static void prvEMACHandlerTask( void * pvParameters )
         {
             xStatus = ulReadMDIO( PHY_REG_01_BMSR );
 
-            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != ( xStatus & niBMSR_LINK_STATUS ) )
+            if( xGetPhyLinkStatus() != ( xStatus & niBMSR_LINK_STATUS ) )
             {
                 ulPHYLinkStatus = xStatus;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL ) );
+                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", xGetPhyLinkStatus() != pdFALSE ) );
             }
 
             vTaskSetTimeOutState( &xPhyTime );
 
-            if( ( ulPHYLinkStatus & niBMSR_LINK_STATUS ) != 0uL )
+            if( xGetPhyLinkStatus() != pdFALSE )
             {
                 xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }

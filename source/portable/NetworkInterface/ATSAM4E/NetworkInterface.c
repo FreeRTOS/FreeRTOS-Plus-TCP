@@ -207,7 +207,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     /* When returning non-zero, the stack will become active and
      * start DHCP (in configured) */
-    return ( ulPHYLinkStatus & BMSR_LINK_STATUS ) != 0;
+    return ( xGetPhyLinkStatus() != pdFALSE );
 }
 /*-----------------------------------------------------------*/
 
@@ -237,7 +237,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 
     do
     {
-        if( ( ulPHYLinkStatus & BMSR_LINK_STATUS ) == 0 )
+        if( xGetPhyLinkStatus() == pdFALSE )
         {
             /* Do not attempt to send packets as long as the Link Status is low. */
             break;
@@ -363,7 +363,7 @@ static BaseType_t xGMACWaitLS( TickType_t xMaxTime )
         /* Check the link status again. */
         ulPHYLinkStatus = ulReadMDIO( PHY_REG_01_BMSR );
 
-        if( ( ulPHYLinkStatus & BMSR_LINK_STATUS ) != 0 )
+        if( xGetPhyLinkStatus() != pdFALSE )
         {
             /* Link is up - return. */
             xReturn = pdTRUE;
@@ -602,15 +602,15 @@ static void prvEMACHandlerTask( void * pvParameters )
             /* Check the link status again. */
             xStatus = ulReadMDIO( PHY_REG_01_BMSR );
 
-            if( ( ulPHYLinkStatus & BMSR_LINK_STATUS ) != ( xStatus & BMSR_LINK_STATUS ) )
+            if( xGetPhyLinkStatus() != ( xStatus & BMSR_LINK_STATUS ) )
             {
                 ulPHYLinkStatus = xStatus;
-                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", ( ulPHYLinkStatus & BMSR_LINK_STATUS ) != 0 ) );
+                FreeRTOS_printf( ( "prvEMACHandlerTask: PHY LS now %d\n", xGetPhyLinkStatus() != pdFALSE ) );
             }
 
             vTaskSetTimeOutState( &xPhyTime );
 
-            if( ( ulPHYLinkStatus & BMSR_LINK_STATUS ) != 0 )
+            if( xGetPhyLinkStatus() != pdFALSE )
             {
                 xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS );
             }
