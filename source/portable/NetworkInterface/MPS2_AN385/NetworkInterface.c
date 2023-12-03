@@ -142,6 +142,8 @@ static void prvRxTask( void * pvParameters )
 
     ( void ) pvParameters;
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         /* Wait for the Ethernet ISR to receive a packet. */

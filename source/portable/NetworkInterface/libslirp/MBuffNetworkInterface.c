@@ -123,10 +123,11 @@ static BaseType_t xNetworkInterfaceInitialise( NetworkInterface_t * pxNetif )
 
         if( ( xResult == pdTRUE ) && ( xReceiveTaskCreated == pdFALSE ) )
         {
-            xResult = xTaskCreate( vNetifReceiveTask, "NetRX",
+            xResult = xTaskCreate( vNetifReceiveTask,
+                                   EMAC_HANDLER_TASK_NAME,
                                    configMINIMAL_STACK_SIZE,
                                    pxNetif,
-                                   tskIDLE_PRIORITY,
+                                   ipconfigEMAC_HANDLER_TASK_PRIORITY,
                                    &( pxDriverCtx->xRecvTask ) );
 
             if( xResult == pdPASS )
@@ -193,6 +194,8 @@ static void vNetifReceiveTask( void * pvParameters )
     NetworkInterface_t * pxNetif = ( NetworkInterface_t * ) pvParameters;
 
     MBuffNetDriverContext_t * pxDriverCtx = ( MBuffNetDriverContext_t * ) pxNetif->pvArgument;
+
+    iptraceEMAC_TASK_STARTING();
 
     for( ; ; )
     {

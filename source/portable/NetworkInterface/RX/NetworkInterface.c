@@ -264,6 +264,8 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     FreeRTOS_printf( ( "Deferred Interrupt Handler Task started\n" ) );
     xTaskToNotify = ether_receive_check_task_handle;
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         #if ( ipconfigHAS_PRINTF != 0 )

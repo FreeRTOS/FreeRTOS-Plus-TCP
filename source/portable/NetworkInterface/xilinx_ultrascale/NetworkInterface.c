@@ -73,10 +73,6 @@
 /* Naming and numbering of PHY registers. */
 #define PHY_REG_01_BMSR    0x01         /* Basic mode status register */
 
-#ifndef iptraceEMAC_TASK_STARTING
-    #define iptraceEMAC_TASK_STARTING()    do {} while( 0 )
-#endif
-
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 || ipconfigZERO_COPY_TX_DRIVER == 0 )
     #error Please define both 'ipconfigZERO_COPY_RX_DRIVER' and 'ipconfigZERO_COPY_TX_DRIVER' as 1
 #endif

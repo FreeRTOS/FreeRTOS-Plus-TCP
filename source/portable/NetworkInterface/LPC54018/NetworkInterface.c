@@ -166,6 +166,10 @@ static void prvProcessFrame( int length )
 
 static void rx_task( void * parameter )
 {
+    (void) parameter;
+
+    iptraceEMAC_TASK_STARTING();
+
     while( pdTRUE )
     {
         if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */

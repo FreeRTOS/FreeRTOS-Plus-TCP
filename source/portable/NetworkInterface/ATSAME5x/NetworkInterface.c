@@ -270,6 +270,8 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
      * of an Ethernet receive event. */
     IPStackEvent_t xRxEvent;
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         BaseType_t xRelease = pdFALSE;

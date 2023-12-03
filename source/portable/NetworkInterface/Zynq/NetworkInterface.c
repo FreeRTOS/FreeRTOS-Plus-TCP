@@ -65,10 +65,6 @@
 /* Naming and numbering of PHY registers. */
 #define PHY_REG_01_BMSR           0x01  /* Basic mode status register */
 
-#ifndef iptraceEMAC_TASK_STARTING
-    #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )
-#endif
-
 #if ( ipconfigNIC_LINKSPEED100 != 1 )
 
 /* When the PHY is forces to work with a speed of 100 Mbps

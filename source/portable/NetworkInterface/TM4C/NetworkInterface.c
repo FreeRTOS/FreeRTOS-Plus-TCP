@@ -724,6 +724,8 @@ static void _deferred_task( void * parameters )
     /* Ignore parameters */
     ( void ) parameters;
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         had_reception = pdFALSE;

@@ -230,7 +230,9 @@ static void prvEMACHandlerTask( void * pvParameters )
 
     /* Remove compiler warnings about unused parameters. */
     ( void ) pvParameters;
+
     /* A possibility to set some additional task properties. */
+    iptraceEMAC_TASK_STARTING();
 
     for( ; ; )
     {

@@ -210,6 +210,8 @@ static void prvEMACHandlerTask( void * pvParameters )
     ( void ) pvParameters;
     configASSERT( xEMACRxEventSemaphore != NULL );
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         /* Wait for the EMAC interrupt to indicate that another packet has been

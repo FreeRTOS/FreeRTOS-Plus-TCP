@@ -68,10 +68,6 @@
     #define MAC_FF_HMC    ( 1UL << 2UL )
 #endif
 
-#ifndef iptraceEMAC_TASK_STARTING
-    #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )
-#endif
-
 /* Define the bits of .STATUS that indicate a reception error. */
 #define nwRX_STATUS_ERROR_BITS                         \
     ( RDES_CE /* CRC Error */ |                        \

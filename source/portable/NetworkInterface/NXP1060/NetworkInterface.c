@@ -499,6 +499,8 @@ static void prvEMACHandlerTask( void * parameter )
     /* Wait for the driver to finish starting. */
     ( void ) ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
+    iptraceEMAC_TASK_STARTING();
+
     while( pdTRUE )
     {
         if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE )

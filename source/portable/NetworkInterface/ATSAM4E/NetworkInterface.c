@@ -513,6 +513,8 @@ static void prvEMACHandlerTask( void * pvParameters )
 
     configASSERT( xEMACTaskHandle != NULL );
 
+    iptraceEMAC_TASK_STARTING();
+
     vTaskSetTimeOutState( &xPhyTime );
     xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
 

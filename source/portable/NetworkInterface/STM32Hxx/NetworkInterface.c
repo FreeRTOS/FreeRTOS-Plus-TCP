@@ -1079,6 +1079,8 @@ static void prvEMACHandlerTask( void * pvParameters )
 
     ( void ) pvParameters;
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         BaseType_t xResult = 0;

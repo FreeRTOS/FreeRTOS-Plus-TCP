@@ -1140,6 +1140,8 @@ static void prvEMACHandlerTask( void * pvParameters )
 
     configASSERT( xEMACTaskHandle );
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         xResult = 0;
