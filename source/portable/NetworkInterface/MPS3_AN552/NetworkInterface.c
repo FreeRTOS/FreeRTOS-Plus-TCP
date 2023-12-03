@@ -88,17 +88,6 @@ typedef enum xEMAC_STATE
 
 static EMACState_t eEMACState = xEMAC_Init;
 
-/* Sets the size of the stack (in words, not bytes) of the task that reads bytes
- * from the network. */
-#ifndef nwRX_TASK_STACK_SIZE
-    #define nwRX_TASK_STACK_SIZE    ( configMINIMAL_STACK_SIZE * 2 )
-#endif
-
-#ifndef nwETHERNET_RX_HANDLER_TASK_PRIORITY
-    /* #define nwETHERNET_RX_HANDLER_TASK_PRIORITY    ( configMAX_PRIORITIES - 1 ) */
-    #define nwETHERNET_RX_HANDLER_TASK_PRIORITY    ( tskIDLE_PRIORITY + 4 )
-#endif
-
 /* Maximum size of ethernet frame that can transmitted using ETH_LAN91C111
  * driver (ETH_LAN91C111.c). The value of this macro is based on ETH_BUF_SIZE
  * macro defined in ETH_LAN91C111.c. */
@@ -398,10 +387,10 @@ static BaseType_t xLAN91C111_NetworkInterfaceInitialise( NetworkInterface_t * px
                 /* Task that reads incoming Ethernet frames and sends it FreeRTOS
                  * TCP/IP stack. */
                 xDriverReturn = xTaskCreate( prvRxTask,
-                                             "EMAC ",
-                                             nwRX_TASK_STACK_SIZE,
+                                             EMAC_HANDLER_TASK_NAME,
+                                             ipconfigEMAC_TASK_STACK_SIZE,
                                              NULL,
-                                             nwETHERNET_RX_HANDLER_TASK_PRIORITY,
+                                             ipconfigEMAC_HANDLER_TASK_PRIORITY,
                                              &xRxTaskHandle );
 
                 if( xDriverReturn != pdPASS )

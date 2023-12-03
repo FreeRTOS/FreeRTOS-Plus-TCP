@@ -53,11 +53,6 @@
 /* Provided memory configured as uncached. */
 #include "uncached_memory.h"
 
-#ifndef niEMAC_HANDLER_TASK_PRIORITY
-    /* Define the priority of the task prvEMACHandlerTask(). */
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
-#endif
-
 #define niBMSR_LINK_STATUS                  0x0004uL
 
 #if ( ipconfigNETWORK_MTU > 1526 )
@@ -80,13 +75,6 @@
 
 #ifndef iptraceEMAC_TASK_STARTING
     #define iptraceEMAC_TASK_STARTING()    do {} while( 0 )
-#endif
-
-/* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 8 * configMINIMAL_STACK_SIZE )
 #endif
 
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 || ipconfigZERO_COPY_TX_DRIVER == 0 )
@@ -280,7 +268,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
                  * possible priority to ensure the interrupt handler can return directly
                  * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
                  * notify the task when there is something to process. */
-                xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+                xTaskCreate( prvEMACHandlerTask, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
 
                 if( xEMACTaskHandle == NULL )
                 {

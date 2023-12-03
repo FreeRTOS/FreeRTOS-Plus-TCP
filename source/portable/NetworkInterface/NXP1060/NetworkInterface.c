@@ -367,10 +367,10 @@ static BaseType_t prvNXP1060_NetworkInterfaceInitialise( NetworkInterface_t * px
                     /* The handler task is created at the highest possible priority to
                      * ensure the interrupt handler can return directly to it. */
                     xTaskCreated = xTaskCreate( prvEMACHandlerTask,
-                                                "EMAC-Handler",
-                                                configMINIMAL_STACK_SIZE * 3,
+                                                EMAC_HANDLER_TASK_NAME,
+                                                ipconfigEMAC_TASK_STACK_SIZE,
                                                 pxInterface,
-                                                configMAX_PRIORITIES - 1,
+                                                ipconfigEMAC_HANDLER_TASK_PRIORITY,
                                                 &receiveTaskHandle );
 
                     if( ( receiveTaskHandle == NULL ) || ( xTaskCreated != pdPASS ) )

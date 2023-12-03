@@ -244,10 +244,10 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
 
         /* Create event handler task */
         xTaskCreate( prvEMACDeferredInterruptHandlerTask, /* Function that implements the task. */
-                     "EMACInt",                           /* Text name for the task. */
-                     256,                                 /* Stack size in words, not bytes. */
+                     EMAC_HANDLER_TASK_NAME,              /* Text name for the task. */
+                     ipconfigEMAC_TASK_STACK_SIZE,        /* Stack size in words, not bytes. */
                      ( void * ) 1,                        /* Parameter passed into the task. */
-                     configMAX_PRIORITIES - 1,            /* Priority at which the task is created. */
+                     ipconfigEMAC_HANDLER_TASK_PRIORITY,  /* Priority at which the task is created. */
                      &xEMACTaskHandle );                  /* Used to pass out the created task's handle. */
 
         configASSERT( xEMACTaskHandle );

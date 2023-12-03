@@ -87,17 +87,6 @@
     #error This driver works optimal if ipconfigZERO_COPY_TX_DRIVER is defined as 1
 #endif
 
-/* Default the size of the stack used by the EMAC deferred handler task to 4x
- *  the size of the stack used by the idle task - but allow this to be overridden in
- *  FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 4 * configMINIMAL_STACK_SIZE )
-#endif
-
-#ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
-#endif
-
 #if ( NETWORK_BUFFERS_CACHED != 0 ) && ( __DCACHE_PRESENT != 0 ) && defined( CONF_BOARD_ENABLE_CACHE )
     #include "core_cm7.h"
 
@@ -465,7 +454,7 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 
         /* The handler task is created at the highest possible priority to
          * ensure the interrupt handler can return directly to it. */
-        xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
+        xTaskCreate( prvEMACHandlerTask, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
         configASSERT( xEMACTaskHandle );
         pxMyInterface = pxInterface;
     }

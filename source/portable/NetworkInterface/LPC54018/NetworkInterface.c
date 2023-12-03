@@ -76,10 +76,6 @@
     #endif
 #endif /* if defined( __GNUC__ ) */
 
-#ifndef NETWORK_INTERFACE_RX_PRIORITY
-    #define NETWORK_INTERFACE_RX_PRIORITY    ( configMAX_PRIORITIES - 1 )
-#endif
-
 /*******************************************************************************
  * Variables
  ******************************************************************************/
@@ -255,7 +251,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
         case startReceiver:
             networkInitialisePhase = startReceiver;
 
-            if( xTaskCreate( rx_task, "rx_task", 512, NULL, NETWORK_INTERFACE_RX_PRIORITY, &receiveTaskHandle ) != pdPASS )
+            if( xTaskCreate( rx_task, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, &receiveTaskHandle ) != pdPASS )
             {
                 PRINTF( "Network Receive Task creation failed!.\n" );
                 break;

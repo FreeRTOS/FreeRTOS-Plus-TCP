@@ -99,7 +99,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* The handler task is created at the highest possible priority to
          * ensure the interrupt handler can return directly to it. */
-        xTaskCreate( prvEMACHandlerTask, "EMAC", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL );
+        xTaskCreate( prvEMACHandlerTask, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, NULL );
 
         /* Enable the interrupt and set its priority to the minimum
          * interrupt priority.  */

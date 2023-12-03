@@ -47,9 +47,6 @@
 #include "chip.h"
 #include "lpc_phy.h"
 
-/* The size of the stack allocated to the task that handles Rx packets. */
-#define nwRX_TASK_STACK_SIZE    140
-
 #ifndef configUSE_RMII
     #define configUSE_RMII    1
 #endif
@@ -270,7 +267,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
          * descriptors being initialised more than once. */
         if( xRxHanderTask == NULL )
         {
-            xReturn = xTaskCreate( prvEMACHandlerTask, "EMAC", nwRX_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, &xRxHanderTask );
+            xReturn = xTaskCreate( prvEMACHandlerTask, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, &xRxHanderTask );
             configASSERT( xReturn != NULL );
         }
 

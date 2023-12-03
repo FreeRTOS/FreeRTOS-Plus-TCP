@@ -75,19 +75,6 @@
  */
 #define ENABLE_HASH_FILTER_SETTINGS     ( ( uint32_t ) 0x00000416U )
 
-#ifndef niEMAC_HANDLER_TASK_NAME
-    #define niEMAC_HANDLER_TASK_NAME    "EMAC-task"
-#endif
-
-#ifndef niEMAC_HANDLER_TASK_STACK_SIZE
-    #define niEMAC_HANDLER_TASK_STACK_SIZE    ( 4 * configMINIMAL_STACK_SIZE )
-#endif
-
-#ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
-#endif
-
-
 /* Bit map of outstanding ETH interrupt events for processing. */
 static volatile uint32_t ulISREvents;
 
@@ -483,7 +470,7 @@ static BaseType_t xSTM32H_NetworkInterfaceInitialise( NetworkInterface_t * pxInt
              *  possible priority to ensure the interrupt handler can return directly
              *  to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
              *  notify the task when there is something to process. */
-            if( xTaskCreate( prvEMACHandlerTask, niEMAC_HANDLER_TASK_NAME, niEMAC_HANDLER_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
+            if( xTaskCreate( prvEMACHandlerTask, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandle ) ) == pdPASS )
             {
                 /* The task was created successfully. */
                 xMacInitStatus = eMACPass;

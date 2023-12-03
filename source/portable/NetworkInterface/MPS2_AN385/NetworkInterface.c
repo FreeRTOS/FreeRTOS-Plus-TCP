@@ -46,16 +46,6 @@
 #include "ether_lan9118/smsc9220_eth_drv.h"
 #include "ether_lan9118/smsc9220_emac_config.h"
 
-/* Sets the size of the stack (in words, not bytes) of the task that reads bytes
- * from the network. */
-#ifndef nwRX_TASK_STACK_SIZE
-    #define nwRX_TASK_STACK_SIZE    ( configMINIMAL_STACK_SIZE * 2 )
-#endif
-
-#ifndef nwETHERNET_RX_HANDLER_TASK_PRIORITY
-    #define nwETHERNET_RX_HANDLER_TASK_PRIORITY    ( configMAX_PRIORITIES - 3 )
-#endif
-
 /* The number of attempts to get a successful call to smsc9220_send_by_chunks()
  * when transmitting a packet before giving up. */
 #define niMAX_TX_ATTEMPTS    ( 5 )
@@ -251,10 +241,10 @@ static BaseType_t xMPS2_NetworkInterfaceInitialise( NetworkInterface_t * pxInter
     {
         /* Task has not been created before. */
         xReturn = xTaskCreate( prvRxTask,
-                               "EMAC",
-                               nwRX_TASK_STACK_SIZE,
+                               EMAC_HANDLER_TASK_NAME,
+                               ipconfigEMAC_TASK_STACK_SIZE,
                                NULL,
-                               nwETHERNET_RX_HANDLER_TASK_PRIORITY,
+                               ipconfigEMAC_HANDLER_TASK_PRIORITY,
                                &xRxTaskHandle );
         configASSERT( xReturn != pdFALSE );
     }

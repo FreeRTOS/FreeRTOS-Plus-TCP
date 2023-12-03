@@ -36,6 +36,8 @@
 
 #include "FreeRTOS_IP.h"
 
+#define EMAC_HANDLER_TASK_NAME "EMAC"
+
 /* INTERNAL API FUNCTIONS. */
 
 /* Since there are multiple interfaces, there are multiple versions

@@ -491,10 +491,10 @@ static int InitializeNetwork( void )
     if( ether_receive_check_task_handle == NULL )
     {
         return_code = xTaskCreate( prvEMACDeferredInterruptHandlerTask,
-                                   "ETHER_RECEIVE_CHECK_TASK",
-                                   512u,
+                                   EMAC_HANDLER_TASK_NAME,
+                                   ipconfigEMAC_TASK_STACK_SIZE,
                                    0,
-                                   configMAX_PRIORITIES - 1,
+                                   ipconfigEMAC_HANDLER_TASK_PRIORITY,
                                    &ether_receive_check_task_handle );
     }
     else

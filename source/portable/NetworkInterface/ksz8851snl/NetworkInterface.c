@@ -214,13 +214,6 @@
     #define EMAC_MAX_BLOCK_TIME_MS       100ul
 #endif
 
-/* Default the size of the stack used by the EMAC deferred handler task to 4x
- *  the size of the stack used by the idle task - but allow this to be overridden in
- *  FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 6 * configMINIMAL_STACK_SIZE )
-#endif
-
 #define SPI_PDC_IDLE                      0
 #define SPI_PDC_RX_START                  1
 #define SPI_PDC_TX_ERROR                  2
@@ -343,7 +336,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
         /* The handler task is created at the highest possible priority to
          * ensure the interrupt handler can return directly to it. */
-        xTaskCreate( prvEMACHandlerTask, "KSZ8851", configEMAC_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, &xEMACTaskHandle );
+        xTaskCreate( prvEMACHandlerTask, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle );
         configASSERT( xEMACTaskHandle != NULL );
     }
 

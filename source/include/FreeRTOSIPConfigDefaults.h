@@ -607,6 +607,57 @@
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigEMAC_HANDLER_TASK_PRIORITY
+ *
+ * Type: configSTACK_DEPTH_TYPE
+ * Minimum: tskIDLE_PRIORITY
+ * Maximum: configMAX_PRIORITIES - 1
+ *
+ * Default the size of the stack used by the EMAC deferred handler task to 8 times
+ * the size of the stack used by the idle task.
+ *
+ * It is recommended to assign the following task priorities:
+ *
+ * Higher : EMAC task "Deferred interrupt handler"
+ * Medium : IP-task
+ * Lower  : User tasks that make use of the TCP/IP stack
+ */
+
+#ifndef ipconfigEMAC_HANDLER_TASK_PRIORITY
+    #define ipconfigEMAC_HANDLER_TASK_PRIORITY    ( configMAX_PRIORITIES - 1 )
+#endif
+
+#if ( ipconfigEMAC_HANDLER_TASK_PRIORITY < tskIDLE_PRIORITY )
+    #error ipconfigEMAC_HANDLER_TASK_PRIORITY must be at least tskIDLE_PRIORITY
+#endif
+
+#if ( ipconfigEMAC_HANDLER_TASK_PRIORITY > ( configMAX_PRIORITIES - 1 ) )
+    #error ipconfigEMAC_HANDLER_TASK_PRIORITY must be less than configMAX_PRIORITIES - 1
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * ipconfigEMAC_TASK_STACK_SIZE
+ *
+ * Type: configSTACK_DEPTH_TYPE
+ * Minimum: configMINIMAL_STACK_SIZE
+ *
+ * Default the size of the stack used by the EMAC deferred handler task to 8 times
+ * the size of the stack used by the idle task.
+ */
+
+#ifndef ipconfigEMAC_TASK_STACK_SIZE
+    #define ipconfigEMAC_TASK_STACK_SIZE    ( 8 * configMINIMAL_STACK_SIZE )
+#endif
+
+#if ( ipconfigEMAC_TASK_STACK_SIZE <= 0 )
+    #error ipconfigEMAC_TASK_STACK_SIZE must be more than 0
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * A MISRA note: The macros 'ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES'
  * and 'ipconfigETHERNET_DRIVER_FILTERS_PACKETS' are too long: the first 32
  * bytes are equal, which might cause problems for some compilers.

@@ -90,10 +90,6 @@
     #define NETWORK_BUFFER_HEADER_SIZE    ( ipBUFFER_PADDING )
 #endif
 
-#ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
-#endif
-
 #if ( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning Consider enabling checksum offloading
@@ -138,13 +134,6 @@
         #define ipconfigETHERNET_USE_FULL_DUPLEX    1
     #endif
 #endif /* ipconfigETHERNET_AN_ENABLE == 0 */
-
-/* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
-#endif
 
 /* Two choices must be made: RMII versus MII,
  * and the index of the PHY in use ( between 0 and 31 ). */
@@ -609,7 +598,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
              * possible priority to ensure the interrupt handler can return directly
              * to it.  The task's handle is stored in xEMACTaskHandle so interrupts can
              * notify the task when there is something to process. */
-            if( xTaskCreate( prvEMACHandlerTask, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle ) == pdPASS )
+            if( xTaskCreate( prvEMACHandlerTask, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_HANDLER_TASK_PRIORITY, &xEMACTaskHandle ) == pdPASS )
             {
                 /* The xTXDescriptorSemaphore and the task are created successfully. */
                 xMacInitStatus = eMACPass;

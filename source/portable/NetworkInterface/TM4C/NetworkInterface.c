@@ -78,17 +78,6 @@
     #error Linked RX Messages are not supported by this driver
 #endif
 
-/* Default the size of the stack used by the EMAC deferred handler task to twice
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 2 * configMINIMAL_STACK_SIZE )
-#endif
-
-#ifndef niEMAC_HANDLER_TASK_PRIORITY
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
-#endif
-
 #if !defined( ipconfigETHERNET_AN_ENABLE )
     /* Enable auto-negotiation */
     #define ipconfigETHERNET_AN_ENABLE    1
@@ -228,7 +217,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
     if( eMACInit == xMacInitStatus )
     {
         /* Create the RX packet forwarding task */
-        if( pdFAIL == xTaskCreate( _deferred_task, "EMAC", configEMAC_TASK_STACK_SIZE, NULL, niEMAC_HANDLER_TASK_PRIORITY, &_deferred_task_handle ) )
+        if( pdFAIL == xTaskCreate( _deferred_task, EMAC_HANDLER_TASK_NAME, ipconfigEMAC_TASK_STACK_SIZE, NULL, ipconfigEMAC_TASK_STACK_SIZE, &_deferred_task_handle ) )
         {
             xMacInitStatus = eMACFailed;
         }

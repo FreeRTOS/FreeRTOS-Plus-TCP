@@ -56,11 +56,6 @@
 /* Provided memory configured as uncached. */
 #include "uncached_memory.h"
 
-#ifndef niEMAC_HANDLER_TASK_PRIORITY
-    /* Define the priority of the task prvEMACHandlerTask(). */
-    #define niEMAC_HANDLER_TASK_PRIORITY    configMAX_PRIORITIES - 1
-#endif
-
 #define niBMSR_LINK_STATUS                  0x0004uL
 
 /* The size of each buffer when BufferAllocation_1 is used:
@@ -72,13 +67,6 @@
 
 #ifndef iptraceEMAC_TASK_STARTING
     #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )
-#endif
-
-/* Default the size of the stack used by the EMAC deferred handler task to 8 times
- * the size of the stack used by the idle task - but allow this to be overridden in
- * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
-#ifndef configEMAC_TASK_STACK_SIZE
-    #define configEMAC_TASK_STACK_SIZE    ( 8 * configMINIMAL_STACK_SIZE )
 #endif
 
 #if ( ipconfigNIC_LINKSPEED100 != 1 )
@@ -344,7 +332,7 @@ static BaseType_t xZynqNetworkInterfaceInitialise( NetworkInterface_t * pxInterf
             pcTaskName = "GEM1";
         }
 
-        xTaskCreate( prvEMACHandlerTask, pcTaskName, configEMAC_TASK_STACK_SIZE, ( void * ) xEMACIndex, niEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandles[ xEMACIndex ] ) );
+        xTaskCreate( prvEMACHandlerTask, pcTaskName, ipconfigEMAC_TASK_STACK_SIZE, ( void * ) xEMACIndex, ipconfigEMAC_HANDLER_TASK_PRIORITY, &( xEMACTaskHandles[ xEMACIndex ] ) );
     }
     else
     {
