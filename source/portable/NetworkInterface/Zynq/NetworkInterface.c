@@ -554,7 +554,6 @@ static void prvEMACHandlerTask( void * pvParameters )
     TickType_t xPhyRemTime;
     BaseType_t xResult = 0;
     uint32_t xStatus;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
     BaseType_t xEMACIndex = ( BaseType_t ) pvParameters;
     xemacpsif_s * pxEMAC_PS;
 
@@ -588,7 +587,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         if( ( pxEMAC_PS->isr_events & EMAC_IF_ALL_EVENT ) == 0 )
         {
             /* No events to process now, wait for the next. */
-            ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
+            ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
         }
 
         if( ( pxEMAC_PS->isr_events & EMAC_IF_RX_EVENT ) != 0 )

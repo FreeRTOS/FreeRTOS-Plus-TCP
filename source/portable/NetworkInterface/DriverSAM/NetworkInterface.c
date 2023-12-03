@@ -63,22 +63,6 @@
     #error please define this macro as zero
 #endif
 
-/* Interrupt events to process.  Currently only the Rx event is processed
- * although code for other events is included to allow for possible future
- * expansion. */
-#define EMAC_IF_RX_EVENT     1UL
-#define EMAC_IF_TX_EVENT     2UL
-#define EMAC_IF_ERR_EVENT    4UL
-#define EMAC_IF_ALL_EVENT    ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
-
-#ifndef EMAC_MAX_BLOCK_TIME_MS
-
-/* The task 'prvEMACHandlerTask()' will wake-up every 100 ms, to see
- * if something has to be done, mostly checking if the PHY has a
- * change in Link Status. */
-    #define EMAC_MAX_BLOCK_TIME_MS    100ul
-#endif
-
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
     #error This driver works optimal if ipconfigZERO_COPY_RX_DRIVER is defined as 1
 #endif
@@ -1132,7 +1116,6 @@ static void prvEMACHandlerTask( void * pvParameters )
     #endif
     uint8_t * pucBuffer;
     BaseType_t xResult = 0;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS );
     uint32_t ulISREvents = 0U;
 
     /* Remove compiler warnings about unused parameters. */
@@ -1151,7 +1134,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         xTaskNotifyWait( 0U,                /* ulBitsToClearOnEntry */
                          EMAC_IF_ALL_EVENT, /* ulBitsToClearOnExit */
                          &( ulISREvents ),  /* pulNotificationValue */
-                         ulMaxBlockTime );
+                         pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )
         {

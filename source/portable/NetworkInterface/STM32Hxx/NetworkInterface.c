@@ -1070,7 +1070,6 @@ static void prvEMACHandlerTask( void * pvParameters )
 /* When sending a packet, all descriptors in the transmission channel may
  * be occupied.  In stat case, the program will wait (block) for the counting
  * semaphore. */
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100U );
 
     #if ( ipconfigHAS_PRINTF != 0 )
         size_t uxTXDescriptorsUsed = 0U;
@@ -1118,7 +1117,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
         #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
-        ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
+        ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         /* Wait for the Ethernet MAC interrupt to indicate that another packet
          * has been received. */

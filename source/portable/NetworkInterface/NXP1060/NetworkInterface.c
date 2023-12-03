@@ -503,7 +503,7 @@ static void prvEMACHandlerTask( void * parameter )
 
     while( pdTRUE )
     {
-        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE )
+        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) ) == pdFALSE )
         {
             /* No RX packets for a bit so check for a link. */
             const IPStackEvent_t xNetworkEventDown = { .eEventType = eNetworkDownEvent, .pvData = parameter };

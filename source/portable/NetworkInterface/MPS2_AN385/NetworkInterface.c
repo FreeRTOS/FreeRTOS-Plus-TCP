@@ -134,7 +134,6 @@ static void prvSetMACAddress( void )
 
 static void prvRxTask( void * pvParameters )
 {
-    const TickType_t xBlockTime = pdMS_TO_TICKS( 1500UL );
     const struct smsc9220_eth_dev_t * dev = &SMSC9220_ETH_DEV;
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
@@ -147,7 +146,7 @@ static void prvRxTask( void * pvParameters )
     for( ; ; )
     {
         /* Wait for the Ethernet ISR to receive a packet. */
-        ulTaskNotifyTake( pdFALSE, xBlockTime );
+        ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         while( ( ulDataRead = prvLowLevelInput( &pxNetworkBuffer ) ) != 0UL )
         {

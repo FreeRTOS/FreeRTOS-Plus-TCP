@@ -57,10 +57,6 @@
 
 #define HZ_PER_MHZ                    ( 1000000UL )
 
-#ifndef EMAC_MAX_BLOCK_TIME_MS
-    #define EMAC_MAX_BLOCK_TIME_MS    100ul
-#endif
-
 #if !defined( GMAC_USES_TX_CALLBACK ) || ( GMAC_USES_TX_CALLBACK != 1 )
     #error Please define GMAC_USES_TX_CALLBACK as 1
 #endif
@@ -498,7 +494,6 @@ static void prvEMACHandlerTask( void * pvParameters )
     uint8_t * pucBuffer;
     BaseType_t xResult = 0;
     uint32_t xStatus;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS );
 
     /* Remove compiler warnings about unused parameters. */
     ( void ) pvParameters;
@@ -540,7 +535,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
         {
             /* No events to process now, wait for the next. */
-            ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
+            ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
         }
 
         if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )

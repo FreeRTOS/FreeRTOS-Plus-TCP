@@ -90,9 +90,6 @@
 static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
 
-/* Receive task refresh time */
-#define RECEIVE_BLOCK_TIME_MS    100
-
 /***********************************************/
 /*              FreeRTOS variables             */
 /***********************************************/
@@ -280,7 +277,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
          * has been received.  The task notification is used in a similar way to a
          * counting semaphore to count Rx events, but is a lot more efficient than
          * a semaphore. */
-        ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( RECEIVE_BLOCK_TIME_MS ) );
+        ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         /* See how much data was received.  Here it is assumed ReceiveSize() is
          * a peripheral driver function that returns the number of bytes in the

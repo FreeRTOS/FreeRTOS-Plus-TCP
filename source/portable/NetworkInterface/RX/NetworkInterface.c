@@ -256,7 +256,6 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
     /* Some variables related to monitoring the PHY. */
     TimeOut_t xPhyTime;
     TickType_t xPhyRemTime;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
 
     vTaskSetTimeOutState( &xPhyTime );
     xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );
@@ -281,7 +280,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
          * has been received.  */
         if( xBytesReceived <= 0 )
         {
-            ulTaskNotifyTake( pdFALSE, ulMaxBlockTime );
+            ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
         }
 
         /* See how much data was received.  */

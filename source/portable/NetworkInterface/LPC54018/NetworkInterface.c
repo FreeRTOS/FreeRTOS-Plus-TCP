@@ -172,7 +172,7 @@ static void rx_task( void * parameter )
 
     while( pdTRUE )
     {
-        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( 500 ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */
+        if( ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) ) == pdFALSE ) /* no RX packets for a bit so check for a link */
         {
             PHY_GetLinkStatus( &phyHandle, &g_linkStatus );
         }

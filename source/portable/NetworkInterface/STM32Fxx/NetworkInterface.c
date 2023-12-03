@@ -1427,7 +1427,6 @@ static void prvEMACHandlerTask( void * pvParameters )
 {
     UBaseType_t uxCurrentCount;
     BaseType_t xResult;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( 100UL );
     uint32_t ulISREvents = 0U;
 
     /* Remove compiler warnings about unused parameters. */
@@ -1465,7 +1464,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         xTaskNotifyWait( 0U,                /* ulBitsToClearOnEntry */
                          EMAC_IF_ALL_EVENT, /* ulBitsToClearOnExit */
                          &( ulISREvents ),  /* pulNotificationValue */
-                         ulMaxBlockTime );
+                         pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         if( ( ulISREvents & EMAC_IF_RX_EVENT ) != 0 )
         {

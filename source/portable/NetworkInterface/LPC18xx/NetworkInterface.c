@@ -961,7 +961,6 @@ static void prvEMACHandlerTask( void * pvParameters )
     UBaseType_t uxCurrentCount;
     BaseType_t xResult = 0;
     uint32_t ulStatus;
-    const TickType_t xBlockTime = pdMS_TO_TICKS( 5000ul );
 
     /* Remove compiler warning about unused parameter. */
     ( void ) pvParameters;
@@ -1001,7 +1000,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
-        ulTaskNotifyTake( pdTRUE, xBlockTime );
+        ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         xResult = ( BaseType_t ) 0;
 

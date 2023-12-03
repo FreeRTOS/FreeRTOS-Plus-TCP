@@ -640,6 +640,8 @@
     {
         EventBits_t evBits;
 
+        iptraceEMAC_TASK_STARTING();
+
         /* perform the MAC initialization */
         while( macObjStatus == SYS_STATUS_BUSY )
         {

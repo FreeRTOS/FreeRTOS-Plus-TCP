@@ -719,7 +719,6 @@ static void _deferred_task( void * parameters )
 {
     BaseType_t had_reception;
     IPStackEvent_t link_down_event;
-    const TickType_t max_block_time = pdMS_TO_TICKS( 100 );
 
     /* Ignore parameters */
     ( void ) parameters;
@@ -730,7 +729,7 @@ static void _deferred_task( void * parameters )
     {
         had_reception = pdFALSE;
 
-        ulTaskNotifyTake( pdTRUE, max_block_time );
+        ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         if( eMACInterruptTx == ( xMacInterruptStatus & eMACInterruptTx ) )
         {

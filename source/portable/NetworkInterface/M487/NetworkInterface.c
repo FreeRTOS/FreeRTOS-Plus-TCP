@@ -216,17 +216,12 @@ static void prvPhyTmrCallback( TimerHandle_t xTimer )
 
 static void prvEMACHandlerTask( void * pvParameters )
 {
-    TimeOut_t xPhyTime;
-    TickType_t xPhyRemTime;
     UBaseType_t uxLastMinBufferCount = 0;
     UBaseType_t uxCurrentCount;
-    BaseType_t xResult = 0;
-    uint32_t ulStatus;
     uint16_t dataLength = 0;
     uint8_t * buffer = NULL;
     NetworkBufferDescriptor_t * pxBufferDescriptor = NULL;
     IPStackEvent_t xRxEvent;
-    const TickType_t xBlockTime = pdMS_TO_TICKS( 5000ul );
 
     /* Remove compiler warnings about unused parameters. */
     ( void ) pvParameters;

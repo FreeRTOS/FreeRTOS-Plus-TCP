@@ -164,7 +164,6 @@ static void prvLAN91C111_CheckEthertnetLinkStatus()
 
 static void prvRxTask( void * pvParameters )
 {
-    const TickType_t xBlockTime = pdMS_TO_TICKS( 100UL );
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     NetworkBufferDescriptor_t * pxNetworkBuffer = NULL;
     uint32_t ulDataRead;
@@ -172,10 +171,12 @@ static void prvRxTask( void * pvParameters )
 
     ( void ) pvParameters;
 
+    iptraceEMAC_TASK_STARTING();
+
     for( ; ; )
     {
         /* Wait for the Ethernet ISR to receive a packet or a timeout (100ms). */
-        ulTaskNotifyTake( pdFALSE, xBlockTime );
+        ulTaskNotifyTake( pdFALSE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
 
         ulDataRead = prvLowLevelInput( &pxNetworkBuffer );
 

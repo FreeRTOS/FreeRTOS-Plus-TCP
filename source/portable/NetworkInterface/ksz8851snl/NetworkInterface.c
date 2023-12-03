@@ -201,10 +201,6 @@
 /* Override this define because the KSZ8851 is programmed to set all outgoing CRC's */
 #define ipconfigHAS_TX_CRC_OFFLOADING    1
 
-#ifndef EMAC_MAX_BLOCK_TIME_MS
-    #define EMAC_MAX_BLOCK_TIME_MS       100ul
-#endif
-
 #define SPI_PDC_IDLE                     0
 #define SPI_PDC_RX_START                 1
 #define SPI_PDC_TX_ERROR                 2
@@ -1190,7 +1186,6 @@ static void prvEMACHandlerTask( void * pvParameters )
     UBaseType_t uxCurrentCount;
     BaseType_t xResult = 0;
     uint32_t xStatus;
-    const TickType_t ulMaxBlockTime = pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS );
 
     #if ( ipconfigCHECK_IP_QUEUE_SPACE != 0 )
         UBaseType_t uxLastMinQueueSpace = 0;
@@ -1240,7 +1235,7 @@ static void prvEMACHandlerTask( void * pvParameters )
         if( ( ulISREvents & EMAC_IF_ALL_EVENT ) == 0 )
         {
             /* No events to process now, wait for the next. */
-            ulTaskNotifyTake( pdTRUE, ulMaxBlockTime );
+            ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS( EMAC_MAX_BLOCK_TIME_MS ) );
         }
 
         if( ( xTaskGetTickCount() - xLoggingTime ) > 10000 )
