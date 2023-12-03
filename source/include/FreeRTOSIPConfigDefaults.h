@@ -106,14 +106,15 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * pdFREERTOS_ERRNO_EAFNOSUPPORT
- *
- * Address family not supported by protocol.
- *
- * Note: Now included in FreeRTOS-Kernel/projdefs.h, so this serves as a
- * temporary kernel version check. To be removed in a future version.
- */
+/* Compile time assertion with zero runtime effects
+ * it will assert on 'e' not being zero, as it tries to divide by it,
+ * will also print the line where the error occurred in case of failure */
+/* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
+/* coverity[misra_c_2012_rule_20_10_violation] */
+#define ipconfigASSERT_CONCAT_( a, b ) a ## b
+#define ipconfigASSERT_CONCAT( a, b ) ipconfigASSERT_CONCAT_( a, b )
+#define ipconfigSTATIC_ASSERT( e ) enum { ipconfigASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
 
 /*---------------------------------------------------------------------------*/
 
@@ -627,13 +628,9 @@
     #define ipconfigEMAC_HANDLER_TASK_PRIORITY    ( configMAX_PRIORITIES - 1 )
 #endif
 
-#if ( ipconfigEMAC_HANDLER_TASK_PRIORITY < tskIDLE_PRIORITY )
-    #error ipconfigEMAC_HANDLER_TASK_PRIORITY must be at least tskIDLE_PRIORITY
-#endif
+ipconfigSTATIC_ASSERT( ipconfigEMAC_HANDLER_TASK_PRIORITY >= 0 );
 
-#if ( ipconfigEMAC_HANDLER_TASK_PRIORITY > ( configMAX_PRIORITIES - 1 ) )
-    #error ipconfigEMAC_HANDLER_TASK_PRIORITY must be less than configMAX_PRIORITIES - 1
-#endif
+ipconfigSTATIC_ASSERT( ipconfigEMAC_HANDLER_TASK_PRIORITY <= ( configMAX_PRIORITIES - 1 ) );
 
 /*---------------------------------------------------------------------------*/
 
@@ -651,9 +648,7 @@
     #define ipconfigEMAC_TASK_STACK_SIZE    ( 8 * configMINIMAL_STACK_SIZE )
 #endif
 
-#if ( ipconfigEMAC_TASK_STACK_SIZE <= 0 )
-    #error ipconfigEMAC_TASK_STACK_SIZE must be more than 0
-#endif
+ipconfigSTATIC_ASSERT( ipconfigEMAC_TASK_STACK_SIZE >= configMINIMAL_STACK_SIZE );
 
 /*---------------------------------------------------------------------------*/
 
