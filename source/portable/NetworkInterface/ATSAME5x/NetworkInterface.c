@@ -85,11 +85,6 @@
     #error Transmit CRC offloading should be enabled.
 #endif
 
-/* Setup LLMNR specific multicast address. */
-#if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
-static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
-#endif
-
 /***********************************************/
 /*              FreeRTOS variables             */
 /***********************************************/
@@ -503,7 +498,7 @@ static void prvGMACInit()
     /* Enable traffic for LLMNR, if defined. */
     #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
     {
-        mac_async_set_filter_ex( &ETH_MAC, ucLLMNR_MAC_address );
+        mac_async_set_filter_ex( &ETH_MAC, xLLMNR_MacAddress.ucBytes );
     }
     #endif
 

@@ -129,10 +129,6 @@ XEmacPs_Config mac_config =
 /* A copy of PHY register 1: 'PHY_REG_01_BMSR' */
 static uint32_t ulPHYLinkStatus = 0uL;
 
-#if ( ipconfigUSE_LLMNR == 1 )
-static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
-#endif
-
 /* Holds the handle of the task used as a deferred interrupt processor.  The
  * handle is used so direct notifications can be sent to the task for all EMAC/DMA
  * related interrupts. */
@@ -197,7 +193,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
             #if ( ipconfigUSE_LLMNR == 1 )
             {
                 /* Also add LLMNR multicast MAC address. */
-                XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MACAddress, 2 );
+                XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) xLLMNR_MacAddress.ucBytes, 2 );
             }
             #endif /* ipconfigUSE_LLMNR == 1 */
 

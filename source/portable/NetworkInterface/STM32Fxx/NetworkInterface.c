@@ -218,14 +218,6 @@ static void vClearTXBuffers( void );
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_LLMNR == 1 )
-static const uint8_t xLLMNR_MACAddress[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
-#endif
-
-#if ( ipconfigUSE_MDNS == 1 )
-static const uint8_t xMDNS_MACAddressIPv4[] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb };
-#endif
-
 static EthernetPhy_t xPhyObject;
 
 /* Ethernet handle. */
@@ -511,7 +503,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             #if ( ipconfigUSE_MDNS == 1 )
             {
                 /* Program the MDNS address. */
-                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddressIPv4 );
+                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xMDNS_MACAddress.ucBytes );
                 xMACEntry += 8;
             }
             #endif
@@ -524,7 +516,7 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
             #if ( ipconfigUSE_LLMNR == 1 )
             {
                 /* Program the LLMNR address. */
-                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MACAddress );
+                prvMACAddressConfig( &xETH, xMACEntry, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
                 xMACEntry += 8;
             }
             #endif

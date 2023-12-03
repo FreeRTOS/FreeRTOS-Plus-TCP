@@ -181,10 +181,6 @@ static uint32_t ulNextRxDescriptorToProcess;
  * the task can be notified when new packets arrive. */
 static TaskHandle_t xRxHanderTask = NULL;
 
-#if ( ipconfigUSE_LLMNR == 1 )
-static const uint8_t xLLMNR_MACAddress[] = { '\x01', '\x00', '\x5E', '\x00', '\x00', '\xFC' };
-#endif /* ipconfigUSE_LLMNR == 1 */
-
 /* xTXDescriptorSemaphore is a counting semaphore with
  * a maximum count of ETH_TXBUFNB, which is the number of
  * DMA TX descriptors. */
@@ -218,7 +214,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     #if ( ipconfigUSE_LLMNR == 1 )
     {
-        prvAddMACAddress( xLLMNR_MACAddress );
+        prvAddMACAddress( xLLMNR_MacAddress.ucBytes );
     }
     #endif /* ipconfigUSE_LLMNR == 1 */
 
