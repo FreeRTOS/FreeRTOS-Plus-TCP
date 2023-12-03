@@ -53,7 +53,7 @@
 /* Provided memory configured as uncached. */
 #include "uncached_memory.h"
 
-#define niBMSR_LINK_STATUS                  0x0004uL
+#define niBMSR_LINK_STATUS    0x0004uL
 
 #if ( ipconfigNETWORK_MTU > 1526 )
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )

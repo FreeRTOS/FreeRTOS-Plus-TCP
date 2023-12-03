@@ -65,15 +65,15 @@
 #endif
 
 /* Interrupt events to process: reception, transmission and error handling. */
-#define EMAC_IF_RX_EVENT                1U
-#define EMAC_IF_TX_EVENT                2U
-#define EMAC_IF_ERR_EVENT               4U
+#define EMAC_IF_RX_EVENT               1U
+#define EMAC_IF_TX_EVENT               2U
+#define EMAC_IF_ERR_EVENT              4U
 
 /*
  * Enable either Hash or Perfect Filter, Multicast filter - None,
  * Enable Hash Multicast (HMC), and Enable Hash Unicast (HUC).
  */
-#define ENABLE_HASH_FILTER_SETTINGS     ( ( uint32_t ) 0x00000416U )
+#define ENABLE_HASH_FILTER_SETTINGS    ( ( uint32_t ) 0x00000416U )
 
 /* Bit map of outstanding ETH interrupt events for processing. */
 static volatile uint32_t ulISREvents;

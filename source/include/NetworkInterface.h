@@ -36,7 +36,7 @@
 
 #include "FreeRTOS_IP.h"
 
-#define EMAC_HANDLER_TASK_NAME "EMAC"
+#define EMAC_HANDLER_TASK_NAME    "EMAC"
 
 /* INTERNAL API FUNCTIONS. */
 

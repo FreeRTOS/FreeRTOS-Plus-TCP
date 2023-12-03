@@ -56,7 +56,7 @@
 /* Provided memory configured as uncached. */
 #include "uncached_memory.h"
 
-#define niBMSR_LINK_STATUS                  0x0004uL
+#define niBMSR_LINK_STATUS        0x0004uL
 
 /* The size of each buffer when BufferAllocation_1 is used:
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */

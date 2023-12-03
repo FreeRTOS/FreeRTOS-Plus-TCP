@@ -98,7 +98,7 @@ static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 /***********************************************/
 
 /* Copied from FreeRTOS_IP.c. Used for ICMP CRC calculation */
-#define ipCORRECT_CRC    0xffffU
+#define ipCORRECT_CRC              0xffffU
 
 /* Ethernet buffers for BufferAllocation_1.c scheme.
  * Set ipUSE_STATIC_ALLOCATION to 1 if using BufferAllocation_1.c,

@@ -214,13 +214,13 @@
     #define EMAC_MAX_BLOCK_TIME_MS       100ul
 #endif
 
-#define SPI_PDC_IDLE                      0
-#define SPI_PDC_RX_START                  1
-#define SPI_PDC_TX_ERROR                  2
-#define SPI_PDC_RX_COMPLETE               3
-#define SPI_PDC_TX_START                  4
-#define SPI_PDC_RX_ERROR                  5
-#define SPI_PDC_TX_COMPLETE               6
+#define SPI_PDC_IDLE                     0
+#define SPI_PDC_RX_START                 1
+#define SPI_PDC_TX_ERROR                 2
+#define SPI_PDC_RX_COMPLETE              3
+#define SPI_PDC_TX_START                 4
+#define SPI_PDC_RX_ERROR                 5
+#define SPI_PDC_TX_COMPLETE              6
 
 /**
  * ksz8851snl driver structure.

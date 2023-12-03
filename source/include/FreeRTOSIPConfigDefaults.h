@@ -112,9 +112,9 @@
 /* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
 /* coverity[misra_c_2012_rule_20_10_violation] */
-#define ipconfigASSERT_CONCAT_( a, b ) a ## b
-#define ipconfigASSERT_CONCAT( a, b ) ipconfigASSERT_CONCAT_( a, b )
-#define ipconfigSTATIC_ASSERT( e ) enum { ipconfigASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
+#define ipconfigASSERT_CONCAT_( a, b )    a ## b
+#define ipconfigASSERT_CONCAT( a, b )     ipconfigASSERT_CONCAT_( a, b )
+#define ipconfigSTATIC_ASSERT( e )        enum { ipconfigASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
 
 /*---------------------------------------------------------------------------*/
 
