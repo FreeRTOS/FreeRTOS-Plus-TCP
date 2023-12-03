@@ -123,15 +123,13 @@ static BaseType_t prvPhyWriteReg( BaseType_t xAddress, BaseType_t xRegister, uin
 
 static void prvEthernetUpdateConfig( void );
 
-/* static void prvMACAddressConfig( ETH_HandleTypeDef * heth, uint32_t ulIndex, uint8_t * Addr ); */
+static void prvMACAddressConfig( ETH_HandleTypeDef * heth, const uint8_t * Addr );
 
 NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, NetworkInterface_t * pxInterface );
 
 /*-----------------------------------------------------------*/
 
 static ETH_HandleTypeDef xEthHandle;
-
-static ETH_MACConfigTypeDef xMACConfig;
 
 static ETH_DMADescTypeDef DMARxDscrTab[ ETH_RX_DESC_CNT ] __attribute__( ( section( EMAC_RX_DESCRIPTORS_SECTION ), aligned( portBYTE_ALIGNMENT ) ) );
 
@@ -213,7 +211,6 @@ static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
     BaseType_t xInitResult = pdFAIL;
     BaseType_t xResult;
     HAL_StatusTypeDef xHalResult;
-    /* BaseType_t xMACEntry = ETH_MAC_ADDRESS1; */ /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
     static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMacEthInit;
 
@@ -226,7 +223,7 @@ static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
         case eMacEthInit:
             xEthHandle.Instance = ETH;
 
-            const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+            NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
             if( pxEndPoint == NULL )
             {
                 break;
@@ -255,6 +252,65 @@ static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
             }
             configASSERT( xEthHandle.ErrorCode == HAL_ETH_ERROR_NONE );
             configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
+
+            #if 0
+                ETH_MACFilterConfigTypeDef xFilterConfig;
+                xHalResult = HAL_ETH_GetMACFilterConfig( &xEthHandle, &xFilterConfig );
+                configASSERT( xHalResult == HAL_OK );
+
+                xFilterConfig.HashUnicast = ENABLE;
+                xFilterConfig.HashMulticast = ENABLE;
+                xHalResult = HAL_ETH_SetMACFilterConfig( &xEthHandle, &xFilterConfig );
+                configASSERT( xHalResult == HAL_OK );
+
+                const uint32_t ulHashTable = 0x00;
+                xHalResult = HAL_ETH_SetHashTable( &xEthHandle, &ulHashTable );
+                configASSERT( xHalResult == HAL_OK );
+            #endif
+
+            #if ( ipconfigUSE_MDNS != 0 )
+                prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xMDNS_MACAddress.ucBytes );
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xMDNS_MACAddressIPv6.ucBytes );
+                #endif
+            #endif
+
+            #if ( ipconfigUSE_LLMNR != 0 )
+                prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xLLMNR_MACAddress.ucBytes );
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
+                #endif
+            #endif
+
+            for(; pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+            {
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    {
+                        const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = {
+                            0x33,
+                            0x33,
+                            0xff,
+                            pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
+                            pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
+                            pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
+                        };
+                        prvMACAddressConfig( &xEthHandle, ucMACAddress );
+                    }
+                #else
+                {
+                    if( xEthHandle.Init.MACAddr != ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes )
+                    {
+                        prvMACAddressConfig( &xEthHandle, pxEndPoint->xMACAddress.ucBytes );
+                    }
+                }
+                #endif
+            }
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0, 0, 0, 0x01 };
+                prvMACAddressConfig( &xEthHandle, ucMACAddress );
+            #endif
 
             xMacInitStatus = eMacPhyInit;
             /* fallthrough */
@@ -289,6 +345,7 @@ static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
                 }
             }
 
+            ETH_MACConfigTypeDef xMACConfig;
             xHalResult = HAL_ETH_GetMACConfig( &xEthHandle , &xMACConfig );
             configASSERT( xHalResult == HAL_OK );
             if( xHalResult != HAL_OK )
@@ -731,6 +788,7 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
 
     if ( pErrorCode == 0 )
     {
+        // ipconfigETHERNET_DRIVER_FILTERS_PACKETS
         const eFrameProcessingResult_t xFrameProcessingResult = ipCONSIDER_FRAME_FOR_PROCESSING( pxDescriptor->pucEthernetBuffer );
         if( xFrameProcessingResult == eProcessBuffer )
         {
@@ -782,6 +840,7 @@ static void prvEthernetUpdateConfig( void )
         xResult = xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
         configASSERT( xResult == 0 );
 
+        ETH_MACConfigTypeDef xMACConfig;
         xHalResult = HAL_ETH_GetMACConfig( &xEthHandle , &xMACConfig );
         configASSERT( xHalResult == HAL_OK );
 
@@ -811,20 +870,34 @@ static void prvEthernetUpdateConfig( void )
 
 /*-----------------------------------------------------------*/
 
-/*static void prvMACAddressConfig( ETH_HandleTypeDef * heth, uint32_t ulIndex, uint8_t * addr )
+static void prvMACAddressConfig( ETH_HandleTypeDef * heth, const uint8_t * addr )
 {
-    uint32_t ulTempReg;
+    static BaseType_t xMACEntry = ETH_MAC_ADDRESS1; /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
 
-    ( void ) heth;
+    switch(xMACEntry)
+    {
+        case ETH_MAC_ADDRESS1:
+            HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, ETH_MAC_ADDRESS1, addr );
+            xMACEntry = ETH_MAC_ADDRESS2;
+            break;
 
-    ulTempReg = 0x80000000ul | ( ( uint32_t ) addr[ 5 ] << 8 ) | ( uint32_t ) addr[ 4 ];
+        case ETH_MAC_ADDRESS2:
+            HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, ETH_MAC_ADDRESS2, addr );
+            xMACEntry = ETH_MAC_ADDRESS3;
+            break;
 
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_HBASE + ulIndex ) ) ) = ulTempReg;
+        case ETH_MAC_ADDRESS3:
+            HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, ETH_MAC_ADDRESS3, addr );
+            xMACEntry = ETH_MAC_ADDRESS0;
+            break;
 
-    ulTempReg = ( ( uint32_t ) addr[ 3 ] << 24 ) | ( ( uint32_t ) addr[ 2 ] << 16 ) | ( ( uint32_t ) addr[ 1 ] << 8 ) | addr[ 0 ];
+        case ETH_MAC_ADDRESS0:
+            /* fallthrough */
 
-    ( *( __IO uint32_t * ) ( ( uint32_t ) ( ETH_MAC_ADDR_LBASE + ulIndex ) ) ) = ulTempReg;
-}*/
+        default:
+            break;
+    }
+}
 
 /*-----------------------------------------------------------*/
 
