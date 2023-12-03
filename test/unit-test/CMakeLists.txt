@@ -27,7 +27,7 @@ set( UNIT_TEST_DIR ${MODULE_ROOT_DIR}/test/unit-test CACHE INTERNAL "Unit-test d
 
 set( KERNEL_DIRECTORY ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
 
-# See if FreRTOS-Kernel is submoduled
+# See if FreeRTOS-Kernel is submoduled
 if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
     # Inform the user of the actions
     message( STATUS "FreeRTOS-Kernel is required for this build. Submoduling it..." )
@@ -57,9 +57,7 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
-                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ND.h"
-                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_BitConfig.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
