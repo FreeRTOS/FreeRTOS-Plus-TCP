@@ -63,8 +63,6 @@
 
 /*-----------------------------------------------------------*/
 
-/* TODO: This should be moved from FreeRTOS_IP.c to FreeRTOS_IP_Private.h
- * so that all the network interfaces don't have to keep defining it. */
 #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
     #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
 #else
@@ -77,10 +75,18 @@
 #define EMAC_RX_DESCRIPTORS_SECTION ".RxDescripSection"
 #define EMAC_BUFFERS_SECTION    ".EthBuffersSection"
 
-#define EMAC_DATA_ALIGNMENT_MASK    ( portBYTE_ALIGNMENT - 1U )
-#define EMAC_DATA_BUFFER_SIZE   ( ( ipTOTAL_ETHERNET_FRAME_SIZE + portBYTE_ALIGNMENT ) & ~EMAC_DATA_ALIGNMENT_MASK )
-#define EMAC_TOTAL_ALIGNMENT_MASK   ( __SCB_DCACHE_LINE_SIZE - 1U )
-#define EMAC_TOTAL_BUFFER_SIZE  ( ( EMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING + __SCB_DCACHE_LINE_SIZE ) & ~EMAC_TOTAL_ALIGNMENT_MASK )
+/* TODO: Cache Handling
+ * This is only for F7 which uses M7, H5 uses M33, how does this work with dual core H7 M7/M4?
+ * Can probably align by portBYTE_ALIGNMENT if not cached */
+#ifdef __SCB_DCACHE_LINE_SIZE
+    #define EMAC_CACHE_LINE_SIZE __SCB_DCACHE_LINE_SIZE
+#else
+    #define EMAC_CACHE_LINE_SIZE 32U
+#endif
+
+#define EMAC_DATA_BUFFER_SIZE   ( ( ipTOTAL_ETHERNET_FRAME_SIZE + portBYTE_ALIGNMENT ) & ~portBYTE_ALIGNMENT_MASK )
+#define EMAC_TOTAL_ALIGNMENT_MASK   ( EMAC_CACHE_LINE_SIZE - 1U )
+#define EMAC_TOTAL_BUFFER_SIZE  ( ( EMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING + EMAC_CACHE_LINE_SIZE ) & ~EMAC_TOTAL_ALIGNMENT_MASK )
 
 typedef enum {
     eMacEventRx = 1 << 0,
@@ -113,7 +119,7 @@ static BaseType_t xSTM32_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 
 static UBaseType_t prvNetworkInterfaceInput( void );
 
-static void prvEMACHandlerTask( void * pvParameters ) __attribute__( ( __noreturn__ ) );
+static void prvEMACHandlerTask( void * pvParameters ) __NO_RETURN;
 
 static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDescriptor );
 
@@ -131,9 +137,9 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
 
 static ETH_HandleTypeDef xEthHandle;
 
-static ETH_DMADescTypeDef DMARxDscrTab[ ETH_RX_DESC_CNT ] __attribute__( ( section( EMAC_RX_DESCRIPTORS_SECTION ), aligned( portBYTE_ALIGNMENT ) ) );
+static ETH_DMADescTypeDef DMARxDscrTab[ ETH_RX_DESC_CNT ] __ALIGNED( portBYTE_ALIGNMENT ) __attribute__( ( section( EMAC_RX_DESCRIPTORS_SECTION ) ) );
 
-static ETH_DMADescTypeDef DMATxDscrTab[ ETH_TX_DESC_CNT ] __attribute__( ( section( EMAC_TX_DESCRIPTORS_SECTION ), aligned( portBYTE_ALIGNMENT ) ) );
+static ETH_DMADescTypeDef DMATxDscrTab[ ETH_TX_DESC_CNT ] __ALIGNED( portBYTE_ALIGNMENT ) __attribute__( ( section( EMAC_TX_DESCRIPTORS_SECTION ) ) );
 
 static NetworkInterface_t * pxMyInterface = NULL;
 
@@ -155,7 +161,7 @@ static const PhyProperties_t xPHYProperties = {
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ EMAC_TOTAL_BUFFER_SIZE ] __attribute__( ( section( EMAC_BUFFERS_SECTION ), aligned( __SCB_DCACHE_LINE_SIZE ) ) );
+    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ EMAC_TOTAL_BUFFER_SIZE ] __ALIGNED( EMAC_CACHE_LINE_SIZE ) __attribute__( ( section( EMAC_BUFFERS_SECTION ) ) );
 
     configASSERT( xBufferAllocFixedSize == pdTRUE );
 
@@ -269,14 +275,14 @@ static BaseType_t xSTM32_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
             #endif
 
             #if ( ipconfigUSE_MDNS != 0 )
-                prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xMDNS_MACAddress.ucBytes );
+                prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
                 #if ( ipconfigUSE_IPv6 != 0 )
                     prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xMDNS_MACAddressIPv6.ucBytes );
                 #endif
             #endif
 
             #if ( ipconfigUSE_LLMNR != 0 )
-                prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xLLMNR_MACAddress.ucBytes );
+                prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
                 #if ( ipconfigUSE_IPv6 != 0 )
                     prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xLLMNR_MacAddressIPv6.ucBytes );
                 #endif
@@ -616,6 +622,7 @@ static UBaseType_t prvNetworkInterfaceInput( void )
         ++xResult;
         pxCurDescriptor->pxInterface = pxMyInterface;
         pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxCurDescriptor->pxInterface, pxCurDescriptor->pucEthernetBuffer );
+        /* TODO: check pxEndPoint exists? Check it earlier before getting buffer? */
         #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
             if ( pxStartDescriptor == NULL )
             {
