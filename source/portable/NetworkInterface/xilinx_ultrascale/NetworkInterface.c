@@ -71,7 +71,7 @@
     #if ( USE_JUMBO_FRAMES == 1 )
         #define niBUFFER_1_PACKET_SIZE    10240
     #endif
-#endif
+#endif /* if 0 */
 
 /* Naming and numbering of PHY registers. */
 #define PHY_REG_01_BMSR    0x01         /* Basic mode status register */
@@ -390,28 +390,28 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 
 #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 )
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    static uint8_t * pucNetworkPackets = NULL;
-
-    if( pucNetworkPackets == NULL )
+    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
-        pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
+        static uint8_t * pucNetworkPackets = NULL;
 
-        if( pucNetworkPackets != NULL )
+        if( pucNetworkPackets == NULL )
         {
-            uint8_t * ucRAMBuffer = pucNetworkPackets;
-            uint32_t ul;
+            pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
 
-            for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+            if( pucNetworkPackets != NULL )
             {
-                pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-                *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-                ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
+                uint8_t * ucRAMBuffer = pucNetworkPackets;
+                uint32_t ul;
+
+                for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+                {
+                    pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+                    *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+                    ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
+                }
             }
         }
     }
-}
 
 #endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 ) */
 /*-----------------------------------------------------------*/

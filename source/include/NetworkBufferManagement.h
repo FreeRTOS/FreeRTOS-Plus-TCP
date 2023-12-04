@@ -55,7 +55,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
 
 #else
 
-    /* Increase the size of a Network Buffer. */
+/* Increase the size of a Network Buffer. */
     NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                                                      size_t xNewSizeBytes );
 #endif /* ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) */

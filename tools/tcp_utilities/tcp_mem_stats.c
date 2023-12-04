@@ -235,7 +235,7 @@
         STATS_PRINTF( ( "TCPMemStat,ipconfig item,Value,PerUnit,Total\n" ) );
         xFirstLineNr = xCurrentLine;
 
-        #if( ipconfigBUFFER_ALLOC_STATIC != 0 )
+        #if ( ipconfigBUFFER_ALLOC_STATIC != 0 )
         {
             size_t uxBytes;
 
@@ -249,7 +249,7 @@
                             xCurrentLine ) );
             uxStaticSize += uxBytes;
         }
-        #else
+        #else  /* if ( ipconfigBUFFER_ALLOC_STATIC != 0 ) */
         {
             size_t uxBytes;
 
@@ -261,7 +261,7 @@
                             xCurrentLine ) );
             uxStaticSize += uxBytes;
         }
-        #endif
+        #endif /* if ( ipconfigBUFFER_ALLOC_STATIC != 0 ) */
 
         {
             #if ( ipconfigUSE_TCP_WIN != 0 )
@@ -318,7 +318,7 @@
         /*
          * End of fixed RAM allocations.
          */
-        #if( ipconfigBUFFER_ALLOC_STATIC != 0 )
+        #if ( ipconfigBUFFER_ALLOC_STATIC != 0 )
         {
             pucComment[ 0 ] = 0;
         }
@@ -337,7 +337,7 @@
             uxStaticSize += uxBytes;
             snprintf( pucComment, sizeof pucComment, "Actual size fluctuates because dynamic buffer allocation is used" );
         }
-        #endif
+        #endif /* if ( ipconfigBUFFER_ALLOC_STATIC != 0 ) */
 
         xLastHeaderLineNr = xCurrentLine;
 

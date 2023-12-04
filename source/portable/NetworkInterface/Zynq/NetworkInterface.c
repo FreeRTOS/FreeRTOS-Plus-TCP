@@ -64,7 +64,7 @@
 #define niBMSR_LINK_STATUS                  0x0004uL
 
 /* Naming and numbering of PHY registers. */
-#define PHY_REG_01_BMSR           0x01  /* Basic mode status register */
+#define PHY_REG_01_BMSR                     0x01 /* Basic mode status register */
 
 #ifndef iptraceEMAC_TASK_STARTING
     #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )
@@ -463,28 +463,28 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 
 #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 )
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    static uint8_t * pucNetworkPackets = NULL;
-
-    if( pucNetworkPackets == NULL )
+    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
-        pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE );
+        static uint8_t * pucNetworkPackets = NULL;
 
-        if( pucNetworkPackets != NULL )
+        if( pucNetworkPackets == NULL )
         {
-            uint8_t * ucRAMBuffer = pucNetworkPackets;
-            uint32_t ul;
+            pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE );
 
-            for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+            if( pucNetworkPackets != NULL )
             {
-                pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-                *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-                ucRAMBuffer += ipTOTAL_ETHERNET_FRAME_SIZE;
+                uint8_t * ucRAMBuffer = pucNetworkPackets;
+                uint32_t ul;
+
+                for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
+                {
+                    pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
+                    *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
+                    ucRAMBuffer += ipTOTAL_ETHERNET_FRAME_SIZE;
+                }
             }
         }
     }
-}
 
 #endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 ) */
 /*-----------------------------------------------------------*/

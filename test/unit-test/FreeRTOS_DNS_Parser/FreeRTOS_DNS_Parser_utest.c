@@ -1108,6 +1108,7 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
 
     NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
     struct xNetworkEndPoint xEndPoint = { 0 };
+
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer.pucEthernetBuffer = pucPayload;

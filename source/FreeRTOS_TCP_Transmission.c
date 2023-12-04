@@ -630,7 +630,7 @@
         size_t uxNeeded;
         BaseType_t xResize;
 
-        #if( ipconfigBUFFER_ALLOC_STATIC != 0 )
+        #if ( ipconfigBUFFER_ALLOC_STATIC != 0 )
         {
             /* Network buffers are created with a fixed size and can hold the largest
              * MTU. */
@@ -647,7 +647,7 @@
                 xResize = pdFALSE;
             }
         }
-        #else
+        #else  /* if ( ipconfigBUFFER_ALLOC_STATIC != 0 ) */
         {
             /* Network buffers are created with a variable size. See if it must
              * grow. */
@@ -670,7 +670,7 @@
                 xResize = pdFALSE;
             }
         }
-        #endif
+        #endif /* if ( ipconfigBUFFER_ALLOC_STATIC != 0 ) */
 
         if( xResize != pdFALSE )
         {
