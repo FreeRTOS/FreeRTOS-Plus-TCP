@@ -24,8 +24,6 @@
 #define STATIC_ASSERT( e ) \
     enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( !!( e ) ) }
 
-#define baALIGNMENT_MASK                        ( portBYTE_ALIGNMENT - 1U )
-
 #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
     #define baINTERRUPT_BUFFER_GET_THRESHOLD    ( 3 )
     #if ipconfigIS_DISABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
@@ -33,7 +31,7 @@
     #endif
     STATIC_ASSERT( uxBufferAllocFixedSize > 0 );
     #define baBUFFER_SIZE            ( uxBufferAllocFixedSize + ipBUFFER_PADDING )
-    #define baBUFFER_SIZE_ALIGNED    ( ( baBUFFER_SIZE + portBYTE_ALIGNMENT ) & ~baALIGNMENT_MASK )
+    #define baBUFFER_SIZE_ALIGNED    ( ( baBUFFER_SIZE + portBYTE_ALIGNMENT ) & ~portBYTE_ALIGNMENT_MASK )
 #else
 
 /* The obtained network buffer must be large enough to hold a packet that might
@@ -184,9 +182,9 @@ UBaseType_t uxGetNumberOfFreeNetworkBuffers( void )
 
         /* Round up xSize to the nearest multiple of N bytes,
          * where N equals 'sizeof( size_t )'. */
-        if( ( xSize & baALIGNMENT_MASK ) != 0U )
+        if( ( xSize & portBYTE_ALIGNMENT_MASK ) != 0U )
         {
-            const size_t xBytesRequiredForAlignment = portBYTE_ALIGNMENT - ( xSize & baALIGNMENT_MASK );
+            const size_t xBytesRequiredForAlignment = portBYTE_ALIGNMENT - ( xSize & portBYTE_ALIGNMENT_MASK );
 
             if( baADD_WILL_OVERFLOW( xSize, xBytesRequiredForAlignment ) == 0 )
             {
@@ -421,9 +419,9 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
             xIntegerOverflowed = pdTRUE;
         }
 
-        if( ( xRequestedSizeBytesCopy & baALIGNMENT_MASK ) != 0U )
+        if( ( xRequestedSizeBytesCopy & portBYTE_ALIGNMENT_MASK ) != 0U )
         {
-            const size_t xBytesRequiredForAlignment = portBYTE_ALIGNMENT - ( xRequestedSizeBytesCopy & baALIGNMENT_MASK );
+            const size_t xBytesRequiredForAlignment = portBYTE_ALIGNMENT - ( xRequestedSizeBytesCopy & portBYTE_ALIGNMENT_MASK );
 
             if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, xBytesRequiredForAlignment ) == 0 )
             {
