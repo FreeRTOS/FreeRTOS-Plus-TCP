@@ -1863,6 +1863,10 @@ void test_FreeRTOS_get_tx_base_InvalidParams( void )
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
     pucReturn = FreeRTOS_get_tx_base( &xSocket );
     TEST_ASSERT_EQUAL( NULL, pucReturn );
+
+    xSocket.u.xTCP.bits.bMallocError == pdTRUE_UNSIGNED;
+    pucReturn = FreeRTOS_get_tx_base( &xSocket );
+    TEST_ASSERT_EQUAL( NULL, pucReturn );
 }
 
 /**
