@@ -110,9 +110,6 @@ static volatile BaseType_t xGMACSwitchRequired;
  * in this variable, see ethernet_phy.c */
 extern int ethernet_phy_addr;
 
-/* LLMNR multicast address. */
-static const uint8_t llmnr_mac_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
-
 /* The GMAC object as defined by the ASF drivers. */
 static gmac_device_t gs_gmac_dev;
 
@@ -310,7 +307,7 @@ static BaseType_t prvGMACInit( void )
     /* The GMAC driver will call a hook prvRxCallback(), which
      * in turn will wake-up the task by calling vTaskNotifyGiveFromISR() */
     gmac_dev_set_rx_callback( &gs_gmac_dev, prvRxCallback );
-    gmac_set_address( GMAC, 1, ( uint8_t * ) llmnr_mac_address );
+    gmac_set_address( GMAC, 1, ( uint8_t * ) xLLMNR_MacAddress.ucBytes );
 
     ncfgr = GMAC_NCFGR_SPD | GMAC_NCFGR_FD;
 

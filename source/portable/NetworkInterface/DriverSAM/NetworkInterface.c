@@ -78,7 +78,7 @@
         #warning This driver assumes the presence of DCACHE
     #endif
 
-    #define     CACHE_LINE_SIZE               32
+    #define     CACHE_LINE_SIZE               __SCB_DCACHE_LINE_SIZE
     #define     NETWORK_BUFFER_HEADER_SIZE    ( ipconfigPACKET_FILLER_SIZE + 8 )
 
     static void cache_clean_invalidate()
@@ -190,9 +190,6 @@ static BaseType_t xGMACSwitchRequired;
 
 /* The GMAC object as defined by the ASF drivers. */
 static gmac_device_t gs_gmac_dev;
-
-/* MAC address to use. */
-extern const uint8_t ucMACAddress[ 6 ];
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
  * handle is used so direct notifications can be sent to the task for all EMAC/DMA

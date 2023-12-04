@@ -89,9 +89,6 @@
 /*              FreeRTOS variables             */
 /***********************************************/
 
-/* Copied from FreeRTOS_IP.c. Used for ICMP CRC calculation */
-#define ipCORRECT_CRC              0xffffU
-
 /* Ethernet buffers for BufferAllocation_1.c scheme.
  * Set ipUSE_STATIC_ALLOCATION to 1 if using BufferAllocation_1.c,
  * otherwise to 0, to save RAM. From Iperf testing, there is no point in using

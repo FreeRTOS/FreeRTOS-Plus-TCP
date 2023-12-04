@@ -84,10 +84,6 @@
 /* *INDENT-ON* */
 /*/ @endcond */
 
-#ifndef ARRAY_SIZE
-    #define ARRAY_SIZE( x )    ( int ) ( sizeof( x ) / sizeof( x )[ 0 ] )
-#endif
-
 #if ( GMAC_RX_BUFFERS <= 1 )
     #error Configuration error, GMAC_RX_BUFFERS must be at least 2
 #endif
@@ -135,24 +131,24 @@
  *
  *     Total size: 24 * ( 1536 + 16 ) = 37248 bytes
  */
-__attribute__( ( aligned( 32 ) ) )
+__attribute__( ( aligned( __SCB_DCACHE_LINE_SIZE ) ) )
 __attribute__( ( section( ".first_data" ) ) )
 uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
 
 /** TX descriptor lists */
 __attribute__( ( section( ".first_data" ) ) )
-COMPILER_ALIGNED( 8 )
+COMPILER_ALIGNED( portBYTE_ALIGNMENT )
 static gmac_tx_descriptor_t gs_tx_desc[ GMAC_TX_BUFFERS ];
 
 #if ( SAME70 != 0 )
     __attribute__( ( section( ".first_data" ) ) )
-    COMPILER_ALIGNED( 8 )
+    COMPILER_ALIGNED( portBYTE_ALIGNMENT )
     static gmac_tx_descriptor_t gs_tx_desc_null;
 #endif
 
 /** RX descriptors lists */
 __attribute__( ( section( ".first_data" ) ) )
-COMPILER_ALIGNED( 8 )
+COMPILER_ALIGNED( portBYTE_ALIGNMENT )
 static gmac_rx_descriptor_t gs_rx_desc[ GMAC_RX_BUFFERS ];
 
 #if ( ipconfigZERO_COPY_TX_DRIVER == 0 )
@@ -162,14 +158,14 @@ static gmac_rx_descriptor_t gs_rx_desc[ GMAC_RX_BUFFERS ];
  * of the address shall be set to 0.
  */
     __attribute__( ( section( ".first_data" ) ) )
-    COMPILER_ALIGNED( 8 )
+    COMPILER_ALIGNED( portBYTE_ALIGNMENT )
     static uint8_t gs_uc_tx_buffer[ GMAC_TX_BUFFERS * GMAC_TX_UNITSIZE ];
 #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
 #if ( ipconfigZERO_COPY_RX_DRIVER == 0 )
     /** Receive Buffer */
     __attribute__( ( section( ".first_data" ) ) )
-    COMPILER_ALIGNED( 8 )
+    COMPILER_ALIGNED( portBYTE_ALIGNMENT )
     static uint8_t gs_uc_rx_buffer[ GMAC_RX_BUFFERS * GMAC_RX_UNITSIZE ];
 #endif /* ipconfigZERO_COPY_RX_DRIVER */
 
