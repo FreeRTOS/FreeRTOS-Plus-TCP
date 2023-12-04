@@ -441,6 +441,13 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
 eFrameProcessingResult_t eARPProcessPacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 
 /*
+ * Inspect an Ethernet frame to see if it contains data that the stack needs to
+ * process.  eProcessBuffer is returned if the frame should be processed by the
+ * stack.  eReleaseBuffer is returned if the frame should be discarded.
+ */
+eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer );
+
+/*
  * Return the checksum generated over xDataLengthBytes from pucNextData.
  */
 uint16_t usGenerateChecksum( uint16_t usSum,

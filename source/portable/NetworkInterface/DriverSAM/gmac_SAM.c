@@ -131,7 +131,7 @@
  *
  *     Total size: 24 * ( 1536 + 16 ) = 37248 bytes
  */
-__attribute__( ( aligned( __SCB_DCACHE_LINE_SIZE ) ) )
+__attribute__( ( aligned( 32 ) ) )
 __attribute__( ( section( ".first_data" ) ) )
 uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
 
