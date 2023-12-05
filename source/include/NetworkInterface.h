@@ -37,15 +37,15 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
-#define EMAC_HANDLER_TASK_NAME    "EMAC"
-#define EMAC_MAX_BLOCK_TIME_MS    100ul
+#define EMAC_HANDLER_TASK_NAME          "EMAC"
+#define EMAC_MAX_BLOCK_TIME_MS          100ul
 #define EMAC_DESCRIPTOR_WAIT_TIME_MS    100ul
 
 /* Interrupt events to process. */
-#define EMAC_IF_RX_EVENT              1UL
-#define EMAC_IF_TX_EVENT              2UL
-#define EMAC_IF_ERR_EVENT             4UL
-#define EMAC_IF_ALL_EVENT             ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
+#define EMAC_IF_RX_EVENT                1UL
+#define EMAC_IF_TX_EVENT                2UL
+#define EMAC_IF_ERR_EVENT               4UL
+#define EMAC_IF_ALL_EVENT               ( EMAC_IF_RX_EVENT | EMAC_IF_TX_EVENT | EMAC_IF_ERR_EVENT )
 
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it

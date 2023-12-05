@@ -172,7 +172,7 @@ static BaseType_t xESP32_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
         }
 
-        xResult = (ret == ESP_OK ? pdTRUE : pdFALSE);
+        xResult = ( ret == ESP_OK ? pdTRUE : pdFALSE );
     }
 
     return xResult;

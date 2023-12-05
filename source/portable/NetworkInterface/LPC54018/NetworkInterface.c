@@ -166,7 +166,7 @@ static void prvProcessFrame( int length )
 
 static void rx_task( void * parameter )
 {
-    (void) parameter;
+    ( void ) parameter;
 
     iptraceEMAC_TASK_STARTING();
 

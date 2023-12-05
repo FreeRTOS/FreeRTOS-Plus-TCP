@@ -50,12 +50,12 @@
 #include <ethernet_phy.h>
 
 #ifndef BMSR_LINK_STATUS
-    #define BMSR_LINK_STATUS    0x0004          /*!< Link status */
+    #define BMSR_LINK_STATUS      0x0004        /*!< Link status */
 #endif
 
-#define ETHERNET_CONF_PHY_ADDR        BOARD_GMAC_PHY_ADDR
+#define ETHERNET_CONF_PHY_ADDR    BOARD_GMAC_PHY_ADDR
 
-#define HZ_PER_MHZ                    ( 1000000UL )
+#define HZ_PER_MHZ                ( 1000000UL )
 
 #if !defined( GMAC_USES_TX_CALLBACK ) || ( GMAC_USES_TX_CALLBACK != 1 )
     #error Please define GMAC_USES_TX_CALLBACK as 1
@@ -204,7 +204,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
     /* When returning non-zero, the stack will become active and
      * start DHCP (in configured) */
-    return ( xGetPhyLinkStatus() != pdFALSE );
+    return( xGetPhyLinkStatus() != pdFALSE );
 }
 /*-----------------------------------------------------------*/
 
