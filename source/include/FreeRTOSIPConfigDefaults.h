@@ -3066,8 +3066,8 @@
 #endif
 
 #ifndef FreeRTOS_debug_printf
-    #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) )//&& defined( configPRINTF ) )
-        #define FreeRTOS_debug_printf( MSG )    do { configPRINTF( MSG ); } while( ipFALSE_BOOL )
+    #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( configPRINTF ) )
+        #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )//do { configPRINTF( MSG ); } while( ipFALSE_BOOL )
     #else
         #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )
     #endif
@@ -3102,8 +3102,8 @@
 #endif
 
 #ifndef FreeRTOS_printf
-    #if ( ( ipconfigHAS_PRINTF == 1 ) )// && defined( configPRINTF ) )
-        #define FreeRTOS_printf( MSG )    do { configPRINTF( MSG ); } while( ipFALSE_BOOL )
+    #if ( ( ipconfigHAS_PRINTF == 1 ) && defined( configPRINTF ) )
+        #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )//do { configPRINTF( MSG ); } while( ipFALSE_BOOL )
     #else
         #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
     #endif
