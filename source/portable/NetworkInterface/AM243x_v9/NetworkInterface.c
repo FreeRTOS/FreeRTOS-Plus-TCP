@@ -200,6 +200,8 @@ BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterf
 
         EnetAppUtils_enableClocks(enetType, instId);
 
+        EnetApp_driverInit();
+
         extern BaseType_t xNetworkBuffersInitialise_RX( void );
         xNetworkBuffersInitialise_RX();
 

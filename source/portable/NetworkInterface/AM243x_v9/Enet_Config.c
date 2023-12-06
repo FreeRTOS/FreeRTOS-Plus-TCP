@@ -333,7 +333,7 @@ void EnetNetIFAppCb_getEnetIFInstInfo(Enet_Type enetType, uint32_t instId, EnetN
 #endif
 }
 
-void LwipifEnetAppCb_getTxHandleInfo(LwipifEnetAppIf_GetTxHandleInArgs *inArgs,
+void EnetNetIFAppCb_getTxHandleInfo(LwipifEnetAppIf_GetTxHandleInArgs *inArgs,
                                      LwipifEnetAppIf_TxHandleInfo *outArgs)
 {
     uint32_t i;
@@ -371,12 +371,13 @@ void LwipifEnetAppCb_getTxHandleInfo(LwipifEnetAppIf_GetTxHandleInArgs *inArgs,
 
 }
 
-void LwipifEnetAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
+void EnetNetIFAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
                                      LwipifEnetAppIf_RxHandleInfo *outArgs)
 {
     uint32_t i;
     EnetDma_Pkt *pPktInfo;
-    Rx_CustomPbuf *cPbuf;
+    // Rx_CustomPbuf *cPbuf;
+    NetworkBufferDescriptor_t * pxNetDesc;
     bool useRingMon = false;
     EnetApp_HandleInfo handleInfo;
     EnetPer_AttachCoreOutArgs attachInfo;
@@ -418,7 +419,7 @@ void LwipifEnetAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
     /* Initialize the DMA free queue */
     EnetQueue_initQ(inArgs->pReadyRxPktQ);
     EnetQueue_initQ(inArgs->pFreeRxPktInfoQ);
-    pbufQ_init(inArgs->pFreePbufInfoQ);
+    NetBufQueue_init(inArgs->pFreePbufInfoQ);
 
     for (i = 0U; i < rxChInfo.maxNumRxPkts; i++)
     {
@@ -430,26 +431,56 @@ void LwipifEnetAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
         EnetAppUtils_assert(pPktInfo != NULL);
         ENET_UTILS_SET_PKT_APP_STATE(&pPktInfo->pktState, ENET_PKTSTATE_APP_WITH_READYQ);
 
-        /* Put all the filled pPktInfo into readyRxPktQ and submit to driver */
-        EnetQueue_enq(inArgs->pReadyRxPktQ, &pPktInfo->node);
+        pxNetDesc = *((NetworkBufferDescriptor_t **) (pPktInfo->sgList.list[0].bufPtr - ipBUFFER_PADDING));
+        EnetNetIF_AppIf_CustomNetBuf * pxCustomNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxNetDesc;
+
+        pxCustomNetDesc->pktInfoMem = pPktInfo;
+        pxCustomNetDesc->freePktInfoQ = inArgs->pktInfoQ;
+        pxNetDesc->xDataLength = ENET_MEM_LARGE_POOL_PKT_SIZE; //FIXME: less than ENET_MEM_LARGE_POOL_PKT_SIZE because of padding
+
+        // cPbuf = (LwipifEnetAppIf_custom_rx_pbuf*)LWIP_MEMPOOL_ALLOC(RX_POOL);
+
+        // cPbuf->p.custom_free_function = LwipifEnetAppCb_pbuf_free_custom;
+        // cPbuf->pktInfoMem         = pPktInfo;
+        // cPbuf->freePktInfoQ         = inArgs->pktInfoQ;
+        // cPbuf->p.pbuf.flags |= PBUF_FLAG_IS_CUSTOM;
+
+        // pxNetDesc = pbuf_alloced_custom(PBUF_RAW, ENET_MEM_LARGE_POOL_PKT_SIZE, PBUF_POOL, &cPbuf->p, pPktInfo->sgList.list[0].bufPtr, pPktInfo->sgList.list[0].segmentAllocLen);
+
+        pPktInfo->appPriv = (void *)pxNetDesc;
+
+        if (pxNetDesc != NULL)
+        {
+            EnetAppUtils_assert(pxNetDesc->pucEthernetBuffer != NULL);
+            EnetAppUtils_assert(ENET_UTILS_IS_ALIGNED(pxNetDesc->pucEthernetBuffer, ENETDMA_CACHELINE_ALIGNMENT));
+
+            /* Enqueue to the free queue */
+			EnetQueue_enq(inArgs->pReadyRxPktQ, &pPktInfo->node);
+        }
+        else
+        {
+            DebugP_log("ERROR: Pbuf_alloc() failure...exiting!\r\n");
+            EnetAppUtils_assert(FALSE);
+        }
+
     }
 
-    EnetQueue_verifyQCount(inArgs->pReadyRxPktQ);
-    for (i = 0U; i < numCustomPbuf; i++)
-    {
-        /* Allocate the Custom Pbuf structures and put them in freePbufInfoQ */
-        cPbuf = NULL;
-        cPbuf = (Rx_CustomPbuf*)LWIP_MEMPOOL_ALLOC(RX_POOL);
-        EnetAppUtils_assert(cPbuf != NULL);
-        cPbuf->p.custom_free_function = custom_pbuf_free;
-        cPbuf->customPbufArgs         = (Rx_CustomPbuf_Args)inArgs->cbArg;
-        cPbuf->next                   = NULL;
-        cPbuf->alivePbufCount         = 0U;
-        cPbuf->orgBufLen              = 0U;
-        cPbuf->orgBufPtr              = NULL;
-        cPbuf->p.pbuf.flags          |= PBUF_FLAG_IS_CUSTOM;
-        pbufQ_enQ(inArgs->pFreePbufInfoQ, &(cPbuf->p.pbuf));
-    }
+    // EnetQueue_verifyQCount(inArgs->pReadyRxPktQ);
+    // for (i = 0U; i < numCustomPbuf; i++)
+    // {
+    //     /* Allocate the Custom Pbuf structures and put them in freePbufInfoQ */
+    //     cPbuf = NULL;
+    //     cPbuf = (Rx_CustomPbuf*)LWIP_MEMPOOL_ALLOC(RX_POOL);
+    //     EnetAppUtils_assert(cPbuf != NULL);
+    //     cPbuf->p.custom_free_function = custom_pbuf_free;
+    //     cPbuf->customPbufArgs         = (Rx_CustomPbuf_Args)inArgs->cbArg;
+    //     cPbuf->next                   = NULL;
+    //     cPbuf->alivePbufCount         = 0U;
+    //     cPbuf->orgBufLen              = 0U;
+    //     cPbuf->orgBufPtr              = NULL;
+    //     cPbuf->p.pbuf.flags          |= PBUF_FLAG_IS_CUSTOM;
+    //     pbufQ_enQ(inArgs->pFreePbufInfoQ, &(cPbuf->p.pbuf));
+    // }
 
 }
 
@@ -643,7 +674,7 @@ void LwipifEnetApp_startSchedule(LwipifEnetApp_Handle handle, struct netif *neti
 
 }
 
-void LwipifEnetApp_getRxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pRxChIdCount, uint32_t rxChIdList[LWIPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL])
+void EnetApp_getRxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pRxChIdCount, uint32_t rxChIdList[LWIPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL])
 {
     const uint32_t rxChIdMap[ENET_SYSCFG_MAX_ENET_INSTANCES][4] = {{ENET_CPSW_3G, 0,ENET_DMA_RX_CH0,1},};
     uint32_t chCount = 0;
@@ -688,7 +719,7 @@ void LwipifEnetApp_getRxChIDs(const Enet_Type enetType, const uint32_t instId, u
     return;
 }
 
-void LwipifEnetApp_getTxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pTxChIdCount, uint32_t txChIdList[LWIPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL])
+void EnetApp_getTxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pTxChIdCount, uint32_t txChIdList[LWIPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL])
 {
     const uint32_t txChIdMap[ENET_SYSCFG_MAX_ENET_INSTANCES][4] = {{ENET_CPSW_3G, 0,ENET_DMA_TX_CH0,1},};
     uint32_t chCount = 0;

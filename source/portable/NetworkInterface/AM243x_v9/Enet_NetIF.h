@@ -50,6 +50,48 @@
 #define CONFIG_MAX_RX_CHANNELS      2
 #define CONFIG_MAX_TX_CHANNELS      2
 
+/* ========================================================================== */
+/*                                 Macros                                     */
+/* ========================================================================== */
+
+/* Maximum number of MAC ports available on SOC and
+ * by supported by FREERTOS_TCP-If layer.
+ */
+#define FREERTOS_TCPIF_MAX_NUM_MAC_PORTS             (CPSW_STATS_MACPORT_MAX)
+
+/*Max number of netif enabled. */
+#define FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED          (FREERTOS_TCPIF_MAX_NUM_MAC_PORTS)
+
+/*Max number of RX channels supported by FREERTOS_TCPif*/
+#define FREERTOS_TCPIF_MAX_RX_CHANNELS               (CPSW_STATS_MACPORT_MAX)
+
+/*Max number of TX channels supported by FREERTOS_TCPif */
+#define FREERTOS_TCPIF_MAX_TX_CHANNELS               (CPSW_STATS_MACPORT_MAX)
+
+
+/* Maximum number of ENET Peripheral instances supported
+ * by FREERTOS_TCP-IF layer.In the current version, we can two ICSSG enet
+ * (ICSSG Dual mac/ dual netif) instances, which is considered as maximum.
+ * For CPSW case, it is one CPSW instance able to setup dual mac.
+ * have ports available on SOC.
+ */
+#define FREERTOS_TCPIF_MAX_NUM_PERIPHERALS               (CPSW_STATS_MACPORT_MAX)
+
+/* Maximum number of RX DMA channels that can be associated to FREERTOS_TCP per peripheral.
+ * FREERTOS_TCP2enet supports only one channel association */
+#define FREERTOS_TCPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL   (CPSW_STATS_MACPORT_MAX)
+
+/* Maximum number of TX DMA channel that can be associated to FREERTOS_TCP per peripheral.
+
+ * FREERTOS_TCP2enet supports only one channel association */
+#define FREERTOS_TCPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL   (1U)
+
+/* Maximum number of MAC ports supported per peripheral */
+#define FREERTOS_TCPIF_MAX_NUM_MAC_PORTS_PER_PHERIPHERAL (CPSW_STATS_MACPORT_MAX)
+
+/* Maximum number of NEtIFs supported per peripheral */
+#define FREERTOS_TCPIF_MAX_NETIFS_PER_PHERIPHERAL        (FREERTOS_TCPIF_MAX_NUM_MAC_PORTS_PER_PHERIPHERAL)
+
 #define HISTORY_CNT ((uint32_t)2U)
 
 typedef bool (*Enet_NetIF_AppIf_IsPhyLinkedCbFxn)(Enet_Handle hEnet);
@@ -58,6 +100,11 @@ void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNe
 
 /* Multicast Address List Size */
 #define CONFG_PKT_MAX_MCAST                   ((uint32_t)31U)
+
+/* Maximum number of TX DMA channel that can be associated to FREERTOS per peripheral.
+
+ * FREERTOS2enet supports only one channel association */
+#define FREERTOSIF_MAX_TX_CHANNELS_PER_PHERIPHERAL   (1U)
 
 /* Callback used by ENET to allocate RX payload buffers */
 uint8_t * getEnetAppBuffMem(uint32_t req_Size, uint8_t *pktAddr);
@@ -136,8 +183,8 @@ typedef struct EnetNetIF_AppIf_GetEnetIFInstInfo_s
 
     /** Timer interval for timer based RX pacing */
     uint32_t timerPeriodUs;
-    NetBufNode *pFreeTx;
-	uint32_t   pFreeTxSize;
+    NetBufNode *pPbufInfo;
+    uint32_t pPbufInfoSize;
 } EnetNetIF_AppIf_GetEnetIFInstInfo;
 
 typedef struct EnetNetIFAppIf_GetTxHandleInArgs_s
@@ -146,6 +193,7 @@ typedef struct EnetNetIFAppIf_GetTxHandleInArgs_s
     EnetDma_PktNotifyCb notifyCb;
     uint32_t chId;
     EnetDma_PktQ *pktInfoQ;
+    Enet_Type enetType;
 } EnetNetIFAppIf_GetTxHandleInArgs;
 
 typedef struct EnetNetIFAppIf_GetRxHandleInArgs_s
@@ -154,6 +202,7 @@ typedef struct EnetNetIFAppIf_GetRxHandleInArgs_s
     EnetDma_PktNotifyCb notifyCb;
     uint32_t chId;
     EnetDma_PktQ *pktInfoQ;
+    Enet_Type enetType;
 } EnetNetIFAppIf_GetRxHandleInArgs;
 
 typedef struct EnetNetIFAppIf_TxHandleInfo_s
@@ -291,10 +340,13 @@ typedef struct xEnetDriverObj
 
     /*! lwIP network interface */
     NetworkInterface_t * pxInterface[ENET_CFG_NETIF_MAX];
+    uint32_t numOpenedNetifs;
 
     uint8_t macAddr[ENET_CFG_NETIF_MAX][ENET_MAC_ADDR_LEN];
 	/*! Total number of allocated PktInfo elements */
     uint32_t allocPktInfo;
+    bool isInitDone;
+    bool isAllocated;
 
     EnetNetIF_AppIf_GetEnetIFInstInfo appInfo;
     /** Initialization flag.*/
@@ -352,6 +404,29 @@ typedef struct xEnetDriverObj
     Enet_notify_t txPktNotify;
 }
 xEnetDriverObj, *xEnetDriverHandle;
+
+/**
+ * \brief
+ *  enet and netif interface Info
+ *
+ * \details
+ *  This structure caches the device info.
+ */
+
+typedef struct
+{
+    NetworkInterface_t * pxInterface;
+    Enet_Handle hEnet;
+    uint8_t count_hRx;
+    uint8_t count_hTx;
+    EnetNetIF_RxHandle hRx[FREERTOS_TCPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL];
+    EnetNetIF_TxHandle hTx[FREERTOS_TCPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL];
+    Enet_MacPort macPort;
+    uint8_t macAddr[ENET_MAC_ADDR_LEN];
+    Enet_NetIF_AppIf_IsPhyLinkedCbFxn isPortLinkedFxn;
+    bool isLinkUp;
+    uint8_t isActive;
+} FreeRTOSTCP2Enet_netif_t;
 
 typedef struct _xNetIFArgs
 {

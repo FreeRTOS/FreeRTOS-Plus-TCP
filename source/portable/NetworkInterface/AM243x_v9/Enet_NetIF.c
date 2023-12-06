@@ -95,7 +95,7 @@ NetBufNode gFreeTxNetBufArr[ENET_SYSCFG_TOTAL_NUM_TX_PKT];
 
 static void EnetNetIF_notifyTxPackets(void *cbArg);
 
-static xEnetDriverObj gEnetDriverObj = { {{0}} };
+static xEnetDriverObj gEnetDriverObj = {.isInitDone = false, .isAllocated = false };
 
 static void EnetNetIF_submitRxPktQ(EnetNetIF_RxObj *rx);
 
@@ -279,19 +279,18 @@ static void EnetNetIFAppCb_getEnetIFInstInfo(EnetNetIF_AppIf_GetEnetIFInstInfo *
 static void EnetNetIF_saveAppIfCfg(xEnetDriverHandle hEnet,
                                     EnetNetIF_AppIf_GetEnetIFInstInfo *appInfo)
 {
-    hEnet->numRxChannels = appInfo->numRxChannels;
-    hEnet->numTxChannels = appInfo->numTxChannels;
+
 }
 
-static void  EnetNetIF_initGetTxHandleInArgs(xEnetDriverHandle hEnet,
-                                             uint32_t chNum,
-                                             EnetNetIFAppIf_GetTxHandleInArgs *inArgs)
-{
-    inArgs->cbArg      = &hEnet->tx[chNum];
-    inArgs->notifyCb   = &EnetNetIF_notifyTxPackets;
-    inArgs->chId       = chNum;
-    inArgs->pktInfoQ   = &hEnet->tx[chNum].freePktInfoQ;
-}
+// static void  EnetNetIF_initGetTxHandleInArgs(xEnetDriverHandle hEnet,
+//                                              uint32_t chNum,
+//                                              EnetNetIFAppIf_GetTxHandleInArgs *inArgs)
+// {
+//     inArgs->cbArg      = &hEnet->tx[chNum];
+//     inArgs->notifyCb   = &EnetNetIF_notifyTxPackets;
+//     inArgs->chId       = chNum;
+//     inArgs->pktInfoQ   = &hEnet->tx[chNum].freePktInfoQ;
+// }
 
 static void EnetNetIF_initGetRxHandleInArgs(xEnetDriverHandle hEnet,
                                             uint32_t chNum,
@@ -303,89 +302,126 @@ static void EnetNetIF_initGetRxHandleInArgs(xEnetDriverHandle hEnet,
     inArgs->pktInfoQ   = &hEnet->rx[chNum].freePktInfoQ;
 }
 
-static void EnetNetIFAppCb_getTxHandleInfo(EnetNetIFAppIf_GetTxHandleInArgs *inArgs,
-                                    EnetNetIFAppIf_TxHandleInfo *outArgs)
+// static void EnetNetIFAppCb_getTxHandleInfo(EnetNetIFAppIf_GetTxHandleInArgs *inArgs,
+//                                     EnetNetIFAppIf_TxHandleInfo *outArgs)
+// {
+//     Enet_Type enetType;
+//     uint32_t instId, i;
+//     EnetDma_Pkt *pPktInfo;
+//     EnetApp_HandleInfo handleInfo;
+//     EnetApp_GetTxDmaHandleOutArgs  txChInfo;
+//     EnetApp_GetDmaHandleInArgs     txInArgs;
+
+//     EnetApp_getEnetInstInfo(&enetType,
+//                             &instId);
+//     EnetApp_acquireHandleInfo(enetType, instId, &handleInfo);
+
+//     /* Open TX channel */
+//     txInArgs.cbArg     = inArgs->cbArg;
+//     txInArgs.notifyCb  = inArgs->notifyCb;
+
+//     EnetApp_getTxDmaHandle(inArgs->chId,
+//                           &txInArgs,
+//                           &txChInfo);
+
+//     outArgs->hTxChannel = txChInfo.hTxCh;
+//     outArgs->txChNum = txChInfo.txChNum;
+//     outArgs->numPackets = txChInfo.maxNumTxPkts;
+//     outArgs->disableEvent = true;
+
+//     /* Initialize the DMA free queue */
+//     EnetQueue_initQ(inArgs->pktInfoQ);
+
+//     for (i = 0U; i < txChInfo.maxNumTxPkts; i++)
+//     {
+//         /* Initialize Pkt info Q from allocated memory */
+//         pPktInfo = EnetMem_allocEthPktInfoMem(&inArgs->cbArg,
+//                                               ENETDMA_CACHELINE_ALIGNMENT);
+
+//         configASSERT(pPktInfo != NULL);
+//         ENET_UTILS_SET_PKT_APP_STATE(&pPktInfo->pktState, ENET_PKTSTATE_APP_WITH_FREEQ);
+//         EnetQueue_enq(inArgs->pktInfoQ, &pPktInfo->node);
+
+//     }
+
+// }
+
+// static EnetNetIF_TxHandle EnetNetIF_initTxObj(uint32_t txCh,
+//                                               xEnetDriverHandle hEnet)
+// {
+//     EnetNetIF_TxHandle hTxHandle;
+//     EnetNetIFAppIf_GetTxHandleInArgs inArgs;
+//     EnetNetIFAppIf_TxHandleInfo outArgs;
+
+//     if(hEnet->tx[txCh].enabled == true)
+//     {
+//         hEnet->tx[txCh].refCount++;
+//         hTxHandle = &hEnet->tx[txCh];
+//     }
+//     else{
+
+//         EnetNetIF_initGetTxHandleInArgs(hEnet, txCh, &inArgs);
+//         EnetNetIFAppCb_getTxHandleInfo(&inArgs, &outArgs);
+
+//         hEnet->tx[txCh].numPackets = outArgs.numPackets;
+//         hEnet->tx[txCh].hCh = outArgs.hTxChannel;
+//         hEnet->tx[txCh].chNum = outArgs.txChNum;
+//         configASSERT(hEnet->tx[txCh].hCh != NULL);
+
+//         hEnet->tx[txCh].disableEvent = outArgs.disableEvent;
+
+//         hEnet->tx[txCh].stats.freeAppPktEnq = outArgs.numPackets;
+//         hEnet->allocPktInfo += outArgs.numPackets;
+
+//         /* Initialize the TX pbuf queues */
+//         NetBufQueue_init(&hEnet->tx[txCh].readyPbufQ);
+//         NetBufQueue_init(&hEnet->tx[txCh].unusedPbufQ);
+
+//         hEnet->tx[txCh].refCount = 1U;
+//         hEnet->tx[txCh].enabled = true;
+//         hEnet->tx[txCh].hEnetNetIF = hEnet;
+
+//         hTxHandle = &hEnet->tx[txCh];
+//     }
+//     return hTxHandle;
+// }
+
+static void EnetNetIF_initTxObj(Enet_Type enetType, uint32_t instId, uint32_t chEntryIdx, EnetNetIF_TxObj* pTx)
 {
-    Enet_Type enetType;
-    uint32_t instId, i;
-    EnetDma_Pkt *pPktInfo;
-    EnetApp_HandleInfo handleInfo;
-    EnetApp_GetTxDmaHandleOutArgs  txChInfo;
-    EnetApp_GetDmaHandleInArgs     txInArgs;
-
-    EnetApp_getEnetInstInfo(&enetType,
-                            &instId);
-    EnetApp_acquireHandleInfo(enetType, instId, &handleInfo);
-
-    /* Open TX channel */
-    txInArgs.cbArg     = inArgs->cbArg;
-    txInArgs.notifyCb  = inArgs->notifyCb;
-
-    EnetApp_getTxDmaHandle(inArgs->chId,
-                          &txInArgs,
-                          &txChInfo);
-
-    outArgs->hTxChannel = txChInfo.hTxCh;
-    outArgs->txChNum = txChInfo.txChNum;
-    outArgs->numPackets = txChInfo.maxNumTxPkts;
-    outArgs->disableEvent = true;
-
-    /* Initialize the DMA free queue */
-    EnetQueue_initQ(inArgs->pktInfoQ);
-
-    for (i = 0U; i < txChInfo.maxNumTxPkts; i++)
+    if(pTx->refCount > 0)
     {
-        /* Initialize Pkt info Q from allocated memory */
-        pPktInfo = EnetMem_allocEthPktInfoMem(&inArgs->cbArg,
-                                              ENETDMA_CACHELINE_ALIGNMENT);
-
-        configASSERT(pPktInfo != NULL);
-        ENET_UTILS_SET_PKT_APP_STATE(&pPktInfo->pktState, ENET_PKTSTATE_APP_WITH_FREEQ);
-        EnetQueue_enq(inArgs->pktInfoQ, &pPktInfo->node);
-
+        pTx->refCount++;
     }
-
-}
-
-static EnetNetIF_TxHandle EnetNetIF_initTxObj(uint32_t txCh,
-                                              xEnetDriverHandle hEnet)
-{
-    EnetNetIF_TxHandle hTxHandle;
-    EnetNetIFAppIf_GetTxHandleInArgs inArgs;
-    EnetNetIFAppIf_TxHandleInfo outArgs;
-
-    if(hEnet->tx[txCh].enabled == true)
+    else
     {
-        hEnet->tx[txCh].refCount++;
-        hTxHandle = &hEnet->tx[txCh];
-    }
-    else{
+        EnetNetIFAppIf_GetTxHandleInArgs inArgs;
+        EnetNetIFAppIf_TxHandleInfo outArgs;
 
-        EnetNetIF_initGetTxHandleInArgs(hEnet, txCh, &inArgs);
+        inArgs.chId = chEntryIdx;
+        inArgs.cbArg = pTx;
+        inArgs.notifyCb = &EnetNetIF_notifyTxPackets;
+        inArgs.pktInfoQ = &pTx->freePktInfoQ;
+        inArgs.enetType = enetType;
+        inArgs.instId = instId;
         EnetNetIFAppCb_getTxHandleInfo(&inArgs, &outArgs);
 
-        hEnet->tx[txCh].numPackets = outArgs.numPackets;
-        hEnet->tx[txCh].hCh = outArgs.hTxChannel;
-        hEnet->tx[txCh].chNum = outArgs.txChNum;
-        configASSERT(hEnet->tx[txCh].hCh != NULL);
+        pTx->numPackets = outArgs.numPackets;
+        pTx->hCh = outArgs.hTxChannel;
+        configASSERT(pTx->hCh != NULL);
+        pTx->disableEvent = outArgs.disableEvent;
 
-        hEnet->tx[txCh].disableEvent = outArgs.disableEvent;
+        pTx->stats.freeAppPktEnq = outArgs.numPackets;
 
-        hEnet->tx[txCh].stats.freeAppPktEnq = outArgs.numPackets;
-        hEnet->allocPktInfo += outArgs.numPackets;
+        /* Initialize the TX network buffer queues */
+        NetBufQueue_init(&pTx->readyPbufQ);
+        NetBufQueue_init(&pTx->unusedPbufQ);
 
-        /* Initialize the TX pbuf queues */
-        NetBufQueue_init(&hEnet->tx[txCh].readyPbufQ);
-        NetBufQueue_init(&hEnet->tx[txCh].unusedPbufQ);
-
-        hEnet->tx[txCh].refCount = 1U;
-        hEnet->tx[txCh].enabled = true;
-        hEnet->tx[txCh].hEnetNetIF = hEnet;
-
-        hTxHandle = &hEnet->tx[txCh];
+        pTx->refCount = 1U;
+        pTx->chEntryIdx = chEntryIdx;
     }
-    return hTxHandle;
+    return;
 }
+
 
 static void EnetNetIF_mapNetif2Tx(NetworkInterface_t * pxInterface,
                         bool isDirected,
@@ -564,6 +600,49 @@ static EnetNetIF_RxHandle EnetNetIF_initRxObj(uint32_t rxCh,
     }
 
     return hRxHandle;
+}
+
+static void EnetNetIF_initRxObj(Enet_Type enetType, uint32_t instId, uint32_t chEntryIdx, EnetNetIF_RxHandle hRx)
+{
+
+    if (hRx->refCount > 0)
+    {
+        hRx->refCount++;
+    }
+    else
+    {
+        EnetNetIFAppIf_GetRxHandleInArgs inArgs;
+        EnetNetIFAppIf_RxHandleInfo outArgs = {0};
+
+        inArgs.enetType        = enetType;
+        inArgs.instId          = instId;
+        inArgs.cbArg           = hRx;
+        inArgs.notifyCb        = &EnetNetIF_notifyRxPackets;
+        inArgs.chId            = chEntryIdx;
+        inArgs.pFreePbufInfoQ  = &hRx->freePbufInfoQ;
+        inArgs.pReadyRxPktQ    = &hRx->readyRxPktQ;
+        inArgs.pFreeRxPktInfoQ = &hRx->freeRxPktInfoQ;
+
+        LwipifEnetAppCb_getRxHandleInfo(&inArgs, &outArgs);
+
+        hRx->numPackets = outArgs.numPackets;
+        hRx->flowIdx     = outArgs.rxFlowIdx;
+        hRx->flowStartIdx = outArgs.rxFlowStartIdx;
+        hRx->hFlow       = outArgs.hRxFlow;
+        Lwip2Enet_assert(hRx->hFlow != NULL);
+        hRx->disableEvent = outArgs.disableEvent;
+
+        hRx->stats.freeAppPktEnq = outArgs.numPackets;
+
+        hRx->refCount = 1U;
+        hRx->chEntryIdx = chEntryIdx;
+        for (uint32_t portIdx = 0; portIdx < CPSW_STATS_MACPORT_MAX; portIdx++)
+        {
+            hRx->mapPortToNetif[portIdx] = NULL;
+        }
+    }
+
+    return;
 }
 
 static void EnetNetIF_mapNetif2Rx(NetworkInterface_t * pxInterface,
@@ -1622,135 +1701,206 @@ void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
     EnetNetIF_EnetApp_createPollTask(pxInterface);
 }
 
+static xEnetDriverHandle FreeRTOSTCP2Enet_allocateObj(void)
+{
+    uintptr_t key = EnetOsal_disableAllIntr();
+    EnetApp_HandleInfo hEnet = &gLwip2EnetObj;
+
+    if (!hEnet->isAllocated)
+    {
+        hEnet = &gLwip2EnetObj;
+        //phn initialize hEnet
+        hEnet->isAllocated = true;
+        hEnet->isInitDone = false;
+
+        for (uint32_t rxChIdIdx = 0; rxChIdIdx < LWIPIF_MAX_RX_CHANNELS; rxChIdIdx++)
+        {
+            hEnet->lwip2EnetRxObj[rxChIdIdx].refCount = 0;
+        }
+
+        for (uint32_t txChIdIdx = 0; txChIdIdx < LWIPIF_MAX_TX_CHANNELS; txChIdIdx++)
+        {
+            hEnet->lwip2EnetTxObj[txChIdIdx].refCount = 0;
+        }
+    }
+
+    EnetOsal_restoreAllIntr(key);
+
+    return hEnet;
+}
+
+static EnetNetIF_RxHandle EnetNetIF_allocateRxHandle(EnetApp_HandleInfo hEnet, Enet_Type enetType, uint32_t instId, const uint32_t objIdx)
+{
+    uintptr_t key = EnetOsal_disableAllIntr();
+    EnetNetIF_RxHandle hRx = NULL;
+    if (objIdx < FREERTOS_TCPIF_MAX_RX_CHANNELS)
+    {
+        hRx = &hEnet->tx[objIdx];
+    }
+
+    EnetOsal_restoreAllIntr(key);
+
+    return hRx;
+}
+
+static EnetNetIF_TxHandle EnetNetIF_allocateTxHandle(EnetApp_HandleInfo hEnet, Enet_Type enetType, uint32_t instId, const uint32_t objIdx)
+{
+    uintptr_t key = EnetOsal_disableAllIntr();
+    EnetNetIF_TxHandle hTx = NULL;
+    if (objIdx < FREERTOS_TCPIF_MAX_TX_CHANNELS)
+    {
+        hTx = &hEnet->rx[objIdx];
+    }
+
+    EnetOsal_restoreAllIntr(key);
+
+    return hTx;
+}
+
+
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
 {
  
-    xEnetDriverHandle hEnet;
-    EnetNetIF_TxHandle hTxEnet;
-    EnetNetIF_RxHandle hRxEnet;
-    EnetNetIF_AppIf_GetHandleNetifInfo netifInfo;
-    int32_t status;
-    uint32_t i;
-    BaseType_t xNetIFNum;
-    NetworkEndPoint_t * pxEndPoint;
-    xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+    uint32_t txChIdList[FREERTOS_TCPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL];
+    uint32_t rxChIdList[FREERTOS_TCPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL];
+    EnetApp_GetMacAddrOutArgs          macAddr;
+    EnetApp_HandleInfo                 handleInfo;
+    xEnetDriverHandle    hEnet = FreeRTOSTCP2Enet_allocateObj();
+    FreeRTOSTCP2Enet_netif_t*  pInterface = hEnet->pxInterface[hEnet->numOpenedNetifs++];
+    uint32_t txChIdCount = 0, rxChIdCount = 0;
 
-    hEnet = EnetNetif_getObj();
-    if (hEnet->initDone == false)
+    /* get TxChID & RxChID and the corresponding channel counts */
+    
+    EnetApp_getTxChIDs(enetType, instId, &txChIdCount, &txChIdList[0]);
+    EnetApp_getRxChIDs(enetType, instId, &rxChIdCount, &rxChIdList[0]);
+
+
+    EnetApp_acquireHandleInfo(enetType, instId, &handleInfo);
+    configASSERT(handleInfo.hEnet != NULL);
+    pInterface->hEnet = handleInfo.hEnet;
+    pInterface->pxInterface = pxInterface;
+
+    /* MCast List is EMPTY */
+    hEnet->MCastCnt = 0U;
+
+    /* Init internal bookkeeping fields */
+    hEnet->oldMCastCnt = 0U;
+
+    if (hEnet->isInitDone == false)
     {
-
-        /* MCast List is EMPTY */
-        hEnet->MCastCnt = 0U;
-
-        /* Init internal bookkeeping fields */
-        hEnet->oldMCastCnt = 0U;
-
-        for (i = 0U; i < ENET_CFG_NETIF_MAX; i++)
-        {
-            hEnet->mapNetif2Rx[i] = NULL;
-            hEnet->mapNetif2Tx[i] = NULL;
-            hEnet->mapNetif2TxPortNum[i] = ENET_MAC_PORT_INV;
-        }
-
-        for (i = 0U; i < CPSW_STATS_MACPORT_MAX; i++)
-        {
-            hEnet->mapRxPort2Netif[i] = NULL;
-        }
-
-
         /* First init tasks, semaphores and clocks. This is required because
          * EnetDma event cb ISR can happen immediately after opening rx flow
          * in LwipifEnetAppCb_getHandle and all semaphores, clocks and tasks should
          * be valid at that point
          */
 
-        EnetNetIFAppCb_getEnetIFInstInfo(&hEnet->appInfo);
+        EnetNetIFAppCb_getEnetIFInstInfo(enetType, instId, &hEnet->appInfo);
 
         /* Save params received from application interface */
         EnetNetIF_saveAppIfCfg(hEnet, &hEnet->appInfo);
 
-        configASSERT(hEnet->appInfo.hEnet != NULL);
         configASSERT(hEnet->appInfo.isPortLinkedFxn != NULL);
-        configASSERT(hEnet->appInfo.pFreeTx != NULL);
+        configASSERT(hEnet->appInfo.pPbufInfo != NULL);
 
-        NetBufQueue_init_freeQ(hEnet->appInfo.pFreeTx, hEnet->appInfo.pFreeTxSize);
-
+        NetBufQueue_init_freeQ(hEnet->appInfo.pPbufInfo, hEnet->appInfo.pPbufInfoSize);
 
         /* set the print function callback if not null */
         hEnet->print = (Enet_Print) &EnetUtils_printf;
-	}
-
-    /* Process netif related parameters*/
-    EnetNetIFAppCb_getNetifInfo(pxInterface, &netifInfo);
-
-    for(i=0U; i < netifInfo.numTxChannels; i++)
-    {
-        hTxEnet = EnetNetIF_initTxObj(i, hEnet);
-        EnetNetIF_mapNetif2Tx(pxInterface, netifInfo.isDirected, hTxEnet, hEnet);
-    }
-
-    for(i=0U; i < netifInfo.numRxChannels; i++)
-    {
-        hRxEnet = EnetNetIF_initRxObj(i, hEnet);
-        EnetNetIF_mapNetif2Rx(pxInterface, netifInfo.isDirected, hRxEnet, hEnet);
-    }
-    // /* Updating the netif params */
-    // EnetUtils_copyMacAddr(netif->hwaddr ,&hEnet->macAddr[netif->num][0U]);
-    // netif->hwaddr_len = ENET_MAC_ADDR_LEN;
-    // netif->state = (void *)hEnet;
-
-    configASSERT(pxNetIFArgs != NULL);
-    xNetIFNum = pxNetIFArgs->xNetIFID;
-
-    configASSERT(xNetIFNum < ENET_SYSCFG_NETIF_COUNT);
-    
-    pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-
-    if( pxEndPoint != NULL && xNetIFNum < ENET_SYSCFG_NETIF_COUNT )
-    {
-        EnetUtils_copyMacAddr( pxEndPoint->xMACAddress.ucBytes, &hEnet->macAddr[xNetIFNum][0U]);
-    }
-    else
-    {
-        configASSERT(pdFALSE);
-    }
-    hEnet->pxInterface[xNetIFNum] = pxInterface;
-
-    /* DMA handles are availablw now, so starting the tasks and completing the initialization of lwipif*/
-    if(hEnet->initDone == false)
-    {
-        status = EnetNetIF_startRxTx(hEnet);
-        if (status != ENET_SOK)
-        {
-            FreeRTOS_printf(("Failed to start the tasks: %d\n", status));
-        }
-
-        /* Get initial link/interface status from the driver */
-        hEnet->linkIsUp = hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet);
-
-        for (i = 0U; i < hEnet->numTxChannels; i++)
-        {
-            if (hEnet->tx[i].disableEvent)
-            {
-                EnetDma_disableTxEvent(hEnet->tx[i].hCh);
-            }
-        }
-
-        for (i = 0U; i < hEnet->numRxChannels; i++)
-        {
-            if ((hEnet->rx[i].enabled) &&  (hEnet->rx[i].disableEvent))
-            {
-                EnetDma_disableRxEvent(hEnet->rx[i].hFlow);
-            }
-        }
-        /* assert if clk period is not valid  */
-        configASSERT(0U != hEnet->appInfo.timerPeriodUs);
+        hEnet->isInitDone = true;
         EnetNetIF_createTimer(hEnet);
-        // ClockP_start(&hEnet->pacingClkObj);
-
-        hEnet->initDone = TRUE;
-        pxNetIFArgs->hEnet = hEnet;
     }
+
+    /* Associate with corresponding Tx Channels */
+    for (uint32_t txChIdIndex = 0; txChIdIndex < txChIdCount; txChIdIndex++)
+    {
+        const uint32_t txChId = txChIdList[txChIdIndex];
+        pInterface->hTx[txChIdIndex] = EnetNetIF_allocateTxHandle(hEnet, enetType, instId, txChId);
+        EnetNetIF_initTxObj(enetType, instId, txChId, pInterface->hTx[txChIdIndex]);
+        pInterface->hTx[txChIdIndex]->hEnet = hEnet;
+        configASSERT(NULL != pInterface->hTx[txChIdIndex]->hCh);
+        if (pInterface->hTx[txChIdIndex]->refCount == 1)
+        {
+            hEnet->allocPktInfo += pInterface->hTx[txChIdIndex]->numPackets;
+            EnetDma_enableTxEvent(pInterface->hTx[txChIdIndex]->hCh);
+        }
+    }
+    pInterface->count_hTx = txChIdCount;
+
+    /* Associate with corresponding Rx Channels */
+    for (uint32_t rxChIdIdx = 0; rxChIdIdx < rxChIdCount; rxChIdIdx++)
+    {
+        const uint32_t rxChId = rxChIdList[rxChIdIdx];
+        pInterface->hRx[rxChIdIdx] = EnetNetIF_allocateRxHandle(hEnet, enetType, instId, rxChId);
+        Lwip2Enet_initRxObj(enetType, instId, rxChId, pInterface->hRx[rxChIdIdx]);
+
+        /* Process netif related parameters*/
+        pInterface->hRx[rxChIdIdx]->mode = LwipifEnetAppCb_getRxMode(enetType, instId);
+        if ((pInterface->hRx[rxChIdIdx]->mode == Lwip2Enet_RxMode_SwitchSharedChannel) ||
+            (pInterface->hRx[rxChIdIdx]->mode == Lwip2Enet_RxMode_SwitchPort1Channel) ||
+            (pInterface->hRx[rxChIdIdx]->mode == Lwip2Enet_RxMode_SwitchPort2Channel))
+        {
+            for (uint32_t portIdx = 0; portIdx < CPSW_STATS_MACPORT_MAX; portIdx++)
+            {
+                pInterface->hRx[rxChIdIdx]->mapPortToNetif[portIdx] = netif;
+            }
+            pInterface->macPort = ENET_MAC_PORT_INV;
+        }
+        else if (pInterface->hRx[rxChIdIdx]->mode == Lwip2Enet_RxMode_MacSharedChannel)
+        {
+            const Enet_MacPort macPort = (Enet_MacPort)((pInterface->hRx[rxChIdIdx]->refCount -1));
+            Lwip2Enet_assert(macPort < LWIPIF_MAX_NUM_MAC_PORTS);
+            pInterface->hRx[rxChIdIdx]->mapPortToNetif[macPort] = netif;
+            pInterface->macPort = macPort;
+        }
+        else
+        {
+            /* rxChIdx is treated as MAC PORT in case of dedicated CH per netif.
+             * This is in both ICSSG dual mac and switch usecase */
+            const Enet_MacPort macPort = Lwip2Enet_findMacPortFromEnet(enetType, instId);
+            Lwip2Enet_assert(macPort < LWIPIF_MAX_NUM_MAC_PORTS);
+            pInterface->hRx[rxChIdIdx]->mapPortToNetif[macPort] = netif;
+            pInterface->macPort = macPort;
+        }
+
+        // MAC address allocation for the Netifs
+        EnetApp_getMacAddress(rxChId, &macAddr);
+        if (macAddr.macAddressCnt > 0)
+        {
+            /* fall here only for the Rx Channel that has valid mac address */
+            Lwip2Enet_assert(netif->hwaddr_len == 0);
+            Lwip2Enet_assert(macAddr.macAddressCnt >= (pInterface->hRx[rxChIdIdx]->refCount - 1));
+            EnetUtils_copyMacAddr(netif->hwaddr ,&macAddr.macAddr[pInterface->hRx[rxChIdIdx]->refCount - 1][0U]);
+            netif->hwaddr_len = ENET_MAC_ADDR_LEN;
+            #if ENET_ENABLE_PER_ICSSG
+            Lwip2Enet_setMacAddress(enetType, instId, pInterface->hEnet, &macAddr.macAddr[pInterface->hRx[rxChIdIdx]->refCount - 1][0U]);
+            #endif // ENET_ENABLE_PER_ICSSG
+        }
+
+        pInterface->hRx[rxChIdIdx]->hEnet = hEnet;
+        Lwip2Enet_assert(NULL != pInterface->hRx[rxChIdIdx]->hFlow);
+        /* Submit all allocated packets to DMA so it can use for packet RX */
+        if (pInterface->hRx[rxChIdIdx]->refCount == 1)
+        {
+            hEnet->allocPktInfo += pInterface->hRx[rxChIdIdx]->numPackets;
+            Lwip2Enet_submitRxPktQ(pInterface->hRx[rxChIdIdx]);
+        }
+    }
+    pInterface->count_hRx = rxChIdCount;
+
+    /* Get initial link/interface status from the driver */
+    pInterface->isLinkUp = hEnet->appInfo.isPortLinkedFxn(pInterface->hEnet);
+    pInterface->isPortLinkedFxn = hEnet->appInfo.isPortLinkedFxn;
+    pInterface->pNetif   = netif;
+
+    /* Updating the netif params */
+    Lwip2Enet_assert(netif->hwaddr_len == ENET_MAC_ADDR_LEN);
+    netif->state = (void *)pInterface;
+
+    /* assert if clk period is not valid  */
+    Lwip2Enet_assert(0U != hEnet->appInfo.timerPeriodUs);
+
+    ClockP_start(&hEnet->pacingClkObj);
+    return hEnet;
 
     // TODO: Wait till link is up before returing, because if the open() returns,
     // the IP-task will start and send packets immediately,
