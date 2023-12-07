@@ -377,7 +377,7 @@ void EnetNetIFAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
     uint32_t i;
     EnetDma_Pkt *pPktInfo;
     // Rx_CustomPbuf *cPbuf;
-    NetworkBufferDescriptor_t * pxNetDesc;
+    EnetNetIF_AppIf_CustomNetBuf * pxNetDesc;
     bool useRingMon = false;
     EnetApp_HandleInfo handleInfo;
     EnetPer_AttachCoreOutArgs attachInfo;
@@ -431,56 +431,24 @@ void EnetNetIFAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
         EnetAppUtils_assert(pPktInfo != NULL);
         ENET_UTILS_SET_PKT_APP_STATE(&pPktInfo->pktState, ENET_PKTSTATE_APP_WITH_READYQ);
 
-        pxNetDesc = *((NetworkBufferDescriptor_t **) (pPktInfo->sgList.list[0].bufPtr - ipBUFFER_PADDING));
-        EnetNetIF_AppIf_CustomNetBuf * pxCustomNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxNetDesc;
-
-        pxCustomNetDesc->pktInfoMem = pPktInfo;
-        pxCustomNetDesc->freePktInfoQ = inArgs->pktInfoQ;
-        pxNetDesc->xDataLength = ENET_MEM_LARGE_POOL_PKT_SIZE; //FIXME: less than ENET_MEM_LARGE_POOL_PKT_SIZE because of padding
-
-        // cPbuf = (LwipifEnetAppIf_custom_rx_pbuf*)LWIP_MEMPOOL_ALLOC(RX_POOL);
-
-        // cPbuf->p.custom_free_function = LwipifEnetAppCb_pbuf_free_custom;
-        // cPbuf->pktInfoMem         = pPktInfo;
-        // cPbuf->freePktInfoQ         = inArgs->pktInfoQ;
-        // cPbuf->p.pbuf.flags |= PBUF_FLAG_IS_CUSTOM;
-
-        // pxNetDesc = pbuf_alloced_custom(PBUF_RAW, ENET_MEM_LARGE_POOL_PKT_SIZE, PBUF_POOL, &cPbuf->p, pPktInfo->sgList.list[0].bufPtr, pPktInfo->sgList.list[0].segmentAllocLen);
-
-        pPktInfo->appPriv = (void *)pxNetDesc;
-
-        if (pxNetDesc != NULL)
-        {
-            EnetAppUtils_assert(pxNetDesc->pucEthernetBuffer != NULL);
-            EnetAppUtils_assert(ENET_UTILS_IS_ALIGNED(pxNetDesc->pucEthernetBuffer, ENETDMA_CACHELINE_ALIGNMENT));
-
-            /* Enqueue to the free queue */
-			EnetQueue_enq(inArgs->pReadyRxPktQ, &pPktInfo->node);
-        }
-        else
-        {
-            DebugP_log("ERROR: Pbuf_alloc() failure...exiting!\r\n");
-            EnetAppUtils_assert(FALSE);
-        }
-
+        /* Put all the filled pPktInfo into readyRxPktQ and submit to driver */
+        EnetQueue_enq(inArgs->pReadyRxPktQ, &pPktInfo->node);
     }
 
-    // EnetQueue_verifyQCount(inArgs->pReadyRxPktQ);
-    // for (i = 0U; i < numCustomPbuf; i++)
-    // {
-    //     /* Allocate the Custom Pbuf structures and put them in freePbufInfoQ */
-    //     cPbuf = NULL;
-    //     cPbuf = (Rx_CustomPbuf*)LWIP_MEMPOOL_ALLOC(RX_POOL);
-    //     EnetAppUtils_assert(cPbuf != NULL);
-    //     cPbuf->p.custom_free_function = custom_pbuf_free;
-    //     cPbuf->customPbufArgs         = (Rx_CustomPbuf_Args)inArgs->cbArg;
-    //     cPbuf->next                   = NULL;
-    //     cPbuf->alivePbufCount         = 0U;
-    //     cPbuf->orgBufLen              = 0U;
-    //     cPbuf->orgBufPtr              = NULL;
-    //     cPbuf->p.pbuf.flags          |= PBUF_FLAG_IS_CUSTOM;
-    //     pbufQ_enQ(inArgs->pFreePbufInfoQ, &(cPbuf->p.pbuf));
-    // }
+    EnetQueue_verifyQCount(inArgs->pReadyRxPktQ);
+    for (i = 0U; i < numCustomPbuf; i++)
+    {
+        /* Allocate the Custom Pbuf structures and put them in freePbufInfoQ */
+        pxNetDesc = NULL;
+        pxNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxGetNetworkBufferWithDescriptor_RX( scatterSegments[0], 0);
+        EnetAppUtils_assert(pxNetDesc != NULL);
+        pxNetDesc->customNetBufArgs       = (Rx_CustomNetBuf_Args)inArgs->cbArg;
+        pxNetDesc->next                   = NULL;
+        pxNetDesc->alivePbufCount         = 0U;
+        pxNetDesc->orgBufLen              = 0U;
+        pxNetDesc->orgBufPtr              = NULL;
+        NetBufQueue_enQ(inArgs->pFreePbufInfoQ, &(pxNetDesc->xNetworkBuffer));
+    }
 
 }
 
@@ -760,17 +728,17 @@ void EnetApp_getTxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_
     return;
 }
 
-Lwip2Enet_RxMode_t LwipifEnetAppCb_getRxMode(Enet_Type enetType, uint32_t instId)
+EnetNetIF_RxMode_t EnetApp_getRxMode(Enet_Type enetType, uint32_t instId)
 {
     const bool hasSwitchModeEnabled = true; 
-    Lwip2Enet_RxMode_t rxMode = Lwip2Enet_RxMode_SwitchSharedChannel;
+    EnetNetIF_RxMode_t rxMode = Lwip2Enet_RxMode_SwitchSharedChannel;
     if (hasSwitchModeEnabled)
     {
-        rxMode = Lwip2Enet_RxMode_SwitchSharedChannel;
+        rxMode = EnetNetIF_RxMode_SwitchSharedChannel;
     }
     else
     {
-        rxMode = Lwip2Enet_RxMode_MacSharedChannel;
+        rxMode = EnetNetIF_RxMode_MacSharedChannel;
     }
     return rxMode;
 }

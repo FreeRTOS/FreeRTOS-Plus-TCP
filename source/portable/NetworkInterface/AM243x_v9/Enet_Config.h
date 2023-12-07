@@ -50,6 +50,9 @@
 #include "lwip2enet.h"
 #include <networking/enet/core/lwipif/inc/lwip2lwipif.h>
 #include <networking/enet/core/lwipif/inc/lwipif2enet_AppIf.h>
+
+#include "Enet_NetIF.h"
+
 /* ========================================================================== */
 /*                           Macros & Typedefs                                */
 /* ========================================================================== */
@@ -86,6 +89,9 @@ void LwipifEnetAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
 void LwipifEnetAppCb_releaseTxHandle(LwipifEnetAppIf_ReleaseTxHandleInfo *releaseInfo);
 void LwipifEnetAppCb_releaseRxHandle(LwipifEnetAppIf_ReleaseRxHandleInfo *releaseInfo);
 void LwipifEnetAppCb_pbuf_free_custom(struct pbuf *p);
+
+
+EnetNetIF_RxMode_t EnetApp_getRxMode(Enet_Type enetType, uint32_t instId);
 
 
 /*
