@@ -109,6 +109,17 @@ void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNe
 /* Callback used by ENET to allocate RX payload buffers */
 uint8_t * getEnetAppBuffMem(uint32_t req_Size, uint8_t *pktAddr);
 
+typedef enum EnetNetIF_RxMode_t
+{
+    EnetNetIF_RxMode_SwitchSharedChannel, /* appicable for CPSW and ICSSG in SW mode */
+    EnetNetIF_RxMode_MacSharedChannel, /* appicable for CPSW in MAC mode */
+    EnetNetIF_RxMode_MacPort1Channel, /* appicable for ICSSG in MAC mode */
+    EnetNetIF_RxMode_MacPort2Channel, /* appicable for ICSSG in MAC mode */ 
+    EnetNetIF_RxMode_SwitchPort1Channel, /* appicable for ICSSG in SW mode */
+    EnetNetIF_RxMode_SwitchPort2Channel, /* appicable for ICSSG in SW mode */
+    EnetNetIF_RxMode_NumModes, /* max value for iteration- invalid */
+} EnetNetIF_RxMode_t;
+
 typedef struct EnetNetIF_PktTaskStats_s
 {
     uint32_t rawNotifyCnt;
@@ -254,6 +265,8 @@ typedef struct EnetNetIF_RxObj_s
 
     /*! Reference count for RX flow */
     uint32_t refCount;
+
+    EnetNetIF_RxMode_t mode;
 
     /*! Start index for RX flow */
     uint32_t flowStartIdx;
@@ -435,13 +448,35 @@ typedef struct _xNetIFArgs
     uint32_t xLinkUp;
 } xNetIFArgs;
 
+typedef void * Rx_CustomNetBuf_Args;
+
 typedef struct EnetNetIF_AppIf_CustomNetBuf_t
 {
    NetworkBufferDescriptor_t xNetworkBuffer;
-   EnetDma_Pkt *pktInfoMem;
-   EnetDma_PktQ *freePktInfoQ;
+
+    /*! next points to the next custom pbuf in the pbuf chain in a circular fashion,
+     *  unlike pbuf->next, this never equals NULL when the pbuf is in use by the stack.
+     *  If the pbuf chain contains only one pbuf then it points to itself. */
+    struct EnetNetIF_AppIf_CustomNetBuf_t *next;
+
+    /*! alivePbufCount stores the number of pbufs in the pbuf chain that are currently in use by the stack.
+     *  This value should be same for all the pbufs in a pbuf chain and decrements when pbuf_free
+     *  is called on any pbuf in the pbuf chain. This equals zero only when pbuf_free is called on
+     *  every pbuf of the chain. */
+    uint32_t alivePbufCount;
+
+    /*! customPbufArgs points to the Rx handle having all the Queues */
+    Rx_CustomNetBuf_Args customNetBufArgs;
+
+    /*! Original Buffer ptr of the pbuf->payload. Store this as the LwIP stack shifts the payload as needed. */
+    uint8_t *orgBufPtr;
+
+    /*! Original Buffer allocated length */
+    uint32_t orgBufLen;
+
 } EnetNetIF_AppIf_CustomNetBuf;
 
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface);
 
 #define ENETNETIF_RXFLOW_2_PORTIDX(num) (num - 1U)
+
