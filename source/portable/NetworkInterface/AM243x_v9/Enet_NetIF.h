@@ -268,6 +268,8 @@ typedef struct EnetNetIF_RxObj_s
 
     EnetNetIF_RxMode_t mode;
 
+    NetworkInterface_t * mapPortToInterface[CPSW_STATS_MACPORT_MAX];
+
     /*! Start index for RX flow */
     uint32_t flowStartIdx;
 
@@ -279,6 +281,8 @@ typedef struct EnetNetIF_RxObj_s
 
     /*! Number of packets*/
     uint32_t numPackets;
+
+    Enet_notify_t rxPktNotify;
 
     /*! lwIP interface statistics */
     EnetNetIF_RxStats stats;
