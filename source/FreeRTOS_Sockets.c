@@ -1926,8 +1926,17 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
         if( pxAddress == NULL )
         {
             pxAddress = &xAddress;
-            /* Put the port to zero to be assigned later. */
-            pxAddress->sin_port = 0U;
+            /* Clear the address: */
+            ( void ) memset( pxAddress, 0, sizeof( struct freertos_sockaddr ) );
+
+            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET6;
+            }
+            else
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET;
+            }
         }
     }
     #endif /* ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 1 */
