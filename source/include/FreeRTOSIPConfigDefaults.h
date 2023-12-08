@@ -67,6 +67,9 @@
  */
 
 #ifndef _static
+    /* suppressing the use of _static as it is used for other tools like cbmc */
+    /* coverity[misra_c_2012_rule_21_1_violation] */
+    /* coverity[misra_c_2012_rule_21_2_violation] */
     #define _static    static
 #endif
 
@@ -3109,8 +3112,8 @@ ipconfigSTATIC_ASSERT( ipconfigEMAC_TASK_STACK_SIZE >= configMINIMAL_STACK_SIZE 
 #endif
 
 #ifndef FreeRTOS_debug_printf
-    #ifdef configPRINTF
-        #define FreeRTOS_debug_printf( MSG )    if( ipconfigHAS_DEBUG_PRINTF ) configPRINTF( MSG )
+    #if ( ( ipconfigHAS_DEBUG_PRINTF == 1 ) && defined( configPRINTF ) )
+        #define FreeRTOS_debug_printf( MSG )    do { configPRINTF( MSG ); } while( ipFALSE_BOOL )
     #else
         #define FreeRTOS_debug_printf( MSG )    do {} while( ipFALSE_BOOL )
     #endif
@@ -3145,8 +3148,8 @@ ipconfigSTATIC_ASSERT( ipconfigEMAC_TASK_STACK_SIZE >= configMINIMAL_STACK_SIZE 
 #endif
 
 #ifndef FreeRTOS_printf
-    #ifdef configPRINTF
-        #define FreeRTOS_printf( MSG )    if( ipconfigHAS_PRINTF ) configPRINTF( MSG )
+    #if ( ( ipconfigHAS_PRINTF == 1 ) && defined( configPRINTF ) )
+        #define FreeRTOS_printf( MSG )    do { configPRINTF( MSG ); } while( ipFALSE_BOOL )
     #else
         #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
     #endif
@@ -3165,7 +3168,14 @@ ipconfigSTATIC_ASSERT( ipconfigEMAC_TASK_STACK_SIZE >= configMINIMAL_STACK_SIZE 
  */
 
 #ifndef FreeRTOS_flush_logging
-    #define FreeRTOS_flush_logging()    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) do {} while( ipFALSE_BOOL )
+    #define FreeRTOS_flush_logging()                     \
+    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) \
+    {                                                    \
+        do {} while( ipFALSE_BOOL );                     \
+    }                                                    \
+    else                                                 \
+    {                                                    \
+    }
 #endif
 
 /*---------------------------------------------------------------------------*/
