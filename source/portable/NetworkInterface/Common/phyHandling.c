@@ -542,7 +542,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                                      uint32_t ulPhyMask )
 {
     uint32_t xPhyIndex, ulDoneMask, ulBitMask;
-    uint32_t ulPHYLinkStatus, ulRegValue;
+    uint32_t ulRegValue;
     TickType_t xRemainingTime;
     TimeOut_t xTimer;
 
@@ -613,6 +613,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
         {
             BaseType_t xPhyAddress = pxPhyObject->ucPhyIndexes[ xPhyIndex ];
             uint32_t ulPhyID = pxPhyObject->ulPhyIDs[ xPhyIndex ];
+            uint32_t ulPHYLinkStatus = 0U;
 
             if( ( ulDoneMask & ulBitMask ) == ( uint32_t ) 0U )
             {
@@ -624,14 +625,10 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
 
             pxPhyObject->fnPhyRead( xPhyAddress, phyREG_01_BMSR, &ulRegValue );
 
-            if( ( ulRegValue & phyBMSR_LINK_STATUS ) != 0 )
+            if( ( ulRegValue & phyBMSR_LINK_STATUS ) != 0U )
             {
-                ulPHYLinkStatus |= phyBMSR_LINK_STATUS;
+                ulPHYLinkStatus = phyBMSR_LINK_STATUS;
                 pxPhyObject->ulLinkStatusMask |= ulBitMask;
-            }
-            else
-            {
-                ulPHYLinkStatus &= ~( phyBMSR_LINK_STATUS );
             }
 
             if( ulPhyID == PHY_ID_KSZ8081MNXIA )
@@ -730,7 +727,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                                ( unsigned int ) ulRegValue,
                                ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) ? "full" : "half",
                                ( ulRegValue & phyPHYSTS_SPEED_STATUS ) ? 10 : 100,
-                               ( ( ulPHYLinkStatus |= phyBMSR_LINK_STATUS ) != 0 ) ? "high" : "low" ) );
+                               ( ( ulPHYLinkStatus & phyBMSR_LINK_STATUS ) != 0U ) ? "high" : "low" ) );
 
             if( ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) != ( uint32_t ) 0U )
             {
