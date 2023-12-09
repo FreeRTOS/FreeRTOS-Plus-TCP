@@ -811,23 +811,64 @@ static int32_t EnetNetIF_startRxTx(xEnetDriverHandle hEnet)
     return status;
 }
 
-void EnetNetIF_retrieveTxPkts(EnetNetIF_TxObj *tx)
+// void EnetNetIF_retrieveTxPkts(EnetNetIF_TxObj *tx)
+// {
+//     EnetDma_PktQ tempQueue;
+//     uint32_t packetCount = 0U;
+//     int32_t retVal;
+
+//     // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&tx->stats.pktStats.rawNotifyCnt);
+//     packetCount = 0U;
+
+//     /* Retrieve the used (sent/empty) packets from the channel */
+//     {
+//         EnetQueue_initQ(&tempQueue);
+//         /* Retrieve all TX packets and keep them locally */
+//         retVal = EnetDma_retrieveTxPktQ(tx->hCh, &tempQueue);
+//         if (ENET_SOK != retVal)
+//         {
+//             FreeRTOS_printf(("EnetNetIF_retrieveTxPkts: Failed to retrieve TX pkts: %d\n",
+//                             retVal));
+//         }
+//     }
+
+//     if (tempQueue.count != 0U)
+//     {
+//         /*
+//          * Get all used Tx DMA packets from the hardware, then return those
+//          * buffers to the txFreePktQ so they can be used later to send with.
+//          */
+//         packetCount = EnetNetIF_prepTxPktQ(tx, &tempQueue);
+//     }
+//     else
+//     {
+//         // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&tx->stats.pktStats.zeroNotifyCnt);
+//     }
+
+//     if (packetCount != 0U)
+//     {
+//         // TODO: take care of stats Lwip2Enet_updateTxNotifyStats(&tx->stats.pktStats, packetCount, 0U);
+//     }
+// }
+
+void EnetNetIF_retrieveTxPkts(EnetNetIF_TxHandle hTx)
 {
     EnetDma_PktQ tempQueue;
     uint32_t packetCount = 0U;
     int32_t retVal;
 
-    // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&tx->stats.pktStats.rawNotifyCnt);
+    // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hTx->stats.pktStats.rawNotifyCnt);
     packetCount = 0U;
 
     /* Retrieve the used (sent/empty) packets from the channel */
     {
         EnetQueue_initQ(&tempQueue);
         /* Retrieve all TX packets and keep them locally */
-        retVal = EnetDma_retrieveTxPktQ(tx->hCh, &tempQueue);
+        retVal = EnetDma_retrieveTxPktQ(hTx->hCh, &tempQueue);
         if (ENET_SOK != retVal)
         {
-            FreeRTOS_printf(("EnetNetIF_retrieveTxPkts: Failed to retrieve TX pkts: %d\n",
+            FreeRTOS_printf((hTx->hLwip2Enet,
+                            "Lwip2Enet_retrieveTxPkts: Failed to retrieve TX pkts: %d\n",
                             retVal));
         }
     }
@@ -838,16 +879,16 @@ void EnetNetIF_retrieveTxPkts(EnetNetIF_TxObj *tx)
          * Get all used Tx DMA packets from the hardware, then return those
          * buffers to the txFreePktQ so they can be used later to send with.
          */
-        packetCount = EnetNetIF_prepTxPktQ(tx, &tempQueue);
+        packetCount = Lwip2Enet_prepTxPktQ(hTx, &tempQueue);
     }
     else
     {
-        // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&tx->stats.pktStats.zeroNotifyCnt);
+        // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hTx->stats.pktStats.zeroNotifyCnt);
     }
 
     if (packetCount != 0U)
     {
-        // TODO: take care of stats Lwip2Enet_updateTxNotifyStats(&tx->stats.pktStats, packetCount, 0U);
+        // TODO: take care of stats Lwip2Enet_updateTxNotifyStats(&hTx->stats.pktStats, packetCount, 0U);
     }
 }
 
@@ -966,6 +1007,33 @@ static void EnetNetIFApp_postSemaphore(void *pArg)
 // #endif
 // }
 
+// static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
+//                                      EnetDma_PktQ *pPktQ)
+// {
+//     uint32_t packetCount;
+//     EnetDma_Pkt *pCurrDmaPacket;
+//     NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+//     packetCount = EnetQueue_getQCount(pPktQ);
+
+//     pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+//     while (pCurrDmaPacket)
+//     {
+//         pxNetworkBuffer = (NetworkBufferDescriptor_t *)pCurrDmaPacket->appPriv;
+
+//         configASSERT(pxNetworkBuffer != NULL);
+//         /* Free PBUF buffer as it is transmitted by DMA now */
+//         vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
+//         /* Return packet info to free pool */
+//         EnetQueue_enq(&tx->freePktInfoQ, &pCurrDmaPacket->node);
+//         pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
+//     }
+
+//     // TODO: take care of stats LWIP2ENETSTATS_ADDNUM(&tx->stats.freeAppPktEnq, packetCount);
+
+//     return packetCount;
+// }
+
 static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
                                      EnetDma_PktQ *pPktQ)
 {
@@ -981,7 +1049,7 @@ static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
         pxNetworkBuffer = (NetworkBufferDescriptor_t *)pCurrDmaPacket->appPriv;
 
         configASSERT(pxNetworkBuffer != NULL);
-        /* Free PBUF buffer as it is transmitted by DMA now */
+        /* Free network buffer as it is transmitted by DMA now */
         vReleaseNetworkBufferAndDescriptor(pxNetworkBuffer);
         /* Return packet info to free pool */
         EnetQueue_enq(&tx->freePktInfoQ, &pCurrDmaPacket->node);
@@ -993,25 +1061,39 @@ static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
     return packetCount;
 }
 
-void EnetNetIF_Enet_txPktHandler(xEnetDriverHandle hEnet)
+// void EnetNetIF_Enet_txPktHandler(xEnetDriverHandle hEnet)
+// {
+//     uint32_t txChNum;
+
+//     for (txChNum = 0U; txChNum < hEnet->numTxChannels; txChNum++)
+//     {
+//         EnetNetIF_retrieveTxPkts(&hEnet->tx[txChNum]);
+//     }
+
+
+// }
+
+// void EnetNetIF_txPktHandler(NetworkInterface_t * pxInterface)
+// {
+//     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+//     xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
+//     EnetNetIF_Enet_txPktHandler(hEnet);
+// }
+
+void EnetNetIF_txPktHandler(EnetNetIF_TxHandle hTx)
 {
-    uint32_t txChNum;
-
-    for (txChNum = 0U; txChNum < hEnet->numTxChannels; txChNum++)
-    {
-        EnetNetIF_retrieveTxPkts(&hEnet->tx[txChNum]);
-    }
-
-
+    Lwip2Enet_retrieveTxPkts(hTx);
 }
 
-void EnetNetIF_txPktHandler(NetworkInterface_t * pxInterface)
+void EnetNetIF_Enet_txPktHandler(NetworkInterface_t * pxInterface)
 {
     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
-    xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
-    EnetNetIF_Enet_txPktHandler(hEnet);
+    FreeRTOSTCP2Enet_netif_t *pInterface = pxNetIFArgs->pInterface;
+    for (uint32_t idx = 0; idx < pInterface->count_hTx; idx++)
+    {
+        EnetNetIF_txPktHandler(pInterface->hTx[idx]);
+    }
 }
-
 
 
 #define   ETHTYPE_VLAN      (0x8100U)
@@ -1208,12 +1290,23 @@ void EnetNetIF_rxPktHandler(xEnetDriverHandle hEnet)
 
 }
 
+// void EnetNetIF_Enet_rxPktHandler(NetworkInterface_t * pxInterface)
+// {
+//     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+//     xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
+//     EnetNetIF_rxPktHandler(hEnet);
+// }
+
 void EnetNetIF_Enet_rxPktHandler(NetworkInterface_t * pxInterface)
 {
     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
-    xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
-    EnetNetIF_rxPktHandler(hEnet);
+    FreeRTOSTCP2Enet_netif_t *pInterface = pxNetIFArgs->pInterface;
+    for (uint32_t idx = 0; idx < pInterface->count_hRx; idx++)
+    {
+        EnetNetIF_rxPktHandler(pInterface->hRx[idx]);
+    }
 }
+
 
 static void EnetNetIFApp_txrxPacketTask(void *arg)
 {
@@ -1243,7 +1336,7 @@ static void EnetNetIFApp_txrxPacketTask(void *arg)
             * Wait for the Tx ISR to notify us that empty packets are available
             * that were used to send data
             */
-            EnetNetIF_txPktHandler(pxInterface);
+            EnetNetIF_Enet_txPktHandler(pxInterface);
         }
         
     }
@@ -1896,6 +1989,8 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
     /* Get initial link/interface status from the driver */
     pInterface->isLinkUp = hEnet->appInfo.isPortLinkedFxn(pInterface->hEnet);
     pInterface->isPortLinkedFxn = hEnet->appInfo.isPortLinkedFxn;
+
+    ((xNetIFArgs *) pxInterface->pvArgument)->pInterface = pInterface;
 
     /* assert if clk period is not valid  */
     configASSERT(0U != hEnet->appInfo.timerPeriodUs);

@@ -450,6 +450,7 @@ typedef struct _xNetIFArgs
     uint32_t xNetIFID;
     xEnetDriverHandle hEnet;
     uint32_t xLinkUp;
+    FreeRTOSTCP2Enet_netif_t *pInterface;
 } xNetIFArgs;
 
 typedef void * Rx_CustomNetBuf_Args;
