@@ -983,18 +983,22 @@ void vPreCheckConfigs( void )
 
     #if ( configASSERT_DEFINED == 1 )
     {
-        volatile size_t uxSize = sizeof( uintptr_t );
+        size_t uxSize;
 
-        if( uxSize == 8U )
-        {
-            /* This is a 64-bit platform, make sure there is enough space in
-             * pucEthernetBuffer to store a pointer and also make sure that the value of
-             * ipconfigBUFFER_PADDING is such that (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) is a
-             * 32 bit (4 byte) aligned value, so that when incrementing the ethernet buffer with
-             * (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) bytes it lands in a 32 bit aligned address
-             * which lets us efficiently access 32 bit values later in the packet. */
-            configASSERT( ( ipconfigBUFFER_PADDING >= 14 ) && ( ( ( ( ipconfigBUFFER_PADDING ) + ( ipSIZE_OF_ETH_HEADER ) ) % 4 ) == 0 ) );
-        }
+        #if ( UINTPTR_MAX > 0xFFFFFFFF )
+
+            /*
+             * This is a 64-bit platform, make sure there is enough space in
+             * pucEthernetBuffer to store a pointer.
+             */
+            configASSERT( ipBUFFER_PADDING >= 14U );
+        #else
+            /* This is a 32-bit platform. */
+            configASSERT( ipBUFFER_PADDING >= 10U );
+        #endif /* UINTPTR_MAX > 0xFFFFFFFF */
+
+        /* And it must have this strange alignment: */
+        configASSERT( ( ( ( ipBUFFER_PADDING ) + 2U ) % 4U ) == 0 );
 
         /* LCOV_EXCL_BR_START */
         uxSize = ipconfigNETWORK_MTU;
