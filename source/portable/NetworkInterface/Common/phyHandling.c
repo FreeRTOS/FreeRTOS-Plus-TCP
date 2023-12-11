@@ -613,7 +613,6 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
         {
             BaseType_t xPhyAddress = pxPhyObject->ucPhyIndexes[ xPhyIndex ];
             uint32_t ulPhyID = pxPhyObject->ulPhyIDs[ xPhyIndex ];
-            uint32_t ulPHYLinkStatus = 0U;
 
             if( ( ulDoneMask & ulBitMask ) == ( uint32_t ) 0U )
             {
@@ -627,7 +626,6 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
 
             if( ( ulRegValue & phyBMSR_LINK_STATUS ) != 0U )
             {
-                ulPHYLinkStatus = phyBMSR_LINK_STATUS;
                 pxPhyObject->ulLinkStatusMask |= ulBitMask;
             }
 
@@ -727,7 +725,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                                ( unsigned int ) ulRegValue,
                                ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) ? "full" : "half",
                                ( ulRegValue & phyPHYSTS_SPEED_STATUS ) ? 10 : 100,
-                               ( ( ulPHYLinkStatus & phyBMSR_LINK_STATUS ) != 0U ) ? "high" : "low" ) );
+                               ( ( pxPhyObject->ulLinkStatusMask & ulBitMask ) != 0U ) ? "high" : "low" ) );
 
             if( ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) != ( uint32_t ) 0U )
             {
