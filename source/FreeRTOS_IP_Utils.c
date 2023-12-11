@@ -985,7 +985,7 @@ void vPreCheckConfigs( void )
     {
         size_t uxSize;
 
-        #if ( UINTPTR_MAX > 0xFFFFFFFF )
+        #if ( UINTPTR_MAX > 0xFFFFFFFFU )
 
             /*
              * This is a 64-bit platform, make sure there is enough space in
@@ -995,10 +995,10 @@ void vPreCheckConfigs( void )
         #else
             /* This is a 32-bit platform. */
             configASSERT( ipBUFFER_PADDING >= 10U );
-        #endif /* UINTPTR_MAX > 0xFFFFFFFF */
+        #endif /* UINTPTR_MAX > 0xFFFFFFFFU */
 
         /* And it must have this strange alignment: */
-        configASSERT( ( ( ( ipBUFFER_PADDING ) + 2U ) % 4U ) == 0 );
+        configASSERT( ( ( ( ipBUFFER_PADDING ) + 2U ) % 4U ) == 0U );
 
         /* LCOV_EXCL_BR_START */
         uxSize = ipconfigNETWORK_MTU;
