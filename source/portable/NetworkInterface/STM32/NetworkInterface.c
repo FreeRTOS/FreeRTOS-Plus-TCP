@@ -286,7 +286,7 @@ static void prvSetMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle, const uint8_t
         ulHashTable[1] = ulHash;
     }
 
-    const HAL_StatusTypeDef xHalResult = HAL_ETH_SetHashTable( pxEthHandle, ( uint8_t * ) &ulHashTable );
+    const HAL_StatusTypeDef xHalResult = HAL_ETH_SetHashTable( pxEthHandle, ulHashTable );
     configASSERT( xHalResult == HAL_OK );
     (void) xHalResult;
 }
@@ -398,14 +398,16 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
             configASSERT( xEthHandle.ErrorCode == HAL_ETH_ERROR_NONE );
             configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
 
-            ETH_MACFilterConfigTypeDef xFilterConfig;
-            xHalResult = HAL_ETH_GetMACFilterConfig( &xEthHandle, &xFilterConfig );
-            configASSERT( xHalResult == HAL_OK );
+            #if 0
+                ETH_MACFilterConfigTypeDef xFilterConfig;
+                xHalResult = HAL_ETH_GetMACFilterConfig( &xEthHandle, &xFilterConfig );
+                configASSERT( xHalResult == HAL_OK );
 
-            xFilterConfig.HashUnicast = ENABLE;
-            xFilterConfig.HashMulticast = ENABLE;
-            xHalResult = HAL_ETH_SetMACFilterConfig( &xEthHandle, &xFilterConfig );
-            configASSERT( xHalResult == HAL_OK );
+                xFilterConfig.HashUnicast = ENABLE;
+                xFilterConfig.HashMulticast = ENABLE;
+                xHalResult = HAL_ETH_SetMACFilterConfig( &xEthHandle, &xFilterConfig );
+                configASSERT( xHalResult == HAL_OK );
+            #endif
 
             #if ( ipconfigUSE_MDNS != 0 )
                 prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
