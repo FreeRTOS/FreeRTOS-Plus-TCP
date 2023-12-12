@@ -591,7 +591,7 @@ void test_vSocketBind_TCP( void )
 /**
  * @brief Address passed is NULL.
  */
-void test_vSocketBind_TCPNULLAddress( void )
+void test_vSocketBind_TCPNULLAddress_v4( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
@@ -603,6 +603,30 @@ void test_vSocketBind_TCPNULLAddress( void )
     memset( &xSocket, 0, sizeof( xSocket ) );
 
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = 0;
+
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
+    xReturn = vSocketBind( &xSocket, NULL, uxAddressLength, xInternal );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EADDRNOTAVAIL, xReturn );
+}
+
+/**
+ * @brief Address passed is NULL.
+ */
+void test_vSocketBind_TCPNULLAddress_v6( void )
+{
+    BaseType_t xReturn;
+    FreeRTOS_Socket_t xSocket;
+    struct freertos_sockaddr xBindAddress;
+    size_t uxAddressLength;
+    BaseType_t xInternal = pdFALSE;
+
+    memset( &xBindAddress, 0xFC, sizeof( xBindAddress ) );
+    memset( &xSocket, 0, sizeof( xSocket ) );
+
+    xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
+    xSocket.bits.bIsIPv6 = 1;
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFALSE );
     xReturn = vSocketBind( &xSocket, NULL, uxAddressLength, xInternal );

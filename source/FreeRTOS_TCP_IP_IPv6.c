@@ -134,6 +134,7 @@ BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescrip
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const IPHeader_IPv6_t * pxIPHeader_IPv6 = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
         ( void ) memcpy( xRemoteIP.xIPAddress.xIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, sizeof( IPv6_Address_t ) );
+        xRemoteIP.xIs_IPv6 = pdTRUE;
 
         /* Find the destination socket, and if not found: return a socket listing to
          * the destination PORT. */
