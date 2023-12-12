@@ -152,6 +152,12 @@ typedef enum
 
 /*-----------------------------------------------------------*/
 
+static uint32_t prvComputeCRC32_MAC( const uint8_t * pucMAC );
+
+static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC );
+
+static void prvSetMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle, const uint8_t * pucMAC );
+
 NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, NetworkInterface_t * pxInterface );
 
 static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
@@ -170,9 +176,9 @@ static BaseType_t prvPhyReadReg( BaseType_t xAddress, BaseType_t xRegister, uint
 
 static BaseType_t prvPhyWriteReg( BaseType_t xAddress, BaseType_t xRegister, uint32_t ulValue );
 
-static void prvEthernetUpdateConfig( void );
+static void prvEthernetUpdateConfig( ETH_HandleTypeDef * pxEthHandle );
 
-static void prvMACAddressConfig( ETH_HandleTypeDef * heth, const uint8_t * Addr );
+static void prvMACAddressConfig( ETH_HandleTypeDef * pxEthHandle, const uint8_t * Addr );
 
 /*-----------------------------------------------------------*/
 
@@ -216,6 +222,74 @@ static const PhyProperties_t xPHYProperties = {
         .ucMDI_X = PHY_MDIX_DIRECT,
     #endif
 };
+
+/*-----------------------------------------------------------*/
+
+/* Compute the CRC32 of the given MAC address as per IEEE 802.3 CRC32 */
+static uint32_t prvComputeCRC32_MAC( const uint8_t * pucMAC )
+{
+    uint32_t ulCRC32 = 0xFFFFFFFF;
+
+    for( UBaseType_t i = 0; i < 6; ++i )
+    {
+        ulCRC32 ^= ( uint32_t ) pucMAC[ i ];
+
+        for( UBaseType_t j = 0; j < 8; ++j )
+        {
+            ulCRC32 >>= 1;
+            if( ulCRC32 & 1 )
+            {
+                /* IEEE 802.3 CRC32 polynomial - 0x04C11DB7 */
+                ulCRC32 ^= __RBIT( 0x04C11DB7 );
+            }
+        }
+    }
+
+    ulCRC32 = ~( ulCRC32 );
+    return ulCRC32;
+}
+
+/*-----------------------------------------------------------*/
+
+/* Compute the hash value of a given MAC address to index the bits in the Hash Table
+ * Registers (ETH_MACHT0R and ETH_MACHT1R) */
+static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC )
+{
+    /* Calculate the 32-bit CRC for the MAC */
+    const uint32_t ulCRC32 = prvComputeCRC32_MAC( pucMAC );
+
+    /* Perform bitwise reversal on the CRC32 */
+    const uint32_t ulHash = __RBIT( ulCRC32 );
+
+    /* Take the upper 6 bits of the above result */
+    return ( ulHash >> 26 );
+}
+
+/*-----------------------------------------------------------*/
+
+/* Update the Hash Table Registers
+ * (ETH_MACHT0R and ETH_MACHT1R) with hash value of the given MAC address */
+static void prvSetMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle, const uint8_t * pucMAC )
+{
+    static uint32_t ulHashTable[2];
+
+    const uint32_t ulHash = prvComputeEthernet_MACHash( pucMAC );
+
+    /* Use the upper (MACHT1R) or lower (MACHT0R) Hash Table Registers
+     * to set the required bit based on the ulHash */
+    if( ulHash < 32 )
+    {
+        ulHashTable[0] = ulHash;
+    }
+    else
+    {
+        ulHashTable[1] = ulHash;
+    }
+
+    const HAL_StatusTypeDef xHalResult = HAL_ETH_SetHashTable( pxEthHandle, ( uint8_t * ) &ulHashTable );
+    configASSERT( xHalResult == HAL_OK );
+    (void) xHalResult;
+}
 
 /*-----------------------------------------------------------*/
 
@@ -324,20 +398,14 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
             configASSERT( xEthHandle.ErrorCode == HAL_ETH_ERROR_NONE );
             configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
 
-            #if 0
-                ETH_MACFilterConfigTypeDef xFilterConfig;
-                xHalResult = HAL_ETH_GetMACFilterConfig( &xEthHandle, &xFilterConfig );
-                configASSERT( xHalResult == HAL_OK );
+            ETH_MACFilterConfigTypeDef xFilterConfig;
+            xHalResult = HAL_ETH_GetMACFilterConfig( &xEthHandle, &xFilterConfig );
+            configASSERT( xHalResult == HAL_OK );
 
-                xFilterConfig.HashUnicast = ENABLE;
-                xFilterConfig.HashMulticast = ENABLE;
-                xHalResult = HAL_ETH_SetMACFilterConfig( &xEthHandle, &xFilterConfig );
-                configASSERT( xHalResult == HAL_OK );
-
-                const uint32_t ulHashTable = 0x00;
-                xHalResult = HAL_ETH_SetHashTable( &xEthHandle, &ulHashTable );
-                configASSERT( xHalResult == HAL_OK );
-            #endif
+            xFilterConfig.HashUnicast = ENABLE;
+            xFilterConfig.HashMulticast = ENABLE;
+            xHalResult = HAL_ETH_SetMACFilterConfig( &xEthHandle, &xFilterConfig );
+            configASSERT( xHalResult == HAL_OK );
 
             #if ( ipconfigUSE_MDNS != 0 )
                 prvMACAddressConfig( &xEthHandle, ( uint8_t * ) xMDNS_MacAddress.ucBytes );
@@ -489,7 +557,7 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
                         prvEMACHandlerTask,
                         niEMAC_TASK_NAME,
                         niEMAC_TASK_STACK_SIZE,
-                        NULL,
+                        ( void * ) &xEthHandle,
                         niEMAC_TASK_PRIORITY,
                         uxEMACTaskStack,
                         &xEMACTaskTCB
@@ -499,7 +567,7 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
                         prvEMACHandlerTask,
                         niEMAC_TASK_NAME,
                         niEMAC_TASK_STACK_SIZE,
-                        NULL,
+                        ( void * ) &xEthHandle,
                         niEMAC_TASK_PRIORITY,
                         &xEMACTaskHandle
                     );
@@ -725,7 +793,8 @@ static UBaseType_t prvNetworkInterfaceInput( void )
 
 static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 {
-    ( void ) pvParameters;
+    ETH_HandleTypeDef * pxEthHandle = ( ETH_HandleTypeDef * ) pvParameters;
+    configASSERT( pxEthHandle );
 
     for( ;; )
     {
@@ -745,7 +814,7 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
             {
                 if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 1000U ) ) != pdFALSE )
                 {
-                    xHalResult = HAL_ETH_ReleaseTxPacket( &xEthHandle );
+                    xHalResult = HAL_ETH_ReleaseTxPacket( pxEthHandle );
                     configASSERT( xHalResult == HAL_OK );
                     ( void ) xSemaphoreGive( xTxMutex );
                 }
@@ -754,9 +823,9 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
             {
                 if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 1000U ) ) != pdFALSE )
                 {
-                    xHalResult = HAL_ETH_ReleaseTxPacket( &xEthHandle );
+                    xHalResult = HAL_ETH_ReleaseTxPacket( pxEthHandle );
                     configASSERT( xHalResult == HAL_OK );
-                    while( ETH_TX_DESC_CNT - uxQueueMessagesWaiting( ( QueueHandle_t ) xTxDescSem ) > xEthHandle.TxDescList.BuffersInUse )
+                    while( ETH_TX_DESC_CNT - uxQueueMessagesWaiting( ( QueueHandle_t ) xTxDescSem ) > pxEthHandle->TxDescList.BuffersInUse )
                     {
                         ( void ) xSemaphoreGive( xTxDescSem );
                     }
@@ -773,13 +842,13 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 
             if( ( ulISREvents & eMacEventErrEth ) != 0 )
             {
-                /* xEthHandle.gState */
-                /* xEthHandle.ErrorCode */
+                /* pxEthHandle->gState */
+                /* pxEthHandle->ErrorCode */
             }
 
             if( ( ulISREvents & eMacEventErrMac ) != 0 )
             {
-                /* xEthHandle.MACErrorCode */
+                /* pxEthHandle->MACErrorCode */
             }
 
             if( ( ulISREvents & eMacEventErrDma ) != 0 )
@@ -787,23 +856,23 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
                 /* TODO: Does this recover from fatal bus error? */
                 if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( 5000U ) ) != pdFALSE )
                 {
-                    /* xEthHandle.DMAErrorCode */
-                    xEthHandle.gState = HAL_ETH_STATE_STARTED;
-                    xHalResult = HAL_ETH_Stop_IT( &xEthHandle );
+                    /* pxEthHandle->DMAErrorCode */
+                    pxEthHandle->gState = HAL_ETH_STATE_STARTED;
+                    xHalResult = HAL_ETH_Stop_IT( pxEthHandle );
                     configASSERT( xHalResult == HAL_OK );
-                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
-                    configASSERT( xEthHandle.RxDescList.ItMode == 0U);
-                    xHalResult = HAL_ETH_DeInit( &xEthHandle );
+                    configASSERT( pxEthHandle->gState == HAL_ETH_STATE_READY );
+                    configASSERT( pxEthHandle->RxDescList.ItMode == 0U);
+                    xHalResult = HAL_ETH_DeInit( pxEthHandle );
                     configASSERT( xHalResult == HAL_OK );
-                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_RESET );
-                    xHalResult = HAL_ETH_Init( &xEthHandle );
+                    configASSERT( pxEthHandle->gState == HAL_ETH_STATE_RESET );
+                    xHalResult = HAL_ETH_Init( pxEthHandle );
                     configASSERT( xHalResult == HAL_OK );
-                    configASSERT( xEthHandle.ErrorCode == HAL_ETH_ERROR_NONE );
-                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_READY );
-                    xHalResult = HAL_ETH_Start_IT( &xEthHandle );
+                    configASSERT( pxEthHandle->ErrorCode == HAL_ETH_ERROR_NONE );
+                    configASSERT( pxEthHandle->gState == HAL_ETH_STATE_READY );
+                    xHalResult = HAL_ETH_Start_IT( pxEthHandle );
                     configASSERT( xHalResult == HAL_OK );
-                    configASSERT( xEthHandle.gState == HAL_ETH_STATE_STARTED );
-                    configASSERT( xEthHandle.RxDescList.ItMode == 1U);
+                    configASSERT( pxEthHandle->gState == HAL_ETH_STATE_STARTED );
+                    configASSERT( pxEthHandle->RxDescList.ItMode == 1U);
                     xSemaphoreGive( xTxMutex );
                 }
             }
@@ -813,9 +882,9 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 
         if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
-            if( xEthHandle.gState != HAL_ETH_STATE_BUSY )
+            if( pxEthHandle->gState != HAL_ETH_STATE_BUSY )
             {
-                prvEthernetUpdateConfig();
+                prvEthernetUpdateConfig( pxEthHandle );
             }
         }
     }
@@ -884,7 +953,7 @@ static BaseType_t prvPhyWriteReg( BaseType_t xAddress, BaseType_t xRegister, uin
 
 /*-----------------------------------------------------------*/
 
-static void prvEthernetUpdateConfig( void )
+static void prvEthernetUpdateConfig( ETH_HandleTypeDef * pxEthHandle )
 {
     BaseType_t xResult;
     HAL_StatusTypeDef xHalResult;
@@ -901,22 +970,22 @@ static void prvEthernetUpdateConfig( void )
         configASSERT( xResult == 0 );
 
         ETH_MACConfigTypeDef xMACConfig;
-        xHalResult = HAL_ETH_GetMACConfig( &xEthHandle , &xMACConfig );
+        xHalResult = HAL_ETH_GetMACConfig( pxEthHandle , &xMACConfig );
         configASSERT( xHalResult == HAL_OK );
 
         xMACConfig.DuplexMode = ( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
         xMACConfig.Speed = ( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
 
-        xHalResult = HAL_ETH_SetMACConfig( &xEthHandle, &xMACConfig );
+        xHalResult = HAL_ETH_SetMACConfig( pxEthHandle, &xMACConfig );
         configASSERT( xHalResult == HAL_OK );
 
-        xHalResult = HAL_ETH_Start_IT( &xEthHandle );
+        xHalResult = HAL_ETH_Start_IT( pxEthHandle );
         configASSERT( xHalResult == HAL_OK );
     }
     else
     {
         /* iptraceNETWORK_INTERFACE_STATUS_CHANGE(); */
-        xHalResult = HAL_ETH_Stop_IT( &xEthHandle );
+        xHalResult = HAL_ETH_Stop_IT( pxEthHandle );
         configASSERT( xHalResult == HAL_OK );
 
         #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
@@ -930,25 +999,28 @@ static void prvEthernetUpdateConfig( void )
 
 /*-----------------------------------------------------------*/
 
-static void prvMACAddressConfig( ETH_HandleTypeDef * heth, const uint8_t * addr )
+static void prvMACAddressConfig( ETH_HandleTypeDef * pxEthHandle, const uint8_t * addr )
 {
     /* ETH_MAC_ADDRESS0 reserved for the primary MAC-address. */
-    static BaseType_t xMACEntry = ETH_MAC_ADDRESS1;
+    static UBaseType_t xMACEntry = ETH_MAC_ADDRESS1;
 
     switch(xMACEntry)
     {
         case ETH_MAC_ADDRESS1:
-            HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, ETH_MAC_ADDRESS1, addr );
+            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS1, addr );
+            prvSetMAC_HashFilter( pxEthHandle, addr );
             xMACEntry = ETH_MAC_ADDRESS2;
             break;
 
         case ETH_MAC_ADDRESS2:
-            HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, ETH_MAC_ADDRESS2, addr );
+            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS2, addr );
+            prvSetMAC_HashFilter( pxEthHandle, addr );
             xMACEntry = ETH_MAC_ADDRESS3;
             break;
 
         case ETH_MAC_ADDRESS3:
-            HAL_ETH_SetSourceMACAddrMatch( &xEthHandle, ETH_MAC_ADDRESS3, addr );
+            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS3, addr );
+            prvSetMAC_HashFilter( pxEthHandle, addr );
             xMACEntry = ETH_MAC_ADDRESS0;
             break;
 
@@ -969,14 +1041,14 @@ void ETH_IRQHandler( void )
 
 /*-----------------------------------------------------------*/
 
-void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
+void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *pxEthHandle )
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    if( heth->ErrorCode & HAL_ETH_ERROR_DMA )
+    if( pxEthHandle->ErrorCode & HAL_ETH_ERROR_DMA )
     {
-        if( heth->DMAErrorCode )
+        if( pxEthHandle->DMAErrorCode )
         {
-            if( heth->gState == HAL_ETH_STATE_ERROR )
+            if( pxEthHandle->gState == HAL_ETH_STATE_ERROR )
             {
                 /* Fatal bus error occurred */
                 /* Fxx - ETH_DMASR_FBES | ETH_DMASR_TPS | ETH_DMASR_RPS */
@@ -988,12 +1060,12 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
                 /* Fxx - ETH_DMASR_ETS | ETH_DMASR_RWTS | ETH_DMASR_RBUS | ETH_DMASR_AIS */
                 /* Hxx - ETH_DMACSR_CDE | ETH_DMACSR_ETI | ETH_DMACSR_RWT | ETH_DMACSR_RBU | ETH_DMACSR_AIS */
                 #if defined( STM32F4 ) || defined ( STM32F7 )
-                    if( ( heth->DMAErrorCode & ETH_DMASR_TBUS ) == ETH_DMASR_TBUS)
+                    if( ( pxEthHandle->DMAErrorCode & ETH_DMASR_TBUS ) == ETH_DMASR_TBUS)
                     {
                         ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventErrTx, eSetBits, &xHigherPriorityTaskWoken );
                     }
 
-                    if( ( heth->DMAErrorCode & ETH_DMASR_RBUS ) == ETH_DMASR_RBUS)
+                    if( ( pxEthHandle->DMAErrorCode & ETH_DMASR_RBUS ) == ETH_DMASR_RBUS)
                     {
                         ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventErrRx, eSetBits, &xHigherPriorityTaskWoken );
                     }
@@ -1002,9 +1074,9 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
         }
     }
 
-    if( heth->ErrorCode & HAL_ETH_ERROR_MAC )
+    if( pxEthHandle->ErrorCode & HAL_ETH_ERROR_MAC )
     {
-        if( heth->MACErrorCode )
+        if( pxEthHandle->MACErrorCode )
         {
             ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventErrMac, eSetBits, &xHigherPriorityTaskWoken );
         }
@@ -1015,11 +1087,11 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *heth )
 
 /*-----------------------------------------------------------*/
 
-void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * heth )
+void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * pxEthHandle )
 {
     static size_t uxMostRXDescsUsed = 0U;
 
-    const size_t uxRxUsed = heth->RxDescList.RxDescCnt;
+    const size_t uxRxUsed = pxEthHandle->RxDescList.RxDescCnt;
 
     if( uxMostRXDescsUsed < uxRxUsed )
     {
@@ -1093,11 +1165,11 @@ void HAL_ETH_RxLinkCallback( void **pStart, void **pEnd, uint8_t *buff, uint16_t
 
 /*-----------------------------------------------------------*/
 
-void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * heth )
+void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * pxEthHandle )
 {
     static size_t uxMostTXDescsUsed = 0U;
 
-    const size_t uxTxUsed = heth->TxDescList.BuffersInUse;
+    const size_t uxTxUsed = pxEthHandle->TxDescList.BuffersInUse;
 
     if( uxMostTXDescsUsed < uxTxUsed )
     {
