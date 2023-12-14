@@ -1036,9 +1036,16 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * pxEthHandle, const uint8_t 
 
 /*-----------------------------------------------------------*/
 
+static BaseType_t xSwitchRequired;
+
 void ETH_IRQHandler( void )
 {
+    traceISR_ENTER();
+
+    xSwitchRequired = pdFALSE;
     HAL_ETH_IRQHandler( &xEthHandle );
+
+    portYIELD_FROM_ISR( xSwitchRequired );
 }
 
 /*-----------------------------------------------------------*/
@@ -1084,7 +1091,7 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef *pxEthHandle )
         }
     }
 
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    xSwitchRequired |= xHigherPriorityTaskWoken;
 }
 
 /*-----------------------------------------------------------*/
@@ -1104,7 +1111,7 @@ void HAL_ETH_RxCpltCallback( ETH_HandleTypeDef * pxEthHandle )
 
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventRx, eSetBits, &xHigherPriorityTaskWoken );
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    xSwitchRequired |= xHigherPriorityTaskWoken;
 }
 
 /*-----------------------------------------------------------*/
@@ -1182,7 +1189,7 @@ void HAL_ETH_TxCpltCallback( ETH_HandleTypeDef * pxEthHandle )
 
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventTx, eSetBits, &xHigherPriorityTaskWoken );
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    xSwitchRequired |= xHigherPriorityTaskWoken;
 }
 
 /*-----------------------------------------------------------*/
