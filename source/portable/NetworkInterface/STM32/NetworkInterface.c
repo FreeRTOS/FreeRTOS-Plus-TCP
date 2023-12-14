@@ -1009,19 +1009,19 @@ static void prvMACAddressConfig( ETH_HandleTypeDef * pxEthHandle, const uint8_t 
     switch(xMACEntry)
     {
         case ETH_MAC_ADDRESS1:
-            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS1, addr );
+            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS1, ( uint8_t* ) addr );
             prvSetMAC_HashFilter( pxEthHandle, addr );
             xMACEntry = ETH_MAC_ADDRESS2;
             break;
 
         case ETH_MAC_ADDRESS2:
-            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS2, addr );
+            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS2, ( uint8_t* )  addr );
             prvSetMAC_HashFilter( pxEthHandle, addr );
             xMACEntry = ETH_MAC_ADDRESS3;
             break;
 
         case ETH_MAC_ADDRESS3:
-            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS3, addr );
+            HAL_ETH_SetSourceMACAddrMatch( pxEthHandle, ETH_MAC_ADDRESS3, ( uint8_t* )  addr );
             prvSetMAC_HashFilter( pxEthHandle, addr );
             xMACEntry = ETH_MAC_ADDRESS0;
             break;
