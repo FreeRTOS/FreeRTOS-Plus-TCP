@@ -884,10 +884,7 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 
         if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
-            if( pxEthHandle->gState != HAL_ETH_STATE_BUSY )
-            {
-                prvEthernetUpdateConfig( pxEthHandle );
-            }
+            prvEthernetUpdateConfig( pxEthHandle );
         }
     }
 }
@@ -960,8 +957,13 @@ static void prvEthernetUpdateConfig( ETH_HandleTypeDef * pxEthHandle )
     BaseType_t xResult;
     HAL_StatusTypeDef xHalResult;
 
-    if( prvGetPhyLinkStatus( pxMyInterface ) != pdFAIL )
+    if( prvGetPhyLinkStatus( pxMyInterface ) != pdFALSE )
     {
+        if(HAL_ETH_GetState(pxEthHandle) == HAL_ETH_STATE_STARTED) {
+            xHalResult = HAL_ETH_Stop_IT(pxEthHandle);
+            configASSERT(xHalResult == HAL_OK);
+        }
+
         #if ( niEMAC_AUTO_NEGOTIATION != 0 )
             /* TODO: xPhyStartAutoNegotiation always returns 0, Should return -1 if xPhyGetMask == 0 ? */
             xResult = xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
