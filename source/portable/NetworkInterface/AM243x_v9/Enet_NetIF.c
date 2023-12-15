@@ -1201,103 +1201,105 @@ void EnetNetIF_sendTxPackets(EnetNetIF_TxObj *tx,
     }
 }
 
- void EnetNetIF_periodicFxn(NetworkInterface_t * pxInterface)
+void EnetNetIF_periodicFxn(NetworkInterface_t * pxInterface)
 {
     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
-    xEnetDriverHandle hEnet = pxNetIFArgs->hEnet;
+    FreeRTOSTCP2Enet_netif_t* pInterface = (FreeRTOSTCP2Enet_netif_t*)pxNetIFArgs->pInterface;
 
-    uint32_t prevLinkState     = hEnet->linkIsUp;
-    uint32_t prevLinkInterface = hEnet->currLinkedIf;
+    configASSERT(pInterface != NULL);
+    configASSERT(pInterface->hRx != NULL);
+    configASSERT(pInterface->hTx != NULL);
+    uint32_t prevLinkState = pInterface->isLinkUp;
 
 #if (1U == ENET_CFG_DEV_ERROR)
 #if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
     int32_t status;
 #endif
 
-    for(uint32_t i = 0U; i < hEnet->numTxChannels; i++)
+    for(uint32_t i = 0U; i < pInterface->count_hTx; i++)
     {
-        EnetQueue_verifyQCount(&hEnet->tx[i].freePktInfoQ);
+        EnetQueue_verifyQCount(&pInterface->hTx[i]->freePktInfoQ);
 
 #if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
-        status = EnetUdma_checkTxChSanity(hEnet->tx[i].hCh, 5U);
+        status = EnetUdma_checkTxChSanity(pInterface->hTx[i]->hCh, 5U);
         if (status != ENET_SOK)
         {
-            FreeRTOS_printf(("EnetUdma_checkTxChSanity Failed\n"));
+            FreeRTOS_printf((pInterface->hTx[i]->hLwip2Enet, "EnetUdma_checkTxChSanity Failed\n"));
         }
 #endif
     }
 
-    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+    for(uint32_t i = 0U; i <  pInterface->count_hRx; i++)
     {
-        EnetQueue_verifyQCount(&hEnet->rx[i].freePktInfoQ);
+        EnetQueue_verifyQCount(&pInterface->hRx[i]->readyRxPktQ);
 
 #if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
-        status = EnetUdma_checkRxFlowSanity(hEnet->rx[i].hFlow, 5U);
+        status = EnetUdma_checkRxFlowSanity(pInterface->hRx[i]->hFlow, 5U);
         if (status != ENET_SOK)
         {
-            FreeRTOS_printf(("EnetUdma_checkRxFlowSanity Failed\n"));
+            FreeRTOS_printf((pInterface->hRx[i]->hLwip2Enet, "EnetUdma_checkRxFlowSanity Failed\n"));
         }
 #endif
     }
-
-
 #endif
 
     /*
      * Return the same DMA packets back to the DMA channel (but now
      * associated with a new PBUF Packet and buffer)
      */
-    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+
+    for (uint32_t idx = 0; idx < pInterface->count_hRx; idx++)
     {
-        if (EnetQueue_getQCount(&hEnet->rx[i].freePktInfoQ) != 0U)
+        if (EnetQueue_getQCount(&pInterface->hRx[idx]->readyRxPktQ) > 0U)
         {
-            EnetNetIF_submitRxPktQ(&hEnet->rx[i]);
+            EnetNetIF_submitRxPktQ(pInterface->hRx[idx]);
         }
     }
+
+    /* Get current link status as reported by the hardware driver */
+    pInterface->isLinkUp = pInterface->isPortLinkedFxn(pInterface->hEnet);
+    for (uint32_t idx = 0; idx < pInterface->count_hRx; idx++)
+    {
+        const uint32_t prevLinkInterface = pInterface->hRx[idx]->hLwip2Enet->currLinkedIf;
+        // get the linked interface details.
+        /* If the interface changed, discard any queue packets (since the MAC would now be wrong) */
+        if (prevLinkInterface != pInterface->hRx[idx]->hLwip2Enet->currLinkedIf)
+        {
+            /* ToDo: Discard all queued packets */
+        }
+    }
+
+    /* If link status changed from down->up, then send any queued packets */
+    if ((prevLinkState == 0U) && (pInterface->isLinkUp))
+    {
+        const Enet_MacPort macPort = pInterface->macPort;
+        EnetNetIF_sendTxPackets(pInterface, macPort);
+    }
+
+
 #if 0 //The below CPU load profilling logic has to be re-worked for all OS variants
 #if defined(LWIPIF_INSTRUMENTATION_ENABLED)
     static uint32_t loadCount = 0U;
     TaskP_Load stat;
 
-    hEnet->stats.cpuLoad[loadCount] = TaskP_loadGetTotalCpuLoad();
+    hLwip2Enet->stats.cpuLoad[loadCount] = TaskP_loadGetTotalCpuLoad();
 
-    TaskP_loadGet(&hEnet->rxPacketTaskObj, &stat);
-    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+    TaskP_loadGet(&hLwip2Enet->rxPacketTaskObj, &stat);
+    for(uint32_t i = 0U; i < hLwip2Enet->numRxChannels; i++)
     {
-        hEnet->rx[i].stats.pktStats.taskLoad[loadCount] = stat.cpuLoad;
+        hLwip2Enet->rx[i].stats.pktStats.taskLoad[loadCount] = stat.cpuLoad;
     }
 
-    TaskP_loadGet(&hEnet->txPacketTaskObj, &stat);
-    for(uint32_t i = 0U; i < hEnet->numRxChannels; i++)
+    TaskP_loadGet(&hLwip2Enet->txPacketTaskObj, &stat);
+    for(uint32_t i = 0U; i < hLwip2Enet->numRxChannels; i++)
     {
-        hEnet->tx[i].stats.pktStats.taskLoad[loadCount] = stat.cpuLoad;
+        hLwip2Enet->tx[i].stats.pktStats.taskLoad[loadCount] = stat.cpuLoad;
     }
 
     loadCount = (loadCount + 1U) & (HISTORY_CNT - 1U);
 #endif
 #endif
-    /* Get current link status as reported by the hardware driver */
-    hEnet->linkIsUp = hEnet->appInfo.isPortLinkedFxn(hEnet->appInfo.hEnet);
 
-    /* If the interface changed, discard any queue packets (since the MAC would now be wrong) */
-    if (prevLinkInterface != hEnet->currLinkedIf)
-    {
-        /* ToDo: Discard all queued packets */
-    }
-
-    for(uint32_t i = 0U; i < hEnet->numTxChannels; i++)
-    {
-        /* If link status changed from down->up, then send any queued packets */
-        if ((prevLinkState == 0U) && (hEnet->linkIsUp))
-        {
-            EnetNetIF_TxHandle hTxHandle;
-            Enet_MacPort macPort;
-
-            hTxHandle  = hEnet->mapNetif2Tx[pxNetIFArgs->xNetIFID];
-            macPort    = hEnet->mapNetif2TxPortNum[pxNetIFArgs->xNetIFID];
-            EnetNetIF_sendTxPackets(hTxHandle, macPort);
-        }
-    }
 
 }
 
@@ -1307,14 +1309,14 @@ void EnetNetIF_periodic_polling(NetworkInterface_t * pxFirstInterface)
     do // loop along all the netifs (reverse linked list)
     {
         xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
-        xEnetDriverHandle hEnet = (xEnetDriverHandle) pxNetIFArgs->hEnet;
+        FreeRTOSTCP2Enet_netif_t * pInterface = (FreeRTOSTCP2Enet_netif_t *) pxNetIFArgs->pInterface;
 
         /* Periodic Function to update Link status */
         EnetNetIF_periodicFxn(pxInterface);
 
-        if (!(hEnet->linkIsUp == pxNetIFArgs->xLinkUp))
+        if (!(pInterface->linkIsUp == pxNetIFArgs->xLinkUp))
         {
-            if (hEnet->linkIsUp)
+            if (pInterface->linkIsUp)
             {
                 pxNetIFArgs->xLinkUp = pdTRUE;
             }
