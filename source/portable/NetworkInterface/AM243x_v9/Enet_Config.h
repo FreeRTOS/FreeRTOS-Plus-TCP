@@ -44,12 +44,12 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#include <lwip/netif.h>
-#include <lwip/tcpip.h>
+// #include <lwip/netif.h>
+// #include <lwip/tcpip.h>
 
-#include "lwip2enet.h"
-#include <networking/enet/core/lwipif/inc/lwip2lwipif.h>
-#include <networking/enet/core/lwipif/inc/lwipif2enet_AppIf.h>
+// #include "lwip2enet.h"
+// #include <networking/enet/core/lwipif/inc/lwip2lwipif.h>
+// #include <networking/enet/core/lwipif/inc/lwipif2enet_AppIf.h>
 
 #include "Enet_NetIF.h"
 
@@ -68,27 +68,27 @@ typedef enum NetifName_e
     NetifName_NUM_NETIFS,
 }NetifName_e;
 
-typedef void* LwipifEnetApp_Handle;
+// typedef void* LwipifEnetApp_Handle;
 
 /* ========================================================================== */
 /*                          Function Declarations                             */
 /* ========================================================================== */
-LwipifEnetApp_Handle LwipifEnetApp_getHandle();
-struct netif* LwipifEnetApp_netifOpen(LwipifEnetApp_Handle handle, uint32_t netifIdx, const ip4_addr_t *ipaddr, const ip4_addr_t *netmask, const ip4_addr_t *gw);
-void LwipifEnetApp_netifClose(LwipifEnetApp_Handle handle, const uint32_t netifIdx);
-struct netif * EnetNetIFAppCb_getEnetIFInstInfo(LwipifEnetApp_Handle handle, uint32_t netifIdx);
+// LwipifEnetApp_Handle LwipifEnetApp_getHandle();
+// struct netif* LwipifEnetApp_netifOpen(LwipifEnetApp_Handle handle, uint32_t netifIdx, const ip4_addr_t *ipaddr, const ip4_addr_t *netmask, const ip4_addr_t *gw);
+// void LwipifEnetApp_netifClose(LwipifEnetApp_Handle handle, const uint32_t netifIdx);
+// struct netif * EnetNetIFAppCb_getEnetIFInstInfo(LwipifEnetApp_Handle handle, uint32_t netifIdx);
 
 NetworkInterface_t * pxInterface FreeRTOSTCPifEnetAppCb_getEnetFreeRTOSTCPIfInstInfo(Enet_Type enetType, uint32_t instId, EnetNetIF_AppIf_GetEnetIFInstInfo *outArgs);
 
-void LwipifEnetApp_getRxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pRxChIdCount, uint32_t rxChIdList[LWIPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL]);
-void LwipifEnetApp_getTxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pTxChIdCount, uint32_t txChIdList[LWIPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL]);
-void LwipifEnetAppCb_getTxHandleInfo(LwipifEnetAppIf_GetTxHandleInArgs *inArgs,
-                                     LwipifEnetAppIf_TxHandleInfo *outArgs);
-void LwipifEnetAppCb_getRxHandleInfo(LwipifEnetAppIf_GetRxHandleInArgs *inArgs,
-                                     LwipifEnetAppIf_RxHandleInfo *outArgs);
-void LwipifEnetAppCb_releaseTxHandle(LwipifEnetAppIf_ReleaseTxHandleInfo *releaseInfo);
-void LwipifEnetAppCb_releaseRxHandle(LwipifEnetAppIf_ReleaseRxHandleInfo *releaseInfo);
-void LwipifEnetAppCb_pbuf_free_custom(struct pbuf *p);
+// void LwipifEnetApp_getRxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pRxChIdCount, uint32_t rxChIdList[LWIPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL]);
+// void LwipifEnetApp_getTxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pTxChIdCount, uint32_t txChIdList[LWIPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL]);
+void EnetNetIFAppCb_getTxHandleInfo(EnetNetIFAppIf_GetTxHandleInArgs *inArgs,
+                                     EnetNetIFAppIf_TxHandleInfo *outArgs);
+void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
+                                     EnetNetIFAppIf_RxHandleInfo *outArgs);
+// void LwipifEnetAppCb_releaseTxHandle(LwipifEnetAppIf_ReleaseTxHandleInfo *releaseInfo);
+// void LwipifEnetAppCb_releaseRxHandle(LwipifEnetAppIf_ReleaseRxHandleInfo *releaseInfo);
+// void LwipifEnetAppCb_pbuf_free_custom(struct pbuf *p);
 
 
 EnetNetIF_RxMode_t EnetApp_getRxMode(Enet_Type enetType, uint32_t instId);
@@ -97,8 +97,7 @@ EnetNetIF_RxMode_t EnetApp_getRxMode(Enet_Type enetType, uint32_t instId);
 /*
  *  Functions provided by enet_netif_manager.c to initialize a new netif, create tx & rx tasks, and start a scheduler OS agnostically.
  */
-void LwipifEnetApp_startSchedule(LwipifEnetApp_Handle handle, struct netif *netif
-);
+// void LwipifEnetApp_startSchedule(LwipifEnetApp_Handle handle, struct netif *netif);
 
-struct netif * LwipifEnetApp_getNetifFromName(NetifName_e name);
+// struct netif * LwipifEnetApp_getNetifFromName(NetifName_e name);
 
