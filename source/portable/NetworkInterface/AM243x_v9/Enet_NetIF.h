@@ -201,19 +201,23 @@ typedef struct EnetNetIF_AppIf_GetEnetIFInstInfo_s
 typedef struct EnetNetIFAppIf_GetTxHandleInArgs_s
 {
     void *cbArg;
+    Enet_Type enetType;
+    uint32_t  instId;
     EnetDma_PktNotifyCb notifyCb;
     uint32_t chId;
     EnetDma_PktQ *pktInfoQ;
-    Enet_Type enetType;
 } EnetNetIFAppIf_GetTxHandleInArgs;
 
 typedef struct EnetNetIFAppIf_GetRxHandleInArgs_s
 {
     void *cbArg;
+    Enet_Type enetType;
+    uint32_t  instId;
     EnetDma_PktNotifyCb notifyCb;
     uint32_t chId;
-    EnetDma_PktQ *pktInfoQ;
-    Enet_Type enetType;
+    NetBufQueue *pFreePbufInfoQ;
+    EnetDma_PktQ *pReadyRxPktQ;
+    EnetDma_PktQ *pFreeRxPktInfoQ;
 } EnetNetIFAppIf_GetRxHandleInArgs;
 
 typedef struct EnetNetIFAppIf_TxHandleInfo_s
