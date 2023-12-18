@@ -721,6 +721,8 @@ static UBaseType_t prvNetworkInterfaceInput( void )
         NetworkBufferDescriptor_t * pxEndDescriptor = NULL;
     #endif
     NetworkBufferDescriptor_t * pxCurDescriptor = NULL;
+    IPStackEvent_t xRxEvent;
+    xRxEvent.eEventType = eNetworkRxEvent;
 
     while ( ( HAL_ETH_ReadData( &xEthHandle, ( void ** ) &pxCurDescriptor ) == HAL_OK ) )
     {
@@ -753,16 +755,13 @@ static UBaseType_t prvNetworkInterfaceInput( void )
                 FreeRTOS_debug_printf( ( "prvNetworkInterfaceInput: xSendEventStructToIPTask failed\n" ) );
                 vReleaseNetworkBufferAndDescriptor( pxCurDescriptor );
             }
-        #endif
+        #endif /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
     }
 
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
         if( xResult > 0 )
         {
-            const IPStackEvent_t xRxEvent = {
-                .eEventType = eNetworkRxEvent,
-                .pvData = ( void * ) pxStartDescriptor,
-            };
+            xRxEvent.pvData = ( void * ) pxStartDescriptor;
             if( xSendEventStructToIPTask( &xRxEvent, niEMAC_MAX_BLOCK_TIME_MS ) != pdPASS )
             {
                 iptraceETHERNET_RX_EVENT_LOST();
@@ -775,7 +774,7 @@ static UBaseType_t prvNetworkInterfaceInput( void )
                 } while( pxDescriptorToClear != NULL );
             }
         }
-    #endif
+    #endif /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
 
     if( xResult == 0 )
     {
