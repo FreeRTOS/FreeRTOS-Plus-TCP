@@ -250,7 +250,7 @@ typedef struct EnetNetIFAppIf_RxHandleInfo_s
      * retrieve packets periodically from driver */
     bool disableEvent;
         /** Mac Address allocated for the flow */
-    uint8_t macAddr[ENET_CFG_NETIF_MAX][ENET_MAC_ADDR_LEN];
+    uint8_t macAddr[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED][ENET_MAC_ADDR_LEN];
 } EnetNetIFAppIf_RxHandleInfo;
 
 /*!
@@ -360,10 +360,10 @@ typedef struct xEnetDriverObj
     uint32_t numTxChannels;
 
     /*! lwIP network interface */
-    NetworkInterface_t * pxInterface[ENET_CFG_NETIF_MAX];
+    NetworkInterface_t * pxInterface[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
     uint32_t numOpenedNetifs;
 
-    uint8_t macAddr[ENET_CFG_NETIF_MAX][ENET_MAC_ADDR_LEN];
+    uint8_t macAddr[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED][ENET_MAC_ADDR_LEN];
 	/*! Total number of allocated PktInfo elements */
     uint32_t allocPktInfo;
     bool isInitDone;
@@ -411,13 +411,13 @@ typedef struct xEnetDriverObj
     /*! CPU load stats */
     EnetNetIF_Stats stats;
 
-    EnetNetIF_RxHandle mapNetif2Rx[ENET_CFG_NETIF_MAX];
+    EnetNetIF_RxHandle mapNetif2Rx[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
 
-    EnetNetIF_TxHandle mapNetif2Tx[ENET_CFG_NETIF_MAX];
+    EnetNetIF_TxHandle mapNetif2Tx[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
 
     NetworkInterface_t *mapRxPort2Netif[CPSW_STATS_MACPORT_MAX];
 
-    Enet_MacPort mapNetif2TxPortNum[ENET_CFG_NETIF_MAX];
+    Enet_MacPort mapNetif2TxPortNum[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
 
 
     Enet_notify_t rxPktNotify;

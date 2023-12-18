@@ -412,7 +412,7 @@ static void EnetNetIF_mapNetif2Rx(NetworkInterface_t * pxInterface,
     {
         for(uint32_t portIdx = 0U; portIdx < CPSW_STATS_MACPORT_MAX; portIdx++)
         {
-            if(portIdx < ENET_CFG_NETIF_MAX)
+            if(portIdx < FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED)
             {
             hEnet->mapRxPort2Netif[portIdx] = pxInterface;
             }
