@@ -196,16 +196,16 @@ BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterf
         uint32_t instId;
         xEnetDriverHandle xIFHandle;
     
-        EnetApp_getEnetInstInfo(&enetType, &instId);
+        extern BaseType_t xNetworkBuffersInitialise_RX( void );
+        xNetworkBuffersInitialise_RX();
+
+        EnetApp_getEnetInstInfo(CONFIG_ENET_CPSW0, &enetType, &instId);
 
         EnetAppUtils_enableClocks(enetType, instId);
 
         EnetApp_driverInit();
 
-        extern BaseType_t xNetworkBuffersInitialise_RX( void );
-        xNetworkBuffersInitialise_RX();
-
-        const int32_t status = EnetApp_driverOpen(enetType, instId); // TODO: should be moved to interface init?
+        const int32_t status = EnetApp_driverOpen(enetType, instId);
         if (ENET_SOK != status)
         {
             EnetAppUtils_print("Failed to open ENET: %d\r\n", status);
