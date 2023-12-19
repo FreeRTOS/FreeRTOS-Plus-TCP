@@ -333,6 +333,46 @@ static void LwipifEnetApp_postPollLink(ClockP_Object *clkObj, void *arg);
 // #endif
 // }
 
+void EnetNetIFAppCb_getEnetIFInstInfo(Enet_Type enetType, uint32_t instId, EnetNetIF_AppIf_GetEnetIFInstInfo *outArgs)
+{
+    EnetPer_AttachCoreOutArgs attachInfo;
+    EnetApp_HandleInfo handleInfo;
+
+    uint32_t coreId = EnetSoc_getCoreId();
+
+    EnetApp_coreAttach(enetType, instId, coreId, &attachInfo);
+    EnetApp_acquireHandleInfo(enetType, instId, &handleInfo);
+
+    outArgs->hostPortRxMtu = attachInfo.rxMtu;
+    ENET_UTILS_ARRAY_COPY(outArgs->txMtu, attachInfo.txMtu);
+    outArgs->isPortLinkedFxn = &EnetApp_isPortLinked;
+    outArgs->timerPeriodUs   = ENETNETIF_PACKET_POLL_PERIOD_US;
+    outArgs->pPbufInfo = gFreePbufArr;
+    outArgs->pPbufInfoSize = sizeof(gFreePbufArr)/sizeof(NetBufNode);
+    // LWIP_MEMPOOL_INIT(RX_POOL); // TODO: Replace custom buffer (cbuf) based RX packet allocation with
+    // custom pxGetNetworkBufferWithDescriptor which has a separate owner that can be checked
+    // to release the packet back to the HW when vReleaseNetworkBufferAndDescriptor is called.
+
+#if ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+    int32_t status;
+    /* Confirm HW checksum offload is enabled when LWIP chksum offload is enabled */
+        Enet_IoctlPrms prms;
+        bool csumOffloadFlg;
+        ENET_IOCTL_SET_OUT_ARGS(&prms, &csumOffloadFlg);
+        ENET_IOCTL(handleInfo.hEnet,
+                   coreId,
+                   ENET_HOSTPORT_IS_CSUM_OFFLOAD_ENABLED,
+                   &prms,
+                   status);
+        if (status != ENET_SOK)
+        {
+            EnetAppUtils_print("() Failed to get checksum offload info: %d\r\n", status);
+        }
+
+        EnetAppUtils_assert(true == csumOffloadFlg);
+#endif
+}
+
 void EnetNetIFAppCb_getTxHandleInfo(EnetNetIFAppIf_GetTxHandleInArgs *inArgs,
                                      EnetNetIFAppIf_TxHandleInfo *outArgs)
 {
