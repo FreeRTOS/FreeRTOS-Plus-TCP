@@ -182,15 +182,9 @@ typedef struct EnetNetIF_AppIf_GetHandleNetifInfo_s
 
 typedef struct EnetNetIF_AppIf_GetEnetIFInstInfo_s
 {
-    Enet_Handle hEnet;
     uint32_t txMtu[ENET_PRI_NUM];
     uint32_t hostPortRxMtu;
-
-    /*! Number of netifs allocated by application */
-    uint32_t maxNumNetif;
-    uint32_t numRxChannels;
-    uint32_t numTxChannels;
-	Enet_NetIF_AppIf_IsPhyLinkedCbFxn isPortLinkedFxn;
+    Enet_NetIF_AppIf_IsPhyLinkedCbFxn isPortLinkedFxn;
 
     /** Timer interval for timer based RX pacing */
     uint32_t timerPeriodUs;
@@ -265,7 +259,7 @@ typedef struct EnetNetIF_RxObj_s
     EnetDma_RxChHandle hFlow;
 
     /*! Whether this RX object is being used or not */
-    bool enabled;
+    uint32_t chEntryIdx;
 
     /*! Reference count for RX flow */
     uint32_t refCount;
@@ -280,20 +274,28 @@ typedef struct EnetNetIF_RxObj_s
     /*! Flow index for RX flow */
     uint32_t flowIdx;
 
-    /*! DMA Rx free packet info queue (holds packets returned from the hardware) */
-    EnetDma_PktQ freePktInfoQ;
+    /*! Queue with empty pbufs, payload is not populated */
+    NetBufQueue freePbufInfoQ;
+
+    /*! Queue that holds packets ready to be sent to the hardware,
+     *  Buffer pointers are populated. */
+    EnetDma_PktQ readyRxPktQ;
+
+    /*! Queue with empty DMA Pkt Infos, buffer ptrs are not populated */
+    EnetDma_PktQ freeRxPktInfoQ;
 
     /*! Number of packets*/
     uint32_t numPackets;
 
-    Enet_notify_t rxPktNotify;
-
     /*! lwIP interface statistics */
     EnetNetIF_RxStats stats;
+
+    Enet_notify_t rxPktNotify;
 
     /*! Whether RX event should be disabled or not. When disabled, it relies on pacing timer
      *  to retrieve packets from RX channel/flow */
     bool disableEvent;
+
 } EnetNetIF_RxObj, *EnetNetIF_RxHandle;
 
 /*!
@@ -307,11 +309,7 @@ typedef struct EnetNetIF_TxObj_s
     /*! Enet DMA transmit channel */
     EnetDma_TxChHandle hCh;
 
-    /*! TX channel peer id */
-    uint32_t chNum;
-
-    /*! Whether this TX object is being used or not */
-    bool enabled;
+    uint32_t chEntryIdx;
 
     /*! Reference count for TX object */
     uint32_t refCount;
