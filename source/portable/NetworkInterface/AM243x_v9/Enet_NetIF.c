@@ -87,7 +87,7 @@ static uint32_t tx_event = 0, rx_event = 0;
 
 #define ENET_SYSCFG_NETIF_COUNT                     (1U)
 
-#define ENET_SYSCFG_DEFAULT_NETIF_IDX              (0U)
+// #define ENET_SYSCFG_DEFAULT_NETIF_IDX              (0U)
 
 #define NETIF_INST_ID0           (0U)
 
@@ -111,6 +111,8 @@ static uint32_t EnetNetIF_prepTxPktQ(EnetNetIF_TxObj *tx,
 void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
                        Enet_MacPort rxPortNum,
                        NetworkBufferDescriptor_t * pxDescriptor);
+
+void EnetNetIFAppCb_getEnetIFInstInfo(Enet_Type enetType, uint32_t instId, EnetNetIF_AppIf_GetEnetIFInstInfo *outArgs);
 
 NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor_RX( size_t xRequestedSizeBytes,
                                                               TickType_t xBlockTimeTicks );
@@ -218,58 +220,61 @@ static void EnetNetIFAppCb_getNetifInfo(NetworkInterface_t * pxInterface,
     outArgs->isDirected = false;
 }
 
-static void EnetNetIFAppCb_getEnetIFInstInfo(EnetNetIF_AppIf_GetEnetIFInstInfo *outArgs)
-{
-    EnetPer_AttachCoreOutArgs attachInfo;
-    EnetApp_HandleInfo handleInfo;
-    Enet_Type enetType;
-    uint32_t instId;
-
-    uint32_t coreId = EnetSoc_getCoreId();
 
 
-    EnetApp_getEnetInstInfo(&enetType,
-                            &instId);
 
-    EnetApp_acquireHandleInfo(enetType, instId, &handleInfo);
-    EnetApp_coreAttach(enetType,instId, coreId, &attachInfo);
+// static void EnetNetIFAppCb_getEnetIFInstInfo(EnetNetIF_AppIf_GetEnetIFInstInfo *outArgs)
+// {
+//     EnetPer_AttachCoreOutArgs attachInfo;
+//     EnetApp_HandleInfo handleInfo;
+//     Enet_Type enetType;
+//     uint32_t instId;
 
-    outArgs->hEnet         = handleInfo.hEnet;
-    outArgs->hostPortRxMtu = attachInfo.rxMtu;
-    ENET_UTILS_ARRAY_COPY(outArgs->txMtu, attachInfo.txMtu);
-    outArgs->isPortLinkedFxn = &EnetApp_isPortLinked;
-	outArgs->timerPeriodUs   = ENETNETIF_PACKET_POLL_PERIOD_US;
-
-    outArgs->maxNumNetif = ENET_SYSCFG_NETIF_COUNT;
-    outArgs->numRxChannels = ENET_SYSCFG_RX_FLOWS_NUM;
-    outArgs->numTxChannels = ENET_SYSCFG_TX_CHANNELS_NUM;
-
-    outArgs->pFreeTx = gFreeTxNetBufArr;
-    outArgs->pFreeTxSize = ENET_SYSCFG_TOTAL_NUM_TX_PKT;
-    // LWIP_MEMPOOL_INIT(RX_POOL); // TODO: Replace custom buffer (cbuf) based RX packet allocation with
-    // custom pxGetNetworkBufferWithDescriptor which has a separate owner that can be checked
-    // to release the packet back to the HW when vReleaseNetworkBufferAndDescriptor is called.
+//     uint32_t coreId = EnetSoc_getCoreId();
 
 
-#if ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
-    int32_t status;
-    /* Confirm HW checksum offload is enabled when LWIP chksum offload is enabled */
-        Enet_IoctlPrms prms;
-        bool csumOffloadFlg;
-        ENET_IOCTL_SET_OUT_ARGS(&prms, &csumOffloadFlg);
-        ENET_IOCTL(handleInfo.hEnet,
-                   coreId,
-                   ENET_HOSTPORT_IS_CSUM_OFFLOAD_ENABLED,
-                   &prms,
-                   status);
-        if (status != ENET_SOK)
-        {
-            EnetAppUtils_print("() Failed to get checksum offload info: %d\r\n", status);
-        }
+//     EnetApp_getEnetInstInfo(&enetType,
+//                             &instId);
 
-        configASSERT(true == csumOffloadFlg);
-#endif
-}
+//     EnetApp_acquireHandleInfo(enetType, instId, &handleInfo);
+//     EnetApp_coreAttach(enetType,instId, coreId, &attachInfo);
+
+//     outArgs->hEnet         = handleInfo.hEnet;
+//     outArgs->hostPortRxMtu = attachInfo.rxMtu;
+//     ENET_UTILS_ARRAY_COPY(outArgs->txMtu, attachInfo.txMtu);
+//     outArgs->isPortLinkedFxn = &EnetApp_isPortLinked;
+// 	outArgs->timerPeriodUs   = ENETNETIF_PACKET_POLL_PERIOD_US;
+
+//     outArgs->maxNumNetif = ENET_SYSCFG_NETIF_COUNT;
+//     outArgs->numRxChannels = ENET_SYSCFG_RX_FLOWS_NUM;
+//     outArgs->numTxChannels = ENET_SYSCFG_TX_CHANNELS_NUM;
+
+//     outArgs->pFreeTx = gFreeTxNetBufArr;
+//     outArgs->pFreeTxSize = ENET_SYSCFG_TOTAL_NUM_TX_PKT;
+//     // LWIP_MEMPOOL_INIT(RX_POOL); // TODO: Replace custom buffer (cbuf) based RX packet allocation with
+//     // custom pxGetNetworkBufferWithDescriptor which has a separate owner that can be checked
+//     // to release the packet back to the HW when vReleaseNetworkBufferAndDescriptor is called.
+
+
+// #if ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
+//     int32_t status;
+//     /* Confirm HW checksum offload is enabled when LWIP chksum offload is enabled */
+//         Enet_IoctlPrms prms;
+//         bool csumOffloadFlg;
+//         ENET_IOCTL_SET_OUT_ARGS(&prms, &csumOffloadFlg);
+//         ENET_IOCTL(handleInfo.hEnet,
+//                    coreId,
+//                    ENET_HOSTPORT_IS_CSUM_OFFLOAD_ENABLED,
+//                    &prms,
+//                    status);
+//         if (status != ENET_SOK)
+//         {
+//             EnetAppUtils_print("() Failed to get checksum offload info: %d\r\n", status);
+//         }
+
+//         configASSERT(true == csumOffloadFlg);
+// #endif
+// }
 
 static void EnetNetIF_saveAppIfCfg(xEnetDriverHandle hEnet,
                                     EnetNetIF_AppIf_GetEnetIFInstInfo *appInfo)
@@ -334,15 +339,80 @@ static void EnetNetIF_mapNetif2Tx(NetworkInterface_t * pxInterface,
     }
 }
 
+// void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNetworkBuffer)
+// {
+//     EnetNetIF_AppIf_CustomNetBuf * xCNetBuf = (EnetNetIF_AppIf_CustomNetBuf *) pxNetworkBuffer;
+//     uint32_t key = HwiP_disable();
+
+//     EnetQueue_enq(xCNetBuf->freePktInfoQ, &xCNetBuf->pktInfoMem->node);
+
+//     HwiP_restore(key);
+// }
+
+static inline void  EnetNetIF_CustomNetBuffInit(EnetNetIF_AppIf_CustomNetBuf *xCNetBuf)
+{
+    xCNetBuf->next            = NULL;
+    xCNetBuf->alivePbufCount  = 0U;
+    xCNetBuf->orgBufLen       = 0U;
+    xCNetBuf->orgBufPtr       = NULL;
+}
+
 void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNetworkBuffer)
 {
     EnetNetIF_AppIf_CustomNetBuf * xCNetBuf = (EnetNetIF_AppIf_CustomNetBuf *) pxNetworkBuffer;
-    uint32_t key = HwiP_disable();
+    EnetNetIF_AppIf_CustomNetBuf *start = xCNetBuf;
+    EnetDma_SGListEntry *list = NULL;
+    uint32_t scatterSegmentIndex = 0;
+    EnetNetIF_RxObj *rx = (EnetNetIF_RxObj *) xCNetBuf->customNetBufArgs;
+    EnetNetIF_AppIf_CustomNetBuf *cPbufNext = NULL;
 
-    EnetQueue_enq(xCNetBuf->freePktInfoQ, &xCNetBuf->pktInfoMem->node);
+#if (1U == ENET_CFG_DEV_ERROR)
+    custom_pbuf_validateChain(xCNetBuf);
+    configASSERT(xCNetBuf->alivePbufCount != 0);
+    configASSERT(xCNetBuf->next != NULL);
+#endif
 
-    HwiP_restore(key);
+    /* Decrement the alivePbufCount of the every xCNetBuf in the chain */
+    start->alivePbufCount--;
+    xCNetBuf = xCNetBuf->next;
+    while(start != xCNetBuf)
+    {
+        xCNetBuf->alivePbufCount--;
+        xCNetBuf = xCNetBuf->next;
+    }
+    configASSERT(start == xCNetBuf);
+    if(xCNetBuf->alivePbufCount == 0)
+    {
+        /* This pbuf chain is no longer in use. */
+        /* Loop through the xCNetBuf chain and enq in a dmapktinfo. */
+        EnetDma_Pkt *pDmaPacket =  (EnetDma_Pkt *)EnetQueue_deq(&rx->freeRxPktInfoQ);
+        // LWIP2ENETSTATS_ADDONE(&rx->stats.freeAppPktDeq);
+        configASSERT(pDmaPacket != NULL);
+        EnetDma_checkPktState(&pDmaPacket->pktState,
+                               ENET_PKTSTATE_MODULE_APP,
+                               ENET_PKTSTATE_APP_WITH_FREEQ,
+                               ENET_PKTSTATE_APP_WITH_READYQ);
+        do {
+            list = &pDmaPacket->sgList.list[scatterSegmentIndex];
+            list->bufPtr = xCNetBuf->orgBufPtr;
+            list->segmentFilledLen = 0;
+            configASSERT(xCNetBuf->orgBufLen != 0);
+            list->segmentAllocLen  = xCNetBuf->orgBufLen;
+            cPbufNext = xCNetBuf->next;
+            EnetNetIF_CustomNetBuffInit(xCNetBuf);
+            /* Enqueue the pbuf into freePbufInfoQ */
+            NetBufQueue_enQ(&rx->freePbufInfoQ, (NetworkBufferDescriptor_t *) xCNetBuf);
+            // LWIP2ENETSTATS_ADDONE(&rx->stats.freePbufPktEnq);
+            scatterSegmentIndex++;
+            configASSERT(scatterSegmentIndex <= ENET_ARRAYSIZE(pDmaPacket->sgList.list));
+            xCNetBuf = cPbufNext;
+        } while(start != xCNetBuf);
+
+        pDmaPacket->sgList.numScatterSegments = scatterSegmentIndex;
+        EnetQueue_enq(&rx->readyRxPktQ, &pDmaPacket->node);
+    }
 }
+
 
 static void EnetNetIF_initRxObj(Enet_Type enetType, uint32_t instId, uint32_t chEntryIdx, EnetNetIF_RxHandle hRx)
 {
@@ -380,7 +450,7 @@ static void EnetNetIF_initRxObj(Enet_Type enetType, uint32_t instId, uint32_t ch
         hRx->chEntryIdx = chEntryIdx;
         for (uint32_t portIdx = 0; portIdx < CPSW_STATS_MACPORT_MAX; portIdx++)
         {
-            hRx->mapPortToNetif[portIdx] = NULL;
+            hRx->mapPortToInterface[portIdx] = NULL;
         }
     }
 
@@ -1587,7 +1657,7 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
         {
             for (uint32_t portIdx = 0; portIdx < CPSW_STATS_MACPORT_MAX; portIdx++)
             {
-                pInterface->hRx[rxChIdIdx]->mapPortToNetif[portIdx] = pxInterface;
+                pInterface->hRx[rxChIdIdx]->mapPortToInterface[portIdx] = pxInterface;
             }
             pInterface->macPort = ENET_MAC_PORT_INV;
         }
@@ -1595,7 +1665,7 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
         {
             const Enet_MacPort macPort = (Enet_MacPort)((pInterface->hRx[rxChIdIdx]->refCount -1));
             configASSERT(macPort < FREERTOS_TCPIF_MAX_NUM_MAC_PORTS);
-            pInterface->hRx[rxChIdIdx]->mapPortToNetif[macPort] = pxInterface;
+            pInterface->hRx[rxChIdIdx]->mapPortToInterface[macPort] = pxInterface;
             pInterface->macPort = macPort;
         }
         else
@@ -1604,7 +1674,7 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
              * This is in both ICSSG dual mac and switch usecase */
             const Enet_MacPort macPort = EnetNetIF_findMacPortFromEnet(enetType, instId);
             configASSERT(macPort < FREERTOS_TCPIF_MAX_NUM_MAC_PORTS);
-            pInterface->hRx[rxChIdIdx]->mapPortToNetif[macPort] = pxInterface;
+            pInterface->hRx[rxChIdIdx]->mapPortToInterface[macPort] = pxInterface;
             pInterface->macPort = macPort;
         }
 
