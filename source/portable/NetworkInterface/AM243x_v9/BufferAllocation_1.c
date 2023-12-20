@@ -173,7 +173,7 @@ static void prvShowWarnings( void );
 
 #endif /* ipconfigTCP_IP_SANITY */
 
-BaseType_t xNetworkBuffersInitialise_RX( void )
+BaseType_t xNetworkBuffersInitialise_RX( EnetNetIF_RxHandle *hRx )
 {
     uint32_t x;
     vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( xCustomNetworkBuffers_RX_POOL );
@@ -183,6 +183,12 @@ BaseType_t xNetworkBuffersInitialise_RX( void )
         /* Initialise and set the owner of the buffer list items. */
         vListInitialiseItem( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
         listSET_LIST_ITEM_OWNER( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ), &xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer );
+
+        xCustomNetworkBuffers_RX_POOL[ x ].customNetBufArgs = hRx;
+        xCustomNetworkBuffers_RX_POOL[ x ].next = NULL;
+        xCustomNetworkBuffers_RX_POOL[ x ].alivePbufCount = 0U;
+        xCustomNetworkBuffers_RX_POOL[ x ].orgBufLen = 0U;
+        xCustomNetworkBuffers_RX_POOL[ x ].orgBufPtr = NULL;
 
         /* Currently, all buffers are available for use. */
         vListInsert( &xFreeBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
