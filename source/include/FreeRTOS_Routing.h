@@ -54,6 +54,11 @@
 /* Return true as long as the LinkStatus on the PHY is present. */
     typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface * pxDescriptor );
 
+    #if ( ipconfigIS_ENABLED( ipconfigMAC_FILTERING ) )
+/* Functions that manipulate what MAC addresses are received by this interface */
+        typedef void ( * NetworkInterfaceMACFilterFunction_t ) ( const uint8_t * pucMacAddressBytes );
+    #endif
+
 /** @brief These NetworkInterface access functions are collected in a struct: */
     typedef struct xNetworkInterface
     {
@@ -62,6 +67,25 @@
         NetworkInterfaceInitialiseFunction_t pfInitialise; /**< This function will be called upon initialisation and repeated until it returns pdPASS. */
         NetworkInterfaceOutputFunction_t pfOutput;         /**< This function is supposed to send out a packet. */
         GetPhyLinkStatusFunction_t pfGetPhyLinkStatus;     /**< This function will return pdTRUE as long as the PHY Link Status is high. */
+        #if ( ipconfigIS_ENABLED( ipconfigMAC_FILTERING ) )
+
+            /* The network driver is responsible for keeping track of which MAC addresses ( unicast or multicast )
+             * need to be received and which are not needed anymore. The stack calls the functions
+             * below every time a socket subscribes to a multicast group or drops its membership.
+             * If multiple sockets subscribe to the same multicast IP group address
+             * or to multiple multicast IP group addresses corresponding to the same MAC address,
+             * the IP task will call the functions below multiple times for the same multicast MAC address.
+             * The network driver must keep track of how many times pfAddAllowedMAC() has been called
+             * for a certain MAC address and only stop receiving that address after pfRemoveAllowedMAC()
+             * has been called the same number of time for that same MAC address.
+             * A quick and dirty implementation option is to receive all multicast MAC addresses and
+             * set both pfAddAllowedMAC and pfRemoveAllowedMAC to NULL
+             * The optimal way to achieve this functionality depends on the specific hardware EMAC.
+             * For one implementation option, check out portable/NetworkInterface/DriverSAM/NetworkInterface.c
+             */
+            NetworkInterfaceMACFilterFunction_t pfAddAllowedMAC;
+            NetworkInterfaceMACFilterFunction_t pfRemoveAllowedMAC;
+        #endif
         struct
         {
             uint32_t

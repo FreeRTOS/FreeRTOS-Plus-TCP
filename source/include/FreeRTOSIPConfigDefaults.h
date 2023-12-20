@@ -3295,6 +3295,21 @@
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * ipconfigMAC_FILTERING
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * When set to ipconfigENABLE, this macro will adds two functions
+ * to the network interface. Those functions allow adding/removing multicast
+ * MAC addresses to/from the hardware EMAC. It is up to the portable network
+ * code to implement these as on the specific hardware. */
+#ifndef ipconfigMAC_FILTERING
+    #define ipconfigMAC_FILTERING    ipconfigDISABLE
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 /* Should only be included here, ensures trace config is set first. */
 #include "IPTraceMacroDefaults.h"
 

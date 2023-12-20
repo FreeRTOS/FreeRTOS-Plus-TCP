@@ -631,6 +631,38 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
  */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
 {
+    #if ( ipconfigIS_ENABLED( ipconfigMAC_FILTERING ) )
+    {
+        IPv6_Type_t xAddressType;
+
+        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+        {
+            /* Now that the network is up, pxEndPoint->ipv6_settings should hold the actual address of this
+             * end-point. For unicast addresses, generate the respective solicited-node multicast address.
+             * Note that the check below guards against the loopback address, the unspecified address,
+             * and against the weird scenario of someone assigning a multicast address to the end-point. */
+            xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+            if( ( xAddressType == eIPv6_LinkLocal ) || ( xAddressType == eIPv6_SiteLocal ) || ( xAddressType == eIPv6_Global ) )
+            {
+                /* Tell the network driver to begin receiving this MAC address */
+                if( ( pxEndPoint->pxNetworkInterface != NULL ) && ( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL ) )
+                {
+                    MACAddress_t xMACAddress = { {
+                                                     0x33U,
+                                                     0x33U,
+                                                     0xFFU,
+                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
+                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
+                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
+                                                 } };
+                    pxEndPoint->pxNetworkInterface->pfAddAllowedMAC( xMACAddress.ucBytes );
+                }
+            } /* if( xAddressType == ... ) */
+        }     /* if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) */
+    }
+    #endif /* ( ipconfigIS_ENABLED( ipconfigMAC_FILTERING ) ) */
+
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )

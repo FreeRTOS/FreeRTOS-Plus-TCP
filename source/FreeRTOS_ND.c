@@ -77,9 +77,9 @@
     /* MISRA Ref 8.9.1 [File scoped variables] */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
     /* coverity[misra_c_2012_rule_8_9_violation] */
-    static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }; /* ff02:1 */
+    static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xffU, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x01U }; /* ff02::1 */
 /** @brief All nodes on the local network segment: MAC address. */
-    static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0x00, 0x00, 0x00, 0x01 };
+    const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33U, 0x33U, 0x00U, 0x00U, 0x00U, 0x01U };
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
     static eARPLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
