@@ -459,7 +459,7 @@ void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
     /* Initialize the DMA free queue */
     EnetQueue_initQ(inArgs->pReadyRxPktQ);
     EnetQueue_initQ(inArgs->pFreeRxPktInfoQ);
-    NetBufQueue_init(inArgs->pFreePbufInfoQ);
+    // NetBufQueue_init(inArgs->pFreePbufInfoQ);
 
     for (i = 0U; i < rxChInfo.maxNumRxPkts; i++)
     {
@@ -476,19 +476,19 @@ void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
     }
 
     EnetQueue_verifyQCount(inArgs->pReadyRxPktQ);
-    for (i = 0U; i < numCustomPbuf; i++)
-    {
-        /* Allocate the Custom Pbuf structures and put them in freePbufInfoQ */
-        pxNetDesc = NULL;
-        pxNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxGetNetworkBufferWithDescriptor_RX( scatterSegments[0], 0);
-        EnetAppUtils_assert(pxNetDesc != NULL);
-        pxNetDesc->customNetBufArgs       = (Rx_CustomNetBuf_Args)inArgs->cbArg;
-        pxNetDesc->next                   = NULL;
-        pxNetDesc->alivePbufCount         = 0U;
-        pxNetDesc->orgBufLen              = 0U;
-        pxNetDesc->orgBufPtr              = NULL;
-        NetBufQueue_enQ(inArgs->pFreePbufInfoQ, &(pxNetDesc->xNetworkBuffer));
-    }
+    // for (i = 0U; i < numCustomPbuf; i++)
+    // {
+    //     /* Allocate the Custom Pbuf structures and put them in freePbufInfoQ */
+    //     pxNetDesc = NULL;
+    //     pxNetDesc = (EnetNetIF_AppIf_CustomNetBuf *) pxGetNetworkBufferWithDescriptor_RX( scatterSegments[0], 0);
+    //     EnetAppUtils_assert(pxNetDesc != NULL);
+    //     pxNetDesc->customNetBufArgs       = (Rx_CustomNetBuf_Args)inArgs->cbArg;
+    //     pxNetDesc->next                   = NULL;
+    //     pxNetDesc->alivePbufCount         = 0U;
+    //     pxNetDesc->orgBufLen              = 0U;
+    //     pxNetDesc->orgBufPtr              = NULL;
+    //     NetBufQueue_enQ(inArgs->pFreePbufInfoQ, &(pxNetDesc->xNetworkBuffer));
+    // }
 
 }
 
