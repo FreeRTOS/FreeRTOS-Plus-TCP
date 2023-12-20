@@ -195,9 +195,6 @@ BaseType_t xAM243x_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterf
         Enet_Type enetType;
         uint32_t instId;
         xEnetDriverHandle xIFHandle;
-    
-        extern BaseType_t xNetworkBuffersInitialise_RX( void );
-        xNetworkBuffersInitialise_RX();
 
         EnetApp_getEnetInstInfo(CONFIG_ENET_CPSW0, &enetType, &instId);
 
@@ -270,56 +267,81 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
 }
 
 void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
-                       Enet_MacPort rxPortNum,
+                       NetworkInterface_t * pxInterfaceFromDriver,
                        NetworkBufferDescriptor_t * pxDescriptor)
 {
     xEnetDriverHandle hEnet = rx->hEnetNetIF;
     NetworkInterface_t * pxInterface;
 
-#if (ENET_ENABLE_PER_CPSW == 1)
-    pxInterface = hEnet->mapRxPort2Netif[ENET_MACPORT_NORM(rxPortNum)];
-#else
-    /* ToDo: ICSSG doesnot fill rxPortNum correctly, so using the rx->flowIdx to map to netif*/
-    pxInterface = hEnet->mapRxPort2Netif[ENETNETIF_RXFLOW_2_PORTIDX(rx->flowIdx)];
-#endif
-    configASSERT(pxInterface != NULL);
-    pxDescriptor->pxInterface = pxInterface;
+// #if (ENET_ENABLE_PER_CPSW == 1)
+//     pxInterface = hEnet->mapRxPort2Netif[ENET_MACPORT_NORM(rxPortNum)];
+// #else
+//     /* ToDo: ICSSG doesnot fill rxPortNum correctly, so using the rx->flowIdx to map to netif*/
+//     pxInterface = hEnet->mapRxPort2Netif[ENETNETIF_RXFLOW_2_PORTIDX(rx->flowIdx)];
+// #endif
+    configASSERT(pxInterfaceFromDriver != NULL);
+
+    // TODO use pxInterface as pxInterfaceFromDriver
+    pxDescriptor->pxInterface = pxInterfaceFromDriver;
     pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxInterface, pxDescriptor->pucEthernetBuffer );
     prvPassEthMessages(pxDescriptor);
 }
+
+// static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
+//                                                      NetworkBufferDescriptor_t * const pxDescriptor,
+//                                                      BaseType_t xReleaseAfterSend )
+// {
+//     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
+//     xEnetDriverHandle hEnet;
+//     EnetNetIF_TxHandle hTxHandle;
+//     Enet_MacPort macPort;
+
+//     configASSERT(pxNetIFArgs->xNetIFID < ENET_SYSCFG_NETIF_COUNT);
+
+//     /* Only supports zero copy for now. Hence bReleaseAfterSend == 0 case
+//     should not happen */
+//     configASSERT( xReleaseAfterSend != 0 );
+    
+//     /* Get the pointer to the private data */
+//     hEnet = pxNetIFArgs->hEnet;
+//     hTxHandle  = hEnet->mapNetif2Tx[pxNetIFArgs->xNetIFID];
+//     macPort    = hEnet->mapNetif2TxPortNum[pxNetIFArgs->xNetIFID];
+
+//     configASSERT(hEnet != NULL);
+//     configASSERT(hTxHandle != NULL);
+
+//     /* Enqueue the packet */
+//     NetBufQueue_enQ(&hTxHandle->readyPbufQ, pxDescriptor);
+//     // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hTxHandle->stats.readyPbufPktEnq);
+
+//     /* Pass the packet to the translation layer */
+//     EnetNetIF_sendTxPackets(hTxHandle, macPort);
+
+//     /* Packet has been successfully transmitted or enqueued to be sent when link comes up */
+//     return pdTRUE;
+// }
 
 static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                                      NetworkBufferDescriptor_t * const pxDescriptor,
                                                      BaseType_t xReleaseAfterSend )
 {
     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
-    xEnetDriverHandle hEnet;
-    EnetNetIF_TxHandle hTxHandle;
-    Enet_MacPort macPort;
+    FreeRTOSTCP2Enet_netif_t * pxCustomInterface = &(pxNetIFArgs->hEnet->xInterface[pxNetIFArgs->xNetIFID]);
 
     configASSERT(pxNetIFArgs->xNetIFID < ENET_SYSCFG_NETIF_COUNT);
 
-    /* Only supports zero copy for now. Hence bReleaseAfterSend == 0 case
-    should not happen */
-    configASSERT( xReleaseAfterSend != 0 );
-    
-    /* Get the pointer to the private data */
-    hEnet = pxNetIFArgs->hEnet;
-    hTxHandle  = hEnet->mapNetif2Tx[pxNetIFArgs->xNetIFID];
-    macPort    = hEnet->mapNetif2TxPortNum[pxNetIFArgs->xNetIFID];
-
-    configASSERT(hEnet != NULL);
-    configASSERT(hTxHandle != NULL);
+    const Enet_MacPort macPort = pxCustomInterface->macPort;
+    EnetNetIF_TxHandle hTx = pxCustomInterface->hTx[0];
 
     /* Enqueue the packet */
-    NetBufQueue_enQ(&hTxHandle->readyPbufQ, pxDescriptor);
-    // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hTxHandle->stats.readyPbufPktEnq);
+    NetBufQueue_enQ(&hTx->readyPbufQ, pxDescriptor);
 
     /* Pass the packet to the translation layer */
-    EnetNetIF_sendTxPackets(hTxHandle, macPort);
+    EnetNetIF_sendTxPackets(pxCustomInterface, macPort);
 
     /* Packet has been successfully transmitted or enqueued to be sent when link comes up */
     return pdTRUE;
+
 }
 
 static BaseType_t xAM243x_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
