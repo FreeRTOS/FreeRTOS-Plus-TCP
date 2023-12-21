@@ -55,6 +55,7 @@
 #include <networking/enet/utils/include/enet_appsoc.h>
 #include <networking/enet/utils/include/enet_apprm.h>
 
+#include "ti_enet_open_close.h"
 #include "Enet_NetIF.h"
 
 /*-----------------------------------------------------------*/
@@ -74,7 +75,6 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 
 /* ENET config macros */
 
-#define ENET_SYSCFG_NETIF_COUNT                     (1U)
 #define ETH_MAX_PACKET_SIZE        ( ( uint32_t ) 1536U ) // TODO Make sure this is 32 byte aligned #define ENET_MEM_LARGE_POOL_PKT_SIZE        ENET_UTILS_ALIGN(1536U, ENET_UTILS_CACHELINE_SIZE)
 
 /*-----------------------------------------------------------*/
@@ -139,10 +139,10 @@ NetworkInterface_t * pxAM243x_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex
 {
 
     NetworkInterface_t * pxRetInterface = NULL;
-    static char pcName[ENET_SYSCFG_NETIF_COUNT][ 8 ];
-    static xNetIFArgs uxNetIFArgs[ENET_SYSCFG_NETIF_COUNT];
+    static char pcName[ENET_FREERTOS_TCP_NETIF_COUNT][ 8 ];
+    static xNetIFArgs uxNetIFArgs[ENET_FREERTOS_TCP_NETIF_COUNT];
 
-    if(xEMACIndex < ENET_SYSCFG_NETIF_COUNT)
+    if(xEMACIndex < ENET_FREERTOS_TCP_NETIF_COUNT)
     {
 // TODO: Handle ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
 // #if ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
@@ -270,7 +270,7 @@ void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
                        NetworkInterface_t * pxInterfaceFromDriver,
                        NetworkBufferDescriptor_t * pxDescriptor)
 {
-    xEnetDriverHandle hEnet = rx->hEnetNetIF;
+    // xEnetDriverHandle hEnet = rx->hEnetNetIF;
     NetworkInterface_t * pxInterface;
 
 // #if (ENET_ENABLE_PER_CPSW == 1)
@@ -296,7 +296,7 @@ void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
 //     EnetNetIF_TxHandle hTxHandle;
 //     Enet_MacPort macPort;
 
-//     configASSERT(pxNetIFArgs->xNetIFID < ENET_SYSCFG_NETIF_COUNT);
+//     configASSERT(pxNetIFArgs->xNetIFID < ENET_FREERTOS_TCP_NETIF_COUNT);
 
 //     /* Only supports zero copy for now. Hence bReleaseAfterSend == 0 case
 //     should not happen */
@@ -328,7 +328,7 @@ static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInt
     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
     FreeRTOSTCP2Enet_netif_t * pxCustomInterface = &(pxNetIFArgs->hEnet->xInterface[pxNetIFArgs->xNetIFID]);
 
-    configASSERT(pxNetIFArgs->xNetIFID < ENET_SYSCFG_NETIF_COUNT);
+    configASSERT(pxNetIFArgs->xNetIFID < ENET_FREERTOS_TCP_NETIF_COUNT);
 
     const Enet_MacPort macPort = pxCustomInterface->macPort;
     EnetNetIF_TxHandle hTx = pxCustomInterface->hTx[0];
