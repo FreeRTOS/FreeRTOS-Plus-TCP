@@ -2021,8 +2021,8 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
 
         configASSERT( rxChIdIdx < 1 );
 
-        extern BaseType_t xNetworkBuffersInitialise_RX( void );
-        xNetworkBuffersInitialise_RX();
+        extern BaseType_t xNetworkBuffersInitialise_RX( EnetNetIF_RxHandle hRx );
+        xNetworkBuffersInitialise_RX((pInterface->hRx[rxChIdIdx]));
 
         EnetNetIF_initRxObj(enetType, instId, rxChId, pInterface->hRx[rxChIdIdx]);
 
