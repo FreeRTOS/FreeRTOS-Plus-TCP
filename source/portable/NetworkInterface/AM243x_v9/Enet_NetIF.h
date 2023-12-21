@@ -45,10 +45,17 @@
 #include <enet_cfg.h>
 #include "Enet_NetIFQueue.h"
 
+#ifndef FREERTOS_ENET_NETIF_H
+    #define FREERTOS_ENET_NETIF_H
+
 #define NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS      (ENET_SYSCFG_TOTAL_NUM_RX_PKT)
 
 #define CONFIG_MAX_RX_CHANNELS      2
 #define CONFIG_MAX_TX_CHANNELS      2
+
+#define ENETNETIF_PACKET_POLL_PERIOD_US (1000U)
+
+#define ENET_FREERTOS_TCP_NETIF_COUNT                     (1U)
 
 /* ========================================================================== */
 /*                                 Macros                                     */
@@ -105,6 +112,8 @@ void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNe
 
  * FREERTOS2enet supports only one channel association */
 #define FREERTOSIF_MAX_TX_CHANNELS_PER_PHERIPHERAL   (1U)
+
+#define NETIF_INST_ID0           (0U)
 
 /* Callback used by ENET to allocate RX payload buffers */
 uint8_t * getEnetAppBuffMem(uint32_t req_Size, uint8_t *pktAddr);
@@ -343,86 +352,86 @@ typedef struct EnetNetIF_TxObj_s
  * \details
  *  This structure caches the device info.
  */
-typedef struct xEnetDriverObj
-{
-    /*! RX object */
-    EnetNetIF_RxObj rx[CONFIG_MAX_RX_CHANNELS];
+// typedef struct xEnetDriverObj
+// {
+//     /*! RX object */
+//     EnetNetIF_RxObj rx[CONFIG_MAX_RX_CHANNELS];
 
-    /*! Number of RX channels allocated by Application */
-    uint32_t numRxChannels;
+//     /*! Number of RX channels allocated by Application */
+//     uint32_t numRxChannels;
 
-	/*! TX object */
-    EnetNetIF_TxObj tx[CONFIG_MAX_TX_CHANNELS];
+// 	/*! TX object */
+//     EnetNetIF_TxObj tx[CONFIG_MAX_TX_CHANNELS];
 
-    /*! Number of TX channels allocated by Application */
-    uint32_t numTxChannels;
+//     /*! Number of TX channels allocated by Application */
+//     uint32_t numTxChannels;
 
-    /*! lwIP network interface */
-    NetworkInterface_t * pxInterface[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
-    uint32_t numOpenedNetifs;
+//     /*! lwIP network interface */
+//     NetworkInterface_t * pxInterface[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
+//     uint32_t numOpenedNetifs;
 
-    uint8_t macAddr[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED][ENET_MAC_ADDR_LEN];
-	/*! Total number of allocated PktInfo elements */
-    uint32_t allocPktInfo;
-    bool isInitDone;
-    bool isAllocated;
+//     uint8_t macAddr[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED][ENET_MAC_ADDR_LEN];
+// 	/*! Total number of allocated PktInfo elements */
+//     uint32_t allocPktInfo;
+//     bool isInitDone;
+//     bool isAllocated;
 
-    EnetNetIF_AppIf_GetEnetIFInstInfo appInfo;
-    /** Initialization flag.*/
-    uint32_t initDone;
-    /** Index of currently connect physical port.*/
-    uint32_t currLinkedIf;
+//     EnetNetIF_AppIf_GetEnetIFInstInfo appInfo;
+//     /** Initialization flag.*/
+//     uint32_t initDone;
+//     /** Index of currently connect physical port.*/
+//     uint32_t currLinkedIf;
 
-    /** Current RX filter */
-    uint32_t rxFilter;
-    /** Previous MCast Address Counter */
-    uint32_t oldMCastCnt;
-    /** Previous Multicast list configured by the Application.*/
-    uint8_t bOldMCast[(uint32_t)ENET_MAC_ADDR_LEN * CONFG_PKT_MAX_MCAST];
-    /** Current MCast Address Counter */
-    uint32_t MCastCnt;
-    /** Multicast list configured by the Application.*/
-    uint8_t bMCast[(uint32_t)ENET_MAC_ADDR_LEN * CONFG_PKT_MAX_MCAST];
-    /** Link is up flag. */
-    uint32_t linkIsUp;
-    /** Device is operating in test digital loopback mode.*/
-    uint32_t inDLBMode;
-    /** Total number of PBM packets allocated by application - used for debug purpose.*/
-    uint32_t numAllocPbufPkts;
+//     /** Current RX filter */
+//     uint32_t rxFilter;
+//     /** Previous MCast Address Counter */
+//     uint32_t oldMCastCnt;
+//     /** Previous Multicast list configured by the Application.*/
+//     uint8_t bOldMCast[(uint32_t)ENET_MAC_ADDR_LEN * CONFG_PKT_MAX_MCAST];
+//     /** Current MCast Address Counter */
+//     uint32_t MCastCnt;
+//     /** Multicast list configured by the Application.*/
+//     uint8_t bMCast[(uint32_t)ENET_MAC_ADDR_LEN * CONFG_PKT_MAX_MCAST];
+//     /** Link is up flag. */
+//     uint32_t linkIsUp;
+//     /** Device is operating in test digital loopback mode.*/
+//     uint32_t inDLBMode;
+//     /** Total number of PBM packets allocated by application - used for debug purpose.*/
+//     uint32_t numAllocPbufPkts;
 
-    /*
-     * Clock handle for triggering the packet Rx notify
-     */
-    ClockP_Object pacingClkObj;
+//     /*
+//      * Clock handle for triggering the packet Rx notify
+//      */
+//     ClockP_Object pacingClkObj;
 
-    /*
-     * Handle to Binary Semaphore LWIP_LWIPIF_input when Rx packet queue is ready
-     */
-    SemaphoreP_Object pollLinkSemObj;
+//     /*
+//      * Handle to Binary Semaphore LWIP_LWIPIF_input when Rx packet queue is ready
+//      */
+//     SemaphoreP_Object pollLinkSemObj;
 
-    /**< Print buffer */
-    char printBuf[ENET_CFG_PRINT_BUF_LEN];
+//     /**< Print buffer */
+//     char printBuf[ENET_CFG_PRINT_BUF_LEN];
 
-    /**< Print Function */
-    Enet_Print print;
+//     /**< Print Function */
+//     Enet_Print print;
 
-    /*! CPU load stats */
-    EnetNetIF_Stats stats;
+//     /*! CPU load stats */
+//     EnetNetIF_Stats stats;
 
-    EnetNetIF_RxHandle mapNetif2Rx[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
+//     EnetNetIF_RxHandle mapNetif2Rx[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
 
-    EnetNetIF_TxHandle mapNetif2Tx[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
+//     EnetNetIF_TxHandle mapNetif2Tx[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
 
-    NetworkInterface_t *mapRxPort2Netif[CPSW_STATS_MACPORT_MAX];
+//     NetworkInterface_t *mapRxPort2Netif[CPSW_STATS_MACPORT_MAX];
 
-    Enet_MacPort mapNetif2TxPortNum[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
+//     Enet_MacPort mapNetif2TxPortNum[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
 
 
-    Enet_notify_t rxPktNotify;
+//     Enet_notify_t rxPktNotify;
 
-    Enet_notify_t txPktNotify;
-}
-xEnetDriverObj, *xEnetDriverHandle;
+//     Enet_notify_t txPktNotify;
+// }
+// xEnetDriverObj, *xEnetDriverHandle;
 
 /**
  * \brief
@@ -446,6 +455,56 @@ typedef struct
     bool isLinkUp;
     uint8_t isActive;
 } FreeRTOSTCP2Enet_netif_t;
+
+typedef struct xEnetDriverObj
+{
+    FreeRTOSTCP2Enet_netif_t xInterface[FREERTOS_TCPIF_MAX_NETIFS_SUPPORTED];
+    uint32_t numOpenedNetifs;
+
+    uint32_t allocPktInfo;
+    EnetNetIF_AppIf_GetEnetIFInstInfo appInfo;
+    bool isInitDone;
+    bool isAllocated;
+    /** Index of currently connect physical port.*/
+    uint32_t currLinkedIf;
+
+    /** Current RX filter */
+    uint32_t rxFilter;
+    /** Previous MCast Address Counter */
+    uint32_t oldMCastCnt;
+    /** Previous Multicast list configured by the Application.*/
+    uint8_t bOldMCast[(uint32_t)ENET_MAC_ADDR_LEN * CONFG_PKT_MAX_MCAST];
+    /** Current MCast Address Counter */
+    uint32_t MCastCnt;
+    /** Multicast list configured by the Application.*/
+    uint8_t bMCast[(uint32_t)ENET_MAC_ADDR_LEN * CONFG_PKT_MAX_MCAST];
+
+    /** Device is operating in test digital loopback mode.*/
+    uint32_t inDLBMode;
+    /** Total number of PBM packets allocated by application - used for debug purpose.*/
+    uint32_t numAllocPbufPkts;
+
+    /*
+     * Clock handle for triggering the packet Rx notify
+     */
+    ClockP_Object pacingClkObj;
+
+    /**< Print buffer */
+    char printBuf[ENET_CFG_PRINT_BUF_LEN];
+
+    /**< Print Function */
+    Enet_Print print;
+
+    /*! CPU load stats */
+    EnetNetIF_Stats stats;
+
+    EnetNetIF_RxObj  rx[CONFIG_MAX_RX_CHANNELS];
+    EnetNetIF_TxObj  tx[CONFIG_MAX_TX_CHANNELS];
+
+    // uint32_t lwip2EnetRxObjCount;
+    // uint32_t lwip2EnetTxObjCount;
+}
+xEnetDriverObj, *xEnetDriverHandle;
 
 typedef struct _xNetIFArgs
 {
@@ -485,5 +544,8 @@ typedef struct EnetNetIF_AppIf_CustomNetBuf_t
 
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface);
 
+void EnetNetIF_sendTxPackets(FreeRTOSTCP2Enet_netif_t* pInterface, const Enet_MacPort macPort);
+
 #define ENETNETIF_RXFLOW_2_PORTIDX(num) (num - 1U)
 
+#endif /* FREERTOS_ENET_NETIF_H */
