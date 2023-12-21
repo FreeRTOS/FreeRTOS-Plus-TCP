@@ -358,7 +358,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor_RX( size_t xRequest
 {
     NetworkBufferDescriptor_t * pxReturn = NULL;
     BaseType_t xInvalid = pdFALSE;
-    UBaseType_t uxCount;
+    //UBaseType_t uxCount;
 
     /* The current implementation only has a single size memory block, so
      * the requested size parameter is not used (yet). */
