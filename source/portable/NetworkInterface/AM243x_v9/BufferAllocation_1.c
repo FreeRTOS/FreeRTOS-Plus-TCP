@@ -173,7 +173,7 @@ static void prvShowWarnings( void );
 
 #endif /* ipconfigTCP_IP_SANITY */
 
-BaseType_t xNetworkBuffersInitialise_RX( EnetNetIF_RxHandle *hRx )
+BaseType_t xNetworkBuffersInitialise_RX( EnetNetIF_RxHandle hRx )
 {
     uint32_t x;
     vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( xCustomNetworkBuffers_RX_POOL );
