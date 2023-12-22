@@ -51,7 +51,7 @@
 /***********************************************************************************************************************
  * Macro definitions
  **********************************************************************************************************************/
-#define ETHER_BUFSIZE_MIN    60
+#define ETHER_BUFSIZE_MIN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
 
 #if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) || defined( BSP_MCU_RX72M ) || defined( BSP_MCU_RX72N )
     #if ETHER_CFG_MODE_SEL == 0
@@ -90,7 +90,7 @@ static int16_t SendData( uint8_t * pucBuffer,
                          size_t length );
 static int InitializeNetwork( void );
 static void prvEMACDeferredInterruptHandlerTask( void * pvParameters );
-static void clear_all_ether_rx_discriptors( uint32_t event );
+static void clear_all_ether_rx_descriptors( uint32_t event );
 
 int32_t callback_ether_regist( void );
 void EINT_Trig_isr( void * );
@@ -340,7 +340,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
                         /* Make a call to the standard trace macro to log the occurrence. */
                         iptraceETHERNET_RX_EVENT_LOST();
-                        clear_all_ether_rx_discriptors( 0 );
+                        clear_all_ether_rx_descriptors( 0 );
                     }
                     else
                     {
@@ -361,7 +361,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 /* The event was lost because a network buffer was not available.
                  * Call the standard trace macro to log the occurrence. */
                 iptraceETHERNET_RX_EVENT_LOST();
-                clear_all_ether_rx_discriptors( 1 );
+                clear_all_ether_rx_descriptors( 1 );
                 FreeRTOS_printf( ( "R_ETHER_Read_ZC2: Cleared descriptors\n" ) );
             }
         }
@@ -587,7 +587,7 @@ void EINT_Trig_isr( void * ectrl )
 } /* End of function EINT_Trig_isr() */
 
 
-static void clear_all_ether_rx_discriptors( uint32_t event )
+static void clear_all_ether_rx_descriptors( uint32_t event )
 {
     int32_t xBytesReceived;
     uint8_t * buffer_pointer;
