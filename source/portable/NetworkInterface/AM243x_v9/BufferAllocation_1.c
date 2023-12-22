@@ -321,6 +321,8 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                 if( uxMinimumFreeNetworkBuffers > uxCount )
                 {
                     uxMinimumFreeNetworkBuffers = uxCount;
+
+                    FreeRTOS_printf( ( "Network buffers lowest: %d\n", uxMinimumFreeNetworkBuffers ) );
                 }
 
                 pxReturn->xDataLength = xRequestedSizeBytes;
@@ -515,6 +517,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
         if (pxNetworkBuffer >= &xCustomNetworkBuffers_RX_POOL[0] && pxNetworkBuffer <= &xCustomNetworkBuffers_RX_POOL[NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS - 1])
         {
             EnetNetIF_AppCb_ReleaseNetDescriptor(pxNetworkBuffer);
+            FreeRTOS_printf( ( "vReleaseNetworkBufferAndDescriptor Rx\n" ) );
         }
         else
         {
