@@ -51,7 +51,7 @@
 /***********************************************************************************************************************
  * Macro definitions
  **********************************************************************************************************************/
-#define ETHER_BUFSIZE_MIN    ( ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER )
+#define ETHER_BUFSIZE_MIN    60
 
 #if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) || defined( BSP_MCU_RX72M ) || defined( BSP_MCU_RX72N )
     #if ETHER_CFG_MODE_SEL == 0
@@ -66,6 +66,22 @@
         #define R_ETHER_PinSet_CHANNEL_0()    R_ETHER_PinSet_ETHERC_RMII()
     #endif
 #endif /* if defined( BSP_MCU_RX65N ) || defined( BSP_MCU_RX64M ) || defined( BSP_MCU_RX71M ) */
+
+#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
+    #error please use the new defines with 'ipconfig' prefix
+#endif
+
+#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+
+/* Check if the LinkStatus in the PHY is still high after 2 seconds of not
+ * receiving packets. */
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    2000U
+#endif
+
+#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
+    /* Check if the LinkStatus in the PHY is still low every second. */
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
+#endif
 
 
 /***********************************************************************************************************************
@@ -348,7 +364,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
                         /* Make a call to the standard trace macro to log the occurrence. */
                         iptraceETHERNET_RX_EVENT_LOST();
-                        clear_all_ether_rx_descriptors( 0 );
+                        clear_all_ether_rx_discriptors( 0 );
                     }
                     else
                     {
@@ -369,7 +385,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                 /* The event was lost because a network buffer was not available.
                  * Call the standard trace macro to log the occurrence. */
                 iptraceETHERNET_RX_EVENT_LOST();
-                clear_all_ether_rx_descriptors( 1 );
+                clear_all_ether_rx_discriptors( 1 );
                 FreeRTOS_printf( ( "R_ETHER_Read_ZC2: Cleared descriptors\n" ) );
             }
         }
@@ -564,7 +580,7 @@ void EINT_Trig_isr( void * ectrl )
 } /* End of function EINT_Trig_isr() */
 
 
-static void clear_all_ether_rx_descriptors( uint32_t event )
+static void clear_all_ether_rx_discriptors( uint32_t event )
 {
     int32_t xBytesReceived;
     uint8_t * buffer_pointer;

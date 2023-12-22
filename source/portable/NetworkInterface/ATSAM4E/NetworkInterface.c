@@ -53,6 +53,22 @@
     #define BMSR_LINK_STATUS    0x0004          /*!< Link status */
 #endif
 
+#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
+    #error please use the new defines with 'ipconfig' prefix
+#endif
+
+#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
+
+/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
+ * receiving packets. */
+    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
+#endif
+
+#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
+    /* Check if the LinkStatus in the PHY is still low every second. */
+    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
+#endif
+
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future
  * expansion. */
