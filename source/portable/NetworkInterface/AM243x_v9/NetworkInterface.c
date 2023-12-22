@@ -283,7 +283,7 @@ void AM243x_Eth_NetworkInterfaceInput(EnetNetIF_RxObj *rx,
 
     // TODO use pxInterface as pxInterfaceFromDriver
     pxDescriptor->pxInterface = pxInterfaceFromDriver;
-    pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxInterface, pxDescriptor->pucEthernetBuffer );
+    pxDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxInterfaceFromDriver, pxDescriptor->pucEthernetBuffer );
     prvPassEthMessages(pxDescriptor);
 }
 
