@@ -106,11 +106,12 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
  * | 32 | 64 | 32  | 64  | 32 | 64 |
  * |----|----|-----|-----|----|----|
  * | 0  | 0  | 4   | 8   | 4  | 8  | uchar_8 * pointer;     // Points to the 'NetworkBufferDescriptor_t'.
- * | 4  | 8  | 4   | 8   | 2  | 2  | uchar_8   filler[];    // To give the +2 byte offset.
- * | 6  | 10 | 4+2 | 8+2 | 6  | 6  | uchar_8   dest_mac[6]; // Destination address.
- * | 12 | 16 | 4   | 8   | 6  | 6  | uchar_8   src_mac[6];  // Source address.
- * | 18 | 22 | 4+2 | 8+6 | 2  | 2  | uchar16_t ethertype;
- * | 20 | 24 | 4   | 8   | ~  | ~  | << IP-header >>        // word-aligned, either 4 or 8 bytes.
+ * | 4  | 8  | 4   | 8   | 6  | 6  | uchar_8   filler[6];   // To give the +2 byte offset.
+ * |-------------------------------|
+ * | 10 | 14 | 4+2 | 8+2 | 6  | 6  | uchar_8   dest_mac[6]; // Destination address.
+ * | 16 | 20 | 4   | 8   | 6  | 6  | uchar_8   src_mac[6];  // Source address.
+ * | 22 | 26 | 4+2 | 4+2 | 2  | 2  | uchar16_t ethertype;
+ * | 24 | 28 | 4   | 4   | ~  | ~  | << IP-header >>        // word-aligned, either 4 or 8 bytes.
  *  uint8_t ucVersionHeaderLength;
  *  etc
  */
