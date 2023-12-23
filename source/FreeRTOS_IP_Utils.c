@@ -985,6 +985,8 @@ void vPreCheckConfigs( void )
     {
         size_t uxSize;
 
+        /* Check if ipBUFFER_PADDING has a minimum size, depending on the platform.
+         * See FreeRTOS_IP.h for more details. */
         #if ( UINTPTR_MAX > 0xFFFFFFFFU )
 
             /*
@@ -997,8 +999,12 @@ void vPreCheckConfigs( void )
             configASSERT( ipBUFFER_PADDING >= 10U );
         #endif /* UINTPTR_MAX > 0xFFFFFFFFU */
 
-        /* And it must have this strange alignment: */
-        configASSERT( ( ( ( ipBUFFER_PADDING ) + 2U ) % 4U ) == 0U );
+        /*
+         * The size of the Ethernet header (14) plus ipBUFFER_PADDING should be a
+         * multiple of 32 bits, in order to get aligned access to all uint32_t
+         * fields in the protocol headers.
+         */
+        configASSERT( ( ( ( ipSIZE_OF_ETH_HEADER ) + ( ipBUFFER_PADDING ) ) % 4U ) == 0U );
 
         /* LCOV_EXCL_BR_START */
         uxSize = ipconfigNETWORK_MTU;
