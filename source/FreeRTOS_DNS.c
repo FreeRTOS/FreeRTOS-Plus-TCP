@@ -282,7 +282,8 @@
 
             ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
             pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
-            ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) );
+            ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) - 1 );
+            pxAddrInfo->xPrivateStorage.ucName[ sizeof( pxAddrInfo->xPrivateStorage.ucName ) - 1 ] = '\0';
 
             pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
 
@@ -1081,9 +1082,7 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const DNSMessage_t * pxDNSMessageHeader =
-            ( ( const DNSMessage_t * )
-              pxReceiveBuffer->pucPayloadBuffer );
+        const DNSMessage_t * pxDNSMessageHeader = ( const DNSMessage_t * ) pxReceiveBuffer->pucPayloadBuffer;
 
         #if ( ipconfigUSE_MDNS == 1 )
             /* _HT_ changed 'pxReceiveBuffer->sin_port' to 'usPort' */

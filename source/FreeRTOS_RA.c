@@ -168,6 +168,10 @@
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer );
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
             xRASolicitationRequest = ( ( ICMPRouterSolicitation_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
 
             pxDescriptor->xDataLength = uxNeededSize;
