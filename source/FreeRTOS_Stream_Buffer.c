@@ -32,17 +32,14 @@
 
 /* Standard includes. */
 #include <stdint.h>
+#include <string.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "task.h"
-#include "semphr.h"
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_Sockets.h"
-#include "FreeRTOS_IP_Private.h"
 
 
 /**
@@ -57,15 +54,17 @@ size_t uxStreamBufferSpace( const StreamBuffer_t * const pxBuffer,
                             size_t uxLower,
                             size_t uxUpper )
 {
-    size_t uxCount = pxBuffer->LENGTH + uxUpper - uxLower - 1U;
+    const size_t uxLength = pxBuffer->LENGTH;
+    size_t uxCount = uxLength + uxUpper - uxLower - 1U;
 
-    if( uxCount >= pxBuffer->LENGTH )
+    if( uxCount >= uxLength )
     {
-        uxCount -= pxBuffer->LENGTH;
+        uxCount -= uxLength;
     }
 
     return uxCount;
 }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Get the distance between lower and upper value provided to the function.
@@ -78,15 +77,17 @@ size_t uxStreamBufferDistance( const StreamBuffer_t * const pxBuffer,
                                size_t uxLower,
                                size_t uxUpper )
 {
-    size_t uxCount = pxBuffer->LENGTH + uxUpper - uxLower;
+    const size_t uxLength = pxBuffer->LENGTH;
+    size_t uxCount = uxLength + uxUpper - uxLower;
 
-    if( uxCount >= pxBuffer->LENGTH )
+    if( uxCount >= uxLength )
     {
-        uxCount -= pxBuffer->LENGTH;
+        uxCount -= uxLength;
     }
 
     return uxCount;
 }
+/*-----------------------------------------------------------*/
 
 /**
  * @brief Get the number of items which can be added to the buffer at
@@ -97,10 +98,7 @@ size_t uxStreamBufferDistance( const StreamBuffer_t * const pxBuffer,
  */
 size_t uxStreamBufferGetSpace( const StreamBuffer_t * const pxBuffer )
 {
-    const size_t uxHead = pxBuffer->uxHead;
-    const size_t uxTail = pxBuffer->uxTail;
-
-    return uxStreamBufferSpace( pxBuffer, uxHead, uxTail );
+    return uxStreamBufferSpace( pxBuffer, pxBuffer->uxHead, pxBuffer->uxTail );
 }
 /*-----------------------------------------------------------*/
 
@@ -112,10 +110,7 @@ size_t uxStreamBufferGetSpace( const StreamBuffer_t * const pxBuffer )
  */
 size_t uxStreamBufferFrontSpace( const StreamBuffer_t * const pxBuffer )
 {
-    const size_t uxFront = pxBuffer->uxFront;
-    const size_t uxTail = pxBuffer->uxTail;
-
-    return uxStreamBufferSpace( pxBuffer, uxFront, uxTail );
+    return uxStreamBufferSpace( pxBuffer, pxBuffer->uxFront, pxBuffer->uxTail );
 }
 /*-----------------------------------------------------------*/
 
@@ -128,10 +123,7 @@ size_t uxStreamBufferFrontSpace( const StreamBuffer_t * const pxBuffer )
  */
 size_t uxStreamBufferGetSize( const StreamBuffer_t * const pxBuffer )
 {
-    const size_t uxHead = pxBuffer->uxHead;
-    const size_t uxTail = pxBuffer->uxTail;
-
-    return uxStreamBufferDistance( pxBuffer, uxTail, uxHead );
+    return uxStreamBufferDistance( pxBuffer, pxBuffer->uxTail, pxBuffer->uxHead );
 }
 /*-----------------------------------------------------------*/
 
@@ -143,10 +135,7 @@ size_t uxStreamBufferGetSize( const StreamBuffer_t * const pxBuffer )
  */
 size_t uxStreamBufferMidSpace( const StreamBuffer_t * const pxBuffer )
 {
-    const size_t uxHead = pxBuffer->uxHead;
-    const size_t uxMid = pxBuffer->uxMid;
-
-    return uxStreamBufferDistance( pxBuffer, uxMid, uxHead );
+    return uxStreamBufferDistance( pxBuffer, pxBuffer->uxMid, pxBuffer->uxHead );
 }
 /*-----------------------------------------------------------*/
 
@@ -175,18 +164,13 @@ void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
 {
     /* Increment uxMid, but no further than uxHead */
     const size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
-    size_t uxMoveCount = uxCount;
-
-    if( uxMoveCount > uxSize )
-    {
-        uxMoveCount = uxSize;
-    }
-
+    const size_t uxMoveCount = FreeRTOS_min_size_t( uxCount, uxSize );
+    const size_t uxLength = pxBuffer->LENGTH;
     size_t uxMid = pxBuffer->uxMid + uxMoveCount;
 
-    if( uxMid >= pxBuffer->LENGTH )
+    if( uxMid >= uxLength )
     {
-        uxMid -= pxBuffer->LENGTH;
+        uxMid -= uxLength;
     }
 
     pxBuffer->uxMid = uxMid;
@@ -209,7 +193,6 @@ BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * const pxBuffer,
     BaseType_t xReturn = pdFALSE;
     const size_t uxTail = pxBuffer->uxTail;
 
-    /* Returns true if ( uxLeft <= uxRight ) */
     if( ( uxLeft - uxTail ) <= ( uxRight - uxTail ) )
     {
         xReturn = pdTRUE;
@@ -277,6 +260,7 @@ size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
 
     if( uxCount != 0U )
     {
+        const size_t uxLength = pxBuffer->LENGTH;
         size_t uxNextHead = pxBuffer->uxHead;
 
         if( uxOffset != 0U )
@@ -284,18 +268,18 @@ size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
             /* ( uxOffset > 0 ) means: write in front if the uxHead marker */
             uxNextHead += uxOffset;
 
-            if( uxNextHead >= pxBuffer->LENGTH )
+            if( uxNextHead >= uxLength )
             {
-                uxNextHead -= pxBuffer->LENGTH;
+                uxNextHead -= uxLength;
             }
         }
 
         if( pucData != NULL )
         {
             /* Calculate the number of bytes that can be added in the first
-            * write - which may be less than the total number of bytes that need
-            * to be added if the buffer will wrap back to the beginning. */
-            const size_t uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextHead, uxCount );
+             * write - which may be less than the total number of bytes that need
+             * to be added if the buffer will wrap back to the beginning. */
+            const size_t uxFirst = FreeRTOS_min_size_t( uxLength - uxNextHead, uxCount );
 
             /* Write as many bytes as can be written in the first write. */
             ( void ) memcpy( &( pxBuffer->ucArray[ uxNextHead ] ), pucData, uxFirst );
@@ -319,9 +303,9 @@ size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
                 /* ( uxOffset == 0 ) means: write at uxHead position */
                 uxNextHead += uxCount;
 
-                if( uxNextHead >= pxBuffer->LENGTH )
+                if( uxNextHead >= uxLength )
                 {
-                    uxNextHead -= pxBuffer->LENGTH;
+                    uxNextHead -= uxLength;
                 }
 
                 pxBuffer->uxHead = uxNextHead;
@@ -375,15 +359,16 @@ size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
 
     if( uxCount != 0U )
     {
+        const size_t uxLength = pxBuffer->LENGTH;
         size_t uxNextTail = pxBuffer->uxTail;
 
         if( uxOffset != 0U )
         {
             uxNextTail += uxOffset;
 
-            if( uxNextTail >= pxBuffer->LENGTH )
+            if( uxNextTail >= uxLength )
             {
-                uxNextTail -= pxBuffer->LENGTH;
+                uxNextTail -= uxLength;
             }
         }
 
@@ -392,7 +377,7 @@ size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
             /* Calculate the number of bytes that can be read - which may be
              * less than the number wanted if the data wraps around to the start of
              * the buffer. */
-            const size_t uxFirst = FreeRTOS_min_size_t( pxBuffer->LENGTH - uxNextTail, uxCount );
+            const size_t uxFirst = FreeRTOS_min_size_t( uxLength - uxNextTail, uxCount );
 
             /* Obtain the number of bytes it is possible to obtain in the first
              * read. */
@@ -402,7 +387,7 @@ size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
              * that could be read in the first read... */
             if( uxCount > uxFirst )
             {
-                /*...then read the remaining bytes from the start of the buffer. */
+                /* ...then read the remaining bytes from the start of the buffer. */
                 ( void ) memcpy( &( pucData[ uxFirst ] ), pxBuffer->ucArray, uxCount - uxFirst );
             }
         }
@@ -413,9 +398,9 @@ size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
              * the buffer. */
             uxNextTail += uxCount;
 
-            if( uxNextTail >= pxBuffer->LENGTH )
+            if( uxNextTail >= uxLength )
             {
-                uxNextTail -= pxBuffer->LENGTH;
+                uxNextTail -= uxLength;
             }
 
             pxBuffer->uxTail = uxNextTail;
@@ -424,3 +409,4 @@ size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
 
     return uxCount;
 }
+/*-----------------------------------------------------------*/
