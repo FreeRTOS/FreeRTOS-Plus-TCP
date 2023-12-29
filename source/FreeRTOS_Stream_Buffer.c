@@ -277,8 +277,8 @@ size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
         if( pucData != NULL )
         {
             /* Calculate the number of bytes that can be added in the first
-             * write - which may be less than the total number of bytes that need
-             * to be added if the buffer will wrap back to the beginning. */
+            * write - which may be less than the total number of bytes that need
+            * to be added if the buffer will wrap back to the beginning. */
             const size_t uxFirst = FreeRTOS_min_size_t( uxLength - uxNextHead, uxCount );
 
             /* Write as many bytes as can be written in the first write. */
