@@ -164,7 +164,7 @@ void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
 {
     /* Increment uxMid, but no further than uxHead */
     const size_t uxSize = uxStreamBufferMidSpace( pxBuffer );
-    const size_t uxMoveCount = FreeRTOS_min_size_t( uxCount, uxSize );
+    const size_t uxMoveCount = ( uxCount > uxSize ) ? uxSize : uxCount;
     const size_t uxLength = pxBuffer->LENGTH;
     size_t uxMid = pxBuffer->uxMid + uxMoveCount;
 
