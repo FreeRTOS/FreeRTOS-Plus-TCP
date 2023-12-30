@@ -233,6 +233,15 @@
                                                  BaseType_t * pxHigherPriorityTaskWoken );
     #endif
 
+/* This option adds the possibility to have a user-ID attached to a socket.
+ * The type of this ID is a void *.  Both UDP and TCP sockets have
+ * this ID. It has a default value of NULL.
+ */
+    BaseType_t xSocketSetSocketID( const Socket_t xSocket,
+                                   void * pvSocketID );
+
+    void * pvSocketGetSocketID( const ConstSocket_t xSocket );
+
 /* End Common Socket Attributes */
 
 
@@ -382,15 +391,6 @@
         const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
 
         void FreeRTOS_netstat( void );
-
-/* This option adds the possibility to have a user-ID attached to a socket.
- * The type of this ID is a void *.  Both UDP and TCP sockets have
- * this ID. It has a default value of NULL.
- */
-        BaseType_t xSocketSetSocketID( const Socket_t xSocket,
-                                       void * pvSocketID );
-
-        void * pvSocketGetSocketID( const ConstSocket_t xSocket );
 
 /* End TCP Socket Attributes. */
 
