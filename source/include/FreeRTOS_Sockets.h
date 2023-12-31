@@ -242,6 +242,9 @@
 
     void * pvSocketGetSocketID( const ConstSocket_t xSocket );
 
+/* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
+    BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
+
 /* End Common Socket Attributes */
 
 
@@ -360,9 +363,6 @@
 /* Return the remote address and IP port of a connected TCP Socket. */
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr * pxAddress );
-
-/* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
-        BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
 
 /* Returns the number of bytes that may be added to txStream. */
         BaseType_t FreeRTOS_maywrite( ConstSocket_t xSocket );
