@@ -403,6 +403,7 @@ void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNe
             // NetBufQueue_enQ(&rx->freePbufInfoQ, (NetworkBufferDescriptor_t *) xCNetBuf);
             // LWIP2ENETSTATS_ADDONE(&rx->stats.freePbufPktEnq);
             scatterSegmentIndex++;
+            configASSERT(scatterSegmentIndex == 1);
             configASSERT(scatterSegmentIndex <= ENET_ARRAYSIZE(pDmaPacket->sgList.list));
             xCNetBuf = cPbufNext;
         } while(start != xCNetBuf);
@@ -1060,6 +1061,8 @@ static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
 
                 // cPbuf  = (Rx_CustomPbuf *)NetBufQueue_deQ(&rx->freePbufInfoQ);
                 cPbuf = (EnetNetIF_AppIf_CustomNetBuf *) pxPacketBuffer_to_NetworkBuffer(list->bufPtr);
+
+                configASSERT(cPbuf->pvNetBuffDebug == list->bufPtr);
                 // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&rx->stats.freePbufPktDeq);
                 if (scatterSegmentIndex == 0)
                 {
@@ -1401,6 +1404,7 @@ static void EnetNetIF_setSGList(EnetDma_Pkt *pCurrDmaPacket, NetworkBufferDescri
             break;
         #endif
     }
+    configASSERT(pCurrDmaPacket->sgList.numScatterSegments == 1);
     configASSERT(totalPacketFilledLen == netBufPkt->xDataLength);
 }
 
@@ -1623,6 +1627,7 @@ void EnetNetIF_sendTxPackets(FreeRTOSTCP2Enet_netif_t* pInterface, const Enet_Ma
             }
             else
             {
+                configASSERT((0));
                 break;
             }
         }
@@ -2054,6 +2059,8 @@ xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface)
             pInterface->hRx[rxChIdIdx]->mapPortToInterface[macPort] = pxInterface;
             pInterface->macPort = macPort;
         }
+
+        // pInterface->macPort = ENET_MAC_PORT_1;
 
         // MAC address allocation for the Netifs
         EnetApp_getMacAddress(rxChId, &macAddr);

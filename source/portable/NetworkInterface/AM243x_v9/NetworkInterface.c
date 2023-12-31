@@ -339,6 +339,41 @@ static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInt
     /* Pass the packet to the translation layer */
     EnetNetIF_sendTxPackets(pxCustomInterface, macPort);
 
+    #if 1
+
+        uint16_t usFrameType;
+        const ProtocolPacket_t * pxPacketGeneric = ( ( const ProtocolPacket_t * ) pxDescriptor->pucEthernetBuffer );
+        usFrameType = pxPacketGeneric->xUDPPacket.xEthernetHeader.usFrameType;
+        switch ((usFrameType))
+        {
+        case ipIPv4_FRAME_TYPE:
+            {
+                IP_Address_t xIPAddressFrom;
+                IP_Address_t xIPAddressTo;
+                const ProtocolPacket_t * pxPacket = ( ( const ProtocolPacket_t * ) pxDescriptor->pucEthernetBuffer );
+                xIPAddressFrom.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulSourceIPAddress;
+                xIPAddressTo.ulIP_IPv4 = pxPacket->xUDPPacket.xIPHeader.ulDestinationIPAddress;
+                FreeRTOS_debug_printf( ( "+++>> xAM243x_Eth_NetworkInterfaceOutput: %xip -> %xip Frame:  IPv4\n\r", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                break;
+            }
+
+        case ipARP_FRAME_TYPE:
+            {
+                IP_Address_t xIPAddressFrom;
+                IP_Address_t xIPAddressTo;
+                const ProtocolPacket_t * pxPacket = ( ( const ProtocolPacket_t * ) pxDescriptor->pucEthernetBuffer );
+                xIPAddressFrom.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ucSenderProtocolAddress;
+                xIPAddressTo.ulIP_IPv4 = pxPacket->xARPPacket.xARPHeader.ulTargetProtocolAddress;
+                FreeRTOS_debug_printf( ( "+++>> xAM243x_Eth_NetworkInterfaceOutput: %xip -> %xip Frame:  ARP\n\r", ( unsigned ) FreeRTOS_ntohl( xIPAddressFrom.ulIP_IPv4 ), ( unsigned ) FreeRTOS_ntohl( xIPAddressTo.ulIP_IPv4 ) ) );
+                break;
+            }
+        default:
+            break;
+        }
+        
+
+    #endif
+
     /* Packet has been successfully transmitted or enqueued to be sent when link comes up */
     return pdTRUE;
 

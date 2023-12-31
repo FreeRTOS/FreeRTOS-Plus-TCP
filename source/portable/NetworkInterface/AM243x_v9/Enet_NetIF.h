@@ -284,7 +284,7 @@ typedef struct EnetNetIF_RxObj_s
     uint32_t flowIdx;
 
     /*! Queue with empty pbufs, payload is not populated */
-    NetBufQueue freePbufInfoQ;
+    // NetBufQueue freePbufInfoQ;
 
     /*! Queue that holds packets ready to be sent to the hardware,
      *  Buffer pointers are populated. */
@@ -539,6 +539,8 @@ typedef struct EnetNetIF_AppIf_CustomNetBuf_t
 
     /*! Original Buffer allocated length */
     uint32_t orgBufLen;
+
+    void *pvNetBuffDebug;
 
 } EnetNetIF_AppIf_CustomNetBuf;
 

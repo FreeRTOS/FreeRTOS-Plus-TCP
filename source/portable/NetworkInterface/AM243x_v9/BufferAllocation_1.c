@@ -190,6 +190,8 @@ BaseType_t xNetworkBuffersInitialise_RX( EnetNetIF_RxHandle hRx )
         xCustomNetworkBuffers_RX_POOL[ x ].orgBufLen = 0U;
         xCustomNetworkBuffers_RX_POOL[ x ].orgBufPtr = NULL;
 
+        xCustomNetworkBuffers_RX_POOL[ x ].pvNetBuffDebug = xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.pucEthernetBuffer;
+
         /* Currently, all buffers are available for use. */
         vListInsert( &xFreeBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
     }
@@ -517,7 +519,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
         if (pxNetworkBuffer >= &xCustomNetworkBuffers_RX_POOL[0] && pxNetworkBuffer <= &xCustomNetworkBuffers_RX_POOL[NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS - 1])
         {
             EnetNetIF_AppCb_ReleaseNetDescriptor(pxNetworkBuffer);
-            FreeRTOS_printf( ( "vReleaseNetworkBufferAndDescriptor Rx\n" ) );
+            // FreeRTOS_printf( ( "vReleaseNetworkBufferAndDescriptor Rx\n" ) );
         }
         else
         {
@@ -545,6 +547,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
             {
                 ( void ) xSemaphoreGive( xNetworkBufferSemaphore );
                 prvShowWarnings();
+                FreeRTOS_printf( ( "####>>> vReleaseNetworkBufferAndDescriptor TX\n" ) );
             }
 
             iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
