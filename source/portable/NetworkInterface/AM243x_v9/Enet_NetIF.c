@@ -812,7 +812,7 @@ void EnetNetIF_setNotifyCallbacks(NetworkInterface_t * pxInterface, Enet_notify_
 /*
 * create a function called postEvent[i]. each event, each postfxn.
 */
-static void EnetNetIFApp_postSemaphore(void *pArg)
+static void EnetNetIFApp_NotifyTask(void *pArg)
 {
 
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -1856,12 +1856,12 @@ void EnetNetIFApp_startSchedule(NetworkInterface_t * pxInterface)
     
     Enet_notify_t rxNotify =
         {
-           .cbFxn = &EnetNetIFApp_postSemaphore, //gives different cb fxn for different events.
+           .cbFxn = &EnetNetIFApp_NotifyTask, //gives different cb fxn for different events.
            .cbArg = (void *) ENET_RX_NOTIFY_BIT //
         };
     Enet_notify_t txNotify =
         {
-                .cbFxn = &EnetNetIFApp_postSemaphore,
+                .cbFxn = &EnetNetIFApp_NotifyTask,
                 .cbArg = (void *) ENET_TX_NOTIFY_BIT
         };
 
