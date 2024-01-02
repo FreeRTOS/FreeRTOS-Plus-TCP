@@ -51,8 +51,8 @@
  *         minus 1.
  */
 size_t uxStreamBufferSpace( const StreamBuffer_t * const pxBuffer,
-                            const size_t uxLower,
-                            const size_t uxUpper )
+                            size_t uxLower,
+                            size_t uxUpper )
 {
     const size_t uxLength = pxBuffer->LENGTH;
     size_t uxCount = uxLength + uxUpper - uxLower - 1U;
@@ -74,8 +74,8 @@ size_t uxStreamBufferSpace( const StreamBuffer_t * const pxBuffer,
  * @return The distance between uxLower and uxUpper.
  */
 size_t uxStreamBufferDistance( const StreamBuffer_t * const pxBuffer,
-                               const size_t uxLower,
-                               const size_t uxUpper )
+                               size_t uxLower,
+                               size_t uxUpper )
 {
     const size_t uxLength = pxBuffer->LENGTH;
     size_t uxCount = uxLength + uxUpper - uxLower;
@@ -160,7 +160,7 @@ void vStreamBufferClear( StreamBuffer_t * const pxBuffer )
  * @param[in] uxCount The byte count by which the mid pointer is to be moved.
  */
 void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
-                           const size_t uxCount )
+                           size_t uxCount )
 {
     /* Increment uxMid, but no further than uxHead */
     const size_t uxLength = pxBuffer->LENGTH;
@@ -194,8 +194,8 @@ void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
  * @return pdTRUE if uxLeft <= uxRight, else pdFALSE.
  */
 BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * const pxBuffer,
-                                       const size_t uxLeft,
-                                       const size_t uxRight )
+                                       size_t uxLeft,
+                                       size_t uxRight )
 {
     BaseType_t xReturn = pdFALSE;
     const size_t uxTail = pxBuffer->uxTail;
@@ -245,9 +245,9 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * const pxBuffer,
  * @return The number of bytes added to the buffer.
  */
 size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
-                          const size_t uxOffset,
+                          size_t uxOffset,
                           const uint8_t * const pucData,
-                          const size_t uxByteCount )
+                          size_t uxByteCount )
 {
     size_t uxCount;
     size_t uxSpace = uxStreamBufferGetSpace( pxBuffer );
@@ -345,10 +345,10 @@ size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
  * @return The count of the bytes read.
  */
 size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
-                          const size_t uxOffset,
+                          size_t uxOffset,
                           uint8_t * const pucData,
-                          const size_t uxMaxCount,
-                          const BaseType_t xPeek )
+                          size_t uxMaxCount,
+                          BaseType_t xPeek )
 {
     size_t uxCount;
 

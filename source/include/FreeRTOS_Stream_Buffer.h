@@ -54,12 +54,12 @@ typedef struct xSTREAM_BUFFER
 } StreamBuffer_t;
 
 size_t uxStreamBufferSpace( const StreamBuffer_t * const pxBuffer,
-                            const size_t uxLower,
-                            const size_t uxUpper );
+                            size_t uxLower,
+                            size_t uxUpper );
 
 size_t uxStreamBufferDistance( const StreamBuffer_t * const pxBuffer,
-                               const size_t uxLower,
-                               const size_t uxUpper );
+                               size_t uxLower,
+                               size_t uxUpper );
 
 size_t uxStreamBufferGetSpace( const StreamBuffer_t * const pxBuffer );
 
@@ -75,22 +75,22 @@ void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
                            const size_t uxCount );
 
 BaseType_t xStreamBufferLessThenEqual( const StreamBuffer_t * const pxBuffer,
-                                       const size_t uxLeft,
-                                       const size_t uxRight );
+                                       size_t uxLeft,
+                                       size_t uxRight );
 
 size_t uxStreamBufferGetPtr( StreamBuffer_t * const pxBuffer,
                              uint8_t ** const ppucData );
 
 size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
-                          const size_t uxOffset,
+                          size_t uxOffset,
                           const uint8_t * const pucData,
-                          const size_t uxByteCount );
+                          size_t uxByteCount );
 
 size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
-                          const size_t uxOffset,
+                          size_t uxOffset,
                           uint8_t * const pucData,
-                          const size_t uxMaxCount,
-                          const BaseType_t xPeek );
+                          size_t uxMaxCount,
+                          BaseType_t xPeek );
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
