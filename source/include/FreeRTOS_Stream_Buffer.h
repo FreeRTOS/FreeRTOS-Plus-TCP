@@ -84,12 +84,12 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * const pxBuffer,
 size_t uxStreamBufferAdd( StreamBuffer_t * const pxBuffer,
                           const size_t uxOffset,
                           const uint8_t * const pucData,
-                          size_t uxByteCount );
+                          const size_t uxByteCount );
 
 size_t uxStreamBufferGet( StreamBuffer_t * const pxBuffer,
                           const size_t uxOffset,
                           uint8_t * const pucData,
-                          size_t uxByteCount,
+                          const size_t uxMaxCount,
                           const BaseType_t xPeek );
 
 /* *INDENT-OFF* */
