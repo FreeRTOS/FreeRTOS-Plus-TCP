@@ -1171,7 +1171,7 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
 
     if( lPacketCount > 0 )
     {
-        taskENTER_CRITICAL();
+        vTaskSuspendAll();
         {
             /* The owner of the list item is the network buffer. */
             pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
@@ -1183,7 +1183,7 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
                 ( void ) uxListRemove( &( pxNetworkBuffer->xBufferListItem ) );
             }
         }
-        taskEXIT_CRITICAL();
+        ( void ) xTaskResumeAll();
     }
 
     *pxEventBits = xEventBits;
