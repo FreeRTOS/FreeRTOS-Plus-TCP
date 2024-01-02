@@ -445,13 +445,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
             {
                 vTaskSuspendAll();
                 {
-                    taskENTER_CRITICAL();
-                    {
-                        /* Add the network packet to the list of packets to be
-                         * processed by the socket. */
-                        vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( pxNetworkBuffer->xBufferListItem ) );
-                    }
-                    taskEXIT_CRITICAL();
+                    /* Add the network packet to the list of packets to be
+                     * processed by the socket. */
+                    vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( pxNetworkBuffer->xBufferListItem ) );
                 }
                 ( void ) xTaskResumeAll();
 
