@@ -523,10 +523,8 @@ NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     pxInterface->pfInitialise = prvSAM_NetworkInterfaceInitialise;
     pxInterface->pfOutput = prvSAM_NetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = prvSAM_GetPhyLinkStatus;
-    #if ( ipconfigIS_ENABLED( ipconfigMAC_FILTERING ) )
-        pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
-        pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress;
-    #endif
+    pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
+    pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress;
 
     FreeRTOS_AddNetworkInterface( pxInterface );
 
@@ -693,9 +691,6 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     NetworkEndPoint_t * pxEndPoint;
 
     gmac_options_t gmac_option;
-
-    pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-    configASSERT( pxEndPoint != NULL );
 
     gmac_enable_management( GMAC, true );
     /* Enable further GMAC maintenance. */

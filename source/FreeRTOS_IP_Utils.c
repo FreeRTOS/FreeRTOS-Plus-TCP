@@ -819,6 +819,7 @@ BaseType_t xIsCallingFromIPTask( void )
 void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
 {
     NetworkEndPoint_t * pxEndPoint;
+    IPv6_Type_t xAddressType;
 
     configASSERT( pxInterface != NULL );
     configASSERT( pxInterface->pfInitialise != NULL );
@@ -836,36 +837,30 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
         /* The bit 'bEndPointUp' stays low until vIPNetworkUpCalls() is called. */
         pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
 
-        #if ( ipconfigIS_ENABLED( ipconfigMAC_FILTERING ) )
+        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
         {
-            IPv6_Type_t xAddressType;
+            xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
 
-            if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+            /* The check below guards against the loopback address, the unspecified address,
+             * and against the weird scenario of someone assigning a multicast address to the end-point. */
+            if( ( xAddressType == eIPv6_LinkLocal ) || ( xAddressType == eIPv6_SiteLocal ) || ( xAddressType == eIPv6_Global ) )
             {
-                xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
-
-                /* The check below guards against the loopback address, the unspecified address,
-                 * and against the weird scenario of someone assigning a multicast address to the end-point. */
-                if( ( xAddressType == eIPv6_LinkLocal ) || ( xAddressType == eIPv6_SiteLocal ) || ( xAddressType == eIPv6_Global ) )
+                /* Every network-up event adds the MAC address corresponding to this end-point's solicited node multicast address.
+                 * Remove it here to balance out the number of add/remove calls. */
+                if( ( pxEndPoint->pxNetworkInterface != NULL ) && ( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL ) )
                 {
-                    /* Every network-up event adds the MAC address corresponding to this end-point's solicited node multicast address.
-                     * Remove it here to balance out the number of add/remove calls. */
-                    if( ( pxEndPoint->pxNetworkInterface != NULL ) && ( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL ) )
-                    {
-                        MACAddress_t xMACAddress = { {
-                                                         0x33U,
-                                                         0x33U,
-                                                         0xFFU,
-                                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
-                                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
-                                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
-                                                     } };
-                        pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( xMACAddress.ucBytes );
-                    }
-                } /* if( xAddressType == ... ) */
-            }     /* if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) */
-        }
-        #endif /* ( ipconfigIS_ENABLED( ipconfigMAC_FILTERING ) ) */
+                    MACAddress_t xMACAddress = { {
+                                                     0x33U,
+                                                     0x33U,
+                                                     0xFFU,
+                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
+                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
+                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
+                                                 } };
+                    pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( xMACAddress.ucBytes );
+                }
+            } /* if( xAddressType == ... ) */
+        }     /* if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) */
 
         #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
