@@ -380,9 +380,14 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_JustUDPHeader( void )
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
 
-    uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+
+        uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+    }
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -441,9 +446,13 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100( void )
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
-    uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+        uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+    }
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -503,9 +512,13 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall( void
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
-    uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+        uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+    }
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -566,7 +579,13 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek(
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
+
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    }
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -624,7 +643,12 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_Peek_
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
+
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    }
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -681,9 +705,15 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_Packet100SizeSmall_ZeroC
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
 
-    uxListRemove_ExpectAndReturn( &xNetworkBuffer.xBufferListItem, 0U );
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+
+        uxListRemove_ExpectAndReturn( &xNetworkBuffer.xBufferListItem, 0U );
+    }
+
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -733,7 +763,11 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBegining_Packet100SizeSmall_Zero
     xListItem.pvOwner = &xNetworkBuffer;
     xSocket->u.xUDP.xWaitingPacketsList.xListEnd.pxNext = &xListItem;
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    }
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -789,9 +823,13 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_IPv6Packet100( void )
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
-    uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+        uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+    }
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
 
@@ -850,9 +888,13 @@ void test_FreeRTOS_recvfrom_BlockingGetsPacketInBetween_UnknownIPHeaderSize( voi
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), 0x12 );
 
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
+    vTaskSuspendAll_Expect();
+    {
+        listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket->u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
-    uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+        uxListRemove_ExpectAndReturn( &( xNetworkBuffer.xBufferListItem ), 0 );
+    }
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( 0xFF );
 
