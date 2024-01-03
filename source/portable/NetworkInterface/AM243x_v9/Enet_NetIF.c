@@ -163,7 +163,9 @@ uint8_t * getEnetAppBuffMem(uint32_t req_Size, uint8_t *pktAddr)
     (void) req_Size;
     (void) pktAddr;
 
+    configASSERT(req_Size == 1536U);
     NetworkBufferDescriptor_t * pxReturn = pxGetNetworkBufferWithDescriptor_RX(1536U, 0);
+    configASSERT(pxReturn != NULL);
     return pxReturn->pucEthernetBuffer;
 
 }
@@ -1070,6 +1072,7 @@ static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
                     pxhNetworkBuffer = &(cPbuf->xNetworkBuffer);
                 }
                 configASSERT(pxhNetworkBuffer != NULL);
+                pxhNetworkBuffer->xDataLength = list->segmentFilledLen;
                 /* Fill the pbuf with the sg list data */
                 // if (Lwip2Enet_setCustomPbuf(PBUF_RAW, list->segmentFilledLen, PBUF_POOL, &(cPbuf->p), list->bufPtr, list->segmentAllocLen) == NULL)
                 // {
