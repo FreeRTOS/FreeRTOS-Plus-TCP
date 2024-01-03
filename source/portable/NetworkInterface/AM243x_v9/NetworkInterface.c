@@ -339,7 +339,7 @@ static BaseType_t xAM243x_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInt
     /* Pass the packet to the translation layer */
     EnetNetIF_sendTxPackets(pxCustomInterface, macPort);
 
-    #if 1
+    #if 0
 
         uint16_t usFrameType;
         const ProtocolPacket_t * pxPacketGeneric = ( ( const ProtocolPacket_t * ) pxDescriptor->pucEthernetBuffer );

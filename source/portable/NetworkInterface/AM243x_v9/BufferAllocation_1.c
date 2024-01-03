@@ -547,7 +547,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
             {
                 ( void ) xSemaphoreGive( xNetworkBufferSemaphore );
                 prvShowWarnings();
-                FreeRTOS_printf( ( "####>>> vReleaseNetworkBufferAndDescriptor TX\n" ) );
+                // FreeRTOS_printf( ( "####>>> vReleaseNetworkBufferAndDescriptor TX\n" ) );
             }
 
             iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
