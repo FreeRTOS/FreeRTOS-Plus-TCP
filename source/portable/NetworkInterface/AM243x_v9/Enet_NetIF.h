@@ -542,6 +542,8 @@ typedef struct EnetNetIF_AppIf_CustomNetBuf_t
 
     void *pvNetBuffDebug;
 
+    ListItem_t xRXNetBufListItem; 
+
 } EnetNetIF_AppIf_CustomNetBuf;
 
 xEnetDriverHandle FreeRTOSTCPEnet_open(NetworkInterface_t * pxInterface);
