@@ -60,6 +60,9 @@ void vNetworkInterfaceAllocateRAMToBuffers_RX_POOL( EnetNetIF_AppIf_CustomNetBuf
 static List_t xFreeBuffersList;
 static List_t xFreeBuffersList_RX;
 
+/* List to separate TX buffers from RX */
+static List_t xBuffersList_RX;
+
 /* Some statistics about the use of buffers. */
 static UBaseType_t uxMinimumFreeNetworkBuffers = 0U;
 
@@ -78,6 +81,7 @@ const BaseType_t xBufferAllocFixedSize = pdTRUE;
 
 /* The semaphore used to obtain network buffers. */
 static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
+static SemaphoreHandle_t xNetworkBufferSemaphore_RX = NULL;
 
 #if ( ipconfigTCP_IP_SANITY != 0 )
     static char cIsLow = pdFALSE;
@@ -184,6 +188,9 @@ BaseType_t xNetworkBuffersInitialise_RX( EnetNetIF_RxHandle hRx )
         vListInitialiseItem( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
         listSET_LIST_ITEM_OWNER( &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ), &xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer );
 
+        vListInitialiseItem( &( xCustomNetworkBuffers_RX_POOL[ x ].xRXNetBufListItem ) );
+        listSET_LIST_ITEM_OWNER( &( xCustomNetworkBuffers_RX_POOL[ x ].xRXNetBufListItem ), &xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer );
+
         xCustomNetworkBuffers_RX_POOL[ x ].customNetBufArgs = hRx;
         xCustomNetworkBuffers_RX_POOL[ x ].next = NULL;
         xCustomNetworkBuffers_RX_POOL[ x ].alivePbufCount = 0U;
@@ -193,7 +200,9 @@ BaseType_t xNetworkBuffersInitialise_RX( EnetNetIF_RxHandle hRx )
         xCustomNetworkBuffers_RX_POOL[ x ].pvNetBuffDebug = xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.pucEthernetBuffer;
 
         /* Currently, all buffers are available for use. */
-        vListInsert( &xFreeBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
+        vListInsert( &xBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xNetworkBuffer.xBufferListItem ) );
+        vListInsert( &xFreeBuffersList_RX, &( xCustomNetworkBuffers_RX_POOL[ x ].xRXNetBufListItem ) );
+
     }
 
     return pdTRUE;
@@ -207,7 +216,7 @@ BaseType_t xNetworkBuffersInitialise( void )
 
     /* Only initialise the buffers and their associated kernel objects if they
      * have not been initialised before. */
-    if( xNetworkBufferSemaphore == NULL )
+    if( xNetworkBufferSemaphore == NULL && xNetworkBufferSemaphore_RX == NULL )
     {
         /* In case alternative locking is used, the mutexes can be initialised
          * here */
@@ -216,14 +225,20 @@ BaseType_t xNetworkBuffersInitialise( void )
         #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
             {
                 static StaticSemaphore_t xNetworkBufferSemaphoreBuffer;
+                static StaticSemaphore_t xNetworkBufferSemaphoreBuffer_RX;
                 xNetworkBufferSemaphore = xSemaphoreCreateCountingStatic(
                     ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
                     ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS,
                     &xNetworkBufferSemaphoreBuffer );
+                xNetworkBufferSemaphore_RX = xSemaphoreCreateCountingStatic(
+                    ( UBaseType_t ) NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS,
+                    ( UBaseType_t ) NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS,
+                    &xNetworkBufferSemaphoreBuffer_RX );
             }
         #else
             {
                 xNetworkBufferSemaphore = xSemaphoreCreateCounting( ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS, ( UBaseType_t ) ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS );
+                xNetworkBufferSemaphore_RX = xSemaphoreCreateCounting( ( UBaseType_t ) NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS, ( UBaseType_t ) NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS );
             }
         #endif /* configSUPPORT_STATIC_ALLOCATION */
 
@@ -233,7 +248,8 @@ BaseType_t xNetworkBuffersInitialise( void )
         {
             vListInitialise( &xFreeBuffersList );
             vListInitialise( &xFreeBuffersList_RX );
-
+            vListInitialise( &xBuffersList_RX );
+            
             /* Initialise all the network buffers.  The buffer storage comes
              * from the network interface, and different hardware has different
              * requirements. */
@@ -369,22 +385,23 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor_RX( size_t xRequest
     ( void ) xRequestedSizeBytes;
     ( void ) xBlockTimeTicks;
 
-    // if( xNetworkBufferSemaphore != NULL )
-    // {
-    //     /* If there is a semaphore available, there is a network buffer
-    //      * available. */
-    //     if( xSemaphoreTake( xNetworkBufferSemaphore, xBlockTimeTicks ) == pdPASS )
-    //     {
+    if( xNetworkBufferSemaphore_RX != NULL )
+    {
+        /* If there is a semaphore available, there is a network buffer
+         * available. */
+        if( xSemaphoreTake( xNetworkBufferSemaphore_RX, xBlockTimeTicks ) == pdPASS )
+        {
             /* Protect the structure as it is accessed from tasks and
              * interrupts. */
             ipconfigBUFFER_ALLOC_LOCK();
             {
                 pxReturn = ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &xFreeBuffersList_RX );
+                EnetNetIF_AppIf_CustomNetBuf * xCNetBuf = (EnetNetIF_AppIf_CustomNetBuf *) pxReturn;
 
                 if( ( bIsValidNetworkDescriptor( pxReturn ) != pdFALSE_UNSIGNED ) &&
-                    listIS_CONTAINED_WITHIN( &xFreeBuffersList_RX, &( pxReturn->xBufferListItem ) ) )
+                    listIS_CONTAINED_WITHIN( &xFreeBuffersList_RX, &( xCNetBuf->xRXNetBufListItem ) ) )
                 {
-                    ( void ) uxListRemove( &( pxReturn->xBufferListItem ) );
+                    ( void ) uxListRemove( &( xCNetBuf->xRXNetBufListItem ) );
                 }
                 else
                 {
@@ -436,13 +453,13 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor_RX( size_t xRequest
             }
 
             iptraceNETWORK_BUFFER_OBTAINED( pxReturn );
-    //     }
-    //     else
-    //     {
-    //         /* lint wants to see at least a comment. */
-    //         iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-    //     }
-    // }
+        }
+        else
+        {
+            /* lint wants to see at least a comment. */
+            iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+        }
+    }
 
     return pxReturn;
 }
@@ -486,23 +503,23 @@ NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeByte
 }
 /*-----------------------------------------------------------*/
 
-BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer )
-{
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+// BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+// {
+//     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    /* Ensure the buffer is returned to the list of free buffers before the
-     * counting semaphore is 'given' to say a buffer is available. */
-    ipconfigBUFFER_ALLOC_LOCK_FROM_ISR();
-    {
-        vListInsertEnd( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
-    }
-    ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR();
+//     /* Ensure the buffer is returned to the list of free buffers before the
+//      * counting semaphore is 'given' to say a buffer is available. */
+//     ipconfigBUFFER_ALLOC_LOCK_FROM_ISR();
+//     {
+//         vListInsertEnd( &xFreeBuffersList, &( pxNetworkBuffer->xBufferListItem ) );
+//     }
+//     ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR();
 
-    ( void ) xSemaphoreGiveFromISR( xNetworkBufferSemaphore, &xHigherPriorityTaskWoken );
-    iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
+//     ( void ) xSemaphoreGiveFromISR( xNetworkBufferSemaphore, &xHigherPriorityTaskWoken );
+//     iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
 
-    return xHigherPriorityTaskWoken;
-}
+//     return xHigherPriorityTaskWoken;
+// }
 /*-----------------------------------------------------------*/
 
 void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNetworkBuffer )
@@ -516,7 +533,8 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
     else
     {
         /* check if its RX buffer or TX buffer */
-        if (pxNetworkBuffer >= &xCustomNetworkBuffers_RX_POOL[0] && pxNetworkBuffer <= &xCustomNetworkBuffers_RX_POOL[NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS - 1])
+        //if (pxNetworkBuffer >= &xCustomNetworkBuffers_RX_POOL[0] && pxNetworkBuffer <= &xCustomNetworkBuffers_RX_POOL[NUM_RX_POOL_NETWORK_BUFFER_DESCRIPTORS - 1])
+        if ( listIS_CONTAINED_WITHIN( &xBuffersList_RX, &( pxNetworkBuffer->xBufferListItem ) ) == pdTRUE)
         {
             EnetNetIF_AppCb_ReleaseNetDescriptor(pxNetworkBuffer);
             // FreeRTOS_printf( ( "vReleaseNetworkBufferAndDescriptor Rx\n" ) );
