@@ -819,7 +819,6 @@ BaseType_t xIsCallingFromIPTask( void )
 void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
 {
     NetworkEndPoint_t * pxEndPoint;
-    IPv6_Type_t xAddressType;
 
     configASSERT( pxInterface != NULL );
     configASSERT( pxInterface->pfInitialise != NULL );
@@ -839,28 +838,47 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
 
         if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
         {
-            xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
-
-            /* The check below guards against the loopback address, the unspecified address,
-             * and against the weird scenario of someone assigning a multicast address to the end-point. */
-            if( ( xAddressType == eIPv6_LinkLocal ) || ( xAddressType == eIPv6_SiteLocal ) || ( xAddressType == eIPv6_Global ) )
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             {
-                /* Every network-up event adds the MAC address corresponding to this end-point's solicited node multicast address.
-                 * Remove it here to balance out the number of add/remove calls. */
-                if( ( pxEndPoint->pxNetworkInterface != NULL ) && ( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL ) )
+                IPv6_Type_t xAddressType;
+                xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
+                /* The check below guards against the loopback address, the unspecified address,
+                 * and against the weird scenario of someone assigning a multicast address to the end-point. */
+                if( ( xAddressType == eIPv6_LinkLocal ) || ( xAddressType == eIPv6_SiteLocal ) || ( xAddressType == eIPv6_Global ) )
                 {
-                    MACAddress_t xMACAddress = { {
-                                                     0x33U,
-                                                     0x33U,
-                                                     0xFFU,
-                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
-                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
-                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
-                                                 } };
-                    pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( xMACAddress.ucBytes );
+                    /* Every network-up event adds the MAC address corresponding to this end-point's solicited node multicast address.
+                     * Remove it here to balance out the number of add/remove calls. */
+                    if( ( pxEndPoint->pxNetworkInterface != NULL ) && ( pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC != NULL ) )
+                    {
+                        MACAddress_t xMACAddress = { {
+                                                         0x33U,
+                                                         0x33U,
+                                                         0xFFU,
+                                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
+                                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
+                                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
+                                                     } };
+                        pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( xMACAddress.ucBytes );
+                    }
+                    else
+                    {
+                        /* The network driver does not implement this filtering function. Nothing we can do about it. */
+                    }
+                } /* if( xAddressType == ... ) */
+                else
+                {
+                    /* The address of this end-point is something other than a normal unicast address... Maybe it's the
+                     * loopback address or maybe this is an error scenario. In any case, there is no corresponding
+                     * solicited-node multicast address that we need to manage. Do nothing.*/
                 }
-            } /* if( xAddressType == ... ) */
-        }     /* if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) */
+            }
+            #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
+        } /* if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) */
+        else
+        {
+            /* This is an IPv4 end-point. There are no solicited-node addresses to manage. */
+        }
 
         #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
