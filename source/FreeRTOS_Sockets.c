@@ -1171,7 +1171,7 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
 
     if( lPacketCount > 0 )
     {
-        taskENTER_CRITICAL();
+        vTaskSuspendAll();
         {
             /* The owner of the list item is the network buffer. */
             pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
@@ -1183,7 +1183,7 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
                 ( void ) uxListRemove( &( pxNetworkBuffer->xBufferListItem ) );
             }
         }
-        taskEXIT_CRITICAL();
+        ( void ) xTaskResumeAll();
     }
 
     *pxEventBits = xEventBits;
@@ -1926,8 +1926,17 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
         if( pxAddress == NULL )
         {
             pxAddress = &xAddress;
-            /* Put the port to zero to be assigned later. */
-            pxAddress->sin_port = 0U;
+            /* Clear the address: */
+            ( void ) memset( pxAddress, 0, sizeof( struct freertos_sockaddr ) );
+
+            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET6;
+            }
+            else
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET;
+            }
         }
     }
     #endif /* ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 1 */
