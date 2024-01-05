@@ -150,6 +150,7 @@ CNTS
 COL
 COLST
 CONTROLC
+coremqtt
 cortexa
 coverity
 Coverity
@@ -167,6 +168,7 @@ CPWRDN
 CRSDV
 CRVAL
 CRXDSA
+CSDK
 CSINDICATE
 CSMC
 CSPSR
@@ -193,6 +195,7 @@ DCHP
 DCIMVAC
 DCISW
 DCMAKE
+DCMOCK
 DCOMPILER
 DCOUNTER
 DCPF
@@ -207,6 +210,9 @@ DEBR
 DEBUGEN
 DEBUGF
 DECASECONDS
+decihours
+Decihours
+DECIHOURS
 DEFFERRALCHECK
 DEFR
 Deglitchers
@@ -438,6 +444,7 @@ FULLDUPLX
 GARP
 Gbit
 GBPS
+getpacketid
 GIGE
 Giveup
 GLBLUCAST
@@ -544,6 +551,7 @@ ISRPENDING
 ISRPQ
 ISRPREEMPT
 issocketconnected
+isystem
 ITCM
 ITCMCR
 ITCR
@@ -746,6 +754,7 @@ mvfr
 MVFR
 mydevice
 myethaddr
+mypy
 mzef
 MZEF
 NAIAID
@@ -767,6 +776,9 @@ NOCRC
 NOCYCCNT
 NOEXTTRIG
 noinit
+nondet
+Nondet
+NONDET
 NOPIDEVAD
 NOPRFCNT
 NOTRCPKT
@@ -910,6 +922,9 @@ pwrctrl
 PWRCTRL
 PWRDWN
 PWRMODCTL
+pylint
+pytest
+pyyaml
 qadd
 QADD
 qasx
@@ -1388,11 +1403,18 @@ UHSUB
 UIDAPEN
 UIDEN
 UMON
+UNACKED
 UNALIGN
 uncrustify
 unifdef
 uninitialised
+unpadded
+Unpadded
+UNPADDED
 UNSTKERR
+UNSUB
+UNSUBACK
+unsubscriptions
 uqadd
 UQADD
 uqasx
@@ -1423,6 +1445,9 @@ UXTB
 VCATCH
 vdhcp
 vdnssearch
+vect
+Vect
+VECT
 VECTACTIVE
 VECTCLRACTIVE
 VECTPENDING
