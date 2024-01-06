@@ -44,6 +44,14 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_ARP.h"
+#if ( ipconfigIS_ENABLED( ipconfigUSE_MDNS ) || ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
+    #include "FreeRTOS_DNS.h"
+#endif
+#if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+    #include "FreeRTOS_ND.h"
+#endif
+#include "FreeRTOS_Routing.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "phyHandling.h"
@@ -119,8 +127,6 @@
 
 #define niEMAC_TX_MUTEX_NAME    "EMAC_TxMutex"
 #define niEMAC_TX_DESC_SEM_NAME "EMAC_TxDescSem"
-
-/* #define niEMAC_PHY_COUNT        1 */
 
 #define niEMAC_AUTO_NEGOTIATION ipconfigENABLE
 #define niEMAC_USE_100MB        ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION ) )
@@ -362,88 +368,92 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
     /* Zero-Copy Only */
     configASSERT( xReleaseAfterSend == pdTRUE );
 
-    if( ( xMacInitStatus == eMacInitComplete ) && ( pxEthHandle->gState == HAL_ETH_STATE_STARTED ) )
+    do
     {
-        if( ( pxDescriptor != NULL ) && ( pxDescriptor->pucEthernetBuffer != NULL ) && ( pxDescriptor->xDataLength <= niEMAC_DATA_BUFFER_SIZE ) )
+        if( ( pxDescriptor == NULL ) || ( pxDescriptor->pucEthernetBuffer == NULL ) || ( pxDescriptor->xDataLength > niEMAC_DATA_BUFFER_SIZE ) )
         {
-            if( prvGetPhyLinkStatus( pxInterface ) != pdFAIL )
-            {
-                if( xSemaphoreTake( xTxDescSem, pdMS_TO_TICKS( niEMAC_DESCRIPTOR_WAIT_TIME_MS ) ) != pdFALSE )
-                {
-                    if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( niEMAC_MAX_BLOCK_TIME_MS ) ) != pdFALSE )
-                    {
-                        static ETH_TxPacketConfig xTxConfig = {
-                            .CRCPadCtrl = ETH_CRC_PAD_INSERT,
-                            #if ( ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM ) )
-                                .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD | ETH_TX_PACKETS_FEATURES_CSUM,
-                                .ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC,
-                            #else
-                                .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD,
-                                .ChecksumCtrl = ETH_CHECKSUM_DISABLE,
-                            #endif
-                        };
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Invalid Descriptor\n" ) );
+            break;
+        }
 
-                        ETH_BufferTypeDef xTxBuffer = {
-                            .buffer = ( uint8_t * ) pxDescriptor->pucEthernetBuffer,
-                            .len = pxDescriptor->xDataLength,
-                            .next = NULL
-                        };
+        if( xCheckLoopback( pxDescriptor, xReleaseAfterSend ) != pdFALSE )
+        {
+            /* The packet has been sent back to the IP-task.
+             * The IP-task will further handle it.
+             * Do not release the descriptor. */
+            xReleaseAfterSend = pdFALSE;
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Loopback\n" ) );
+            break;
+        }
 
-                        xTxConfig.Length = xTxBuffer.len;
-                        xTxConfig.TxBuffer = &xTxBuffer;
-                        xTxConfig.pData = pxDescriptor;
-                        if( HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig ) == HAL_OK )
-                        {
-                            /* Released later in deferred task by calling HAL_ETH_ReleaseTxPacket */
-                            xReleaseAfterSend = pdFALSE;
-                            xResult = pdPASS;
-                        }
-                        else
-                        {
-                            ( void ) xSemaphoreGive( xTxDescSem );
-                            configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
-                            configASSERT( pxEthHandle->gState == HAL_ETH_STATE_STARTED );
-                            if( pxEthHandle->ErrorCode & HAL_ETH_ERROR_BUSY )
-                            {
-                                FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Tx Busy\n" ) );
-                            }
-                        }
-                        ( void ) xSemaphoreGive( xTxMutex );
-                    }
-                    else
-                    {
-                        ( void ) xSemaphoreGive( xTxDescSem );
-                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Process Busy\n" ) );
-                    }
-                }
-                else
-                {
-                    FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: No Descriptors Available\n" ) );
-                }
-            }
-            else
-            {
-                FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Link Down\n" ) );
-            }
+        if( ( xMacInitStatus != eMacInitComplete ) || ( pxEthHandle->gState != HAL_ETH_STATE_STARTED ) )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Interface Not Started\n" ) );
+            break;
+        }
+
+        if( prvGetPhyLinkStatus( pxInterface ) == pdFALSE )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Link Down\n" ) );
+            break;
+        }
+
+        if( xSemaphoreTake( xTxDescSem, pdMS_TO_TICKS( niEMAC_DESCRIPTOR_WAIT_TIME_MS ) ) == pdFALSE )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: No Descriptors Available\n" ) );
+            break;
+        }
+
+        if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( niEMAC_MAX_BLOCK_TIME_MS ) ) == pdFALSE )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Process Busy\n" ) );
+            ( void ) xSemaphoreGive( xTxDescSem );
+            break;
+        }
+
+        ETH_BufferTypeDef xTxBuffer = {
+            .buffer = ( uint8_t * ) pxDescriptor->pucEthernetBuffer,
+            .len = pxDescriptor->xDataLength,
+            .next = NULL
+        };
+
+        ETH_TxPacketConfig xTxConfig = {
+            .CRCPadCtrl = ETH_CRC_PAD_INSERT,
+            #if ( ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM ) )
+                .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD | ETH_TX_PACKETS_FEATURES_CSUM,
+                .ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC,
+            #else
+                .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD,
+                .ChecksumCtrl = ETH_CHECKSUM_DISABLE,
+            #endif
+            .Length = xTxBuffer.len,
+            .TxBuffer = &xTxBuffer,
+            .pData = pxDescriptor,
+        };
+
+        if( HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig ) == HAL_OK )
+        {
+            /* Released later in deferred task by calling HAL_ETH_ReleaseTxPacket */
+            xReleaseAfterSend = pdFALSE;
+            xResult = pdPASS;
         }
         else
         {
-            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Invalid Descriptor\n" ) );
+            ( void ) xSemaphoreGive( xTxDescSem );
+            configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
+            configASSERT( pxEthHandle->gState == HAL_ETH_STATE_STARTED );
+            if( pxEthHandle->ErrorCode & HAL_ETH_ERROR_BUSY )
+            {
+                FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Tx Busy\n" ) );
+            }
         }
-    }
-    else
-    {
-        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Eth Not Started\n" ) );
-    }
+        ( void ) xSemaphoreGive( xTxMutex );
 
-    if( ( pxDescriptor != NULL ) && ( xReleaseAfterSend == pdTRUE ) && ( xResult == pdFAIL ) )
+    } while( pdFALSE );
+
+    if( ( pxDescriptor != NULL ) && ( xReleaseAfterSend == pdTRUE ) )
     {
         vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-    }
-
-    if( xResult == pdFAIL )
-    {
-        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Failed\n" ) );
     }
 
     return xResult;
@@ -467,16 +477,15 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle, Net
 
     while( HAL_ETH_ReadData( pxEthHandle, ( void ** ) &pxCurDescriptor ) == HAL_OK )
     {
+        ++uxResult;
         if( pxCurDescriptor == NULL )
         {
             /* Buffer was dropped, ignore packet */
             continue;
         }
         configASSERT( pxEthHandle->RxDescList.RxDataLength <= niEMAC_DATA_BUFFER_SIZE );
-        ++uxResult;
         pxCurDescriptor->pxInterface = pxInterface;
         pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxCurDescriptor->pxInterface, pxCurDescriptor->pucEthernetBuffer );
-        /* TODO: check pxEndPoint exists? Check it earlier before getting buffer? */
         #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
             if( pxStartDescriptor == NULL )
             {
@@ -757,26 +766,50 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
 
 static void prvInitMACAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface )
 {
-    /* #if ( ipconfigIS_ENABLEDipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )
-        ETH_MACFilterConfigTypeDef xFilterConfig;
-        ( void ) HAL_ETH_GetMACFilterConfig( pxEthHandle, &xFilterConfig );
-    #endif */
+    ETH_MACFilterConfigTypeDef xFilterConfig;
+    ( void ) HAL_ETH_GetMACFilterConfig( pxEthHandle, &xFilterConfig );
+    #if ( ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )
+        /* xFilterConfig.PromiscuousMode = DISABLE;
+        xFilterConfig.ReceiveAllMode = DISABLE;
+        xFilterConfig.HachOrPerfectFilter = ENABLE;
+        xFilterConfig.HashUnicast = ENABLE;
+        xFilterConfig.HashMulticast = ENABLE;
+        xFilterConfig.PassAllMulticast = DISABLE;
+        xFilterConfig.SrcAddrFiltering = ENABLE;
+        xFilterConfig.SrcAddrInverseFiltering = DISABLE;
+        xFilterConfig.DestAddrInverseFiltering = DISABLE;
+        xFilterConfig.BroadcastFilter = DISABLE;
+        xFilterConfig.ControlPacketsFilter = DISABLE; */
+    #endif
+
+    for( NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface ); pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+    {
+        prvMACAddressConfig( pxEthHandle, pxEndPoint->xMACAddress.ucBytes );
+    }
 
     #if ( ipconfigIS_ENABLED( ipconfigUSE_MDNS ) )
-        prvMACAddressConfig( pxEthHandle, xMDNS_MacAddress.ucBytes );
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+            prvMACAddressConfig( pxEthHandle, xMDNS_MacAddress.ucBytes );
+        #endif
         #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             prvMACAddressConfig( pxEthHandle, xMDNS_MACAddressIPv6.ucBytes );
         #endif
     #endif
 
     #if ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
-        prvMACAddressConfig( pxEthHandle, xLLMNR_MacAddress.ucBytes );
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+            prvMACAddressConfig( pxEthHandle, xLLMNR_MacAddress.ucBytes );
+        #endif
         #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             prvMACAddressConfig( pxEthHandle, xLLMNR_MacAddressIPv6.ucBytes );
         #endif
     #endif
 
-    for( NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface ); pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+        prvMACAddressConfig( pxEthHandle, pcLOCAL_ALL_NODES_MULTICAST_MAC.ucBytes );
+    #endif
+
+    /* for( NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface ); pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
     {
         #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
@@ -796,16 +829,14 @@ static void prvInitMACAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterfa
             {
                 prvMACAddressConfig( pxEthHandle, pxEndPoint->xMACAddress.ucBytes );
             }
-        #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
-    }
+        #endif
+    } */
 
     #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
         prvMACAddressConfig( pxEthHandle, pcLOCAL_ALL_NODES_MULTICAST_MAC.ucBytes );
     #endif
 
-    /* #if ( ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )
-        ( void ) HAL_ETH_SetMACFilterConfig( pxEthHandle, &xFilterConfig );
-    #endif */
+    ( void ) HAL_ETH_SetMACFilterConfig( pxEthHandle, &xFilterConfig );
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1222,30 +1253,30 @@ void HAL_ETH_RxAllocateCallback( uint8_t ** ppucBuff )
 
 /*---------------------------------------------------------------------------*/
 
-void HAL_ETH_RxLinkCallback( void ** pStart, void ** pEnd, uint8_t * buff, uint16_t usLength )
+void HAL_ETH_RxLinkCallback( void ** ppvStart, void ** ppvEnd, uint8_t * pucBuff, uint16_t usLength )
 {
-    NetworkBufferDescriptor_t ** const pStartDescriptor = ( NetworkBufferDescriptor_t ** ) pStart;
-    NetworkBufferDescriptor_t ** const pEndDescriptor = ( NetworkBufferDescriptor_t ** ) pEnd;
-    NetworkBufferDescriptor_t * const pxCurDescriptor = pxPacketBuffer_to_NetworkBuffer( ( const void * ) buff );
+    NetworkBufferDescriptor_t ** const ppxStartDescriptor = ( NetworkBufferDescriptor_t ** ) ppvStart;
+    NetworkBufferDescriptor_t ** const ppxEndDescriptor = ( NetworkBufferDescriptor_t ** ) ppvEnd;
+    NetworkBufferDescriptor_t * const pxCurDescriptor = pxPacketBuffer_to_NetworkBuffer( ( const void * ) pucBuff );
     if( prvAcceptPacket( pxCurDescriptor, usLength ) == pdTRUE )
     {
         pxCurDescriptor->xDataLength = usLength;
         #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
             pxCurDescriptor->pxNextBuffer = NULL;
         #endif
-        if( *pStartDescriptor == NULL )
+        if( *ppxStartDescriptor == NULL )
         {
-            *pStartDescriptor = pxCurDescriptor;
+            *ppxStartDescriptor = pxCurDescriptor;
         }
         #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
-            else if( pEndDescriptor != NULL )
+            else if( ppxEndDescriptor != NULL )
             {
-                ( *pEndDescriptor )->pxNextBuffer = pxCurDescriptor;
+                ( *ppxEndDescriptor )->pxNextBuffer = pxCurDescriptor;
             }
         #endif
-        *pEndDescriptor = pxCurDescriptor;
+        *ppxEndDescriptor = pxCurDescriptor;
         /* Only single buffer packets are supported */
-        configASSERT( *pStartDescriptor == *pEndDescriptor );
+        configASSERT( *ppxStartDescriptor == *ppxEndDescriptor );
     }
     else
     {
@@ -1304,6 +1335,7 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
     /* TODO: use pvArgument to get xEMACData? */
     /* xEMACData.xEMACIndex = xEMACIndex; */
     /* pxInterface->pvArgument = ( void * ) &xEMACData; */
+    /* pxInterface->pvArgument = pvPortMalloc( sizeof( EMACData_t ) ); */
     pxInterface->pvArgument = ( void * ) xEMACIndex;
     pxInterface->pfInitialise = prvNetworkInterfaceInitialise;
     pxInterface->pfOutput = prvNetworkInterfaceOutput;
@@ -1313,5 +1345,20 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
 
     return FreeRTOS_AddNetworkInterface( pxInterface );
 }
+
+/*---------------------------------------------------------------------------*/
+
+#if ( ipconfigIS_ENABLED( ipconfigIPv4_BACKWARD_COMPATIBLE ) )
+
+/* Do not call the following function directly. It is there for downward compatibility.
+ * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
+ * objects.  See the description in FreeRTOS_Routing.h. */
+    NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
+                                                    NetworkInterface_t * pxInterface )
+    {
+        pxSTM32_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+    }
+
+#endif
 
 /*---------------------------------------------------------------------------*/
