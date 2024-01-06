@@ -571,13 +571,6 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
             if( ( ulISREvents & eMacEventErrEth ) != 0 )
             {
                 configASSERT( ( xEthHandle.ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
-                pxEthHandle->gState = HAL_ETH_STATE_STARTED;
-                ( void ) HAL_ETH_Stop_IT( pxEthHandle );
-                ( void ) HAL_ETH_DeInit( pxEthHandle );
-                if( HAL_ETH_Init( pxEthHandle ) == HAL_OK )
-                {
-                    ( void ) HAL_ETH_Start_IT( pxEthHandle );
-                }
             }
 
             if( ( ulISREvents & eMacEventErrMac ) != 0 )
@@ -593,21 +586,27 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
             }
         }
 
+        /* pxEthHandle->gState == HAL_ETH_STATE_ERROR */
+
         if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
         {
             if( prvGetPhyLinkStatus( pxMyInterface ) != pdFALSE )
             {
-                if( prvMacUpdateConfig( pxEthHandle ) != pdFALSE )
+                if( pxEthHandle->gState == HAL_ETH_STATE_READY )
                 {
-                    ( void ) HAL_ETH_Start_IT( pxEthHandle );
+                    /* Link Was Down */
+                    if( prvMacUpdateConfig( pxEthHandle ) != pdFALSE )
+                    {
+                        ( void ) HAL_ETH_Start_IT( pxEthHandle );
+                    }
                 }
             }
             else
             {
                 ( void ) HAL_ETH_Stop_IT( pxEthHandle );
                 #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
-                    ( void ) HAL_ETH_DeInit( pxEthHandle );
-                    xMacInitStatus = eMacEthInit;
+                    /* ( void ) HAL_ETH_DeInit( pxEthHandle );
+                    xMacInitStatus = eMacEthInit; */
                     FreeRTOS_NetworkDown( pxMyInterface );
                 #endif
             }
