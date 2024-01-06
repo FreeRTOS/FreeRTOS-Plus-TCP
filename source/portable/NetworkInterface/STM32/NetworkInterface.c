@@ -67,19 +67,19 @@
 /*                             Config Checks                                 */
 /*===========================================================================*/
 
-#if ( ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) || ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM == 0 ) )
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+#if ( ipconfigIS_DISABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM ) || ipconfigIS_DISABLED( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM ) )
+    #if ( ipconfigIS_DISABLED( ipconfigPORT_SUPPRESS_WARNING ) )
         #warning Consider enabling checksum offloading for NetworkInterface
     #endif
 #endif
 
 #if ( ( ipconfigNETWORK_MTU < ETH_MIN_PAYLOAD ) || ( ipconfigNETWORK_MTU > ETH_MAX_PAYLOAD ) )
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+    #if ( ipconfigIS_DISABLED( ipconfigPORT_SUPPRESS_WARNING ) )
         #warning Unsupported ipconfigNETWORK_MTU size
     #endif
 #endif
 
-#if ( configUSE_TASK_NOTIFICATIONS == 0 )
+#if ( ipconfigIS_DISABLED( configUSE_TASK_NOTIFICATIONS ) )
     #error Task Notifications must be enabled for NetworkInterface
 #endif
 
@@ -122,13 +122,13 @@
 
 /* #define niEMAC_PHY_COUNT        1 */
 
-#define niEMAC_AUTO_NEGOTIATION 1
-#define niEMAC_USE_100MB        ( 1 && ( niEMAC_AUTO_NEGOTIATION == 0 ) )
-#define niEMAC_USE_FULL_DUPLEX  ( 1 && ( niEMAC_AUTO_NEGOTIATION == 0 ) )
-#define niEMAC_AUTO_CROSS       ( 1 && ( niEMAC_AUTO_NEGOTIATION != 0 ) )
-#define niEMAC_CROSSED_LINK     ( 1 && ( niEMAC_AUTO_CROSS == 0 ) )
+#define niEMAC_AUTO_NEGOTIATION ipconfigENABLE
+#define niEMAC_USE_100MB        ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION ) )
+#define niEMAC_USE_FULL_DUPLEX  ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION ) )
+#define niEMAC_AUTO_CROSS       ( ipconfigENABLE && ipconfigIS_ENABLED( niEMAC_AUTO_NEGOTIATION  ) )
+#define niEMAC_CROSSED_LINK     ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_CROSS  ) )
 
-#define niEMAC_USE_RMII 1
+#define niEMAC_USE_RMII ipconfigENABLE
 
 /*===========================================================================*/
 /*                                  Enums                                    */
@@ -362,7 +362,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
                     {
                         static ETH_TxPacketConfig xTxConfig = {
                             .CRCPadCtrl = ETH_CRC_PAD_INSERT,
-                            #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
+                            #if ( ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM ) )
                                 .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD | ETH_TX_PACKETS_FEATURES_CSUM,
                                 .ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC,
                             #else
@@ -445,7 +445,7 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
 {
     UBaseType_t uxResult = 0;
     /* if( ( xMacInitStatus == eMacInitComplete ) && ( heth->gState == HAL_ETH_STATE_STARTED ) ) */
-    #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
         NetworkBufferDescriptor_t * pxStartDescriptor = NULL;
         NetworkBufferDescriptor_t * pxEndDescriptor = NULL;
     #endif
@@ -465,7 +465,7 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
         pxCurDescriptor->pxInterface = pxMyInterface;
         pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxCurDescriptor->pxInterface, pxCurDescriptor->pucEthernetBuffer );
         /* TODO: check pxEndPoint exists? Check it earlier before getting buffer? */
-        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
             if( pxStartDescriptor == NULL )
             {
                 pxStartDescriptor = pxCurDescriptor;
@@ -483,10 +483,10 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
                 FreeRTOS_debug_printf( ( "prvNetworkInterfaceInput: xSendEventStructToIPTask failed\n" ) );
                 vReleaseNetworkBufferAndDescriptor( pxCurDescriptor );
             }
-        #endif /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
+        #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) ) */
     }
 
-    #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
         if( uxResult > 0 )
         {
             xRxEvent.pvData = ( void * ) pxStartDescriptor;
@@ -502,7 +502,7 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
                 } while( pxDescriptorToClear != NULL );
             }
         }
-    #endif /* if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 ) */
+    #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) ) */
 
     if( uxResult == 0 )
     {
@@ -604,7 +604,7 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
             else
             {
                 ( void ) HAL_ETH_Stop_IT( pxEthHandle );
-                #if ( ipconfigSUPPORT_NETWORK_DOWN_EVENT != 0 )
+                #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_NETWORK_DOWN_EVENT ) )
                     /* ( void ) HAL_ETH_DeInit( pxEthHandle );
                     xMacInitStatus = eMacEthInit; */
                     FreeRTOS_NetworkDown( pxMyInterface );
@@ -622,7 +622,7 @@ static BaseType_t prvEMACTaskStart( ETH_HandleTypeDef * pxEthHandle )
 
     if( xTxMutex == NULL )
     {
-        #if ( configSUPPORT_STATIC_ALLOCATION != 0 )
+        #if ( ipconfigIS_ENABLED( configSUPPORT_STATIC_ALLOCATION ) )
             static StaticSemaphore_t xTxMutexBuf;
             xTxMutex = xSemaphoreCreateMutexStatic( &xTxMutexBuf );
         #else
@@ -634,7 +634,7 @@ static BaseType_t prvEMACTaskStart( ETH_HandleTypeDef * pxEthHandle )
 
     if( xTxDescSem == NULL )
     {
-        #if ( configSUPPORT_STATIC_ALLOCATION != 0 )
+        #if ( ipconfigIS_ENABLED( configSUPPORT_STATIC_ALLOCATION ) )
             static StaticSemaphore_t xTxDescSemBuf;
             xTxDescSem = xSemaphoreCreateCountingStatic(
                 ( UBaseType_t ) ETH_TX_DESC_CNT,
@@ -653,7 +653,7 @@ static BaseType_t prvEMACTaskStart( ETH_HandleTypeDef * pxEthHandle )
 
     if( xEMACTaskHandle == NULL && ( xTxMutex != NULL ) && ( xTxDescSem != NULL ) )
     {
-        #if ( configSUPPORT_STATIC_ALLOCATION != 0 )
+        #if ( ipconfigIS_ENABLED( configSUPPORT_STATIC_ALLOCATION ) )
             static StackType_t uxEMACTaskStack[ niEMAC_TASK_STACK_SIZE ];
             static StaticTask_t xEMACTaskTCB;
             xEMACTaskHandle = xTaskCreateStatic(
@@ -695,7 +695,7 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
 
     pxEthHandle->Instance = ETH;
 
-    #if ( niEMAC_USE_RMII != 0 )
+    #if ( ipconfigIS_ENABLED( niEMAC_USE_RMII ) )
         pxEthHandle->Init.MediaInterface = HAL_ETH_RMII_MODE;
     #else
         pxEthHandle->Init.MediaInterface = HAL_ETH_MII_MODE;
@@ -741,28 +741,28 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
 
 static void prvInitMACAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface )
 {
-    /* #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES != 0 )
+    /* #if ( ipconfigIS_ENABLEDipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )
         ETH_MACFilterConfigTypeDef xFilterConfig;
         ( void ) HAL_ETH_GetMACFilterConfig( pxEthHandle, &xFilterConfig );
     #endif */
 
-    #if ( ipconfigUSE_MDNS != 0 )
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_MDNS ) )
         prvMACAddressConfig( pxEthHandle, xMDNS_MacAddress.ucBytes );
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             prvMACAddressConfig( pxEthHandle, xMDNS_MACAddressIPv6.ucBytes );
         #endif
     #endif
 
-    #if ( ipconfigUSE_LLMNR != 0 )
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_LLMNR ) )
         prvMACAddressConfig( pxEthHandle, xLLMNR_MacAddress.ucBytes );
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             prvMACAddressConfig( pxEthHandle, xLLMNR_MacAddressIPv6.ucBytes );
         #endif
     #endif
 
     for( NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface ); pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
     {
-        #if ( ipconfigUSE_IPv6 != 0 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
             if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
             {
                 const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = {
@@ -780,14 +780,14 @@ static void prvInitMACAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterfa
             {
                 prvMACAddressConfig( pxEthHandle, pxEndPoint->xMACAddress.ucBytes );
             }
-        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+        #endif /* if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
     }
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
         prvMACAddressConfig( pxEthHandle, pcLOCAL_ALL_NODES_MULTICAST_MAC.ucBytes );
     #endif
 
-    /* #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES != 0 )
+    /* #if ( ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )
         ( void ) HAL_ETH_SetMACFilterConfig( pxEthHandle, &xFilterConfig );
     #endif */
 }
@@ -801,17 +801,17 @@ static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface
     if( prvGetPhyLinkStatus( pxInterface ) == pdFALSE )
     {
         const PhyProperties_t xPhyProperties = {
-            #if ( niEMAC_AUTO_NEGOTIATION != 0 )
+            #if ( ipconfigIS_ENABLED( niEMAC_AUTO_NEGOTIATION ) )
                 .ucSpeed = PHY_SPEED_AUTO,
                 .ucDuplex = PHY_DUPLEX_AUTO,
             #else
-                .ucSpeed = ( niEMAC_USE_100MB != 0 ) ? PHY_SPEED_100 : PHY_SPEED_10,
-                .ucDuplex = ( niEMAC_USE_FULL_DUPLEX != 0 ) ? PHY_DUPLEX_FULL : PHY_DUPLEX_HALF,
+                .ucSpeed = ipconfigIS_ENABLED( niEMAC_USE_100MB ) ? PHY_SPEED_100 : PHY_SPEED_10,
+                .ucDuplex = ipconfigIS_ENABLED( niEMAC_USE_FULL_DUPLEX ) ? PHY_DUPLEX_FULL : PHY_DUPLEX_HALF,
             #endif
 
-            #if ( niEMAC_AUTO_CROSS != 0 )
+            #if ( ipconfigIS_ENABLED( niEMAC_AUTO_CROSS ) )
                 .ucMDI_X = PHY_MDIX_AUTO,
-            #elif ( niEMAC_CROSSED_LINK != 0 )
+            #elif ( ipconfigIS_ENABLED( niEMAC_CROSSED_LINK ) )
                 .ucMDI_X = PHY_MDIX_CROSSED,
             #else
                 .ucMDI_X = PHY_MDIX_DIRECT,
@@ -849,16 +849,16 @@ static BaseType_t prvMacUpdateConfig( ETH_HandleTypeDef * pxEthHandle )
 
     ETH_MACConfigTypeDef xMACConfig;
     ( void ) HAL_ETH_GetMACConfig( pxEthHandle , &xMACConfig );
-    xMACConfig.ChecksumOffload = ( FunctionalState ) ( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM != 0 );
+    xMACConfig.ChecksumOffload = ( FunctionalState ) ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM );
 
-    #if ( niEMAC_AUTO_NEGOTIATION != 0 )
+    #if ( ipconfigIS_ENABLED( niEMAC_AUTO_NEGOTIATION ) )
         /* TODO: xPhyStartAutoNegotiation always returns 0, Should return -1 if xPhyGetMask == 0 ? */
         ( void ) xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
         xMACConfig.DuplexMode = ( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
         xMACConfig.Speed = ( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
     #else
-        xPhyObject.xPhyPreferences.ucSpeed = ( niEMAC_USE_100MB != 0 ) ? PHY_SPEED_100 : PHY_SPEED_10;
-        xPhyObject.xPhyPreferences.ucDuplex = ( niEMAC_USE_FULL_DUPLEX != 0 ) ? PHY_DUPLEX_FULL : PHY_DUPLEX_HALF;
+        xPhyObject.xPhyPreferences.ucSpeed = ipconfigIS_ENABLED( niEMAC_USE_100MB ) ? PHY_SPEED_100 : PHY_SPEED_10;
+        xPhyObject.xPhyPreferences.ucDuplex = ipconfigIS_ENABLED( niEMAC_USE_FULL_DUPLEX ) ? PHY_DUPLEX_FULL : PHY_DUPLEX_HALF;
         /* ucMDI_X unused */
         /* TODO: xPhyFixedValue always return 0 */
         ( void ) xPhyFixedValue( &xPhyObject, xPhyGetMask( &xPhyObject ) );
@@ -990,7 +990,7 @@ static BaseType_t prvAcceptPayload( ETH_HandleTypeDef * pxEthHandle, const uint8
 {
     BaseType_t xResult = pdFALSE;
 
-    #if ( ipconfigETHERNET_DRIVER_FILTERS_PACKETS != 0 )
+    #if ( ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS ) )
         const UBaseType_t uxPayloadType = READ_BIT( heth->RxDescList.pRxLastRxDesc, ETH_DMARXNDESCWBF_PT )
         const ProtocolPacket_t * pxProtPacket = ( const ProtocolPacket_t * ) pucEthernetBuffer;
         const IPHeader_t * pxIPHeader = &( pxProtPacket->xTCPPacket.xIPHeader );
@@ -1051,7 +1051,7 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
             }
             */
 
-            #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
+            #if ( ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES ) )
                 xResult = pdTRUE;
             #else
                 /* TODO: Handle this in hardware via HAL_ETH_SetMACFilterConfig */
@@ -1214,14 +1214,14 @@ void HAL_ETH_RxLinkCallback( void ** pStart, void ** pEnd, uint8_t * buff, uint1
     if( prvAcceptPacket( pxCurDescriptor, usLength ) == pdTRUE )
     {
         pxCurDescriptor->xDataLength = usLength;
-        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
             pxCurDescriptor->pxNextBuffer = NULL;
         #endif
         if( *pStartDescriptor == NULL )
         {
             *pStartDescriptor = pxCurDescriptor;
         }
-        #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
             else if( pEndDescriptor != NULL )
             {
                 ( *pEndDescriptor )->pxNextBuffer = pxCurDescriptor;
@@ -1236,7 +1236,7 @@ void HAL_ETH_RxLinkCallback( void ** pStart, void ** pEnd, uint8_t * buff, uint1
         FreeRTOS_debug_printf( ( "HAL_ETH_RxLinkCallback: Buffer Dropped\n" ) );
         NetworkBufferDescriptor_t * pxDescriptorToClear = pxCurDescriptor;
         do {
-            #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
                 NetworkBufferDescriptor_t * const pxNext = pxDescriptorToClear->pxNextBuffer;
             #else
                 NetworkBufferDescriptor_t * const pxNext = NULL;
