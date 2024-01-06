@@ -131,7 +131,7 @@
 #define niEMAC_USE_RMII ipconfigENABLE
 
 /*===========================================================================*/
-/*                                  Enums                                    */
+/*                               typedefs                                    */
 /*===========================================================================*/
 
 /* Interrupt events to process: reception, transmission and error handling. */
@@ -156,6 +156,16 @@ typedef enum
     eMacInitComplete /* Initialisation was successful. */
 } eMAC_INIT_STATUS_TYPE;
 
+/* typedef struct xEMACData
+{
+    ETH_HandleTypeDef xEthHandle;
+    EthernetPhy_t xPhyObject;
+    TaskHandle_t xEMACTaskHandle;
+    SemaphoreHandle_t xTxMutex, xTxDescSem;
+    eMAC_INIT_STATUS_TYPE xMacInitStatus;
+    BaseType_t xEMACIndex;
+} EMACData_t; */
+
 /*===========================================================================*/
 /*                      Static Function Declarations                         */
 /*===========================================================================*/
@@ -169,15 +179,15 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
 /* static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress ); */
 /* static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress ); */
 
-static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle );
+static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface );
 static portTASK_FUNCTION_PROTO( prvEMACHandlerTask, pvParameters ) __NO_RETURN;
-static BaseType_t prvEMACTaskStart( ETH_HandleTypeDef * pxEthHandle );
+static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface );
 
 static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const NetworkInterface_t * pxInterface );
 static void prvInitMACAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface );
-static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface );
+static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface, EthernetPhy_t * pxPhyObject );
 
-static BaseType_t prvMacUpdateConfig( ETH_HandleTypeDef * pxEthHandle );
+static BaseType_t prvMacUpdateConfig( ETH_HandleTypeDef * pxEthHandle, EthernetPhy_t * pxPhyObject );
 static uint32_t prvComputeCRC32_MAC( const uint8_t * pucMAC );
 static uint32_t prvComputeEthernet_MACHash( const uint8_t * pucMAC );
 static void prvSetMAC_HashFilter( ETH_HandleTypeDef * pxEthHandle, const uint8_t * pucMAC );
@@ -192,9 +202,10 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
 /*                      Static Variable Declarations                         */
 /*===========================================================================*/
 
+/* static EMACData_t xEMACData; */
+
 static ETH_HandleTypeDef xEthHandle;
 
-static NetworkInterface_t * pxMyInterface;
 static EthernetPhy_t xPhyObject;
 
 static TaskHandle_t xEMACTaskHandle;
@@ -259,8 +270,8 @@ static BaseType_t prvGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
     BaseType_t xInitResult = pdFAIL;
-
     ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
+    EthernetPhy_t * pxPhyObject = &xPhyObject;
 
     switch( xMacInitStatus )
     {
@@ -292,9 +303,9 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
             /* fallthrough */
 
         case eMacPhyInit:
-            vPhyInitialise( &xPhyObject, ( xApplicationPhyReadHook_t ) prvPhyReadReg, ( xApplicationPhyWriteHook_t ) prvPhyWriteReg );
+            vPhyInitialise( pxPhyObject, ( xApplicationPhyReadHook_t ) prvPhyReadReg, ( xApplicationPhyWriteHook_t ) prvPhyWriteReg );
 
-            if( xPhyDiscover( &xPhyObject ) == 0 )
+            if( xPhyDiscover( pxPhyObject ) == 0 )
             {
                 break;
             }
@@ -303,7 +314,7 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
             /* fallthrough */
 
         case eMacPhyStart:
-            if( prvPhyStart( pxEthHandle, pxInterface ) == pdFALSE )
+            if( prvPhyStart( pxEthHandle, pxInterface, pxPhyObject ) == pdFALSE )
             {
                 break;
             }
@@ -312,7 +323,7 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
             /* fallthrough */
 
         case eMacTaskStart:
-            if( prvEMACTaskStart( pxEthHandle ) == pdFALSE )
+            if( prvEMACTaskStart( pxInterface ) == pdFALSE )
             {
                 break;
             }
@@ -347,10 +358,11 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
 static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFAIL;
+    ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
     /* Zero-Copy Only */
     configASSERT( xReleaseAfterSend == pdTRUE );
 
-    if( ( xMacInitStatus == eMacInitComplete ) && ( xEthHandle.gState == HAL_ETH_STATE_STARTED ) )
+    if( ( xMacInitStatus == eMacInitComplete ) && ( pxEthHandle->gState == HAL_ETH_STATE_STARTED ) )
     {
         if( ( pxDescriptor != NULL ) && ( pxDescriptor->pucEthernetBuffer != NULL ) && ( pxDescriptor->xDataLength <= niEMAC_DATA_BUFFER_SIZE ) )
         {
@@ -380,7 +392,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
                         xTxConfig.Length = xTxBuffer.len;
                         xTxConfig.TxBuffer = &xTxBuffer;
                         xTxConfig.pData = pxDescriptor;
-                        if( HAL_ETH_Transmit_IT( &xEthHandle, &xTxConfig ) == HAL_OK )
+                        if( HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig ) == HAL_OK )
                         {
                             /* Released later in deferred task by calling HAL_ETH_ReleaseTxPacket */
                             xReleaseAfterSend = pdFALSE;
@@ -389,9 +401,9 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
                         else
                         {
                             ( void ) xSemaphoreGive( xTxDescSem );
-                            configASSERT( ( xEthHandle.ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
-                            configASSERT( xEthHandle.gState == HAL_ETH_STATE_STARTED );
-                            if( xEthHandle.ErrorCode & HAL_ETH_ERROR_BUSY )
+                            configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
+                            configASSERT( pxEthHandle->gState == HAL_ETH_STATE_STARTED );
+                            if( pxEthHandle->ErrorCode & HAL_ETH_ERROR_BUSY )
                             {
                                 FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Tx Busy\n" ) );
                             }
@@ -441,7 +453,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
 /*                              EMAC Task                                    */
 /*===========================================================================*/
 
-static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
+static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface )
 {
     UBaseType_t uxResult = 0;
     /* if( ( xMacInitStatus == eMacInitComplete ) && ( heth->gState == HAL_ETH_STATE_STARTED ) ) */
@@ -462,7 +474,7 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
         }
         configASSERT( pxEthHandle->RxDescList.RxDataLength <= niEMAC_DATA_BUFFER_SIZE );
         ++uxResult;
-        pxCurDescriptor->pxInterface = pxMyInterface;
+        pxCurDescriptor->pxInterface = pxInterface;
         pxCurDescriptor->pxEndPoint = FreeRTOS_MatchingEndpoint( pxCurDescriptor->pxInterface, pxCurDescriptor->pucEthernetBuffer );
         /* TODO: check pxEndPoint exists? Check it earlier before getting buffer? */
         #if ( ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) )
@@ -506,13 +518,13 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
 
     if( uxResult == 0 )
     {
-        configASSERT( ( xEthHandle.ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
-        /* ( void ) xTaskNotify( xEMACTaskHandle, eMacEventErrRx, eSetBits ); */
+        configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
+        /*( void ) xTaskNotify( xEMACTaskHandle, eMacEventErrRx, eSetBits );
 
         if( pxEthHandle->gState != HAL_ETH_STATE_STARTED )
         {
             ( void ) xTaskNotify( xEMACTaskHandle, eMacEventErrEth, eSetBits );
-        }
+        }*/
     }
 
     return ( ( BaseType_t ) ( uxResult > 0 ) );
@@ -522,8 +534,10 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle )
 
 static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 {
-    ETH_HandleTypeDef * pxEthHandle = ( ETH_HandleTypeDef * ) pvParameters;
-    configASSERT( pxEthHandle );
+    NetworkInterface_t * pxInterface = ( NetworkInterface_t * ) pvParameters;
+    configASSERT( pxInterface );
+    ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
+    EthernetPhy_t * pxPhyObject = &xPhyObject;
 
     /* iptraceEMAC_TASK_STARTING(); */
 
@@ -536,7 +550,7 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
         {
             if( ( ulISREvents & eMacEventRx ) != 0 )
             {
-                xResult = prvNetworkInterfaceInput( pxEthHandle );
+                xResult = prvNetworkInterfaceInput( pxEthHandle, pxInterface );
             }
 
             if( ( ulISREvents & eMacEventTx ) != 0 )
@@ -570,7 +584,8 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 
             if( ( ulISREvents & eMacEventErrEth ) != 0 )
             {
-                configASSERT( ( xEthHandle.ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
+                /* pxEthHandle->gState == HAL_ETH_STATE_ERROR */
+                /* configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 ); */
             }
 
             if( ( ulISREvents & eMacEventErrMac ) != 0 )
@@ -587,15 +602,16 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
         }
 
         /* pxEthHandle->gState == HAL_ETH_STATE_ERROR */
+        /* configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 ); */
 
-        if( xPhyCheckLinkStatus( &xPhyObject, xResult ) != pdFALSE )
+        if( xPhyCheckLinkStatus( pxPhyObject, xResult ) != pdFALSE )
         {
-            if( prvGetPhyLinkStatus( pxMyInterface ) != pdFALSE )
+            if( prvGetPhyLinkStatus( pxInterface ) != pdFALSE )
             {
                 if( pxEthHandle->gState == HAL_ETH_STATE_READY )
                 {
                     /* Link Was Down */
-                    if( prvMacUpdateConfig( pxEthHandle ) != pdFALSE )
+                    if( prvMacUpdateConfig( pxEthHandle, pxPhyObject ) != pdFALSE )
                     {
                         ( void ) HAL_ETH_Start_IT( pxEthHandle );
                     }
@@ -607,7 +623,7 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
                 #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_NETWORK_DOWN_EVENT ) )
                     /* ( void ) HAL_ETH_DeInit( pxEthHandle );
                     xMacInitStatus = eMacEthInit; */
-                    FreeRTOS_NetworkDown( pxMyInterface );
+                    FreeRTOS_NetworkDown( pxInterface );
                 #endif
             }
         }
@@ -616,7 +632,7 @@ static portTASK_FUNCTION( prvEMACHandlerTask, pvParameters )
 
 /*---------------------------------------------------------------------------*/
 
-static BaseType_t prvEMACTaskStart( ETH_HandleTypeDef * pxEthHandle )
+static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface )
 {
     BaseType_t xResult = pdFALSE;
 
@@ -660,7 +676,7 @@ static BaseType_t prvEMACTaskStart( ETH_HandleTypeDef * pxEthHandle )
                 prvEMACHandlerTask,
                 niEMAC_TASK_NAME,
                 niEMAC_TASK_STACK_SIZE,
-                ( void * ) pxEthHandle,
+                ( void * ) pxInterface,
                 niEMAC_TASK_PRIORITY,
                 uxEMACTaskStack,
                 &xEMACTaskTCB
@@ -670,7 +686,7 @@ static BaseType_t prvEMACTaskStart( ETH_HandleTypeDef * pxEthHandle )
                 prvEMACHandlerTask,
                 niEMAC_TASK_NAME,
                 niEMAC_TASK_STACK_SIZE,
-                ( void * ) pxEthHandle,
+                ( void * ) pxInterface,
                 niEMAC_TASK_PRIORITY,
                 &xEMACTaskHandle
             );
@@ -794,7 +810,7 @@ static void prvInitMACAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterfa
 
 /*---------------------------------------------------------------------------*/
 
-static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface )
+static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface, EthernetPhy_t * pxPhyObject )
 {
     BaseType_t xResult = pdFALSE;
 
@@ -818,9 +834,9 @@ static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface
             #endif
         };
 
-        if( xPhyConfigure( &xPhyObject, &xPhyProperties ) == 0 )
+        if( xPhyConfigure( pxPhyObject, &xPhyProperties ) == 0 )
         {
-            if( prvMacUpdateConfig( pxEthHandle ) != pdFALSE )
+            if( prvMacUpdateConfig( pxEthHandle, pxPhyObject ) != pdFALSE )
             {
                 xResult = pdTRUE;
             }
@@ -838,7 +854,7 @@ static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface
 /*                             MAC Helpers                                   */
 /*===========================================================================*/
 
-static BaseType_t prvMacUpdateConfig( ETH_HandleTypeDef * pxEthHandle )
+static BaseType_t prvMacUpdateConfig( ETH_HandleTypeDef * pxEthHandle, EthernetPhy_t * pxPhyObject )
 {
     BaseType_t xResult = pdFALSE;
 
@@ -853,17 +869,17 @@ static BaseType_t prvMacUpdateConfig( ETH_HandleTypeDef * pxEthHandle )
 
     #if ( ipconfigIS_ENABLED( niEMAC_AUTO_NEGOTIATION ) )
         /* TODO: xPhyStartAutoNegotiation always returns 0, Should return -1 if xPhyGetMask == 0 ? */
-        ( void ) xPhyStartAutoNegotiation( &xPhyObject, xPhyGetMask( &xPhyObject ) );
-        xMACConfig.DuplexMode = ( xPhyObject.xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
-        xMACConfig.Speed = ( xPhyObject.xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
+        ( void ) xPhyStartAutoNegotiation( pxPhyObject, xPhyGetMask( pxPhyObject ) );
+        xMACConfig.DuplexMode = ( pxPhyObject->xPhyProperties.ucDuplex == PHY_DUPLEX_FULL ) ? ETH_FULLDUPLEX_MODE : ETH_HALFDUPLEX_MODE;
+        xMACConfig.Speed = ( pxPhyObject->xPhyProperties.ucSpeed == PHY_SPEED_10 ) ? ETH_SPEED_10M : ETH_SPEED_100M;
     #else
-        xPhyObject.xPhyPreferences.ucSpeed = ipconfigIS_ENABLED( niEMAC_USE_100MB ) ? PHY_SPEED_100 : PHY_SPEED_10;
-        xPhyObject.xPhyPreferences.ucDuplex = ipconfigIS_ENABLED( niEMAC_USE_FULL_DUPLEX ) ? PHY_DUPLEX_FULL : PHY_DUPLEX_HALF;
+        pxPhyObject->xPhyPreferences.ucSpeed = ipconfigIS_ENABLED( niEMAC_USE_100MB ) ? PHY_SPEED_100 : PHY_SPEED_10;
+        pxPhyObject->xPhyPreferences.ucDuplex = ipconfigIS_ENABLED( niEMAC_USE_FULL_DUPLEX ) ? PHY_DUPLEX_FULL : PHY_DUPLEX_HALF;
         /* ucMDI_X unused */
         /* TODO: xPhyFixedValue always return 0 */
-        ( void ) xPhyFixedValue( &xPhyObject, xPhyGetMask( &xPhyObject ) );
-        xMACConfig.DuplexMode = xPhyObject.xPhyPreferences.ucDuplex;
-        xMACConfig.Speed = xPhyObject.xPhyPreferences.ucSpeed;
+        ( void ) xPhyFixedValue( pxPhyObject, xPhyGetMask( pxPhyObject ) );
+        xMACConfig.DuplexMode = pxPhyObject->xPhyPreferences.ucDuplex;
+        xMACConfig.Speed = pxPhyObject->xPhyPreferences.ucSpeed;
     #endif
 
     if( HAL_ETH_SetMACConfig( pxEthHandle, &xMACConfig ) == HAL_OK )
@@ -1142,7 +1158,7 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef * pxEthHandle )
         }
     }
 
-    configASSERT( ( xEthHandle.ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
+    configASSERT( ( pxEthHandle->ErrorCode & HAL_ETH_ERROR_PARAM ) == 0 );
 
     xSwitchRequired |= xHigherPriorityTaskWoken;
 }
@@ -1285,7 +1301,9 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
 
     ( void ) memset( pxInterface, '\0', sizeof( *pxInterface ) );
     pxInterface->pcName = pcName;
-    /* TODO: use pvArgument to get xPhyObject/xEthHandle/xMacInitStatus? */
+    /* TODO: use pvArgument to get xEMACData? */
+    /* xEMACData.xEMACIndex = xEMACIndex; */
+    /* pxInterface->pvArgument = ( void * ) &xEMACData; */
     pxInterface->pvArgument = ( void * ) xEMACIndex;
     pxInterface->pfInitialise = prvNetworkInterfaceInitialise;
     pxInterface->pfOutput = prvNetworkInterfaceOutput;
@@ -1293,9 +1311,7 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
     /* pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
     pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress; */
 
-    pxMyInterface = FreeRTOS_AddNetworkInterface( pxInterface );
-
-    return pxMyInterface;
+    return FreeRTOS_AddNetworkInterface( pxInterface );
 }
 
 /*---------------------------------------------------------------------------*/
