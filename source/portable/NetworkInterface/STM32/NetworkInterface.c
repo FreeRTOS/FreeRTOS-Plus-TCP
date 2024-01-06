@@ -215,6 +215,7 @@ static ETH_HandleTypeDef xEthHandle;
 static EthernetPhy_t xPhyObject;
 
 static TaskHandle_t xEMACTaskHandle;
+
 static SemaphoreHandle_t xTxMutex, xTxDescSem;
 
 static volatile BaseType_t xSwitchRequired;
@@ -1361,4 +1362,143 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
 
 #endif
 
-/*---------------------------------------------------------------------------*/
+/*===========================================================================*/
+/*                          Sample HAL_ETH_MspInit                           */
+/*===========================================================================*/
+
+#if 0
+/**
+  * @brief  Initializes the ETH MSP.
+  * @param  heth: ETH handle
+  * @retval None
+*/
+void HAL_ETH_MspInit( ETH_HandleTypeDef * heth )
+{
+    if( heth->Instance == ETH )
+    {
+        /* Enable ETHERNET clock */
+        #if defined( STM32F4 ) || defined( STM32F7 )
+            __HAL_RCC_ETH_CLK_ENABLE();
+        #elif defined( STM32H5 )
+            __HAL_RCC_ETH_CLK_ENABLE();
+            __HAL_RCC_ETHTX_CLK_ENABLE();
+            __HAL_RCC_ETHRX_CLK_ENABLE();
+        #elif defined( STM32H7)
+            __HAL_RCC_ETH1MAC_CLK_ENABLE();
+            __HAL_RCC_ETH1TX_CLK_ENABLE();
+            __HAL_RCC_ETH1RX_CLK_ENABLE();
+        #endif
+
+        /* Enable GPIOs clocks */
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+        __HAL_RCC_GPIOD_CLK_ENABLE();
+        __HAL_RCC_GPIOE_CLK_ENABLE();
+        __HAL_RCC_GPIOF_CLK_ENABLE();
+        __HAL_RCC_GPIOG_CLK_ENABLE();
+        __HAL_RCC_GPIOH_CLK_ENABLE();
+
+        /* Ethernet pins configuration ************************************************/
+        /*
+            Common Pins
+            ETH_MDC ----------------------> ETH_MDC_Port, ETH_MDC_Pin
+            ETH_MDIO --------------------->
+            ETH_RXD0 --------------------->
+            ETH_RXD1 --------------------->
+            ETH_TX_EN -------------------->
+            ETH_TXD0 --------------------->
+            ETH_TXD1 --------------------->
+
+            RMII Specific Pins
+            ETH_REF_CLK ------------------>
+            ETH_CRS_DV ------------------->
+
+            MII Specific Pins
+            ETH_RX_CLK ------------------->
+            ETH_RX_ER -------------------->
+            ETH_RX_DV -------------------->
+            ETH_RXD2 --------------------->
+            ETH_RXD3 --------------------->
+            ETH_TX_CLK ------------------->
+            ETH_TXD2 --------------------->
+            ETH_TXD3 --------------------->
+            ETH_CRS ---------------------->
+            ETH_COL ---------------------->
+        */
+
+        GPIO_InitTypeDef GPIO_InitStructure = { 0 };
+        GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
+        GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStructure.Pull = GPIO_NOPULL;
+        GPIO_InitStructure.Alternate = GPIO_AF11_ETH;
+
+        GPIO_InitStructure.Pin = ETH_MDC_Pin;
+        HAL_GPIO_Init(ETH_MDC_Port, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = ETH_MDIO_Pin;
+        HAL_GPIO_Init(ETH_MDIO_Port, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = ETH_RXD0_Pin;
+        HAL_GPIO_Init(ETH_RXD0_Port, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = ETH_RXD1_Pin;
+        HAL_GPIO_Init(ETH_RXD1_Port, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = ETH_TX_EN_Pin;
+        HAL_GPIO_Init(ETH_TX_EN_Port, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = ETH_TXD0_Pin;
+        HAL_GPIO_Init(ETH_TXD0_Port, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = ETH_TXD1_Pin;
+        HAL_GPIO_Init(ETH_TXD1_Port, &GPIO_InitStructure);
+
+        if( heth->Init.MediaInterface == HAL_ETH_RMII_MODE )
+        {
+            GPIO_InitStructure.Pin = ETH_REF_CLK_Pin;
+            HAL_GPIO_Init(ETH_REF_CLK_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_CRS_DV_Pin;
+            HAL_GPIO_Init(ETH_CRS_DV_Port, &GPIO_InitStructure);
+        }
+        else if( heth->Init.MediaInterface == HAL_ETH_MII_MODE )
+        {
+            GPIO_InitStructure.Pin = ETH_RX_CLK_Pin;
+            HAL_GPIO_Init(ETH_RX_CLK_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_RX_ER_Pin;
+            HAL_GPIO_Init(ETH_RX_ER_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_RX_DV_Pin;
+            HAL_GPIO_Init(ETH_RX_ER_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_RXD2_Pin;
+            HAL_GPIO_Init(ETH_RXD2_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_RXD3_Pin;
+            HAL_GPIO_Init(ETH_RXD3_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_TX_CLK_Pin;
+            HAL_GPIO_Init(ETH_TX_CLK_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_TXD2_Pin;
+            HAL_GPIO_Init(ETH_TXD2_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_TXD3_Pin;
+            HAL_GPIO_Init(ETH_TXD3_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_COL_Pin;
+            HAL_GPIO_Init(ETH_COL_Port, &GPIO_InitStructure);
+
+            GPIO_InitStructure.Pin = ETH_CRS_Pin;
+            HAL_GPIO_Init(ETH_CRS_Port, &GPIO_InitStructure);
+        }
+
+        /* Enable the Ethernet global Interrupt */
+        HAL_NVIC_SetPriority( ETH_IRQn, ( uint32_t ) configMAX_FREERTOS_INTERRUPT_PRIORITY, 0 );
+        HAL_NVIC_EnableIRQ( ETH_IRQn );
+    }
+}
+
+#endif /* 0 */
