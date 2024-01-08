@@ -863,7 +863,7 @@ static void * prvLinuxPcapSendThread( void * pvParam )
 
             if( pcap_sendpacket( pxOpenedInterfaceHandle, ucBuffer, ( int ) xLength ) != 0 )
             {
-                FreeRTOS_printf( ( "pcap_sendpackeet: send failed %d\n", ulPCAPSendFailures ) );
+                FreeRTOS_printf( ( "pcap_sendpacket: send failed %d\n", ulPCAPSendFailures ) );
                 ulPCAPSendFailures++;
             }
         }

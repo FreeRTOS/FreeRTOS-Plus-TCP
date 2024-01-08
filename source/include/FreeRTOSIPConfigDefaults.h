@@ -3112,29 +3112,6 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * FreeRTOS_flush_logging
- *
- * Type: Macro Function
- *
- * Macro that is called in cases where a lot of logging is produced.
- *
- * This gives the logging module a chance to flush the data.
- */
-
-#ifndef FreeRTOS_flush_logging
-    #define FreeRTOS_flush_logging()                     \
-    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) \
-    {                                                    \
-        do {} while( ipFALSE_BOOL );                     \
-    }                                                    \
-    else                                                 \
-    {                                                    \
-    }
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
  * ipconfigTCP_IP_SANITY
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_IP_SANITY
