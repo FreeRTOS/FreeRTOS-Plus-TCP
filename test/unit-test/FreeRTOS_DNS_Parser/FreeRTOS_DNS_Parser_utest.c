@@ -3419,3 +3419,20 @@ BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
     hook_called = pdTRUE;
     return hook_return;
 }
+
+void test_prepareReplyDNSMessage_null_pointer( void )
+{
+    NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
+    uint8_t ether_buffer[ 300 ] = { 0 };
+    size_t uxDataLength;
+	BaseType_t lNetLength = 54;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    pxNetworkBuffer.pucEthernetBuffer = ether_buffer;
+    pxNetworkBuffer.xDataLength = 300;
+	/* This will cause an assert(). */
+    pxNetworkBuffer.pxEndPoint = NULL;
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+	catch_assert( prepareReplyDNSMessage( &pxNetworkBuffer, lNetLength ) );
+}

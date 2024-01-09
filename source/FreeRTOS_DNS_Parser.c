@@ -919,7 +919,7 @@
                     pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
                 }
 
-                pxIPHeader->ulSourceIPAddress = ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U;
+                pxIPHeader->ulSourceIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
                 pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
 
                 /* The stack doesn't support fragments, so the fragment offset field must always be zero.
