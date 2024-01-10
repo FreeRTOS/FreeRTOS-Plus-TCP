@@ -1598,7 +1598,7 @@ void HAL_ETH_MspInit( ETH_HandleTypeDef * heth )
             HAL_GPIO_Init(ETH_RX_ER_Port, &GPIO_InitStructure);
 
             GPIO_InitStructure.Pin = ETH_RX_DV_Pin;
-            HAL_GPIO_Init(ETH_RX_ER_Port, &GPIO_InitStructure);
+            HAL_GPIO_Init(ETH_RX_DV_Port, &GPIO_InitStructure);
 
             GPIO_InitStructure.Pin = ETH_RXD2_Pin;
             HAL_GPIO_Init(ETH_RXD2_Port, &GPIO_InitStructure);
@@ -1626,6 +1626,53 @@ void HAL_ETH_MspInit( ETH_HandleTypeDef * heth )
         HAL_NVIC_SetPriority( ETH_IRQn, ( uint32_t ) configMAX_FREERTOS_INTERRUPT_PRIORITY, 0 );
         HAL_NVIC_EnableIRQ( ETH_IRQn );
     }
+}
+
+#endif /* if 0 */
+
+/*===========================================================================*/
+/*                            Sample MPU Config                              */
+/*===========================================================================*/
+
+#if 0
+
+void MPU_Config(void)
+{
+    extern uint8_t __ETH_BUFFERS_START, __ETH_DESCRIPTORS_START;
+
+    MPU_Region_InitTypeDef MPU_InitStruct;
+
+    HAL_MPU_Disable();
+
+    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+    MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+    MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_BUFFERS_START;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_128KB;
+    MPU_InitStruct.SubRegionDisable = 0x0;
+    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+    MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+    MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+
+    HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+    MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+    MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_DESCRIPTORS_START;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_1KB;
+    MPU_InitStruct.SubRegionDisable = 0x0;
+    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+    MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+    MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+
+    HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+    HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
 
 #endif /* if 0 */
