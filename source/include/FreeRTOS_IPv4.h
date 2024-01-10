@@ -43,7 +43,6 @@
 
 /* Forward declarations. */
 struct xNETWORK_BUFFER;
-enum eFrameProcessingResult;
 struct xIP_PACKET;
 
 #define ipSIZE_OF_IPv4_HEADER               20U
@@ -96,15 +95,6 @@ BaseType_t xIsIPv4Loopback( uint32_t ulAddress );
  * loopback IP-address.
  */
 BaseType_t xBadIPv4Loopback( const IPHeader_t * const pxIPHeader );
-
-/* The function 'prvAllowIPPacket()' checks if a packets should be processed. */
-enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * const pxIPPacket,
-                                                  const struct xNETWORK_BUFFER * const pxNetworkBuffer,
-                                                  UBaseType_t uxHeaderLength );
-
-/* Check if the IP-header is carrying options. */
-enum eFrameProcessingResult prvCheckIP4HeaderOptions( struct xNETWORK_BUFFER * const pxNetworkBuffer );
-
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
