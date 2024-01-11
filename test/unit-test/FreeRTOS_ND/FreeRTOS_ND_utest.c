@@ -690,6 +690,7 @@ void test_vNDAgeCache_NSNullEP( void )
     xNDCache[ xUseEntry ].pxEndPoint = NULL;
 
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     vNDAgeCache();
 
@@ -814,6 +815,8 @@ void test_vNDSendNeighbourSolicitation_NULL_EP( void )
 
     xNetworkBuffer.pxEndPoint = NULL;
 
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
+
     vNDSendNeighbourSolicitation( &xNetworkBuffer, &xIPAddress );
 }
 
@@ -830,6 +833,7 @@ void test_vNDSendNeighbourSolicitation_bIPv6_NotSet( void )
     xEndPoint.bits.bIPv6 = pdFALSE;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
+    vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
     vNDSendNeighbourSolicitation( &xNetworkBuffer, &xIPAddress );
 }
