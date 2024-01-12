@@ -633,48 +633,10 @@ void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
 {
     if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
     {
+        /* IPv6 end-points have a solicited-node addresses that needs extra housekeeping. */
         #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
-        {
-            IPv6_Type_t xAddressType;
-
-            /* Now that the network is up, pxEndPoint->ipv6_settings should hold the actual address of this
-             * end-point. For unicast addresses, generate the respective solicited-node multicast address.
-             * Note that the check below guards against the loopback address, the unspecified address,
-             * and against the weird scenario of someone assigning a multicast address to the end-point. */
-            xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
-
-            if( ( xAddressType == eIPv6_LinkLocal ) || ( xAddressType == eIPv6_SiteLocal ) || ( xAddressType == eIPv6_Global ) )
-            {
-                /* Tell the network driver to begin receiving this MAC address */
-                if( ( pxEndPoint->pxNetworkInterface != NULL ) && ( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL ) )
-                {
-                    MACAddress_t xMACAddress = { {
-                                                     0x33U,
-                                                     0x33U,
-                                                     0xFFU,
-                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
-                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
-                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
-                                                 } };
-                    pxEndPoint->pxNetworkInterface->pfAddAllowedMAC( xMACAddress.ucBytes );
-                }
-                else
-                {
-                    /* The network driver does not implement this filtering function. Nothing we can do about it. */
-                }
-            } /* if( xAddressType == ... ) */
-            else
-            {
-                /* The address of this end-point is something other than a normal unicast address... Maybe it's the
-                 * loopback address or maybe this is an error scenario. In any case, there is no corresponding
-                 * solicited-node multicast address that we need to manage. Do nothing.*/
-            }
-        }
-        #endif /* ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) ) */
-    } /* if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED ) */
-    else
-    {
-        /* This is an IPv4 end-point. There are no solicited-node addresses to manage. */
+            vManageSolicitedNodeAddress( pxEndPoint, pdTRUE );
+        #endif
     }
 
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;

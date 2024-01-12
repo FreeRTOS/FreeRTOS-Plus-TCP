@@ -103,6 +103,16 @@ void vPreCheckConfigs( void );
  */
 void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface );
 
+#if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+
+/**
+ * @brief Called for IPv6 end-points on network up/down events.
+ * The function manages the MAC address and MLD report associated with the end-point's address.
+ */
+    void vManageSolicitedNodeAddress( struct xNetworkEndPoint * pxEndPoint,
+                                      BaseType_t xNetworkGoingUp );
+#endif
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */

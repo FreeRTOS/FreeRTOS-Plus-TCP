@@ -689,6 +689,7 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
 {
     NetworkEndPoint_t * pxEndPoint;
+    size_t xIndex;
 
     gmac_options_t gmac_option;
 
@@ -717,10 +718,10 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
      * and hash match registers, so undo the setting of the first specific MAC register. */
 
     /* Disable all specific MAC address match registers */
-    for( int i = 0; i < GMACSA_NUMBER; i++ )
+    for( xIndex = 0; xIndex < GMACSA_NUMBER; xIndex++ )
     {
         /* Writing the bottom register disable this specific MAC register. */
-        GMAC->GMAC_SA[ i ].GMAC_SAB = 0;
+        GMAC->GMAC_SA[ xIndex ].GMAC_SAB = 0;
     }
 
     /* Clear the hash table for unicast/multicast MAC addresses. */
@@ -904,7 +905,8 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
      * registers have been used. */
 
     /* Note: Only called from the IPTask, so no thread-safety is required. */
-    uint8_t ucHashBit, ucIsMulticast, i, ucEmptyIndex;
+    uint8_t ucHashBit, ucIsMulticast;
+    size_t xIndex, xEmptyIndex;
 
     uint32_t ulSAB, ulSAT;
 
@@ -922,18 +924,18 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
     ulSAT = ( pucMacAddress[ 5 ] << 8 ) | ( pucMacAddress[ 4 ] );
 
     /* Always try to find a match within the specific match registers first. */
-    ucEmptyIndex = GMACSA_NUMBER;
+    xEmptyIndex = GMACSA_NUMBER;
 
-    for( i = 0; i < GMACSA_NUMBER; i++ )
+    for( xIndex = 0; xIndex < GMACSA_NUMBER; xIndex++ )
     {
-        if( prvSpecificMatchCounters[ i ] > 0U )
+        if( prvSpecificMatchCounters[ xIndex ] > 0U )
         {
             /* This specific match register is being used. Check if the address is the same. */
-            if( ( ulSAB == GMAC->GMAC_SA[ i ].GMAC_SAB ) && ( ulSAT == GMAC->GMAC_SA[ i ].GMAC_SAT ) )
+            if( ( ulSAB == GMAC->GMAC_SA[ xIndex ].GMAC_SAB ) && ( ulSAT == GMAC->GMAC_SA[ xIndex ].GMAC_SAT ) )
             {
                 /* Exact match! Increment the counter and leave. */
-                prvSpecificMatchCounters[ i ]++;
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", i, prvSpecificMatchCounters[ i ] ); */
+                prvSpecificMatchCounters[ xIndex ]++;
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", xIndex, prvSpecificMatchCounters[ xIndex ] ); */
                 break;
             }
             else
@@ -945,28 +947,28 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
         {
             /* This specific match register is empty.
              * Keep track of the first empty register in case we need to use it. */
-            if( ucEmptyIndex >= GMACSA_NUMBER )
+            if( xEmptyIndex >= GMACSA_NUMBER )
             {
-                ucEmptyIndex = i;
+                xEmptyIndex = xIndex;
             }
             else
             {
                 /* We have already found an empty specific match register. Do nothing. */
             }
         }
-    } /* for( i = 0; i < GMACSA_NUMBER; i++ ) */
+    } /* for( xIndex = 0; xIndex < GMACSA_NUMBER; xIndex++ ) */
 
     /* do{}while(0) to allow the use of break statements. */
     do
     {
-        if( i < GMACSA_NUMBER )
+        if( xIndex < GMACSA_NUMBER )
         {
             /* An exact match was found in the for(;;) loop above. Do nothing. */
             break;
         }
 
         /* No exact match found in the specific match registers, but is one of them empty? */
-        if( ucEmptyIndex < GMACSA_NUMBER )
+        if( xEmptyIndex < GMACSA_NUMBER )
         {
             /* There is an empty slot in the specific match registers. Using this empty slot should
              * be a priority, except if the hash register already covers the MAC address we were given
@@ -977,9 +979,9 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
                 ( prvAddressHashCounters[ ucHashBit ] == 0 ) /* hash matching doesn't cover this address yet. */ )
             {
                 /* In all cases above, simply add to the empty specific match register. */
-                gmac_set_address( GMAC, ucEmptyIndex, pucMacAddress );
-                prvSpecificMatchCounters[ ucEmptyIndex ] = 1U;
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: ADD at %u, new counter %u", ucEmptyIndex, prvSpecificMatchCounters[ ucEmptyIndex ] ); */
+                gmac_set_address( GMAC, xEmptyIndex, pucMacAddress );
+                prvSpecificMatchCounters[ xEmptyIndex ] = 1U;
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: ADD at %u, new counter %u", xEmptyIndex, prvSpecificMatchCounters[ xEmptyIndex ] ); */
                 break;
             }
         }
@@ -1027,8 +1029,9 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
 static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress )
 {
     /* Note: Only called from the IPTask, so no thread-safety is required. */
-    uint8_t ucHashBit, i;
+    uint8_t ucHashBit;
     uint32_t ulSAB, ulSAT;
+    size_t xIndex;
 
     configASSERT( NULL != pucMacAddress );
 
@@ -1043,33 +1046,33 @@ static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress )
     ulSAT = ( pucMacAddress[ 5 ] << 8 ) | ( pucMacAddress[ 4 ] );
 
     /* Check the specific match registers first. */
-    for( i = 0; i < GMACSA_NUMBER; i++ )
+    for( xIndex = 0; xIndex < GMACSA_NUMBER; xIndex++ )
     {
-        if( ( prvSpecificMatchCounters[ i ] > 0U ) && ( ulSAB == GMAC->GMAC_SA[ i ].GMAC_SAB ) && ( ulSAT == GMAC->GMAC_SA[ i ].GMAC_SAT ) )
+        if( ( prvSpecificMatchCounters[ xIndex ] > 0U ) && ( ulSAB == GMAC->GMAC_SA[ xIndex ].GMAC_SAB ) && ( ulSAT == GMAC->GMAC_SA[ xIndex ].GMAC_SAT ) )
         {
             /* Exact match! Decrement the counter unless it's maxed out. */
-            if( prvSpecificMatchCounters[ i ] < UINT8_MAX )
+            if( prvSpecificMatchCounters[ xIndex ] < UINT8_MAX )
             {
-                prvSpecificMatchCounters[ i ]--;
+                prvSpecificMatchCounters[ xIndex ]--;
             }
 
-            if( prvSpecificMatchCounters[ i ] == 0 )
+            if( prvSpecificMatchCounters[ xIndex ] == 0 )
             {
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, INDEX DISABLED", i ); */
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, INDEX DISABLED", xIndex ); */
                 /* This specific match register counter is now zero. Disable it by writing it in reverse order. */
-                GMAC->GMAC_SA[ i ].GMAC_SAT = 0U; /* This is not needed, just clears out the top register.*/
-                GMAC->GMAC_SA[ i ].GMAC_SAB = 0U; /* Writing the bottom register disables this specific match register. */
+                GMAC->GMAC_SA[ xIndex ].GMAC_SAT = 0U; /* This is not needed, just clears out the top register.*/
+                GMAC->GMAC_SA[ xIndex ].GMAC_SAB = 0U; /* Writing the bottom register disables this specific match register. */
             }
             else
             {
-                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", i, prvSpecificMatchCounters[ i ] ); */
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", xIndex, prvSpecificMatchCounters[ xIndex ] ); */
             }
 
             break;
         }
     }
 
-    if( i >= GMACSA_NUMBER )
+    if( xIndex >= GMACSA_NUMBER )
     {
         /* The MAC address was not found amongst the specific match registers, check the hash register. */
         if( prvAddressHashCounters[ ucHashBit ] > 0 )
