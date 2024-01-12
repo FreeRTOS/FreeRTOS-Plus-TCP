@@ -592,6 +592,7 @@
         MACAddress_t xMultiCastMacAddress;
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
         NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
+        BaseType_t xReleased = pdFALSE;
 
         if( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
         {
@@ -675,7 +676,13 @@
 
                 /* This function will fill in the eth addresses and send the packet */
                 vReturnEthernetFrame( pxDescriptor, pdTRUE );
+                xReleased = pdTRUE;
             }
+        }
+
+        if( ( pxDescriptor != NULL ) && ( xReleased == pdFALSE ) )
+        {
+            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
         }
     }
 /*-----------------------------------------------------------*/

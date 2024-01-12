@@ -46,6 +46,7 @@
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IP_Private.h"
+#include "mock_FreeRTOS_IPv4_Private.h"
 #include "mock_FreeRTOS_IP_Utils.h"
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_TCP_IP.h"
