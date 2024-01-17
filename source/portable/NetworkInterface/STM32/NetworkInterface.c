@@ -111,6 +111,12 @@
     #error HAL_ETH_MODULE_ENABLED must be enabled for NetworkInterface
 #endif
 
+#if ( defined( STM32F4 ) || defined( STM32F7 ) ) && defined( ETH_RX_BUF_SIZE )
+    #if ( niEMAC_DATA_BUFFER_SIZE != ETH_RX_BUF_SIZE )
+        #warning "As of F7 V1.17.1 && F4 V1.28.0, a bug exists in the ETH HAL Driver where ETH_RX_BUF_SIZE is used instead of RxBuffLen, so ETH_RX_BUF_SIZE must == niEMAC_DATA_BUFFER_SIZE"
+    #endif
+#endif
+
 /*---------------------------------------------------------------------------*/
 /*===========================================================================*/
 /*                                  Macros                                   */
@@ -121,20 +127,19 @@
 #define niEMAC_RX_DESC_SECTION    ".RxDescripSection"
 #define niEMAC_BUFFERS_SECTION    ".EthBuffersSection"
 
-/*
- * TODO: Cache Handling
- * This is only for F7 which uses M7, H5 uses M33, how does this work with dual core H7 M7/M4?
- * Can probably align by portBYTE_ALIGNMENT if not cached
- */
-#ifdef __SCB_DCACHE_LINE_SIZE
-    #define niEMAC_CACHE_LINE_SIZE  __SCB_DCACHE_LINE_SIZE
+/* TODO: Cache Handling, only for m7 */
+#if __DCACHE_PRESENT
+    #define niEMAC_CACHE_ENABLED    ( SCB->CCR & SCB_CCR_DC_Msk )
+    #define niEMAC_ALIGNMENT        __SCB_DCACHE_LINE_SIZE
+    #define niEMAC_ALIGNMENT_MASK   ( niEMAC_ALIGNMENT - 1U )
 #else
-    #define niEMAC_CACHE_LINE_SIZE  32U
+    #define niEMAC_CACHE_ENABLED    pdFALSE
+    #define niEMAC_ALIGNMENT        portBYTE_ALIGNMENT
+    #define niEMAC_ALIGNMENT_MASK   portBYTE_ALIGNMENT_MASK
 #endif
 
 #define niEMAC_DATA_BUFFER_SIZE     ( ( ipTOTAL_ETHERNET_FRAME_SIZE + portBYTE_ALIGNMENT_MASK ) & ~portBYTE_ALIGNMENT_MASK )
-#define niEMAC_TOTAL_ALIGNMENT_MASK ( niEMAC_CACHE_LINE_SIZE - 1U )
-#define niEMAC_TOTAL_BUFFER_SIZE    ( ( ( niEMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING ) + niEMAC_CACHE_LINE_SIZE ) & ~niEMAC_TOTAL_ALIGNMENT_MASK )
+#define niEMAC_TOTAL_BUFFER_SIZE    ( ( ( niEMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING ) + niEMAC_ALIGNMENT_MASK ) & ~niEMAC_ALIGNMENT_MASK )
 
 #define niEMAC_MAX_BLOCK_TIME_MS        100U
 #define niEMAC_DESCRIPTOR_WAIT_TIME_MS  200U
@@ -144,13 +149,12 @@
 #define niEMAC_TASK_STACK_SIZE  ( 4U * configMINIMAL_STACK_SIZE )
 
 #define niEMAC_TX_MUTEX_NAME    "EMAC_TxMutex"
-#define niEMAC_TX_DESC_SEM_NAME "EMAC_TxDescSem"
 
 #define niEMAC_AUTO_NEGOTIATION ipconfigENABLE
 #define niEMAC_USE_100MB        ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION ) )
 #define niEMAC_USE_FULL_DUPLEX  ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION ) )
-#define niEMAC_AUTO_CROSS       ( ipconfigENABLE && ipconfigIS_ENABLED( niEMAC_AUTO_NEGOTIATION  ) )
-#define niEMAC_CROSSED_LINK     ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_CROSS  ) )
+#define niEMAC_AUTO_CROSS       ( ipconfigENABLE && ipconfigIS_ENABLED( niEMAC_AUTO_NEGOTIATION ) )
+#define niEMAC_CROSSED_LINK     ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_CROSS ) )
 
 #define niEMAC_USE_RMII ipconfigENABLE
 
@@ -165,6 +169,8 @@
 
 #define niPHY_IMR_AN_COMPLETE 0x0040
 #define niPHY_IMR_LINK_DOWN 0x0010*/
+
+#define niEMAC_MAC_IS_MULTICAST( pucMacAddress ) ( ( pucMacAddress[ 0 ] & 1U ) != 0 )
 
 /*---------------------------------------------------------------------------*/
 /*===========================================================================*/
@@ -224,11 +230,11 @@ static BaseType_t prvGetPhyLinkStatus( NetworkInterface_t * pxInterface );
 static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend );
 static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress );
-static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress );
+//static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress );
 
 /* EMAC Task */
 static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface );
-static portTASK_FUNCTION_PROTO( prvEMACHandlerTask, pvParameters ) __NO_RETURN;
+static __NO_RETURN portTASK_FUNCTION_PROTO( prvEMACHandlerTask, pvParameters );
 static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface );
 
 /* EMAC Init */
@@ -451,7 +457,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
         if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( niEMAC_MAX_BLOCK_TIME_MS ) ) == pdFALSE )
         {
             FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Process Busy\n" ) );
-            // TODO: Can we queue it?
+            /* TODO: Can we queue it? */
             break;
         }
 
@@ -528,7 +534,7 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
 {
     configASSERT( pucMacAddress );
 
-    const BaseType_t xIsMulticast = ( ( pucMacAddress[ 0 ] & 1U ) != 0 ) ? pdTRUE : pdFALSE;
+    const BaseType_t xIsMulticast = niEMAC_MAC_IS_MULTICAST( pucMacAddress );
 
     BaseType_t xFound = pdFALSE;
     for( UBaseType_t uxIndex = 0; uxIndex < ARRAY_SIZE( xMatchedMacAddresses ); ++uxIndex )
@@ -602,12 +608,12 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
 }
 
 /*---------------------------------------------------------------------------*/
-
+#if 0
 static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress )
 {
     configASSERT( pucMacAddress );
 
-    const BaseType_t xIsMulticast = ( ( pucMacAddress[ 0 ] & 1U ) != 0 ) ? pdTRUE : pdFALSE;
+    /* const BaseType_t xIsMulticast = niEMAC_MAC_IS_MULTICAST( pucMacAddress ); */
 
     BaseType_t xFound = pdFALSE;
     for( UBaseType_t uxIndex = 0; uxIndex < ARRAY_SIZE( xMatchedMacAddresses ); ++uxIndex )
@@ -628,7 +634,7 @@ static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress )
 
     }
 }
-
+#endif
 /*---------------------------------------------------------------------------*/
 /*===========================================================================*/
 /*                              EMAC Task                                    */
@@ -866,9 +872,12 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
     pxEthHandle->Init.RxBuffLen = niEMAC_DATA_BUFFER_SIZE;
     configASSERT( pxEthHandle->Init.RxBuffLen <= ETH_MAX_PACKET_SIZE );
     configASSERT( pxEthHandle->Init.RxBuffLen % 4U == 0 );
+    #if ( defined( STM32F4 ) || defined( STM32F7 ) ) && defined( ETH_RX_BUF_SIZE )
+        configASSERT( pxEthHandle->Init.RxBuffLen == ETH_RX_BUF_SIZE );
+    #endif
 
-    static ETH_DMADescTypeDef xDMADescRx[ ETH_RX_DESC_CNT ] __ALIGNED( portBYTE_ALIGNMENT ) __attribute__( ( section( niEMAC_RX_DESC_SECTION ) ) );
     static ETH_DMADescTypeDef xDMADescTx[ ETH_TX_DESC_CNT ] __ALIGNED( portBYTE_ALIGNMENT ) __attribute__( ( section( niEMAC_TX_DESC_SECTION ) ) );
+    static ETH_DMADescTypeDef xDMADescRx[ ETH_RX_DESC_CNT ] __ALIGNED( portBYTE_ALIGNMENT ) __attribute__( ( section( niEMAC_RX_DESC_SECTION ) ) );
 
     pxEthHandle->Init.TxDesc = xDMADescTx;
     pxEthHandle->Init.RxDesc = xDMADescRx;
@@ -903,13 +912,18 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
     */
 
     /* #if defined( STM32H5 ) || defined ( STM32H7 )
-        HAL_ETHEx_EnableARPOffload( pxEthHandle );
         HAL_ETHEx_SetARPAddressMatch( pxEthHandle );
+        HAL_ETHEx_EnableARPOffload( pxEthHandle );
     #endif */
 
     /* #if ( defined( STM32H5 ) || defined ( STM32H7 ) ) && ipconfigIS_ENABLED( ipconfigETHERNET_DRIVER_FILTERS_PACKETS )
         prvUpdatePacketFilter( pxEthHandle, pxInterface );
     #endif */
+
+    configASSERT( NVIC_GetEnableIRQ( ETH_IRQn ) != 0 );
+    uint32_t ulPreemptPriority, ulSubPriority;
+    HAL_NVIC_GetPriority( ETH_IRQn, HAL_NVIC_GetPriorityGrouping(), &ulPreemptPriority, &ulSubPriority );
+    configASSERT( ulPreemptPriority >= configMAX_FREERTOS_INTERRUPT_PRIORITY );
 
     return xResult;
 }
@@ -1253,47 +1267,41 @@ static BaseType_t prvAcceptPayload( ETH_HandleTypeDef * pxEthHandle, const uint8
 static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDescriptor, uint16_t usLength )
 {
     BaseType_t xResult = pdFALSE;
-
-    uint32_t ulErrorCode = 0;
-    ( void ) HAL_ETH_GetRxDataErrorCode( &xEthHandle, &ulErrorCode );
-
-    if ( ulErrorCode == 0 )
+    do
     {
-        if( usLength <= niEMAC_DATA_BUFFER_SIZE )
+        uint32_t ulErrorCode = 0;
+        ( void ) HAL_ETH_GetRxDataErrorCode( &xEthHandle, &ulErrorCode );
+        if( ulErrorCode != 0 )
         {
-            /* if( prvAcceptPayload( &xEthHandle, pxDescriptor->pucEthernetBuffer ) != pdFALSE )
-            {
-
-            }
-            else
-            {
-                FreeRTOS_debug_printf( ( "prvAcceptPacket: Payload discarded\n" ) );
-            }
-            */
-
-            #if ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES )
-                xResult = pdTRUE;
-            #else
-                /* TODO: Handle this in hardware via HAL_ETH_SetMACFilterConfig */
-                if( eConsiderFrameForProcessing( pxDescriptor->pucEthernetBuffer ) == eProcessBuffer )
-                {
-                    xResult = pdTRUE;
-                }
-                else
-                {
-                    FreeRTOS_debug_printf( ( "prvAcceptPacket: Frame discarded\n" ) );
-                }
-            #endif
+            FreeRTOS_debug_printf( ( "prvAcceptPacket: Rx Data Error\n" ) );
+            break;
         }
-        else
+
+        if( usLength > niEMAC_DATA_BUFFER_SIZE )
         {
             FreeRTOS_debug_printf( ( "prvAcceptPacket: Packet size overflow\n" ) );
+            break;
         }
-    }
-    else
-    {
-        FreeRTOS_debug_printf( ( "prvAcceptPacket: Rx Data Error\n" ) );
-    }
+
+        /* if( prvAcceptPayload( &xEthHandle, pxDescriptor->pucEthernetBuffer ) != pdTRUE )
+        {
+            FreeRTOS_debug_printf( ( "prvAcceptPacket: Payload discarded\n" ) );
+            break;
+        } */
+
+        #if ipconfigIS_DISABLED( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES )
+            if( eConsiderFrameForProcessing( pxDescriptor->pucEthernetBuffer ) != eProcessBuffer )
+            {
+                FreeRTOS_debug_printf( ( "prvAcceptPacket: Frame discarded\n" ) );
+                break;
+            }
+        #else
+            // prvUpdatePacketFilter should have set this filter up previously
+        #endif
+
+        xResult = pdTRUE;
+
+    } while( pdFALSE );
 
     return xResult;
 }
@@ -1327,7 +1335,7 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef * pxEthHandle )
             {
                 /* Fatal bus error occurred */
                 /* eMacEventErrDma */
-                ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventErrEth, eSetBits, &xHigherPriorityTaskWoken );
+                /* ( void ) xTaskNotifyFromISR( xEMACTaskHandle, eMacEventErrEth, eSetBits, &xHigherPriorityTaskWoken ); */
             }
             else
             {
@@ -1420,6 +1428,7 @@ void HAL_ETH_RxAllocateCallback( uint8_t ** ppucBuff )
     const NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( niEMAC_DATA_BUFFER_SIZE, pdMS_TO_TICKS( niEMAC_DESCRIPTOR_WAIT_TIME_MS ) );
     if( pxBufferDescriptor != NULL )
     {
+        /* TODO: Should any other checks be performed on pxBufferDescriptor? */
         *ppucBuff = pxBufferDescriptor->pucEthernetBuffer;
     }
     else
@@ -1478,7 +1487,7 @@ void HAL_ETH_TxFreeCallback( uint32_t * pulBuff )
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ niEMAC_TOTAL_BUFFER_SIZE ] __ALIGNED( niEMAC_CACHE_LINE_SIZE ) __attribute__( ( section( niEMAC_BUFFERS_SECTION ) ) );
+    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ niEMAC_TOTAL_BUFFER_SIZE ] __ALIGNED( niEMAC_ALIGNMENT ) __attribute__( ( section( niEMAC_BUFFERS_SECTION ) ) );
 
     configASSERT( xBufferAllocFixedSize == pdTRUE );
 
@@ -1686,6 +1695,8 @@ void HAL_ETH_MspInit( ETH_HandleTypeDef * heth )
 
 void MPU_Config(void)
 {
+    /* TODO: Usage based on if niEMAC_CACHE_ENABLED */
+
     extern uint8_t __ETH_BUFFERS_START, __ETH_DESCRIPTORS_START;
 
     MPU_Region_InitTypeDef MPU_InitStruct;
