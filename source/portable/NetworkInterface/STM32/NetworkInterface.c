@@ -137,7 +137,12 @@
     #define niEMAC_CACHEABLE
     #define niEMAC_MPU_ENABLED      ipconfigENABLE
     #define niEMAC_CACHE_ENABLED    ( ipconfigIS_DISABLED( niEMAC_MPU_ENABLED ) && ( ( SCB->CCR & SCB_CCR_DC_Msk ) != 0 ) )
-    #define niEMAC_ALIGNMENT        __SCB_DCACHE_LINE_SIZE
+    #ifdef __SCB_DCACHE_LINE_SIZE
+        #define niEMAC_ALIGNMENT    __SCB_DCACHE_LINE_SIZE
+    #else
+        /* _FLD2VAL( SCB_CCSIDR_LINESIZE, SCB->CCSIDR ) */
+        #define niEMAC_ALIGNMENT    32U
+    #endif
     #define niEMAC_ALIGNMENT_MASK   ( niEMAC_ALIGNMENT - 1U )
 #else
     #define niEMAC_ALIGNMENT        portBYTE_ALIGNMENT /* or should this always be 4? */
