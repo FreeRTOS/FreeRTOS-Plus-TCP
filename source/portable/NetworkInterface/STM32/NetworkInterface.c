@@ -133,24 +133,13 @@
 #define niEMAC_RX_DESC_SECTION    ".RxDescripSection"
 #define niEMAC_BUFFERS_SECTION    ".EthBuffersSection"
 
-#if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U )
-    #define niEMAC_CACHEABLE
-    #define niEMAC_MPU_ENABLED      ipconfigENABLE
-    #define niEMAC_CACHE_ENABLED    ( ipconfigIS_DISABLED( niEMAC_MPU_ENABLED ) && ( ( SCB->CCR & SCB_CCR_DC_Msk ) != 0 ) )
-    #ifdef __SCB_DCACHE_LINE_SIZE
-        #define niEMAC_ALIGNMENT    __SCB_DCACHE_LINE_SIZE
-    #else
-        /* _FLD2VAL( SCB_CCSIDR_LINESIZE, SCB->CCSIDR ) */
-        #define niEMAC_ALIGNMENT    32U
-    #endif
-    #define niEMAC_ALIGNMENT_MASK   ( niEMAC_ALIGNMENT - 1U )
-#else
-    #define niEMAC_ALIGNMENT        portBYTE_ALIGNMENT /* or should this always be 4? */
-    #define niEMAC_ALIGNMENT_MASK   portBYTE_ALIGNMENT_MASK /* or should this always be 3? */
-#endif
+#define niEMAC_DATA_ALIGNMENT        4
+#define niEMAC_DATA_ALIGNMENT_MASK   ( niEMAC_DATA_ALIGNMENT - 1 )
+#define niEMAC_BUF_ALIGNMENT        32
+#define niEMAC_BUF_ALIGNMENT_MASK   ( niEMAC_BUF_ALIGNMENT - 1 )
 
-#define niEMAC_DATA_BUFFER_SIZE     ( ( ipTOTAL_ETHERNET_FRAME_SIZE + portBYTE_ALIGNMENT_MASK ) & ~portBYTE_ALIGNMENT_MASK )
-#define niEMAC_TOTAL_BUFFER_SIZE    ( ( ( niEMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING ) + niEMAC_ALIGNMENT_MASK ) & ~niEMAC_ALIGNMENT_MASK )
+#define niEMAC_DATA_BUFFER_SIZE     ( ( ipTOTAL_ETHERNET_FRAME_SIZE + niEMAC_DATA_ALIGNMENT_MASK ) & ~niEMAC_DATA_ALIGNMENT_MASK )
+#define niEMAC_TOTAL_BUFFER_SIZE    ( ( ( niEMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING ) + niEMAC_BUF_ALIGNMENT_MASK ) & ~niEMAC_BUF_ALIGNMENT_MASK )
 
 #define niEMAC_MAX_BLOCK_TIME_MS        100U
 #define niEMAC_DESCRIPTOR_WAIT_TIME_MS  200U
@@ -494,17 +483,6 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
         xTxConfig.pData = pxDescriptor;
         xTxConfig.TxBuffer = &xTxBuffer;
         xTxConfig.Length = xTxBuffer.len;
-
-        #ifdef niEMAC_CACHEABLE
-            if( niEMAC_CACHE_ENABLED )
-            {
-                const uintptr_t uxDataStart = ( uintptr_t ) xTxBuffer.buffer;
-                const uintptr_t uxLineStart = uxDataStart & ~niEMAC_ALIGNMENT_MASK;
-                const ptrdiff_t uxDataOffset = uxDataStart - uxLineStart;
-                const size_t uxLength = xTxBuffer.len + uxDataOffset;
-                SCB_CleanDCache_by_Addr( ( uint32_t * ) uxLineStart, uxLength );
-            }
-        #endif
 
         if( HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig ) == HAL_OK )
         {
@@ -1437,13 +1415,6 @@ void HAL_ETH_RxLinkCallback( void ** ppvStart, void ** ppvEnd, uint8_t * pucBuff
         *ppxEndDescriptor = pxCurDescriptor;
         /* Only single buffer packets are supported */
         configASSERT( *ppxStartDescriptor == *ppxEndDescriptor );
-
-        #ifdef niEMAC_CACHEABLE
-            if( niEMAC_CACHE_ENABLED )
-            {
-                SCB_InvalidateDCache_by_Addr( pucBuff, usLength );
-            }
-        #endif
     }
     else
     {
@@ -1469,7 +1440,7 @@ void HAL_ETH_TxFreeCallback( uint32_t * pulBuff )
 
 void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
 {
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ niEMAC_TOTAL_BUFFER_SIZE ] __ALIGNED( niEMAC_ALIGNMENT ) __attribute__( ( section( niEMAC_BUFFERS_SECTION ) ) );
+    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ niEMAC_TOTAL_BUFFER_SIZE ] __ALIGNED( niEMAC_BUF_ALIGNMENT ) __attribute__( ( section( niEMAC_BUFFERS_SECTION ) ) );
 
     configASSERT( xBufferAllocFixedSize == pdTRUE );
 
@@ -1504,9 +1475,6 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
     pxInterface->pfGetPhyLinkStatus = prvGetPhyLinkStatus;
     /* pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
     pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress; */
-
-    // niEMAC_DATA_BUFFER_SIZE     ( ( ipTOTAL_ETHERNET_FRAME_SIZE + portBYTE_ALIGNMENT_MASK ) & ~portBYTE_ALIGNMENT_MASK )
-    // niEMAC_TOTAL_BUFFER_SIZE    ( ( ( niEMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING ) + niEMAC_ALIGNMENT_MASK ) & ~niEMAC_ALIGNMENT_MASK )
 
     return FreeRTOS_AddNetworkInterface( pxInterface );
 }
@@ -1687,40 +1655,38 @@ void MPU_Config(void)
 
     HAL_MPU_Disable();
 
-    #ifdef defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U )
-        extern uint8_t __ETH_BUFFERS_START;
+    extern uint8_t __ETH_BUFFERS_START;
 
-        MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-        MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-        MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_BUFFERS_START;
-        MPU_InitStruct.Size = MPU_REGION_SIZE_128KB;
-        MPU_InitStruct.SubRegionDisable = 0x0;
-        MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
-        MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-        MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-        MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-        MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
-        MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+    MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+    MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_BUFFERS_START;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_128KB;
+    MPU_InitStruct.SubRegionDisable = 0x0;
+    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+    MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+    MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
-        HAL_MPU_ConfigRegion(&MPU_InitStruct);
+    HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
 
-        extern uint8_t __ETH_DESCRIPTORS_START;
+    extern uint8_t __ETH_DESCRIPTORS_START;
 
-        MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-        MPU_InitStruct.Number = MPU_REGION_NUMBER1;
-        MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_DESCRIPTORS_START;
-        MPU_InitStruct.Size = MPU_REGION_SIZE_1KB;
-        MPU_InitStruct.SubRegionDisable = 0x0;
-        MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-        MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-        MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-        MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-        MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
-        MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+    MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+    MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_DESCRIPTORS_START;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_1KB;
+    MPU_InitStruct.SubRegionDisable = 0x0;
+    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+    MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+    MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 
-        HAL_MPU_ConfigRegion(&MPU_InitStruct);
-    #endif /* if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U ) */
+    HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
     HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
