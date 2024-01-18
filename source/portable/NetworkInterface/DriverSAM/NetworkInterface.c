@@ -201,6 +201,34 @@ NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
  */
 static void hand_tx_errors( void );
 
+/*-----------------------------------------------------------*/
+
+/*
+ * GMAC hash match register definitions and macros and variables
+ * The ATSAM GMAC has a 64 bit register for matching multiple unicast or multicast addresses.
+ * This implementation keeps a counter for every one of those bits. Those counters allow us to keep track
+ * of how many times each bit has been referenced by a call to prvAddAllowedMACAddress().
+ * In order to minimize the memory requirement, the counters are of type uint8_t which limits
+ * their value to 255. If a counter ever reaches that value, it is never decremented. Reaching this
+ * limit is extremely unlikely in any system, let alone an embedded one using an ATSAM MCU.
+ */
+
+#define MULTICAST_HASH_IS_ENABLED( pGMAC )     ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_MTIHEN ) != 0U )
+#define MULTICAST_HASH_IS_DISABLED( pGMAC )    ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_MTIHEN ) == 0U )
+#define MULTICAST_HASH_ENABLE( pGMAC )         pGMAC->GMAC_NCFGR |= GMAC_NCFGR_MTIHEN
+#define MULTICAST_HASH_DISABLE( pGMAC )        pGMAC->GMAC_NCFGR &= ~( GMAC_NCFGR_MTIHEN )
+#define UNICAST_HASH_IS_ENABLED( pGMAC )       ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_UNIHEN ) != 0U )
+#define UNICAST_HASH_IS_DISABLED( pGMAC )      ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_UNIHEN ) == 0U )
+#define UNICAST_HASH_ENABLE( pGMAC )           pGMAC->GMAC_NCFGR |= GMAC_NCFGR_UNIHEN
+#define UNICAST_HASH_DISABLE( pGMAC )          pGMAC->GMAC_NCFGR &= ~( GMAC_NCFGR_UNIHEN )
+
+#define GMAC_ADDRESS_HASH_BITS    ( 64U )
+#define GMAC_ADDRESS_HASH_MASK    ( GMAC_ADDRESS_HASH_BITS - 1U )
+
+static uint8_t prvAddressHashCounters[ GMAC_ADDRESS_HASH_BITS ] = { 0U };
+static uint64_t prvAddressHashBitMask = 0U;
+static uint8_t prvSpecificMatchCounters[ GMACSA_NUMBER ] = { 0U };
+
 /* Functions to set the hash table for multicast addresses. */
 static uint16_t prvGenerateCRC16( const uint8_t * pucAddress );
 static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress );
@@ -731,7 +759,8 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
      * There is also no equivalent for unicasts, so manipulate the bits directly.
      * For now, disable both multicast and unicast hash matching.
      * The appropriate bits will be set later */
-    GMAC->GMAC_NCFGR &= ~( GMAC_NCFGR_MTIHEN | GMAC_NCFGR_UNIHEN );
+    MULTICAST_HASH_DISABLE( GMAC );
+    UNICAST_HASH_DISABLE( GMAC );
 
     /* Go through all end-points of the interface and add their MAC addresses to the GMAC. */
     for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
@@ -805,19 +834,6 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     return 1;
 }
 /*-----------------------------------------------------------*/
-
-#define GMAC_ADDRESS_HASH_BITS    ( 64U )
-#define GMAC_ADDRESS_HASH_MASK    ( GMAC_ADDRESS_HASH_BITS - 1 )
-
-/* The ATSAM GMAC has a 64 bit register for matching multiple unicast or multicast addresses.
-* This implementation keeps a counter for every one of those bits. This allows us to keep track
-* of how many times each bit has been referenced by a multicast MAC the the stack wants to receive.
-* In order to minimize the memory requirement, the counters are of type uint8_t which limits
-* their value to 255. If a counter ever reaches that value, it is never decremented. Reaching this
-* limit is extremely unlikely in any system, let alone an embedded one using an ATSAM MCU. */
-static uint8_t prvAddressHashCounters[ GMAC_ADDRESS_HASH_BITS ] = { 0U };
-static uint64_t prvAddressHashBitMask = 0U;
-static uint8_t prvSpecificMatchCounters[ GMACSA_NUMBER ] = { 0U };
 
 static uint16_t prvGenerateCRC16( const uint8_t * pucAddress )
 {
@@ -905,15 +921,14 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
      * registers have been used. */
 
     /* Note: Only called from the IPTask, so no thread-safety is required. */
-    uint8_t ucHashBit, ucIsMulticast;
+    uint8_t ucHashBit;
     size_t uxIndex, uxEmptyIndex;
 
     uint32_t ulSAB, ulSAT;
 
-    configASSERT( NULL != pucMacAddress );
+    configASSERT( pucMacAddress != NULL );
 
     ucHashBit = prvGenerateCRC16( pucMacAddress );
-    ucIsMulticast = pucMacAddress[ 0 ] & 1U;
     FreeRTOS_debug_printf( "prvAddAllowedMACAddress: %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
                            pucMacAddress[ 0 ], pucMacAddress[ 1 ], pucMacAddress[ 2 ], pucMacAddress[ 3 ], pucMacAddress[ 4 ], pucMacAddress[ 5 ],
                            ucHashBit );
@@ -974,9 +989,9 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
              * be a priority, except if the hash register already covers the MAC address we were given
              * and the type of address we were given ( unicast/multicast ). If any of those are not
              * met, simply add to the empty slot we found in the specific match registers. */
-            if( ( ( ucIsMulticast != 0 ) && ( ( GMAC->GMAC_NCFGR & GMAC_NCFGR_MTIHEN ) == 0 ) ) /* multicast, but hash does not match multicasts */ ||
-                ( ( ucIsMulticast == 0 ) && ( ( GMAC->GMAC_NCFGR & GMAC_NCFGR_UNIHEN ) == 0 ) ) /* unicast, but hash does not match unicasts */ ||
-                ( prvAddressHashCounters[ ucHashBit ] == 0 ) /* hash matching doesn't cover this address yet. */ )
+            if( ( ( MAC_IS_MULTICAST( pucMacAddress ) ) && ( MULTICAST_HASH_IS_DISABLED( GMAC ) ) ) ||
+                ( ( MAC_IS_UNICAST( pucMacAddress ) ) && ( UNICAST_HASH_IS_DISABLED( GMAC ) ) ) ||
+                ( prvAddressHashCounters[ ucHashBit ] == 0U ) /* hash matching doesn't cover this address yet. */ )
             {
                 /* In all cases above, simply add to the empty specific match register. */
                 gmac_set_address( GMAC, uxEmptyIndex, pucMacAddress );
@@ -1004,15 +1019,15 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
         }
 
         /* Make sure the unicast or multicast hash enable bits are set properly. */
-        if( ( ucIsMulticast == 0U ) && ( ( GMAC->GMAC_NCFGR & GMAC_NCFGR_UNIHEN ) == 0 ) )
+        if( ( MAC_IS_UNICAST( pucMacAddress ) ) && ( UNICAST_HASH_IS_DISABLED( GMAC ) ) )
         {
             /* This is the first ever unicast address added to the hash register. Enable unicast matching. */
-            GMAC->GMAC_NCFGR |= GMAC_NCFGR_UNIHEN;
+            UNICAST_HASH_ENABLE( GMAC );
         }
-        else if( ( ucIsMulticast != 0U ) && ( ( GMAC->GMAC_NCFGR & GMAC_NCFGR_MTIHEN ) == 0 ) )
+        else if( ( MAC_IS_MULTICAST( pucMacAddress ) ) && ( MULTICAST_HASH_IS_DISABLED( GMAC ) ) )
         {
             /* This is the first ever multicast address added to the hash register. Enable multicast matching. */
-            GMAC->GMAC_NCFGR |= GMAC_NCFGR_MTIHEN;
+            MULTICAST_HASH_ENABLE( GMAC );
         }
         else
         {
