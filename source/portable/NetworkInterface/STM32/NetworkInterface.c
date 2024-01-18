@@ -134,8 +134,9 @@
 #define niEMAC_BUFFERS_SECTION    ".EthBuffersSection"
 
 #if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U )
-    // #define niEMAC_MPU_ENABLED       ( ( MPU->CTRL & MPU_CTRL_ENABLE_Msk ) != 0 ) /* TODO: Check if regions are enabled and cacheable is set correctly for descriptors and buffers */
-    // #define niEMAC_CACHE_ENABLED     ( !niEMAC_MPU_ENABLED && ( SCB->CCR & SCB_CCR_DC_Msk ) )
+    #define niEMAC_CACHEABLE
+    #define niEMAC_MPU_ENABLED      ipconfigENABLE
+    #define niEMAC_CACHE_ENABLED    ( ipconfigIS_DISABLED( niEMAC_MPU_ENABLED ) && ( ( SCB->CCR & SCB_CCR_DC_Msk ) != 0 ) )
     #define niEMAC_ALIGNMENT        __SCB_DCACHE_LINE_SIZE
     #define niEMAC_ALIGNMENT_MASK   ( niEMAC_ALIGNMENT - 1U )
 #else
@@ -156,14 +157,17 @@
 #define niEMAC_TX_MUTEX_NAME    "EMAC_TxMutex"
 
 #define niEMAC_AUTO_NEGOTIATION ipconfigENABLE
-#define niEMAC_USE_100MB        ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION ) )
-#define niEMAC_USE_FULL_DUPLEX  ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION ) )
+#if ipconfigIS_DISABLED( niEMAC_AUTO_NEGOTIATION )
+    #define niEMAC_USE_100MB        ipconfigENABLE
+    #define niEMAC_USE_FULL_DUPLEX  ipconfigENABLE
+#endif
+
 #define niEMAC_AUTO_CROSS       ( ipconfigENABLE && ipconfigIS_ENABLED( niEMAC_AUTO_NEGOTIATION ) )
 #define niEMAC_CROSSED_LINK     ( ipconfigENABLE && ipconfigIS_DISABLED( niEMAC_AUTO_CROSS ) )
 
 #define niEMAC_USE_RMII ipconfigENABLE
 
-#define niEMAC_MAX_LINKED_TX_PACKETS 1
+#define niEMAC_BUFS_PER_DESC 2
 
 /* IEEE 802.3 CRC32 polynomial - 0x04C11DB7 */
 #define niEMAC_CRC_POLY 0x04C11DB7
@@ -422,14 +426,16 @@ static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterfac
 static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend )
 {
     BaseType_t xResult = pdFAIL;
-    ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
     /* Zero-Copy Only */
     configASSERT( xReleaseAfterSend == pdTRUE );
 
     do
     {
+        ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
+
         if( ( pxDescriptor == NULL ) || ( pxDescriptor->pucEthernetBuffer == NULL ) || ( pxDescriptor->xDataLength > niEMAC_DATA_BUFFER_SIZE ) )
         {
+            /* TODO: if xDataLength is greater than niEMAC_DATA_BUFFER_SIZE, you can use two buffers per descriptor */
             FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Invalid Descriptor\n" ) );
             break;
         }
@@ -444,15 +450,15 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
             break;
         }
 
-        if( ( xMacInitStatus != eMacInitComplete ) || ( pxEthHandle->gState != HAL_ETH_STATE_STARTED ) )
-        {
-            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Interface Not Started\n" ) );
-            break;
-        }
-
         if( prvGetPhyLinkStatus( pxInterface ) == pdFALSE )
         {
             FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Link Down\n" ) );
+            break;
+        }
+
+        if( ( xMacInitStatus != eMacInitComplete ) || ( pxEthHandle->gState != HAL_ETH_STATE_STARTED ) )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Interface Not Started\n" ) );
             break;
         }
 
@@ -474,50 +480,25 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
             #endif
         };
 
+        ETH_BufferTypeDef xTxBuffer = {
+            .buffer = pxDescriptor->pucEthernetBuffer,
+            .len = pxDescriptor->xDataLength,
+            .next = NULL
+        };
+
         xTxConfig.pData = pxDescriptor;
-        #if ipconfigIS_DISABLED( ipconfigUSE_LINKED_RX_MESSAGES )
-            ETH_BufferTypeDef xTxBuffer = {
-                .buffer = ( uint8_t * ) pxDescriptor->pucEthernetBuffer,
-                .len = pxDescriptor->xDataLength,
-                .next = NULL
-            };
+        xTxConfig.TxBuffer = &xTxBuffer;
+        xTxConfig.Length = xTxBuffer.len;
 
-            xTxConfig.TxBuffer = &xTxBuffer;
-            xTxConfig.Length = xTxBuffer.len;
-
-            /*#if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U )
-                if( niEMAC_CACHE_ENABLED )
-                {
-                    uint8_t * pucDataStart = xTxBuffer.buffer;
-                    uint8_t * pucLineStart = ( uint8_t * ) ( ( uint32_t ) pucDataStart & ~niEMAC_ALIGNMENT_MASK );
-                    SCB_CleanDCache_by_Addr( ( uint32_t * ) pucLineStart, xTxBuffer.len + ( pucDataStart - pucLineStart ) );
-                }
-            #endif*/
-        #else
-            /* Support the possibility of linked Tx messages */
-            ETH_BufferTypeDef xTxBuffer[ niEMAC_MAX_LINKED_TX_PACKETS ];
-
-            xTxConfig.TxBuffer = xTxBuffer;
-            xTxConfig.Length = 0;
-            UBaseType_t uxIndex = 0;
-            NetworkBufferDescriptor_t * pxCurDescriptor = pxDescriptor;
-            while( pxCurDescriptor != NULL )
+        #ifdef niEMAC_CACHEABLE
+            if( niEMAC_CACHE_ENABLED )
             {
-                ETH_BufferTypeDef * pxCurTxBuffer = &xTxBuffer[ uxIndex++ ];
-                pxCurTxBuffer->buffer = ( uint8_t * ) pxCurDescriptor->pucEthernetBuffer;
-                pxCurTxBuffer->len = pxCurDescriptor->xDataLength;
-                pxCurTxBuffer->next = ( uxIndex < ARRAY_SIZE( xTxBuffer ) ) ? &xTxBuffer[ uxIndex ] : NULL;
-                xTxConfig.Length += pxCurTxBuffer->len;
-                /*#if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U )
-                    if( niEMAC_CACHE_ENABLED )
-                    {
-                        uint8_t * pucDataStart = pxCurTxBuffer->buffer;
-                        uint8_t * pucLineStart = ( uint8_t * ) ( ( uint32_t ) pucDataStart & ~niEMAC_ALIGNMENT_MASK );
-                        SCB_CleanDCache_by_Addr( ( uint32_t * ) pucLineStart, pxCurTxBuffer->len + ( pucDataStart - pucLineStart ) );
-                    }
-                #endif*/
-                pxCurDescriptor = pxCurDescriptor->pxNextBuffer;
-            };
+                const uintptr_t uxDataStart = ( uintptr_t ) xTxBuffer.buffer;
+                const uintptr_t uxLineStart = uxDataStart & ~niEMAC_ALIGNMENT_MASK;
+                const ptrdiff_t uxDataOffset = uxDataStart - uxLineStart;
+                const size_t uxLength = xTxBuffer.len + uxDataOffset;
+                SCB_CleanDCache_by_Addr( ( uint32_t * ) uxLineStart, uxLength );
+            }
         #endif
 
         if( HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig ) == HAL_OK )
@@ -911,6 +892,7 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
     const NetworkEndPoint_t * const pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
     if( pxEndPoint != NULL )
     {
+        /* ipLOCAL_MAC_ADDRESS */
         pxEthHandle->Init.MACAddr = ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes;
 
         #ifdef niEMAC_STM32FX
@@ -1033,7 +1015,7 @@ static BaseType_t prvPhyStart( ETH_HandleTypeDef * pxEthHandle, NetworkInterface
 
             #if ipconfigIS_ENABLED( niEMAC_AUTO_CROSS )
                 .ucMDI_X = PHY_MDIX_AUTO,
-            #elif ( ipconfigIS_ENABLED( niEMAC_CROSSED_LINK ) )
+            #elif ipconfigIS_ENABLED( niEMAC_CROSSED_LINK )
                 .ucMDI_X = PHY_MDIX_CROSSED,
             #else
                 .ucMDI_X = PHY_MDIX_DIRECT,
@@ -1248,6 +1230,12 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
     BaseType_t xResult = pdFALSE;
     do
     {
+        if( pxDescriptor == NULL )
+        {
+            FreeRTOS_debug_printf( ( "prvAcceptPacket: Null Descriptor\n" ) );
+            break;
+        }
+
         uint32_t ulErrorCode = 0;
         ( void ) HAL_ETH_GetRxDataErrorCode( &xEthHandle, &ulErrorCode );
         if( ulErrorCode != 0 )
@@ -1445,12 +1433,12 @@ void HAL_ETH_RxLinkCallback( void ** ppvStart, void ** ppvEnd, uint8_t * pucBuff
         /* Only single buffer packets are supported */
         configASSERT( *ppxStartDescriptor == *ppxEndDescriptor );
 
-        /*#if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U )
+        #ifdef niEMAC_CACHEABLE
             if( niEMAC_CACHE_ENABLED )
             {
-                SCB_InvalidateDCache_by_Addr( ( uint32_t * ) pucBuff, usLength );
+                SCB_InvalidateDCache_by_Addr( pucBuff, usLength );
             }
-        #endif*/
+        #endif
     }
     else
     {
@@ -1511,6 +1499,9 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex, Net
     pxInterface->pfGetPhyLinkStatus = prvGetPhyLinkStatus;
     /* pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
     pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress; */
+
+    // niEMAC_DATA_BUFFER_SIZE     ( ( ipTOTAL_ETHERNET_FRAME_SIZE + portBYTE_ALIGNMENT_MASK ) & ~portBYTE_ALIGNMENT_MASK )
+    // niEMAC_TOTAL_BUFFER_SIZE    ( ( ( niEMAC_DATA_BUFFER_SIZE + ipBUFFER_PADDING ) + niEMAC_ALIGNMENT_MASK ) & ~niEMAC_ALIGNMENT_MASK )
 
     return FreeRTOS_AddNetworkInterface( pxInterface );
 }
@@ -1683,47 +1674,53 @@ void HAL_ETH_MspInit( ETH_HandleTypeDef * heth )
 
 #if 0
 
+#if defined( __MPU_PRESENT ) && ( __MPU_PRESENT == 1U )
+
 void MPU_Config(void)
 {
-    /* #if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U ) */
-    /* TODO: Usage based on if niEMAC_CACHE_ENABLED */
-
-    extern uint8_t __ETH_BUFFERS_START, __ETH_DESCRIPTORS_START;
-
-    MPU_Region_InitTypeDef MPU_InitStruct;
+    MPU_Region_InitTypeDef MPU_InitStruct = {0};
 
     HAL_MPU_Disable();
 
-    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-    MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-    MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_BUFFERS_START;
-    MPU_InitStruct.Size = MPU_REGION_SIZE_128KB;
-    MPU_InitStruct.SubRegionDisable = 0x0;
-    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
-    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-    MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
-    MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+    #ifdef defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U )
+        extern uint8_t __ETH_BUFFERS_START;
 
-    HAL_MPU_ConfigRegion(&MPU_InitStruct);
+        MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+        MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+        MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_BUFFERS_START;
+        MPU_InitStruct.Size = MPU_REGION_SIZE_128KB;
+        MPU_InitStruct.SubRegionDisable = 0x0;
+        MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+        MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+        MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+        MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+        MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+        MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
-    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-    MPU_InitStruct.Number = MPU_REGION_NUMBER1;
-    MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_DESCRIPTORS_START;
-    MPU_InitStruct.Size = MPU_REGION_SIZE_1KB;
-    MPU_InitStruct.SubRegionDisable = 0x0;
-    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-    MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
-    MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+        HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-    HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+        extern uint8_t __ETH_DESCRIPTORS_START;
+
+        MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+        MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+        MPU_InitStruct.BaseAddress = ( uint32_t ) &__ETH_DESCRIPTORS_START;
+        MPU_InitStruct.Size = MPU_REGION_SIZE_1KB;
+        MPU_InitStruct.SubRegionDisable = 0x0;
+        MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+        MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+        MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+        MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+        MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+        MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+
+        HAL_MPU_ConfigRegion(&MPU_InitStruct);
+    #endif /* if defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U ) */
 
     HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
+
+#endif /* if defined( __MPU_PRESENT ) && ( __MPU_PRESENT == 1U ) */
 
 #endif /* if 0 */
 
