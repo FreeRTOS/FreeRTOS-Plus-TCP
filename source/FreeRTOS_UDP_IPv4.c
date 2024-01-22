@@ -120,7 +120,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 uint8_t ucSocketOptions;
             #endif
-            iptraceSENDING_UDP_PACKET( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
+            iptraceUDP_SENDING_PACKET( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
             /* Create short cuts to the data within the packet. */
             pxIPHeader = &( pxUDPPacket->xIPHeader );
@@ -254,7 +254,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
 
             /* Generate an ARP for the required IP address. */
-            iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
+            iptraceUDP_PACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 
             /* 'ulIPAddress' might have become the address of the Gateway.
              * Find the route again. */
@@ -308,7 +308,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                 }
             }
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
-            iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+            iptraceIP_NETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
             if( ( pxInterface != NULL ) && ( pxInterface->pfOutput != NULL ) )
             {

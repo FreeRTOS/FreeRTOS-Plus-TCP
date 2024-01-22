@@ -1010,7 +1010,7 @@ static uint32_t prvEMACRxPoll( void )
         {
             /* Data was read from the hardware, but no descriptor was available
              * for it, so it will be dropped. */
-            iptraceETHERNET_RX_EVENT_LOST();
+            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
             continue;
         }
 
@@ -1054,7 +1054,7 @@ static uint32_t prvEMACRxPoll( void )
             /* The buffer could not be sent to the stack so must be released
              * again. */
             vReleaseNetworkBufferAndDescriptor( pxNextNetworkBufferDescriptor );
-            iptraceETHERNET_RX_EVENT_LOST();
+            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
         }
 
         /* Now the buffer has either been passed to the IP-task,

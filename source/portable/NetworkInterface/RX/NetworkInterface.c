@@ -355,7 +355,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                         vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
 
                         /* Make a call to the standard trace macro to log the occurrence. */
-                        iptraceETHERNET_RX_EVENT_LOST();
+                        iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                         clear_all_ether_rx_discriptors( 0 );
                     }
                     else
@@ -376,7 +376,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
             {
                 /* The event was lost because a network buffer was not available.
                  * Call the standard trace macro to log the occurrence. */
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                 clear_all_ether_rx_discriptors( 1 );
                 FreeRTOS_printf( ( "R_ETHER_Read_ZC2: Cleared descriptors\n" ) );
             }
@@ -623,7 +623,7 @@ static void clear_all_ether_rx_discriptors( uint32_t event )
         else if( 0 < xBytesReceived )
         {
             R_ETHER_Read_ZC2_BufRelease( ETHER_CHANNEL_0 );
-            iptraceETHERNET_RX_EVENT_LOST();
+            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
         }
         else
         {

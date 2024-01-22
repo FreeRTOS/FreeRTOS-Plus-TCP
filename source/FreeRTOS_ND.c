@@ -823,7 +823,7 @@
                     if( xSendEventStructToIPTask( &xStackTxEvent, uxBlockTimeTicks ) != pdPASS )
                     {
                         vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                        iptraceSTACK_TX_EVENT_LOST( ipSTACK_TX_EVENT );
+                        iptraceIP_TX_EVENT_LOST( ipSTACK_TX_EVENT );
                     }
                     else
                     {
@@ -943,7 +943,7 @@
             /* Found an ARP resolution, disable ARP resolution timer. */
             vIPSetARPResolutionTimerEnableState( pdFALSE );
 
-            iptrace_DELAYED_ARP_REQUEST_REPLIED();
+            iptrace_ARP_DELAYED_REQUEST_REPLIED();
         }
     }
 /*-----------------------------------------------------------*/

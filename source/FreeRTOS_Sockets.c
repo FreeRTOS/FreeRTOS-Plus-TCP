@@ -679,7 +679,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
-            iptraceFAILED_TO_CREATE_SOCKET();
+            iptraceSOCKET_FAILED_TO_CREATE_SOCKET();
             break;
         }
 
@@ -693,7 +693,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
             /* coverity[misra_c_2012_rule_11_4_violation] */
             xReturn = FREERTOS_INVALID_SOCKET;
-            iptraceFAILED_TO_CREATE_EVENT_GROUP();
+            iptraceSOCKET_FAILED_TO_CREATE_EVENT_GROUP();
         }
         else
         {
@@ -791,6 +791,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
             {
                 vPortFree( pxSocketSet );
                 pxSocketSet = NULL;
+                iptraceSOCKET_FAILED_TO_CREATE_EVENT_GROUP();
             }
             else
             {
@@ -1218,7 +1219,7 @@ static int32_t prvRecvFrom_CopyPacket( uint8_t * pucEthernetBuffer,
          * fit in the provided buffer. */
         if( lReturn > ( int32_t ) uxBufferLength )
         {
-            iptraceRECVFROM_DISCARDING_BYTES( ( uxBufferLength - lReturn ) );
+            iptraceSOCKET_RECVFROM_DISCARDING_BYTES( ( uxBufferLength - lReturn ) );
             lReturn = ( int32_t ) uxBufferLength;
         }
 
@@ -1344,13 +1345,13 @@ int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket,
             else if( ( xEventBits & ( EventBits_t ) eSOCKET_INTR ) != 0U )
             {
                 lReturn = -pdFREERTOS_ERRNO_EINTR;
-                iptraceRECVFROM_INTERRUPTED();
+                iptraceSOCKET_RECVFROM_INTERRUPTED( pxSocket );
             }
         #endif /* ipconfigSUPPORT_SIGNALS */
         else
         {
             lReturn = -pdFREERTOS_ERRNO_EWOULDBLOCK;
-            iptraceRECVFROM_TIMEOUT();
+            iptraceSOCKET_RECVFROM_TIMEOUT( pxSocket );
         }
     }
 
@@ -1460,7 +1461,7 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
         }
 
-        iptraceSTACK_TX_EVENT_LOST( ipSTACK_TX_EVENT );
+        iptraceIP_TX_EVENT_LOST( ipSTACK_TX_EVENT );
     }
 
     return lReturn;
@@ -1547,7 +1548,7 @@ static int32_t prvSendTo_ActualSend( const FreeRTOS_Socket_t * pxSocket,
          * FREERTOS_ENOPKTS.  As it is, the function must return the
          * number of transmitted bytes, so the calling function knows
          * how  much data was actually sent. */
-        iptraceNO_BUFFER_FOR_SENDTO();
+        iptraceSOCKET_NO_BUFFER_FOR_SENDTO( pxSocket );
     }
 
     return lReturn;
@@ -1639,13 +1640,13 @@ int32_t FreeRTOS_sendto( Socket_t xSocket,
             else
             {
                 /* No comment. */
-                iptraceSENDTO_SOCKET_NOT_BOUND();
+                iptraceSOCKET_SENDTO_NOT_BOUND( pxSocket );
             }
         }
         else
         {
             /* The data is longer than the available buffer space. */
-            iptraceSENDTO_DATA_TOO_LONG();
+            iptraceSOCKET_SENDTO_DATA_TOO_LONG( pxSocket, uxTotalDataLength - uxMaxPayloadLength );
         }
     }
 
@@ -1983,7 +1984,7 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
 
     if( xReturn != 0 )
     {
-        iptraceBIND_FAILED( xSocket, ( FreeRTOS_ntohs( pxAddress->sin_port ) ) );
+        iptraceSOCKET_BIND_FAILED( pxSocket, ( FreeRTOS_ntohs( pxAddress->sin_port ) ) );
     }
 
     return xReturn;

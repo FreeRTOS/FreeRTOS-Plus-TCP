@@ -1551,7 +1551,7 @@
             ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( EP_DHCPData.ulDHCPServerAddress ) );
 
             FreeRTOS_debug_printf( ( "vDHCPProcess: reply %xip\n", ( unsigned ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
-            iptraceSENDING_DHCP_REQUEST();
+            iptraceDHCP_SENDING_REQUEST();
 
             EP_DHCPData.xDHCPSocket->pxEndPoint = pxEndPoint;
 
@@ -1610,7 +1610,7 @@
             void * pvCopyDest;
 
             FreeRTOS_debug_printf( ( "vDHCPProcess: discover\n" ) );
-            iptraceSENDING_DHCP_DISCOVER();
+            iptraceDHCP_SENDING_DISCOVER();
 
             if( pxEndPoint->xDHCPData.ulPreferredIPAddress != 0U )
             {

@@ -880,7 +880,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                                      * this function to be executed from a real
                                      * interrupt. */
                                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                                    iptraceETHERNET_RX_EVENT_LOST();
+                                    iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                                 }
                             }
                         }
@@ -892,7 +892,7 @@ static void prvInterruptSimulatorTask( void * pvParameters )
                     }
                     else
                     {
-                        iptraceETHERNET_RX_EVENT_LOST();
+                        iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                     }
                 }
                 else

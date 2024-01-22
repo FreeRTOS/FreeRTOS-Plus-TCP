@@ -519,11 +519,11 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     if( pxReturn == NULL )
     {
-        iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+        iptraceBUFFER_FAILED_TO_OBTAIN_DESCRIPTOR();
     }
     else
     {
-        iptraceNETWORK_BUFFER_OBTAINED( pxReturn );
+        iptraceBUFFER_DESCRIPTOR_OBTAINED( pxReturn );
     }
 
     return pxReturn;
@@ -561,12 +561,12 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
     {
         if( xSemaphoreGive( xNetworkBufferSemaphore ) == pdTRUE )
         {
-            iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
+            iptraceBUFFER_DESCRIPTOR_RELEASED( pxNetworkBuffer );
         }
     }
     else
     {
-        iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
+        iptraceBUFFER_DESCRIPTOR_RELEASED( pxNetworkBuffer );
     }
 }
 /*-----------------------------------------------------------*/

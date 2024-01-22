@@ -759,7 +759,7 @@ static void prvEMACDeferredInterruptHandlerTaskRX( void * pvParameters )
                 {
                     /* The buffer needs to be released since we cannot send to the network stack */
                     vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-                    iptraceETHERNET_RX_EVENT_LOST();
+                    iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                 }
             }
         }

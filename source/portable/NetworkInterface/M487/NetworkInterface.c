@@ -272,7 +272,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             {
                 /* The event was lost because a network buffer was not available.
                  * Call the standard trace macro to log the occurrence. */
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                 break;
             }
 
@@ -291,7 +291,7 @@ static void prvEMACHandlerTask( void * pvParameters )
             else
             {
                 numaker_eth_rx_next();
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                 break;
             }
 
@@ -312,7 +312,7 @@ static void prvEMACHandlerTask( void * pvParameters )
                 /* Make a call to the standard trace macro to log the
                  *      occurrence. */
 
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
             }
             else
             {

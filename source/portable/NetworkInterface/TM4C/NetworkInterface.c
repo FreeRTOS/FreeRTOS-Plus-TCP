@@ -641,7 +641,7 @@ static BaseType_t _process_received_packet( void )
                         /* Release the buffer if an error was encountered */
                         vReleaseNetworkBufferAndDescriptor( cur_stack_descriptor );
 
-                        iptraceETHERNET_RX_EVENT_LOST();
+                        iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                     }
                     else
                     {
@@ -662,7 +662,7 @@ static BaseType_t _process_received_packet( void )
                 /* is dropped */
 
                 /* Mark the RX event as lost */
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
             }
         } /* end if frame had error. In this case, give the buffer back to the DMA for the next RX */
 

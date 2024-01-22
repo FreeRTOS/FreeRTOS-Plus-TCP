@@ -105,7 +105,7 @@
         BaseType_t xReturn = pdFALSE;
         BaseType_t xSent;
 
-        iptraceSENDING_DNS_REQUEST();
+        iptraceDNS_SENDING_REQUEST();
 
         /* Send the DNS message. */
         xSent = FreeRTOS_sendto( xDNSSocket,

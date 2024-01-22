@@ -103,12 +103,15 @@ typedef struct
 extern BaseType_t vGetMetrics( MetricsType_t * pxMetrics );
 extern void vShowMetrics( const MetricsType_t * pxMetrics );
 
+#ifdef IP_TRACE_MACRO_DEFAULTS_H
+    #error "tcp_netstat.h must be included in FreeRTOSIPConfig.h"
+#endif
 
-#define iptraceNETWORK_INTERFACE_INPUT( uxDataLength, pucEthernetBuffer ) \
+#define iptraceIP_NETWORK_INPUT( uxDataLength, pucEthernetBuffer ) \
     xInputCounters.uxByteCount += uxDataLength;                           \
     xInputCounters.uxPacketCount++;
 
-#define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer ) \
+#define iptraceIP_NETWORK_OUTPUT( uxDataLength, pucEthernetBuffer ) \
     xOutputCounters.uxByteCount += uxDataLength;                           \
     xOutputCounters.uxPacketCount++;
 

@@ -387,7 +387,7 @@ static void prvPassEthMessages( NetworkBufferDescriptor_t * pxDescriptor )
             vReleaseNetworkBufferAndDescriptor( pxDescriptor );
         }
         #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
-        iptraceETHERNET_RX_EVENT_LOST();
+        iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
         FreeRTOS_printf( ( "prvPassEthMessages: Can not queue return packet!\n" ) );
     }
 }

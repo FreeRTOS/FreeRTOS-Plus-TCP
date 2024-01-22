@@ -95,10 +95,6 @@
 /* Naming and numbering of PHY registers. */
 #define PHY_REG_01_BMSR    0x01         /* Basic mode status register */
 
-#ifndef iptraceEMAC_TASK_STARTING
-    #define iptraceEMAC_TASK_STARTING()    do {} while( 0 )
-#endif
-
 /* Default the size of the stack used by the EMAC deferred handler task to twice
  * the size of the stack used by the idle task - but allow this to be overridden in
  * FreeRTOSConfig.h as configMINIMAL_STACK_SIZE is a user definable constant. */
@@ -476,7 +472,7 @@ static void prvEMACHandlerTask( void * pvParameters )
 
     /* A possibility to set some additional task properties like calling
      * portTASK_USES_FLOATING_POINT() */
-    iptraceEMAC_TASK_STARTING();
+    iptraceNETWORK_INTERFACE_TASK_STARTING();
 
     vTaskSetTimeOutState( &xPhyTime );
     xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );

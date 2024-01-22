@@ -307,13 +307,13 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                 #endif /* ipconfigUSE_LINKED_RX_MESSAGES */
             }
 
-            iptraceNETWORK_BUFFER_OBTAINED( pxReturn );
+            iptraceBUFFER_DESCRIPTOR_OBTAINED( pxReturn );
         }
-        else
-        {
-            /* lint wants to see at least a comment. */
-            iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
-        }
+    }
+
+    if( pxReturn == NULL )
+    {
+        iptraceBUFFER_FAILED_TO_OBTAIN_DESCRIPTOR();
     }
 
     return pxReturn;
@@ -345,13 +345,13 @@ NetworkBufferDescriptor_t * pxNetworkBufferGetFromISR( size_t xRequestedSizeByte
             }
             ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR();
 
-            iptraceNETWORK_BUFFER_OBTAINED_FROM_ISR( pxReturn );
+            iptraceBUFFER_DESCRIPTOR_OBTAINED_FROM_ISR( pxReturn );
         }
     }
 
     if( pxReturn == NULL )
     {
-        iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER_FROM_ISR();
+        iptraceBUFFER_FAILED_TO_OBTAIN_DESCRIPTOR_FROM_ISR();
     }
 
     return pxReturn;
@@ -371,7 +371,7 @@ BaseType_t vNetworkBufferReleaseFromISR( NetworkBufferDescriptor_t * const pxNet
     ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR();
 
     ( void ) xSemaphoreGiveFromISR( xNetworkBufferSemaphore, &xHigherPriorityTaskWoken );
-    iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
+    iptraceBUFFER_DESCRIPTOR_RELEASED_FROM_ISR( pxNetworkBuffer );
 
     return xHigherPriorityTaskWoken;
 }
@@ -413,7 +413,7 @@ void vReleaseNetworkBufferAndDescriptor( NetworkBufferDescriptor_t * const pxNet
             prvShowWarnings();
         }
 
-        iptraceNETWORK_BUFFER_RELEASED( pxNetworkBuffer );
+        iptraceBUFFER_DESCRIPTOR_RELEASED( pxNetworkBuffer );
     }
 }
 /*-----------------------------------------------------------*/
