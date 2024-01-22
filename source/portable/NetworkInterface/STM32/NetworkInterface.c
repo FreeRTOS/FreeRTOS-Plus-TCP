@@ -1038,12 +1038,11 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
             }
         #endif
 
-        uint32_t ulPreemptPriority, ulSubPriority;
-        HAL_NVIC_GetPriority( ETH_IRQn, HAL_NVIC_GetPriorityGrouping(), &ulPreemptPriority, &ulSubPriority );
-        if( ulPreemptPriority < configMAX_FREERTOS_INTERRUPT_PRIORITY )
+        uint32_t ulPriority = NVIC_GetPriority( ETH_IRQn ) << ( 8 - configPRIO_BITS );
+        if( ulPriority < configMAX_SYSCALL_INTERRUPT_PRIORITY )
         {
             FreeRTOS_debug_printf( ( "prvEthConfigInit: Incorrectly set ETH_IRQn priority\n" ) );
-            HAL_NVIC_SetPriority( ETH_IRQn, ( uint32_t ) configMAX_FREERTOS_INTERRUPT_PRIORITY, 0 );
+            NVIC_SetPriority( ETH_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY >> ( 8 - configPRIO_BITS ) );
         }
         if( NVIC_GetEnableIRQ( ETH_IRQn ) == 0 )
         {
