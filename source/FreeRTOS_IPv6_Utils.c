@@ -333,14 +333,14 @@ void vManageSolicitedNodeAddress( struct xNetworkEndPoint * pxEndPoint,
         {
             if( pxEndPoint->pxNetworkInterface->pfAddAllowedMAC != NULL )
             {
-                pxEndPoint->pxNetworkInterface->pfAddAllowedMAC( xMACAddress.ucBytes );
+                pxEndPoint->pxNetworkInterface->pfAddAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
             }
         }
         else
         {
             if( pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC != NULL )
             {
-                pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( xMACAddress.ucBytes );
+                pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
             }
         }
 

@@ -84,7 +84,8 @@ extern void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
 static BaseType_t xMACFunctionCalled;
 
 /* An implementation of pfRemoveAllowedMAC() */
-static void pfRemoveAllowedMAC( const uint8_t * pucMacAddress );
+static void pfRemoveAllowedMAC( struct xNetworkInterface * pxDescriptor,
+                                const uint8_t * pucMacAddress );
 
 /* Testing all situations for prvProcessNetworkDownEvent() to increase coverage. */
 #define ipHAS_METHOD       0x01U
@@ -3071,7 +3072,8 @@ void test_prvSetChecksumInPacket_IPv6UnhandledProtocol()
     prvSetChecksumInPacket( &xSet, 0 );
 }
 
-static void pfRemoveAllowedMAC( const uint8_t * pucMacAddress )
+static void pfRemoveAllowedMAC( struct xNetworkInterface * pxDescriptor,
+                                const uint8_t * pucMacAddress )
 {
     xMACFunctionCalled = pdTRUE;
 }

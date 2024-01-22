@@ -55,7 +55,8 @@
     typedef BaseType_t ( * GetPhyLinkStatusFunction_t ) ( struct xNetworkInterface * pxDescriptor );
 
 /* Functions that manipulate what MAC addresses are received by this interface */
-    typedef void ( * NetworkInterfaceMACFilterFunction_t ) ( const uint8_t * pucMacAddressBytes );
+    typedef void ( * NetworkInterfaceMACFilterFunction_t ) ( struct xNetworkInterface * pxDescriptor,
+                                                             const uint8_t * pucMacAddressBytes );
 
 /** @brief These NetworkInterface access functions are collected in a struct: */
     typedef struct xNetworkInterface
