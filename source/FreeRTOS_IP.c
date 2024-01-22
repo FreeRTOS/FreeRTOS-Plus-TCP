@@ -1315,7 +1315,6 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                 if( xSendEventStructToIPTask( &( xStackTxEvent ), uxBlockTimeTicks ) != pdPASS )
                 {
                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    iptraceIP_TX_EVENT_LOST( ipSTACK_TX_EVENT );
                 }
                 else
                 {
@@ -1412,7 +1411,6 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
             {
                 /* A message should have been sent to the IP task, but wasn't. */
                 FreeRTOS_debug_printf( ( "xSendEventStructToIPTask: CAN NOT ADD %d\n", pxEvent->eEventType ) );
-                iptraceIP_TX_EVENT_LOST( pxEvent->eEventType );
             }
         }
         else
@@ -1421,6 +1419,11 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
              * even though the message was not sent the call was successful. */
             xReturn = pdPASS;
         }
+    }
+
+    if( xReturn == pdFAIL )
+    {
+        iptraceIP_EVENT_LOST( pxEvent->eEventType );
     }
 
     return xReturn;

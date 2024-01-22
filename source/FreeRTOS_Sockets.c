@@ -1460,8 +1460,6 @@ static int32_t prvSendUDPPacket( const FreeRTOS_Socket_t * pxSocket,
         {
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
         }
-
-        iptraceIP_TX_EVENT_LOST( ipSTACK_TX_EVENT );
     }
 
     return lReturn;

@@ -823,7 +823,6 @@
                     if( xSendEventStructToIPTask( &xStackTxEvent, uxBlockTimeTicks ) != pdPASS )
                     {
                         vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                        iptraceIP_TX_EVENT_LOST( ipSTACK_TX_EVENT );
                     }
                     else
                     {
