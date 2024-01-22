@@ -231,8 +231,10 @@ static uint8_t prvSpecificMatchCounters[ GMACSA_NUMBER ] = { 0U };
 
 /* Functions to set the hash table for multicast addresses. */
 static uint16_t prvGenerateCRC16( const uint8_t * pucAddress );
-static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress );
-static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress );
+static void prvAddAllowedMACAddress( struct xNetworkInterface * pxDescriptor,
+                                     const uint8_t * pucMacAddress );
+static void prvRemoveAllowedMACAddress( struct xNetworkInterface * pxDescriptor,
+                                        const uint8_t * pucMacAddress );
 
 /* Checks IP queue, buffers, and semaphore and logs diagnostic info if configured */
 static void vCheckBuffersAndQueue( void );
@@ -767,16 +769,16 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
          pxEndPoint != NULL;
          pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
     {
-        prvAddAllowedMACAddress( pxEndPoint->xMACAddress.ucBytes );
+        prvAddAllowedMACAddress( pxInterface, pxEndPoint->xMACAddress.ucBytes );
     }
 
     #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
         #if ( ipconfigUSE_LLMNR == ipconfigENABLE )
-            prvAddAllowedMACAddress( xLLMNR_MacAddress.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddress.ucBytes );
         #endif /* ipconfigUSE_LLMNR */
 
         #if ( ipconfigUSE_MDNS == ipconfigENABLE )
-            prvAddAllowedMACAddress( xMDNS_MacAddress.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MacAddress.ucBytes );
         #endif /* ipconfigUSE_MDNS */
     #endif /* ipconfigIS_ENABLED( ipconfigUSE_IPv4 */
 
@@ -784,17 +786,17 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     {
         /* Register the Link-Local All-Nodes address */
         /* FF02::1 --> 33-33-00-00-00-01 */
-        prvAddAllowedMACAddress( pcLOCAL_ALL_NODES_MULTICAST_MAC );
+        prvAddAllowedMACAddress( pxInterface, pcLOCAL_ALL_NODES_MULTICAST_MAC );
 
         #if ( ipconfigUSE_LLMNR == ipconfigENABLE )
         {
-            prvAddAllowedMACAddress( xLLMNR_MacAddressIPv6.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddressIPv6.ucBytes );
         }
         #endif /* ipconfigUSE_LLMNR */
 
         #if ( ipconfigUSE_MDNS == ipconfigENABLE )
         {
-            prvAddAllowedMACAddress( xMDNS_MACAddressIPv6.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MACAddressIPv6.ucBytes );
         }
         #endif /* ipconfigUSE_MDNS */
     }
@@ -873,7 +875,8 @@ static uint16_t prvGenerateCRC16( const uint8_t * pucAddress )
  *
  * @param[in] pucMacAddress: A pointer to the multicast MAC Address in question.
  */
-static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
+static void prvAddAllowedMACAddress( struct xNetworkInterface * pxDescriptor,
+                                     const uint8_t * pucMacAddress )
 {
     /* Design rationale and implementation details:
      * Most network infrastructure ( both wired and wireless ) will do a pretty good job in
@@ -927,9 +930,11 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
     uint32_t ulSAB, ulSAT;
 
     configASSERT( pucMacAddress != NULL );
+    configASSERT( pxDescriptor != NULL ); /* Not used, but the stack should not be sending us NULL parameters. */
 
     ucHashBit = prvGenerateCRC16( pucMacAddress );
-    FreeRTOS_debug_printf( "prvAddAllowedMACAddress: %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+    FreeRTOS_debug_printf( "prvAddAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+                           pxDescriptor,
                            pucMacAddress[ 0 ], pucMacAddress[ 1 ], pucMacAddress[ 2 ], pucMacAddress[ 3 ], pucMacAddress[ 4 ], pucMacAddress[ 5 ],
                            ucHashBit );
 
@@ -1041,7 +1046,8 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
  *
  * @param[in] pucMacAddress: A pointer to the multicast MAC Address in question.
  */
-static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress )
+static void prvRemoveAllowedMACAddress( struct xNetworkInterface * pxDescriptor,
+                                        const uint8_t * pucMacAddress )
 {
     /* Note: Only called from the IPTask, so no thread-safety is required. */
     uint8_t ucHashBit;
@@ -1049,9 +1055,11 @@ static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress )
     size_t uxIndex;
 
     configASSERT( NULL != pucMacAddress );
+    configASSERT( pxDescriptor != NULL ); /* Not used, but the stack should not be sending us NULL parameters. */
 
     ucHashBit = prvGenerateCRC16( pucMacAddress );
-    FreeRTOS_debug_printf( "prvRemoveAllowedMACAddress: %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+    FreeRTOS_debug_printf( "prvRemoveAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+                           pxDescriptor,
                            pucMacAddress[ 0 ], pucMacAddress[ 1 ], pucMacAddress[ 2 ], pucMacAddress[ 3 ], pucMacAddress[ 4 ], pucMacAddress[ 5 ],
                            ucHashBit );
 
