@@ -97,7 +97,7 @@ const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0
 static BaseType_t xMACFunctionCalled;
 
 /* An implementation of pfAddAllowedMAC(). */
-static void pfAddAllowedMAC( struct xNetworkInterface * pxDescriptor,
+static void pfAddAllowedMAC( struct xNetworkInterface * pxInterface,
                              const uint8_t * pucMacAddress );
 
 /* Testing all situations for vIPNetworkUpCalls() to increase coverage. */
@@ -3822,7 +3822,7 @@ void test_uxIPHeaderSizeSocket_IPv6()
     TEST_ASSERT_EQUAL( ipSIZE_OF_IPv6_HEADER, xReturn );
 }
 
-static void pfAddAllowedMAC( struct xNetworkInterface * pxDescriptor,
+static void pfAddAllowedMAC( struct xNetworkInterface * pxInterface,
                              const uint8_t * pucMacAddress )
 {
     xMACFunctionCalled = pdTRUE;
