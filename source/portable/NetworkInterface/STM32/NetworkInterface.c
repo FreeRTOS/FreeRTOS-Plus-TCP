@@ -120,6 +120,9 @@
     #define niEMAC_AUTO_LOW_POWER   ( ipconfigDISABLE && ipconfigIS_DISABLED( niEMAC_USE_RMII ) )
 #endif
 
+#define niEMAC_TCP_SEGMENTATION ipconfigDISABLE
+#define niEMAC_ARP_OFFLOAD ipconfigDISABLE
+
 /*---------------------------------------------------------------------------*/
 /*===========================================================================*/
 /*                             Config Checks                                 */
@@ -522,20 +525,6 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
             break;
         }
 
-        if( xSemaphoreTake( xTxDescSem, pdMS_TO_TICKS( niEMAC_DESCRIPTOR_WAIT_TIME_MS ) ) == pdFALSE )
-        {
-            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: No Descriptors Available\n" ) );
-            break;
-        }
-
-        if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( niEMAC_TX_MAX_BLOCK_TIME_MS ) ) == pdFALSE )
-        {
-            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Process Busy\n" ) );
-            ( void ) xSemaphoreGive( xTxDescSem );
-            /* TODO: Can we queue it? */
-            break;
-        }
-
         /* static ETH_BufferTypeDef xTxBuffers[ niEMAC_BUFS_PER_DESC * ETH_TX_DESC_CNT ] = { 0 }; */
 
         static ETH_TxPacketConfig xTxConfig = {
@@ -559,63 +548,93 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
             xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_CSUM;
         #endif
 
-        #if 0
+        const EthernetHeader_t * const pxEthHeader = ( const EthernetHeader_t * const ) pxDescriptor->pucEthernetBuffer;
+        if( pxEthHeader->usFrameType == ipIPv4_FRAME_TYPE )
+        {
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                const IPPacket_t * const pxIPPacket = ( const IPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
+                /* ProtocolPacket_t * const pxIPPacket = ( ProtocolPacket_t * const ) pxDescriptor->pucEthernetBuffer; */
+                /* ProtocolHeaders_t * const pxIPPacket = ( ProtocolHeaders_t * const ) pxDescriptor->pucEthernetBuffer; */
 
-            const EthernetHeader_t * const pxEthHeader = ( const EthernetHeader_t * const ) pxDescriptor->pucEthernetBuffer;
-
-            if( pxEthHeader->usFrameType == ipIPv4_FRAME_TYPE )
-            {
-                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                    const IPPacket_t * const pxIPPacket = ( const IPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
-
-                    if( pxIPPacket->xIPHeader.ucProtocol == ipPROTOCOL_ICMP )
-                    {
+                if( pxIPPacket->xIPHeader.ucProtocol == ipPROTOCOL_ICMP )
+                {
+                    #if ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS )
                         ICMPPacket_t * const pxICMPPacket = ( ICMPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
                         #if ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM )
                             pxICMPPacket->xICMPHeader.usChecksum = 0U;
                         #endif
-                    }
-                    else if( pxIPPacket->xIPHeader.ucProtocol == ipPROTOCOL_TCP )
-                    {
+                        ( void ) pxICMPPacket;
+                    #else
+                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported ICMP\n" ) );
+                    #endif
+                }
+                else if( pxIPPacket->xIPHeader.ucProtocol == ipPROTOCOL_TCP )
+                {
+                    #if ipconfigIS_ENABLED( ipconfigUSE_TCP )
                         TCPPacket_t * const pxTCPPacket = ( TCPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
-                        #if ipconfigIS_ENABLED( ipconfigUSE_TCP ) /* && ipconfigIS_DISABLED( ipconfigUSE_TCP_WIN ) */
-                            /* pxTCPSocketLookup */
-                            xTxConfig.PayloadLen = pxTCPPacket->xIPHeader.usLength;
-                            xTxConfig.TCPHeaderLen = ( ( pxTCPPacket->xIPHeader.ucVersionHeaderLength & ( uint8_t ) 0x0FU ) * 4U );
+                        /* #if defined( niEMAC_STM32HX ) && ipconfigIS_ENABLED( niEMAC_TCP_SEGMENTATION )
+                            xTxConfig.PayloadLen = pxDescriptor->xDataLength;
+                            xTxConfig.TCPHeaderLen = ( pxTCPPacket->xIPHeader.ucVersionHeaderLength & ( uint8_t ) 0x0FU );
                             xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_TSO;
-                        #endif
-                    }
-                #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
-            }
-            else if( pxEthHeader->usFrameType == ipIPv6_FRAME_TYPE )
-            {
-                /* #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
-                    const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( IPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer;
+                        #endif */
+                        ( void ) pxTCPPacket;
+                    #else
+                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported TCP\n" ) );
+                    #endif
+                }
+                else if( pxIPPacket->xIPHeader.ucProtocol == ipPROTOCOL_UDP )
+                {
+                    UDPPacket_t * const pxUDPPacket = ( UDPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
+                    ( void ) pxUDPPacket;
+                }
+            #else
+                FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported IPv4\n" ) );
+            #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+        }
+        else if( pxEthHeader->usFrameType == ipIPv6_FRAME_TYPE )
+        {
+            #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                const IPPacket_IPv6_t * pxIPPacket_IPv6 = ( IPPacket_IPv6_t * ) pxDescriptor->pucEthernetBuffer;
 
-                    if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 )
-                    {
+                if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_ICMP_IPv6 )
+                {
+                    #if ipconfigIS_ENABLED( ipconfigREPLY_TO_INCOMING_PINGS ) || ipconfigIS_ENABLED( ipconfigSUPPORT_OUTGOING_PINGS )
                         ICMPPacket_IPv6_t * const pxICMPPacket_IPv6 = ( ICMPPacket_IPv6_t * const ) pxDescriptor->pucEthernetBuffer;
                         #if ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM )
                             pxICMPPacket_IPv6->xICMPHeaderIPv6.usChecksum = 0U;
                         #endif
-                    }
-                    else if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_TCP )
-                    {
+                        ( void ) pxICMPPacket_IPv6;
+                    #else
+                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported ICMP\n" ) );
+                    #endif
+                }
+                else if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_TCP )
+                {
+                    #if ipconfigIS_ENABLED( ipconfigUSE_TCP )
                         TCPPacket_IPv6_t * const pxTCPPacket_IPv6 = ( TCPPacket_IPv6_t * const ) pxDescriptor->pucEthernetBuffer;
-                        #if ipconfigIS_ENABLED( ipconfigUSE_TCP ) /* && ipconfigIS_DISABLED( ipconfigUSE_TCP_WIN ) */
-                            xTxConfig.PayloadLen = pxTCPPacket_IPv6->xIPHeader.usPayloadLength;
+                        /* #if defined( niEMAC_STM32HX ) && ipconfigIS_ENABLED( niEMAC_TCP_SEGMENTATION )
+                            xTxConfig.PayloadLen = pxDescriptor->xDataLength;
                             xTxConfig.TCPHeaderLen = sizeof( pxTCPPacket_IPv6->xTCPHeader );
                             xTxConfig.Attributes |= ETH_TX_PACKETS_FEATURES_TSO;
-                        #endif
-                    }
-                /* #endif */ /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
-            }
-            else if( pxEthHeader->usFrameType == ipARP_FRAME_TYPE )
-            {
+                        #endif */
+                        ( void ) pxTCPPacket_IPv6;
+                    #else
+                        FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported TCP\n" ) );
+                    #endif
+                }
+                else if( pxIPPacket_IPv6->xIPHeader.ucNextHeader == ipPROTOCOL_UDP )
+                {
+                    UDPPacket_t * const pxUDPPacket_IPv6 = ( UDPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
+                    ( void ) pxUDPPacket_IPv6;
+                }
+            #else
+                FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported IPv6\n" ) );
+            #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
+        }
+        else if( pxEthHeader->usFrameType == ipARP_FRAME_TYPE )
+        {
 
-            }
-
-        #endif
+        }
 
         ETH_BufferTypeDef xTxBuffer = {
             .buffer = pxDescriptor->pucEthernetBuffer,
@@ -626,6 +645,20 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
         xTxConfig.pData = pxDescriptor;
         xTxConfig.TxBuffer = &xTxBuffer;
         xTxConfig.Length = xTxBuffer.len;
+
+        if( xSemaphoreTake( xTxDescSem, pdMS_TO_TICKS( niEMAC_DESCRIPTOR_WAIT_TIME_MS ) ) == pdFALSE )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: No Descriptors Available\n" ) );
+            break;
+        }
+
+        if( xSemaphoreTake( xTxMutex, pdMS_TO_TICKS( niEMAC_TX_MAX_BLOCK_TIME_MS ) ) == pdFALSE )
+        {
+            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Process Busy\n" ) );
+            ( void ) xSemaphoreGive( xTxDescSem );
+            /* TODO: Can we queue it? */
+            break;
+        }
 
         if( HAL_ETH_Transmit_IT( pxEthHandle, &xTxConfig ) == HAL_OK )
         {
@@ -969,19 +1002,21 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
                 xDMAConfig.EnhancedDescriptorFormat = ( FunctionalState ) ( ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_RX_IP_CHECKSUM ) || ipconfigIS_ENABLED( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM ) );
             #elif defined( niEMAC_STM32HX )
                 xDMAConfig.SecondPacketOperate = ENABLE;
-                #if ipconfigIS_ENABLED( ipconfigUSE_TCP ) && ipconfigIS_DISABLED( ipconfigUSE_TCP_WIN )
+                /* #if ipconfigIS_ENABLED( ipconfigUSE_TCP ) && ipconfigIS_ENABLED( niEMAC_TCP_SEGMENTATION )
                     xDMAConfig.TCPSegmentation = ENABLE;
                     xDMAConfig.MaximumSegmentSize = ipconfigTCP_MSS;
-                #endif
+                #endif */
             #endif
             ( void ) HAL_ETH_SetDMAConfig( pxEthHandle, &xDMAConfig );
 
             #if defined( niEMAC_STM32HX )
                 prvInitPacketFilter( pxEthHandle, pxInterface );
 
-                /* HAL_ETHEx_DisableARPOffload( pxEthHandle );
-                HAL_ETHEx_SetARPAddressMatch( pxEthHandle, ulAddress );
-                HAL_ETHEx_EnableARPOffload( pxEthHandle ); */
+                /* #if ipconfigIS_ENABLED( niEMAC_ARP_OFFLOAD )
+                    HAL_ETHEx_DisableARPOffload( pxEthHandle );
+                    HAL_ETHEx_SetARPAddressMatch( pxEthHandle, ulAddress );
+                    HAL_ETHEx_EnableARPOffload( pxEthHandle );
+                #endif */
             #endif
 
             prvInitMacAddresses( pxEthHandle, pxInterface );
