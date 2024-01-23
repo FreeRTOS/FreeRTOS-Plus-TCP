@@ -60,10 +60,6 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
 #if ( ipconfigNETWORK_MTU > 1526 )
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning the use of Jumbo Frames has not been tested sufficiently yet.

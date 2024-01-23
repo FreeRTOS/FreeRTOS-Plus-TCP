@@ -50,10 +50,6 @@
 /* The size of the stack allocated to the task that handles Rx packets. */
 #define nwRX_TASK_STACK_SIZE    140
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
 #ifndef configUSE_RMII
     #define configUSE_RMII    1
 #endif

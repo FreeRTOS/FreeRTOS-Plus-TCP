@@ -55,10 +55,6 @@
 #define phyMIN_PHY_ADDRESS    0
 #define phyMAX_PHY_ADDRESS    31
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
 /* As the following 3 macro's are OK in most situations, and so they're not
  * included in 'FreeRTOSIPConfigDefaults.h'.
  * Users can change their values in the project's 'FreeRTOSIPConfig.h'. */
