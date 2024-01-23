@@ -142,12 +142,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
  * handled.  The value is chosen simply to be easy to spot when debugging. */
 #define ipUNHANDLED_PROTOCOL    0x4321U
 
-/** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
- * events are posted to the network event queue. */
-#ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
-    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
-#endif
-
 /* Trace macros to aid in debugging, disabled if ipconfigHAS_PRINTF != 1 */
 #if ( ipconfigHAS_PRINTF == 1 )
     #define DEBUG_DECLARE_TRACE_VARIABLE( type, var, init )    type var = ( init ) /**< Trace macro to set "type var = init". */

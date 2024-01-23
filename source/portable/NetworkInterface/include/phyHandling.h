@@ -43,12 +43,6 @@
     extern "C" {
     #endif
 
-
-    #ifndef ipconfigPHY_MAX_PORTS
-        /* There can be at most 32 PHY ports, but in most cases there are 4 or less. */
-        #define ipconfigPHY_MAX_PORTS    4
-    #endif
-
 /* A generic user-provided function that reads from the PHY-port at 'xAddress'( 0-based ). A 16-bit value shall be stored in
  * '*pulValue'. xRegister is the register number ( 0 .. 31 ). In fact all PHY registers are 16-bit.
  * Return non-zero in case the action failed. */

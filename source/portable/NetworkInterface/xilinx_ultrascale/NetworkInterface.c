@@ -64,19 +64,6 @@
     #error please use the new defines with 'ipconfig' prefix
 #endif
 
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
-
 #if ( ipconfigNETWORK_MTU > 1526 )
     #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
         #warning the use of Jumbo Frames has not been tested sufficiently yet.

@@ -990,6 +990,8 @@
  * Unit: count of ports
  * Minimum: 0
  * Maximum: 32
+ *
+ * There can be at most 32 PHY ports, but in most cases there are 4 or less.
  */
 
 #ifndef ipconfigPHY_MAX_PORTS
