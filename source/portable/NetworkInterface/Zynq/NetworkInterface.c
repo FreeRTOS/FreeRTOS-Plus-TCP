@@ -65,10 +65,10 @@
 
 /* The size of each buffer when BufferAllocation_1 is used:
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#define niBUFFER_1_PACKET_SIZE    1536
+#define niBUFFER_1_PACKET_SIZE              1536
 
 /* Naming and numbering of PHY registers. */
-#define PHY_REG_01_BMSR           0x01  /* Basic mode status register */
+#define PHY_REG_01_BMSR                     0x01 /* Basic mode status register */
 
 #ifndef iptraceEMAC_TASK_STARTING
     #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )

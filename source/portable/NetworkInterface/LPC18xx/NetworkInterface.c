@@ -51,7 +51,7 @@
 #define nwRX_TASK_STACK_SIZE    140
 
 #ifndef configUSE_RMII
-    #define configUSE_RMII    1
+    #define configUSE_RMII      1
 #endif
 
 #ifndef configNUM_RX_DESCRIPTORS
