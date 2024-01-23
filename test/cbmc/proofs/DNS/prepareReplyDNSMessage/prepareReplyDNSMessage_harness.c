@@ -106,6 +106,7 @@ void harness()
     __CPROVER_assume( ( xDataSize > ( sizeof( UDPPacket_t ) + sizeof( NBNSRequest_t ) + sizeof( NBNSAnswer_t ) - 2 * sizeof( uint16_t ) ) ) && ( xDataSize < ipconfigNETWORK_MTU ) );
 
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( xDataSize );
+    xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
 
     /* xNetworkBuffer.pucEthernetBuffer is checked if its valid before the call to
      * prepareReplyDNSMessage() */

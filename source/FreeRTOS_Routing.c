@@ -852,7 +852,7 @@ struct xIPv6_Couple
             }
         }
 
-        #if ( ipconfigHAS_PRINTF != 0 )
+        #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
             if( pxReturn == NULL )
             {
                 char pcBufferFrom[ 40 ];
@@ -877,7 +877,7 @@ struct xIPv6_Couple
                                          ( xRetNtopFrom == NULL ) ? "INVALID" : pcBufferFrom,
                                          ( xRetNtopTo == NULL ) ? "INVALID" : pcBufferTo ) );
             }
-        #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+        #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
         return pxReturn;
     }
