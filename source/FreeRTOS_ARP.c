@@ -279,7 +279,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                                  ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
                                                  ( unsigned ) ( FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) ) );
                     }
-                #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+                #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
                 /* ulTargetProtocolAddress won't be used unless logging is enabled. */
                 ( void ) ulTargetProtocolAddress;

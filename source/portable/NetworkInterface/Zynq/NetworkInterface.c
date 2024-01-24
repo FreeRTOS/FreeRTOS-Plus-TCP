@@ -60,10 +60,10 @@
 
 /* The size of each buffer when BufferAllocation_1 is used:
  * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#define niBUFFER_1_PACKET_SIZE    1536
+#define niBUFFER_1_PACKET_SIZE              1536
 
 /* Naming and numbering of PHY registers. */
-#define PHY_REG_01_BMSR           0x01  /* Basic mode status register */
+#define PHY_REG_01_BMSR                     0x01 /* Basic mode status register */
 
 #if ( ipconfigNIC_LINKSPEED100 != 1 )
 
@@ -507,7 +507,7 @@ static BaseType_t xZynqGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point

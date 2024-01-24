@@ -95,13 +95,13 @@
  * static allocation with a non zero-copy driver.
  */
 #define ipUSE_STATIC_ALLOCATION    0
-#if ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 ) )
+#if ( ipUSE_STATIC_ALLOCATION == 1 )
 
 /* 1536 bytes is more than needed, 1524 would be enough.
  * But 1536 is a multiple of 32, which gives a great alignment for cached memories. */
     #define NETWORK_BUFFER_SIZE    1536
     static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ NETWORK_BUFFER_SIZE ];
-#endif /* ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 )) */
+#endif /* if ( ipUSE_STATIC_ALLOCATION == 1 ) */
 
 
 /* Holds the handle of the task used as a deferred interrupt processor.  The
@@ -110,7 +110,7 @@
 TaskHandle_t xEMACTaskHandle = NULL;
 
 /* The PING response queue */
-#if ( defined( ipconfigSUPPORT_OUTGOING_PINGS ) && ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) )
+#if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     QueueHandle_t xPingReplyQueue = NULL;
 #endif
 
@@ -227,7 +227,7 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
         prvPHYLinkReset();
 
         /* Initialize PING capability */
-        #if ( defined( ipconfigSUPPORT_OUTGOING_PINGS ) && ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) )
+        #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
             xPingReplyQueue = xQueueCreate( ipconfigPING_QUEUE_SIZE, sizeof( uint16_t ) );
         #endif
 
@@ -446,7 +446,7 @@ void xRxCallback( void )
     vTaskNotifyGiveFromISR( xEMACTaskHandle, 0 );
 }
 
-#if ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 ) )
+#if ( ipUSE_STATIC_ALLOCATION == 1 )
 
 /* Next provide the vNetworkInterfaceAllocateRAMToBuffers() function, which
  * simply fills in the pucEthernetBuffer member of each descriptor. */
@@ -465,7 +465,7 @@ void xRxCallback( void )
             *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
         }
     }
-#endif /* ( defined( ipUSE_STATIC_ALLOCATION ) && ( ipUSE_STATIC_ALLOCATION == 1 )) */
+#endif /* if ( ipUSE_STATIC_ALLOCATION == 1 ) */
 
 
 /*********************************************************************/
@@ -493,7 +493,7 @@ static void prvGMACInit()
     prvGMACEnableMulticastHashTable( true );
 
     /* Enable traffic for LLMNR, if defined. */
-    #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
+    #if ( ipconfigUSE_LLMNR == 1 )
     {
         mac_async_set_filter_ex( &ETH_MAC, xLLMNR_MacAddress.ucBytes );
     }

@@ -47,47 +47,6 @@
 
 #if ( ipconfigUSE_DNS != 0 )
 
-/** @brief The list of all callback structures. */
-
-
-    #if ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) )
-
-/**
- * @brief Find the best matching end-point given a reply that was received.
- * @param[in] pxNetworkBuffer The Ethernet packet that was received.
- * @return An end-point.
- */
-        static NetworkEndPoint_t * prvFindEndPointOnNetMask( NetworkBufferDescriptor_t * pxNetworkBuffer )
-        {
-            NetworkEndPoint_t * pxEndPoint = NULL;
-
-            #if ( ipconfigUSE_IPv6 != 0 )
-                IPPacket_IPv6_t * xIPPacket_IPv6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-                if( xIPPacket_IPv6->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
-                {
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &xIPPacket_IPv6->xIPHeader.xSourceAddress );
-                }
-                else
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-            #if ( ipconfigUSE_IPv4 != 0 )
-            {
-                IPPacket_t * xIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
-                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( xIPPacket->xIPHeader.ulSourceIPAddress, 6 );
-            }
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-            if( pxEndPoint != NULL )
-            {
-                pxNetworkBuffer->pxEndPoint = pxEndPoint;
-            }
-
-            return pxEndPoint;
-        }
-    #endif /* ( ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) ) */
-/*-----------------------------------------------------------*/
 
 /**
  * @brief Read the Name field out of a DNS response packet.
@@ -911,9 +870,10 @@
             IPHeader_t * pxIPHeader;
             UDPHeader_t * pxUDPHeader;
             size_t uxDataLength;
-            NetworkEndPoint_t * pxEndPoint = prvFindEndPointOnNetMask( pxNetworkBuffer );
+            NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
             const size_t uxIPHeaderLength = uxIPHeaderSizePacket( pxNetworkBuffer );
 
+            configASSERT( pxEndPoint != NULL );
             pxUDPPacket = ( ( UDPPacket_t * )
                             pxNetworkBuffer->pucEthernetBuffer );
             pxIPHeader = &pxUDPPacket->xIPHeader;
@@ -959,7 +919,7 @@
                     pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
                 }
 
-                pxIPHeader->ulSourceIPAddress = ( pxEndPoint != NULL ) ? pxEndPoint->ipv4_settings.ulIPAddress : 0U;
+                pxIPHeader->ulSourceIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
                 pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
 
                 /* The stack doesn't support fragments, so the fragment offset field must always be zero.
@@ -1148,7 +1108,7 @@
                 xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
                 xEndPoint.usDNSType = dnsTYPE_A_HOST;
 
-                #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                     xDNSHookReturn = xApplicationDNSQueryHook( ( const char * ) ucNBNSName );
                 #else
                     xDNSHookReturn = xApplicationDNSQueryHook_Multi( &( xEndPoint ), ( const char * ) ucNBNSName );

@@ -47,8 +47,9 @@
 #include "chip.h"
 #include "lpc_phy.h"
 
+
 #ifndef configUSE_RMII
-    #define configUSE_RMII    1
+    #define configUSE_RMII      1
 #endif
 
 #ifndef configNUM_RX_DESCRIPTORS

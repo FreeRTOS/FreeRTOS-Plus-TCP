@@ -60,6 +60,33 @@
  * MACROS details :
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html
  */
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * Compile time assertion with zero runtime effects.
+ * It will assert on 'e' not being zero, as it tries to divide by it.
+ */
+
+#ifdef static_assert
+    #define STATIC_ASSERT( e )    static_assert( e, "FreeRTOS-Plus-TCP Error" )
+#elif defined( _Static_assert )
+    #define STATIC_ASSERT( e )    _Static_assert( e, "FreeRTOS-Plus-TCP Error" )
+#else
+/* MISRA Ref 20.10.1 [Lack of sizeof operator and compile time error checking] */
+/* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-2010 */
+/* coverity[misra_c_2012_rule_20_10_violation] */
+    #define ASSERT_CONCAT_( a, b )    a ## b
+    #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
+    #ifdef __COUNTER__
+        #define STATIC_ASSERT( e ) \
+    ; enum { ASSERT_CONCAT( static_assert_, __COUNTER__ ) = 1 / ( int ) ( !!( e ) ) }
+    #else
+        #define STATIC_ASSERT( e ) \
+    ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( int ) ( !!( e ) ) }
+    #endif
+#endif /* ifdef static_assert */
+
 /*---------------------------------------------------------------------------*/
 
 /*
@@ -1036,6 +1063,8 @@ ipconfigSTATIC_ASSERT( ipconfigEMAC_TASK_STACK_SIZE >= configMINIMAL_STACK_SIZE 
  * Unit: count of ports
  * Minimum: 0
  * Maximum: 32
+ *
+ * There can be at most 32 PHY ports, but in most cases there are 4 or less.
  */
 
 #ifndef ipconfigPHY_MAX_PORTS
@@ -3153,29 +3182,6 @@ ipconfigSTATIC_ASSERT( ipconfigEMAC_TASK_STACK_SIZE >= configMINIMAL_STACK_SIZE 
     #else
         #define FreeRTOS_printf( MSG )    do {} while( ipFALSE_BOOL )
     #endif
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
- * FreeRTOS_flush_logging
- *
- * Type: Macro Function
- *
- * Macro that is called in cases where a lot of logging is produced.
- *
- * This gives the logging module a chance to flush the data.
- */
-
-#ifndef FreeRTOS_flush_logging
-    #define FreeRTOS_flush_logging()                     \
-    if( ipconfigHAS_PRINTF || ipconfigHAS_DEBUG_PRINTF ) \
-    {                                                    \
-        do {} while( ipFALSE_BOOL );                     \
-    }                                                    \
-    else                                                 \
-    {                                                    \
-    }
 #endif
 
 /*---------------------------------------------------------------------------*/
