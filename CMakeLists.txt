@@ -251,11 +251,3 @@ add_subdirectory(tools)
 add_subdirectory(test)
 
 FetchContent_MakeAvailable(freertos_kernel cmock)
-
-# Note following are can be removed once FreeRTOS-Kernel v10.5.0 + fixes their issues.
-# To ignore header specific issues - change all of the headers to SYSTEM
-set(_freertos_kernel_targets freertos_kernel freertos_kernel_port)
-# foreach (_target ${_freertos_kernel_targets} )
-#   get_target_property( interface_directories ${_target} INTERFACE_INCLUDE_DIRECTORIES )
-#   set_target_properties(${_target}  PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${interface_directories}" )
-# endforeach()
