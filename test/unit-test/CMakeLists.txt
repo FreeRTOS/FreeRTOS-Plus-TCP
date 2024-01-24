@@ -1,5 +1,5 @@
 # Set the required version.
-cmake_minimum_required( VERSION 3.13.0 )
+cmake_minimum_required( VERSION 3.15.0 )
 
 # Set the unit-test project.
 project( "FreeRTOS-Plus-TCP test"

@@ -1,5 +1,5 @@
 # Minimum required version of CMake
-cmake_minimum_required ( VERSION 3.13.0 )
+cmake_minimum_required ( VERSION 3.15.0 )
 
 # Name of the project
 project ( "FreeRTOS+TCP Static analysis"
@@ -10,8 +10,8 @@ project ( "FreeRTOS+TCP Static analysis"
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Use C90.
-set( CMAKE_C_STANDARD 90 )
+# Use C99.
+set( CMAKE_C_STANDARD 99 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
 # Do not allow in-source build.
