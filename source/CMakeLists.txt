@@ -1,6 +1,6 @@
 add_library( freertos_plus_tcp STATIC )
 
-set_property(TARGET freertos_plus_tcp PROPERTY C_STANDARD 90)
+set_property(TARGET freertos_plus_tcp PROPERTY C_STANDARD 99)
 
 target_sources( freertos_plus_tcp
   PRIVATE
