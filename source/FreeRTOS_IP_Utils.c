@@ -839,7 +839,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
         {
             if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
             {
-                #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                 {
                     vApplicationIPNetworkEventHook( eNetworkDown );
                 }
