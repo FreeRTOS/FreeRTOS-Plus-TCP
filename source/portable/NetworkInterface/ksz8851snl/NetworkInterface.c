@@ -1187,7 +1187,7 @@ static uint32_t prvEMACRxPoll( void )
         if( xSendEventStructToIPTask( &xRxEvent, 100UL ) != pdTRUE )
         {
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-            iptraceETHERNET_RX_EVENT_LOST();
+            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
             FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
         }
     }

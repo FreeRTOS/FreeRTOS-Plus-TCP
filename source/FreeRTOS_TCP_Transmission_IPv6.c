@@ -274,7 +274,7 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
 
             /* Send! */
-            iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+            iptraceIP_NETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput != NULL );

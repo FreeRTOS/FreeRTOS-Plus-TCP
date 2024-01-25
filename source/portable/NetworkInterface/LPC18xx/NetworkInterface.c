@@ -71,10 +71,6 @@
     #define MAC_FF_HMC    ( 1UL << 2UL )
 #endif
 
-#ifndef iptraceEMAC_TASK_STARTING
-    #define iptraceEMAC_TASK_STARTING()    do {} while( ipFALSE_BOOL )
-#endif
-
 /* Define the bits of .STATUS that indicate a reception error. */
 #define nwRX_STATUS_ERROR_BITS                         \
     ( RDES_CE /* CRC Error */ |                        \
@@ -849,7 +845,7 @@ void NETWORK_IRQHandler( void )
     {
         /* The trace macro must be written such that it can be called from
          * an interrupt. */
-        iptraceETHERNET_RX_EVENT_LOST();
+        iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
     }
 
     /* Clear pending interrupts */
@@ -991,7 +987,7 @@ static void prvEMACHandlerTask( void * pvParameters )
     ( void ) pvParameters;
 
     /* A possibility to set some additional task properties. */
-    iptraceEMAC_TASK_STARTING();
+    iptraceNETWORK_INTERFACE_TASK_STARTING();
 
     vTaskSetTimeOutState( &xPhyTime );
     xPhyRemTime = pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS );

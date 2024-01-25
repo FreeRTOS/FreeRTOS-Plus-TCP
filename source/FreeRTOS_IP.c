@@ -73,10 +73,6 @@
     #define ipARP_RESOLUTION_MAX_DELAY    ( pdMS_TO_TICKS( 2000U ) )
 #endif
 
-#ifndef iptraceIP_TASK_STARTING
-    #define iptraceIP_TASK_STARTING()    do {} while( ipFALSE_BOOL ) /**< Empty definition in case iptraceIP_TASK_STARTING is not defined. */
-#endif
-
 #if ( ( ipconfigUSE_TCP == 1 ) && !defined( ipTCP_TIMER_PERIOD_MS ) )
     /** @brief When initialising the TCP timer, give it an initial time-out of 1 second. */
     #define ipTCP_TIMER_PERIOD_MS    ( 1000U )
@@ -284,7 +280,7 @@ static void prvProcessIPEventsAndTimers( void )
     }
     #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
 
-    iptraceNETWORK_EVENT_RECEIVED( xReceivedEvent.eEventType );
+    iptraceIP_EVENT_RECEIVED( xReceivedEvent.eEventType );
 
     switch( xReceivedEvent.eEventType )
     {
@@ -711,7 +707,7 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
 static void prvForwardTxPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
                                 BaseType_t xReleaseAfterSend )
 {
-    iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+    iptraceIP_NETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
     if( pxNetworkBuffer->pxInterface != NULL )
     {
@@ -749,7 +745,7 @@ void FreeRTOS_NetworkDown( struct xNetworkInterface * pxNetworkInterface )
         pxNetworkInterface->bits.bCallDownEvent = pdFALSE;
     }
 
-    iptraceNETWORK_DOWN();
+    iptraceIP_NETWORK_DOWN();
 }
 /*-----------------------------------------------------------*/
 
@@ -785,7 +781,7 @@ BaseType_t FreeRTOS_NetworkDownFromISR( struct xNetworkInterface * pxNetworkInte
         xNetworkDownEventPending = pdFALSE;
     }
 
-    iptraceNETWORK_DOWN();
+    iptraceIP_NETWORK_DOWN();
 
     return xHigherPriorityTaskWoken;
 }
@@ -1319,7 +1315,6 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                 if( xSendEventStructToIPTask( &( xStackTxEvent ), uxBlockTimeTicks ) != pdPASS )
                 {
                     vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    iptraceSTACK_TX_EVENT_LOST( ipSTACK_TX_EVENT );
                 }
                 else
                 {
@@ -1416,7 +1411,6 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
             {
                 /* A message should have been sent to the IP task, but wasn't. */
                 FreeRTOS_debug_printf( ( "xSendEventStructToIPTask: CAN NOT ADD %d\n", pxEvent->eEventType ) );
-                iptraceSTACK_TX_EVENT_LOST( pxEvent->eEventType );
             }
         }
         else
@@ -1425,6 +1419,11 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
              * even though the message was not sent the call was successful. */
             xReturn = pdPASS;
         }
+    }
+
+    if( xReturn == pdFAIL )
+    {
+        iptraceIP_EVENT_LOST( pxEvent->eEventType );
     }
 
     return xReturn;
@@ -1537,7 +1536,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
     configASSERT( pxNetworkBuffer != NULL );
 
-    iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+    iptraceIP_NETWORK_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
     /* Interpret the Ethernet frame. */
     if( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) )
@@ -1635,14 +1634,14 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                 pxARPWaitingNetworkBuffer = pxNetworkBuffer;
                 vIPTimerStartARPResolution( ipARP_RESOLUTION_MAX_DELAY );
 
-                iptraceDELAYED_ARP_REQUEST_STARTED();
+                iptraceARP_DELAYED_REQUEST_STARTED();
             }
             else
             {
                 /* We are already waiting on one ARP resolution. This frame will be dropped. */
                 vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
 
-                iptraceDELAYED_ARP_BUFFER_FULL();
+                iptraceARP_DELAYED_BUFFER_FULL();
             }
 
             break;
@@ -2155,7 +2154,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
             /* Send! */
             if( xIsCallingFromIPTask() == pdTRUE )
             {
-                iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+                iptraceIP_NETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
                 ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xReleaseAfterSend );
             }
             else if( xReleaseAfterSend != pdFALSE )

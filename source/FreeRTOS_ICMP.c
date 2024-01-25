@@ -148,7 +148,7 @@
         pxIPHeader = &( pxICMPPacket->xIPHeader );
 
         /* HT:endian: changed back */
-        iptraceSENDING_PING_REPLY( pxIPHeader->ulSourceIPAddress );
+        iptraceICMP_SENDING_REPLY( pxIPHeader->ulSourceIPAddress );
 
         /* The checksum can be checked here - but a ping reply should be
          * returned even if the checksum is incorrect so the other end can

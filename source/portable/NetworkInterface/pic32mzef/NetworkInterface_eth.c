@@ -838,7 +838,7 @@
 
             if( pktLost )
             {
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
             }
 
             /* acknowledge the packet to the MAC driver */

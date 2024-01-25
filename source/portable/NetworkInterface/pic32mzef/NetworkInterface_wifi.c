@@ -192,7 +192,7 @@ void xNetworkFrameReceived( uint32_t len,
 
         if( pktLost )
         {
-            iptraceETHERNET_RX_EVENT_LOST();
+            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
         }
     }
 }

@@ -173,7 +173,7 @@ static BaseType_t prvLoopback_Output( NetworkInterface_t * pxInterface,
         if( xSendEventStructToIPTask( &xRxEvent, 0u ) != pdTRUE )
         {
             vReleaseNetworkBufferAndDescriptor( pxDescriptor );
-            iptraceETHERNET_RX_EVENT_LOST();
+            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
             FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
         }
     }

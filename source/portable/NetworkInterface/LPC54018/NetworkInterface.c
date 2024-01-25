@@ -157,7 +157,7 @@ static void prvProcessFrame( int length )
             if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
             {
                 vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                 PRINTF( "RX Event Lost\n" );
             }
         }
@@ -173,7 +173,7 @@ static void prvProcessFrame( int length )
         PRINTF( "RX No Buffer Available\n" );
         ENET_ReadFrame( ENET, &g_handle, NULL, 0, 0 );
         /* No buffer available to receive this message */
-        iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+        iptraceBUFFER_FAILED_TO_OBTAIN_DESCRIPTOR();
     }
 }
 

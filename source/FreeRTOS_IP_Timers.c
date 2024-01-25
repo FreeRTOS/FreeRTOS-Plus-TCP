@@ -225,7 +225,7 @@ void vCheckNetworkTimers( void )
             /* Clear the pointer. */
             pxARPWaitingNetworkBuffer = NULL;
 
-            iptraceDELAYED_ARP_TIMER_EXPIRED();
+            iptraceARP_DELAYED_TIMER_EXPIRED();
         }
     }
 

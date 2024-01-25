@@ -372,7 +372,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
 
                             /* Make a call to the standard trace macro to log the
                              * occurrence. */
-                            iptraceETHERNET_RX_EVENT_LOST();
+                            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                         }
                         else
                         {
@@ -395,7 +395,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                     /* The buffer could not be sent to the stack so must be released
                      * again. */
                     vReleaseNetworkBufferAndDescriptor( pxBufferDescriptor );
-                    iptraceETHERNET_RX_EVENT_LOST();
+                    iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                     FreeRTOS_printf( ( "prvEMACDeferredInterruptHandlerTask: Can not queue RX packet!\n" ) );
                 }
             }
@@ -403,7 +403,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
             {
                 /* The event was lost because a network buffer was not available.
                  * Call the standard trace macro to log the occurrence. */
-                iptraceETHERNET_RX_EVENT_LOST();
+                iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
             }
         }
 

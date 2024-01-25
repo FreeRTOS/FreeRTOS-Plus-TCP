@@ -807,7 +807,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
         {
             /* The event was lost because a network buffer was not available.
              * Call the standard trace macro to log the occurrence. */
-            iptraceETHERNET_RX_EVENT_LOST();
+            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
         }
 
         #if ( ipconfigZERO_COPY_RX_DRIVER != 0 )
@@ -898,7 +898,7 @@ static BaseType_t prvNetworkInterfaceInput( void )
 
                     /* Make a call to the standard trace macro to log the
                      * occurrence. */
-                    iptraceETHERNET_RX_EVENT_LOST();
+                    iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                 }
             }
 

@@ -209,14 +209,14 @@ static TickType_t xLastGratuitousARPTime = 0U;
                 /* Senders address is a multicast OR broadcast address which is not
                  * allowed for an ARP packet. Drop the packet. See RFC 1812 section
                  * 3.3.2. */
-                iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
+                iptraceARP_DROPPED_INVALID_PACKET( pxARPHeader );
             }
             else if( ( ipFIRST_LOOPBACK_IPv4 <= ( FreeRTOS_ntohl( ulSenderProtocolAddress ) ) ) &&
                      ( ( FreeRTOS_ntohl( ulSenderProtocolAddress ) ) < ipLAST_LOOPBACK_IPv4 ) )
             {
                 /* The local loopback addresses must never appear outside a host. See RFC 1122
                  * section 3.2.1.3. */
-                iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
+                iptraceARP_DROPPED_INVALID_PACKET( pxARPHeader );
             }
             /* Check whether there is a clash with another device for this IP address. */
             else if( ( pxTargetEndPoint != NULL ) && ( ulSenderProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) )
@@ -352,7 +352,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
         }
         else
         {
-            iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
+            iptraceARP_DROPPED_INVALID_PACKET( pxARPHeader );
         }
 
         return eReturn;
@@ -380,7 +380,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
         /* The packet contained an ARP request.  Was it for the IP
          * address of one of the end-points? */
         /* It has been confirmed that pxTargetEndPoint is not NULL. */
-        iptraceSENDING_ARP_REPLY( ulSenderProtocolAddress );
+        iptraceARP_SENDING_REPLY( ulSenderProtocolAddress );
 
         /* The request is for the address of this node.  Add the
          * entry into the ARP cache, or refresh the entry if it
@@ -433,7 +433,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
         if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) ||
             ( xIsIPInARPCache( ulSenderProtocolAddress ) == pdTRUE ) )
         {
-            iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
+            iptraceARP_PROCESSING_RECEIVED_REPLY( ulTargetProtocolAddress );
             vARPRefreshCacheEntry( &( pxARPHeader->xSenderHardwareAddress ), ulSenderProtocolAddress, pxTargetEndPoint );
         }
 
@@ -466,7 +466,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                 /* Found an ARP resolution, disable ARP resolution timer. */
                 vIPSetARPResolutionTimerEnableState( pdFALSE );
 
-                iptrace_DELAYED_ARP_REQUEST_REPLIED();
+                iptrace_ARP_DELAYED_REQUEST_REPLIED();
             }
         }
     }
@@ -1313,7 +1313,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
 
                 if( xIsCallingFromIPTask() != pdFALSE )
                 {
-                    iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+                    iptraceIP_NETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
                     /* Only the IP-task is allowed to call this function directly. */
                     if( pxEndPoint->pxNetworkInterface != NULL )
@@ -1486,7 +1486,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
 
     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
 
-    iptraceCREATING_ARP_REQUEST( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
+    iptraceARP_CREATING_REQUEST( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 }
 /*-----------------------------------------------------------*/
 
@@ -1581,7 +1581,7 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
                         if( xSendEventStructToIPTask( &xRxEvent, 0U ) != pdTRUE )
                         {
                             vReleaseNetworkBufferAndDescriptor( pxUseDescriptor );
-                            iptraceETHERNET_RX_EVENT_LOST();
+                            iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                             FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
                         }
                     }

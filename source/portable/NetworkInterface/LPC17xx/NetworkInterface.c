@@ -251,12 +251,12 @@ static void prvEMACHandlerTask( void * pvParameters )
                     if( xSendEventStructToIPTask( &xRxEvent, ( TickType_t ) 0 ) == pdFAIL )
                     {
                         vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                        iptraceETHERNET_RX_EVENT_LOST();
+                        iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                     }
                 }
                 else
                 {
-                    iptraceETHERNET_RX_EVENT_LOST();
+                    iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                 }
 
                 iptraceNETWORK_INTERFACE_RECEIVE();

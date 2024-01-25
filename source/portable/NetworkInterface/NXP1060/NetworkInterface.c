@@ -654,7 +654,7 @@ static void prvProcessFrame( int length )
                 if( xSendEventStructToIPTask( &xRxEvent, 0 ) == pdFALSE )
                 {
                     xRelease = pdTRUE;
-                    iptraceETHERNET_RX_EVENT_LOST();
+                    iptraceNETWORK_INTERFACE_RX_EVENT_LOST();
                     FreeRTOS_printf( ( "RX Event Lost\n" ) );
                 }
             }
@@ -690,7 +690,7 @@ static void prvProcessFrame( int length )
         ENET_ReadFrame( ENET, &( ethernetifLocal->handle ), NULL, length, 0, NULL );
 
         /* No buffer available to receive this message */
-        iptraceFAILED_TO_OBTAIN_NETWORK_BUFFER();
+        iptraceBUFFER_FAILED_TO_OBTAIN_DESCRIPTOR();
     }
 }
 /*-----------------------------------------------------------*/
