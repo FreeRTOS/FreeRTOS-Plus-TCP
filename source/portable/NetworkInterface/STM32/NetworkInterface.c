@@ -279,8 +279,8 @@ static BaseType_t prvPhyWriteReg( BaseType_t xAddress, BaseType_t xRegister, uin
 static BaseType_t prvGetPhyLinkStatus( NetworkInterface_t * pxInterface );
 static BaseType_t prvNetworkInterfaceInitialise( NetworkInterface_t * pxInterface );
 static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend );
-static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress );
-static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress );
+static void prvAddAllowedMACAddress( NetworkInterface_t * pxInterface, const uint8_t * pucMacAddress );
+static void prvRemoveAllowedMACAddress( NetworkInterface_t * pxInterface, const uint8_t * pucMacAddress );
 
 /* EMAC Task */
 static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface );
@@ -288,8 +288,8 @@ static __NO_RETURN portTASK_FUNCTION_PROTO( prvEMACHandlerTask, pvParameters );
 static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface );
 
 /* EMAC Init */
-static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const NetworkInterface_t * pxInterface );
-static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle, const NetworkInterface_t * pxInterface );
+static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface );
+static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface );
 #ifdef niEMAC_STM32HX
     static void prvInitPacketFilter( ETH_HandleTypeDef * pxEthHandle, const NetworkInterface_t * const pxInterface );
 #endif
@@ -531,16 +531,16 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
             .Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD,
             .Length = 0U,
             .TxBuffer = NULL,
-            .SrcAddrCtrl = ETH_SRC_ADDR_CONTROL_DISABLE,
+            /* .SrcAddrCtrl = ETH_SRC_ADDR_CONTROL_DISABLE, */
             .CRCPadCtrl = ETH_CRC_PAD_INSERT,
             .ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC,
             .MaxSegmentSize = ipconfigTCP_MSS,
             .PayloadLen = 0U,
             .TCPHeaderLen = 0U,
             .VlanTag = 0U,
-            .VlanCtrl = ETH_VLAN_DISABLE,
+            /* .VlanCtrl = ETH_VLAN_DISABLE, */
             .InnerVlanTag = 0U,
-            .InnerVlanCtrl = ETH_INNER_VLAN_DISABLE,
+            /* .InnerVlanCtrl = ETH_INNER_VLAN_DISABLE, */
             .pData = NULL,
         };
 
@@ -687,7 +687,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
 
 /*---------------------------------------------------------------------------*/
 
-static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
+static void prvAddAllowedMACAddress( NetworkInterface_t * pxInterface, const uint8_t * pucMacAddress )
 {
     ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
 
@@ -709,7 +709,7 @@ static void prvAddAllowedMACAddress( const uint8_t * pucMacAddress )
 
 /*---------------------------------------------------------------------------*/
 
-static void prvRemoveAllowedMACAddress( const uint8_t * pucMacAddress )
+static void prvRemoveAllowedMACAddress( NetworkInterface_t * pxInterface, const uint8_t * pucMacAddress )
 {
     ETH_HandleTypeDef * pxEthHandle = &xEthHandle;
 
@@ -937,7 +937,7 @@ static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface )
 /*===========================================================================*/
 /*---------------------------------------------------------------------------*/
 
-static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const NetworkInterface_t * pxInterface )
+static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface )
 {
     BaseType_t xResult = pdFALSE;
 
@@ -1038,7 +1038,7 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
             }
         #endif
 
-        uint32_t ulPriority = NVIC_GetPriority( ETH_IRQn ) << ( 8 - configPRIO_BITS );
+        const uint32_t ulPriority = NVIC_GetPriority( ETH_IRQn ) << ( 8 - configPRIO_BITS );
         if( ulPriority < configMAX_SYSCALL_INTERRUPT_PRIORITY )
         {
             FreeRTOS_debug_printf( ( "prvEthConfigInit: Incorrectly set ETH_IRQn priority\n" ) );
@@ -1070,7 +1070,7 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle, const Netwo
 
 /*---------------------------------------------------------------------------*/
 
-static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle, const NetworkInterface_t * pxInterface )
+static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterface_t * pxInterface )
 {
     ETH_MACFilterConfigTypeDef xFilterConfig;
     ( void ) HAL_ETH_GetMACFilterConfig( pxEthHandle, &xFilterConfig );
@@ -1092,9 +1092,10 @@ static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle, const NetworkI
     xFilterConfig.PromiscuousMode = DISABLE;
     ( void ) HAL_ETH_SetMACFilterConfig( pxEthHandle, &xFilterConfig );
 
-    for( NetworkEndPoint_t * pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface ); pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
+    NetworkEndPoint_t * pxEndPoint;
+    for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface ); pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
     {
-        prvAddAllowedMACAddress( pxEndPoint->xMACAddress.ucBytes );
+        prvAddAllowedMACAddress( pxInterface, pxEndPoint->xMACAddress.ucBytes );
     }
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
@@ -1303,11 +1304,13 @@ static uint32_t prvCalcCrc32( const uint8_t * const pucMACAddr )
 {
     uint32_t ulCRC32 = 0xFFFFFFFFU;
 
-    for( uint32_t ucIndex = ipMAC_ADDRESS_LENGTH_BYTES; ucIndex > 0; --ucIndex )
+    uint32_t ucIndex;
+    for( ucIndex = ipMAC_ADDRESS_LENGTH_BYTES; ucIndex > 0; --ucIndex )
     {
         ulCRC32 ^= __RBIT( pucMACAddr[ ipMAC_ADDRESS_LENGTH_BYTES - ucIndex ] );
 
-        for( uint8_t ucJndex = 8; ucJndex > 0; --ucJndex )
+        uint8_t ucJndex;
+        for( ucJndex = 8; ucJndex > 0; --ucJndex )
         {
             if( ulCRC32 & 0x80000000U )
             {
@@ -1375,7 +1378,8 @@ static BaseType_t prvAddDestMACAddrMatch( ETH_HandleTypeDef * pxEthHandle, const
 {
     BaseType_t xResult = pdFALSE;
 
-    for( uint8_t ucIndex = 0; ucIndex < niEMAC_MAC_SRC_MATCH_COUNT; ++ucIndex )
+    uint8_t ucIndex;
+    for( ucIndex = 0; ucIndex < niEMAC_MAC_SRC_MATCH_COUNT; ++ucIndex )
     {
         if( ucSrcMatchCounters[ ucIndex ] > 0U )
         {
@@ -1407,7 +1411,8 @@ static BaseType_t prvRemoveDestMACAddrMatch( ETH_HandleTypeDef * pxEthHandle, co
 {
     BaseType_t xResult = pdFALSE;
 
-    for( uint8_t ucIndex = 0; ucIndex < niEMAC_MAC_SRC_MATCH_COUNT; ++ucIndex )
+    uint8_t ucIndex;
+    for( ucIndex = 0; ucIndex < niEMAC_MAC_SRC_MATCH_COUNT; ++ucIndex )
     {
         if( ucSrcMatchCounters[ ucIndex ] > 0U )
         {
@@ -1610,6 +1615,7 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
     {
         if( pxDescriptor == NULL )
         {
+            iptraceETHERNET_RX_EVENT_LOST();
             FreeRTOS_debug_printf( ( "prvAcceptPacket: Null Descriptor\n" ) );
             break;
         }
@@ -1618,12 +1624,20 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
         ( void ) HAL_ETH_GetRxDataErrorCode( &xEthHandle, &ulErrorCode );
         if( ulErrorCode != 0 )
         {
+            iptraceETHERNET_RX_EVENT_LOST();
             FreeRTOS_debug_printf( ( "prvAcceptPacket: Rx Data Error\n" ) );
             break;
         }
+        /* if( ( ulErrorCode & ETH_DRIBBLE_BIT_ERROR ) != 0 )
+        if( ( ulErrorCode & ETH_RECEIVE_ERROR ) != 0 )
+        if( ( ulErrorCode & ETH_RECEIVE_OVERFLOW ) != 0 )
+        if( ( ulErrorCode & ETH_WATCHDOG_TIMEOUT ) != 0 )
+        if( ( ulErrorCode & ETH_GIANT_PACKET ) != 0 )
+        if( ( ulErrorCode & ETH_CRC_ERROR ) != 0 ) */
 
         if( usLength > niEMAC_DATA_BUFFER_SIZE )
         {
+            iptraceETHERNET_RX_EVENT_LOST();
             FreeRTOS_debug_printf( ( "prvAcceptPacket: Packet size overflow\n" ) );
             break;
         }
@@ -1719,14 +1733,6 @@ void HAL_ETH_ErrorCallback( ETH_HandleTypeDef * pxEthHandle )
         if( ( HAL_ETH_GetMACError( pxEthHandle ) & ETH_TRANSMIT_JABBR_TIMEOUT ) != 0 )*/
         eErrorEvents |= eMacEventErrMac;
     }
-
-    /* if( ( HAL_ETH_GetError( pxEthHandle ) & ETH_DRIBBLE_BIT_ERROR ) != 0 )
-    if( ( HAL_ETH_GetError( pxEthHandle ) & ETH_RECEIVE_ERROR ) != 0 )
-    if( ( HAL_ETH_GetError( pxEthHandle ) & ETH_RECEIVE_OVERFLOW ) != 0 )
-    if( ( HAL_ETH_GetError( pxEthHandle ) & ETH_WATCHDOG_TIMEOUT ) != 0 )
-    if( ( HAL_ETH_GetError( pxEthHandle ) & ETH_GIANT_PACKET ) != 0 )
-    if( ( HAL_ETH_GetError( pxEthHandle ) & ETH_CRC_ERROR ) != 0 )
-    eErrorEvents |= eMacEventErrEth; */
 
     if( ( xEMACTaskHandle != NULL ) && ( eErrorEvents != eMacEventNone ) )
     {
@@ -1878,7 +1884,8 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 
     configASSERT( xBufferAllocFixedSize == pdTRUE );
 
-    for( size_t uxIndex = 0; uxIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ++uxIndex )
+    size_t uxIndex;
+    for( uxIndex = 0; uxIndex < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ++uxIndex )
     {
         pxNetworkBuffers[ uxIndex ].pucEthernetBuffer = &( ucNetworkPackets[ uxIndex ][ ipBUFFER_PADDING ] );
         *( ( uint32_t * ) &( ucNetworkPackets[ uxIndex ][ 0 ] ) ) = ( uint32_t ) ( &( pxNetworkBuffers[ uxIndex ] ) );
@@ -2066,7 +2073,7 @@ void HAL_ETH_MspInit( ETH_HandleTypeDef * heth )
         }
 
         /* Enable the Ethernet global Interrupt */
-        HAL_NVIC_SetPriority( ETH_IRQn, ( uint32_t ) configMAX_FREERTOS_INTERRUPT_PRIORITY, 0 );
+        HAL_NVIC_SetPriority( ETH_IRQn, ( uint32_t ) configMAX_SYSCALL_INTERRUPT_PRIORITY, 0 );
         HAL_NVIC_EnableIRQ( ETH_IRQn );
     }
 }
