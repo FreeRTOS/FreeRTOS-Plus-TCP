@@ -168,12 +168,6 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
 
                 if( pxNetworkBuffer->pxEndPoint == NULL )
                 {
-                    if( xDoRelease != pdFALSE )
-                    {
-                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                    }
-
-                    pxNetworkBuffer = NULL;
                     break;
                 }
             }
@@ -315,8 +309,6 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
     {
         vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
     }
-
-    pxNetworkBuffer = NULL;
 }
 /*-----------------------------------------------------------*/
 
