@@ -60,7 +60,7 @@ NetworkInterface_t * pxESP32_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
