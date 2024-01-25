@@ -159,9 +159,6 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_IP_Private.h"
 
-#ifndef ARRAY_SIZE
-    #define ARRAY_SIZE( x )    ( ( BaseType_t ) ( sizeof( x ) / sizeof( ( x )[ 0 ] ) ) )
-#endif
 
 /* A semaphore that indicates the number of freeTX DMA descriptors. */
 extern SemaphoreHandle_t xTXDescriptorSemaphore;

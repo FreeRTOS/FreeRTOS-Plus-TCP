@@ -126,10 +126,6 @@
  * @{
  */
 
-#if !defined( ARRAY_SIZE )
-    #define ARRAY_SIZE( x )    ( sizeof( x ) / sizeof( x )[ 0 ] )
-#endif
-
 #ifdef HAL_ETH_MODULE_ENABLED
 
     #if ( stm_is_F1 != 0 || stm_is_F2 != 0 || stm_is_F4 != 0 || stm_is_F7 )
