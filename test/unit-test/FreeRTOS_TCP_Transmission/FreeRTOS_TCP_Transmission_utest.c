@@ -162,7 +162,7 @@ void test_prvTCPSendPacket_Syn_State( void )
     int32_t BytesSent = 0;
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
-    struct xNetworkEndPoint* pxEndPoint;
+    struct xNetworkEndPoint * pxEndPoint;
 
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
@@ -201,7 +201,7 @@ void test_prvTCPSendPacket_Syn_State_NULL_Endpoint( void )
     int32_t BytesSent = 0;
     struct xNetworkEndPoint xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
-    struct xNetworkEndPoint* pxEndPoint;
+    struct xNetworkEndPoint * pxEndPoint;
 
     pxSocket = &xSocket;
     pxNetworkBuffer = &xNetworkBuffer;
