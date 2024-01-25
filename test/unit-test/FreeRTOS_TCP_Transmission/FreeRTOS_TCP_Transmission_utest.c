@@ -192,6 +192,46 @@ void test_prvTCPSendPacket_Syn_State( void )
 }
 
 /**
+ * @brief This function validates the case of preparing Connection
+ *        and send the packet with the SYN flag, but the ARP cache returns
+ *        NULL endpoint.
+ */
+void test_prvTCPSendPacket_Syn_State_NULL_Endpoint( void )
+{
+    int32_t BytesSent = 0;
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    struct xNetworkInterface xInterface;
+    struct xNetworkEndPoint* pxEndPoint;
+
+    pxSocket = &xSocket;
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    pxSocket->u.xTCP.eTCPState = eCONNECT_SYN;
+    pxSocket->u.xTCP.ucRepCount = 1;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdTRUE;
+
+    xEndPoint.pxNetworkInterface = &xInterface;
+    xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
+    pxEndPoint = NULL;
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( &xEndPoint );
+    FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
+    usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
+    usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+
+    BytesSent = prvTCPSendPacket( pxSocket );
+    TEST_ASSERT_EQUAL( 52, BytesSent );
+    TEST_ASSERT_EQUAL( 0, NetworkInterfaceOutputFunction_Stub_Called );
+}
+
+
+/**
  * @brief This function validates the connection being is in the SYN status.
  *        And the packet is repeated more than 3 times.  When there is no response,
  *        the socket get the status 'eCLOSE_WAIT'.
