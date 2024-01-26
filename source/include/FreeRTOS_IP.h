@@ -117,7 +117,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
  */
 
 /* Use setting from FreeRTOS if defined and non-zero */
-#if defined( ipconfigBUFFER_PADDING ) && ( ipconfigBUFFER_PADDING != 0 )
+#if ( ipconfigBUFFER_PADDING != 0 )
     #define ipBUFFER_PADDING    ipconfigBUFFER_PADDING
 #elif ( UINTPTR_MAX > 0xFFFFFFFF )
     #define ipBUFFER_PADDING    ( 12U + ipconfigPACKET_FILLER_SIZE )
@@ -141,12 +141,6 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 /** @brief Returned as the (invalid) checksum when the protocol being checked is not
  * handled.  The value is chosen simply to be easy to spot when debugging. */
 #define ipUNHANDLED_PROTOCOL    0x4321U
-
-/** @brief The maximum time the IP task is allowed to remain in the Blocked state if no
- * events are posted to the network event queue. */
-#ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
-    #define ipconfigMAX_IP_TASK_SLEEP_TIME    ( pdMS_TO_TICKS( 10000UL ) )
-#endif
 
 /* Trace macros to aid in debugging, disabled if ipconfigHAS_PRINTF != 1 */
 #if ( ipconfigHAS_PRINTF == 1 )
