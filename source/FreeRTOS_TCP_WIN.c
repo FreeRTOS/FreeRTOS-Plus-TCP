@@ -1158,7 +1158,6 @@
                                                  pxWindow->usOurPortNumber,
                                                  ( unsigned ) ( ulSequenceNumber - pxWindow->rx.ulFirstSequenceNumber ),
                                                  ( unsigned ) listCURRENT_LIST_LENGTH( &pxWindow->xRxSegments ) ) );
-                        FreeRTOS_flush_logging();
                     }
 
                     /* Return a positive value.  The packet may be accepted
@@ -1391,7 +1390,6 @@
                                          ( int ) pxSegment->lDataLength,
                                          ( unsigned ) ( pxWindow->ulNextTxSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
                                          ( int ) pxSegment->lStreamPos ) );
-                FreeRTOS_flush_logging();
             }
 
             return lToWrite;
@@ -1703,7 +1701,6 @@
                                                  ( int ) pxSegment->lDataLength,
                                                  ( unsigned ) ( pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
                                                  ( unsigned ) pxSegment->ulSequenceNumber ) );
-                        FreeRTOS_flush_logging();
                     }
                 }
                 else
@@ -1776,7 +1773,6 @@
                                              ( int ) pxSegment->lDataLength,
                                              ( unsigned ) ( pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
                                              ( unsigned ) ulWindowSize ) );
-                    FreeRTOS_flush_logging();
                 }
             }
 
@@ -1823,7 +1819,6 @@
                                              ( int ) pxSegment->lDataLength,
                                              ( unsigned ) ( pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
                                              ( unsigned ) ulWindowSize ) );
-                    FreeRTOS_flush_logging();
                 }
             }
             else
@@ -2137,7 +2132,6 @@
                                 FreeRTOS_debug_printf( ( "prvTCPWindowFastRetransmit: Requeue sequence number %u < %u\n",
                                                          ( unsigned ) ( pxSegment->ulSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ),
                                                          ( unsigned ) ( ulFirst - pxWindow->tx.ulFirstSequenceNumber ) ) );
-                                FreeRTOS_flush_logging();
                             }
 
                             /* Remove it from xWaitQueue. */
@@ -2222,7 +2216,6 @@
                                          ( unsigned ) ( ulFirst - pxWindow->tx.ulFirstSequenceNumber ),
                                          ( unsigned ) ( ulLast - pxWindow->tx.ulFirstSequenceNumber ),
                                          ( unsigned ) ( pxWindow->tx.ulCurrentSequenceNumber - pxWindow->tx.ulFirstSequenceNumber ) ) );
-                FreeRTOS_flush_logging();
             }
 
             return ulAckCount;

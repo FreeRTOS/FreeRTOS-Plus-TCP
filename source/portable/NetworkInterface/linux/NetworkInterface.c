@@ -339,7 +339,7 @@ BaseType_t xGetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
 
 
 /* Do not call the following function directly. It is there for downward compatibility.
@@ -863,7 +863,7 @@ static void * prvLinuxPcapSendThread( void * pvParam )
 
             if( pcap_sendpacket( pxOpenedInterfaceHandle, ucBuffer, ( int ) xLength ) != 0 )
             {
-                FreeRTOS_printf( ( "pcap_sendpackeet: send failed %d\n", ulPCAPSendFailures ) );
+                FreeRTOS_printf( ( "pcap_sendpacket: send failed %d\n", ulPCAPSendFailures ) );
                 ulPCAPSendFailures++;
             }
         }

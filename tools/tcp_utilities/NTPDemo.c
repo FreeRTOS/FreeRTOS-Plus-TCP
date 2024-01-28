@@ -64,13 +64,6 @@
     #error ipconfigDNS_USE_CALLBACKS must be 1
 #endif
 
-#if ( ipconfigMULTI_INTERFACE == 0 )
-    #ifndef ipSIZE_OF_IPv4_ADDRESS
-        #define ipSIZE_OF_IPv4_ADDRESS    4
-    #endif
-    #define FREERTOS_AF_INET4             FREERTOS_AF_INET
-#endif
-
 /* Set time: sets the current time in seconds-after-1/1/1970
  * This function must be provided by the application. */
 

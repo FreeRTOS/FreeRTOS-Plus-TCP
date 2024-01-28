@@ -86,7 +86,7 @@
 #endif
 
 /* Setup LLMNR specific multicast address. */
-#if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
+#if ( ipconfigUSE_LLMNR == 1 )
 static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 #endif
 
@@ -122,7 +122,7 @@ static uint8_t ucLLMNR_MAC_address[] = { 0x01, 0x00, 0x5E, 0x00, 0x00, 0xFC };
 TaskHandle_t xEMACTaskHandle = NULL;
 
 /* The PING response queue */
-#if ( defined( ipconfigSUPPORT_OUTGOING_PINGS ) && ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) )
+#if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
     QueueHandle_t xPingReplyQueue = NULL;
 #endif
 
@@ -239,7 +239,7 @@ BaseType_t xATSAM5x_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface
         prvPHYLinkReset();
 
         /* Initialize PING capability */
-        #if ( defined( ipconfigSUPPORT_OUTGOING_PINGS ) && ( ipconfigSUPPORT_OUTGOING_PINGS == 1 ) )
+        #if ( ipconfigSUPPORT_OUTGOING_PINGS == 1 )
             xPingReplyQueue = xQueueCreate( ipconfigPING_QUEUE_SIZE, sizeof( uint16_t ) );
         #endif
 
@@ -481,7 +481,7 @@ static void prvGMACInit()
     prvGMACEnableMulticastHashTable( true );
 
     /* Enable traffic for LLMNR, if defined. */
-    #if ( defined( ipconfigUSE_LLMNR ) && ( ipconfigUSE_LLMNR == 1 ) )
+    #if ( ipconfigUSE_LLMNR == 1 )
     {
         mac_async_set_filter_ex( &ETH_MAC, ucLLMNR_MAC_address );
     }

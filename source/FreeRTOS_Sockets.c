@@ -1171,7 +1171,7 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
 
     if( lPacketCount > 0 )
     {
-        taskENTER_CRITICAL();
+        vTaskSuspendAll();
         {
             /* The owner of the list item is the network buffer. */
             pxNetworkBuffer = ( ( NetworkBufferDescriptor_t * ) listGET_OWNER_OF_HEAD_ENTRY( &( pxSocket->u.xUDP.xWaitingPacketsList ) ) );
@@ -1183,7 +1183,7 @@ static NetworkBufferDescriptor_t * prvRecvFromWaitForPacket( FreeRTOS_Socket_t c
                 ( void ) uxListRemove( &( pxNetworkBuffer->xBufferListItem ) );
             }
         }
-        taskEXIT_CRITICAL();
+        ( void ) xTaskResumeAll();
     }
 
     *pxEventBits = xEventBits;
@@ -1926,8 +1926,17 @@ BaseType_t vSocketBind( FreeRTOS_Socket_t * pxSocket,
         if( pxAddress == NULL )
         {
             pxAddress = &xAddress;
-            /* Put the port to zero to be assigned later. */
-            pxAddress->sin_port = 0U;
+            /* Clear the address: */
+            ( void ) memset( pxAddress, 0, sizeof( struct freertos_sockaddr ) );
+
+            if( pxSocket->bits.bIsIPv6 != pdFALSE_UNSIGNED )
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET6;
+            }
+            else
+            {
+                pxAddress->sin_family = FREERTOS_AF_INET;
+            }
         }
     }
     #endif /* ipconfigALLOW_SOCKET_SEND_WITHOUT_BIND == 1 */
@@ -5392,41 +5401,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
 #if ( ipconfigUSE_TCP == 1 )
 
-
-/**
- * @brief Get the version of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'.
- *
- * @param[in] xSocket  The socket to be checked.
- *
- * @return Either ipTYPE_IPv4 or ipTYPE_IPv6.
- */
-    BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
-    {
-        const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
-        BaseType_t xResult = ( BaseType_t ) ipTYPE_IPv4;
-
-        switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
-        {
-            #if ( ipconfigUSE_IPv4 != 0 )
-                case pdFALSE_UNSIGNED:
-                    xResult = ( BaseType_t ) ipTYPE_IPv4;
-                    break;
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case pdTRUE_UNSIGNED:
-                    xResult = ( BaseType_t ) ipTYPE_IPv6;
-                    break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-            default:
-                /* MISRA 16.4 Compliance */
-                break;
-        }
-
-        return xResult;
-    }
-
 /**
  * @brief Check the number of bytes that may be added to txStream.
  *
@@ -5800,6 +5774,41 @@ void * pvSocketGetSocketID( const ConstSocket_t xSocket )
     }
 
     return pvReturn;
+}
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Get the version of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'.
+ *
+ * @param[in] xSocket  The socket to be checked.
+ *
+ * @return Either ipTYPE_IPv4 or ipTYPE_IPv6.
+ */
+BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket )
+{
+    const FreeRTOS_Socket_t * pxSocket = ( const FreeRTOS_Socket_t * ) xSocket;
+    BaseType_t xResult = ( BaseType_t ) ipTYPE_IPv4;
+
+    switch( pxSocket->bits.bIsIPv6 ) /* LCOV_EXCL_BR_LINE Exclude this line because default case is not counted. */
+    {
+        #if ( ipconfigUSE_IPv4 != 0 )
+            case pdFALSE_UNSIGNED:
+                xResult = ( BaseType_t ) ipTYPE_IPv4;
+                break;
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+        #if ( ipconfigUSE_IPv6 != 0 )
+            case pdTRUE_UNSIGNED:
+                xResult = ( BaseType_t ) ipTYPE_IPv6;
+                break;
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+        default:
+            /* MISRA 16.4 Compliance */
+            break;
+    }
+
+    return xResult;
 }
 /*-----------------------------------------------------------*/
 

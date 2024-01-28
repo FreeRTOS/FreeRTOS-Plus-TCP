@@ -57,13 +57,6 @@
  * name field is an offset to the string, rather than the string itself. */
     #define dnsNAME_IS_OFFSET    ( ( uint8_t ) 0xc0 )
 
-/** @brief The maximum number of times a DNS request should be sent out if a response
- * is not received, before giving up. */
-    #ifndef ipconfigDNS_REQUEST_ATTEMPTS
-        #define ipconfigDNS_REQUEST_ATTEMPTS    5
-    #endif
-
-
 /* NBNS flags. */
     #if ( ipconfigUSE_NBNS == 1 )
         #define dnsNBNS_FLAGS_RESPONSE        0x8000U /**< NBNS response flag. */

@@ -279,7 +279,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                                                  ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
                                                  ( unsigned ) ( FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) ) );
                     }
-                #endif /* ( ipconfigHAS_PRINTF != 0 ) */
+                #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
                 /* ulTargetProtocolAddress won't be used unless logging is enabled. */
                 ( void ) ulTargetProtocolAddress;
@@ -294,8 +294,8 @@ static TickType_t xLastGratuitousARPTime = 0U;
 
                             if( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress )
                             {
-                                if( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes,
-                                            ( pxARPHeader->xSenderHardwareAddress.ucBytes ),
+                                if( memcmp( pxTargetEndPoint->xMACAddress.ucBytes,
+                                            pxARPHeader->xSenderHardwareAddress.ucBytes,
                                             ipMAC_ADDRESS_LENGTH_BYTES ) != 0 )
                                 {
                                     vARPProcessPacketRequest( pxARPFrame, pxTargetEndPoint, ulSenderProtocolAddress );
@@ -310,9 +310,9 @@ static TickType_t xLastGratuitousARPTime = 0U;
 
                                 /* Make sure target MAC address is either ff:ff:ff:ff:ff:ff or 00:00:00:00:00:00 and senders MAC
                                  * address is not matching with the endpoint MAC address. */
-                                if( ( ( memcmp( ( const void * ) pxARPHeader->xTargetHardwareAddress.ucBytes, xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
-                                      ( ( memcmp( ( const void * ) pxARPHeader->xTargetHardwareAddress.ucBytes, xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
-                                    ( memcmp( ( void * ) pxTargetEndPoint->xMACAddress.ucBytes, ( pxARPHeader->xSenderHardwareAddress.ucBytes ), ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
+                                if( ( ( memcmp( pxARPHeader->xTargetHardwareAddress.ucBytes, xBroadcastMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ||
+                                      ( ( memcmp( pxARPHeader->xTargetHardwareAddress.ucBytes, xGARPTargetAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) ) ) &&
+                                    ( memcmp( pxTargetEndPoint->xMACAddress.ucBytes, pxARPHeader->xSenderHardwareAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) != 0 ) )
                                 {
                                     MACAddress_t xHardwareAddress;
                                     NetworkEndPoint_t * pxCachedEndPoint;
