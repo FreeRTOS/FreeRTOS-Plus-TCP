@@ -225,8 +225,8 @@ static void hand_tx_errors( void );
 #define GMAC_ADDRESS_HASH_BITS    ( 64U )
 #define GMAC_ADDRESS_HASH_MASK    ( GMAC_ADDRESS_HASH_BITS - 1U )
 
-static uint8_t prvAddressHashCounters[ GMAC_ADDRESS_HASH_BITS ] = { 0U };
 static uint64_t prvAddressHashBitMask = 0U;
+static uint8_t prvAddressHashCounters[ GMAC_ADDRESS_HASH_BITS ] = { 0U };
 static uint8_t prvSpecificMatchCounters[ GMACSA_NUMBER ] = { 0U };
 
 /* Functions to set the hash table for multicast addresses. */
@@ -953,8 +953,12 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
             /* This specific match register is being used. Check if the address is the same. */
             if( ( ulSAB == GMAC->GMAC_SA[ uxIndex ].GMAC_SAB ) && ( ulSAT == GMAC->GMAC_SA[ uxIndex ].GMAC_SAT ) )
             {
-                /* Exact match! Increment the counter and leave. */
-                prvSpecificMatchCounters[ uxIndex ]++;
+                /* Exact match! Increment the counter and leave. As with the hash counters, make sure we don't overflow. */
+                if( prvSpecificMatchCounters[ uxIndex ] < UINT8_MAX )
+                {
+                    prvSpecificMatchCounters[ uxIndex ]++;
+                }
+
                 /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", uxIndex, prvSpecificMatchCounters[ uxIndex ] ); */
                 break;
             }
@@ -987,7 +991,8 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
             break;
         }
 
-        /* No exact match found in the specific match registers, but is one of them empty? */
+        /* No exact match found in the specific match registers.
+         * Is one of them empty so we can add the MAC there? */
         if( uxEmptyIndex < GMACSA_NUMBER )
         {
             /* There is an empty slot in the specific match registers. Using this empty slot should
@@ -998,7 +1003,7 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
                 ( ( MAC_IS_UNICAST( pucMacAddress ) ) && ( UNICAST_HASH_IS_DISABLED( GMAC ) ) ) ||
                 ( prvAddressHashCounters[ ucHashBit ] == 0U ) /* hash matching doesn't cover this address yet. */ )
             {
-                /* In all cases above, simply add to the empty specific match register. */
+                /* In all cases above, simply add the MAC address to the empty specific match register. */
                 gmac_set_address( GMAC, uxEmptyIndex, pucMacAddress );
                 prvSpecificMatchCounters[ uxEmptyIndex ] = 1U;
                 /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: ADD at %u, new counter %u", uxEmptyIndex, prvSpecificMatchCounters[ uxEmptyIndex ] ); */
