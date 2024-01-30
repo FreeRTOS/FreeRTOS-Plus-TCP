@@ -160,7 +160,7 @@ void vStreamBufferClear( StreamBuffer_t * const pxBuffer )
  * @param[in] uxCount The byte count by which the mid pointer is to be moved.
  */
 void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
-                           size_t uxCount )
+                           const size_t uxCount )
 {
     /* Increment uxMid, but no further than uxHead */
     const size_t uxLength = pxBuffer->LENGTH;
