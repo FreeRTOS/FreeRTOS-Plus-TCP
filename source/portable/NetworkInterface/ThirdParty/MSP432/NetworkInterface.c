@@ -977,7 +977,6 @@ static void prvCheckLinkUpOrDownNetStateTask( void * pvParameters )
 }
 
 
-
 /* Call this function to obtain the MAC address used by the driver */
 void vPublicGetMACAddr( uint8_t uc8MACAddrGet[ ipMAC_ADDRESS_LENGTH_BYTES ] )
 {
@@ -988,27 +987,4 @@ void vPublicGetMACAddr( uint8_t uc8MACAddrGet[ ipMAC_ADDRESS_LENGTH_BYTES ] )
 BaseType_t xGetPhyLinkStatus( void )
 {
     return networkUP;
-}
-
-
-/*-----------------------------------------------------------------------------------------------------
- * For BufferAllocation_1.c (see the FreeRTOS documentation for further details and examples)
- * ----------------------------------------------------------------------------------------------------- */
-#define BUFFER_SIZE_ALLOC1               ( ipTOTAL_ETHERNET_FRAME_SIZE + ipBUFFER_PADDING )
-#define BUFFER_SIZE_ALLOC1_ROUNDED_UP    ( ( BUFFER_SIZE_ALLOC1 + 7 ) & ~0x07UL )
-static uint8_t ucBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ BUFFER_SIZE_ALLOC1_ROUNDED_UP ];
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    BaseType_t x;
-
-    for( x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
-    {
-        /* pucEthernetBuffer is set to point ipBUFFER_PADDING bytes in from the
-         * beginning of the allocated buffer. */
-        pxNetworkBuffers[ x ].pucEthernetBuffer = &( ucBuffers[ x ][ ipBUFFER_PADDING ] );
-
-        /* The following line is also required, but will not be required in
-         * future versions. */
-        *( ( uint32_t * ) &ucBuffers[ x ][ 0 ] ) = ( uint32_t ) &( pxNetworkBuffers[ x ] );
-    }
 }

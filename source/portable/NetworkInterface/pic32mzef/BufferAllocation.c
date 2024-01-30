@@ -84,10 +84,6 @@ static size_t uxMinimumFreeNetworkBuffers;
  * is booted). */
 static NetworkBufferDescriptor_t xNetworkBufferDescriptors[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ];
 
-/* This constant is defined as false to let FreeRTOS_TCP_IP.c know that the
- * network buffers have a variable size: resizing may be necessary */
-const BaseType_t xBufferAllocFixedSize = pdFALSE;
-
 /* The semaphore used to obtain network buffers. */
 static SemaphoreHandle_t xNetworkBufferSemaphore = NULL;
 

@@ -589,7 +589,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
                                size_t uxNeededSize;
 
                                uxNeededSize = sizeof( ICMPPacket_IPv6_t );
-                               pxTempBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 199 ) uxNeededSize, 0U );
+                               pxTempBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, 0U );
 
                                if( pxTempBuffer != NULL )
                                {

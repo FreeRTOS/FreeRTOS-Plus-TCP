@@ -27,7 +27,7 @@ set( UNIT_TEST_DIR ${MODULE_ROOT_DIR}/test/unit-test CACHE INTERNAL "Unit-test d
 
 set( KERNEL_DIRECTORY ${MODULE_ROOT_DIR}/test/FreeRTOS-Kernel )
 
-# See if FreRTOS-Kernel is submoduled
+# See if FreeRTOS-Kernel is submoduled
 if( NOT EXISTS ${KERNEL_DIRECTORY}/include )
     # Inform the user of the actions
     message( STATUS "FreeRTOS-Kernel is required for this build. Submoduling it..." )
@@ -57,9 +57,7 @@ set( TCP_INCLUDES "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv4.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IPv6.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
-                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_IP_Common.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ND.h"
-                  "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ARP.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_BitConfig.h"
                   "${MODULE_ROOT_DIR}/source/include/FreeRTOS_ICMP.h"
@@ -123,14 +121,6 @@ foreach( file ${TCP_INCLUDES} )
     # Add the FreeRTOSIPConfig file to each directory
     execute_process( COMMAND sed "1 i\#include \"FreeRTOSIPConfig.h\"" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp1.h
                      OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
-
-    if(${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )
-        execute_process( COMMAND sed "s/extern const BaseType_t xBufferAllocFixedSize/extern BaseType_t xBufferAllocFixedSize/g" ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h
-                         OUTPUT_FILE ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.h )
-        execute_process( COMMAND mv ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp2.h ${CMAKE_BINARY_DIR}/Annexed_TCP/${MODIFIED_FILE}_tmp.h )
-    endif()
-
-
 
     # Use this tool to process all conditional declarations.
     if(${MODIFIED_FILE} STREQUAL "FreeRTOS_Routing" OR ${MODIFIED_FILE} STREQUAL "FreeRTOS_IP_Private" )

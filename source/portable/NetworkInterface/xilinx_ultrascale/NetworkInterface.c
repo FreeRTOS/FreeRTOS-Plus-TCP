@@ -60,20 +60,18 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-#if ( ipconfigNETWORK_MTU > 1526 )
-    #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
-        #warning the use of Jumbo Frames has not been tested sufficiently yet.
+#if 0
+    #if ( ipconfigNETWORK_MTU > 1526 )
+        #if ( ipconfigPORT_SUPPRESS_WARNING == 0 )
+            #warning the use of Jumbo Frames has not been tested sufficiently yet.
+        #endif
+        #define USE_JUMBO_FRAMES    1
     #endif
-    #define USE_JUMBO_FRAMES    1
-#endif
 
-/* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#if ( USE_JUMBO_FRAMES == 1 )
-    #define niBUFFER_1_PACKET_SIZE    10240
-#else
-    #define niBUFFER_1_PACKET_SIZE    1536
-#endif
+    #if ( USE_JUMBO_FRAMES == 1 )
+        #define niBUFFER_1_PACKET_SIZE    10240
+    #endif
+#endif /* if 0 */
 
 /* Naming and numbering of PHY registers. */
 #define PHY_REG_01_BMSR    0x01         /* Basic mode status register */
@@ -197,15 +195,16 @@ BaseType_t xNetworkInterfaceInitialise( void )
                 break;
             }
 
-/* _HT_ : the use of jumbo frames has not been tested sufficiently yet. */
-
-            if( pxEMAC_PS->Version > 2 )
-            {
-                #if ( USE_JUMBO_FRAMES == 1 )
-                    /* Enable jumbo frames for zynqmp */
-                    XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
-                #endif
-            }
+            /* _HT_ : the use of jumbo frames has not been tested sufficiently yet. */
+            #if 0
+                if( pxEMAC_PS->Version > 2 )
+                {
+                    #if ( USE_JUMBO_FRAMES == 1 )
+                        /* Enable jumbo frames for zynqmp */
+                        XEmacPs_SetOptions( pxEMAC_PS, XEMACPS_JUMBO_ENABLE_OPTION );
+                    #endif
+                }
+            #endif
 
             /* Initialize the mac and set the MAC address. */
             XEmacPs_SetMacAddress( pxEMAC_PS, ( void * ) ipLOCAL_MAC_ADDRESS, 1 );
@@ -389,21 +388,8 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
 }
 /*-----------------------------------------------------------*/
 
-#if ( nicUSE_UNCACHED_MEMORY == 0 )
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-    {
-        static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-        uint8_t * ucRAMBuffer = ucNetworkPackets;
-        uint32_t ul;
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 )
 
-        for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-        {
-            pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-            *( ( uintptr_t * ) ucRAMBuffer ) = ( uintptr_t ) &( pxNetworkBuffers[ ul ] );
-            ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-        }
-    }
-#else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
     void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
         static uint8_t * pucNetworkPackets = NULL;
@@ -426,7 +412,8 @@ static BaseType_t prvGMACWaitLS( TickType_t xMaxTimeTicks )
             }
         }
     }
-#endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
+
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 ) */
 /*-----------------------------------------------------------*/
 
 BaseType_t xGetPhyLinkStatus( void )

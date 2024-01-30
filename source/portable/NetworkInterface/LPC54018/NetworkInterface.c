@@ -116,6 +116,14 @@ uint32_t rxbuffer[ ENET_RXBD_NUM ];
 
 TaskHandle_t receiveTaskHandle;
 
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ENET_RXBUFF_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for lpc54018
+    #endif
+#endif
+
 void ENET_IntCallback( ENET_Type * base,
                        enet_handle_t * handle,
                        enet_event_t event,
@@ -367,16 +375,4 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     }
 
     return response;
-}
-
-/* statically allocate the buffers */
-/* allocating them as uint32_t's to force them into word alignment, a requirement of the DMA. */
-__ALIGN_BEGIN static uint32_t buffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ][ ( ipBUFFER_PADDING + ENET_RXBUFF_SIZE ) / sizeof( uint32_t ) + 1 ] __ALIGN_END;
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    for( int x = 0; x < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; x++ )
-    {
-        pxNetworkBuffers[ x ].pucEthernetBuffer = ( uint8_t * ) &buffers[ x ][ 0 ] + ipBUFFER_PADDING;
-        buffers[ x ][ 0 ] = ( uint32_t ) &pxNetworkBuffers[ x ];
-    }
 }

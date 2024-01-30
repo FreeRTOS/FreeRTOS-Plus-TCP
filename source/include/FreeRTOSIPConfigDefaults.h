@@ -855,6 +855,65 @@
 /*---------------------------------------------------------------------------*/
 
 /*
+ * ipconfigBUFFER_ALLOC_STATIC
+ *
+ * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
+ *
+ * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
+ *
+ * Sets the buffer allocation method to use fixed static memory of size
+ * ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE.
+ * If disabled then a memory allocator that will not fragment the heap
+ * should be used.
+ */
+
+#ifndef ipconfigBUFFER_ALLOC_STATIC
+    #define ipconfigBUFFER_ALLOC_STATIC    ipconfigDISABLE
+#endif
+
+#if ( ( ipconfigBUFFER_ALLOC_STATIC != ipconfigDISABLE ) && ( ipconfigBUFFER_ALLOC_STATIC != ipconfigENABLE ) )
+    #error Invalid ipconfigBUFFER_ALLOC_STATIC configuration
+#endif
+
+#ifndef ipconfigBUFFER_ALLOC_INIT
+    #define ipconfigBUFFER_ALLOC_INIT()    do {} while( ipFALSE_BOOL )
+#endif
+
+#ifndef ipconfigBUFFER_ALLOC_LOCK
+    #define ipconfigBUFFER_ALLOC_LOCK()    taskENTER_CRITICAL()
+#endif
+
+#ifndef ipconfigBUFFER_ALLOC_UNLOCK
+    #define ipconfigBUFFER_ALLOC_UNLOCK()    taskEXIT_CRITICAL()
+#endif
+
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+
+    #ifndef ipconfigBUFFER_ALLOC_LOCK_FROM_ISR
+        #define ipconfigBUFFER_ALLOC_LOCK_FROM_ISR()    UBaseType_t uxSavedInterruptStatus = ( UBaseType_t ) portSET_INTERRUPT_MASK_FROM_ISR(); {
+    #endif
+
+    #ifndef ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR
+        #define ipconfigBUFFER_ALLOC_UNLOCK_FROM_ISR()    portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus ); }
+    #endif
+
+    #ifndef ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION
+        #define ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION    ipconfigDISABLE
+    #endif
+
+    #ifndef ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION_STRING
+        #define ipconfigBUFFER_ALLOC_STATIC_CUSTOM_LOCATION_STRING    ".EthBuffersSection"
+    #endif
+
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) */
+
+#ifndef ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE
+    #define ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE    ipconfigDISABLE
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+/*
  * ipconfigUSE_LINKED_RX_MESSAGES
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigUSE_LINKED_RX_MESSAGES
@@ -3141,27 +3200,6 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * ipconfigTCP_IP_SANITY
- *
- * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_IP_SANITY
- *
- * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
- *
- * Enables warnings when irregularities are detected when using
- * BufferAllocation_1.c.
- */
-
-#ifndef ipconfigTCP_IP_SANITY
-    #define ipconfigTCP_IP_SANITY    ipconfigDISABLE
-#endif
-
-#if ( ( ipconfigTCP_IP_SANITY != ipconfigDISABLE ) && ( ipconfigTCP_IP_SANITY != ipconfigENABLE ) )
-    #error Invalid ipconfigTCP_IP_SANITY configuration
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
  * ipconfigTCP_MAY_LOG_PORT
  *
  * https://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_IP_Configuration.html#ipconfigTCP_MAY_LOG_PORT
@@ -3304,22 +3342,6 @@
 
 #ifndef ipconfigPORT_SUPPRESS_WARNING
     #define ipconfigPORT_SUPPRESS_WARNING    ipconfigDISABLE
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
- * ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
- *
- * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
- *
- * The macro 'ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS' was
- * introduced to enable a tracing system. Currently it is only used in
- * BufferAllocation_2.c.
- */
-
-#ifndef ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS
-    #define ipconfigINCLUDE_EXAMPLE_FREERTOS_PLUS_TRACE_CALLS    ipconfigDISABLE
 #endif
 
 /*---------------------------------------------------------------------------*/

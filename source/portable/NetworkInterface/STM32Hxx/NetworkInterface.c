@@ -144,6 +144,14 @@ ETH_DMADescTypeDef DMATxDscrTab[ ETH_TX_DESC_CNT ]    __attribute__( ( section( 
     uint8_t Tx_Buff[ ETH_TX_DESC_CNT ][ ETH_TX_BUF_SIZE ]                __attribute__( ( section( ".ethernet_data" ), aligned( 32 ) ) );
 #endif
 
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ETH_RX_BUF_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for STM32Hxx
+    #endif
+#endif
+
 /* This function binds PHY IO functions, then inits and configures */
 static void prvMACBProbePhy( void );
 
@@ -782,11 +790,6 @@ static BaseType_t prvNetworkInterfaceInput( void )
             if( data_buffer.buffer != NULL )
             {
                 pxReceivedBuffer = pxPacketBuffer_to_NetworkBuffer( data_buffer.buffer );
-                #if ( ipconfigTCP_IP_SANITY != 0 )
-                {
-                    configASSERT( bIsValidNetworkDescriptor( pxReceivedBuffer ) != 0 );
-                }
-                #endif
             }
 
             if( pxReceivedBuffer == NULL )
@@ -1024,26 +1027,6 @@ void HAL_ETH_DMAErrorCallback( ETH_HandleTypeDef * heth )
 /*******************************************************************************
 *                   END Ethernet Handling Functions
 *******************************************************************************/
-
-uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETH_RX_BUF_SIZE ]
-#if ( ipconfigZERO_COPY_RX_DRIVER != 0 || ipconfigZERO_COPY_TX_DRIVER != 0 )
-    __attribute__( ( section( ".ethernet_data" ) ) )
-#endif /* ( ipconfigZERO_COPY_RX_DRIVER != 0 || ipconfigZERO_COPY_TX_DRIVER != 0 ) */
-__attribute__( ( aligned( 32 ) ) );
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint8_t * ucRAMBuffer = ucNetworkPackets;
-    uint32_t ul;
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-        ucRAMBuffer += ETH_RX_BUF_SIZE;
-    }
-}
-/*-----------------------------------------------------------*/
 
 static void vClearOptionBit( volatile uint32_t * pulValue,
                              uint32_t ulValue )

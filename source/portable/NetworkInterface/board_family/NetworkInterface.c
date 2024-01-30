@@ -64,10 +64,14 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxNetworkB
     return pdFALSE;
 }
 
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    /* FIX ME. */
-}
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+
+    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
+    {
+        /* FIX ME. */
+    }
+
+#endif
 
 BaseType_t xGetPhyLinkStatus( void )
 {

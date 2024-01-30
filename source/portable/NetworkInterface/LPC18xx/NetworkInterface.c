@@ -328,24 +328,6 @@ BaseType_t xNetworkInterfaceInitialise( void )
 }
 /*-----------------------------------------------------------*/
 
-#define niBUFFER_1_PACKET_SIZE    1536
-
-static __attribute__( ( section( "._ramAHB32" ) ) ) uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint8_t * ucRAMBuffer = ucNetworkPackets;
-    uint32_t ul;
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-        ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-    }
-}
-/*-----------------------------------------------------------*/
-
 configPLACE_IN_SECTION_RAM
 static void vClearTXBuffers()
 {

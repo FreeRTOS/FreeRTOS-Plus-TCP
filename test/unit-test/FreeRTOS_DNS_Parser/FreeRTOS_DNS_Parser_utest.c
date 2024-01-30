@@ -78,8 +78,6 @@ static void dns_callback( const char * pcName,
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-extern BaseType_t xBufferAllocFixedSize;
-
 extern pucAddrBuffer[ 2 ];
 extern pucSockAddrBuffer[ 1 ];
 
@@ -90,7 +88,6 @@ extern pucSockAddrBuffer[ 1 ];
  */
 void setUp( void )
 {
-    xBufferAllocFixedSize = pdFALSE;
     xDefaultPartUDPPacketHeader.ucBytes[ 0 ] = 1;
     xDefaultPartUDPPacketHeader.ucBytes[ 1 ] = 2;
     xDefaultPartUDPPacketHeader.ucBytes[ 2 ] = 3;
@@ -980,8 +977,8 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer( void )
 }
 
 /**
- * @brief success path, BufferAllocation_1.c is used, the Network Buffers can contain at least
- *  ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
+ * @brief success path, static buffer allocation is used, the Network Buffers
+ * can contain at least ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
  */
 void test_DNS_TreatNBNS_Fail_BufferAllocation1( void )
 {
@@ -998,7 +995,6 @@ void test_DNS_TreatNBNS_Fail_BufferAllocation1( void )
     pxNetworkBuffer.xDataLength = 3000;
 
     hook_return = pdTRUE;
-    xBufferAllocFixedSize = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
@@ -1010,8 +1006,8 @@ void test_DNS_TreatNBNS_Fail_BufferAllocation1( void )
 }
 
 /**
- * @brief success path, BufferAllocation_1.c is used, the Network Buffers can contain at least
- *  ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
+ * @brief success path, static buffer allocation is used, the Network Buffers
+ * can contain at least ipconfigNETWORK_MTU + ipSIZE_OF_ETH_HEADER.
  */
 void test_DNS_TreatNBNS_success_BufferAllocation1( void )
 {
@@ -1028,7 +1024,6 @@ void test_DNS_TreatNBNS_success_BufferAllocation1( void )
     pxNetworkBuffer.xDataLength = 300;
 
     hook_return = pdTRUE;
-    xBufferAllocFixedSize = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
@@ -1114,9 +1109,9 @@ void test_DNS_TreatNBNS_success_nbns_non_fixed_size_buffer2( void )
     size_t uxBufferLength = 300;
     uint32_t ulIPAddress;
 
-    xBufferAllocFixedSize = pdFALSE;
     NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
     struct xNetworkEndPoint xEndPoint = { 0 };
+
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
 
     pxNetworkBuffer.pucEthernetBuffer = pucPayload;
@@ -1511,7 +1506,6 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_xBufferAllocFixedsize( void )
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
 
-    xBufferAllocFixedSize = pdTRUE;
     uint8_t * nullAddress = NULL;
     NetworkEndPoint_t xEndPoint = { 0 };
 
@@ -2565,7 +2559,6 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_valid_new_netbuffer3( void )
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_AAAA_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );       /* usClass */
     hook_return = pdTRUE;
-    xBufferAllocFixedSize = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
 
     usGenerateChecksum_ExpectAnyArgsAndReturn( 555 );

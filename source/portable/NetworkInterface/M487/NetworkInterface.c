@@ -72,17 +72,6 @@ static TimerHandle_t xPhyHandlerTask = NULL;
 static void prvEMACHandlerTask( void * pvParameters );
 static void prvPhyTmrCallback( TimerHandle_t xTimer );
 
-/* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-
-#define niBUFFER_1_PACKET_SIZE    1536
-#ifdef __ICCARM__
-    #pragma data_alignment=4
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ]
-#else
-    static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 4 ) ) );
-#endif
-
 BaseType_t xNetworkInterfaceInitialise( void )
 {
     uint8_t hwaddr[ 6 ];
@@ -178,21 +167,6 @@ BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescript
 
     return pdTRUE;
 }
-
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint8_t * ucRAMBuffer = ucNetworkPackets;
-    uint32_t ul;
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-        ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-    }
-}
-
 
 BaseType_t xGetPhyLinkStatus( void )
 {

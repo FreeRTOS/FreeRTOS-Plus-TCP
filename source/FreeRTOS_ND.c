@@ -763,7 +763,7 @@
                 /* MISRA Ref 11.3.1 [Misaligned access] */
                 /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                 /* coverity[misra_c_2012_rule_11_3_violation] */
-                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( BUFFER_FROM_WHERE_CALL( 181 ) uxPacketLength, uxBlockTimeTicks );
+                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxPacketLength, uxBlockTimeTicks );
 
                 if( pxNetworkBuffer != NULL )
                 {
@@ -934,7 +934,7 @@
             if( xSendEventStructToIPTask( &xEventMessage, xDontBlock ) != pdPASS )
             {
                 /* Failed to send the message, so release the network buffer. */
-                vReleaseNetworkBufferAndDescriptor( BUFFER_FROM_WHERE_CALL( 140 ) pxARPWaitingNetworkBuffer );
+                vReleaseNetworkBufferAndDescriptor( pxARPWaitingNetworkBuffer );
             }
 
             /* Clear the buffer. */

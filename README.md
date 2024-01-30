@@ -108,7 +108,7 @@ Below is the breakdown of what each directory contains:
     - This directory contains all the [.c] source files.
 
 ## Note
-At this time it is recommended to use BufferAllocation_2.c in which case it is essential to use the heap_4.c memory allocation scheme. See [memory management](http://www.FreeRTOS.org/a00111.html).
+At this time it is recommended to leave ipconfigBUFFER_ALLOC_STATIC disabled in which case it is essential to use the heap_4.c memory allocation scheme. See [memory management](http://www.FreeRTOS.org/a00111.html).
 
 ### Kernel sources
 The FreeRTOS Kernel Source is in [FreeRTOS/FreeRTOS-Kernel repository](https://github.com/FreeRTOS/FreeRTOS-Kernel), and it is consumed by testing/PR checks as a submodule in this repository.

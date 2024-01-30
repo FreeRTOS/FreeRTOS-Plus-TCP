@@ -42,8 +42,6 @@
 
 /* ===========================  EXTERN VARIABLES  =========================== */
 
-BaseType_t xBufferAllocFixedSize = pdFALSE;
-
 uint16_t usPacketIdentifier;
 
 struct freertos_addrinfo pucAddrBuffer[ 2 ];

@@ -108,7 +108,7 @@ Without memory caching, let the size be at least a multiple of 8 ( for DMA ), an
 STM32F7xx only:
 
 NetworkInterface.c will place the 2 DMA tables in a special section called 'first_data'.
-In case 'BufferAllocation_1.c' is used, the network packets will also be declared in this section 'first_data'.
+In case static buffer allocation is used, the network packets will also be declared in this section 'first_data'.
 As long as the part has no caching, this section can be placed anywhere in RAM.
 On an STM32F7 with an L1 data cache, it shall be placed in the first 64KB of RAM, which is always uncached.
 The linker script must be changed for this, for instance as follows:

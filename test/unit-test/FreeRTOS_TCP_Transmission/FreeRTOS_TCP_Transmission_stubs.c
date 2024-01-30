@@ -46,7 +46,6 @@
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 uint16_t usPacketIdentifier;
 BaseType_t xTCPWindowLoggingLevel;
-BaseType_t xBufferAllocFixedSize = pdFALSE;
 
 BaseType_t NetworkInterfaceOutputFunction_Stub_Called = 0;
 

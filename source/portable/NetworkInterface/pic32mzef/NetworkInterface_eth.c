@@ -172,7 +172,7 @@
 /* use the configuration data from the system_init.c */
     extern const TCPIP_NETWORK_CONFIG TCPIP_HOSTS_CONFIGURATION[];
 
-/* BufferAllocation_2.c:: packet allocation function */
+/* dynamic buffer allocation packet allocation function */
     extern TCPIP_MAC_PACKET * PIC32_MacPacketAllocate( uint16_t pktLen,
                                                        uint16_t segLoadLen,
                                                        TCPIP_MAC_PACKET_FLAGS flags );

@@ -23,16 +23,8 @@ option(FREERTOS_PLUS_TCP_BUILD_TEST "Build the test for FreeRTOS Plus TCP" OFF)
 
 # Configuration
 # Override these at project level with:
-#   Optional: set(FREERTOS_PLUS_TCP_BUFFER_ALLOCATION "1" CACHE STRING "" FORCE)
 #   Optional: set(FREERTOS_PLUS_TCP_COMPILER "" CACHE STRING "" FORCE)
 #   Required: set(FREERTOS_PLUS_TCP_NETWORK_IF "POSIX" CACHE STRING "" FORCE)
-
-# Select the appropriate buffer allocation method.
-# See: https://freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html
-if (NOT FREERTOS_PLUS_TCP_BUFFER_ALLOCATION)
-    message(STATUS "Using default FREERTOS_PLUS_TCP_BUFFER_ALLOCATION = 2")
-    set(FREERTOS_PLUS_TCP_BUFFER_ALLOCATION "2" CACHE STRING "FreeRTOS buffer allocation model number. 1 .. 2.")
-endif()
 
 # Select the Compiler - if left blank will detect using CMake
 # Note relies on CMake to detect over any setting here.

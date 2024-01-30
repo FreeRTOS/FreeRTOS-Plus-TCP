@@ -63,10 +63,6 @@
 
 #define niBMSR_LINK_STATUS                  0x0004uL
 
-/* The size of each buffer when BufferAllocation_1 is used:
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Ethernet_Buffer_Management.html */
-#define niBUFFER_1_PACKET_SIZE              1536
-
 /* Naming and numbering of PHY registers. */
 #define PHY_REG_01_BMSR                     0x01 /* Basic mode status register */
 
@@ -465,28 +461,15 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
 }
 /*-----------------------------------------------------------*/
 
-#if ( nicUSE_UNCACHED_MEMORY == 0 )
-    void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-    {
-        static uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-        uint8_t * ucRAMBuffer = ucNetworkPackets;
-        uint32_t ul;
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 )
 
-        for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-        {
-            pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-            *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-            ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
-        }
-    }
-#else /* if ( nicUSE_UNCACHED_MEMORY == 0 ) */
     void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
     {
         static uint8_t * pucNetworkPackets = NULL;
 
         if( pucNetworkPackets == NULL )
         {
-            pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * niBUFFER_1_PACKET_SIZE );
+            pucNetworkPackets = pucGetUncachedMemory( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ipTOTAL_ETHERNET_FRAME_SIZE );
 
             if( pucNetworkPackets != NULL )
             {
@@ -497,12 +480,13 @@ static BaseType_t prvGMACWaitLS( BaseType_t xEMACIndex,
                 {
                     pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
                     *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-                    ucRAMBuffer += niBUFFER_1_PACKET_SIZE;
+                    ucRAMBuffer += ipTOTAL_ETHERNET_FRAME_SIZE;
                 }
             }
         }
     }
-#endif /* ( nicUSE_UNCACHED_MEMORY == 0 ) */
+
+#endif /* if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC ) && ( nicUSE_UNCACHED_MEMORY != 0 ) */
 /*-----------------------------------------------------------*/
 
 static BaseType_t xZynqGetPhyLinkStatus( NetworkInterface_t * pxInterface )

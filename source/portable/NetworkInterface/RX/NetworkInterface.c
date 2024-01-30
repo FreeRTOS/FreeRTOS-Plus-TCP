@@ -86,6 +86,14 @@ static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 /* Pointer to the interface object of this NIC */
 static NetworkInterface_t * pxMyInterface = NULL;
 
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ETHER_CFG_BUFSIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for RX
+    #endif
+#endif
+
 static int16_t SendData( uint8_t * pucBuffer,
                          size_t length );
 static int InitializeNetwork( void );
@@ -403,37 +411,6 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
         }
     }
 } /* End of function prvEMACDeferredInterruptHandlerTask() */
-
-
-/***********************************************************************************************************************
- * Function Name: vNetworkInterfaceAllocateRAMToBuffers ()
- * Description  : .
- * Arguments    : pxNetworkBuffers
- * Return Value : none
- **********************************************************************************************************************/
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    uint32_t ul;
-    uint8_t * buffer_address;
-    portPOINTER_SIZE_TYPE uxStartAddress;
-
-    static uint8_t ETH_BUFFERS[ ( ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETHER_CFG_BUFSIZE ) + portBYTE_ALIGNMENT ];
-
-    /* Align the buffer start address to portBYTE_ALIGNMENT bytes */
-    uxStartAddress = ( portPOINTER_SIZE_TYPE ) & ETH_BUFFERS[ 0 ];
-    uxStartAddress += portBYTE_ALIGNMENT;
-    uxStartAddress &= ~( ( portPOINTER_SIZE_TYPE ) portBYTE_ALIGNMENT_MASK );
-
-    buffer_address = ( uint8_t * ) uxStartAddress;
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = buffer_address + ipBUFFER_PADDING;
-        *( ( unsigned * ) buffer_address ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-        buffer_address += ETHER_CFG_BUFSIZE;
-    }
-} /* End of function vNetworkInterfaceAllocateRAMToBuffers() */
 
 /***********************************************************************************************************************
  * Function Name: prvLinkStatusChange ()

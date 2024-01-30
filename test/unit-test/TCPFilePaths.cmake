@@ -49,7 +49,7 @@ set( TCP_SOURCES
 # TCP library Include directories.
 set( TCP_INCLUDE_DIRS
      ${CMAKE_CURRENT_LIST_DIR}/../../source/include
-     ${CMAKE_CURRENT_LIST_DIR}/../../source/portable/Buffermanagement
+     ${CMAKE_CURRENT_LIST_DIR}/../../source/portable/BufferManagement
      ${CMAKE_CURRENT_LIST_DIR}/../../source/portable/Compiler/MSVC
      ${CMAKE_CURRENT_LIST_DIR}/stubs )
 

@@ -171,6 +171,14 @@ typedef enum
 
 static eMAC_INIT_STATUS_TYPE xMacInitStatus = eMACInit;
 
+#if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC )
+    #if ipconfigIS_ENABLED( ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE )
+        const UBaseType_t uxBufferAllocFixedSize = ETH_MAX_PACKET_SIZE;
+    #else
+        #error ipconfigBUFFER_ALLOC_STATIC_CUSTOM_SIZE must be enabled for STM32Fxx
+    #endif
+#endif
+
 /*-----------------------------------------------------------*/
 
 /*
@@ -1395,28 +1403,6 @@ static BaseType_t xSTM32F_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
     return xReturn;
 }
-/*-----------------------------------------------------------*/
-
-/* Uncomment this in case BufferAllocation_1.c is used. */
-
-void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkBuffers[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS ] )
-{
-    static
-    #if defined( STM32F7xx )
-        __attribute__( ( section( ".first_data" ) ) )
-    #endif
-    uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * ETH_MAX_PACKET_SIZE ] __attribute__( ( aligned( 32 ) ) );
-    uint8_t * ucRAMBuffer = ucNetworkPackets;
-    uint32_t ul;
-
-    for( ul = 0; ul < ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS; ul++ )
-    {
-        pxNetworkBuffers[ ul ].pucEthernetBuffer = ucRAMBuffer + ipBUFFER_PADDING;
-        *( ( unsigned * ) ucRAMBuffer ) = ( unsigned ) ( &( pxNetworkBuffers[ ul ] ) );
-        ucRAMBuffer += ETH_MAX_PACKET_SIZE;
-    }
-}
-
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxSTM32Fxx_FillInterfaceDescriptor( BaseType_t xEMACIndex,

@@ -50,7 +50,7 @@ file( GLOB TCP_SOURCES
 add_executable( StaticAnalysis ${TCP_SOURCES}
                                ${KERNEL_SOURCES}
                                ${CMAKE_CURRENT_LIST_DIR}/Portable.c
-                               ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation_2.c )
+                               ${MODULE_ROOT_DIR}/source/portable/BufferManagement/BufferAllocation.c )
 
 # Link the include directories with the target
 target_include_directories( StaticAnalysis

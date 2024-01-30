@@ -123,22 +123,6 @@
  * @{
  */
 
-/*
- *     When BufferAllocation_1.c is used, the network buffer space
- *     is declared statically as 'ucNetworkPackets[]'.
- *     Like the DMA descriptors, this array is located in a non-cached area.
- *     Here an example of the total size:
- *
- *         #define ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS    24
- *         #define GMAC_FRAME_LENTGH_MAX                     1536
- *         Hidden space for back-pointer and IP-type         16
- *
- *     Total size: 24 * ( 1536 + 16 ) = 37248 bytes
- */
-__attribute__( ( aligned( 32 ) ) )
-__attribute__( ( section( ".first_data" ) ) )
-uint8_t ucNetworkPackets[ ipconfigNUM_NETWORK_BUFFER_DESCRIPTORS * NETWORK_BUFFER_SIZE ];
-
 /** TX descriptor lists */
 __attribute__( ( section( ".first_data" ) ) )
 COMPILER_ALIGNED( 8 )
