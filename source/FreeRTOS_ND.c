@@ -994,22 +994,26 @@
 
                 case ipICMP_PING_REQUEST_IPv6:
                    {
-                       size_t uxICMPSize;
-                       uint16_t usICMPSize;
+                        size_t uxICMPSize;
+                        uint16_t usICMPSize;
 
-                       /* Lint would complain about casting '()' immediately. */
-                       usICMPSize = FreeRTOS_ntohs( pxICMPPacket->xIPHeader.usPayloadLength );
-                       uxICMPSize = ( size_t ) usICMPSize;
-                       uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
+                        /* Lint would complain about casting '()' immediately. */
+                        usICMPSize = FreeRTOS_ntohs( pxICMPPacket->xIPHeader.usPayloadLength );
+                        uxICMPSize = ( size_t ) usICMPSize;
+                        uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
 
-                       if( uxNeededSize > pxNetworkBuffer->xDataLength )
-                       {
-                           FreeRTOS_printf( ( "Too small\n" ) );
-                           break;
-                       }
+                        if( uxNeededSize > pxNetworkBuffer->xDataLength )
+                        {
+                            FreeRTOS_printf( ( "Too small\n" ) );
+                            break;
+                        }
+                        
+                        pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
 
-                       pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
-                       prvReturnICMP_IPv6( pxNetworkBuffer, uxICMPSize );
+                        /* MISRA Ref 4.14 [The validity of values received from external sources]. */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-414. */
+                        /* coverity[misra_c_2012_directive_4_14_violation] */
+                        prvReturnICMP_IPv6( pxNetworkBuffer, uxICMPSize );
                    }
                    break;
 

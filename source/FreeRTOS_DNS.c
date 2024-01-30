@@ -1338,6 +1338,10 @@
                     if( xBytes > 0 )
                     {
                         xReceiveBuffer.uxPayloadLength = ( size_t ) xBytes;
+
+                        /* MISRA Ref 4.14 [The validity of values received from external sources]. */
+                        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-414. */
+                        /* coverity[misra_c_2012_directive_4_14_violation] */
                         ulIPAddress = prvDNSReply( &xReceiveBuffer, ppxAddressInfo, uxIdentifier, xRecvAddress.sin_port );
                     }
 

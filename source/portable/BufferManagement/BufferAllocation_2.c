@@ -220,6 +220,10 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
             /* Enough space is left at the start of the buffer to place a pointer to
              * the network buffer structure that references this Ethernet buffer.
              * Return a pointer to the start of the Ethernet buffer itself. */
+
+            /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
             pucEthernetBuffer += ipBUFFER_PADDING;
         }
     }
@@ -237,6 +241,10 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
      * space before freeing the buffer. */
     if( pucEthernetBufferCopy != NULL )
     {
+
+        /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+        /* coverity[misra_c_2012_rule_18_4_violation] */
         pucEthernetBufferCopy -= ipBUFFER_PADDING;
         vPortFree( ( void * ) pucEthernetBufferCopy );
     }
@@ -342,6 +350,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     *( ( NetworkBufferDescriptor_t ** ) ( pxReturn->pucEthernetBuffer ) ) = pxReturn;
+
+                    /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                    /* coverity[misra_c_2012_rule_18_4_violation] */
                     pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
 
                     /* Store the actual size of the allocated buffer, which may be
@@ -468,7 +480,13 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
                 uxSizeBytes = xOriginalLength;
             }
 
+            /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
             ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
+                            /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                            /* coverity[misra_c_2012_rule_18_4_violation] */
                              pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
                              uxSizeBytes );
             vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
