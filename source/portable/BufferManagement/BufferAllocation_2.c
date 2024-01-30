@@ -262,7 +262,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     /* Add 2 bytes to xRequestedSizeBytesCopy and round up xRequestedSizeBytesCopy
      * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
-    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2 ) == pdFAIL )
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2U ) == pdFAIL )
     {
         xRequestedSizeBytesCopy += 2U;
     }
