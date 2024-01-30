@@ -136,19 +136,47 @@
 
 /*---------------------------------------------------------------------------*/
 
+/*===========================================================================*/
+/*                                  MACROS                                   */
+/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
+/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
+/*===========================================================================*/
+/*                           FreeRTOSConfig CHECKS                           */
+/*===========================================================================*/
+
+/*---------------------------------------------------------------------------*/
+
 /*
  * pdFREERTOS_ERRNO_EAFNOSUPPORT
  *
  * Address family not supported by protocol.
  *
- * Note: Now included in FreeRTOS-Kernel/projdefs.h, so this serves as a
- * temporary kernel version check. To be removed in a future version.
+ * Note: pdFREERTOS_ERRNO_EAFNOSUPPORT is now included in
+ * FreeRTOS-Kernel/projdefs.h, defined here for backwards compatibility.
  */
+
+#ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
+    #define pdFREERTOS_ERRNO_EAFNOSUPPORT 97
+#endif
+
+#if ( INCLUDE_vTaskDelay == 0 )
+    #error INCLUDE_vTaskDelay must be set to 1
+#endif
+
+#if ( INCLUDE_xTaskGetCurrentTaskHandle == 0 )
+    #error INCLUDE_xTaskGetCurrentTaskHandle must be set to 1
+#endif
+
+#if ( configSUPPORT_DYNAMIC_ALLOCATION == 0 )
+    #error configSUPPORT_DYNAMIC_ALLOCATION must be set to 1
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
-/*                                  MACROS                                   */
+/*                           FreeRTOSConfig CHECKS                           */
 /*===========================================================================*/
 /*---------------------------------------------------------------------------*/
 /*===========================================================================*/
@@ -315,9 +343,7 @@
     #error ipconfigRA_SEARCH_TIME_OUT_MSEC must be at least 0
 #endif
 
-#if ( ipconfigRA_SEARCH_TIME_OUT_MSEC > SIZE_MAX )
-    #error ipconfigRA_SEARCH_TIME_OUT_MSEC must be at most portMAX_DELAY * portTICK_PERIOD_MS
-#endif
+STATIC_ASSERT( ipconfigRA_SEARCH_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PERIOD_MS ) );
 
 /*---------------------------------------------------------------------------*/
 
@@ -365,9 +391,7 @@
     #error ipconfigRA_IP_TEST_TIME_OUT_MSEC must be at least 0
 #endif
 
-#if ( ipconfigRA_IP_TEST_TIME_OUT_MSEC > SIZE_MAX )
-    #error ipconfigRA_IP_TEST_TIME_OUT_MSEC must be at most portMAX_DELAY * portTICK_PERIOD_MS
-#endif
+STATIC_ASSERT( ipconfigRA_IP_TEST_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PERIOD_MS ) );
 
 /*---------------------------------------------------------------------------*/
 
@@ -462,6 +486,10 @@
 #ifndef ipconfigMAX_IP_TASK_SLEEP_TIME
     #define ipconfigMAX_IP_TASK_SLEEP_TIME    pdMS_TO_TICKS( 10000 )
 #endif
+
+STATIC_ASSERT( ipconfigMAX_IP_TASK_SLEEP_TIME >= 0 );
+
+STATIC_ASSERT( ipconfigMAX_IP_TASK_SLEEP_TIME <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
@@ -981,6 +1009,8 @@
     #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    ( 15000 )
 #endif
 
+STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_HIGH_CHECK_TIME_MS ) <= portMAX_DELAY );
+
 /*---------------------------------------------------------------------------*/
 
 /*
@@ -995,6 +1025,8 @@
 #ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
     #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    ( 1000 )
 #endif
+
+STATIC_ASSERT( pdMS_TO_TICKS( ipconfigPHY_LS_LOW_CHECK_TIME_MS ) <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
@@ -1015,7 +1047,7 @@
  *
  * Type: size_t
  * Unit: count of ports
- * Minimum: 0
+ * Minimum: 1
  * Maximum: 32
  *
  * There can be at most 32 PHY ports, but in most cases there are 4 or less.
@@ -1023,6 +1055,14 @@
 
 #ifndef ipconfigPHY_MAX_PORTS
     #define ipconfigPHY_MAX_PORTS    ( 4 )
+#endif
+
+#if ( ipconfigPHY_MAX_PORTS < 1 )
+    #error ipconfigPHY_MAX_PORTS must be at least 1
+#endif
+
+#if ( ipconfigPHY_MAX_PORTS > 32 )
+    #error ipconfigPHY_MAX_PORTS must be at most 32
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -1135,6 +1175,8 @@
 #ifndef ipconfigIP_TASK_STACK_SIZE_WORDS
     #define ipconfigIP_TASK_STACK_SIZE_WORDS    configMINIMAL_STACK_SIZE
 #endif
+
+STATIC_ASSERT( ipconfigIP_TASK_STACK_SIZE_WORDS >= configMINIMAL_STACK_SIZE );
 
 /*---------------------------------------------------------------------------*/
 
@@ -1310,9 +1352,7 @@
     #error ipconfigTCP_HANG_PROTECTION_TIME must be at least 0
 #endif
 
-#if ( ipconfigTCP_HANG_PROTECTION_TIME > SIZE_MAX )
-    #error ipconfigTCP_HANG_PROTECTION_TIME must be at most portMAX_DELAY / configTICK_RATE_HZ
-#endif
+STATIC_ASSERT( ipconfigTCP_HANG_PROTECTION_TIME <= ( portMAX_DELAY / configTICK_RATE_HZ ) );
 
 /*---------------------------------------------------------------------------*/
 
@@ -1379,9 +1419,7 @@
     #error ipconfigTCP_KEEP_ALIVE_INTERVAL must be at least 0
 #endif
 
-#if ( ipconfigTCP_KEEP_ALIVE_INTERVAL > SIZE_MAX )
-    #error ipconfigTCP_KEEP_ALIVE_INTERVAL must be at most portMAX_DELAY / configTICK_RATE_HZ
-#endif
+STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_RATE_HZ ) );
 
 /*---------------------------------------------------------------------------*/
 
@@ -1712,6 +1750,8 @@
 #ifndef ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS
     #define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 20 )
 #endif
+
+STATIC_ASSERT( ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
@@ -2156,7 +2196,6 @@
 #endif
 
 #if ( ( ipconfigUSE_DHCP != ipconfigDISABLE ) && ( ipconfigNETWORK_MTU < 586 ) )
-
     #error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
 #endif
 
@@ -2303,6 +2342,8 @@
         #define ipconfigMAXIMUM_DISCOVER_TX_PERIOD    pdMS_TO_TICKS( 30000 )
     #endif
 #endif
+
+STATIC_ASSERT( ipconfigMAXIMUM_DISCOVER_TX_PERIOD <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
@@ -2500,6 +2541,8 @@
     #define ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 5000 )
 #endif
 
+STATIC_ASSERT( ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS <= portMAX_DELAY );
+
 /*---------------------------------------------------------------------------*/
 
 /*
@@ -2520,6 +2563,8 @@
 #ifndef ipconfigDNS_SEND_BLOCK_TIME_TICKS
     #define ipconfigDNS_SEND_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 500 )
 #endif
+
+STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
