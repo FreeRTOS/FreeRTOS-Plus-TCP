@@ -251,7 +251,7 @@ BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
-                                    uint32_t * pulIdleTaskStackSize )
+                                    configSTACK_DEPTH_TYPE * pulIdleTaskStackSize )
 {
     /* Provide a stub for this function. */
 }
@@ -291,7 +291,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
                                      StackType_t ** ppxTimerTaskStackBuffer,
-                                     uint32_t * pulTimerTaskStackSize )
+                                     configSTACK_DEPTH_TYPE * pulTimerTaskStackSize )
 {
     /* Provide a stub for this function. */
 }
