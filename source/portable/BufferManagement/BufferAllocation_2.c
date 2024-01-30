@@ -221,7 +221,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
              * the network buffer structure that references this Ethernet buffer.
              * Return a pointer to the start of the Ethernet buffer itself. */
 
-            /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+            /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
             /* coverity[misra_c_2012_rule_18_4_violation] */
             pucEthernetBuffer += ipBUFFER_PADDING;
@@ -242,7 +242,7 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
     if( pucEthernetBufferCopy != NULL )
     {
 
-        /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+        /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
         /* coverity[misra_c_2012_rule_18_4_violation] */
         pucEthernetBufferCopy -= ipBUFFER_PADDING;
@@ -351,7 +351,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     *( ( NetworkBufferDescriptor_t ** ) ( pxReturn->pucEthernetBuffer ) ) = pxReturn;
 
-                    /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+                    /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
                     /* coverity[misra_c_2012_rule_18_4_violation] */
                     pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
@@ -480,11 +480,11 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
                 uxSizeBytes = xOriginalLength;
             }
 
-            /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+            /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
             /* coverity[misra_c_2012_rule_18_4_violation] */
             ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
-                            /* MISRA Ref 18.4 [The validity of values received from external sources]. */
+                            /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
                             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
                             /* coverity[misra_c_2012_rule_18_4_violation] */
                              pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,

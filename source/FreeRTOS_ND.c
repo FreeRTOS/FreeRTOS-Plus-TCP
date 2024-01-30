@@ -1010,7 +1010,7 @@
                         
                         pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
 
-                        /* MISRA Ref 4.14 [The validity of values received from external sources]. */
+                        /* MISRA Ref 4.14.1 [The validity of values received from external sources]. */
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-414. */
                         /* coverity[misra_c_2012_directive_4_14_violation] */
                         prvReturnICMP_IPv6( pxNetworkBuffer, uxICMPSize );
