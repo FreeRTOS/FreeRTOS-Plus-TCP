@@ -226,7 +226,7 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * const pxBuffer,
     const size_t uxNextTail = pxBuffer->uxTail;
     const size_t uxSize = uxStreamBufferGetSize( pxBuffer );
 
-    /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
+    /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
     /* coverity[misra_c_2012_rule_18_4_violation] */
     *ppucData = pxBuffer->ucArray + uxNextTail;
