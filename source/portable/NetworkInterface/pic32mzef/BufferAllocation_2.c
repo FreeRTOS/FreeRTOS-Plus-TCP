@@ -65,7 +65,7 @@
     #define baMINIMAL_BUFFER_SIZE    sizeof( ARPPacket_t )
 #endif /* ipconfigUSE_TCP == 1 */
 
-STATIC_ASSERT( ( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE ) );
+STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
 
 #define baALIGNMENT_BYTES    ( sizeof( size_t ) )
 #define baALIGNMENT_MASK     ( baALIGNMENT_BYTES - 1U )

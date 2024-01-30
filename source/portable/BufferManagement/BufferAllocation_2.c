@@ -67,7 +67,7 @@
 #define baALIGNMENT_MASK             ( baALIGNMENT_BYTES - 1U )
 #define baADD_WILL_OVERFLOW( a, b )    ( ( a ) > ( SIZE_MAX - ( b ) ) )
 
-STATIC_ASSERT( ( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE ) );
+STATIC_ASSERT( ipconfigETHERNET_MINIMUM_PACKET_BYTES <= baMINIMAL_BUFFER_SIZE );
 
 /* A list of free (available) NetworkBufferDescriptor_t structures. */
 static List_t xFreeBuffersList;
