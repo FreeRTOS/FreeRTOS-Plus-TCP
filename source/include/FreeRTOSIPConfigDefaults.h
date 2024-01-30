@@ -173,6 +173,10 @@
     #error configSUPPORT_DYNAMIC_ALLOCATION must be set to 1
 #endif
 
+#if ( configUSE_COUNTING_SEMAPHORES == 0 )
+    #error configUSE_COUNTING_SEMAPHORES must be set to 1
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /*===========================================================================*/
