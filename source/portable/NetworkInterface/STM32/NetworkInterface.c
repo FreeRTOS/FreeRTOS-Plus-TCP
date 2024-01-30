@@ -123,6 +123,14 @@
     #error "Task Notifications must be enabled for NetworkInterface"
 #endif
 
+#if ipconfigIS_DISABLED( configUSE_COUNTING_SEMAPHORES )
+    #error "Counting Semaphores must be enabled for NetworkInterface"
+#endif
+
+#if ipconfigIS_DISABLED( configUSE_MUTEXES )
+    #error "Mutexes must be enabled for NetworkInterface"
+#endif
+
 #if ipconfigIS_DISABLED( ipconfigZERO_COPY_TX_DRIVER )
     #error "ipconfigZERO_COPY_TX_DRIVER must be enabled for NetworkInterface"
 #endif
@@ -917,7 +925,9 @@ static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface )
             xTxMutex = xSemaphoreCreateMutex();
         #endif
         configASSERT( xTxMutex != NULL );
-        vQueueAddToRegistry( xTxMutex, niEMAC_TX_MUTEX_NAME );
+        #if ( configQUEUE_REGISTRY_SIZE > 0 )
+            vQueueAddToRegistry( xTxMutex, niEMAC_TX_MUTEX_NAME );
+        #endif
     }
 
     if( xTxDescSem == NULL )
@@ -936,7 +946,9 @@ static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface )
             );
         #endif
         configASSERT( xTxDescSem != NULL );
-        vQueueAddToRegistry( xTxDescSem, niEMAC_TX_DESC_SEM_NAME );
+        #if ( configQUEUE_REGISTRY_SIZE > 0 )
+            vQueueAddToRegistry( xTxDescSem, niEMAC_TX_DESC_SEM_NAME );
+        #endif
     }
 
     if( xEMACTaskHandle == NULL && ( xTxMutex != NULL ) && ( xTxDescSem != NULL ) )
