@@ -1120,20 +1120,20 @@ static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle, NetworkInterfa
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
         #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
-            prvAddAllowedMACAddress( xMDNS_MacAddress.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MacAddress.ucBytes );
         #endif
         #if ipconfigIS_ENABLED( ipconfigUSE_LLMNR )
-            prvAddAllowedMACAddress( xLLMNR_MacAddress.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddress.ucBytes );
         #endif
     #endif
 
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-        prvAddAllowedMACAddress( pcLOCAL_ALL_NODES_MULTICAST_MAC.ucBytes );
+        prvAddAllowedMACAddress( pxInterface, pcLOCAL_ALL_NODES_MULTICAST_MAC.ucBytes );
         #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
-            prvAddAllowedMACAddress( xMDNS_MACAddressIPv6.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MACAddressIPv6.ucBytes );
         #endif
         #if ipconfigIS_ENABLED( ipconfigUSE_LLMNR )
-            prvAddAllowedMACAddress( xLLMNR_MacAddressIPv6.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddressIPv6.ucBytes );
         #endif
     #endif
 }
@@ -1248,8 +1248,7 @@ static void prvInitPacketFilter( ETH_HandleTypeDef * pxEthHandle, const NetworkI
                 xL4FilterConfig.DestinationPort = 0U;
                 ( void ) HAL_ETHEx_SetL4FilterConfig( pxEthHandle, ETH_L4_FILTER_0, &xL4FilterConfig );
 
-                if( ipconfigIS_DISABLED( ipconfigUSE_TCP ) )
-                {
+                #if ipconfigIS_DISABLED( ipconfigUSE_TCP )
                     /* Block TCP if it is disabled */
                     ( void ) HAL_ETHEx_GetL4FilterConfig( pxEthHandle, ETH_L4_FILTER_1, &xL4FilterConfig );
                     xL4FilterConfig.Protocol = ETH_L4_TCP_MATCH;
@@ -1258,7 +1257,7 @@ static void prvInitPacketFilter( ETH_HandleTypeDef * pxEthHandle, const NetworkI
                     xL4FilterConfig.SourcePort = 0xFFFFU;
                     xL4FilterConfig.DestinationPort = 0xFFFFU;
                     ( void ) HAL_ETHEx_SetL4FilterConfig( pxEthHandle, ETH_L4_FILTER_1, &xL4FilterConfig );
-                }
+                #endif
             }
             #endif
 
