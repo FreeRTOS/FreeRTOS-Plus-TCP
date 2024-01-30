@@ -158,7 +158,7 @@
  */
 
 #ifndef pdFREERTOS_ERRNO_EAFNOSUPPORT
-    #define pdFREERTOS_ERRNO_EAFNOSUPPORT 97
+    #define pdFREERTOS_ERRNO_EAFNOSUPPORT    97
 #endif
 
 #if ( INCLUDE_vTaskDelay == 0 )
