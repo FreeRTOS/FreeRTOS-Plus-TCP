@@ -387,7 +387,7 @@
  */
 
 #ifndef ipconfigENDPOINT_DNS_ADDRESS_COUNT
-    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    ( 2 )
+    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    ( 2U )
 #endif
 
 #if ( ipconfigENDPOINT_DNS_ADDRESS_COUNT < 1 )
@@ -1410,7 +1410,7 @@
  */
 
 #ifndef ipconfigTCP_MSS
-    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - 40 )
+    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - 40U )
 #endif
 
 #if ( ipconfigTCP_MSS < 536 )
@@ -2377,7 +2377,7 @@
  */
 
 #ifndef ipconfigDNS_CACHE_ENTRIES
-    #define ipconfigDNS_CACHE_ENTRIES    ( 1 )
+    #define ipconfigDNS_CACHE_ENTRIES    ( 1U )
 #endif
 
 #if ( ipconfigDNS_CACHE_ENTRIES < 1 )
@@ -2411,7 +2411,7 @@
  */
 
 #ifndef ipconfigDNS_CACHE_NAME_LENGTH
-    #define ipconfigDNS_CACHE_NAME_LENGTH    ( 254 )
+    #define ipconfigDNS_CACHE_NAME_LENGTH    ( 254U )
 #endif
 
 #if ( ipconfigDNS_CACHE_NAME_LENGTH < 1 )
@@ -3177,7 +3177,7 @@
  */
 
 #ifndef ipconfigTCP_MAY_LOG_PORT
-    #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23 )
+    #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 #endif
 
 #if ( ( ipconfigTCP_MAY_LOG_PORT( 0 ) != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( 0 ) != 1 ) )

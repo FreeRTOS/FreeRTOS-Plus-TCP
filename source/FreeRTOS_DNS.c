@@ -282,8 +282,8 @@
 
             ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
             pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
-            ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) - 1 );
-            pxAddrInfo->xPrivateStorage.ucName[ sizeof( pxAddrInfo->xPrivateStorage.ucName ) - 1 ] = '\0';
+            ( void ) strncpy( pxAddrInfo->xPrivateStorage.ucName, pcName, sizeof( pxAddrInfo->xPrivateStorage.ucName ) - 1U );
+            pxAddrInfo->xPrivateStorage.ucName[ sizeof( pxAddrInfo->xPrivateStorage.ucName ) - 1U ] = '\0';
 
             pxAddrInfo->ai_addr = ( ( struct freertos_sockaddr * ) &( pxAddrInfo->xPrivateStorage.sockaddr ) );
 

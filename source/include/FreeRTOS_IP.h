@@ -299,11 +299,11 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 #endif /* pdFALSE_UNSIGNED */
 
 #ifndef ipTRUE_BOOL
-    #define ipTRUE_BOOL    ( 1 == 1 )
+    #define ipTRUE_BOOL    ( pdPASS == pdPASS )
 #endif /* ipTRUE_BOOL */
 
 #ifndef ipFALSE_BOOL
-    #define ipFALSE_BOOL    ( 1 == 2 )
+    #define ipFALSE_BOOL    ( pdPASS == pdFAIL )
 #endif /* ipFALSE_BOOL */
 
 /*

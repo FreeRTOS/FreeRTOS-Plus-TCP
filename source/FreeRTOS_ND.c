@@ -285,7 +285,7 @@
     {
         BaseType_t x;
         BaseType_t xFreeEntry = -1, xEntryFound = -1;
-        BaseType_t xOldestValue = ipconfigMAX_ARP_AGE + 1;
+        uint16_t xOldestValue = ipconfigMAX_ARP_AGE + 1;
         BaseType_t xOldestEntry = 0;
 
         /* For each entry in the ND cache table. */
