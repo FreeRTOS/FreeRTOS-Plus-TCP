@@ -241,7 +241,6 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
      * space before freeing the buffer. */
     if( pucEthernetBufferCopy != NULL )
     {
-
         /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
         /* coverity[misra_c_2012_rule_18_4_violation] */
@@ -484,9 +483,9 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
             /* coverity[misra_c_2012_rule_18_4_violation] */
             ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
-                            /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
-                            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
-                            /* coverity[misra_c_2012_rule_18_4_violation] */
+                             /* MISRA Ref 18.4.1 [The validity of values received from external sources]. */
+                             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                             /* coverity[misra_c_2012_rule_18_4_violation] */
                              pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
                              uxSizeBytes );
             vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );
