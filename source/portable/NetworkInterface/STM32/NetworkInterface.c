@@ -179,7 +179,7 @@
 #define niEMAC_CACHEABLE ( defined( __DCACHE_PRESENT ) && ( __DCACHE_PRESENT == 1U ) )
 #if ( niEMAC_CACHEABLE != 0 )
     #define niEMAC_CACHE_ENABLED    ( _FLD2VAL( SCB_CCR_DC, SCB->CCR ) != 0 )
-    #define niEMAC_CACHE_MAINTENANCE ( niEMAC_CACHE_ENABLED && ipconfigIS_DISABLED( niEMAC_USE_MPU ) )
+    #define niEMAC_CACHE_MAINTENANCE ( ipconfigIS_DISABLED( niEMAC_USE_MPU ) && niEMAC_CACHE_ENABLED )
     #ifdef __SCB_DCACHE_LINE_SIZE
         #define niEMAC_DATA_ALIGNMENT    __SCB_DCACHE_LINE_SIZE
     #else
@@ -690,8 +690,8 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface, N
             break;
         }
 
-        #if defined( niEMAC_CACHEABLE )
-            if( niEMAC_CACHE_MAINTENANCE )
+        #if ( niEMAC_CACHEABLE != 0 )
+            if( niEMAC_CACHE_MAINTENANCE != 0 )
             {
                 const uintptr_t uxDataStart = ( uintptr_t ) xTxBuffer.buffer;
                 const uintptr_t uxLineStart = uxDataStart & ~niEMAC_DATA_ALIGNMENT_MASK;
@@ -1865,8 +1865,8 @@ void HAL_ETH_RxAllocateCallback( uint8_t ** ppucBuff )
     const NetworkBufferDescriptor_t * pxBufferDescriptor = pxGetNetworkBufferWithDescriptor( niEMAC_DATA_BUFFER_SIZE, pdMS_TO_TICKS( niEMAC_DESCRIPTOR_WAIT_TIME_MS ) );
     if( pxBufferDescriptor != NULL )
     {
-        #ifdef niEMAC_CACHEABLE
-            if( niEMAC_CACHE_MAINTENANCE )
+        #if ( niEMAC_CACHEABLE != 0 )
+            if( niEMAC_CACHE_MAINTENANCE != 0 )
             {
                 SCB_InvalidateDCache_by_Addr( ( uint32_t * ) pxBufferDescriptor->pucEthernetBuffer, pxBufferDescriptor->xDataLength );
             }
@@ -1905,8 +1905,8 @@ void HAL_ETH_RxLinkCallback( void ** ppvStart, void ** ppvEnd, uint8_t * pucBuff
         *ppxEndDescriptor = pxCurDescriptor;
         /* Only single buffer packets are supported */
         configASSERT( *ppxStartDescriptor == *ppxEndDescriptor );
-        #ifdef niEMAC_CACHEABLE
-            if( niEMAC_CACHE_MAINTENANCE )
+        #if ( niEMAC_CACHEABLE != 0 )
+            if( niEMAC_CACHE_MAINTENANCE != 0 )
             {
                 SCB_InvalidateDCache_by_Addr( ( uint32_t * ) pucBuff, usLength );
             }
