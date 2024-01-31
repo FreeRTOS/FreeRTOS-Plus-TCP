@@ -244,6 +244,16 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
                     pxUDPPacket->xUDPHeader.usChecksum = 0U;
                 }
             }
+            #else
+            {
+                /* Many EMAC peripherals will only calculate the IP Header checksum
+                 * correctly if the field is nulled beforehand. */
+                pxIPHeader->usHeaderChecksum = 0x00U;
+                
+                /* Many EMAC peripherals will only calculate the Protocol checksum
+                 * correctly if the field is nulled beforehand. */
+                pxUDPPacket->xUDPHeader.usChecksum = 0x00U;
+            }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
         }
         else if( eReturned == eARPCacheMiss )
