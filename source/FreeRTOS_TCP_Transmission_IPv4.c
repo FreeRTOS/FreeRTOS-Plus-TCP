@@ -214,6 +214,16 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                 /* calculate the TCP checksum for an outgoing packet. */
                 ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxTCPPacket, pxNetworkBuffer->xDataLength, pdTRUE );
             }
+            #else
+            {
+                /* Many EMAC peripherals will only calculate the IP Header checksum
+                 * correctly if the field is nulled beforehand. */
+                pxIPHeader->usHeaderChecksum = 0x00U;
+              
+                /* Many EMAC peripherals will only calculate the Protocol checksum
+                 * correctly if the field is nulled beforehand. */
+                pxTCPPacket->xTCPHeader.usChecksum = 0x00U;
+            }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
             vFlip_16( pxProtocolHeaders->xTCPHeader.usSourcePort, pxProtocolHeaders->xTCPHeader.usDestinationPort );
