@@ -955,6 +955,16 @@
                 /* calculate the UDP checksum for outgoing package */
                 ( void ) usGenerateProtocolChecksum( ( uint8_t * ) pxUDPPacket, uxDataLength, pdTRUE );
             }
+            #else
+            {
+                /* Many EMAC peripherals will only calculate the IP Header checksum
+                 * correctly if the field is nulled beforehand. */
+                pxIPHeader->usHeaderChecksum = 0x00U;
+                
+                /* Many EMAC peripherals will only calculate the Protocol checksum
+                 * correctly if the field is nulled beforehand. */
+                pxUDPPacket->xUDPHeader.usChecksum = 0x00U;
+            }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
             /* Important: tell NIC driver how many bytes must be sent */
