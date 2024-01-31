@@ -314,7 +314,6 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
         }
         else if(
             ( FreeRTOS_FindEndPointOnIP_IPv4( ulDestinationIPAddress, 4 ) == NULL ) &&
-            ( pxNetworkBuffer->pxEndPoint == NULL ) &&
             /* Is it an IPv4 broadcast address x.x.x.255 ? */
             ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) &&
             ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) &&
