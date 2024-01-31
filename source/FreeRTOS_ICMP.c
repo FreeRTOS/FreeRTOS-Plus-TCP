@@ -188,7 +188,7 @@
             /* Many EMAC peripherals will only calculate the IP Header checksum
              * correctly if the field is nulled beforehand. */
             pxIPHeader->usHeaderChecksum = 0x00U;
-            
+
             /* Many EMAC peripherals will only calculate the Protocol checksum
              * correctly if the field is nulled beforehand. */
             pxICMPHeader->usChecksum = 0x00U;

@@ -219,7 +219,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
                 /* Many EMAC peripherals will only calculate the IP Header checksum
                  * correctly if the field is nulled beforehand. */
                 pxIPHeader->usHeaderChecksum = 0x00U;
-              
+
                 /* Many EMAC peripherals will only calculate the Protocol checksum
                  * correctly if the field is nulled beforehand. */
                 pxTCPPacket->xTCPHeader.usChecksum = 0x00U;
