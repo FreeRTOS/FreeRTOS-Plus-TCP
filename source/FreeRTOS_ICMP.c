@@ -185,9 +185,13 @@
             /* Just to prevent compiler warnings about unused parameters. */
             ( void ) pxNetworkBuffer;
 
-            /* Many EMAC peripherals will only calculate the ICMP checksum
+            /* Many EMAC peripherals will only calculate the IP Header checksum
              * correctly if the field is nulled beforehand. */
-            pxICMPHeader->usChecksum = 0U;
+            pxIPHeader->usHeaderChecksum = 0x00U;
+            
+            /* Many EMAC peripherals will only calculate the Protocol checksum
+             * correctly if the field is nulled beforehand. */
+            pxICMPHeader->usChecksum = 0x00U;
         }
         #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
 
