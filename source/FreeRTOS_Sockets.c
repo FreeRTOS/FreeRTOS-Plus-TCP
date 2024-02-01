@@ -4373,7 +4373,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 /**
  * @brief Get a direct pointer to the beginning of the circular transmit buffer.
  *
- * @param[in] xSocket: The socket owning the buffer.
+ * @param[in] xSocket The socket owning the buffer.
  *
  * @return Address the first byte in the circular transmit buffer if all checks pass.
  *         Or else, NULL is returned.
