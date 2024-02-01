@@ -30,9 +30,6 @@
  * @brief File that handles the DNS Callback option
  */
 
-/* Standard includes. */
-#include <strings.h>
-
 #include "FreeRTOS_DNS_Callback.h"
 
 #include "FreeRTOS_IP.h"
