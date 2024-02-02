@@ -79,6 +79,13 @@ struct xNetworkInterface;
     BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
 #endif
 
+#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+
+/* Returns the current state of a DHCP process. */
+eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
+
+#endif
+
 #if ( ipconfigZERO_COPY_TX_DRIVER != 0 ) || ( ipconfigZERO_COPY_RX_DRIVER != 0 )
 
 /**

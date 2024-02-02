@@ -224,7 +224,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
         const TickType_t uxDontBlock = 0U;
 
         #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
-            eDHCPState_t uxOption = pxEndPoint->xDHCPData.eDHCPState;
+            eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
         #endif
 
         xEventMessage.eEventType = eDHCPEvent;
@@ -1767,3 +1767,17 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
              ( ( ( uint32_t ) pucPtr[ 1 ] ) ) );
 }
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+    /**
+     * @brief Returns the current state of a DHCP process.
+     *
+     * @param[in] pxEndPoint the end-point which is going through the DHCP process.
+     */
+    eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint )
+    {
+        return pxEndPoint->xDHCPData.eDHCPState;
+    }
+    /*-----------------------------------------------------------*/
+
+#endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) */
