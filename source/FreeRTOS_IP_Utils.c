@@ -1496,7 +1496,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
     }
-#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -1609,6 +1608,8 @@ const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
     return pcBuffer;
 }
 /*-----------------------------------------------------------*/
+
+#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
 /**
  * @brief Get the highest value of two int32's.

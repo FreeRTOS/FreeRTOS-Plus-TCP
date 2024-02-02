@@ -315,9 +315,11 @@
     void vSetSocketEndpoint( Socket_t xSocket,
                              NetworkEndPoint_t * pxEndPoint );
 
+    #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
     const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
                                  char * pcBuffer,
                                  size_t uxSize );
+    #endif /* ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) ) */
 
     typedef enum
     {

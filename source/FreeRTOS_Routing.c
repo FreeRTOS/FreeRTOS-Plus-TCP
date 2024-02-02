@@ -1485,6 +1485,7 @@ struct xIPv6_Couple
 #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
+#if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
 /**
  * @brief Returns the string representation of the IP address of the end point.
  *
@@ -1541,3 +1542,4 @@ const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
     return pcBuffer;
 }
 /*-----------------------------------------------------------*/
+#endif /* ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) ) */
