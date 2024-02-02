@@ -136,28 +136,25 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     /* coverity[misra_c_2012_rule_11_3_violation] */
     const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
 
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
+                        ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                        ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+
+    if( pxNetworkBuffer->pxEndPoint == NULL )
     {
-        FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                           ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
-                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+        IPv6_Type_t eTargetType = xIPv6_GetIPType( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
+        BaseType_t xIsGlobal = ( eTargetType == eIPv6_Global ) ? pdTRUE : pdFALSE;
+        pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ( BaseType_t ) ipTYPE_IPv6, xIsGlobal );
+        FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
+    }
 
-        if( pxNetworkBuffer->pxEndPoint == NULL )
-        {
-            IPv6_Type_t eTargetType = xIPv6_GetIPType( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-            BaseType_t xIsGlobal = ( eTargetType == eIPv6_Global ) ? pdTRUE : pdFALSE;
-            pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ( BaseType_t ) ipTYPE_IPv6, xIsGlobal );
-            FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
-        }
+    if( pxNetworkBuffer->pxEndPoint != NULL )
+    {
+        vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
-        if( pxNetworkBuffer->pxEndPoint != NULL )
-        {
-            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-
-            /* pxNetworkBuffer has been sent and released.
-             * Make sure it won't be used again.. */
-            *pxLostBuffer = pdTRUE;
-        }
+        /* pxNetworkBuffer has been sent and released.
+            * Make sure it won't be used again.. */
+        *pxLostBuffer = pdTRUE;
     }
 
     return eReturned;
