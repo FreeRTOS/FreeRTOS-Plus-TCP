@@ -90,7 +90,7 @@ target_sources( freertos_plus_tcp
 )
 
 # Note: Have to make system due to compiler warnings in header files.
-target_include_directories( freertos_plus_tcp SYSTEM
+target_include_directories( freertos_plus_tcp
   PUBLIC
     include
 )

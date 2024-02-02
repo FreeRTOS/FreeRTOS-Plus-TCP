@@ -171,7 +171,7 @@ typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
     {
         eDHCPContinue,      /**< Continue the DHCP process */
         eDHCPUseDefaults,   /**< Stop DHCP and use the static defaults. */
-        eDHCPStopNoChanges, /**< Stop DHCP and continue with current settings. */
+        eDHCPStopNoChanges  /**< Stop DHCP and continue with current settings. */
     } eDHCPCallbackAnswer_t;
 #endif /* #if( ipconfigUSE_DHCP_HOOK != 0 ) */
 

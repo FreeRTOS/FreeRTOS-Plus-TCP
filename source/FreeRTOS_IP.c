@@ -1044,6 +1044,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv4 != 0 )
 /**
  * @brief Get the current IPv4 address configuration. Only non-NULL pointers will
  *        be filled in. pxEndPoint must be non-NULL.
@@ -1087,7 +1088,9 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
 
 /**
  * @brief Get the current IPv4 address configuration of the first endpoint.
@@ -1116,9 +1119,10 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                                pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
         }
     }
-#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 ) */
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv4 != 0 )
 /**
  * @brief Set the current IPv4 network address configuration. Only non-NULL pointers will
  *        pointers will be used. pxEndPoint must pointer to a valid end-point.
@@ -1162,7 +1166,9 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
 
 /**
  * @brief Set the current IPv4 network address configuration. Only non-NULL
@@ -1191,7 +1197,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                                pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
         }
     }
-#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
@@ -2182,6 +2188,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv4 != 0 )
 /**
  * @brief Returns the IP address of the NIC.
  *
@@ -2228,7 +2235,9 @@ uint32_t FreeRTOS_GetIPAddress( void )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#endif /* #if ( ipconfigUSE_IPv4 != 0 ) */
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
 
 /*
  * The helper functions here below assume that there is a single
@@ -2378,7 +2387,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
         }
     }
 /*-----------------------------------------------------------*/
-#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )  && ( ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief Returns whether the IP task is ready.

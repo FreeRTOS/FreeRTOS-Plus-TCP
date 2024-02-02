@@ -1051,6 +1051,7 @@ struct xIPv6_Couple
                         break;
                     }
                 }
+                #if ( ipconfigUSE_IPv4 != 0 )
                 else
                 if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
                 {
@@ -1059,6 +1060,7 @@ struct xIPv6_Couple
                         break;
                     }
                 }
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
                 else
                 {
                     /* This end-point is not the right IP-type. */

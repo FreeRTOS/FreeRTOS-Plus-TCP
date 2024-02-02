@@ -141,11 +141,19 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
 #endif
 
-/*
- * Reduce the age count in each entry within the ARP cache.  An entry is no
- * longer considered valid and is deleted if its age reaches zero.
- */
-void vARPAgeCache( void );
+#if ( ipconfigUSE_IPv4 != 0 )
+    /*
+    * Reduce the age count in each entry within the ARP cache.  An entry is no
+    * longer considered valid and is deleted if its age reaches zero.
+    */
+    void vARPAgeCache( void );
+
+    /*
+    * After DHCP is ready and when changing IP address, force a quick send of our new IP
+    * address
+    */
+    void vARPSendGratuitous( void );
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
 /*
  * Send out an ARP request for the IP address contained in pxNetworkBuffer, and
@@ -154,11 +162,7 @@ void vARPAgeCache( void );
  */
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-/*
- * After DHCP is ready and when changing IP address, force a quick send of our new IP
- * address
- */
-void vARPSendGratuitous( void );
+
 
 /* This function will check if the target IP-address belongs to this device.
  * If so, the packet will be passed to the IP-stack, who will answer it.

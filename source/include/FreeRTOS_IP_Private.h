@@ -84,7 +84,7 @@ typedef enum
     eSocketCloseEvent,     /*10: Send a message to the IP-task to close a socket. */
     eSocketSelectEvent,    /*11: Send a message to the IP-task for select(). */
     eSocketSignalEvent,    /*12: A socket must be signalled. */
-    eSocketSetDeleteEvent, /*13: A socket set must be deleted. */
+    eSocketSetDeleteEvent  /*13: A socket set must be deleted. */
 } eIPEvent_t;
 
 /**
@@ -655,7 +655,7 @@ enum eSOCKET_EVENT
     eSOCKET_BOUND = 0x0010,
     eSOCKET_CLOSED = 0x0020,
     eSOCKET_INTR = 0x0040,
-    eSOCKET_ALL = 0x007F,
+    eSOCKET_ALL = 0x007F
 };
 
 

@@ -224,7 +224,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
         const TickType_t uxDontBlock = 0U;
 
         #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
-            eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
+            eDHCPState_t uxOption = pxEndPoint->xDHCPData.eDHCPState;
         #endif
 
         xEventMessage.eEventType = eDHCPEvent;
@@ -951,7 +951,9 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                         break;
                 }
 
-                *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */

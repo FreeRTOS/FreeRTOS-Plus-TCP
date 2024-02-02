@@ -117,7 +117,7 @@
             eRAStateIPWait,   /* Wait for a reply, if any */
             eRAStatePreLease, /* The device is ready to go to the 'eRAStateLease' state. */
             eRAStateLease,    /* The device is up, repeat the RA-process when timer expires. */
-            eRAStateFailed,
+            eRAStateFailed
         } eRAState_t;
 
         struct xRA_DATA
@@ -141,21 +141,14 @@
 /** @brief The description of an end-point. */
     typedef struct xNetworkEndPoint
     {
-        union
-        {
-            struct
-            {
-                IPV4Parameters_t ipv4_settings; /**< Actual IPv4 settings used by the end-point. */
-                IPV4Parameters_t ipv4_defaults; /**< Use values form "ipv4_defaults" in case DHCP has failed. */
-            };
-            #if ( ipconfigUSE_IPv6 != 0 )
-                struct
-                {
-                    IPV6Parameters_t ipv6_settings; /**< Actual IPv6 settings used by the end-point. */
-                    IPV6Parameters_t ipv6_defaults; /**< Use values form "ipv6_defaults" in case DHCP has failed. */
-                };
-            #endif
-        };
+        #if ( ipconfigUSE_IPv4 != 0 )
+            IPV4Parameters_t ipv4_settings; /**< Actual IPv4 settings used by the end-point. */
+            IPV4Parameters_t ipv4_defaults; /**< Use values form "ipv4_defaults" in case DHCP has failed. */
+        #endif
+        #if ( ipconfigUSE_IPv6 != 0 )
+            IPV6Parameters_t ipv6_settings; /**< Actual IPv6 settings used by the end-point. */
+            IPV6Parameters_t ipv6_defaults; /**< Use values form "ipv6_defaults" in case DHCP has failed. */
+        #endif
         MACAddress_t xMACAddress; /**< The MAC-address assigned to this end-point. */
         struct
         {
@@ -333,7 +326,7 @@
         eIPv6_SiteLocal, /* 1111 1110 11  */
         eIPv6_Multicast, /* 1111 1111     */
         eIPv6_Loopback,  /* 1111 (::1)    */
-        eIPv6_Unknown,   /* Not implemented. */
+        eIPv6_Unknown    /* Not implemented. */
     }
     IPv6_Type_t;
 

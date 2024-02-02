@@ -47,7 +47,7 @@
 #define ipconfigFORCE_IP_DONT_FRAGMENT             1
 #define ipconfigUDP_PASS_ZERO_CHECKSUM_PACKETS     1
 #define ipconfigDHCP_FALL_BACK_AUTO_IP             1
-#define ipconfigARP_USE_CLASH_DETECTION            1
+#define ipconfigARP_USE_CLASH_DETECTION            0
 #define ipconfigUSE_LLMNR                          0
 #define ipconfigUSE_NBNS                           0
 #define ipconfigUSE_MDNS                           0
@@ -158,7 +158,7 @@
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                           1
+#define ipconfigUSE_DHCP                           0
 #define ipconfigDHCP_REGISTER_HOSTNAME             1
 #define ipconfigDHCP_USES_UNICAST                  1
 
@@ -318,9 +318,6 @@
 /* Include support for TCP keep-alive messages. */
 #define ipconfigTCP_KEEP_ALIVE                   ( 1 )
 #define ipconfigTCP_KEEP_ALIVE_INTERVAL          ( 20 ) /* Seconds. */
-
-/* The socket semaphore is used to unblock the MQTT task. */
-#define ipconfigSOCKET_HAS_USER_SEMAPHORE        ( 1 )
 
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK    ( 1 )
 #define ipconfigUSE_CALLBACKS                    ( 1 )

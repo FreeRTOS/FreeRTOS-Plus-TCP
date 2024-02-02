@@ -1830,12 +1830,14 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
             }
         }
 
-        if( pxSocket->pxEndPoint != NULL )
-        {
-            pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress );
-            /*TODO Check if needed for ipv6 setting */
-        }
-        else
+        #if ( ipconfigUSE_IPv4 != 0 )
+            if( pxSocket->pxEndPoint != NULL )
+            {
+                pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress );
+                /*TODO Check if needed for ipv6 setting */
+            }
+            else
+        #endif /* ( ipconfigUSE_IPv4 != 0 ) */
         #if ( ipconfigUSE_IPv6 != 0 )
             if( pxAddress->sin_family == ( uint8_t ) FREERTOS_AF_INET6 )
             {

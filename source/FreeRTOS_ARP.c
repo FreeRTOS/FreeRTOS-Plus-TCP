@@ -115,9 +115,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
 /** @brief The ARP cache. */
 _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
 
-/** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
- * to ensure ARP tables are up to date and to detect IP address conflicts. */
-static TickType_t xLastGratuitousARPTime = 0U;
 
 /*
  * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
@@ -134,6 +131,10 @@ static TickType_t xLastGratuitousARPTime = 0U;
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_IPv4 != 0 )
+
+/** @brief  The time at which the last gratuitous ARP was sent.  Gratuitous ARPs are used
+ * to ensure ARP tables are up to date and to detect IP address conflicts. */
+static TickType_t xLastGratuitousARPTime = 0U;
 
 /**
  * @brief Process the ARP packets.
@@ -1156,8 +1157,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
     }
 /*-----------------------------------------------------------*/
 
-#endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
 /**
  * @brief A call to this function will update (or 'Age') the ARP cache entries.
  *        The function will also try to prevent a removal of entry by sending
@@ -1340,7 +1339,6 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
     }
 }
 /*-----------------------------------------------------------*/
-#if ( ipconfigUSE_IPv4 != 0 )
 
 /**
  * @brief  Wait for address resolution: look-up the IP-address in the ARP-cache, and if
@@ -1403,7 +1401,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
     }
 /*-----------------------------------------------------------*/
 
-#endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
 
 /**
  * @brief Generate an ARP request packet by copying various constant details to
@@ -1489,6 +1487,8 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     iptraceCREATING_ARP_REQUEST( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
 }
 /*-----------------------------------------------------------*/
+
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief A call to this function will clear the ARP cache.
