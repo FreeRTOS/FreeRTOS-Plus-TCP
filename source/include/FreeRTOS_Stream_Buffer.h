@@ -67,7 +67,7 @@ size_t uxStreamBufferFrontSpace( const StreamBuffer_t * const pxBuffer );
 
 size_t uxStreamBufferGetSize( const StreamBuffer_t * const pxBuffer );
 
-size_t uxStreamBufferMidSpace( const StreamBuffer_t * pxBuffer );
+size_t uxStreamBufferMidSpace( const StreamBuffer_t * const pxBuffer );
 
 void vStreamBufferClear( StreamBuffer_t * const pxBuffer );
 

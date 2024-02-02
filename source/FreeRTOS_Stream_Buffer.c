@@ -160,7 +160,7 @@ void vStreamBufferClear( StreamBuffer_t * const pxBuffer )
  * @param[in] uxCount The byte count by which the mid pointer is to be moved.
  */
 void vStreamBufferMoveMid( StreamBuffer_t * const pxBuffer,
-                           size_t uxCount )
+                           const size_t uxCount )
 {
     /* Increment uxMid, but no further than uxHead */
     const size_t uxLength = pxBuffer->LENGTH;
@@ -226,6 +226,9 @@ size_t uxStreamBufferGetPtr( StreamBuffer_t * const pxBuffer,
     const size_t uxNextTail = pxBuffer->uxTail;
     const size_t uxSize = uxStreamBufferGetSize( pxBuffer );
 
+    /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+    /* coverity[misra_c_2012_rule_18_4_violation] */
     *ppucData = pxBuffer->ucArray + uxNextTail;
 
     return FreeRTOS_min_size_t( uxSize, pxBuffer->LENGTH - uxNextTail );
