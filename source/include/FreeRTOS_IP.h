@@ -119,7 +119,7 @@ extern uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
 /* Use setting from FreeRTOS if defined and non-zero */
 #if ( ipconfigBUFFER_PADDING != 0 )
     #define ipBUFFER_PADDING    ipconfigBUFFER_PADDING
-#elif ( UINTPTR_MAX > 0xFFFFFFFF )
+#elif ( UINTPTR_MAX > 0xFFFFFFFFU )
     #define ipBUFFER_PADDING    ( 12U + ipconfigPACKET_FILLER_SIZE )
 #else
     #define ipBUFFER_PADDING    ( 8U + ipconfigPACKET_FILLER_SIZE )
@@ -299,11 +299,11 @@ uint32_t FreeRTOS_round_down( uint32_t a,
 #endif /* pdFALSE_UNSIGNED */
 
 #ifndef ipTRUE_BOOL
-    #define ipTRUE_BOOL    ( 1 == 1 )
+    #define ipTRUE_BOOL    ( pdPASS == pdPASS )
 #endif /* ipTRUE_BOOL */
 
 #ifndef ipFALSE_BOOL
-    #define ipFALSE_BOOL    ( 1 == 2 )
+    #define ipFALSE_BOOL    ( pdPASS == pdFAIL )
 #endif /* ipFALSE_BOOL */
 
 /*

@@ -80,10 +80,10 @@
     #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
     #ifdef __COUNTER__
         #define STATIC_ASSERT( e ) \
-    ; enum { ASSERT_CONCAT( static_assert_, __COUNTER__ ) = 1 / ( int ) ( !!( e ) ) }
+    ; enum { ASSERT_CONCAT( static_assert_, __COUNTER__ ) = ( 1 / ( int ) ( !!( e ) ) ) }
     #else
         #define STATIC_ASSERT( e ) \
-    ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = 1 / ( int ) ( !!( e ) ) }
+    ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = ( 1 / ( int ) ( !!( e ) ) ) }
     #endif
 #endif /* ifdef static_assert */
 
@@ -415,7 +415,7 @@ STATIC_ASSERT( ipconfigRA_IP_TEST_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PE
  */
 
 #ifndef ipconfigENDPOINT_DNS_ADDRESS_COUNT
-    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    ( 2 )
+    #define ipconfigENDPOINT_DNS_ADDRESS_COUNT    ( 2U )
 #endif
 
 #if ( ipconfigENDPOINT_DNS_ADDRESS_COUNT < 1 )
@@ -1462,7 +1462,7 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
  */
 
 #ifndef ipconfigTCP_MSS
-    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - 40 )
+    #define ipconfigTCP_MSS    ( ipconfigNETWORK_MTU - 40U )
 #endif
 
 #if ( ipconfigTCP_MSS < 536 )
@@ -2450,7 +2450,7 @@ STATIC_ASSERT( ipconfigMAXIMUM_DISCOVER_TX_PERIOD <= portMAX_DELAY );
  */
 
 #ifndef ipconfigDNS_CACHE_ENTRIES
-    #define ipconfigDNS_CACHE_ENTRIES    ( 1 )
+    #define ipconfigDNS_CACHE_ENTRIES    ( 1U )
 #endif
 
 #if ( ipconfigDNS_CACHE_ENTRIES < 1 )
@@ -2484,7 +2484,7 @@ STATIC_ASSERT( ipconfigMAXIMUM_DISCOVER_TX_PERIOD <= portMAX_DELAY );
  */
 
 #ifndef ipconfigDNS_CACHE_NAME_LENGTH
-    #define ipconfigDNS_CACHE_NAME_LENGTH    ( 254 )
+    #define ipconfigDNS_CACHE_NAME_LENGTH    ( 254U )
 #endif
 
 #if ( ipconfigDNS_CACHE_NAME_LENGTH < 1 )
@@ -3258,7 +3258,7 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
  */
 
 #ifndef ipconfigTCP_MAY_LOG_PORT
-    #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23 )
+    #define ipconfigTCP_MAY_LOG_PORT( xPort )    ( ( xPort ) != 23U )
 #endif
 
 #if ( ( ipconfigTCP_MAY_LOG_PORT( 0 ) != 0 ) && ( ipconfigTCP_MAY_LOG_PORT( 0 ) != 1 ) )
