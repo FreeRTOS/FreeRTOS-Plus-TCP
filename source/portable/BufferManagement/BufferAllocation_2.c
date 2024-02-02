@@ -186,7 +186,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
     {
         xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xSize & baALIGNMENT_MASK );
 
-        if( baADD_WILL_OVERFLOW( xSize, xBytesRequiredForAlignment ) == 0 )
+        if( baADD_WILL_OVERFLOW( xSize, xBytesRequiredForAlignment ) == pdFAIL )
         {
             xSize += xBytesRequiredForAlignment;
         }
@@ -196,7 +196,7 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
         }
     }
 
-    if( baADD_WILL_OVERFLOW( xSize, ipBUFFER_PADDING ) == 0 )
+    if( baADD_WILL_OVERFLOW( xSize, ipBUFFER_PADDING ) == pdFAIL )
     {
         xAllocatedBytes = xSize + ipBUFFER_PADDING;
     }
@@ -220,6 +220,10 @@ uint8_t * pucGetNetworkBuffer( size_t * pxRequestedSizeBytes )
             /* Enough space is left at the start of the buffer to place a pointer to
              * the network buffer structure that references this Ethernet buffer.
              * Return a pointer to the start of the Ethernet buffer itself. */
+
+            /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
             pucEthernetBuffer += ipBUFFER_PADDING;
         }
     }
@@ -237,6 +241,9 @@ void vReleaseNetworkBuffer( uint8_t * pucEthernetBuffer )
      * space before freeing the buffer. */
     if( pucEthernetBufferCopy != NULL )
     {
+        /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+        /* coverity[misra_c_2012_rule_18_4_violation] */
         pucEthernetBufferCopy -= ipBUFFER_PADDING;
         vPortFree( ( void * ) pucEthernetBufferCopy );
     }
@@ -262,7 +269,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     /* Add 2 bytes to xRequestedSizeBytesCopy and round up xRequestedSizeBytesCopy
      * to the nearest multiple of N bytes, where N equals 'sizeof( size_t )'. */
-    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2 ) == 0 )
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, 2U ) == pdFAIL )
     {
         xRequestedSizeBytesCopy += 2U;
     }
@@ -275,7 +282,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     {
         xBytesRequiredForAlignment = baALIGNMENT_BYTES - ( xRequestedSizeBytesCopy & baALIGNMENT_MASK );
 
-        if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, xBytesRequiredForAlignment ) == 0 )
+        if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, xBytesRequiredForAlignment ) == pdFAIL )
         {
             xRequestedSizeBytesCopy += xBytesRequiredForAlignment;
         }
@@ -285,7 +292,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
         }
     }
 
-    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, ipBUFFER_PADDING ) == 0 )
+    if( baADD_WILL_OVERFLOW( xRequestedSizeBytesCopy, ipBUFFER_PADDING ) == pdFAIL )
     {
         xAllocatedBytes = xRequestedSizeBytesCopy + ipBUFFER_PADDING;
     }
@@ -342,6 +349,10 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
                     /* coverity[misra_c_2012_rule_11_3_violation] */
                     *( ( NetworkBufferDescriptor_t ** ) ( pxReturn->pucEthernetBuffer ) ) = pxReturn;
+
+                    /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                    /* coverity[misra_c_2012_rule_18_4_violation] */
                     pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
 
                     /* Store the actual size of the allocated buffer, which may be
@@ -448,7 +459,7 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
 
     xOriginalLength = pxNetworkBufferCopy->xDataLength + ipBUFFER_PADDING;
 
-    if( baADD_WILL_OVERFLOW( uxSizeBytes, ipBUFFER_PADDING ) == 0 )
+    if( baADD_WILL_OVERFLOW( uxSizeBytes, ipBUFFER_PADDING ) == pdFAIL )
     {
         uxSizeBytes = uxSizeBytes + ipBUFFER_PADDING;
 
@@ -468,7 +479,13 @@ NetworkBufferDescriptor_t * pxResizeNetworkBufferWithDescriptor( NetworkBufferDe
                 uxSizeBytes = xOriginalLength;
             }
 
+            /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
             ( void ) memcpy( pucBuffer - ipBUFFER_PADDING,
+                             /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+                             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                             /* coverity[misra_c_2012_rule_18_4_violation] */
                              pxNetworkBufferCopy->pucEthernetBuffer - ipBUFFER_PADDING,
                              uxSizeBytes );
             vReleaseNetworkBuffer( pxNetworkBufferCopy->pucEthernetBuffer );

@@ -1428,6 +1428,10 @@
                  * Later the type must be known to translate
                  * a payload- to a network buffer.
                  */
+
+                /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                /* coverity[misra_c_2012_rule_18_4_violation] */
                 pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
                 *pucIPType = ipTYPE_IPv4;
             }
