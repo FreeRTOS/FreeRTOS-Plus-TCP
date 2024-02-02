@@ -160,40 +160,6 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         }
     }
 
-    #if ( ipconfigUSE_IPv4 != 0 )
-        else
-        {
-            uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
-
-            FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                            ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ),
-                            ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-
-            /* Add an entry to the ARP table with a null hardware address.
-            * This allows the ARP timer to know that an ARP reply is
-            * outstanding, and perform retransmissions if necessary. */
-            vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
-
-            /* Generate an ARP for the required IP address. */
-            iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
-
-            /* 'ulIPAddress' might have become the address of the Gateway.
-            * Find the route again. */
-
-            pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11 );
-
-            if( pxNetworkBuffer->pxEndPoint == NULL )
-            {
-                eReturned = eCantSendPacket;
-            }
-            else
-            {
-                pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
-                vARPGenerateRequestPacket( pxNetworkBuffer );
-            }
-        }
-    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
     return eReturned;
 }
 /*-----------------------------------------------------------*/
