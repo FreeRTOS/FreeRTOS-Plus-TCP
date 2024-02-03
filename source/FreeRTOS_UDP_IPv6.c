@@ -131,11 +131,6 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
 {
     eARPLookupResult_t eReturned = eARPCacheMiss;
 
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-
     FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
                         ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
                         ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
