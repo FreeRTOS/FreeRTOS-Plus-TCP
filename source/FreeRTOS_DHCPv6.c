@@ -1060,18 +1060,18 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 uint32_t ulPValidLifeTime = 7200U;
                 uint8_t ucPrefixLength = ( uint8_t ) pxEndPoint->u.ipv6_settings.uxPrefixLength;
 
-                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_Prefix );                                           /* usOption   Option is 26 */
-                vBitConfig_write_16( &( xMessage ), 25 );                                                                /* usLength   length is 25 */
-                vBitConfig_write_32( &( xMessage ), ulPreferredLifeTime );                                               /* 4500 */
-                vBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                                  /* e.g. 7200 seconds. */
-                vBitConfig_write_8( &( xMessage ), ucPrefixLength );                                                     /* e.g. 64 bits */
+                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_Prefix );                                             /* usOption   Option is 26 */
+                vBitConfig_write_16( &( xMessage ), 25 );                                                                  /* usLength   length is 25 */
+                vBitConfig_write_32( &( xMessage ), ulPreferredLifeTime );                                                 /* 4500 */
+                vBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                                    /* e.g. 7200 seconds. */
+                vBitConfig_write_8( &( xMessage ), ucPrefixLength );                                                       /* e.g. 64 bits */
                 vBitConfig_write_uc( &( xMessage ), pxEndPoint->u.ipv6_settings.xPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* 2001:0:0:fe00:: */
 
-                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_NonTemporaryAddress );                                 /* usOption   Option is 3 */
-                vBitConfig_write_16( &( xMessage ), 12 );                                                                /* usLength   length is 12 */
-                vBitConfig_write_32( &( xMessage ), ulIAID );                                                            /* 27 fe 8f 95. */
-                vBitConfig_write_32( &( xMessage ), ulPreferredLifeTime );                                               /* 4500 */
-                vBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                                  /* 7200 */
+                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_NonTemporaryAddress );                                   /* usOption   Option is 3 */
+                vBitConfig_write_16( &( xMessage ), 12 );                                                                  /* usLength   length is 12 */
+                vBitConfig_write_32( &( xMessage ), ulIAID );                                                              /* 27 fe 8f 95. */
+                vBitConfig_write_32( &( xMessage ), ulPreferredLifeTime );                                                 /* 4500 */
+                vBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                                    /* 7200 */
 
                 if( ( EP_DHCPData.eDHCPState == eWaitingOffer ) || ( EP_DHCPData.eDHCPState == eLeasedAddress ) )
                 {

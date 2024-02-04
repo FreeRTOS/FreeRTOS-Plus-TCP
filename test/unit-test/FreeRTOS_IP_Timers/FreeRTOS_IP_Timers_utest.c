@@ -60,7 +60,8 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-void prvIPTimerStart( IPTimer_t * pxTimer, TickType_t xTime );
+void prvIPTimerStart( IPTimer_t * pxTimer,
+                      TickType_t xTime );
 BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer );
 
 extern IPTimer_t xARPTimer;

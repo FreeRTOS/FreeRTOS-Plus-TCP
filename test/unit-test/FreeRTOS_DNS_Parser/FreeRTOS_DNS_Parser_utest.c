@@ -1559,10 +1559,10 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_xBufferAllocFixedsize( void )
 
     uint8_t * pucNewBuffer = NULL;
     pucNewBuffer = &( pucUDPPayloadBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-    LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] );  /* xOffset1 = 56 */
+    LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );                    /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );                       /* usClass */
 
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
@@ -2008,8 +2008,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply4( void )
     pucNewBuffer = &( pucUDPPayloadBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
     LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    usChar2u16_ExpectAnyArgsAndReturn( 0 );             /* usType */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );   /* usClass */
+    usChar2u16_ExpectAnyArgsAndReturn( 0 );                                 /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );                       /* usClass */
     hook_return = pdTRUE;
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
@@ -2077,10 +2077,10 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply5( void )
 
     uint8_t * pucNewBuffer = NULL;
     pucNewBuffer = &( pucUDPPayloadBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
-    LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] );              /* xOffset1 = 56 */
+    LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );             /* usType */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usClass */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );                    /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );        /* usClass */
     hook_return = pdTRUE;
 
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
@@ -2625,6 +2625,7 @@ void test_parseDNSAnswer_null_bytes( void )
     char pcName[ 300 ];
     ParseSet_t xSet = { 0 };
     IPv46_Address_t ip_address;
+
     ip_address.xIPAddress.ulIP_IPv4 = 1234;
     ip_address.xIs_IPv6 = pdFALSE;
     struct freertos_addrinfo * pxAddressInfo, * pxAddressInfo_2;
@@ -2675,6 +2676,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+
     ip_address.xIPAddress.ulIP_IPv4 = 1234;
     ip_address.xIs_IPv6 = pdFALSE;
     ParseSet_t xSet = { 0 };
@@ -2900,6 +2902,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success( void )
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+
     memset( &( ip_address.xIPAddress.xIP_IPv6 ), 1, ipSIZE_OF_IPv6_ADDRESS );
     ip_address.xIs_IPv6 = pdTRUE;
     ParseSet_t xSet = { 0 };
@@ -2950,6 +2953,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success2( void )
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+
     memset( &( ip_address.xIPAddress.xIP_IPv6 ), 1, ipSIZE_OF_IPv6_ADDRESS );
     ip_address.xIs_IPv6 = pdTRUE;
     ParseSet_t xSet = { 0 };
@@ -3000,6 +3004,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success3( void )
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+
     memset( &( ip_address.xIPAddress.xIP_IPv6 ), 1, ipSIZE_OF_IPv6_ADDRESS );
     ip_address.xIs_IPv6 = pdTRUE;
     ParseSet_t xSet = { 0 };
@@ -3046,6 +3051,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail_nullLinkedListForDNSAns
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+
     memset( &( ip_address.xIPAddress.xIP_IPv6 ), 1, ipSIZE_OF_IPv6_ADDRESS );
     ip_address.xIs_IPv6 = pdTRUE;
     ParseSet_t xSet = { 0 };
@@ -3175,6 +3181,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+
     ip_address.xIPAddress.ulIP_IPv4 = 5678;
     ip_address.xIs_IPv6 = pdFALSE;
     ParseSet_t xSet = { 0 };
