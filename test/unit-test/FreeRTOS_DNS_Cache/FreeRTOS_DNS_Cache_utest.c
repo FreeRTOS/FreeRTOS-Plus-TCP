@@ -378,8 +378,10 @@ void test_processDNS_CACHE_exceed_host_entry_limit( void )
         pxIP[ i ].xIPAddress.ulIP_IPv4 = pulIP_arr[ i ];
         pxIP[ i ].xIs_IPv6 = 0;
         memcpy( template, "helloXXXXXX", strlen( template ) );
-        char * name = mktemp( template );
-        memcpy( hosts, name, ipconfigDNS_CACHE_ENTRIES );
+        if( mkstemp( template ) != -1 )
+        {
+            memcpy( hosts, template, ipconfigDNS_CACHE_ENTRIES );
+        }
         xTaskGetTickCount_ExpectAndReturn( 3000 );
         FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
