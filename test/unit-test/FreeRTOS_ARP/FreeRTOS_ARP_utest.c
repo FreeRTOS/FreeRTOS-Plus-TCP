@@ -2683,9 +2683,9 @@ void test_FreeRTOS_OutputARPRequest( void )
     xEndPoint.u.ipv4_settings.ulIPAddress = 0x1234;
     xEndPoint.pxNetworkInterface = &xInterface;
     xEndPoint.pxNetworkInterface->pfOutput = xNetworkInterfaceOutput_ARP_STUB;
+    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
 
     /* =================================================== */
-    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
 
@@ -2700,8 +2700,9 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     /* =================================================== */
 
-    /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+
+    /* =================================================== */
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
 
@@ -2717,8 +2718,9 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     /* =================================================== */
 
-    /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+
+    /* =================================================== */
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
@@ -2731,8 +2733,9 @@ void test_FreeRTOS_OutputARPRequest( void )
     TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 0 );
     /* =================================================== */
 
-    /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+
+    /* =================================================== */
     xEndPoint.pxNetworkInterface = NULL;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
@@ -2747,9 +2750,9 @@ void test_FreeRTOS_OutputARPRequest( void )
     /* =================================================== */
 
     xEndPoint.pxNetworkInterface = &xInterface;
+    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
 
     /* =================================================== */
-    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
     xNetworkBuffer.xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
@@ -2765,8 +2768,9 @@ void test_FreeRTOS_OutputARPRequest( void )
     TEST_ASSERT_EQUAL( xNetworkBuffer.xDataLength, ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES );
     /* =================================================== */
 
-    /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+
+    /* =================================================== */
     xEndPoint.bits.bIPv6 = 1;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
@@ -2776,9 +2780,9 @@ void test_FreeRTOS_OutputARPRequest( void )
     TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 0 );
     /* =================================================== */
 
-    /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
 
+    /* =================================================== */
     xEndPoint.bits.bIPv6 = 0;
     xEndPoint.u.ipv4_settings.ulIPAddress = 0U;
 
@@ -2788,8 +2792,29 @@ void test_FreeRTOS_OutputARPRequest( void )
     FreeRTOS_OutputARPRequest( ulIPAddress );
     TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 0 );
     /* =================================================== */
-}
 
+    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+
+    /* =================================================== */
+    /* OutputARPRequest_MinimumPacketSizeLessThanARPPacket */
+
+    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
+    xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+
+    FreeRTOS_OutputARPRequest( ulIPAddress );
+    TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 1 );
+
+    /* =================================================== */
+
+    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
+
+    /* =================================================== */
+}
 
 void vStoreTimeValue( TimeOut_t * const timeout,
                       int32_t callbacks )

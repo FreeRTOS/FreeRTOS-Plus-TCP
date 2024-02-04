@@ -10,7 +10,7 @@ project( "FreeRTOS-Plus-TCP test"
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
 # Use C90.
-set( CMAKE_C_STANDARD 99 )
+set( CMAKE_C_STANDARD 90 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
 # Do not allow in-source build.
@@ -252,7 +252,6 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 # Include unit-test build configuration
 
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_ARP_DataLenLessThanMinPacket/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_BitConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCPv6/ut.cmake )
@@ -283,7 +282,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ND/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig2/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig1/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_RA/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
