@@ -1086,6 +1086,7 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
     void * pvReturn;
     ListItem_t xLocalList;
     NetworkBufferDescriptor_t xNetworkBuffer;
+    int i;
 
     memset( &xSocket, 0xAB, sizeof( xSocket ) );
 
@@ -1096,7 +1097,7 @@ void test_vSocketClose_UDP_SomeWaitingPackets( void )
 
     listCURRENT_LIST_LENGTH_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), 5 );
 
-    for( int i = 0; i < 5; i++ )
+    for( i = 0; i < 5; i++ )
     {
         listGET_OWNER_OF_HEAD_ENTRY_ExpectAndReturn( &( xSocket.u.xUDP.xWaitingPacketsList ), &xNetworkBuffer );
 
@@ -1907,8 +1908,10 @@ void test_ucASCIIToHex( void )
 
     ucInput = '0';
     IdealValue = 0;
+    int i;
+    char j;
 
-    for( int i = 0; i <= 9; i++ )
+    for( i = 0; i <= 9; i++ )
     {
         ucHex = ucASCIIToHex( ucInput + i );
         TEST_ASSERT_EQUAL( IdealValue + i, ucHex );
@@ -1917,7 +1920,7 @@ void test_ucASCIIToHex( void )
     ucInput = 'a';
     IdealValue = 10;
 
-    for( int i = 0; i < 6; i++ )
+    for( i = 0; i < 6; i++ )
     {
         ucHex = ucASCIIToHex( ucInput + i );
         TEST_ASSERT_EQUAL( IdealValue + i, ucHex );
@@ -1926,23 +1929,23 @@ void test_ucASCIIToHex( void )
     ucInput = 'A';
     IdealValue = 10;
 
-    for( int i = 0; i < 6; i++ )
+    for( i = 0; i < 6; i++ )
     {
         ucHex = ucASCIIToHex( ucInput + i );
         TEST_ASSERT_EQUAL( IdealValue + i, ucHex );
     }
 
-    for( char i = 0; ; i++ )
+    for( j = 0; ; j++ )
     {
-        if( !( ( ( i >= 'a' ) && ( i <= 'f' ) ) ||
-               ( ( i >= 'A' ) && ( i <= 'F' ) ) ||
-               ( ( i >= '0' ) && ( i <= '9' ) ) ) )
+        if( !( ( ( j >= 'a' ) && ( j <= 'f' ) ) ||
+               ( ( j >= 'A' ) && ( j <= 'F' ) ) ||
+               ( ( j >= '0' ) && ( j <= '9' ) ) ) )
         {
-            ucHex = ucASCIIToHex( i );
+            ucHex = ucASCIIToHex( j );
             TEST_ASSERT_EQUAL( 0xFF, ucHex );
         }
 
-        if( i == 125 )
+        if( j == 125 )
         {
             break;
         }
@@ -2305,6 +2308,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     uint8_t ucStream[ 1500 ];
     eIPTCPState_t array[] = { eCLOSED, eCLOSE_WAIT, eCLOSING };
     StreamBuffer_t xLocalStreamBuffer;
+    unsigned int i;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
@@ -2330,7 +2334,7 @@ void test_prvTCPSendCheck_InvalidValues( void )
     xSocket.u.xTCP.bits.bMallocError = pdFALSE_UNSIGNED;
     xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
 
-    for( unsigned int i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t ); i++ )
+    for( i = 0; i < sizeof( array ) / sizeof( eIPTCPState_t ); i++ )
     {
         xSocket.u.xTCP.eTCPState = array[ i ];
         listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );

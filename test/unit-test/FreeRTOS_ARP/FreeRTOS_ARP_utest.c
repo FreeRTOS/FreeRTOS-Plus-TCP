@@ -1558,8 +1558,9 @@ void test_xIsIPInARPCache_NoMatchingIP( void )
 {
     uint32_t ulIPAddress = 0x1234ABCD;
     BaseType_t xResult;
+    uint16_t x;
 
-    for( uint16_t x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
     {
         xARPCache[ x ].ulIPAddress = 0;
     }
@@ -1573,8 +1574,9 @@ void test_xIsIPInARPCache_MatchingIPButEntryInvalid( void )
 {
     uint32_t ulIPAddress = 0x1234ABCD;
     BaseType_t xResult;
+    uint16_t x;
 
-    for( uint16_t x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
     {
         xARPCache[ x ].ulIPAddress = 0;
         xARPCache[ x ].ucValid = ( uint8_t ) pdFALSE;
@@ -1591,8 +1593,9 @@ void test_xIsIPInARPCache_MatchingIP1( void )
 {
     uint32_t ulIPAddress = 0x1234ABCD;
     BaseType_t xResult;
+    uint16_t x;
 
-    for( uint16_t x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
     {
         xARPCache[ x ].ulIPAddress = 0;
         xARPCache[ x ].ucValid = ( uint8_t ) pdTRUE;
@@ -1609,8 +1612,9 @@ void test_xIsIPInARPCache_MatchingIP2( void )
 {
     uint32_t ulIPAddress = 0x1234ABCD;
     BaseType_t xResult;
+    uint16_t x;
 
-    for( uint16_t x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
     {
         xARPCache[ x ].ulIPAddress = 0;
         xARPCache[ x ].ucValid = ( uint8_t ) pdTRUE;
@@ -1768,6 +1772,7 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
     uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
     BaseType_t xResult;
+    uint16_t x;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
@@ -1786,7 +1791,7 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
 
     /* And that the IP is not in ARP cache. */
-    for( uint16_t x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
     {
         xARPCache[ x ].ulIPAddress = 0;
     }
@@ -1812,6 +1817,7 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
     uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
     BaseType_t xResult;
+    uint16_t x;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
@@ -1828,7 +1834,7 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_InCache( void )
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     /* And that the IP is not in ARP cache. */
-    for( uint16_t x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+    for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
     {
         xARPCache[ x ].ulIPAddress = pxIPHeader->ulSourceIPAddress;
         xARPCache[ x ].ucValid = ( uint8_t ) pdTRUE;
@@ -2418,9 +2424,10 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
     struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    int i;
 
     /* =================================================== */
-    for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
     {
         xARPCache[ i ].ucValid = ( uint8_t ) pdFALSE;
     }
@@ -2475,9 +2482,10 @@ void test_eARPGetCacheEntry_NoCacheHit( void )
     uint32_t ulSavedGatewayAddress;
     struct xNetworkInterface * xInterface;
     struct xNetworkEndPoint * pxEndPoint, xEndPoint;
+    int i;
 
     /* =================================================== */
-    for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
     {
         xARPCache[ i ].ulIPAddress = 0;
         xARPCache[ i ].ucValid = ( uint8_t ) pdTRUE;
@@ -2506,12 +2514,13 @@ void test_vARPAgeCache( void )
 {
     NetworkEndPoint_t xEndPoint = { 0 };
     NetworkInterface_t xInterface;
+    int i;
 
     xEndPoint.pxNext = NULL;
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
 
     /* Invalidate the first cache entry. */
-    for( int i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
+    for( i = 0; i < ipconfigARP_CACHE_ENTRIES; i++ )
     {
         xARPCache[ i ].ucAge = 0;
     }

@@ -157,9 +157,10 @@ void test_vDHCPProcess_ResetAndInvalidSocket( void )
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( void )
 {
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
         xDHCPv4Socket = NULL;
@@ -204,9 +205,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
         xDHCPv4Socket = NULL;
@@ -257,9 +259,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should remain unchanged. */
         xDHCPv4Socket = NULL;
@@ -299,9 +302,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should remain unchanged. */
         xDHCPv4Socket = &xTestSocket;

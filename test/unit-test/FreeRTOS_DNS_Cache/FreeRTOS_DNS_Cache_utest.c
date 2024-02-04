@@ -326,13 +326,14 @@ void test_processDNS_CACHE_exceed_IP_entry_limit( void )
     uint32_t pulIP = 789;
     uint32_t pulIP_arr[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ] = { 123 };
     IPv46_Address_t pxIP[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY ], pxIP_2;
+    int i;
 
     pxIP_2.xIs_IPv6 = 0;
     pxIP_2.xIPAddress.ulIP_IPv4 = pulIP;
 
     memset( pulIP_arr, 123, ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY );
 
-    for( int i = 0; i < ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
+    for( i = 0; i < ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY; i++ )
     {
         pxIP[ i ].xIPAddress.ulIP_IPv4 = pulIP_arr[ i ];
         pxIP[ i ].xIs_IPv6 = 0;
@@ -369,11 +370,12 @@ void test_processDNS_CACHE_exceed_host_entry_limit( void )
     char hosts[ ipconfigDNS_CACHE_NAME_LENGTH ] = { "hello" };
     char template[] = "helloXXXXXX";
     IPv46_Address_t pxIP[ ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1 ], pxIP_2;
+    int i;
 
     pxIP_2.xIs_IPv6 = 0;
     pxIP_2.xIPAddress.ulIP_IPv4 = pulIP;
 
-    for( int i = 0; i < ipconfigDNS_CACHE_ENTRIES; i++ )
+    for( i = 0; i < ipconfigDNS_CACHE_ENTRIES; i++ )
     {
         pxIP[ i ].xIPAddress.ulIP_IPv4 = pulIP_arr[ i ];
         pxIP[ i ].xIs_IPv6 = 0;

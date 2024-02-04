@@ -2,7 +2,7 @@
 include( ${MODULE_ROOT_DIR}/test/unit-test/TCPFilePaths.cmake )
 
 # ====================  Define your project name (edit) ========================
-set( project_name "FreeRTOS_Sockets_DiffConfig2" )
+set( project_name "FreeRTOS_Sockets_DiffConfig1" )
 message( STATUS "${project_name}" )
 
 # =====================  Create your mock here  (edit)  ========================
@@ -15,7 +15,7 @@ list(APPEND mock_list
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/FreeRTOS_IP_Private.h"
             "${CMAKE_BINARY_DIR}/Annexed_TCP/NetworkBufferManagement.h"
-            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_DiffConfig2_list_macros.h"
+            "${MODULE_ROOT_DIR}/test/unit-test/${project_name}/Sockets_DiffConfig1_list_macros.h"
         )
 
 set(mock_include_list "")

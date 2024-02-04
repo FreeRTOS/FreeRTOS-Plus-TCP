@@ -349,10 +349,10 @@ add_custom_target( coverage
     FreeRTOS_Sockets_TCP_API_utest
     FreeRTOS_Sockets_UDP_API_utest
     FreeRTOS_Sockets_DiffConfig_privates_utest
-    FreeRTOS_Sockets_DiffConfig2_GenericAPI_utest
-    FreeRTOS_Sockets_DiffConfig2_privates_utest
-    FreeRTOS_Sockets_DiffConfig2_TCP_API_utest
-    FreeRTOS_Sockets_DiffConfig2_UDP_API_utest
+    FreeRTOS_Sockets_DiffConfig1_GenericAPI_utest
+    FreeRTOS_Sockets_DiffConfig1_privates_utest
+    FreeRTOS_Sockets_DiffConfig1_TCP_API_utest
+    FreeRTOS_Sockets_DiffConfig1_UDP_API_utest
     FreeRTOS_Sockets_IPv6_utest
     FreeRTOS_IPv6_utest
     FreeRTOS_IPv6_ConfigDriverCheckChecksum_utest
