@@ -197,7 +197,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 
             if( pxNetworkBuffer->pxEndPoint != NULL )
             {
-                pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress;
+                pxIPHeader->ulSourceIPAddress = pxNetworkBuffer->pxEndPoint->u.ipv4_settings.ulIPAddress;
             }
 
             /* The stack doesn't support fragments, so the fragment offset field must always be zero.
@@ -368,7 +368,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     {
         if( pxSocket != NULL )
         {
-            if( ( pxEndpoint != NULL ) && ( pxEndpoint->ipv4_settings.ulIPAddress != 0U ) )
+            if( ( pxEndpoint != NULL ) && ( pxEndpoint->u.ipv4_settings.ulIPAddress != 0U ) )
             {
                 if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
                 {

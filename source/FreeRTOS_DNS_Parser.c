@@ -528,7 +528,7 @@
                                     {
                                         size_t uxDistance;
                                         vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ipSIZE_OF_IPv6_ADDRESS );
-                                        ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                                        ( void ) memcpy( &( pxAnswer->ulIPAddress ), xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                                         uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                         /* An extra 12 bytes will be sent compared to an A-record. */
                                         usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance + ipSIZE_OF_IPv6_ADDRESS - sizeof( pxAnswer->ulIPAddress ) );
@@ -538,7 +538,7 @@
                                 {
                                     size_t uxDistance;
                                     vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, ( uint16_t ) sizeof( pxAnswer->ulIPAddress ) );
-                                    vSetField32( pxAnswer, LLMNRAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) );
+                                    vSetField32( pxAnswer, LLMNRAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.u.ipv4_settings.ulIPAddress ) );
                                     uxDistance = ( size_t ) ( xSet.pucByte - pucNewBuffer );
                                     usLength = ( int16_t ) ( sizeof( *pxAnswer ) + uxDistance );
                                 }
@@ -892,7 +892,7 @@
 
                     {
                         ( void ) memcpy( pxIPHeader_IPv6->xDestinationAddress.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                        ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes, pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     }
 
                     xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
@@ -919,7 +919,7 @@
                     pxIPHeader->ucTimeToLive = ipconfigUDP_TIME_TO_LIVE;
                 }
 
-                pxIPHeader->ulSourceIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+                pxIPHeader->ulSourceIPAddress = pxEndPoint->u.ipv4_settings.ulIPAddress;
                 pxIPHeader->usIdentification = FreeRTOS_htons( usPacketIdentifier );
 
                 /* The stack doesn't support fragments, so the fragment offset field must always be zero.
@@ -1173,7 +1173,7 @@
                 vSetField16( pxAnswer, NBNSAnswer_t, usDataLength, 6 );           /* 6 bytes including the length field */
                 vSetField16( pxAnswer, NBNSAnswer_t, usNbFlags, dnsNBNS_NAME_FLAGS );
                 /* The function vSetField32() expects host-endian values, that is why ntohl() is called. */
-                vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.ipv4_settings.ulIPAddress ) );
+                vSetField32( pxAnswer, NBNSAnswer_t, ulIPAddress, FreeRTOS_ntohl( xEndPoint.u.ipv4_settings.ulIPAddress ) );
 
                 usLength = ( uint16_t ) ( sizeof( NBNSAnswer_t ) + ( size_t ) offsetof( NBNSRequest_t, usType ) );
 

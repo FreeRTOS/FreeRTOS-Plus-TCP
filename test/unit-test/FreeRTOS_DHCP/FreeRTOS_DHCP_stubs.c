@@ -207,7 +207,8 @@ void vConfigureTimerForRunTimeStats( void )
 
 eDHCPCallbackAnswer_t xStubApplicationDHCPHook_Multi( eDHCPCallbackPhase_t eDHCPPhase,
                                                       struct xNetworkEndPoint * pxEndPoint,
-                                                      IP_Address_t * pxIPAddress )
+                                                      IP_Address_t * pxIPAddress,
+                                                      int cmock_num_calls )
 {
     TEST_ASSERT_EQUAL( eStubExpectedDHCPPhase, eDHCPPhase );
     TEST_ASSERT_EQUAL( pxStubExpectedEndPoint, pxEndPoint );
@@ -261,7 +262,7 @@ static void ReleaseUDPBuffer( const void * temp,
     ReleaseNetworkBuffer();
 }
 
-static int32_t RecvFromStub( Socket_t xSocket,
+static int32_t RecvFromStub( const ConstSocket_t xSocket,
                              void * pvBuffer,
                              size_t uxBufferLength,
                              BaseType_t xFlags,
@@ -292,7 +293,7 @@ static int32_t RecvFromStub( Socket_t xSocket,
 }
 
 
-static int32_t FreeRTOS_recvfrom_Generic( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_Generic( const ConstSocket_t xSocket,
                                           void * pvBuffer,
                                           size_t uxBufferLength,
                                           BaseType_t xFlags,
@@ -308,7 +309,7 @@ static int32_t FreeRTOS_recvfrom_Generic( Socket_t xSocket,
     return ulGenericLength;
 }
 
-static int32_t FreeRTOS_recvfrom_Generic_NullBuffer( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_Generic_NullBuffer( const ConstSocket_t xSocket,
                                                      void * pvBuffer,
                                                      size_t uxBufferLength,
                                                      BaseType_t xFlags,
@@ -321,7 +322,7 @@ static int32_t FreeRTOS_recvfrom_Generic_NullBuffer( Socket_t xSocket,
 }
 
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout( const ConstSocket_t xSocket,
                                                                           void * pvBuffer,
                                                                           size_t uxBufferLength,
                                                                           BaseType_t xFlags,
@@ -339,7 +340,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout( Socket
     return sizeof( DHCPMessage_IPv4_t ) - 1;
 }
 
-static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage( const ConstSocket_t xSocket,
                                                                                                  void * pvBuffer,
                                                                                                  size_t uxBufferLength,
                                                                                                  BaseType_t xFlags,
@@ -369,7 +370,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_TwoFlagOptions_nullbytes( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_TwoFlagOptions_nullbytes( const ConstSocket_t xSocket,
                                                                                                                           void * pvBuffer,
                                                                                                                           size_t uxBufferLength,
                                                                                                                           BaseType_t xFlags,
@@ -406,7 +407,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     return lBytes;
 }
 
-static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_TwoFlagOptions_nullbuffer( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_TwoFlagOptions_nullbuffer( const ConstSocket_t xSocket,
                                                                                                                            void * pvBuffer,
                                                                                                                            size_t uxBufferLength,
                                                                                                                            BaseType_t xFlags,
@@ -440,7 +441,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_IncorrectDHCPCookie( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_IncorrectDHCPCookie( const ConstSocket_t xSocket,
                                                                                                                      void * pvBuffer,
                                                                                                                      size_t uxBufferLength,
                                                                                                                      BaseType_t xFlags,
@@ -470,7 +471,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_IncorrectOpCode( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_validUDPmessage_IncorrectOpCode( const ConstSocket_t xSocket,
                                                                                                                  void * pvBuffer,
                                                                                                                  size_t uxBufferLength,
                                                                                                                  BaseType_t xFlags,
@@ -500,7 +501,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeout( const ConstSocket_t xSocket,
                                                                                     void * pvBuffer,
                                                                                     size_t uxBufferLength,
                                                                                     BaseType_t xFlags,
@@ -519,7 +520,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseCookieNoTimeo
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeout( const ConstSocket_t xSocket,
                                                                                     void * pvBuffer,
                                                                                     size_t uxBufferLength,
                                                                                     BaseType_t xFlags,
@@ -539,7 +540,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsFalseOpcodeNoTimeo
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTimeout( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsCorrectCookieAndOpcodeNoTimeout( const ConstSocket_t xSocket,
                                                                                                void * pvBuffer,
                                                                                                size_t uxBufferLength,
                                                                                                BaseType_t xFlags,
@@ -561,7 +562,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSucceedsCorrectCookieAndOp
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID( const ConstSocket_t xSocket,
                                                                           void * pvBuffer,
                                                                           size_t uxBufferLength,
                                                                           BaseType_t xFlags,
@@ -585,7 +586,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccessCorrectTxID( Socket
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrType( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrType( const ConstSocket_t xSocket,
                                                                                void * pvBuffer,
                                                                                size_t uxBufferLength,
                                                                                BaseType_t xFlags,
@@ -611,7 +612,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrType( S
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrLen( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrLen( const ConstSocket_t xSocket,
                                                                               void * pvBuffer,
                                                                               size_t uxBufferLength,
                                                                               BaseType_t xFlags,
@@ -640,7 +641,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_CorrectAddrLen( So
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalHostAddr( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalHostAddr( const ConstSocket_t xSocket,
                                                                              void * pvBuffer,
                                                                              size_t uxBufferLength,
                                                                              BaseType_t xFlags,
@@ -670,7 +671,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalHostAddr( Soc
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_NonLocalHostAddr( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_NonLocalHostAddr( const ConstSocket_t xSocket,
                                                                                 void * pvBuffer,
                                                                                 size_t uxBufferLength,
                                                                                 BaseType_t xFlags,
@@ -700,7 +701,7 @@ static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_NonLocalHostAddr( 
     return xSizeofUDPBuffer;
 }
 
-static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalMACAddrNotMatching( Socket_t xSocket,
+static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalMACAddrNotMatching( const ConstSocket_t xSocket,
                                                                                        void * pvBuffer,
                                                                                        size_t uxBufferLength,
                                                                                        BaseType_t xFlags,

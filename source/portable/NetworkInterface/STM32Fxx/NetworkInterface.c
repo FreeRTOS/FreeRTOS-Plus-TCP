@@ -566,9 +566,9 @@ BaseType_t xSTM32F_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface 
                         {
                             uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
-                            ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                            ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                            ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                            ucMACAddress[ 3 ] = pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                            ucMACAddress[ 4 ] = pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                            ucMACAddress[ 5 ] = pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes[ 15 ];
                             prvMACAddressConfig( &xETH, xMACEntry, ucMACAddress );
                             xMACEntry += 8;
                         }

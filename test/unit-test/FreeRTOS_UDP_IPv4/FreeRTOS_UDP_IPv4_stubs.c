@@ -135,7 +135,7 @@ NetworkEndPoint_t * prvPrepareDefaultIPv4EndPoint()
     xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
 
     xEndpoint.pxNetworkInterface = &xNetworkInterface;
-    xEndpoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndpoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
     xEndpoint.bits.bIPv6 = pdFALSE;
 
     return pxEndpoint;

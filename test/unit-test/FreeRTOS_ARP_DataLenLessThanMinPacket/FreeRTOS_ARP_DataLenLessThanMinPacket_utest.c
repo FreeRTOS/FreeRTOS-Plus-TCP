@@ -50,7 +50,7 @@ void test_FreeRTOS_OutputARPRequest_MinimumPacketSizeLessThanARPPacket( void )
 
     xEndPoint.pxNetworkInterface = &xInterface;
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
-    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
 
     /* =================================================== */
 

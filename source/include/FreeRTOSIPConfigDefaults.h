@@ -2292,8 +2292,8 @@
  * server and accepted, or the interval between transmissions reaches
  * ipconfigMAXIMUM_DISCOVER_TX_PERIOD. If no reply is received, the TCP/IP
  * stack will revert to using the default IP address of the endpoint
- * 'endpoint->ipv4_defaults.ulIPAddress' for IPv4 address or
- * 'endpoint->ipv6_defaults.xIPAddress' for IPv6 address.
+ * 'endpoint->u.ipv4_defaults.ulIPAddress' for IPv4 address or
+ * 'endpoint->u.ipv6_defaults.xIPAddress' for IPv6 address.
  */
 
 #ifndef ipconfigMAXIMUM_DISCOVER_TX_PERIOD

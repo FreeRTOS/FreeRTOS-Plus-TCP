@@ -687,7 +687,7 @@ void test_xProcessReceivedUDPPacket_IPv4_SocketEndPointZeroIP()
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0U;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0U;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
@@ -725,7 +725,7 @@ void test_xProcessReceivedUDPPacket_IPv4_SocketNeedARP()
     xNetworkBuffer.pucEthernetBuffer = pucEthernetBuffer;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xUDPHeader.usChecksum = 0x1234U;
@@ -767,7 +767,7 @@ void test_xProcessReceivedUDPPacket_IPv4_SocketRecvHandlerFail()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -813,7 +813,7 @@ void test_xProcessReceivedUDPPacket_IPv4_UDPListBufferFull()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -865,7 +865,7 @@ void test_xProcessReceivedUDPPacket_IPv4_Pass()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -935,7 +935,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoEventGroup()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1003,7 +1003,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSelectBit()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1071,7 +1071,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSelectSet()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1137,7 +1137,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoSem()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;
@@ -1204,7 +1204,7 @@ void test_xProcessReceivedUDPPacket_IPv4_PassNoDHCP()
     xNetworkBuffer.usPort = FreeRTOS_htons( usSrcPort );
     xNetworkBuffer.xDataLength = ipconfigTCP_MSS;
 
-    xEndPoint.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
+    xEndPoint.u.ipv4_settings.ulIPAddress = ulDefaultIPv4Address;
 
     pxUDPPacket = ( UDPPacket_t * ) pucEthernetBuffer;
     pxUDPPacket->xIPHeader.usLength = xNetworkBuffer.xDataLength - ipSIZE_OF_ETH_HEADER;

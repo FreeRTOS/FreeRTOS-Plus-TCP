@@ -554,9 +554,9 @@ static void prvGMACInit()
                  * each endpoint */
                 uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
 
-                ucMACAddress[ 3 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                ucMACAddress[ 4 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                ucMACAddress[ 5 ] = pxEndPointIter->ipv6_settings.xIPAddress.ucBytes[ 15 ];
+                ucMACAddress[ 3 ] = pxEndPointIter->u.ipv6_settings.xIPAddress.ucBytes[ 13 ];
+                ucMACAddress[ 4 ] = pxEndPointIter->u.ipv6_settings.xIPAddress.ucBytes[ 14 ];
+                ucMACAddress[ 5 ] = pxEndPointIter->u.ipv6_settings.xIPAddress.ucBytes[ 15 ];
                 mac_async_set_filter_ex( &ETH_MAC, ucMACAddress );
             }
         }

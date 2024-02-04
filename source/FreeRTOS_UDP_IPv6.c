@@ -102,7 +102,7 @@ static NetworkEndPoint_t * pxGetEndpoint( BaseType_t xIPType,
         {
             if( pxEndPoint->bits.bIPv6 != 0U )
             {
-                IPv6_Type_t eEndpointType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                IPv6_Type_t eEndpointType = xIPv6_GetIPType( &( pxEndPoint->u.ipv6_settings.xIPAddress ) );
                 BaseType_t xEndpointGlobal = ( eEndpointType == eIPv6_Global ) ? pdTRUE : pdFALSE;
 
                 if( xEndpointGlobal == xIsGlobal )
@@ -290,7 +290,7 @@ void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetwor
                 if( pxNetworkBuffer->pxEndPoint != NULL )
                 {
                     ( void ) memcpy( pxIPHeader_IPv6->xSourceAddress.ucBytes,
-                                     pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                     pxNetworkBuffer->pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes,
                                      ipSIZE_OF_IPv6_ADDRESS );
                 }
             }

@@ -141,7 +141,7 @@ static NetworkEndPoint_t * prvPrepareDefaultIPv6EndPoint()
     xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
 
     xEndpoint.pxNetworkInterface = &xNetworkInterface;
-    memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndpoint.u.ipv6_settings.xIPAddress.ucBytes, xDefaultIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndpoint.bits.bIPv6 = pdTRUE;
 
     return pxEndpoint;
@@ -159,7 +159,7 @@ static NetworkEndPoint_t * prvPrepareDefaultIPv4EndPoint()
     xNetworkInterface.pfOutput = xNetworkInterfaceOutput;
 
     xEndpoint.pxNetworkInterface = &xNetworkInterface;
-    xEndpoint.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
+    xEndpoint.u.ipv4_settings.ulIPAddress = TEST_IPV4_DEFAULT_ADDRESS;
     xEndpoint.bits.bIPv6 = pdFALSE;
 
     return pxEndpoint;

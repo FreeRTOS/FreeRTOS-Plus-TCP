@@ -168,8 +168,8 @@ void harness()
 
     /* Asserts are added in the src code to make sure ucDNSIndex
      * will be less than ipconfigENDPOINT_DNS_ADDRESS_COUNT  */
-    __CPROVER_assume( pxNetworkEndPoints->ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
-    __CPROVER_assume( pxNetworkEndPoints->ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
+    __CPROVER_assume( pxNetworkEndPoints->u.ipv6_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
+    __CPROVER_assume( pxNetworkEndPoints->u.ipv4_settings.ucDNSIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
     __CPROVER_assume( pxNetworkEndPoints->pxNext == NULL );
 
     /* Interface init. */

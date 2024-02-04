@@ -105,7 +105,7 @@ void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
 
     /* Initialize endpoint. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
     xEndPoint.pxNetworkInterface = &xNetworkInterface;
     pxNetworkEndPoints = &xEndPoint;
@@ -153,7 +153,7 @@ void test_FreeRTOS_MatchingEndpoint_IPv6Disabled()
 
     /* Initialize endpoint. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
     xEndPoint.pxNetworkInterface = &xNetworkInterface;
     pxNetworkEndPoints = &xEndPoint;
@@ -222,7 +222,7 @@ void test_FreeRTOS_FindGateWay_IPv4HappyPath( void )
 
     /* Initialize network endpoint and add it to the list. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulGatewayAddress = IPV4_DEFAULT_GATEWAY;
+    xEndPoint.u.ipv4_settings.ulGatewayAddress = IPV4_DEFAULT_GATEWAY;
     pxNetworkEndPoints = &xEndPoint;
 
     pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );

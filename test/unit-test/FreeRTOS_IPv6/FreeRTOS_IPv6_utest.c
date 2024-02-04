@@ -282,7 +282,7 @@ void test_prvAllowIPPacketIPv6_EndpointDifferentAddress()
 
     memset( &xEndpoint, 0, sizeof( xEndpoint ) );
     xEndpoint.bits.bIPv6 = 1U;
-    memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xDiffIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndpoint.u.ipv6_settings.xIPAddress.ucBytes, xDiffIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     pxNetworkBuffer->pxEndPoint = &xEndpoint;
 
     FreeRTOS_FindEndPointOnIP_IPv6_ExpectAndReturn( &( pxTCPPacket->xIPHeader.xSourceAddress ), NULL );

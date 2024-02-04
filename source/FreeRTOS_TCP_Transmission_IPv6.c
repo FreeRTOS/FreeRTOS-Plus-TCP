@@ -192,7 +192,7 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
                 prvTCPReturn_CheckTCPWindow( pxSocket, pxNetworkBuffer, uxIPHeaderSize );
                 prvTCPReturn_SetSequenceNumber( pxSocket, pxNetworkBuffer, uxIPHeaderSize, ulLen );
                 ( void ) memcpy( pxIPHeader->xDestinationAddress.ucBytes, pxSocket->u.xTCP.xRemoteIP.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( pxIPHeader->xSourceAddress.ucBytes, pxNetworkBuffer->pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
             }
             else
             {

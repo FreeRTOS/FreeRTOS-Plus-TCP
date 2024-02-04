@@ -666,7 +666,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent_NullInterface( void )
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     xReceivedEvent.eEventType = eNetworkTxEvent;
-    xReceivedEvent.pvData = pxNetworkBuffer;
+    xReceivedEvent.pvData = ( void * ) pxNetworkBuffer;
     xNetworkDownEventPending = pdFALSE;
 
     /* prvProcessIPEventsAndTimers */
@@ -819,7 +819,7 @@ void test_prvProcessIPEventsAndTimers_eStackTxEvent( void )
 void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-    uint32_t ulDHCPEvent = 0x1234;
+    uintptr_t ulDHCPEvent = 0x1234;
     NetworkEndPoint_t xEndPoints, * pxEndPoints = &xEndPoints;
 
     memset( pxEndPoints, 0, sizeof( NetworkEndPoint_t ) );
@@ -846,7 +846,7 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-    uint32_t ulData = 0x1234;
+    uintptr_t ulData = 0x1234;
 
     xReceivedEvent.eEventType = eSocketSelectEvent;
     xReceivedEvent.pvData = ( void * ) ulData;
@@ -868,7 +868,7 @@ void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSignalEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-    uint32_t ulData = 0x1234;
+    uintptr_t ulData = 0x1234;
 
     xReceivedEvent.eEventType = eSocketSignalEvent;
     xReceivedEvent.pvData = ( void * ) ulData;
@@ -2795,7 +2795,7 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
 
     /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
@@ -2812,7 +2812,7 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 0 );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
 }
@@ -2840,7 +2840,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
 
     /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
@@ -2863,7 +2863,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
     eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eProcessBuffer );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
 }
@@ -2892,7 +2892,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
 
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -2913,7 +2913,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 1 );
     eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eReleaseBuffer );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
@@ -2941,7 +2941,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
 
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -2962,7 +2962,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
     vNDRefreshCacheEntry_Ignore();
     xProcessReceivedTCPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
 }
@@ -2991,7 +2991,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
 
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -3010,7 +3010,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
 }
@@ -3038,7 +3038,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
 
     pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -3059,7 +3059,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
     vNDRefreshCacheEntry_Ignore();
     prvProcessICMPMessage_IPv6_ExpectAnyArgsAndReturn( eReleaseBuffer );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
@@ -3084,10 +3084,10 @@ void test_prvProcessIPPacket_IPv6_LessPacketSize( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
     pxNetworkBuffer->xDataLength = sizeof( IPPacket_IPv6_t ) - 1;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
@@ -3392,7 +3392,7 @@ void test_FreeRTOS_GetIPAddress( void )
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0xAB12CD34;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
 
@@ -3414,8 +3414,8 @@ void test_FreeRTOS_GetIPAddress_DefaultSetting( void )
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0;
-    xEndPoint.ipv4_defaults.ulIPAddress = 0xAB12CD34;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0;
+    xEndPoint.u.ipv4_defaults.ulIPAddress = 0xAB12CD34;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
 
@@ -3452,7 +3452,7 @@ void test_FreeRTOS_GetIPAddress_MultipleEndpoints( void )
     xEndPoints[ 0 ].bits.bIPv6 = pdTRUE;
     memset( &xEndPoints[ 1 ], 0, sizeof( NetworkEndPoint_t ) );
     xEndPoints[ 1 ].bits.bIPv6 = pdFALSE;
-    xEndPoints[ 1 ].ipv4_settings.ulIPAddress = 0xAB12CD34;
+    xEndPoints[ 1 ].u.ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoints[ 0 ] );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoints[ 0 ], &xEndPoints[ 1 ] );
@@ -3534,10 +3534,10 @@ void test_FreeRTOS_GetEndPointConfiguration_AllSettings( void )
 
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 1;
-    xEndPoint.ipv4_settings.ulNetMask = 2;
-    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.u.ipv4_settings.ulNetMask = 2;
+    xEndPoint.u.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
     FreeRTOS_GetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
     TEST_ASSERT_EQUAL( 1, ulIPAddress );
@@ -3556,10 +3556,10 @@ void test_FreeRTOS_GetEndPointConfiguration_AllNull( void )
 
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 1;
-    xEndPoint.ipv4_settings.ulNetMask = 2;
-    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.u.ipv4_settings.ulNetMask = 2;
+    xEndPoint.u.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
     FreeRTOS_GetEndPointConfiguration( NULL, NULL, NULL, NULL, &xEndPoint );
 }
@@ -3619,10 +3619,10 @@ void test_FreeRTOS_SetEndPointConfiguration_AllSettings( void )
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
     FreeRTOS_SetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
-    TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
-    TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
-    TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( 1, xEndPoint.u.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( 2, xEndPoint.u.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( 3, xEndPoint.u.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 4, xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] );
 }
 
 /**
@@ -3654,10 +3654,10 @@ void test_FreeRTOS_SetEndPointConfiguration_IPv6Endpoint( void )
     xEndPoint.bits.bIPv6 = pdTRUE;
 
     FreeRTOS_SetEndPointConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress, &xEndPoint );
-    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulIPAddress );
-    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulNetMask );
-    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 0, xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.u.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.u.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.u.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 0, xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] );
 }
 
 /**

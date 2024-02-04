@@ -256,10 +256,10 @@ void test_prvAllowIPPacketIPv4_NotMatchingIP( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress + 1;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress + 1;
 
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL ); /* From prvAllowIPPacketIPv4() */
     FreeRTOS_IsNetworkUp_ExpectAndReturn( pdTRUE );
@@ -293,10 +293,10 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPMatch( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
 
     pxIPHeader->ulSourceIPAddress = 0xFFFFFFFF;
 
@@ -332,7 +332,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPBrdCast( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = 0xFFFFFFFF;
@@ -372,7 +372,7 @@ void test_prvAllowIPPacketIPv4_SourceIPBrdCast_DestIPLLMNR( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xAB12CD34;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xAB12CD34;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
     pxIPHeader->ulDestinationIPAddress = ipLLMNR_IP_ADDR;
@@ -561,11 +561,11 @@ void test_prvAllowIPPacketIPv4_SrcIPAddrIsMulticast( void )
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxNetworkBuffer->pxEndPoint = NULL;
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -603,11 +603,11 @@ void test_prvAllowIPPacketIPv4_IncorrectChecksum( void )
     pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -649,11 +649,11 @@ void test_prvAllowIPPacketIPv4_IncorrectProtocolChecksum( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -696,11 +696,11 @@ void test_prvAllowIPPacketIPv4_HappyPath( void )
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxNetworkBuffer->pxEndPoint = pxEndpoint;
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -785,11 +785,11 @@ void test_prvAllowIPPacketIPv4_DestMacBroadcastIPNotBroadcast( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->ipv4_settings.ulIPAddress = 0xE0E00102;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xE0E00102;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -895,7 +895,7 @@ static void xRunBadIPv4Loopback( uint32_t ulSource,
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxNetworkBuffer->pxEndPoint = pxEndpoint;
 
-    pxEndpoint->ipv4_settings.ulIPAddress = ulIPTarget;
+    pxEndpoint->u.ipv4_settings.ulIPAddress = ulIPTarget;
 
     /* An IP-header of 20 bytes long, IPv4. */
     pxIPHeader->ucVersionHeaderLength = 0x45;

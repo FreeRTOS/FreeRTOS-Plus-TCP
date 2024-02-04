@@ -1412,7 +1412,7 @@ void test_vDHCPv6Process_ResetFromLease()
 
     xEndPoint.xDHCPData.eDHCPState = eLeasedAddress;
     xEndPoint.xDHCPData.eExpectedState = eLeasedAddress;
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
@@ -1448,7 +1448,7 @@ void test_vDHCPv6Process_ResetDifferentState()
 
     xEndPoint.xDHCPData.eDHCPState = eInitialWait;
     xEndPoint.xDHCPData.eExpectedState = eLeasedAddress;
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = &xDHCPMessage;
 
     FreeRTOS_socket_ExpectAndReturn( FREERTOS_AF_INET6, FREERTOS_SOCK_DGRAM, FREERTOS_IPPROTO_UDP, &xLocalDHCPv6Socket );
@@ -1482,8 +1482,8 @@ void test_vDHCPv6Process_SolicitationHappyPath()
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
 
     xEndPoint.xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     xEndPoint.xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
@@ -1523,8 +1523,8 @@ void test_vDHCPv6Process_SolicitationDifferentState()
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
 
     xEndPoint.xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     xEndPoint.xDHCPData.eExpectedState = eLeasedAddress;
@@ -1555,8 +1555,8 @@ void test_vDHCPv6Process_AdvertiseHappyPath()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1603,8 +1603,8 @@ void test_vDHCPv6Process_AdvertiseIATA()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1651,8 +1651,8 @@ void test_vDHCPv6Process_ReplyHappyPath()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1676,7 +1676,7 @@ void test_vDHCPv6Process_ReplyHappyPath()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     /* Check if the IP address provided in reply is set to endpoint properly. */
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -1695,8 +1695,8 @@ void test_vDHCPv6Process_DHCPLeaseTimeout()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1747,9 +1747,9 @@ void test_vDHCPv6Process_GiveupWhenSocketNull()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, &xDefaultIPAddress.ucBytes, sizeof( IPv6_Address_t ) );
-    memcpy( xEndPoint.ipv6_defaults.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_defaults.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_defaults.xIPAddress.ucBytes, &xDefaultIPAddress.ucBytes, sizeof( IPv6_Address_t ) );
+    memcpy( xEndPoint.u.ipv6_defaults.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_defaults.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1767,7 +1767,7 @@ void test_vDHCPv6Process_GiveupWhenSocketNull()
 
     /* When giving up, the state is set to eNotUsingLeasedAddress. Then using default setting as IPv6 address. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint.xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -1787,8 +1787,8 @@ void test_vDHCPv6Process_WaitReplyTimeout()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1861,8 +1861,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_UnknownMsgType()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1901,8 +1901,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_WrongTransactionID()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1941,8 +1941,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_ReadTransactionIDError()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -1981,8 +1981,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_ReadOptionError()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2021,8 +2021,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_LackServerID()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2061,8 +2061,8 @@ void test_vDHCPv6Process_prvDHCPv6Analyse_BitConfigInitError()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2100,8 +2100,8 @@ void test_vDHCPv6Process_prvIsOptionLengthValid_OptionLessThanMinLength()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2140,8 +2140,8 @@ void test_vDHCPv6Process_prvIsOptionLengthValid_OptionLargerThanMaxLength()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2180,8 +2180,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleStatusCode_MessageTooLong()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2218,8 +2218,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_EmptyEndpointList()
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2303,8 +2303,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_MultipleEndpoints()
     xMultipleEndPoint[ 4 ].pxNext = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2352,8 +2352,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerDUIDT
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2395,8 +2395,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLengt
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2438,8 +2438,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerLengt
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2482,8 +2482,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentServerDUID(
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2536,8 +2536,8 @@ void test_vDHCPv6Process_xDHCPv6Process_PassReplyToEndPoint_DifferentEndpoint()
     xDifferentEndPoint.pxDHCPMessage = &xDifferentDHCPMessage;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2583,7 +2583,7 @@ void test_vDHCPv6Process_ResetAllocateFail()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     xEndPoint.xDHCPData.eDHCPState = eLeasedAddress;
-    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xEndPoint.pxDHCPMessage = NULL;
 
     vAddStubsOperation( eTestStubsAllocateFail );
@@ -2612,8 +2612,8 @@ void test_vDHCPv6Process_RecvFailure()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2650,8 +2650,8 @@ void test_vDHCPv6Process_RecvEagain()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2688,8 +2688,8 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_WithDNS()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2713,7 +2713,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_WithDNS()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     /* Check if the IP address provided in reply is set to endpoint properly. */
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -2732,8 +2732,8 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ManyDNS()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2757,7 +2757,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ManyDNS()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     /* Check if the IP address provided in reply is set to endpoint properly. */
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -2776,8 +2776,8 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ShortLeaseTime()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2802,7 +2802,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_ShortLeaseTime()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     /* Check if the IP address provided in reply is set to endpoint properly. */
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -2821,8 +2821,8 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_CustomLeaseTime()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2847,7 +2847,7 @@ void test_vDHCPv6Process_vDHCPv6ProcessEndPoint_HandleReply_CustomLeaseTime()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     /* Check if the IP address provided in reply is set to endpoint properly. */
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -2866,8 +2866,8 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_HookFailure()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2908,8 +2908,8 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_HookDefault()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xEndPoint.ipv6_defaults.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xEndPoint.u.ipv6_defaults.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2932,7 +2932,7 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleAdvertise_HookDefault()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, xEndPoint.xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -2949,8 +2949,8 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_NullMessage()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xEndPoint.ipv6_defaults.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xEndPoint.u.ipv6_defaults.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -2985,8 +2985,8 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_HookFailure()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xEndPoint.ipv6_defaults.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xEndPoint.u.ipv6_defaults.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3021,8 +3021,8 @@ void test_vDHCPv6Process_xDHCPv6ProcessEndPoint_HandleState_HookDefault()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    xEndPoint.ipv6_defaults.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_defaults.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    xEndPoint.u.ipv6_defaults.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3058,8 +3058,8 @@ void test_vDHCPv6Process_WaitAdvertiseTimeout()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3196,8 +3196,8 @@ void test_vDHCPv6Process_prvCloseDHCPv6Socket_MultipleEndpointsCloseSockets()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     memcpy( xEndPoint[ 0 ].xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint[ 0 ].ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint[ 0 ].ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint[ 0 ].u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint[ 0 ].u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint[ 0 ].bits.bIPv6 = pdTRUE;
     xEndPoint[ 0 ].bits.bWantDHCP = pdTRUE;
     xEndPoint[ 0 ].xDHCPData.eDHCPState = eWaitingOffer;
@@ -3225,8 +3225,8 @@ void test_vDHCPv6Process_prvCloseDHCPv6Socket_MultipleEndpointsCloseSockets()
     memset( &xDHCPMessage[ 1 ], 0, sizeof( DHCPMessage_IPv6_t ) );
 
     memcpy( xEndPoint[ 1 ].xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint[ 1 ].ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint[ 1 ].ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint[ 1 ].u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint[ 1 ].u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint[ 1 ].bits.bIPv6 = pdTRUE;
     xEndPoint[ 1 ].bits.bWantDHCP = pdTRUE;
     xEndPoint[ 1 ].xDHCPData.eDHCPState = eWaitingOffer;
@@ -3278,8 +3278,8 @@ void test_prvCloseDHCPv6Socket_CloseSocketWithoutCreate()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
     xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
@@ -3309,8 +3309,8 @@ void test_vDHCPv6Process_prvCreateDHCPv6Socket_CreateSocketFail()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
     xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
@@ -3342,8 +3342,8 @@ void test_vDHCPv6Process_prvCreateDHCPv6Socket_BindSocketFail()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
     xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
@@ -3386,8 +3386,8 @@ void test_vDHCPv6Process_prvSendDHCPMessage_RandomFail()
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
 
     xEndPoint.xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     xEndPoint.xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
@@ -3416,8 +3416,8 @@ void test_vDHCPv6Process_prvSendDHCPMessage_NullSocket()
     memset( &xDHCPMessage, 0, sizeof( DHCPMessage_IPv6_t ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
 
     xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
     xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
@@ -3449,8 +3449,8 @@ void test_vDHCPv6Process_prvSendDHCPMessage_BitConfigInitFail()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
 
     xEndPoint.xDHCPData.eDHCPState = eWaitingOffer;
     xEndPoint.xDHCPData.eExpectedState = eWaitingOffer;
@@ -3483,8 +3483,8 @@ void test_prvSendDHCPMessage_UnexpectedState()
     memset( &xLocalDHCPv6Socket, 0, sizeof( struct xSOCKET ) );
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
 
     xEndPoint.xDHCPData.eDHCPState = 0xFF;
     xEndPoint.xDHCPData.eExpectedState = 0xFF;
@@ -3514,8 +3514,8 @@ void test_vDHCPv6Process_ReplyInvalidLengthIANA()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3554,8 +3554,8 @@ void test_vDHCPv6Process_ReplyInvalidLengthIAPD()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3594,8 +3594,8 @@ void test_vDHCPv6Process_ReplyInvalidSubOptionIANA()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3634,8 +3634,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ClientLengthTooSmall()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3674,8 +3674,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ClientLengthTooBig()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3714,8 +3714,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_WrongClientID()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3764,8 +3764,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ServerLengthTooSmall()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3804,8 +3804,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_ServerLengthTooBig()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3844,8 +3844,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_InvalidDNSLength()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3892,8 +3892,8 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_DomainSearchList()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 
@@ -3917,7 +3917,7 @@ void test_vDHCPv6Process_prvDHCPv6_handleOption_DomainSearchList()
     vDHCPv6Process( pdFALSE, &xEndPoint );
 
     /* Check if the IP address provided in reply is set to endpoint properly. */
-    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xDefaultIPAddress.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**
@@ -3967,8 +3967,8 @@ void test_vDHCPv6Process_AdvertiseStatusFail()
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress, sizeof( ucDefaultMACAddress ) );
-    memcpy( xEndPoint.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
-    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    memcpy( xEndPoint.u.ipv6_settings.xPrefix.ucBytes, &xDefaultNetPrefix.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.u.ipv6_settings.uxPrefixLength = 64;
     xEndPoint.bits.bIPv6 = pdTRUE;
     xEndPoint.bits.bWantDHCP = pdTRUE;
 

@@ -133,11 +133,12 @@ static void vSetIPTaskHandle( TaskHandle_t xTaskHandleToSet )
     const uint8_t ucDNSServerAddress[ ipIP_ADDRESS_LENGTH_BYTES ];
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
     NetworkEndPoint_t xFirstEndPoint = { 0 }, * pxFirstEndPoint = &xFirstEndPoint;
+    NetworkInterface_t * pxNetworkInterface;
 
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
     FreeRTOS_FillEndPoint_Ignore();
 
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 
@@ -194,14 +195,14 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     TaskHandle_t xTaskHandleToSet = ( TaskHandle_t ) 0xCDBA9087;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
-
+    NetworkInterface_t * pxNetworkInterface;
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 
@@ -247,13 +248,14 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = NULL;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
+    NetworkInterface_t * pxNetworkInterface;
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     /* Clear default values. */
     memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
@@ -287,13 +289,14 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
+    NetworkInterface_t * pxNetworkInterface;
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     /* Clear default values. */
     memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
@@ -335,13 +338,14 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     BaseType_t xReturn;
     QueueHandle_t pxPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     NetworkEndPoint_t xFirstEndPoint = { 0 };
+    NetworkInterface_t * pxNetworkInterface;
 
     /* Set the local IP to something other than 0. */
     *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     /* Clear default values. */
     memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
@@ -462,10 +466,10 @@ void test_FreeRTOS_GetAddressConfiguration_HappyPath( void )
 
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 1;
-    xEndPoint.ipv4_settings.ulNetMask = 2;
-    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
-    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.u.ipv4_settings.ulNetMask = 2;
+    xEndPoint.u.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
     FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
@@ -499,16 +503,16 @@ void test_FreeRTOS_SetAddressConfiguration_HappyPath( void )
 
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    xEndPoint.ipv4_settings.ulIPAddress = 1;
-    xEndPoint.ipv4_settings.ulNetMask = 2;
-    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.u.ipv4_settings.ulNetMask = 2;
+    xEndPoint.u.ipv4_settings.ulGatewayAddress = 3;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
     FreeRTOS_SetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
-    TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
-    TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
-    TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( 1, xEndPoint.u.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( 2, xEndPoint.u.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( 3, xEndPoint.u.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 4, xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] );
 }
 
 /**
@@ -534,7 +538,7 @@ void test_FreeRTOS_SetIPAddress_ValidEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     FreeRTOS_SetIPAddress( ulIPAddress );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->u.ipv4_settings.ulIPAddress );
 }
 
 /**
@@ -563,7 +567,7 @@ void test_FreeRTOS_SetGatewayAddress_ValidEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     FreeRTOS_SetGatewayAddress( ulIPAddress );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->u.ipv4_settings.ulGatewayAddress );
 }
 
 /**
@@ -589,11 +593,11 @@ void test_FreeRTOS_GetGatewayAddress_ValidEndpoint( void )
     uint32_t ulIPAddress = 0U;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-    pxEndpoint->ipv4_settings.ulGatewayAddress = 0x00ABCDEF;
+    pxEndpoint->u.ipv4_settings.ulGatewayAddress = 0x00ABCDEF;
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     ulIPAddress = FreeRTOS_GetGatewayAddress();
-    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulGatewayAddress, ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndpoint->u.ipv4_settings.ulGatewayAddress, ulIPAddress );
 }
 
 /**
@@ -620,11 +624,11 @@ void test_FreeRTOS_GetDNSServerAddress_ValidEndpoint( void )
     uint32_t ulIPAddress = 0U;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-    pxEndpoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = 0x00ABCDEF;
+    pxEndpoint->u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0x00ABCDEF;
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     ulIPAddress = FreeRTOS_GetDNSServerAddress();
-    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulDNSServerAddresses[ 0 ], ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndpoint->u.ipv4_settings.ulDNSServerAddresses[ 0 ], ulIPAddress );
 }
 
 /**
@@ -654,7 +658,7 @@ void test_FreeRTOS_SetNetmask_ValidEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     FreeRTOS_SetNetmask( ulIPAddress );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->u.ipv4_settings.ulNetMask );
 }
 
 /**
@@ -680,11 +684,11 @@ void test_FreeRTOS_GetNetmask_ValidEndpoint( void )
     uint32_t ulIPAddress = 0U;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-    pxEndpoint->ipv4_settings.ulNetMask = 0x00ABCDEF;
+    pxEndpoint->u.ipv4_settings.ulNetMask = 0x00ABCDEF;
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     ulIPAddress = FreeRTOS_GetNetmask();
-    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulNetMask, ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndpoint->u.ipv4_settings.ulNetMask, ulIPAddress );
 }
 
 /**
@@ -738,7 +742,7 @@ void test_FreeRTOS_GetMACAddress_ValidEndpoint( void )
 {
     NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
-    uint8_t * pucReturn = NULL;
+    const uint8_t * pucReturn = NULL;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
     memcpy( pxEndpoint->xMACAddress.ucBytes, ucMACAddress, ipMAC_ADDRESS_LENGTH_BYTES );
@@ -754,7 +758,7 @@ void test_FreeRTOS_GetMACAddress_ValidEndpoint( void )
  */
 void test_FreeRTOS_GetMACAddress_NullEndpoint( void )
 {
-    uint8_t * pucReturn = NULL;
+    const uint8_t * pucReturn = NULL;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, NULL );
 

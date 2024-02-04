@@ -73,8 +73,8 @@ static void dns_callback( const char * pcName,
 }
 
 /* ===========================  EXTERN VARIABLES  =========================== */
-extern pucAddrBuffer[ 2 ];
-extern pucSockAddrBuffer[ 1 ];
+struct freertos_addrinfo pucAddrBuffer[ 2 ];
+struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
 
 /* ============================  UNITY FIXTURES  ============================= */
 
@@ -164,7 +164,7 @@ void test_processDNS_CACHE_Success2( void )
     xTaskGetTickCount_ExpectAndReturn( 5000 );                 /* 5 seconds */
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( NULL );
 
-    ulReturn = FreeRTOS_dnslookup6( "hello", &pxIP );
+    ulReturn = FreeRTOS_dnslookup6( "hello", &( pxIP.xIPAddress.xIP_IPv6 ) );
 
     TEST_ASSERT_EQUAL( ulReturn, 1 );
 }
@@ -190,7 +190,7 @@ void test_processDNS_CACHE_Fail_IPv6( void )
 
     xTaskGetTickCount_ExpectAndReturn( 10000 );                /* 10 seconds */
 
-    ulReturn = FreeRTOS_dnslookup6( "helloworld", &pxIP );
+    ulReturn = FreeRTOS_dnslookup6( "helloworld", &( pxIP.xIPAddress.xIP_IPv6 ) );
 
     TEST_ASSERT_EQUAL( ulReturn, 0 );
 }
@@ -439,7 +439,7 @@ void test_prepare_DNSLookup( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
-    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 1 ];
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pucAddrBuffer;
     IPv46_Address_t xAddress;
     uint32_t ulIP = 1234U;
 
@@ -492,7 +492,7 @@ void test_prepare_DNSLookup2( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo * pxAddressInfo = NULL;
-    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
+    struct freertos_addrinfo ** ppxAddressInfo;
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET;
@@ -522,7 +522,6 @@ void test_prepare_DNSLookup3( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = NULL;
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET;
@@ -550,7 +549,6 @@ void test_prepare_DNSLookup4( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET;
@@ -577,8 +575,7 @@ void test_prepare_DNSLookup5( void )
 {
     BaseType_t x = 0U;
     BaseType_t xFamily;
-    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
-    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 1 ];
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pucAddrBuffer;
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET;
@@ -605,7 +602,6 @@ void test_prepare_DNSLookup6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET ^ FREERTOS_AF_INET6;
@@ -630,7 +626,7 @@ void test_prepare_DNSLookup_IPv6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
-    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 1 ];
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pucAddrBuffer;
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;
@@ -673,7 +669,7 @@ void test_prepare_DNSLookup2_IPv6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo * pxAddressInfo = NULL;
-    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
+    struct freertos_addrinfo ** ppxAddressInfo;
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;
@@ -703,7 +699,6 @@ void test_prepare_DNSLookup3_IPv6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = NULL;
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;
@@ -731,7 +726,6 @@ void test_prepare_DNSLookup4_IPv6( void )
     BaseType_t x = 0U;
     BaseType_t xFamily;
     struct freertos_addrinfo ** ppxAddressInfo = NULL;
-    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 0 ];
     IPv46_Address_t xAddress;
 
 
@@ -760,8 +754,7 @@ void test_prepare_DNSLookup5_IPv6( void )
 {
     BaseType_t x = 0U;
     BaseType_t xFamily;
-    struct freertos_addrinfo ** ppxAddressInfo = &pucAddrBuffer[ 0 ];
-    struct freertos_addrinfo * pxAddressInfo = &pucAddrBuffer[ 1 ];
+    struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pucAddrBuffer;
     IPv46_Address_t xAddress;
 
     xFamily = FREERTOS_AF_INET6;

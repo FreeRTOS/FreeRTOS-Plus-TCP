@@ -1832,7 +1832,7 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
 
         if( pxSocket->pxEndPoint != NULL )
         {
-            pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress );
+            pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->u.ipv4_settings.ulIPAddress );
             /*TODO Check if needed for ipv6 setting */
         }
         else

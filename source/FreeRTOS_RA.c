@@ -107,10 +107,10 @@
              pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
         {
             /* Check if it has the link-local prefix FE80::/10 */
-            if( ( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 0 ] == 0xfeU ) &&
-                ( ( pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 1 ] & 0xc0U ) == 0x80U ) )
+            if( ( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes[ 0 ] == 0xfeU ) &&
+                ( ( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes[ 1 ] & 0xc0U ) == 0x80U ) )
             {
-                ( void ) memcpy( pxAddress->ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( pxAddress->ucBytes, pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 xResult = pdPASS;
                 break;
             }
@@ -250,7 +250,7 @@
         {
             if( ( pxPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxPoint->xRAData.eRAState == eRAStateIPWait ) )
             {
-                if( memcmp( pxPoint->ipv6_settings.xIPAddress.ucBytes, pxICMPHeader_IPv6->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
+                if( memcmp( pxPoint->u.ipv6_settings.xIPAddress.ucBytes, pxICMPHeader_IPv6->xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
                 {
                     pxPoint->xRAData.bits.bIPAddressInUse = pdTRUE_UNSIGNED;
                     vDHCP_RATimerReload( pxPoint, 100U );
@@ -404,9 +404,9 @@
                     {
                         if( ( pxEndPoint->bits.bWantRA != pdFALSE_UNSIGNED ) && ( pxEndPoint->xRAData.eRAState == eRAStateWait ) )
                         {
-                            pxEndPoint->ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
-                            ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
-                            ( void ) memcpy( pxEndPoint->ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                            pxEndPoint->u.ipv6_settings.uxPrefixLength = pxPrefixOption->ucPrefixLength;
+                            ( void ) memcpy( pxEndPoint->u.ipv6_settings.xPrefix.ucBytes, pxPrefixOption->ucPrefix, ipSIZE_OF_IPv6_ADDRESS );
+                            ( void ) memcpy( pxEndPoint->u.ipv6_settings.xGatewayAddress.ucBytes, pxICMPPacket->xIPHeader.xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
                             pxEndPoint->xRAData.bits.bRouterReplied = pdTRUE_UNSIGNED;
                             pxEndPoint->xRAData.uxRetryCount = 0U;
@@ -456,7 +456,7 @@
             else
             {
                 FreeRTOS_printf( ( "RA: Giving up waiting for a Router.\n" ) );
-                ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
+                ( void ) memcpy( &( pxEndPoint->u.ipv6_settings ), &( pxEndPoint->u.ipv6_defaults ), sizeof( pxEndPoint->u.ipv6_settings ) );
 
                 pxEndPoint->xRAData.bits.bRouterReplied = pdFALSE_UNSIGNED;
                 pxEndPoint->xRAData.uxRetryCount = 0U;
@@ -491,9 +491,9 @@
                     /* Obtained configuration from a router. */
                     uxNewReloadTime = pdMS_TO_TICKS( 1000U * pxEndPoint->xRAData.ulPreferredLifeTime );
                     pxEndPoint->xRAData.eRAState = eRAStatePreLease;
-                    iptraceRA_SUCCEEDED( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                    iptraceRA_SUCCEEDED( &( pxEndPoint->u.ipv6_settings.xIPAddress ) );
                     FreeRTOS_printf( ( "RA: succeeded, using IP address %pip Reload after %u seconds\n",
-                                       ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                       ( void * ) pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes,
                                        ( unsigned ) pxEndPoint->xRAData.ulPreferredLifeTime ) );
                 }
                 else
@@ -501,9 +501,9 @@
                     /* Using the default network parameters. */
                     pxEndPoint->xRAData.eRAState = eRAStateFailed;
 
-                    iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                    iptraceRA_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( &( pxEndPoint->u.ipv6_settings.xIPAddress ) );
 
-                    FreeRTOS_printf( ( "RA: failed, using default parameters and IP address %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                    FreeRTOS_printf( ( "RA: failed, using default parameters and IP address %pip\n", ( void * ) pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes ) );
                     /* Disable the timer. */
                     uxNewReloadTime = 0U;
                 }
@@ -576,12 +576,12 @@
                    {
                        pxEndPoint->xRAData.bits.bIPAddressInUse = pdFALSE_UNSIGNED;
 
-                       ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->ipv6_settings.xIPAddress, &pxEndPoint->ipv6_settings.xPrefix, pxEndPoint->ipv6_settings.uxPrefixLength, pdTRUE );
+                       ( void ) FreeRTOS_CreateIPv6Address( &pxEndPoint->u.ipv6_settings.xIPAddress, &pxEndPoint->u.ipv6_settings.xPrefix, pxEndPoint->u.ipv6_settings.uxPrefixLength, pdTRUE );
 
                        FreeRTOS_printf( ( "RA: Creating a random IP-address\n" ) );
                    }
 
-                   FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes ) );
+                   FreeRTOS_printf( ( "RA: Neighbour solicitation for %pip\n", ( void * ) pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes ) );
 
                    uxNeededSize = ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( ICMPHeader_IPv6_t );
                    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( uxNeededSize, raDONT_BLOCK );
@@ -589,7 +589,7 @@
                    if( pxNetworkBuffer != NULL )
                    {
                        pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                       vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxEndPoint->ipv6_settings.xIPAddress ) );
+                       vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxEndPoint->u.ipv6_settings.xIPAddress ) );
                    }
 
                    uxNewReloadTime = pdMS_TO_TICKS( 1000U );
@@ -665,7 +665,7 @@
         {
             FreeRTOS_printf( ( "vRAProcess( %ld, %pip) bRouterReplied=%d bIPAddressInUse=%d state %d -> %d\n",
                                xDoReset,
-                               ( void * ) pxEndPoint->ipv6_defaults.xIPAddress.ucBytes,
+                               ( void * ) pxEndPoint->u.ipv6_defaults.xIPAddress.ucBytes,
                                pxEndPoint->xRAData.bits.bRouterReplied,
                                pxEndPoint->xRAData.bits.bIPAddressInUse,
                                eRAState,

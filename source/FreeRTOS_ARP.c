@@ -219,7 +219,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                 iptraceDROPPED_INVALID_ARP_PACKET( pxARPHeader );
             }
             /* Check whether there is a clash with another device for this IP address. */
-            else if( ( pxTargetEndPoint != NULL ) && ( ulSenderProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) )
+            else if( ( pxTargetEndPoint != NULL ) && ( ulSenderProtocolAddress == pxTargetEndPoint->u.ipv4_settings.ulIPAddress ) )
             {
                 if( uxARPClashCounter < arpIP_CLASH_MAX_RETRIES )
                 {
@@ -227,7 +227,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                     uxARPClashCounter++;
 
                     /* Send out a defensive ARP request. */
-                    FreeRTOS_OutputARPRequest( pxTargetEndPoint->ipv4_settings.ulIPAddress );
+                    FreeRTOS_OutputARPRequest( pxTargetEndPoint->u.ipv4_settings.ulIPAddress );
 
                     /* Since an ARP Request for this IP was just sent, do not send a gratuitous
                      * ARP for arpGRATUITOUS_ARP_PERIOD. */
@@ -245,7 +245,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                 {
                     NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 );
 
-                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
+                    if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->u.ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
                     {
                         xARPHadIPClash = pdTRUE;
                         /* Remember the MAC-address of the other device which has the same IP-address. */
@@ -265,7 +265,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                         FreeRTOS_debug_printf( ( "ipARP_REPLY from %xip to %xip end-point %xip\n",
                                                  ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
                                                  ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                                                 ( unsigned ) FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) );
+                                                 ( unsigned ) FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->u.ipv4_settings.ulIPAddress : 0U ) ) );
                     }
                 #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
@@ -277,7 +277,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                         FreeRTOS_debug_printf( ( "ipARP_REQUEST from %xip to %xip end-point %xip\n",
                                                  ( unsigned ) FreeRTOS_ntohl( ulSenderProtocolAddress ),
                                                  ( unsigned ) FreeRTOS_ntohl( ulTargetProtocolAddress ),
-                                                 ( unsigned ) ( FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->ipv4_settings.ulIPAddress : 0U ) ) ) );
+                                                 ( unsigned ) ( FreeRTOS_ntohl( ( pxTargetEndPoint != NULL ) ? pxTargetEndPoint->u.ipv4_settings.ulIPAddress : 0U ) ) ) );
                     }
                 #endif /* ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
 
@@ -292,7 +292,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                     {
                         case ipARP_REQUEST:
 
-                            if( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress )
+                            if( ulTargetProtocolAddress == pxTargetEndPoint->u.ipv4_settings.ulIPAddress )
                             {
                                 if( memcmp( pxTargetEndPoint->xMACAddress.ucBytes,
                                             pxARPHeader->xSenderHardwareAddress.ucBytes,
@@ -304,7 +304,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
                             }
                             /* Check if its a Gratuitous ARP request and verify if it belongs to same subnet mask. */
                             else if( ( ulSenderProtocolAddress == ulTargetProtocolAddress ) &&
-                                     ( ( ulSenderProtocolAddress & pxTargetEndPoint->ipv4_settings.ulNetMask ) == ( pxTargetEndPoint->ipv4_settings.ulNetMask & pxTargetEndPoint->ipv4_settings.ulIPAddress ) ) )
+                                     ( ( ulSenderProtocolAddress & pxTargetEndPoint->u.ipv4_settings.ulNetMask ) == ( pxTargetEndPoint->u.ipv4_settings.ulNetMask & pxTargetEndPoint->u.ipv4_settings.ulIPAddress ) ) )
                             {
                                 const MACAddress_t xGARPTargetAddress = { { 0, 0, 0, 0, 0, 0 } };
 
@@ -410,7 +410,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
         pvCopySource = pxTargetEndPoint->xMACAddress.ucBytes;
         pvCopyDest = pxARPHeader->xSenderHardwareAddress.ucBytes;
         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( MACAddress_t ) );
-        pvCopySource = &( pxTargetEndPoint->ipv4_settings.ulIPAddress );
+        pvCopySource = &( pxTargetEndPoint->u.ipv4_settings.ulIPAddress );
         pvCopyDest = pxARPHeader->ucSenderProtocolAddress;
         ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPHeader->ucSenderProtocolAddress ) );
     }
@@ -430,7 +430,7 @@ static TickType_t xLastGratuitousARPTime = 0U;
         uint32_t ulTargetProtocolAddress = pxARPHeader->ulTargetProtocolAddress;
 
         /* If the packet is meant for this device or if the entry already exists. */
-        if( ( ulTargetProtocolAddress == pxTargetEndPoint->ipv4_settings.ulIPAddress ) ||
+        if( ( ulTargetProtocolAddress == pxTargetEndPoint->u.ipv4_settings.ulIPAddress ) ||
             ( xIsIPInARPCache( ulSenderProtocolAddress ) == pdTRUE ) )
         {
             iptracePROCESSING_RECEIVED_ARP_REPLY( ulTargetProtocolAddress );
@@ -530,7 +530,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
                    /* coverity[misra_c_2012_rule_11_3_violation] */
                    const IPPacket_t * pxIPPacket = ( ( const IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
                    const IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
-                   const IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->ipv4_settings );
+                   const IPV4Parameters_t * pxIPv4Settings = &( pxNetworkBuffer->pxEndPoint->u.ipv4_settings );
 
                    if( ( pxIPHeader->ulSourceIPAddress & pxIPv4Settings->ulNetMask ) == ( pxIPv4Settings->ulIPAddress & pxIPv4Settings->ulNetMask ) )
                    {
@@ -1059,7 +1059,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                 if( *( ppxEndPoint ) != NULL )
                 {
                     /* 'ipv4_settings' can be accessed safely, because 'ipTYPE_IPv4' was provided. */
-                    ulAddressToLookup = ( *ppxEndPoint )->ipv4_settings.ulGatewayAddress;
+                    ulAddressToLookup = ( *ppxEndPoint )->u.ipv4_settings.ulGatewayAddress;
                 }
                 else
                 {
@@ -1216,14 +1216,14 @@ void vARPAgeCache( void )
 
         while( pxEndPoint != NULL )
         {
-            if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
+            if( ( pxEndPoint->bits.bEndPointUp != pdFALSE_UNSIGNED ) && ( pxEndPoint->u.ipv4_settings.ulIPAddress != 0U ) )
             {
                 /* Case default is never toggled because IPv6 flag can be TRUE or FALSE */
                 switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
-                            FreeRTOS_OutputARPRequest( pxEndPoint->ipv4_settings.ulIPAddress );
+                            FreeRTOS_OutputARPRequest( pxEndPoint->u.ipv4_settings.ulIPAddress );
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1282,7 +1282,7 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
          pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
     {
         if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
-            ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
+            ( pxEndPoint->u.ipv4_settings.ulIPAddress != 0U ) )
         {
             /* This is called from the context of the IP event task, so a block time
              * must not be used. */
@@ -1479,7 +1479,7 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
     pvCopyDest = pxARPPacket->xARPHeader.xSenderHardwareAddress.ucBytes;
     ( void ) memcpy( pvCopyDest, pvCopySource, ipMAC_ADDRESS_LENGTH_BYTES );
 
-    pvCopySource = &( pxNetworkBuffer->pxEndPoint->ipv4_settings.ulIPAddress );
+    pvCopySource = &( pxNetworkBuffer->pxEndPoint->u.ipv4_settings.ulIPAddress );
     pvCopyDest = pxARPPacket->xARPHeader.ucSenderProtocolAddress;
     ( void ) memcpy( pvCopyDest, pvCopySource, sizeof( pxARPPacket->xARPHeader.ucSenderProtocolAddress ) );
     pxARPPacket->xARPHeader.ulTargetProtocolAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;

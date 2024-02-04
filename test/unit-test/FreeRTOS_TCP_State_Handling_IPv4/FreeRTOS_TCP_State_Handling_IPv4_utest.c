@@ -80,7 +80,7 @@ void test_prvHandleListen_IPV4_NotForMe( void )
     struct xNetworkEndPoint xEndPoint = { 0 };
     TCPPacket_t * pxTCPPacket;
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0700a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0700a8c0;
 
     pxSocket = &xSocket;
 
@@ -88,7 +88,7 @@ void test_prvHandleListen_IPV4_NotForMe( void )
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     pxTCPPacket = ( TCPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxTCPPacket->xIPHeader.ulDestinationIPAddress = 0x12345678;
@@ -106,7 +106,7 @@ void test_prvHandleListen_IPV4_ReuseSocket( void )
     FreeRTOS_Socket_t * pxReturn = NULL;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
@@ -139,7 +139,7 @@ void test_prvHandleListen_IPV4_NewSocketExceedLimit( void )
     FreeRTOS_Socket_t * pxReturn = NULL;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
@@ -171,7 +171,7 @@ void test_prvHandleListen_IPV4_NewSocketGood( void )
     FreeRTOS_Socket_t MockReturnSocket;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
@@ -209,7 +209,7 @@ void test_prvHandleListen_IPV4_NewSocketGoodValidDataLength( void )
     FreeRTOS_Socket_t MockReturnSocket;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
@@ -248,7 +248,7 @@ void test_prvHandleListen_IPV4_NewSocketNULLSocket( void )
     FreeRTOS_Socket_t MockReturnSocket;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
@@ -281,7 +281,7 @@ void test_prvHandleListen_IPV4_NewSocketInvalidSocket( void )
     FreeRTOS_Socket_t MockReturnSocket;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
@@ -314,7 +314,7 @@ void test_prvHandleListen_IPV4_NewSocketSocketCopyFailure( void )
     FreeRTOS_Socket_t MockReturnSocket;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 
@@ -372,7 +372,7 @@ void test_prvHandleListen_IPV4_NullEndpoint( void )
     FreeRTOS_Socket_t * pxReturn = NULL;
     NetworkEndPoint_t xEndPoint = { 0 };
 
-    xEndPoint.ipv4_settings.ulIPAddress = 0x0800a8c0;
+    xEndPoint.u.ipv4_settings.ulIPAddress = 0x0800a8c0;
 
     pxSocket = &xSocket;
 

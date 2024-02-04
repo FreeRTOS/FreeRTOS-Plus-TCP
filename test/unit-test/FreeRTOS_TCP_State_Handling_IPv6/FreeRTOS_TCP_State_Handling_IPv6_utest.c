@@ -139,7 +139,7 @@ void test_prvHandleListen_IPV6_DifferentIP( void )
     /* Set different IPv6 address to endpoint & buffer. */
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xDifferentIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xDifferentIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxReturn = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
 
@@ -164,7 +164,7 @@ void test_prvHandleListen_IPV6_GetRandomFail( void )
     /* Set same IPv6 address to endpoint & buffer. */
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdFAIL );
 
@@ -192,7 +192,7 @@ void test_prvHandleListen_IPV6_ReuseSocket( void )
     /* Set same IPv6 address to endpoint & buffer. */
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
@@ -229,7 +229,7 @@ void test_prvHandleListen_IPV6_NewSocketExceedLimit( void )
     /* Set same IPv6 address to endpoint & buffer. */
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
@@ -264,7 +264,7 @@ void test_prvHandleListen_IPV6_NewSocketNull( void )
     /* Set same IPv6 address to endpoint & buffer. */
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
@@ -300,7 +300,7 @@ void test_prvHandleListen_IPV6_NewSocketInvalid( void )
     /* Set same IPv6 address to endpoint & buffer. */
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
@@ -337,7 +337,7 @@ void test_prvHandleListen_IPV6_NewSocketCopyFailure( void )
     /* Set same IPv6 address to endpoint & buffer. */
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
@@ -380,7 +380,7 @@ void test_prvHandleListen_IPV6_NewSocketGood( void )
     pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
     memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );
@@ -432,7 +432,7 @@ void test_prvHandleListen_IPV6_NewSocketGoodValidDataLength( void )
     pxTCPPacket->xTCPHeader.usSourcePort = FreeRTOS_htons( usSrcPort );
     memcpy( pxTCPPacket->xIPHeader.xSourceAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( pxTCPPacket->xIPHeader.xDestinationAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdPASS );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandomReturn, sizeof( ulRandomReturn ) );

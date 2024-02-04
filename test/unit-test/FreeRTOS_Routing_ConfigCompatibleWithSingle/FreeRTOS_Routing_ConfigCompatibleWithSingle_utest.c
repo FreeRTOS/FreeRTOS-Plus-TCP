@@ -106,10 +106,10 @@ void test_FreeRTOS_FillEndPoint_HappyPath( void )
 
     TEST_ASSERT_EQUAL( &xEndPoint, pxNetworkEndPoints );
     TEST_ASSERT_EQUAL( &xEndPoint, xInterfaces.pxEndPoint );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint.ipv4_defaults.ulIPAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint.ipv4_defaults.ulNetMask );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint.ipv4_defaults.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint.u.ipv4_defaults.ulIPAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint.u.ipv4_defaults.ulNetMask );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint.u.ipv4_defaults.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint.u.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
     TEST_ASSERT_EQUAL_MEMORY( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint.bits.bIPv6 );
 }
@@ -200,10 +200,10 @@ void test_FreeRTOS_FillEndPoint_MultipleEndpoints( void )
 
     TEST_ASSERT_EQUAL( &xEndPoint[ 0 ], pxNetworkEndPoints );
     TEST_ASSERT_EQUAL( &xEndPoint[ 0 ], xInterfaces.pxEndPoint );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint[ 0 ].ipv4_defaults.ulIPAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint[ 0 ].ipv4_defaults.ulNetMask );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint[ 0 ].ipv4_defaults.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint[ 0 ].ipv4_defaults.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint[ 0 ].u.ipv4_defaults.ulIPAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint[ 0 ].u.ipv4_defaults.ulNetMask );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint[ 0 ].u.ipv4_defaults.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint[ 0 ].u.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
     TEST_ASSERT_EQUAL_MEMORY( xEndPoint[ 0 ].xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint[ 0 ].bits.bIPv6 );
     memset( &xEndPoint[ 0 ], 0, sizeof( NetworkEndPoint_t ) );
@@ -250,10 +250,10 @@ void test_FreeRTOS_FillEndPoint_SameEndpoint( void )
 
     TEST_ASSERT_EQUAL( &xEndPoint, pxNetworkEndPoints );
     TEST_ASSERT_EQUAL( &xEndPoint, xInterfaces.pxEndPoint );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint.ipv4_defaults.ulIPAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint.ipv4_defaults.ulNetMask );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint.ipv4_defaults.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_ADDRESS, xEndPoint.u.ipv4_defaults.ulIPAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_NETMASK, xEndPoint.u.ipv4_defaults.ulNetMask );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_GATEWAY, xEndPoint.u.ipv4_defaults.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( IPV4_DEFAULT_DNS_SERVER, xEndPoint.u.ipv4_defaults.ulDNSServerAddresses[ 0 ] );
     TEST_ASSERT_EQUAL_MEMORY( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, ipMAC_ADDRESS_LENGTH_BYTES );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xEndPoint.bits.bIPv6 );
 
@@ -729,7 +729,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_HappyPath( void )
     NetworkEndPoint_t * pxEndPoint = NULL;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
 
     pxNetworkEndPoints = &xEndPoint;
 
@@ -756,7 +756,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_NotFound( void )
 
     /* Initialize e0. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     pxNetworkEndPoints = &xEndPoint;
 
     pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( IPV4_DEFAULT_GATEWAY, 0 );
@@ -780,7 +780,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv4_AnyEndpoint( void )
     NetworkEndPoint_t * pxEndPoint = NULL;
 
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     pxNetworkEndPoints = &xEndPoint;
 
     pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( 0, 0 );
@@ -905,8 +905,8 @@ void test_FreeRTOS_FindEndPointOnNetMask_HappyPath( void )
 
     /* Initialize network endpoint and add it to the list. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
-    xEndPoint.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
     pxNetworkEndPoints = &xEndPoint;
 
     /* IPV4_DEFAULT_DNS_SERVER is 192.168.123.1 within the network region. */
@@ -934,8 +934,8 @@ void test_FreeRTOS_FindEndPointOnNetMask_NotFound( void )
 
     /* Initialize network endpoint and add it to the list. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
-    xEndPoint.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
     pxNetworkEndPoints = &xEndPoint;
 
     /* 192.168.1.1 is 0x0101A8C0. */
@@ -968,8 +968,8 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_HappyPath( void )
 
     /* Initialize network endpoint and add it to the list. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
-    xEndPoint.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
     xEndPoint.pxNetworkInterface = &xNetworkInterface;
     pxNetworkEndPoints = &xEndPoint;
 
@@ -1003,8 +1003,8 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_NotFound( void )
 
     /* Initialize network endpoint and add it to the list. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
-    xEndPoint.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulNetMask = IPV4_DEFAULT_NETMASK;
     xEndPoint.pxNetworkInterface = &xNetworkInterface;
     pxNetworkEndPoints = &xEndPoint;
 
@@ -1032,7 +1032,7 @@ void test_FreeRTOS_FindGateWay_IPv4HappyPath( void )
 
     /* Initialize network endpoint and add it to the list. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulGatewayAddress = IPV4_DEFAULT_GATEWAY;
+    xEndPoint.u.ipv4_settings.ulGatewayAddress = IPV4_DEFAULT_GATEWAY;
     pxNetworkEndPoints = &xEndPoint;
 
     pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
@@ -1108,7 +1108,7 @@ void test_FreeRTOS_MatchingEndpoint_MatchIPv4Address()
 
     /* Initialize endpoint. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
     xEndPoint.pxNetworkInterface = &xNetworkInterface;
     pxNetworkEndPoints = &xEndPoint;
@@ -1143,7 +1143,7 @@ void test_FreeRTOS_FindEndPointOnIP_IPv6_HappyPath()
 
     /* Initialize endpoint. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
     xEndPoint.pxNetworkInterface = &xNetworkInterface;
     pxNetworkEndPoints = &xEndPoint;
@@ -1178,7 +1178,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_HappyPath()
 
     /* Initialize endpoint. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    xEndPoint.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
+    xEndPoint.u.ipv4_settings.ulIPAddress = IPV4_DEFAULT_ADDRESS;
     memcpy( xEndPoint.xMACAddress.ucBytes, ucDefaultMACAddress_IPv4, sizeof( ucDefaultMACAddress_IPv4 ) );
     xEndPoint.pxNetworkInterface = &xNetworkInterface;
     pxNetworkEndPoints = &xEndPoint;
