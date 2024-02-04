@@ -456,7 +456,7 @@ void test_prepare_DNSLookup( void )
     xAddress.xIs_IPv6 = pdFALSE;
     xAddress.xIPAddress.ulIP_IPv4 = ulIP;
 
-    struct freertos_addrinfo * pxAddrInfo = &pucAddrBuffer[ 2 ];
+    struct freertos_addrinfo * pxAddrInfo = &pucAddrBuffer[ 1 ];
 
     ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
     pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
