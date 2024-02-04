@@ -10,8 +10,8 @@ project ( "FreeRTOS+TCP Static analysis"
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Use C99.
-set( CMAKE_C_STANDARD 99 )
+# Use C90.
+set( CMAKE_C_STANDARD 90 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
 # Do not allow in-source build.
