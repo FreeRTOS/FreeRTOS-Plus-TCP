@@ -2805,24 +2805,6 @@ void test_FreeRTOS_OutputARPRequest( void )
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
 
     /* =================================================== */
-    /* OutputARPRequest_MinimumPacketSizeLessThanARPPacket */
-
-    xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
-    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
-
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
-    pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
-    xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
-
-    FreeRTOS_OutputARPRequest( ulIPAddress );
-    TEST_ASSERT_EQUAL( xNetworkInterfaceOutput_ARP_STUB_CallCount, 1 );
-
-    /* =================================================== */
-
-    xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
-
-    /* =================================================== */
 }
 
 void vStoreTimeValue( TimeOut_t * const timeout,

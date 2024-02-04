@@ -252,6 +252,7 @@ include( ${MODULE_ROOT_DIR}/test/unit-test/cmock/create_test.cmake )
 # Include unit-test build configuration
 
 include( ${UNIT_TEST_DIR}/FreeRTOS_ARP/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_ARP_DataLenLessThanMinPacket/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_BitConfig/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCP/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_DHCPv6/ut.cmake )
