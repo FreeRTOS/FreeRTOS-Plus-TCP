@@ -132,8 +132,8 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
     eARPLookupResult_t eReturned = eARPCacheMiss;
 
     FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                        ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
-                        ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
+                       ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                       ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
     if( pxNetworkBuffer->pxEndPoint == NULL )
     {
@@ -148,7 +148,7 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
         vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
         /* pxNetworkBuffer has been sent and released.
-            * Make sure it won't be used again.. */
+         * Make sure it won't be used again.. */
         *pxLostBuffer = pdTRUE;
     }
 

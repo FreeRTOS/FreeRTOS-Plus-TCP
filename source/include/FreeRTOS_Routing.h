@@ -149,7 +149,7 @@
             IPV6Parameters_t ipv6_settings; /**< Actual IPv6 settings used by the end-point. */
             IPV6Parameters_t ipv6_defaults; /**< Use values form "ipv6_defaults" in case DHCP has failed. */
         #endif
-        MACAddress_t xMACAddress; /**< The MAC-address assigned to this end-point. */
+        MACAddress_t xMACAddress;           /**< The MAC-address assigned to this end-point. */
         struct
         {
             uint32_t
@@ -316,9 +316,9 @@
                              NetworkEndPoint_t * pxEndPoint );
 
     #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
-    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
-                                 char * pcBuffer,
-                                 size_t uxSize );
+        const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                                     char * pcBuffer,
+                                     size_t uxSize );
     #endif /* ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) ) */
 
     typedef enum

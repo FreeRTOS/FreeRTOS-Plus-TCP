@@ -1051,15 +1051,16 @@ struct xIPv6_Couple
                         break;
                     }
                 }
+
                 #if ( ipconfigUSE_IPv4 != 0 )
-                else
-                if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
-                {
-                    if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U )
+                    else
+                    if( ( xIPType == ( BaseType_t ) ipTYPE_IPv4 ) && ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) )
                     {
-                        break;
+                        if( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U )
+                        {
+                            break;
+                        }
                     }
-                }
                 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
                 else
                 {
@@ -1486,6 +1487,7 @@ struct xIPv6_Couple
 /*-----------------------------------------------------------*/
 
 #if ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) )
+
 /**
  * @brief Returns the string representation of the IP address of the end point.
  *
@@ -1496,50 +1498,50 @@ struct xIPv6_Couple
  * @returns The pointer to the char buffer that contains the string representation of the end point IP address.
  *          The string will be "NULL" if the end point pointer is NULL.
  */
-const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
-                             char * pcBuffer,
-                             size_t uxSize )
-{
-    if( pxEndPoint == NULL )
+    const char * pcEndpointName( const NetworkEndPoint_t * pxEndPoint,
+                                 char * pcBuffer,
+                                 size_t uxSize )
     {
-        /* MISRA Ref 21.6.1 [snprintf and logging] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
-        /* coverity[misra_c_2012_rule_21_6_violation] */
-        ( void ) snprintf( pcBuffer, uxSize, "NULL" );
-    }
-    else
-    {
-        switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
+        if( pxEndPoint == NULL )
         {
-            #if ( ipconfigUSE_IPv4 != 0 )
-                case pdFALSE_UNSIGNED:
-                    ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
-                                                 ( const void * ) &( pxEndPoint->ipv4_settings.ulIPAddress ),
-                                                 pcBuffer,
-                                                 ( socklen_t ) uxSize );
-                    break;
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case pdTRUE_UNSIGNED:
-                    ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
-                                                 pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
-                                                 pcBuffer,
-                                                 ( socklen_t ) uxSize );
-                    break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
-            default:
-                /* MISRA 16.4 Compliance */
-                /* MISRA Ref 21.6.1 [snprintf and logging] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
-                /* coverity[misra_c_2012_rule_21_6_violation] */
-                ( void ) snprintf( pcBuffer, uxSize, "NULL" );
-                break;
+            /* MISRA Ref 21.6.1 [snprintf and logging] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+            /* coverity[misra_c_2012_rule_21_6_violation] */
+            ( void ) snprintf( pcBuffer, uxSize, "NULL" );
         }
-    }
+        else
+        {
+            switch( pxEndPoint->bits.bIPv6 ) /* LCOV_EXCL_BR_LINE */
+            {
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    case pdFALSE_UNSIGNED:
+                        ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET4,
+                                                     ( const void * ) &( pxEndPoint->ipv4_settings.ulIPAddress ),
+                                                     pcBuffer,
+                                                     ( socklen_t ) uxSize );
+                        break;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-    return pcBuffer;
-}
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    case pdTRUE_UNSIGNED:
+                        ( void ) FreeRTOS_inet_ntop( FREERTOS_AF_INET6,
+                                                     pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                                     pcBuffer,
+                                                     ( socklen_t ) uxSize );
+                        break;
+                #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                default:
+                    /* MISRA 16.4 Compliance */
+                    /* MISRA Ref 21.6.1 [snprintf and logging] */
+                    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+                    /* coverity[misra_c_2012_rule_21_6_violation] */
+                    ( void ) snprintf( pcBuffer, uxSize, "NULL" );
+                    break;
+            }
+        }
+
+        return pcBuffer;
+    }
 /*-----------------------------------------------------------*/
 #endif /* ( ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) ) */

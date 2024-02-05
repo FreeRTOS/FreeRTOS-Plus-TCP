@@ -82,7 +82,7 @@ struct xNetworkInterface;
 #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
 
 /* Returns the current state of a DHCP process. */
-eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
+    eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
 
 #endif
 

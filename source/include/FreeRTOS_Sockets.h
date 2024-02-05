@@ -540,7 +540,7 @@
             eSELECT_ALL = 0x000F,
             /* Reserved for internal use: */
             eSELECT_CALL_IP = 0x0010
-            /* end */
+                              /* end */
         } eSelectEvent_t;
 
 /* Add a socket to a socket set, and set the event bits of interest

@@ -142,16 +142,17 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 #endif
 
 #if ( ipconfigUSE_IPv4 != 0 )
-    /*
-    * Reduce the age count in each entry within the ARP cache.  An entry is no
-    * longer considered valid and is deleted if its age reaches zero.
-    */
+
+/*
+ * Reduce the age count in each entry within the ARP cache.  An entry is no
+ * longer considered valid and is deleted if its age reaches zero.
+ */
     void vARPAgeCache( void );
 
-    /*
-    * After DHCP is ready and when changing IP address, force a quick send of our new IP
-    * address
-    */
+/*
+ * After DHCP is ready and when changing IP address, force a quick send of our new IP
+ * address
+ */
     void vARPSendGratuitous( void );
 #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
