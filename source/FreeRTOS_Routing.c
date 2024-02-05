@@ -380,8 +380,12 @@ struct xIPv6_Couple
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Find the end-point which has a given IPv4 address.
+ * @brief Find the end-point which has a given IPv4 address. If an interface is specified,
+ * this function only searches on that interface. If pxInterface is NULL, the function
+ * searches all network interfaces.
  *
+ * @param[in] pxInterface The network interface on which the search is performed or NULL
+ *                     to search on all interfaces.
  * @param[in] ulIPAddress The IP-address of interest, or 0 if any IPv4 end-point may be returned.
  * @param[in] ulWhere For maintaining routing statistics ulWhere acts as an index to the data structure
  *                     that keep track of the number of times 'FreeRTOS_FindEndPointOnIP_IPv4()'
@@ -390,10 +394,11 @@ struct xIPv6_Couple
  *
  * @return The end-point found or NULL.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
+    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( const NetworkInterface_t * pxInterface,
+                                                        uint32_t ulIPAddress,
                                                         uint32_t ulWhere )
     {
-        NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+        NetworkEndPoint_t * pxEndPoint;
 
         #if ( ipconfigHAS_ROUTING_STATISTICS == 1 )
             uint32_t ulLocationCount = ( uint32_t ) ( sizeof( xRoutingStatistics.ulLocationsIP ) / sizeof( xRoutingStatistics.ulLocationsIP[ 0 ] ) );
@@ -406,7 +411,7 @@ struct xIPv6_Couple
             }
         #endif /* ( ipconfigHAS_ROUTING_STATISTICS == 1 ) */
 
-        while( pxEndPoint != NULL )
+        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface ); pxEndPoint != NULL; pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
         {
             #if ( ipconfigUSE_IPv4 != 0 )
                 #if ( ipconfigUSE_IPv6 != 0 )
@@ -421,8 +426,6 @@ struct xIPv6_Couple
                     }
                 }
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
-            pxEndPoint = pxEndPoint->pxNext;
         }
 
         ( void ) ulIPAddress;
@@ -1209,15 +1212,19 @@ struct xIPv6_Couple
 /**
  * @brief Find the end-point which has a given IPv4 address.
  *
+ * @param[in] pxInterface Not used
  * @param[in] ulIPAddress The IP-address of interest, or 0 if any IPv4 end-point may be returned.
+ * @param[in] ulWhere Not used
  *
  * @return The end-point found or NULL.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
+    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( const NetworkInterface_t * pxInterface,
+                                                        uint32_t ulIPAddress,
                                                         uint32_t ulWhere )
     {
         NetworkEndPoint_t * pxResult = NULL;
 
+        ( void ) pxInterface;
         ( void ) ulIPAddress;
         ( void ) ulWhere;
 

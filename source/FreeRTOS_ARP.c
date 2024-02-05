@@ -244,7 +244,7 @@ _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
                 /* Process received ARP frame to see if there is a clash. */
                 #if ( ipconfigARP_USE_CLASH_DETECTION != 0 )
                 {
-                    NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulSenderProtocolAddress, 2 );
+                    NetworkEndPoint_t * pxSourceEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( NULL, ulSenderProtocolAddress, 2 );
 
                     if( ( pxSourceEndPoint != NULL ) && ( pxSourceEndPoint->ipv4_settings.ulIPAddress == ulSenderProtocolAddress ) )
                     {
@@ -972,7 +972,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
 
         *( ppxEndPoint ) = NULL;
         ulAddressToLookup = *pulIPAddress;
-        pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( ulAddressToLookup, 0 );
+        pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( NULL, ulAddressToLookup, 0 );
 
         if( xIsIPv4Multicast( ulAddressToLookup ) != 0 )
         {

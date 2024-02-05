@@ -224,7 +224,8 @@
 /*
  * Find the end-point with given IP-address.
  */
-    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( uint32_t ulIPAddress,
+    NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv4( const NetworkInterface_t * pxInterface,
+                                                        uint32_t ulIPAddress,
                                                         uint32_t ulWhere );
 
     #if ( ipconfigUSE_IPv6 != 0 )
