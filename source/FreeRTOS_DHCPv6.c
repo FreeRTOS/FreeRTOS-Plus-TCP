@@ -74,7 +74,7 @@
 
 #define EP_DHCPData                    pxEndPoint->xDHCPData
 /** @brief Macro to access the IPv6 settings from the pxEndPoint */
-#define EP_IPv6_SETTINGS               pxEndPoint->u.ipv6_settings
+#define EP_IPv6_SETTINGS               pxEndPoint->ipv6_settings
 
 /** @brief The maximum size of send buffer. */
 #define DHCPv6_SEND_MAX_BUFFER_SIZE    ( 256 )
@@ -407,7 +407,7 @@ void vDHCPv6Process( BaseType_t xReset,
                 /* Use static IP address. */
                 taskENTER_CRITICAL();
                 {
-                    ( void ) memcpy( EP_IPv6_SETTINGS.xIPAddress.ucBytes, pxEndPoint->u.ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                    ( void ) memcpy( EP_IPv6_SETTINGS.xIPAddress.ucBytes, pxEndPoint->ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( EP_IPv6_SETTINGS.xIPAddress );
                 }
                 taskEXIT_CRITICAL();
@@ -482,7 +482,7 @@ void vDHCPv6Stop( struct xNetworkEndPoint * pxEndPoint )
 
 /**
  * @brief The DHCP process is about ready: the server sends a confirmation that the
- *        assigned IPv6 address may be used. The settings will be copied to 'pxEndPoint->u.ipv6_settings'.
+ *        assigned IPv6 address may be used. The settings will be copied to 'pxEndPoint->ipv6_settings'.
  * @param[in] pxEndPoint The end-point that is asking for an IP-address.
  * @param[in] pxDHCPMessage The reply received from the DHCP server.
  */
@@ -495,14 +495,14 @@ static void vDHCPv6ProcessEndPoint_HandleReply( NetworkEndPoint_t * pxEndPoint,
 
     /* DHCP completed.  The IP address can now be used, and the
      * timer set to the lease timeout time. */
-    pxEndPoint->u.ipv6_settings.uxPrefixLength = pxDHCPMessage->ucprefixLength;                                                             /* Number of valid bytes in the network prefix. */
-    ( void ) memcpy( pxEndPoint->u.ipv6_settings.xIPAddress.ucBytes, pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-    ( void ) memcpy( pxEndPoint->u.ipv6_settings.xPrefix.ucBytes, pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* The network prefix, e.g. fe80::/10 */
+    pxEndPoint->ipv6_settings.uxPrefixLength = pxDHCPMessage->ucprefixLength;                                                             /* Number of valid bytes in the network prefix. */
+    ( void ) memcpy( pxEndPoint->ipv6_settings.xIPAddress.ucBytes, pxDHCPMessage->xIPAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    ( void ) memcpy( pxEndPoint->ipv6_settings.xPrefix.ucBytes, pxDHCPMessage->xPrefixAddress.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* The network prefix, e.g. fe80::/10 */
     /*pxEndPoint->xGatewayAddress;	/ * Gateway to the web. * / */
 
     for( uxDNSIndex = 0; uxDNSIndex < pxDHCPMessage->uxDNSCount; uxDNSIndex++ )
     {
-        ( void ) memcpy( pxEndPoint->u.ipv6_settings.xDNSServerAddresses[ uxDNSIndex ].ucBytes, pxDHCPMessage->xDNSServers[ uxDNSIndex ].xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        ( void ) memcpy( pxEndPoint->ipv6_settings.xDNSServerAddresses[ uxDNSIndex ].ucBytes, pxDHCPMessage->xDNSServers[ uxDNSIndex ].xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     }
 
     EP_DHCPData.eDHCPState = eLeasedAddress;
@@ -574,7 +574,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleAdvertise( NetworkEndPoint_t * px
         {
             if( eAnswer == eDHCPUseDefaults )
             {
-                ( void ) memcpy( &( pxEndPoint->u.ipv6_settings ), &( pxEndPoint->u.ipv6_defaults ), sizeof( pxEndPoint->u.ipv6_settings ) );
+                ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
             }
 
             /* The user indicates that the DHCP process does not continue. */
@@ -643,7 +643,7 @@ static BaseType_t xDHCPv6ProcessEndPoint_HandleState( NetworkEndPoint_t * pxEndP
                 {
                     if( eAnswer == eDHCPUseDefaults )
                     {
-                        ( void ) memcpy( &( pxEndPoint->u.ipv6_settings ), &( pxEndPoint->u.ipv6_defaults ), sizeof( pxEndPoint->u.ipv6_settings ) );
+                        ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
                     }
 
                     /* The user indicates that the DHCP process does not continue. */
@@ -811,7 +811,7 @@ static void vDHCPv6ProcessEndPoint( BaseType_t xReset,
             /* Revert to static IP address. */
             taskENTER_CRITICAL();
             {
-                ( void ) memcpy( EP_IPv6_SETTINGS.xIPAddress.ucBytes, pxEndPoint->u.ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                ( void ) memcpy( EP_IPv6_SETTINGS.xIPAddress.ucBytes, pxEndPoint->ipv6_defaults.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                 iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IPv6_ADDRESS( EP_IPv6_SETTINGS.xIPAddress );
             }
             taskEXIT_CRITICAL();
@@ -1058,14 +1058,14 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 /* DHCPv6_Option_IA_Prefix */
                 uint32_t ulPreferredLifeTime = 4500U;
                 uint32_t ulPValidLifeTime = 7200U;
-                uint8_t ucPrefixLength = ( uint8_t ) pxEndPoint->u.ipv6_settings.uxPrefixLength;
+                uint8_t ucPrefixLength = ( uint8_t ) pxEndPoint->ipv6_settings.uxPrefixLength;
 
                 vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_Prefix );                                             /* usOption   Option is 26 */
                 vBitConfig_write_16( &( xMessage ), 25 );                                                                  /* usLength   length is 25 */
                 vBitConfig_write_32( &( xMessage ), ulPreferredLifeTime );                                                 /* 4500 */
                 vBitConfig_write_32( &( xMessage ), ulPValidLifeTime );                                                    /* e.g. 7200 seconds. */
                 vBitConfig_write_8( &( xMessage ), ucPrefixLength );                                                       /* e.g. 64 bits */
-                vBitConfig_write_uc( &( xMessage ), pxEndPoint->u.ipv6_settings.xPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* 2001:0:0:fe00:: */
+                vBitConfig_write_uc( &( xMessage ), pxEndPoint->ipv6_settings.xPrefix.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); /* 2001:0:0:fe00:: */
 
                 vBitConfig_write_16( &( xMessage ), DHCPv6_Option_NonTemporaryAddress );                                   /* usOption   Option is 3 */
                 vBitConfig_write_16( &( xMessage ), 12 );                                                                  /* usLength   length is 12 */

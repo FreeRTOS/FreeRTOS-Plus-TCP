@@ -360,14 +360,14 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
     pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    pxEndPoint->u.ipv4_defaults.ulIPAddress = 0x12345678;
+    pxEndPoint->ipv4_defaults.ulIPAddress = 0x12345678;
 
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = ( eDHCPContinue + eDHCPUseDefaults ) << 2;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Expect the timer to be disabled. */
@@ -382,8 +382,8 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
     /* The state should indicate that we are not using leased address. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that the Endpoint IP address pointer indicates that. */
-    /*TEST_ASSERT_EQUAL( pxEndPoint->u.ipv4_defaults.ulIPAddress, *ipLOCAL_IP_ADDRESS_POINTER ); */
-    TEST_ASSERT_EQUAL( pxEndPoint->u.ipv4_defaults.ulIPAddress, pxEndPoint->u.ipv4_settings.ulIPAddress );
+    /*TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, *ipLOCAL_IP_ADDRESS_POINTER ); */
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
@@ -399,9 +399,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    pxEndPoint->u.ipv4_defaults.ulIPAddress = 0x12345678;
+    pxEndPoint->ipv4_defaults.ulIPAddress = 0x12345678;
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
@@ -410,7 +410,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = ( eDHCPContinue + eDHCPUseDefaults ) << 2;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Expect the timer to be disabled. */
@@ -428,7 +428,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNonNULL( void )
     /* The state should indicate that we are not using leased address. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that the local IP address pointer indicates that. */
-    TEST_ASSERT_EQUAL( pxEndPoint->u.ipv4_defaults.ulIPAddress, pxEndPoint->u.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
 void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
@@ -444,11 +444,11 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     pxEndPoint->xDHCPData.eDHCPState = eWaitingSendFirstDiscover;
     pxEndPoint->xDHCPData.eExpectedState = eWaitingSendFirstDiscover;
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     /* Expect these arguments. */
     FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK, NULL, NULL, 0 );
@@ -457,7 +457,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPUseDefaults;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Expect the timer to be disabled. */
@@ -475,9 +475,9 @@ void test_vDHCPProcess_CorrectStateDHCPHookDefaultReturn( void )
     /* The state should indicate that we are not using leased address. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that the network addressing struct is updated to show that. */
-    TEST_ASSERT_EQUAL_MEMORY( &pxEndPoint->u.ipv4_defaults, &pxEndPoint->u.ipv4_settings, sizeof( IPV4Parameters_t ) );
+    TEST_ASSERT_EQUAL_MEMORY( &pxEndPoint->ipv4_defaults, &pxEndPoint->ipv4_settings, sizeof( IPV4Parameters_t ) );
     /* Make sure that the local IP address pointer indicates that. */
-    TEST_ASSERT_EQUAL( pxEndPoint->u.ipv4_defaults.ulIPAddress, pxEndPoint->u.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
 /* GNW = getNetworkBufferWithDescriptor */
@@ -501,7 +501,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButGNW
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     xTaskGetTickCount_ExpectAndReturn( 100 );
@@ -539,7 +539,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNotNULLButHos
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     xTaskGetTickCount_ExpectAndReturn( 100 );
@@ -571,7 +571,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnDHCPSocketNULL( void )
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Expect the timer to be disabled. */
@@ -611,7 +611,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast( v
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Return the time value. */
@@ -659,7 +659,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsNoBroadcast_NU
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Return the time value. */
@@ -708,7 +708,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendFailsUseBroadCast( 
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Return the time value. */
@@ -758,7 +758,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Return the time value. */
@@ -809,7 +809,7 @@ void test_vDHCPProcess_CorrectStateDHCPHookContinueReturnSendSucceedsUseBroadCas
     /* Make sure that the user indicates anything else than the desired options. */
     eStubExpectedDHCPPhase = eDHCPPhasePreDiscover;
     pxStubExpectedEndPoint = pxEndPoint;
-    ulStubExpectedIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+    ulStubExpectedIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     eStubExpectedReturn = eDHCPContinue;
     xApplicationDHCPHook_Multi_Stub( xStubApplicationDHCPHook_Multi );
     /* Return the time value. */
@@ -1196,11 +1196,11 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage( void )
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -1237,11 +1237,11 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_Transacti
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEE;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
     pxNetworkEndPoints->pxNext = NULL;
@@ -1278,11 +1278,11 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TwoFlagOp
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -1316,11 +1316,11 @@ void test_vDHCPProcess_eLeasedAddress_CorrectState_ValidBytesInMessage_TwoFlagOp
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -1354,11 +1354,11 @@ void test_vDHCPProcess_eLeasedAddress_IncorrectDHCPCookie_ValidBytesInMessage( v
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -1394,11 +1394,11 @@ void test_vDHCPProcess_eLeasedAddress_IncorrectOpCode_ValidBytesInMessage( void 
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -1439,11 +1439,11 @@ void test_vDHCPProcess_eWaitingOffer_CorrectState_ValidBytesInMessage_MatchingEn
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -1484,11 +1484,11 @@ void test_vDHCPProcess_eWaitingAcknowledge_CorrectState_ValidBytesInMessage_diff
     pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_settings, 0xAA, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint->u.ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint->ipv4_defaults, 0xBB, sizeof( IPV4Parameters_t ) );
 
     /* Put the required state. */
     pxEndPoint_2->xDHCPData.eDHCPState = eWaitingAcknowledge;
@@ -1496,11 +1496,11 @@ void test_vDHCPProcess_eWaitingAcknowledge_CorrectState_ValidBytesInMessage_diff
     pxEndPoint_2->xDHCPData.ulTransactionId = 0x01ABCDEF;
 
     /* Make sure that the local IP address is uninitialised. */
-    pxEndPoint_2->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint_2->ipv4_settings.ulIPAddress = 0;
     /* Put a verifiable value. */
-    memset( &pxEndPoint_2->u.ipv4_settings, 0xBB, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint_2->ipv4_settings, 0xBB, sizeof( IPV4Parameters_t ) );
     /* Put a verifiable value. */
-    memset( &pxEndPoint_2->u.ipv4_defaults, 0xAA, sizeof( IPV4Parameters_t ) );
+    memset( &pxEndPoint_2->ipv4_defaults, 0xAA, sizeof( IPV4Parameters_t ) );
 
     pxNetworkEndPoints = pxEndPoint_2;
     pxEndPoint_2->pxNext = pxEndPoint;
@@ -2844,7 +2844,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     pxEndPoint->xDHCPData.ulOfferedIPAddress = DHCPServerAddress;
 
     /* Rest the network addressing values. */
-    memset( &( pxEndPoint->u.ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
+    memset( &( pxEndPoint->ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -2923,7 +2923,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     TEST_ASSERT_EQUAL( NULL, pxEndPoint->xDHCPData.xDHCPSocket );
     /* The state should indicate that sending failed. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->u.ipv4_settings ), &( pxEndPoint->u.ipv4_defaults ), sizeof( IPV4Parameters_t ) );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( IPV4Parameters_t ) );
 }
 
 void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnErrorSendSucceeds( void )
@@ -3023,7 +3023,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     TEST_ASSERT_EQUAL( NULL, pxEndPoint->xDHCPData.xDHCPSocket );
     /* The state should indicate that sending failed. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->u.ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
 }
 
 
@@ -3043,7 +3043,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
 
 
     /* Rest the network addressing values. */
-    memset( &( pxEndPoint->u.ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
+    memset( &( pxEndPoint->ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
     memset( &( testMemory ), 0, sizeof( IPV4Parameters_t ) );
 
     /* Set the header - or at least the start of DHCP message. */
@@ -3110,7 +3110,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
     TEST_ASSERT_EQUAL( &xTestSocket, pxEndPoint->xDHCPData.xDHCPSocket );
     /* Still waiting on acknowledge. */
     TEST_ASSERT_EQUAL( eWaitingAcknowledge, pxEndPoint->xDHCPData.eDHCPState );
-    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->u.ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
 }
 
 void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfails( void )
@@ -3128,7 +3128,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
 
     /* Rest the network addressing values. */
-    memset( &( pxEndPoint->u.ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
+    memset( &( pxEndPoint->ipv4_settings ), 0, sizeof( IPV4Parameters_t ) );
     memset( &( testMemory ), 0, sizeof( IPV4Parameters_t ) );
 
     /* Set the header - or at least the start of DHCP message. */
@@ -3204,7 +3204,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     TEST_ASSERT_EQUAL( eSendDHCPRequest, pxEndPoint->xDHCPData.eDHCPState );
     /* The time value should be stored in the state machine. */
     TEST_ASSERT_EQUAL( xTimeValue, pxEndPoint->xDHCPData.xDHCPTxTime );
-    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->u.ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
+    TEST_ASSERT_EQUAL_MEMORY( &( pxEndPoint->ipv4_settings ), &( testMemory ), sizeof( IPV4Parameters_t ) );
 }
 
 void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBSucceeds( void )
@@ -3543,7 +3543,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3642,7 +3642,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     pxEndPoint->xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME - 10;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3739,7 +3739,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     pxEndPoint->xDHCPData.ulLeaseTime = dhcpMINIMUM_LEASE_TIME + 10;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3841,7 +3841,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
     pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3928,7 +3928,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_OFFER( void )
     pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -3968,7 +3968,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->u.ipv4_settings );
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -4058,7 +4058,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -4114,7 +4114,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->u.ipv4_settings );
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -4204,7 +4204,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -4261,7 +4261,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->u.ipv4_settings );
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -4351,7 +4351,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -4407,7 +4407,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->u.ipv4_settings );
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -4497,7 +4497,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -4553,7 +4553,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->u.ipv4_settings );
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -4643,7 +4643,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -4699,7 +4699,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress2( void )
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->u.ipv4_settings );
+    IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
     DHCPMsg[ xTotalLength - 1U ] = 0xFF;
 
@@ -4789,7 +4789,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress2( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -4907,7 +4907,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -5024,7 +5024,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -5148,7 +5148,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -5282,7 +5282,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -5415,7 +5415,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength2( void )
     pxEndPoint->xDHCPData.ulLeaseTime = 0;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );
@@ -5493,7 +5493,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthOfPacket( void )
     pxEndPoint->xDHCPData.xDHCPTxPeriod = 100;
 
     /* Reset this value so that it can be verified later. */
-    pxEndPoint->u.ipv4_settings.ulIPAddress = 0;
+    pxEndPoint->ipv4_settings.ulIPAddress = 0;
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Generic );

@@ -1066,22 +1066,22 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
 
         if( pulIPAddress != NULL )
         {
-            *pulIPAddress = pxEndPoint->u.ipv4_settings.ulIPAddress;
+            *pulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
         }
 
         if( pulNetMask != NULL )
         {
-            *pulNetMask = pxEndPoint->u.ipv4_settings.ulNetMask;
+            *pulNetMask = pxEndPoint->ipv4_settings.ulNetMask;
         }
 
         if( pulGatewayAddress != NULL )
         {
-            *pulGatewayAddress = pxEndPoint->u.ipv4_settings.ulGatewayAddress;
+            *pulGatewayAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
         }
 
         if( pulDNSServerAddress != NULL )
         {
-            *pulDNSServerAddress = pxEndPoint->u.ipv4_settings.ulDNSServerAddresses[ 0 ]; /*_RB_ Only returning the address of the first DNS server. */
+            *pulDNSServerAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ]; /*_RB_ Only returning the address of the first DNS server. */
         }
     }
 }
@@ -1141,22 +1141,22 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
     {
         if( pulIPAddress != NULL )
         {
-            pxEndPoint->u.ipv4_settings.ulIPAddress = *pulIPAddress;
+            pxEndPoint->ipv4_settings.ulIPAddress = *pulIPAddress;
         }
 
         if( pulNetMask != NULL )
         {
-            pxEndPoint->u.ipv4_settings.ulNetMask = *pulNetMask;
+            pxEndPoint->ipv4_settings.ulNetMask = *pulNetMask;
         }
 
         if( pulGatewayAddress != NULL )
         {
-            pxEndPoint->u.ipv4_settings.ulGatewayAddress = *pulGatewayAddress;
+            pxEndPoint->ipv4_settings.ulGatewayAddress = *pulGatewayAddress;
         }
 
         if( pulDNSServerAddress != NULL )
         {
-            pxEndPoint->u.ipv4_settings.ulDNSServerAddresses[ 0 ] = *pulDNSServerAddress;
+            pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = *pulDNSServerAddress;
         }
     }
 }
@@ -2215,13 +2215,13 @@ uint32_t FreeRTOS_GetIPAddress( void )
     {
         ulIPAddress = 0U;
     }
-    else if( pxEndPoint->u.ipv4_settings.ulIPAddress != 0U )
+    else if( pxEndPoint->ipv4_settings.ulIPAddress != 0U )
     {
-        ulIPAddress = pxEndPoint->u.ipv4_settings.ulIPAddress;
+        ulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
     }
     else
     {
-        ulIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+        ulIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
     }
 
     return ulIPAddress;
@@ -2247,7 +2247,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
         if( pxEndPoint != NULL )
         {
-            pxEndPoint->u.ipv4_settings.ulIPAddress = ulIPAddress;
+            pxEndPoint->ipv4_settings.ulIPAddress = ulIPAddress;
         }
     }
 /*-----------------------------------------------------------*/
@@ -2265,7 +2265,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
         if( pxEndPoint != NULL )
         {
-            ulIPAddress = pxEndPoint->u.ipv4_settings.ulGatewayAddress;
+            ulIPAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
         }
 
         return ulIPAddress;
@@ -2284,7 +2284,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
         if( pxEndPoint != NULL )
         {
-            ulIPAddress = pxEndPoint->u.ipv4_settings.ulDNSServerAddresses[ 0 ];
+            ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ];
         }
 
         return ulIPAddress;
@@ -2303,7 +2303,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
         if( pxEndPoint != NULL )
         {
-            ulIPAddress = pxEndPoint->u.ipv4_settings.ulNetMask;
+            ulIPAddress = pxEndPoint->ipv4_settings.ulNetMask;
         }
 
         return ulIPAddress;
@@ -2358,7 +2358,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
         if( pxEndPoint != NULL )
         {
-            pxEndPoint->u.ipv4_settings.ulNetMask = ulNetmask;
+            pxEndPoint->ipv4_settings.ulNetMask = ulNetmask;
         }
     }
 /*-----------------------------------------------------------*/
@@ -2374,7 +2374,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
 
         if( pxEndPoint != NULL )
         {
-            pxEndPoint->u.ipv4_settings.ulGatewayAddress = ulGatewayAddress;
+            pxEndPoint->ipv4_settings.ulGatewayAddress = ulGatewayAddress;
         }
     }
 /*-----------------------------------------------------------*/

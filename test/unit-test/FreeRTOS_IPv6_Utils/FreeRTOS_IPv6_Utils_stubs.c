@@ -65,7 +65,7 @@ static NetworkEndPoint_t * prvInitializeEndpoint()
 
     memset( &xEndpoint, 0, sizeof( xEndpoint ) );
     xEndpoint.bits.bIPv6 = 1U;
-    memcpy( xEndpoint.u.ipv6_settings.xIPAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndpoint.ipv6_settings.xIPAddress.ucBytes, xIPAddressFive.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     return &xEndpoint;
 }

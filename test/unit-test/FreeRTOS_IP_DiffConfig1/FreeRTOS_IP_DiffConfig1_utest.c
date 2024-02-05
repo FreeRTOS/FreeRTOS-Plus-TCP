@@ -471,10 +471,10 @@ void test_FreeRTOS_GetAddressConfiguration_HappyPath( void )
 
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    xEndPoint.u.ipv4_settings.ulIPAddress = 1;
-    xEndPoint.u.ipv4_settings.ulNetMask = 2;
-    xEndPoint.u.ipv4_settings.ulGatewayAddress = 3;
-    xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
+    xEndPoint.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.ipv4_settings.ulNetMask = 2;
+    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 4;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
     FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
@@ -508,16 +508,16 @@ void test_FreeRTOS_SetAddressConfiguration_HappyPath( void )
 
     memset( &xEndPoint, 0, sizeof( xEndPoint ) );
 
-    xEndPoint.u.ipv4_settings.ulIPAddress = 1;
-    xEndPoint.u.ipv4_settings.ulNetMask = 2;
-    xEndPoint.u.ipv4_settings.ulGatewayAddress = 3;
+    xEndPoint.ipv4_settings.ulIPAddress = 1;
+    xEndPoint.ipv4_settings.ulNetMask = 2;
+    xEndPoint.ipv4_settings.ulGatewayAddress = 3;
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
     FreeRTOS_SetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, &ulDNSServerAddress );
-    TEST_ASSERT_EQUAL( 1, xEndPoint.u.ipv4_settings.ulIPAddress );
-    TEST_ASSERT_EQUAL( 2, xEndPoint.u.ipv4_settings.ulNetMask );
-    TEST_ASSERT_EQUAL( 3, xEndPoint.u.ipv4_settings.ulGatewayAddress );
-    TEST_ASSERT_EQUAL( 4, xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] );
+    TEST_ASSERT_EQUAL( 1, xEndPoint.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( 2, xEndPoint.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( 3, xEndPoint.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( 4, xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] );
 }
 
 /**
@@ -543,7 +543,7 @@ void test_FreeRTOS_SetIPAddress_ValidEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     FreeRTOS_SetIPAddress( ulIPAddress );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->u.ipv4_settings.ulIPAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulIPAddress );
 }
 
 /**
@@ -572,7 +572,7 @@ void test_FreeRTOS_SetGatewayAddress_ValidEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     FreeRTOS_SetGatewayAddress( ulIPAddress );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->u.ipv4_settings.ulGatewayAddress );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulGatewayAddress );
 }
 
 /**
@@ -598,11 +598,11 @@ void test_FreeRTOS_GetGatewayAddress_ValidEndpoint( void )
     uint32_t ulIPAddress = 0U;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-    pxEndpoint->u.ipv4_settings.ulGatewayAddress = 0x00ABCDEF;
+    pxEndpoint->ipv4_settings.ulGatewayAddress = 0x00ABCDEF;
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     ulIPAddress = FreeRTOS_GetGatewayAddress();
-    TEST_ASSERT_EQUAL( pxEndpoint->u.ipv4_settings.ulGatewayAddress, ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulGatewayAddress, ulIPAddress );
 }
 
 /**
@@ -629,11 +629,11 @@ void test_FreeRTOS_GetDNSServerAddress_ValidEndpoint( void )
     uint32_t ulIPAddress = 0U;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-    pxEndpoint->u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0x00ABCDEF;
+    pxEndpoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = 0x00ABCDEF;
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     ulIPAddress = FreeRTOS_GetDNSServerAddress();
-    TEST_ASSERT_EQUAL( pxEndpoint->u.ipv4_settings.ulDNSServerAddresses[ 0 ], ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulDNSServerAddresses[ 0 ], ulIPAddress );
 }
 
 /**
@@ -663,7 +663,7 @@ void test_FreeRTOS_SetNetmask_ValidEndpoint( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     FreeRTOS_SetNetmask( ulIPAddress );
-    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->u.ipv4_settings.ulNetMask );
+    TEST_ASSERT_EQUAL( ulIPAddress, pxEndpoint->ipv4_settings.ulNetMask );
 }
 
 /**
@@ -689,11 +689,11 @@ void test_FreeRTOS_GetNetmask_ValidEndpoint( void )
     uint32_t ulIPAddress = 0U;
 
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
-    pxEndpoint->u.ipv4_settings.ulNetMask = 0x00ABCDEF;
+    pxEndpoint->ipv4_settings.ulNetMask = 0x00ABCDEF;
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndpoint );
 
     ulIPAddress = FreeRTOS_GetNetmask();
-    TEST_ASSERT_EQUAL( pxEndpoint->u.ipv4_settings.ulNetMask, ulIPAddress );
+    TEST_ASSERT_EQUAL( pxEndpoint->ipv4_settings.ulNetMask, ulIPAddress );
 }
 
 /**

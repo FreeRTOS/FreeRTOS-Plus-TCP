@@ -662,7 +662,7 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
     xEndPoint.bits.bWantRA = pdFALSE_UNSIGNED;
     xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
     xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
-    memcpy( xEndPoint.u.ipv6_defaults.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_defaults.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
@@ -675,7 +675,7 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
 
     prvProcessNetworkDownEvent( &xInterface );
 
-    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, xEndPoint.ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 }
 
 /**

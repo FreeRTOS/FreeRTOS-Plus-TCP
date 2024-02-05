@@ -936,13 +936,13 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case pdFALSE_UNSIGNED:
-                            ( void ) memcpy( &( pxEndPoint->u.ipv4_settings ), &( pxEndPoint->u.ipv4_defaults ), sizeof( pxEndPoint->u.ipv4_settings ) );
+                            ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                             break;
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                     #if ( ipconfigUSE_IPv6 != 0 )
                         case pdTRUE_UNSIGNED:
-                            ( void ) memcpy( &( pxEndPoint->u.ipv6_settings ), &( pxEndPoint->u.ipv6_defaults ), sizeof( pxEndPoint->u.ipv6_settings ) );
+                            ( void ) memcpy( &( pxEndPoint->ipv6_settings ), &( pxEndPoint->ipv6_defaults ), sizeof( pxEndPoint->ipv6_settings ) );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
@@ -951,7 +951,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                         break;
                 }
 
-                *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->u.ipv4_settings.ulIPAddress;
+                *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
 
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */

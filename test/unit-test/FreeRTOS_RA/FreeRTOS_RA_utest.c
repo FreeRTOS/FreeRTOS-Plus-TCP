@@ -138,11 +138,11 @@ void test_vNDSendRouterSolicitation_xHasLocal0( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxICMPPacket->xIPHeader = xIPHeader;
 
-    memset( &xEndPoint.u.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
+    memset( &xEndPoint.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
     memset( &pxICMPPacket->xIPHeader, 0, sizeof( IPHeader_IPv6_t ) );
 
     /* Link-Local unicast address prefixed FE80::/10 */
-    xEndPoint.u.ipv6_settings.xIPAddress.ucBytes[ 0 ] = 0xfeU;
+    xEndPoint.ipv6_settings.xIPAddress.ucBytes[ 0 ] = 0xfeU;
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
@@ -178,12 +178,12 @@ void test_vNDSendRouterSolicitation_xHasLocal1( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxICMPPacket->xIPHeader = xIPHeader;
 
-    memset( &xEndPoint.u.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
+    memset( &xEndPoint.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
     memset( &pxICMPPacket->xIPHeader, 0, sizeof( IPHeader_IPv6_t ) );
 
     /* Link-Local unicast address prefixed FE80::/10 */
-    xEndPoint.u.ipv6_settings.xIPAddress.ucBytes[ 0 ] = 0xfeU;
-    xEndPoint.u.ipv6_settings.xIPAddress.ucBytes[ 1 ] = 0x80U;
+    xEndPoint.ipv6_settings.xIPAddress.ucBytes[ 0 ] = 0xfeU;
+    xEndPoint.ipv6_settings.xIPAddress.ucBytes[ 1 ] = 0x80U;
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
@@ -219,7 +219,7 @@ void test_vNDSendRouterSolicitation_NullDesc( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxICMPPacket->xIPHeader = xIPHeader;
 
-    memset( &xEndPoint.u.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
+    memset( &xEndPoint.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
     memset( &pxICMPPacket->xIPHeader, 0, sizeof( IPHeader_IPv6_t ) );
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
@@ -256,7 +256,7 @@ void test_vNDSendRouterSolicitation_HappyPath( void )
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
     pxICMPPacket->xIPHeader = xIPHeader;
 
-    memset( &xEndPoint.u.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
+    memset( &xEndPoint.ipv6_settings, 0, sizeof( IPV6Parameters_t ) );
     memset( &pxICMPPacket->xIPHeader, 0, sizeof( IPHeader_IPv6_t ) );
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
@@ -369,7 +369,7 @@ void test_vReceiveNA_bIPAddressNotInUse3( void )
     xEndPoint.bits.bWantRA = pdTRUE_UNSIGNED;
     xEndPoint.xRAData.eRAState = eRAStateIPWait;
 
-    memset( xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
+    memset( xEndPoint.ipv6_settings.xIPAddress.ucBytes, 0, ipSIZE_OF_IPv6_ADDRESS );
     memset( xICMPPacket.xICMPHeaderIPv6.xIPv6Address.ucBytes, 1, ipSIZE_OF_IPv6_ADDRESS );
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
     FreeRTOS_NextEndPoint_ExpectAnyArgsAndReturn( NULL );
@@ -429,7 +429,7 @@ void test_vReceiveNA_bIPAddressInUse( void )
     /* Setting IPv6 address as "fe80::7009" */
     memcpy( &xIPAddress, &xDefaultIPAddress, sizeof( IPv6_Address_t ) );
 
-    memcpy( xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     memcpy( xICMPPacket.xICMPHeaderIPv6.xIPv6Address.ucBytes, xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( &xEndPoint );
@@ -946,7 +946,7 @@ void test_vReceiveRA_vRAProcess( void )
     vReceiveRA( pxNetworkBuffer );
 
 
-    TEST_ASSERT_EQUAL( pxEndPoint->u.ipv6_settings.uxPrefixLength, pxPrefixOption->ucPrefixLength );
+    TEST_ASSERT_EQUAL( pxEndPoint->ipv6_settings.uxPrefixLength, pxPrefixOption->ucPrefixLength );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, pxEndPoint->xRAData.bits.bRouterReplied );
     TEST_ASSERT_EQUAL( 0, pxEndPoint->xRAData.uxRetryCount );
     TEST_ASSERT_EQUAL( FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ), pxEndPoint->xRAData.ulPreferredLifeTime );

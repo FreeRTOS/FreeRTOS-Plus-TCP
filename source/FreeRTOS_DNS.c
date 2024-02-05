@@ -730,7 +730,7 @@
  */
         static void prvIncreaseDNS6Index( NetworkEndPoint_t * pxEndPoint )
         {
-            uint8_t ucIndex = pxEndPoint->u.ipv6_settings.ucDNSIndex;
+            uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
             uint8_t ucInitialIndex = ucIndex;
 
             for( ; ; )
@@ -742,7 +742,7 @@
                     ucIndex = 0U;
                 }
 
-                if( ( pxEndPoint->u.ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes[ 0 ] != 0U ) ||
+                if( ( pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes[ 0 ] != 0U ) ||
                     ( ucInitialIndex == ucIndex ) )
                 {
                     break;
@@ -750,7 +750,7 @@
             }
 
             FreeRTOS_printf( ( "prvIncreaseDNS6Index: from %d to %d\n", ( int ) ucInitialIndex, ( int ) ucIndex ) );
-            pxEndPoint->u.ipv6_settings.ucDNSIndex = ucIndex;
+            pxEndPoint->ipv6_settings.ucDNSIndex = ucIndex;
         }
     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
@@ -765,7 +765,7 @@
  */
         static void prvIncreaseDNS4Index( NetworkEndPoint_t * pxEndPoint )
         {
-            uint8_t ucIndex = pxEndPoint->u.ipv4_settings.ucDNSIndex;
+            uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
             uint8_t ucInitialIndex = ucIndex;
 
             for( ; ; )
@@ -777,7 +777,7 @@
                     ucIndex = 0U;
                 }
 
-                if( ( pxEndPoint->u.ipv4_settings.ulDNSServerAddresses[ ucIndex ] != 0U ) ||
+                if( ( pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ] != 0U ) ||
                     ( ucInitialIndex == ucIndex ) )
                 {
                     break;
@@ -785,7 +785,7 @@
             }
 
             FreeRTOS_printf( ( "prvIncreaseDNS4Index: from %d to %d\n", ( int ) ucInitialIndex, ( int ) ucIndex ) );
-            pxEndPoint->u.ipv4_settings.ucDNSIndex = ucIndex;
+            pxEndPoint->ipv4_settings.ucDNSIndex = ucIndex;
         }
 /*-----------------------------------------------------------*/
     #endif /* #if ( ipconfigUSE_IPv4 != 0 ) */
@@ -1007,9 +1007,9 @@
 
                             if( pxEndPoint->bits.bIPv6 == 0U )
                             {
-                                uint8_t ucIndex = pxEndPoint->u.ipv4_settings.ucDNSIndex;
+                                uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
-                                uint32_t ulIPAddress = pxEndPoint->u.ipv4_settings.ulDNSServerAddresses[ ucIndex ];
+                                uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
                                 if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
                                 {
@@ -1027,9 +1027,9 @@
 
                             if( pxEndPoint->bits.bIPv6 != 0U )
                             {
-                                uint8_t ucIndex = pxEndPoint->u.ipv6_settings.ucDNSIndex;
+                                uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
-                                const uint8_t * ucBytes = pxEndPoint->u.ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+                                const uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
 
                                 /* Test if the DNS entry is in used. */
                                 if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
@@ -1037,7 +1037,7 @@
                                     pxAddress->sin_family = FREERTOS_AF_INET6;
                                     pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
                                     ( void ) memcpy( pxAddress->sin_address.xIP_IPv6.ucBytes,
-                                                     pxEndPoint->u.ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes,
+                                                     pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes,
                                                      ipSIZE_OF_IPv6_ADDRESS );
                                     xBreakLoop = pdTRUE;
                                 }

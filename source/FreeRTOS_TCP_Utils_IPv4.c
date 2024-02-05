@@ -74,7 +74,7 @@ void prvSocketSetMSS_IPV4( FreeRTOS_Socket_t * pxSocket )
         #endif
 
         /* Check if the remote IP-address belongs to the same netmask. */
-        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 ) ^ pxEndPoint->u.ipv4_settings.ulIPAddress ) & pxEndPoint->u.ipv4_settings.ulNetMask ) != 0U )
+        if( ( ( FreeRTOS_ntohl( pxSocket->u.xTCP.xRemoteIP.ulIP_IPv4 ) ^ pxEndPoint->ipv4_settings.ulIPAddress ) & pxEndPoint->ipv4_settings.ulNetMask ) != 0U )
         {
             /* Data for this peer will pass through a router, and maybe through
              * the internet.  Limit the MSS to 1400 bytes or less. */

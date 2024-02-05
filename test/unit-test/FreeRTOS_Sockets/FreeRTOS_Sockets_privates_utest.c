@@ -859,7 +859,7 @@ void test_vSocketBind_TCPv6GotAProperValue( void )
     xSocket.ucProtocol = ( uint8_t ) FREERTOS_IPPROTO_TCP;
 
     xEndPoint.bits.bIPv6 = pdTRUE;
-    memcpy( xEndPoint.u.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     xBindAddress.sin_family = FREERTOS_AF_INET6;
     memcpy( xBindAddress.sin_address.xIP_IPv6.ucBytes, xIPv6Address.ucBytes, ipSIZE_OF_IPv6_ADDRESS );

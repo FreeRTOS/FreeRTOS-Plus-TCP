@@ -93,7 +93,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
     }
 
     /* Silently discard a SYN packet which was not specifically sent for this node. */
-    if( ( pxEndpoint != NULL ) && ( pxTCPPacket->xIPHeader.ulDestinationIPAddress == pxEndpoint->u.ipv4_settings.ulIPAddress ) )
+    if( ( pxEndpoint != NULL ) && ( pxTCPPacket->xIPHeader.ulDestinationIPAddress == pxEndpoint->ipv4_settings.ulIPAddress ) )
     {
         /* Assume that a new Initial Sequence Number will be required. Request
          * it now in order to fail out if necessary. */

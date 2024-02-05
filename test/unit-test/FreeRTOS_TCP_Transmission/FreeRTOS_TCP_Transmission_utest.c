@@ -708,7 +708,7 @@ void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
     struct xNetworkEndPoint * pxEndPoint;
 
     xEndPoint.pxNetworkInterface = &xInterface;
-    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     xEndPoint.pxNetworkInterface->pfOutput = NULL;
 
     pxSocket = &xSocket;
@@ -747,7 +747,7 @@ void test_prvTCPReturnPacket_Null_Socket_Release_True( void )
     struct xNetworkEndPoint * pxEndPoint;
 
     xEndPoint.pxNetworkInterface = &xInterface;
-    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
@@ -762,7 +762,7 @@ void test_prvTCPReturnPacket_Null_Socket_Release_True( void )
     TCPWindow_t * pxTCPWindow = &pxSocket->u.xTCP.xTCPWindow;
 
     uint32_t OldSourceAddress = pxIPHeader->ulSourceIPAddress;
-    uint32_t OldDestinationAddress = xEndPoint.u.ipv4_settings.ulIPAddress;
+    uint32_t OldDestinationAddress = xEndPoint.ipv4_settings.ulIPAddress;
     uint32_t RxSequenceNumber = pxTCPPacket->xTCPHeader.ulSequenceNumber;
     uint32_t OurSequenceNumber = pxTCPPacket->xTCPHeader.ulAckNr;
 
@@ -794,7 +794,7 @@ void test_prvTCPReturnPacket_No_KL( void )
     struct xNetworkEndPoint * pxEndPoint;
 
     xEndPoint.pxNetworkInterface = &xInterface;
-    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
@@ -846,7 +846,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
     struct xNetworkEndPoint * pxEndPoint;
 
     xEndPoint.pxNetworkInterface = &xInterface;
-    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
@@ -910,7 +910,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
     memcpy( xEndPoint.xMACAddress.ucBytes, NewSourceMacAddr.ucBytes, sizeof( xEndPoint.xMACAddress.ucBytes ) );
 
     xEndPoint.pxNetworkInterface = &xInterface;
-    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
     pxSocket->pxEndPoint = &xEndPoint;
@@ -962,7 +962,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
     struct xNetworkInterface xInterface;
 
     xEndPoint.pxNetworkInterface = &xInterface;
-    xEndPoint.u.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xC0C0C0C0;
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
     pxSocket->pxEndPoint = &xEndPoint;

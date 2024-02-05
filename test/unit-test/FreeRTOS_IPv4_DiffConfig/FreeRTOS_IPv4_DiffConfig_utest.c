@@ -96,11 +96,11 @@ void test_prvAllowIPPacketIPv4_BroadcastSourceIP( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -138,11 +138,11 @@ void test_prvAllowIPPacketIPv4_BufferLengthLessThanMinimum( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
 
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
@@ -182,11 +182,11 @@ void test_prvAllowIPPacketIPv4_UDPCheckSumZero( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
     /* Correct protocol. */
     pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
     pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof( UDPHeader_t ) );
@@ -229,11 +229,11 @@ void test_prvAllowIPPacketIPv4_UDP_HappyPath( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
     /* Correct protocol. */
     pxIPHeader->ucProtocol = ipPROTOCOL_UDP;
     pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof( UDPHeader_t ) );
@@ -282,11 +282,11 @@ void test_prvAllowIPPacketIPv4_TCP_HappyPath( void )
     pxIPPacket = ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    pxEndpoint->u.ipv4_settings.ulIPAddress = 0xFFFFFFFF;
+    pxEndpoint->ipv4_settings.ulIPAddress = 0xFFFFFFFF;
 
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
-    pxIPHeader->ulDestinationIPAddress = pxEndpoint->u.ipv4_settings.ulIPAddress;
+    pxIPHeader->ulDestinationIPAddress = pxEndpoint->ipv4_settings.ulIPAddress;
     /* Correct protocol. */
     pxIPHeader->ucProtocol = ipPROTOCOL_TCP;
     pxIPHeader->usLength = FreeRTOS_htons( ( ( pxIPHeader->ucVersionHeaderLength & 0x0F ) << 2 ) + sizeof( UDPHeader_t ) );

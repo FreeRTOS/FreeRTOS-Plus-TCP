@@ -57,7 +57,7 @@
     #include "FreeRTOS_Routing.h"
 
     #define EP_DHCPData         pxEndPoint->xDHCPData                 /**< Temporary define to make /single source similar to /multi version. */
-    #define EP_IPv4_SETTINGS    pxEndPoint->u.ipv4_settings           /**< Temporary define to make /single source similar to /multi version. */
+    #define EP_IPv4_SETTINGS    pxEndPoint->ipv4_settings           /**< Temporary define to make /single source similar to /multi version. */
 
 
 
@@ -378,7 +378,7 @@
                     {
                         if( eAnswer == eDHCPUseDefaults )
                         {
-                            ( void ) memcpy( &( pxEndPoint->u.ipv4_settings ), &( pxEndPoint->u.ipv4_defaults ), sizeof( pxEndPoint->u.ipv4_settings ) );
+                            ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                         }
 
                         /* The user indicates that the DHCP process does not continue. */
@@ -565,12 +565,12 @@
         /* Ask the user if a DHCP discovery is required. */
         #if ( ipconfigUSE_DHCP_HOOK != 0 )
             #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
-                eDHCPCallbackAnswer_t eAnswer = xApplicationDHCPHook( eDHCPPhasePreDiscover, pxEndPoint->u.ipv4_defaults.ulIPAddress );
+                eDHCPCallbackAnswer_t eAnswer = xApplicationDHCPHook( eDHCPPhasePreDiscover, pxEndPoint->ipv4_defaults.ulIPAddress );
             #else /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
                 IP_Address_t xIPAddress;
                 eDHCPCallbackAnswer_t eAnswer;
 
-                xIPAddress.ulIP_IPv4 = pxEndPoint->u.ipv4_defaults.ulIPAddress;
+                xIPAddress.ulIP_IPv4 = pxEndPoint->ipv4_defaults.ulIPAddress;
                 eAnswer = xApplicationDHCPHook_Multi( eDHCPPhasePreDiscover, pxEndPoint, &xIPAddress );
             #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
 
@@ -608,7 +608,7 @@
             {
                 if( eAnswer == eDHCPUseDefaults )
                 {
-                    ( void ) memcpy( &( pxEndPoint->u.ipv4_settings ), &( pxEndPoint->u.ipv4_defaults ), sizeof( pxEndPoint->u.ipv4_settings ) );
+                    ( void ) memcpy( &( pxEndPoint->ipv4_settings ), &( pxEndPoint->ipv4_defaults ), sizeof( pxEndPoint->ipv4_settings ) );
                 }
 
                 /* The user indicates that the DHCP process does not continue. */
@@ -817,8 +817,8 @@
                 /* Revert to static IP address. */
                 taskENTER_CRITICAL();
                 {
-                    EP_IPv4_SETTINGS.ulIPAddress = pxEndPoint->u.ipv4_defaults.ulIPAddress;
-                    iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( pxEndPoint->u.ipv4_defaults.ulIPAddress );
+                    EP_IPv4_SETTINGS.ulIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
+                    iptraceDHCP_REQUESTS_FAILED_USING_DEFAULT_IP_ADDRESS( pxEndPoint->ipv4_defaults.ulIPAddress );
                 }
                 taskEXIT_CRITICAL();
 

@@ -1632,7 +1632,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply( void )
     pucNewBuffer = &( pucUDPPayloadBuffer[ 0 ] );
     LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    xEndPoint.u.ipv4_settings.ulIPAddress = 11;
+    xEndPoint.ipv4_settings.ulIPAddress = 11;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
@@ -1705,7 +1705,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply2( void )
     pucNewBuffer = &( pucUDPPayloadBuffer[ 0 ] );
     LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    xEndPoint.u.ipv4_settings.ulIPAddress = 11;
+    xEndPoint.ipv4_settings.ulIPAddress = 11;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
@@ -1778,7 +1778,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply3( void )
     pucNewBuffer = &( pucUDPPayloadBuffer[ 0 ] );
     LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    xEndPoint.u.ipv4_settings.ulIPAddress = 11;
+    xEndPoint.ipv4_settings.ulIPAddress = 11;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );    /* usClass */
@@ -1855,7 +1855,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_diffUsType( void )
     pucNewBuffer = &( pucUDPPayloadBuffer[ 0 ] );
     LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    xEndPoint.u.ipv4_settings.ulIPAddress = 11;
+    xEndPoint.ipv4_settings.ulIPAddress = 11;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_AAAA_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );       /* usClass */
@@ -1932,7 +1932,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_NullNetworkBuffer( void )
     pucNewBuffer = &( pucUDPPayloadBuffer[ 0 ] );
     LLMNRAnswer_t * pxAnswer = ( LLMNRAnswer_t * ) &( pucNewBuffer[ 56 ] ); /* xOffset1 = 56 */
 
-    xEndPoint.u.ipv4_settings.ulIPAddress = 11;
+    xEndPoint.ipv4_settings.ulIPAddress = 11;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_AAAA_HOST ); /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsCLASS_IN );       /* usClass */

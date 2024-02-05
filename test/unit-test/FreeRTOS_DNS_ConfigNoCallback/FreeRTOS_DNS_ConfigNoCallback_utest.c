@@ -167,8 +167,8 @@ void test_FreeRTOS_gethostbyname_DifferentIdentifier( void )
     header->usIdentifier = 12;
     xDNSSocket.usLocalPort = 0;
     xEndPoint.bits.bIPv6 = pdFALSE;
-    xEndPoint.u.ipv4_settings.ucDNSIndex = 0;
-    xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ucDNSIndex = 0;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
     Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
@@ -237,8 +237,8 @@ void test_FreeRTOS_gethostbyname_SameIdentifier( void )
     header->usIdentifier = ulNumber;
     xDNSSocket.usLocalPort = 0;
     xEndPoint.bits.bIPv6 = pdFALSE;
-    xEndPoint.u.ipv4_settings.ucDNSIndex = 0;
-    xEndPoint.u.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
+    xEndPoint.ipv4_settings.ucDNSIndex = 0;
+    xEndPoint.ipv4_settings.ulDNSServerAddresses[ 0 ] = 0xC0C0C0C0;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
     Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );

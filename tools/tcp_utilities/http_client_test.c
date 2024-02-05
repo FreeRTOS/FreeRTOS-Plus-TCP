@@ -307,9 +307,9 @@
                     #if ( ipconfigUSE_IPv4 != 0 )
                         pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
 
-                        if( ( pxEndPoint != NULL ) && ( pxEndPoint->u.ipv4_settings.ulGatewayAddress != 0U ) )
+                        if( ( pxEndPoint != NULL ) && ( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) )
                         {
-                            xARPWaitResolution( pxEndPoint->u.ipv4_settings.ulGatewayAddress, pdMS_TO_TICKS( 1000U ) );
+                            xARPWaitResolution( pxEndPoint->ipv4_settings.ulGatewayAddress, pdMS_TO_TICKS( 1000U ) );
                         }
                     #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -400,7 +400,7 @@
 
                     if( pxEndPoint != NULL )
                     {
-                        xBindAddress.sin_address.ulIP_IPv4 = pxEndPoint->u.ipv4_settings.ulIPAddress;
+                        xBindAddress.sin_address.ulIP_IPv4 = pxEndPoint->ipv4_settings.ulIPAddress;
                         xBindAddress.sin_family = FREERTOS_AF_INET;
                     }
                 }

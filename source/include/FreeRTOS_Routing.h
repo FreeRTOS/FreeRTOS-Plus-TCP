@@ -155,7 +155,7 @@
                     IPV6Parameters_t ipv6_defaults; /**< Use values form "ipv6_defaults" in case DHCP has failed. */
                 };
             #endif
-        } u;
+        };
         MACAddress_t xMACAddress; /**< The MAC-address assigned to this end-point. */
         struct
         {

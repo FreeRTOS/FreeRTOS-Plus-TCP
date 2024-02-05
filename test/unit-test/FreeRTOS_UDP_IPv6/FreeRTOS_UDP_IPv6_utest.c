@@ -1201,7 +1201,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissBothGlobal()
     xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_Global );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->u.ipv6_settings.xIPAddress ), eIPv6_Global );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
 
     vNDSendNeighbourSolicitation_Expect( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
@@ -1261,7 +1261,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType()
     xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_LinkLocal );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->u.ipv6_settings.xIPAddress ), eIPv6_Global );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxEndPoint, NULL );
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -1294,7 +1294,7 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2()
     xIPv6_GetIPType_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), eIPv6_Global );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxEndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->u.ipv6_settings.xIPAddress ), eIPv6_LinkLocal );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxEndPoint->ipv6_settings.xIPAddress ), eIPv6_LinkLocal );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxEndPoint, NULL );
 
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
@@ -1397,7 +1397,7 @@ void test_pxGetEndpoint_NotMatchEndpoint()
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, pxIPv4EndPoint );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxIPv4EndPoint, pxIPv6EndPoint );
-    xIPv6_GetIPType_ExpectAndReturn( &( pxIPv6EndPoint->u.ipv6_settings.xIPAddress ), eIPv6_Global );
+    xIPv6_GetIPType_ExpectAndReturn( &( pxIPv6EndPoint->ipv6_settings.xIPAddress ), eIPv6_Global );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, pxIPv6EndPoint, NULL );
 
     pxReturnEndPoint = pxGetEndpoint( ipTYPE_IPv6, xIsGlobal );
