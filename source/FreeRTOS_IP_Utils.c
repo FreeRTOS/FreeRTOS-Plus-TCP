@@ -209,7 +209,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
     return usChecksum;
 }
 
-#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) )
 
 /**
  * @brief Create a DHCP event.
@@ -223,7 +223,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
 
-        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+        #if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
             eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
         #endif
 
@@ -233,7 +233,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) pxEndPoint;
-        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+        #if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
         {
             pxEndPoint->xDHCPData.eExpectedState = uxOption;
         }
@@ -241,7 +241,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
     }
-#endif /* if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) */
+#endif /* if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -1768,7 +1768,7 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
 }
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
 
 /**
  * @brief Returns the current state of a DHCP process.

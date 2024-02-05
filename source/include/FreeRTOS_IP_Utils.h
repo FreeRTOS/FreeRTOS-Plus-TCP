@@ -68,7 +68,7 @@
 /* Forward declaration. */
 struct xNetworkInterface;
 
-#if ( ipconfigUSE_DHCP != 0 )
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) )
 
 /**
  * @brief Create a DHCP event.
@@ -79,7 +79,7 @@ struct xNetworkInterface;
     BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint );
 #endif
 
-#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
 
 /* Returns the current state of a DHCP process. */
     eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );

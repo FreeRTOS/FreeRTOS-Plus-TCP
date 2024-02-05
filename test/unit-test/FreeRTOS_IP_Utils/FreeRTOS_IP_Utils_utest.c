@@ -98,7 +98,7 @@ void test_xSendDHCPEvent( void )
     xReturn = xSendDHCPEvent( &xEndPoint );
 
     TEST_ASSERT_EQUAL( xResult, xReturn );
-    TEST_ASSERT_EQUAL( xEndPoint.xDHCPData.eExpectedState, eInitialWait );
+    TEST_ASSERT_EQUAL( eInitialWait, xEndPoint.xDHCPData.eExpectedState );
 }
 
 /**
