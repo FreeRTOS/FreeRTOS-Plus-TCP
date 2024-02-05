@@ -80,9 +80,10 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
 typedef enum xIPPreference
 {
     xPreferenceNone,
-    xPreferenceIPv4,
+    xPreferenceIPv4
     #if ( ipconfigUSE_IPv6 != 0 )
-        xPreferenceIPv6,
+        ,
+        xPreferenceIPv6
     #endif
 } IPPreference_t;
 

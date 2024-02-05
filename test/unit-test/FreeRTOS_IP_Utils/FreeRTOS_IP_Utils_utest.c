@@ -103,13 +103,14 @@ void test_xSendDHCPEvent( void )
     BaseType_t xReturn, xResult = 0x123;
     struct xNetworkEndPoint xEndPoint = { 0 };
 
-    eGetDHCPState_ExpectAnyArgsAndReturn( 12 );
+    xEndPoint.xDHCPData.eDHCPState = eInitialWait;
 
     xSendEventStructToIPTask_ExpectAnyArgsAndReturn( xResult );
 
     xReturn = xSendDHCPEvent( &xEndPoint );
 
     TEST_ASSERT_EQUAL( xResult, xReturn );
+    TEST_ASSERT_EQUAL( eInitialWait, xEndPoint.xDHCPData.eExpectedState );
 }
 
 /**
@@ -3232,4 +3233,23 @@ void test_prvProcessNetworkDownEvent_Multicast()
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_INTERFACE );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_METHOD );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_INTERFACE );
+/**
+ * @brief test_eGetDHCPState
+ * To validate if eGetDHCPState returns expected
+ * DHCP state.
+ */
+void test_eGetDHCPState( void )
+{
+    DHCPData_t xTestData;
+    eDHCPState_t eReturn;
+    int i;
+    struct xNetworkEndPoint xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+
+    for( i = 0; i < sizeof( xTestData.eDHCPState ); i++ )
+    {
+        /* Modify the global state. */
+        pxEndPoint->xDHCPData.eDHCPState = i;
+        eReturn = eGetDHCPState( &xEndPoint );
+        TEST_ASSERT_EQUAL( i, eReturn );
+    }
 }

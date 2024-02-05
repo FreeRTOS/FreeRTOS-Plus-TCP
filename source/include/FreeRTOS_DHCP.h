@@ -171,7 +171,7 @@ typedef struct xDHCPMessage_IPv4 DHCPMessage_IPv4_t;
     {
         eDHCPContinue,      /**< Continue the DHCP process */
         eDHCPUseDefaults,   /**< Stop DHCP and use the static defaults. */
-        eDHCPStopNoChanges, /**< Stop DHCP and continue with current settings. */
+        eDHCPStopNoChanges  /**< Stop DHCP and continue with current settings. */
     } eDHCPCallbackAnswer_t;
 #endif /* #if( ipconfigUSE_DHCP_HOOK != 0 ) */
 
@@ -225,8 +225,6 @@ typedef struct xProcessSet
     const uint8_t * pucByte;    /**< A pointer to the data to be analysed. */
 } ProcessSet_t;
 
-/* Returns the current state of a DHCP process. */
-eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint );
 
 /*
  * NOT A PUBLIC API FUNCTION.
