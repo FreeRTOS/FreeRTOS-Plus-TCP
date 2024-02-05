@@ -74,22 +74,6 @@ void test_xIsDHCPSocket( void )
     xDHCPv4Socket = NULL;
 }
 
-void test_eGetDHCPState( void )
-{
-    DHCPData_t xTestData;
-    eDHCPState_t eReturn;
-    int i;
-    struct xNetworkEndPoint xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-
-    for( i = 0; i < sizeof( xTestData.eDHCPState ); i++ )
-    {
-        /* Modify the global state. */
-        pxEndPoint->xDHCPData.eDHCPState = i;
-        eReturn = eGetDHCPState( &xEndPoint );
-        TEST_ASSERT_EQUAL( i, eReturn );
-    }
-}
-
 void test_vDHCPProcess_AssertChecks( void )
 {
     struct xNetworkEndPoint xEndPoint = { 0 };

@@ -34,6 +34,21 @@ _Ref 4.12.1_
   in the code to not use free'd pointers and to check the validity of malloc'd
   memory before it is dereferenced or used.
 
+#### Directive 4.14
+
+_Ref 4.14.1_
+
+- MISRA C:2012 Directive 4.14: The validity of values received from external
+  sources shall be checked. In this case however, the value of `uxICMPSize` is
+  checked to be within bounds of the network buffer size using the variable `uxNeededSize`. This is a false positive.
+
+_Ref 4.14.2_
+
+- MISRA C:2012 Directive 4.14: The validity of values received from external
+  sources shall be checked. In this case however, the contents of `xReceiveBuffer.pucPayloadBuffer` is filled by `FreeRTOS_recvfrom` which performs the necessary
+  checks required to validate the `xBytes` which is in turn assigned to
+  `xReceiveBuffer.uxPayloadLength`.
+
 #### Rule 2.2
 
 _Ref 2.2.1_
@@ -173,6 +188,16 @@ _Ref 17.2.1_
   socket spawned (child) by a socket in listening state (parent) cannot be in
   listening state. Thus it is not possible for the child to have a secondary
   child socket thereby limiting the number of recursive calls to one.
+
+#### Rule 18.4
+
+_Ref 18.4.1_
+
+- MISRA C-2012 Rule 18.4 warns about using arithmetic operators such as `+`, `-`,
+  `+=`, and `-=` not to be applied to an expression of pointer type. In this case
+  however its ensured by review that, the explicitly calculated pointer value
+  doesn't have the potential to access unintended or invalid memory addresses.
+
 
 #### Rule 20.5
 
