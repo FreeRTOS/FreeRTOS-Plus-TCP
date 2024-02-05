@@ -1544,6 +1544,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
     eFrameProcessingResult_t eReturned = eReleaseBuffer;
 
     configASSERT( pxNetworkBuffer != NULL );
+    configASSERT( pxNetworkBuffer->pxInterface != NULL );
+    configASSERT( pxNetworkBuffer->pxEndPoint != NULL );
+    /* From here on, all incoming packet processing can rely on all of the above non-NULL */
 
     iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 

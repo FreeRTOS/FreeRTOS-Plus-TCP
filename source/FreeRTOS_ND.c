@@ -963,6 +963,7 @@
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+        /* Note: pxNetworkBuffer->pxEndPoint is already verified to be non-NULL in prvProcessEthernetPacket() */
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         size_t uxNeededSize;
 
@@ -981,7 +982,7 @@
         }
         #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 
-        if( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
+        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
         {
             switch( pxICMPHeader_IPv6->ucTypeOfMessage )
             {
@@ -1057,20 +1058,6 @@
                    {
                        size_t uxICMPSize;
                        BaseType_t xCompare;
-                       NetworkEndPoint_t * pxEndPointFound = FreeRTOS_FindEndPointOnIP_IPv6( &( pxICMPHeader_IPv6->xIPv6Address ) );
-                       char pcName[ 40 ];
-                       ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
-                       FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",
-                                          ( void * ) pxICMPHeader_IPv6->xIPv6Address.ucBytes,
-                                          pcEndpointName( pxEndPointFound, pcName, sizeof( pcName ) ) ) );
-
-                       if( pxEndPointFound != NULL )
-                       {
-                           pxEndPoint = pxEndPointFound;
-                       }
-
-                       pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                       pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
 
                        uxICMPSize = sizeof( ICMPHeader_IPv6_t );
                        uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
@@ -1145,7 +1132,7 @@
                     /* All possible values are included here above. */
                     break;
             } /* switch( pxICMPHeader_IPv6->ucTypeOfMessage ) */
-        }     /* if( pxEndPoint != NULL ) */
+        }     /* if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) */
 
         return eReleaseBuffer;
     }
