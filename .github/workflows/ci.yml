@@ -33,11 +33,12 @@ jobs:
           cd ../..
           sudo apt-get install -y lcov
           sudo apt-get install -y unifdef
+          sudo apt-get install -y ninja-build
           echo "::endgroup::"
 
           echo "::group:: ${{ env.stepName }}"
-          cmake -S test/unit-test -B test/unit-test/build/
-          make -C test/unit-test/build/ all
+          cmake -S test/unit-test -B test/unit-test/build/ -G Ninja
+          cmake --build test/unit-test/build/ --target all
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -59,7 +60,7 @@ jobs:
         run: |
           # ${{ env.stepName }}
           echo "::group::Build Tests"
-          make -C test/unit-test/build/ coverage
+          cmake --build test/unit-test/build/ --target coverage
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} Built Coverage Tests ${{ env.bashEnd }}"
 
