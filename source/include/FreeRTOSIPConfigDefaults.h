@@ -36,7 +36,6 @@
 #ifndef FREERTOS_IP_CONFIG_DEFAULTS_H
 #define FREERTOS_IP_CONFIG_DEFAULTS_H
 
-#include <cstdint>
 #ifndef FREERTOS_CONFIG_H
     #error FreeRTOSConfig.h has not been included yet
 #endif
