@@ -73,7 +73,7 @@ typedef enum eTCP_STATE
     eLAST_ACK,     /*10 (server + client) waiting for an acknowledgement of the connection termination request
                     * previously sent to the remote TCP
                     * (which includes an acknowledgement of its connection termination request). */
-    eTIME_WAIT,    /*11 (either server or client) waiting for enough time to pass to be sure the remote TCP received the
+    eTIME_WAIT     /*11 (either server or client) waiting for enough time to pass to be sure the remote TCP received the
                     * acknowledgement of its connection termination request. [According to RFC 793 a connection can
                     * stay in TIME-WAIT for a maximum of four minutes known as a MSL (maximum segment lifetime).] */
 } eIPTCPState_t;

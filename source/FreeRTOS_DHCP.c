@@ -172,17 +172,6 @@
     }
     /*-----------------------------------------------------------*/
 
-/**
- * @brief Returns the current state of a DHCP process.
- *
- * @param[in] pxEndPoint the end-point which is going through the DHCP process.
- */
-    eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint )
-    {
-        /* Note that EP_DHCPData is defined as "pxEndPoint->xDHCPData". */
-        return EP_DHCPData.eDHCPState;
-    }
-/*-----------------------------------------------------------*/
 
 /**
  * @brief Process the DHCP state machine based on current state.

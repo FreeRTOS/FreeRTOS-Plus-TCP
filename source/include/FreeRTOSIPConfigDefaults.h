@@ -2229,6 +2229,10 @@ STATIC_ASSERT( ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME <= portMAX_DELAY );
     #error ipconfigNETWORK_MTU needs to be at least 586 to use DHCP
 #endif
 
+#if ( ipconfigIS_ENABLED( ipconfigUSE_DHCP ) && ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) )
+    #error DHCP Cannot be enabled without IPv4
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 /*
