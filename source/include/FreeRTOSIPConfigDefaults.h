@@ -80,10 +80,10 @@
     #define ASSERT_CONCAT( a, b )     ASSERT_CONCAT_( a, b )
     #ifdef __COUNTER__
         #define STATIC_ASSERT( e ) \
-    ; enum { ASSERT_CONCAT( static_assert_, __COUNTER__ ) = ( 1 / ( int ) ( !!( e ) ) ) }
+    enum { ASSERT_CONCAT( static_assert_, __COUNTER__ ) = ( 1 / ( int ) ( !!( e ) ) ) }
     #else
         #define STATIC_ASSERT( e ) \
-    ; enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = ( 1 / ( int ) ( !!( e ) ) ) }
+    enum { ASSERT_CONCAT( assert_line_, __LINE__ ) = ( 1 / ( int ) ( !!( e ) ) ) }
     #endif
 #endif /* ifdef static_assert */
 
