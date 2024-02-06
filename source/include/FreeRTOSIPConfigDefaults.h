@@ -491,8 +491,6 @@ STATIC_ASSERT( ipconfigRA_IP_TEST_TIME_OUT_MSEC <= ( portMAX_DELAY * portTICK_PE
     #define ipconfigMAX_IP_TASK_SLEEP_TIME    pdMS_TO_TICKS( 10000 )
 #endif
 
-STATIC_ASSERT( ( int64_t ) ipconfigMAX_IP_TASK_SLEEP_TIME >= 0 );
-
 STATIC_ASSERT( ipconfigMAX_IP_TASK_SLEEP_TIME <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
@@ -1765,8 +1763,6 @@ STATIC_ASSERT( ipconfigTCP_KEEP_ALIVE_INTERVAL <= ( portMAX_DELAY / configTICK_R
     #define ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 20 )
 #endif
 
-STATIC_ASSERT( ( int64_t ) ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS >= 0 );
-
 STATIC_ASSERT( ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
@@ -1956,8 +1952,6 @@ STATIC_ASSERT( ipconfigUDP_MAX_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
     #define ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME    portMAX_DELAY
 #endif
 
-STATIC_ASSERT( ( int64_t ) ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME >= 0 );
-
 STATIC_ASSERT( ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
@@ -1985,8 +1979,6 @@ STATIC_ASSERT( ipconfigSOCK_DEFAULT_RECEIVE_BLOCK_TIME <= portMAX_DELAY );
 #ifndef ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME
     #define ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME    portMAX_DELAY
 #endif
-
-STATIC_ASSERT( ( int64_t ) ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME >= 0 );
 
 STATIC_ASSERT( ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME <= portMAX_DELAY );
 
@@ -2377,8 +2369,6 @@ STATIC_ASSERT( ipconfigSOCK_DEFAULT_SEND_BLOCK_TIME <= portMAX_DELAY );
     #endif
 #endif
 
-STATIC_ASSERT( ( int64_t ) ipconfigMAXIMUM_DISCOVER_TX_PERIOD >= 0 );
-
 STATIC_ASSERT( ipconfigMAXIMUM_DISCOVER_TX_PERIOD <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
@@ -2577,8 +2567,6 @@ STATIC_ASSERT( ipconfigMAXIMUM_DISCOVER_TX_PERIOD <= portMAX_DELAY );
     #define ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 5000 )
 #endif
 
-STATIC_ASSERT( ( int64_t ) ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS >= 0 );
-
 STATIC_ASSERT( ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
@@ -2601,8 +2589,6 @@ STATIC_ASSERT( ipconfigDNS_RECEIVE_BLOCK_TIME_TICKS <= portMAX_DELAY );
 #ifndef ipconfigDNS_SEND_BLOCK_TIME_TICKS
     #define ipconfigDNS_SEND_BLOCK_TIME_TICKS    pdMS_TO_TICKS( 500 )
 #endif
-
-STATIC_ASSERT( ( int64_t ) ipconfigDNS_SEND_BLOCK_TIME_TICKS >= 0 );
 
 STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
