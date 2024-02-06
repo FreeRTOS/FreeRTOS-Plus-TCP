@@ -135,6 +135,38 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     return usReturn;
 }
 
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                      MACAddress_t * const pxMACAddress,
+                                      struct xNetworkEndPoint ** ppxEndPoint )
+{
+    /* Assume random ARP lookup result. */
+    eARPLookupResult_t eReturn;
+
+    /* Make sure NULL pointers are not passed as arguments. */
+    __CPROVER_assert( pulIPAddress != NULL, "The pulIPAddress cannot be NULL" );
+    __CPROVER_assert( pxMACAddress != NULL, "The pxMACAddress cannot be NULL" );
+
+    if(eReturn == eARPCacheHit)
+    {
+        /* If its a cache hit, update ppxEndPoint with a valid endpoint. */
+        struct xNetworkEndPoint * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxEndPoint != NULL );
+        pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+        __CPROVER_assume( pxEndPoint->pxNetworkInterface != NULL );
+        pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
+        *ppxEndPoint = pxEndPoint;
+    }
+    else
+    {
+        /* In case of miss there isn't a matching endpoint available. */
+        *ppxEndPoint = NULL;
+    }
+
+    return eReturn;
+
+}
+
 void harness()
 {
     FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
