@@ -640,7 +640,7 @@ void test_prepare_DNSLookup_IPv6( void )
 
     *ppxAddressInfo = pxAddressInfo;
 
-    struct freertos_addrinfo * pxAddrInfo = &pucAddrBuffer[ 2 ];
+    struct freertos_addrinfo * pxAddrInfo = &pucAddrBuffer[ 1 ];
 
     ( void ) memset( pxAddrInfo, 0, sizeof( *pxAddrInfo ) );
     pxAddrInfo->ai_canonname = pxAddrInfo->xPrivateStorage.ucName;
