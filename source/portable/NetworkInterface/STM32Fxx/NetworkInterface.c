@@ -982,19 +982,6 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
 
         ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
 
-        /* Is the packet for this node? */
-        if( ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) &&
-            /* Is it a broadcast address x.x.x.255 ? */
-            ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xff ) != 0xff ) &&
-            #if ( ipconfigUSE_LLMNR == 1 )
-                ( ulDestinationIPAddress != ipLLMNR_IP_ADDR ) &&
-            #endif
-            ( *ipLOCAL_IP_ADDRESS_POINTER != 0 ) )
-        {
-            FreeRTOS_debug_printf( ( "Drop IP %lxip\n", FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
-            return pdFALSE;
-        }
-
         if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
         {
             #if ( ipconfigUSE_LLMNR == 1 ) || ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_NBNS == 1 ) || ( ipconfigUSE_DNS == 1 )

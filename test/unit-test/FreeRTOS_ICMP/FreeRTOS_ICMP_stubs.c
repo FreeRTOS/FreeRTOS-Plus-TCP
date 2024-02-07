@@ -40,6 +40,9 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+/** @brief A list of all network end-points.  Each element has a next pointer. */
+struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
+
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 /** @brief The expected IP version and header length coded into the IP header itself. */
