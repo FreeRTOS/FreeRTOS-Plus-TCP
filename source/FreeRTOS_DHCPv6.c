@@ -1052,15 +1052,15 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 }
 
                 /* DHCPv6_Option_Elapsed_Time */
-                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_Elapsed_Time ); /* usOption;	Option is 8 * / */
-                vBitConfig_write_16( &( xMessage ), 2U );                         /* usLength;	length is 2 * / */
-                vBitConfig_write_16( &( xMessage ), 0x0000 );                     /* usTime;		00 00 : 0 ms. * / */
+                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_Elapsed_Time );                                        /* usOption;	Option is 8 * / */
+                vBitConfig_write_16( &( xMessage ), 2U );                                                                /* usLength;	length is 2 * / */
+                vBitConfig_write_16( &( xMessage ), 0x0000 );                                                            /* usTime;		00 00 : 0 ms. * / */
 
-                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_for_Prefix_Delegation ); /* usOption;	Option is 25 */
-                vBitConfig_write_16( &( xMessage ), 41 );                                     /* usLength;	length is 12 + 29 = 41 */
-                vBitConfig_write_32( &( xMessage ), ulIAID );                                 /* 27 fe 8f 95. */
-                vBitConfig_write_32( &( xMessage ), ulTime_1 );                               /* 00 00 0e 10: 3600 sec */
-                vBitConfig_write_32( &( xMessage ), ulTime_2 );                               /* 00 00 15 18: 5400 sec */
+                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_for_Prefix_Delegation );                            /* usOption;	Option is 25 */
+                vBitConfig_write_16( &( xMessage ), 41 );                                                                /* usLength;	length is 12 + 29 = 41 */
+                vBitConfig_write_32( &( xMessage ), ulIAID );                                                            /* 27 fe 8f 95. */
+                vBitConfig_write_32( &( xMessage ), ulTime_1 );                                                          /* 00 00 0e 10: 3600 sec */
+                vBitConfig_write_32( &( xMessage ), ulTime_2 );                                                          /* 00 00 15 18: 5400 sec */
 
                 vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_Prefix );                                           /* usOption   Option is 26 */
                 vBitConfig_write_16( &( xMessage ), 25 );                                                                /* usLength   length is 25 */
