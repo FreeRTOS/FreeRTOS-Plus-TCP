@@ -20,9 +20,6 @@ DHCPData_t xDHCPData;
 
 volatile BaseType_t xInsideInterrupt = pdFALSE;
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
 const MACAddress_t xDefault_MacAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
 
 #define xSizeofUDPBuffer                       300
@@ -58,25 +55,6 @@ static uint8_t DHCP_header[] =
     0x00, 0xAA, 0xAA, 0xAA, /**< The DHCP server address that the client should use. */
     0x00, 0xAA, 0xAA, 0xAA  /**< Gateway IP address in case the server client are on different subnets. */
 };
-
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
-
 
 /*
  * IP-clash detection is currently only used internally. When DHCP doesn't respond, the
