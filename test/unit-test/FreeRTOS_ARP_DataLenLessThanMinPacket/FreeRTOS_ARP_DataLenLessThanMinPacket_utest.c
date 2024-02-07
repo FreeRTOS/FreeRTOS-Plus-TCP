@@ -54,12 +54,13 @@ void test_FreeRTOS_OutputARPRequest_MinimumPacketSizeLessThanARPPacket( void )
 
     /* =================================================== */
 
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
     xIsCallingFromIPTask_IgnoreAndReturn( pdTRUE );
 
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
 
     FreeRTOS_OutputARPRequest( ulIPAddress );
 
