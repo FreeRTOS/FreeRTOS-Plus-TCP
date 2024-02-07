@@ -104,6 +104,7 @@ void test_ProcessICMPPacket_EchoRequest( void )
     ICMPPacket_t * pxICMPPacket;
     ICMPHeader_t * pxICMPHeader;
     NetworkEndPoint_t xEndPoint = { 0 };
+
     pxNetworkEndPoints = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;

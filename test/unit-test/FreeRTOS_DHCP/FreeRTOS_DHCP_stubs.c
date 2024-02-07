@@ -22,7 +22,7 @@ volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 const MACAddress_t xDefault_MacAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
 
-#define xSizeofUDPBuffer                       300
+#define xSizeofUDPBuffer    300
 
 Socket_t xDHCPSocket;
 extern Socket_t xDHCPv4Socket;
