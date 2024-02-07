@@ -68,7 +68,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     POSIX WIN_PCAP  # Native Linux & Windows respectively
     RX
     SH2A
-    STM32FXX STM32HXX # ST Micro
+    STM32 # ST Micro
     MSP432
     TM4C
     XILINX_ULTRASCALE ZYNQ # AMD/Xilinx
@@ -111,8 +111,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " PIC32MZEF_WIFI         Target: pic32mzef Wifi     Tested: TODO\n"
         " RX                     Target: RX                 Tested: TODO\n"
         " SH2A                   Target: SH2A               Tested: TODO\n"
-        " STM32FXX               Target: STM32Fxx           Tested: TODO\n"
-        " STM32HXX               Target: STM32Hxx           Tested: TODO\n"
+        " STM32                  Target: STM32              Tested: TODO\n"
         " MSP432                 Target: MSP432             Tested: TODO\n"
         " TM4C                   Target: TM4C               Tested: TODO\n"
         " WIN_PCAP               Target: Windows            Tested: TODO\n"
