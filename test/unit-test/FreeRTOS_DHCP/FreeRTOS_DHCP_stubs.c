@@ -23,6 +23,8 @@ volatile BaseType_t xInsideInterrupt = pdFALSE;
 /** @brief The expected IP version and header length coded into the IP header itself. */
 #define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 
+const MACAddress_t xDefault_MacAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+
 #define xSizeofUDPBuffer                       300
 
 Socket_t xDHCPSocket;

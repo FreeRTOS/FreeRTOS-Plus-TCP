@@ -55,6 +55,8 @@ struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
 
 const MACAddress_t xLLMNR_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
 
+const MACAddress_t xDefault_MacAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+
 UDPPacketHeader_t xDefaultPartUDPPacketHeader =
 {
     /* .ucBytes : */

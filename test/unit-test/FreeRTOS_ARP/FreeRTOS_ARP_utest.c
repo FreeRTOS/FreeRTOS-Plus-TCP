@@ -400,8 +400,8 @@ void test_eARPProcessPacket_Request_SenderMACSameAsLocalMAC( void )
     pxARPFrame->xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
-    memset( ipLOCAL_MAC_ADDRESS, 0x22, sizeof( MACAddress_t ) );
-    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
@@ -414,7 +414,7 @@ void test_eARPProcessPacket_Request_SenderMACSameAsLocalMAC( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( &xEndPoint );
     eResult = eARPProcessPacket( pxNetworkBuffer );
-    TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 void test_eARPProcessPacket_Request_SenderAndTargetDifferent( void )
@@ -970,8 +970,8 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
     pxARPFrame->xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
-    memset( ipLOCAL_MAC_ADDRESS, 0x22, sizeof( MACAddress_t ) );
-    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */
@@ -1017,8 +1017,8 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
     pxARPFrame->xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
-    memset( ipLOCAL_MAC_ADDRESS, 0x22, sizeof( MACAddress_t ) );
-    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
     /* Fill in the request option. */

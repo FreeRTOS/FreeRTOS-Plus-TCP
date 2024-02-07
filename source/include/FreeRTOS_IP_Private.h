@@ -361,10 +361,6 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
  * rather than duplicated in its own variable. */
 #define ipLOCAL_IP_ADDRESS_POINTER     ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
 
-/* The local MAC address is accessed from within xDefaultPartUDPPacketHeader,
- * rather than duplicated in its own variable. */
-#define ipLOCAL_MAC_ADDRESS            ( xDefaultPartUDPPacketHeader.ucBytes )
-
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */
 #define ipPACKET_CONTAINS_ICMP_DATA    ( 0 )

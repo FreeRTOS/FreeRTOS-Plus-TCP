@@ -260,9 +260,6 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
-
     vPreCheckConfigs_Expect();
 
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
@@ -301,9 +298,6 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
 
@@ -351,9 +345,6 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
 
