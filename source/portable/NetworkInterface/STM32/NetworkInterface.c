@@ -665,7 +665,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                     UDPPacket_t * const pxUDPPacket = ( UDPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
                     ( void ) pxUDPPacket;
                 }
-            #else  /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
+            #else /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
                 FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported IPv4\n" ) );
             #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) */
         }
@@ -706,7 +706,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                     UDPPacket_t * const pxUDPPacket_IPv6 = ( UDPPacket_t * const ) pxDescriptor->pucEthernetBuffer;
                     ( void ) pxUDPPacket_IPv6;
                 }
-            #else  /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
+            #else /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
                 FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Unsupported IPv6\n" ) );
             #endif /* if ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
         }
@@ -864,7 +864,7 @@ static BaseType_t prvNetworkInterfaceInput( ETH_HandleTypeDef * pxEthHandle,
                 }
 
                 pxEndDescriptor = pxCurDescriptor;
-            #else  /* if ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) */
+            #else /* if ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) */
                 prvSendRxEvent( pxCurDescriptor );
             #endif /* if ipconfigIS_ENABLED( ipconfigUSE_LINKED_RX_MESSAGES ) */
         }
@@ -1021,7 +1021,7 @@ static BaseType_t prvEMACTaskStart( NetworkInterface_t * pxInterface )
                 uxEMACTaskStack,
                 &xEMACTaskTCB
                 );
-        #else  /* if ipconfigIS_ENABLED( configSUPPORT_STATIC_ALLOCATION ) */
+        #else /* if ipconfigIS_ENABLED( configSUPPORT_STATIC_ALLOCATION ) */
             ( void ) xTaskCreate(
                 prvEMACHandlerTask,
                 niEMAC_TASK_NAME,
