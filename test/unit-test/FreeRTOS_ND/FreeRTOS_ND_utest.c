@@ -1132,22 +1132,6 @@ void test_SendPingRequestIPv6_SendToIP_Fail( void )
     TEST_ASSERT_EQUAL( xReturn, pdFAIL );
 }
 
-/**
- * @brief This function process ICMP message when endpoint is NULL.
- */
-void test_prvProcessICMPMessage_IPv6_NULL_EP( void )
-{
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
-    ICMPPacket_IPv6_t xICMPPacket;
-    eFrameProcessingResult_t eReturn;
-
-    pxNetworkBuffer->pxEndPoint = NULL;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
-
-    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
-}
 
 /**
  * @brief This function process ICMP message when endpoint is valid
@@ -1480,8 +1464,6 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitationNullEP( void )
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
 
-    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( NULL );
-
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
@@ -1505,8 +1487,6 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitationIncorrectLen( void )
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->xDataLength = 0;
-
-    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
 
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
@@ -1534,8 +1514,6 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitationCorrectLen( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->xDataLength = xHeaderSize + ipBUFFER_PADDING;
 
-    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
-
     eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
@@ -1561,8 +1539,6 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitation( void )
     ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     ( void ) memcpy( xEndPoint.xMACAddress.ucBytes, xDefaultMACAddress.ucBytes, sizeof( MACAddress_t ) );
-
-    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
 
     usGenerateProtocolChecksum_IgnoreAndReturn( ipCORRECT_CRC );
     vReturnEthernetFrame_ExpectAnyArgs();
