@@ -1070,10 +1070,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
                                      BaseType_t xOutgoingPacket )
 {
     struct xPacketSummary xSet;
+    DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
     ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-
-    DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
     {

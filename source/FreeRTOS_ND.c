@@ -924,9 +924,10 @@
 
         if( memcmp( pxIPv6Address->ucBytes, pxIPHeader->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
         {
-            FreeRTOS_printf( ( "Waiting done\n" ) );
             IPStackEvent_t xEventMessage;
             const TickType_t xDontBlock = ( TickType_t ) 0;
+
+            FreeRTOS_printf( ( "Waiting done\n" ) );
 
             xEventMessage.eEventType = eNetworkRxEvent;
             xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
@@ -1283,6 +1284,7 @@
 
         if( xResult == pdPASS )
         {
+            size_t uxIndex;
             /* A loopback IP-address has a prefix of 128. */
             configASSERT( ( uxPrefixLength > 0U ) && ( uxPrefixLength <= ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
 
@@ -1292,7 +1294,7 @@
             }
 
             pucSource = ( uint8_t * ) pulRandom;
-            size_t uxIndex = uxPrefixLength / 8U;
+            uxIndex = uxPrefixLength / 8U;
 
             if( ( uxPrefixLength % 8U ) != 0U )
             {
