@@ -1562,14 +1562,14 @@ BaseType_t xCheckRequiresResolution( const NetworkBufferDescriptor_t * pxNetwork
     {
         #if ( ipconfigUSE_IPv4 != 0 )
             case ipSIZE_OF_IPv4_HEADER:
-               xNeedsResolution = xCheckRequiresARPResolution( pxNetworkBuffer );
-               break;
+                xNeedsResolution = xCheckRequiresARPResolution( pxNetworkBuffer );
+                break;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
         #if ( ipconfigUSE_IPv6 != 0 )
             case ipSIZE_OF_IPv6_HEADER:
-              xNeedsResolution = xCheckRequiresNDResolution( pxNetworkBuffer );
-               break;
+                xNeedsResolution = xCheckRequiresNDResolution( pxNetworkBuffer );
+                break;
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
         default:
