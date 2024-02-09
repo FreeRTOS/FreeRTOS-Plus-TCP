@@ -860,7 +860,9 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
         /* Per the ARP Cache Validation section of https://tools.ietf.org/html/rfc1122
          * treat network down as a "delivery problem" and flush the ARP cache for this
          *  interface. */
-        FreeRTOS_ClearARP( pxEndPoint );
+        #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+            FreeRTOS_ClearARP( pxEndPoint );
+        #endif
 
         #if ( ipconfigUSE_DHCP == 1 )
             if( END_POINT_USES_DHCP( pxEndPoint ) )

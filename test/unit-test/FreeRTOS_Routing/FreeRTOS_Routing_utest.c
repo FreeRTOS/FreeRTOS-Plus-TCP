@@ -43,8 +43,11 @@
 #include "mock_event_groups.h"
 
 #include "mock_FreeRTOS_IP.h"
+#include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IPv6.h"
 #include "mock_FreeRTOS_Sockets.h"
+#include "mock_FreeRTOS_ARP.h"
+#include "mock_FreeRTOS_ND.h"
 
 #include "FreeRTOS_Routing.h"
 
@@ -3671,4 +3674,48 @@ void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
 
     pxEndPoint = FreeRTOS_MatchingEndpoint( &xNetworkInterface, ( const uint8_t * ) ( pxProtocolPacket ) );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
+
+void test_xCheckRequiresResolution( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+    NetworkInterface_t xInterface;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+
+    IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
+
+    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD1234;
+
+    xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
+    xNetworkBuffer.pxEndPoint = &xEndPoint;
+
+    /* Make sure there is no match. */
+    pxIPHeader->ulSourceIPAddress = ~( *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
+    xCheckRequiresARPResolution_IgnoreAndReturn( pdFALSE );
+
+    xResult = xCheckRequiresResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
+    xCheckRequiresNDResolution_IgnoreAndReturn( pdFALSE );
+
+    xResult = xCheckRequiresResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    uxIPHeaderSizePacket_IgnoreAndReturn( 1 );
+    xCheckRequiresNDResolution_IgnoreAndReturn( pdFALSE );
+
+    xResult = xCheckRequiresResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
 }

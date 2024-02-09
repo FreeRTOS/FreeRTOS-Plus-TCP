@@ -2134,7 +2134,7 @@ void test_prvProcessIPPacket_ValidHeader_ARPResolutionReqd( void )
     pxIPHeader->ucVersionHeaderLength = 0x45;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -2172,7 +2172,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_InvalidProt( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
@@ -2211,7 +2211,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPRelease( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     ProcessICMPPacket_ExpectAndReturn( pxNetworkBuffer, eReleaseBuffer );
 
@@ -2251,7 +2251,7 @@ void test_prvProcessIPPacket_ARPResolutionNotReqd_ICMPProcess( void )
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
     prvCheckIP4HeaderOptions_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     ProcessICMPPacket_ExpectAndReturn( pxNetworkBuffer, eProcessBuffer );
 
@@ -2568,7 +2568,7 @@ void test_prvProcessIPPacket_TCP( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdPASS );
 
@@ -2613,7 +2613,7 @@ void test_prvProcessIPPacket_TCPProcessFail( void )
     pxIPPacket->xIPHeader.ucProtocol = ipPROTOCOL_TCP;
 
     prvAllowIPPacketIPv4_ExpectAndReturn( pxIPPacket, pxNetworkBuffer, ( pxIPHeader->ucVersionHeaderLength & 0x0FU ) << 2, eProcessBuffer );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vARPRefreshCacheEntryAge_ExpectAnyArgs();
     xProcessReceivedTCPPacket_ExpectAndReturn( pxNetworkBuffer, pdFAIL );
 
@@ -2958,7 +2958,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
     xProcessReceivedTCPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
@@ -3008,7 +3008,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
@@ -3055,7 +3055,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
 
     prvAllowIPPacketIPv6_ExpectAndReturn( pxIPHeader, pxNetworkBuffer, ipSIZE_OF_IPv6_HEADER, eProcessBuffer );
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_ICMP_IPv6, 0U, 0 );
-    xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
+    xCheckRequiresResolution_ExpectAndReturn( pxNetworkBuffer, pdFALSE );
     vNDRefreshCacheEntry_Ignore();
     prvProcessICMPMessage_IPv6_ExpectAnyArgsAndReturn( eReleaseBuffer );
 

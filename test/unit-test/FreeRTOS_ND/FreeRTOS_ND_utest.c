@@ -1979,3 +1979,127 @@ void test_pcMessageType_All( void )
     xType = ipICMP_NEIGHBOR_ADVERTISEMENT_IPv6 + 1;
     ( void ) pcMessageType( xType );
 }
+
+void test_xCheckIPv6RequiresResolution_Protocols( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    IPPacket_IPv6_t * pxIPPacket_V6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_IPv6_t * pxIPHeader_V6 = &( pxIPPacket_V6->xIPHeader );
+    IPv6_Address_t * pxIPAddress = &( pxIPHeader_V6->xSourceAddress );
+    pxIPPacket_V6->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPHeader_V6->ucNextHeader = 1;
+
+    xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    pxIPHeader_V6->ucNextHeader = ipPROTOCOL_UDP;
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_SiteLocal );
+    xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+
+    pxIPHeader_V6->ucNextHeader = ipPROTOCOL_TCP;
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_SiteLocal );
+    xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+}
+
+void test_xCheckRequiresNDResolution_TCPNotOnLocalNetwork( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    IPPacket_IPv6_t * pxIPPacket_V6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_IPv6_t * pxIPHeader_V6 = &( pxIPPacket_V6->xIPHeader );
+    IPv6_Address_t * pxIPAddress = &( pxIPHeader_V6->xSourceAddress );
+    pxIPPacket_V6->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPHeader_V6->ucNextHeader = ipPROTOCOL_TCP;
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_SiteLocal );
+    xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+}
+
+void test_xCheckRequiresNDResolution_Hit( void )
+{
+    struct xNetworkEndPoint xEndPoint = { 0 };
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    IPPacket_IPv6_t * pxIPPacket_V6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_IPv6_t * pxIPHeader_V6 = &( pxIPPacket_V6->xIPHeader );
+    IPv6_Address_t * pxIPAddress = &( pxIPHeader_V6->xSourceAddress );
+    pxIPPacket_V6->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPHeader_V6->ucNextHeader = ipPROTOCOL_TCP;
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    xIsIPv6AllowedMulticast_ExpectAndReturn( pxIPAddress, pdTRUE );
+    vSetMultiCastIPv6MacAddress_Expect( pxIPAddress, NULL );
+    vSetMultiCastIPv6MacAddress_IgnoreArg_pxMACAddress();
+    FreeRTOS_FirstEndPoint_ExpectAnyArgsAndReturn( NULL );
+    xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xResult );
+}
+
+void test_xCheckRequiresNDResolution_Miss( void )
+{
+    struct xNetworkEndPoint xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
+    uint8_t ucEthernetBuffer[ ipconfigNETWORK_MTU ];
+    BaseType_t xResult;
+
+    ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
+    IPPacket_IPv6_t * pxIPPacket_V6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    IPHeader_IPv6_t * pxIPHeader_V6 = &( pxIPPacket_V6->xIPHeader );
+    IPv6_Address_t * pxIPAddress = &( pxIPHeader_V6->xSourceAddress );
+    pxIPPacket_V6->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxIPHeader_V6->ucNextHeader = ipPROTOCOL_TCP;
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    xIsIPv6AllowedMulticast_ExpectAndReturn( pxIPAddress, pdFALSE );
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( pxEndPoint );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( pxNetworkBuffer );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    xIsIPv6AllowedMulticast_ExpectAndReturn( pxIPAddress, pdFALSE );
+    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
+    FreeRTOS_FindEndPointOnIP_IPv6_ExpectAnyArgsAndReturn( pxEndPoint );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
+
+    xResult = xCheckRequiresNDResolution( pxNetworkBuffer );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xResult );
+}

@@ -204,6 +204,8 @@
         void FreeRTOS_PrintNDCache( void );
     #endif
 
+    BaseType_t xCheckRequiresNDResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
 #endif /* ipconfigUSE_IPv6 != 0 */
 
 

@@ -1923,7 +1923,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
              * entry. */
             if( ucProtocol != ( uint8_t ) ipPROTOCOL_UDP )
             {
-                if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+                if( xCheckRequiresResolution( pxNetworkBuffer ) == pdTRUE )
                 {
                     eReturn = eWaitingARPResolution;
                 }

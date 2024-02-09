@@ -423,7 +423,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
 
         if( pxSocket != NULL )
         {
-            if( xCheckRequiresARPResolution( pxNetworkBuffer ) == pdTRUE )
+            if( xCheckRequiresNDResolution( pxNetworkBuffer ) == pdTRUE )
             {
                 /* Mark this packet as waiting for ARP resolution. */
                 *pxIsWaitingForARPResolution = pdTRUE;

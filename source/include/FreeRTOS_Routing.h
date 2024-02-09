@@ -342,6 +342,8 @@
         IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
     #endif
 
+    BaseType_t xCheckRequiresResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
     #ifdef __cplusplus
 }     /* extern "C" */
     #endif
