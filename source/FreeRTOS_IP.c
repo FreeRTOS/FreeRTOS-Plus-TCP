@@ -1500,6 +1500,12 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
                 break;
         }
 
+        if( eReturn == eReleaseBuffer )
+        {
+            /* No use to do more testing. */
+            break;
+        }
+
         /* Examine the destination MAC from the Ethernet header to see if it matches
          * that of an end point managed by FreeRTOS+TCP. */
         pxEndPoint = FreeRTOS_MatchingEndpoint( NULL, pucEthernetBuffer );
@@ -1507,44 +1513,43 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         {
             break;
         }
-        else
-        {
-            #if ipconfigIS_ENABLED( ipconfigUSE_DNS )
-                #if ipconfigIS_ENABLED( ipconfigUSE_LLMNR )
-                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                        if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                        {
-                            /* The packet is a request for LLMNR - process it. */
-                            break;
-                        }
-                    #endif
-                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-                        if( memcmp( xLLMNR_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                        {
-                            /* The packet is a request for LLMNR - process it. */
-                            break;
-                        }
-                    #endif
+
+        #if ipconfigIS_ENABLED( ipconfigUSE_DNS )
+            #if ipconfigIS_ENABLED( ipconfigUSE_LLMNR )
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                    if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                    {
+                        /* The packet is a request for LLMNR - process it. */
+                        break;
+                    }
                 #endif
-                #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
-                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                        if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                        {
-                            /* The packet is a request for MDNS - process it. */
-                            break;
-                        }
-                    #endif
-                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-                        if( memcmp( xMDNS_MACAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                        {
-                            /* The packet is a request for MDNS - process it. */
-                            break;
-                        }
-                    #endif
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                    if( memcmp( xLLMNR_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                    {
+                        /* The packet is a request for LLMNR - process it. */
+                        break;
+                    }
                 #endif
             #endif
-            eReturn = eReleaseBuffer;
-        }
+            #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                    if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                    {
+                        /* The packet is a request for MDNS - process it. */
+                        break;
+                    }
+                #endif
+                #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                    if( memcmp( xMDNS_MACAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                    {
+                        /* The packet is a request for MDNS - process it. */
+                        break;
+                    }
+                #endif
+            #endif
+        #endif
+
+        eReturn = eReleaseBuffer;
     } while( ipFALSE_BOOL );
 
     return eReturn;
