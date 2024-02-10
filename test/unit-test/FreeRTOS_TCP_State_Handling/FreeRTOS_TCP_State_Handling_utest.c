@@ -1774,8 +1774,8 @@ void test_prvTCPSocketCopy_NullSocketSet( void )
     pxSocket->pxSocketSet = NULL;
     pxSocket->xSelectBits = eSELECT_READ;
 
-    FreeRTOS_GetRemoteAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
-    FreeRTOS_GetRemoteAddress_IgnoreArg_pxAddress();
+    FreeRTOS_GetLocalAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
+    FreeRTOS_GetLocalAddress_IgnoreArg_pxAddress();
     vSocketBind_ExpectAnyArgsAndReturn( 0 );
 
     Result = prvTCPSocketCopy( &MockReturnSocket, pxSocket );
@@ -1801,8 +1801,8 @@ void test_prvTCPSocketCopy_BindError( void )
     pxSocket->pxSocketSet = ( struct xSOCKET_SET * ) 0x1111111;
     pxSocket->xSelectBits = eSELECT_READ;
 
-    FreeRTOS_GetRemoteAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
-    FreeRTOS_GetRemoteAddress_IgnoreArg_pxAddress();
+    FreeRTOS_GetLocalAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
+    FreeRTOS_GetLocalAddress_IgnoreArg_pxAddress();
     vSocketBind_ExpectAnyArgsAndReturn( 1 );
     vSocketClose_ExpectAnyArgsAndReturn( NULL );
 

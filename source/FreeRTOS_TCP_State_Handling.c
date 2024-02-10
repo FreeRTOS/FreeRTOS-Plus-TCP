@@ -990,7 +990,7 @@
         #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
         /* And bind it to the same local port as its parent. */
-        FreeRTOS_GetRemoteAddress( pxSocket, &xAddress );
+        FreeRTOS_GetLocalAddress( pxSocket, &xAddress );
 
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
         {
