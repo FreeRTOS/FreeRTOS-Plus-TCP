@@ -635,35 +635,35 @@
  * @param[in] @param[in] pucEthernetBuffer The Ethernet buffer from which the source address will be retrieved.
  * @return IPv46_Address_t struct containing the source IP address.
  */
-static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthernetBuffer )
-{
-    IPv46_Address_t xSourceAddr;
-
-    const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
-
-    if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
+    static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthernetBuffer )
     {
-        /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        const IPHeader_IPv6_t * const pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-        xSourceAddr.xIs_IPv6 = pdTRUE;
-        ( void ) memcpy( xSourceAddr.xIPAddress.xIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, sizeof( IPv6_Address_t ) );
-    }
-    else if( pxHeader->usFrameType == ( uint16_t ) ipIPv4_FRAME_TYPE )
-    {
-        /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        const IPHeader_t * const pxIPHeader = ( ( const IPHeader_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-        xSourceAddr.xIs_IPv6 = pdFALSE;
-        xSourceAddr.xIPAddress.ulIP_IPv4 = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
-    }
+        IPv46_Address_t xSourceAddr;
 
-    return xSourceAddr;
-}
+        const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
+
+        if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
+        {
+            /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            const IPHeader_IPv6_t * const pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            xSourceAddr.xIs_IPv6 = pdTRUE;
+            ( void ) memcpy( xSourceAddr.xIPAddress.xIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, sizeof( IPv6_Address_t ) );
+        }
+        else if( pxHeader->usFrameType == ( uint16_t ) ipIPv4_FRAME_TYPE )
+        {
+            /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            const IPHeader_t * const pxIPHeader = ( ( const IPHeader_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            xSourceAddr.xIs_IPv6 = pdFALSE;
+            xSourceAddr.xIPAddress.ulIP_IPv4 = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
+        }
+
+        return xSourceAddr;
+    }
 
 /**
  * @brief Process the received TCP packet.
@@ -707,7 +707,7 @@ static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthern
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
             const TCPHeader_t * pxTCPHeader = ( ( const TCPHeader_t * )
-                            &( pxNetworkBuffer->pucEthernetBuffer[ uxIPHeaderOffset ] ) );
+                                                &( pxNetworkBuffer->pucEthernetBuffer[ uxIPHeaderOffset ] ) );
 
             const uint16_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
             const uint16_t usLocalPort = FreeRTOS_htons( pxTCPHeader->usDestinationPort );
@@ -794,6 +794,7 @@ static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthern
                         if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
                         {
                             const uint32_t ulAckNumber = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
+
                             /* Per the above RFC, "In the SYN-SENT state ... the RST is
                              * acceptable if the ACK field acknowledges the SYN." */
                             if( ulAckNumber == ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber + 1U ) )
@@ -804,6 +805,7 @@ static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthern
                         else
                         {
                             const uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
+
                             /* Check whether the packet matches the next expected sequence number. */
                             if( ulSequenceNumber == pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber )
                             {
