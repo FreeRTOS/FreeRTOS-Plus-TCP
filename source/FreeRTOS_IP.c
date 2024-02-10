@@ -1451,84 +1451,101 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer )
 {
     eFrameProcessingResult_t eReturn = eProcessBuffer;
-    const EthernetHeader_t * pxEthernetHeader = NULL;
-    const NetworkEndPoint_t * pxEndPoint = NULL;
 
-    if( pucEthernetBuffer == NULL )
+    do
     {
-        eReturn = eReleaseBuffer;
-    }
-    else
-    {
+        const EthernetHeader_t * pxEthernetHeader = NULL;
+        const NetworkEndPoint_t * pxEndPoint = NULL;
+
+        if( pucEthernetBuffer == NULL )
+        {
+            eReturn = eReleaseBuffer;
+            break;
+        }
+
         /* Map the buffer onto Ethernet Header struct for easy access to fields. */
-
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
+        switch( pxEthernetHeader->usFrameType )
+        {
+            case ipARP_FRAME_TYPE:
+            case ipIPv4_FRAME_TYPE:
+                #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
+                    eReturn = eReleaseBuffer;
+                #endif
+                break;
+
+            case ipIPv6_FRAME_TYPE:
+                #if ipconfigIS_DISABLED( ipconfigUSE_IPv6 )
+                    eReturn = eReleaseBuffer;
+                #endif
+                break;
+
+            default:
+                if( FreeRTOS_ntohs( pxEthernetHeader->usFrameType ) <= 0x600U )
+                {
+                    #if ipconfigIS_ENABLED( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES )
+                        eReturn = eReleaseBuffer;
+                    #endif
+                }
+                else
+                {
+                    #if ipconfigIS_DISABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
+                        eReturn = eReleaseBuffer;
+                    #endif
+                }
+                break;
+        }
+
         /* Examine the destination MAC from the Ethernet header to see if it matches
          * that of an end point managed by FreeRTOS+TCP. */
-        pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
-
+        pxEndPoint = FreeRTOS_MatchingEndpoint( NULL, pucEthernetBuffer );
         if( pxEndPoint != NULL )
         {
-            /* The packet was directed to this node - process it. */
-            eReturn = eProcessBuffer;
-        }
-        else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-        {
-            /* The packet was a broadcast - process it. */
-            eReturn = eProcessBuffer;
-        }
-        else
-        #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-            {
-                /* The packet is a request for LLMNR - process it. */
-                eReturn = eProcessBuffer;
-            }
-            else
-        #endif /* ipconfigUSE_LLMNR */
-        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-            {
-                /* The packet is a request for MDNS - process it. */
-                eReturn = eProcessBuffer;
-            }
-            else
-        #endif /* ipconfigUSE_MDNS */
-        if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
-            ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
-        {
-            /* The packet is a request for LLMNR - process it. */
-            eReturn = eProcessBuffer;
+            break;
         }
         else
         {
-            /* The packet was not a broadcast, or for this node, just release
-             * the buffer without taking any other action. */
+            #if ipconfigIS_ENABLED( ipconfigUSE_DNS )
+                #if ipconfigIS_ENABLED( ipconfigUSE_LLMNR )
+                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                        if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                        {
+                            /* The packet is a request for LLMNR - process it. */
+                            break;
+                        }
+                    #endif
+                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                        if( memcmp( xLLMNR_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                        {
+                            /* The packet is a request for LLMNR - process it. */
+                            break;
+                        }
+                    #endif
+                #endif
+                #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
+                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
+                        if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                        {
+                            /* The packet is a request for MDNS - process it. */
+                            break;
+                        }
+                    #endif
+                    #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
+                        if( memcmp( xMDNS_MACAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                        {
+                            /* The packet is a request for MDNS - process it. */
+                            break;
+                        }
+                    #endif
+                #endif
+            #endif
             eReturn = eReleaseBuffer;
         }
-    }
-
-    #if ( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1 )
-    {
-        uint16_t usFrameType;
-
-        if( eReturn == eProcessBuffer )
-        {
-            usFrameType = pxEthernetHeader->usFrameType;
-            usFrameType = FreeRTOS_ntohs( usFrameType );
-
-            if( usFrameType <= 0x600U )
-            {
-                /* Not an Ethernet II frame. */
-                eReturn = eReleaseBuffer;
-            }
-        }
-    }
-    #endif /* ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES == 1  */
+    } while( ipFALSE_BOOL );
 
     return eReturn;
 }
