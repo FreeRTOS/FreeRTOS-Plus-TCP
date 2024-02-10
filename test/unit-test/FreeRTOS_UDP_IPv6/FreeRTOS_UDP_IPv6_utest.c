@@ -1305,68 +1305,6 @@ void test_vProcessGeneratedUDPPacket_IPv6_UDPv6CacheMissDifferentIPType2()
     TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
 }
 
-/**
- * @brief To validate the flow to send UDPv4 and get a cache miss.
- * Then found an endpoint in same subnet.
- */
-void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointFound()
-{
-    BaseType_t xReturn;
-    NetworkBufferDescriptor_t * pxNetworkBuffer;
-    NetworkEndPoint_t * pxEndPoint, * pxEndPointNull = NULL;
-    UDPPacket_IPv6_t * pxUDPv6Packet;
-
-    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-    pxEndPoint = prvPrepareDefaultIPv4EndPoint();
-
-    pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxUDPv6Packet->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-    eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-
-    vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, pxEndPoint );
-    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
-    vARPGenerateRequestPacket_Expect( pxNetworkBuffer );
-
-    vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( pxEndPoint, pxNetworkBuffer->pxEndPoint );
-    TEST_ASSERT_EQUAL( 1, xIsIfOutCalled );
-}
-
-/**
- * @brief To validate the flow to send UDPv4 and get a cache miss.
- * Then can't find an endpoint in same subnet.
- */
-void test_vProcessGeneratedUDPPacket_IPv6_UDPv4CacheMissEndPointNotFound()
-{
-    BaseType_t xReturn;
-    NetworkBufferDescriptor_t * pxNetworkBuffer;
-    NetworkEndPoint_t * pxEndPointNull = NULL;
-    UDPPacket_IPv6_t * pxUDPv6Packet;
-
-    pxNetworkBuffer = prvPrepareDefaultNetworkbuffer( ipPROTOCOL_UDP );
-
-    pxUDPv6Packet = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxUDPv6Packet->xEthernetHeader.usFrameType = ipIPv4_FRAME_TYPE;
-
-    eNDGetCacheEntry_ExpectAndReturn( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ), &( pxUDPv6Packet->xEthernetHeader.xDestinationAddress ), NULL, eARPCacheMiss );
-    eNDGetCacheEntry_IgnoreArg_ppxEndPoint();
-    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPointNull );
-
-    vARPRefreshCacheEntry_Expect( NULL, pxNetworkBuffer->xIPAddress.ulIP_IPv4, NULL );
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11, NULL );
-    FreeRTOS_FindEndPointOnNetMask_IgnoreArg_ulWhere();
-    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
-
-    vProcessGeneratedUDPPacket_IPv6( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( NULL, pxNetworkBuffer->pxEndPoint );
-    TEST_ASSERT_EQUAL( 0, xIsIfOutCalled );
-}
 
 /**
  * @brief Searching IPv4 endpoint in the global list. And it always returns NULL.

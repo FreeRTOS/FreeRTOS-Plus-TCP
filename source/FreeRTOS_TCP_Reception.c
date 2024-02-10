@@ -531,6 +531,10 @@
         {
             /* Although we ignore the urgent data, we have to skip it. */
             lUrgentLength = ( int32_t ) FreeRTOS_htons( pxTCPHeader->usUrgent );
+
+            /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+            /* coverity[misra_c_2012_rule_18_4_violation] */
             *ppucRecvData += lUrgentLength;
             lReceiveLength -= FreeRTOS_min_int32( lReceiveLength, lUrgentLength );
         }
