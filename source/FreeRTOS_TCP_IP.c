@@ -632,7 +632,9 @@
 
 /**
  * @brief IP frame agnostic helper to obtain the source IP Address from a buffer.
- * @param[in] @param[in] pucEthernetBuffer The Ethernet buffer from which the source address will be retrieved.
+ *
+ * @param[in] pucEthernetBuffer The Ethernet buffer from which the source address will be retrieved.
+ *
  * @return IPv46_Address_t struct containing the source IP address.
  */
     static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthernetBuffer )
@@ -651,7 +653,7 @@
             xSourceAddr.xIs_IPv6 = pdTRUE;
             ( void ) memcpy( xSourceAddr.xIPAddress.xIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, sizeof( IPv6_Address_t ) );
         }
-        else if( pxHeader->usFrameType == ( uint16_t ) ipIPv4_FRAME_TYPE )
+        else
         {
             /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
             /* MISRA Ref 11.3.1 [Misaligned access] */
