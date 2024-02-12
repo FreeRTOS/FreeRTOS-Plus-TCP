@@ -163,26 +163,6 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
  */
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
-
-
-/* This function will check if the target IP-address belongs to this device.
- * If so, the packet will be passed to the IP-stack, who will answer it.
- * The function is to be called within the function xNetworkInterfaceOutput()
- * in NetworkInterface.c as follows:
- *
- *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
- *   {
- *      / * The packet has been sent back to the IP-task.
- *        * The IP-task will further handle it.
- *        * Do not release the descriptor.
- *        * /
- *       return pdTRUE;
- *   }
- *   / * Send the packet as usual. * /
- */
-BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
-                           BaseType_t bReleaseAfterSend );
-
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 
 /* 
