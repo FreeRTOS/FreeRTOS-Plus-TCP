@@ -710,7 +710,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_NullEndPoint( void )
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
-    vReleaseNetworkBufferAndDescriptor_Expect(pxNetworkBuffer);
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     prvProcessIPEventsAndTimers();
 }
