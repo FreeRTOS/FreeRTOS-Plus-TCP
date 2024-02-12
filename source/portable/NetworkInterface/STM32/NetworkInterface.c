@@ -590,16 +590,6 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
             break;
         }
 
-        if( xCheckLoopback( pxDescriptor, xReleaseAfterSend ) != pdFALSE )
-        {
-            /* The packet has been sent back to the IP-task.
-             * The IP-task will further handle it.
-             * Do not release the descriptor. */
-            xReleaseAfterSend = pdFALSE;
-            FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Loopback\n" ) );
-            break;
-        }
-
         if( prvGetPhyLinkStatus( pxInterface ) == pdFALSE )
         {
             FreeRTOS_debug_printf( ( "xNetworkInterfaceOutput: Link Down\n" ) );
