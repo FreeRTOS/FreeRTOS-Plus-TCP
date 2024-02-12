@@ -906,7 +906,6 @@ static void xRunBadIPv4Loopback( uint32_t ulSource,
 
     if( eExpected != eReleaseBuffer )
     {
-
         FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
 
         usGenerateChecksum_ExpectAndReturn( 0U, ( uint8_t * ) &( pxIPHeader->ucVersionHeaderLength ), ( size_t ) uxHeaderLength, ipCORRECT_CRC );
