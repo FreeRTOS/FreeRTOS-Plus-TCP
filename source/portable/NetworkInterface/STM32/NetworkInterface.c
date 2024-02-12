@@ -434,11 +434,11 @@ static BaseType_t prvPhyReadReg( BaseType_t xAddress,
                                  BaseType_t xRegister,
                                  uint32_t * pulValue )
 {
-    BaseType_t xResult = pdFALSE;
+    BaseType_t xResult = 0;
 
-    if( HAL_ETH_ReadPHYRegister( &xEthHandle, ( uint32_t ) xAddress, ( uint32_t ) xRegister, pulValue ) == HAL_OK )
+    if( HAL_ETH_ReadPHYRegister( &xEthHandle, ( uint32_t ) xAddress, ( uint32_t ) xRegister, pulValue ) != HAL_OK )
     {
-        xResult = pdTRUE;
+        xResult = -1;
     }
 
     return xResult;
@@ -450,11 +450,11 @@ static BaseType_t prvPhyWriteReg( BaseType_t xAddress,
                                   BaseType_t xRegister,
                                   uint32_t ulValue )
 {
-    BaseType_t xResult = pdFALSE;
+    BaseType_t xResult = 0;
 
-    if( HAL_ETH_WritePHYRegister( &xEthHandle, ( uint32_t ) xAddress, ( uint32_t ) xRegister, ulValue ) == HAL_OK )
+    if( HAL_ETH_WritePHYRegister( &xEthHandle, ( uint32_t ) xAddress, ( uint32_t ) xRegister, ulValue ) != HAL_OK )
     {
-        xResult = pdTRUE;
+        xResult = -1;
     }
 
     return xResult;
