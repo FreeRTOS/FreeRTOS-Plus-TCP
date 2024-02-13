@@ -1349,7 +1349,7 @@ void FreeRTOS_OutputARPRequest_Multi( const NetworkInterface_t * pxNetworkInterf
  */
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
     {
-        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 12 );
+        const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 12 );
         if( pxEndPoint != NULL )
         {
             FreeRTOS_OutputARPRequest_Multi( pxEndPoint->pxNetworkInterface, ulIPAddress );
