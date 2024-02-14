@@ -574,7 +574,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkRxEventNULL( void )
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
 
-    catch_assert( prvProcessIPEventsAndTimers() );
+    prvProcessIPEventsAndTimers();
 }
 
 /**
@@ -676,6 +676,41 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent_NullInterface( void )
     xCalculateSleepTime_ExpectAndReturn( 0 );
     xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
     xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+
+    prvProcessIPEventsAndTimers();
+}
+
+/**
+ * @brief test_prvProcessIPEventsAndTimers_eNetworkRxEvent_NullEndPoint
+ * Check if prvProcessIPEventsAndTimers() skip receiving data through network interface
+ * when network endpoint pointer is NULL.
+ */
+void test_prvProcessIPEventsAndTimers_eNetworkRxEvent_NullEndPoint( void )
+{
+    IPStackEvent_t xReceivedEvent;
+    NetworkEndPoint_t xEndPoints;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
+    struct xNetworkInterface xInterface;
+
+    pxNetworkBuffer = &xNetworkBuffer;
+    pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
+    pxNetworkBuffer->xDataLength = sizeof( EthernetHeader_t ) - 1;
+    pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = NULL;
+
+    NetworkInterfaceOutputFunction_Stub_Called = 0;
+
+    xReceivedEvent.eEventType = eNetworkRxEvent;
+    xReceivedEvent.pvData = pxNetworkBuffer;
+    xNetworkDownEventPending = pdFALSE;
+
+    /* prvProcessIPEventsAndTimers */
+    vCheckNetworkTimers_Expect();
+    xCalculateSleepTime_ExpectAndReturn( 0 );
+    xQueueReceive_ExpectAnyArgsAndReturn( pdTRUE );
+    xQueueReceive_ReturnMemThruPtr_pvBuffer( &xReceivedEvent, sizeof( xReceivedEvent ) );
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     prvProcessIPEventsAndTimers();
 }
@@ -1734,15 +1769,6 @@ void test_prvProcessEthernetPacket_NoData( void )
     vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
 
     prvProcessEthernetPacket( pxNetworkBuffer );
-}
-
-/**
- * @brief test_prvProcessEthernetPacket_NullNetworkBufferDescriptor
- * To validate if prvProcessEthernetPacket triggers assertion when input is NULL.
- */
-void test_prvProcessEthernetPacket_NullNetworkBufferDescriptor( void )
-{
-    catch_assert( prvProcessEthernetPacket( NULL ) );
 }
 
 /**

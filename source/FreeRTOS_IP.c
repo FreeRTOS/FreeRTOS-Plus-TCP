@@ -672,7 +672,10 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
         /* When ipconfigUSE_LINKED_RX_MESSAGES is set to 0 then only one
          * buffer will be sent at a time.  This is the default way for +TCP to pass
          * messages from the MAC to the TCP/IP stack. */
-        prvProcessEthernetPacket( pxBuffer );
+        if( pxBuffer != NULL )
+        {
+            prvProcessEthernetPacket( pxBuffer );
+        }
     }
     #else /* ipconfigUSE_LINKED_RX_MESSAGES */
     {
@@ -1542,15 +1545,35 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
     const EthernetHeader_t * pxEthernetHeader;
     eFrameProcessingResult_t eReturned = eReleaseBuffer;
 
-    configASSERT( pxNetworkBuffer != NULL );
-    configASSERT( pxNetworkBuffer->pxInterface != NULL );
-    /* From here on, all incoming packet processing can rely on all of the above non-NULL */
-
-    iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-
-    /* Interpret the Ethernet frame. */
-    if( ( pxNetworkBuffer->pxEndPoint != NULL ) && ( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) ) )
+    /* Use do{}while(pdFALSE) to allow the use of break; */
+    do
     {
+        /* prvHandleEthernetPacket() already checked for ( pxNetworkBuffer != NULL ) so
+         * it is safe to break out of the do{}while() and let the second half of this
+         * function handle the releasing of pxNetworkBuffer */
+
+        if( ( pxNetworkBuffer->pxInterface == NULL ) || ( pxNetworkBuffer->pxEndPoint == NULL ) )
+        {
+            break;
+        }
+
+        /* Beyond this point,
+         * ( pxNetworkBuffer != NULL ),
+         * ( pxNetworkBuffer->pxInterface != NULL ),
+         * ( pxNetworkBuffer->pxEndPoint != NULL ),
+         * Additionally, FreeRTOS_FillEndPoint() and FreeRTOS_FillEndPoint_IPv6() guarantee
+         * that endpoints always have a valid interface assigned to them, and consequently:
+         * ( pxNetworkBuffer->pxEndPoint->pxInterface != NULL )
+         * None of the above need to be checked again in code that handles incoming packets. */
+
+        iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+
+        /* Interpret the Ethernet frame. */
+        if( pxNetworkBuffer->xDataLength < sizeof( EthernetHeader_t ) )
+        {
+            break;
+        }
+
         eReturned = ipCONSIDER_FRAME_FOR_PROCESSING( pxNetworkBuffer->pucEthernetBuffer );
 
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
@@ -1613,9 +1636,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         eReturned = eReleaseBuffer;
                     #endif
                     break;
-            }
+            } /* switch( pxEthernetHeader->usFrameType ) */
         }
-    }
+    } while( pdFALSE );
 
     /* Perform any actions that resulted from processing the Ethernet frame. */
     switch( eReturned )
