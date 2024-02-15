@@ -221,19 +221,13 @@ BaseType_t xIsIPv4Multicast( uint32_t ulIPAddress )
 BaseType_t xBadIPv4Loopback( const IPHeader_t * const pxIPHeader )
 {
     BaseType_t xReturn = pdFALSE;
-    const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxIPHeader->ulSourceIPAddress, 3 );
+    BaseType_t x1 = ( xIsIPv4Loopback( pxIPHeader->ulDestinationIPAddress ) != 0 ) ? pdTRUE : pdFALSE;
+    BaseType_t x2 = ( xIsIPv4Loopback( pxIPHeader->ulSourceIPAddress ) != 0 ) ? pdTRUE : pdFALSE;
 
-    /* Allow loopback packets from this node itself only. */
-    if( pxEndPoint != NULL )
+    if( x1 != x2 )
     {
-        BaseType_t x1 = ( xIsIPv4Loopback( pxIPHeader->ulDestinationIPAddress ) != 0 ) ? pdTRUE : pdFALSE;
-        BaseType_t x2 = ( xIsIPv4Loopback( pxIPHeader->ulSourceIPAddress ) != 0 ) ? pdTRUE : pdFALSE;
-
-        if( x1 != x2 )
-        {
-            /* Either the source or the destination address is an IPv4 loopback address. */
-            xReturn = pdTRUE;
-        }
+        /* Either the source or the destination address is an IPv4 loopback address. */
+        xReturn = pdTRUE;
     }
 
     return xReturn;
@@ -312,15 +306,19 @@ enum eFrameProcessingResult prvAllowIPPacketIPv4( const struct xIP_PACKET * cons
             /* Can not handle, unknown or invalid header version. */
             eReturn = eReleaseBuffer;
         }
-        else if( xBadIPv4Loopback( &( pxIPPacket->xIPHeader ) ) == pdTRUE )
+        else if( ( xIsIPv4Loopback( ulDestinationIPAddress ) == pdTRUE ) ||
+                 ( xIsIPv4Loopback( ulSourceIPAddress ) == pdTRUE ) )
         {
-            /* The local loopback addresses must never appear outside a host. See RFC 1122
-             * section 3.2.1.3. */
-            eReturn = eReleaseBuffer;
+            /* source OR destination is a loopback address. Make sure they BOTH are. */
+            if( xBadIPv4Loopback( &( pxIPPacket->xIPHeader ) ) == pdTRUE )
+            {
+                /* The local loopback addresses must never appear outside a host. See RFC 1122
+                 * section 3.2.1.3. */
+                eReturn = eReleaseBuffer;
+            }
         }
         else if(
             ( FreeRTOS_FindEndPointOnIP_IPv4( ulDestinationIPAddress, 4 ) == NULL ) &&
-            ( pxNetworkBuffer->pxEndPoint == NULL ) &&
             /* Is it an IPv4 broadcast address x.x.x.255 ? */
             ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xffU ) != 0xffU ) &&
             ( xIsIPv4Multicast( ulDestinationIPAddress ) == pdFALSE ) &&

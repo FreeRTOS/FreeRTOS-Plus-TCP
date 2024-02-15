@@ -55,22 +55,6 @@
 #define phyMIN_PHY_ADDRESS    0
 #define phyMAX_PHY_ADDRESS    31
 
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
 /* As the following 3 macro's are OK in most situations, and so they're not
  * included in 'FreeRTOSIPConfigDefaults.h'.
  * Users can change their values in the project's 'FreeRTOSIPConfig.h'. */
@@ -542,7 +526,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                                      uint32_t ulPhyMask )
 {
     uint32_t xPhyIndex, ulDoneMask, ulBitMask;
-    uint32_t ulPHYLinkStatus, ulRegValue;
+    uint32_t ulRegValue;
     TickType_t xRemainingTime;
     TimeOut_t xTimer;
 
@@ -624,14 +608,9 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
 
             pxPhyObject->fnPhyRead( xPhyAddress, phyREG_01_BMSR, &ulRegValue );
 
-            if( ( ulRegValue & phyBMSR_LINK_STATUS ) != 0 )
+            if( ( ulRegValue & phyBMSR_LINK_STATUS ) != 0U )
             {
-                ulPHYLinkStatus |= phyBMSR_LINK_STATUS;
                 pxPhyObject->ulLinkStatusMask |= ulBitMask;
-            }
-            else
-            {
-                ulPHYLinkStatus &= ~( phyBMSR_LINK_STATUS );
             }
 
             if( ulPhyID == PHY_ID_KSZ8081MNXIA )
@@ -730,7 +709,7 @@ BaseType_t xPhyStartAutoNegotiation( EthernetPhy_t * pxPhyObject,
                                ( unsigned int ) ulRegValue,
                                ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) ? "full" : "half",
                                ( ulRegValue & phyPHYSTS_SPEED_STATUS ) ? 10 : 100,
-                               ( ( ulPHYLinkStatus |= phyBMSR_LINK_STATUS ) != 0 ) ? "high" : "low" ) );
+                               ( ( pxPhyObject->ulLinkStatusMask & ulBitMask ) != 0U ) ? "high" : "low" ) );
 
             if( ( ulRegValue & phyPHYSTS_DUPLEX_STATUS ) != ( uint32_t ) 0U )
             {

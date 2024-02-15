@@ -181,34 +181,17 @@
  *              }
  */
 
-#define PHY_REG_00_BMCR         0x00    /* Basic mode control register */
-#define PHY_REG_01_BMSR         0x01    /* Basic mode status register */
-#define PHY_REG_02_PHYSID1      0x02    /* PHYS ID 1 */
-#define PHY_REG_03_PHYSID2      0x03    /* PHYS ID 2 */
-#define PHY_REG_04_ADVERTISE    0x04    /* Advertisement control reg */
-#define PHY_REG_05_LPA          0x05    /* Link partner ability reg */
-#define PHY_REG_06_ANER         0x06    /*	6	RW		Auto-Negotiation Expansion Register */
-#define PHY_REG_07_ANNPTR       0x07    /*	7	RW		Auto-Negotiation Next Page TX */
-#define PHY_REG_08_RESERVED0    0x08    /* 0x08..0x0Fh	8-15	RW		RESERVED */
+#define PHY_REG_00_BMCR           0x00   /* Basic mode control register */
+#define PHY_REG_01_BMSR           0x01   /* Basic mode status register */
+#define PHY_REG_02_PHYSID1        0x02   /* PHYS ID 1 */
+#define PHY_REG_03_PHYSID2        0x03   /* PHYS ID 2 */
+#define PHY_REG_04_ADVERTISE      0x04   /* Advertisement control reg */
+#define PHY_REG_05_LPA            0x05   /* Link partner ability reg */
+#define PHY_REG_06_ANER           0x06   /*	6	RW		Auto-Negotiation Expansion Register */
+#define PHY_REG_07_ANNPTR         0x07   /*	7	RW		Auto-Negotiation Next Page TX */
+#define PHY_REG_08_RESERVED0      0x08   /* 0x08..0x0Fh	8-15	RW		RESERVED */
 
-#define BMSR_LINK_STATUS        0x0004  /*!< Link status */
-
-#if defined( PHY_LS_HIGH_CHECK_TIME_MS ) || defined( PHY_LS_LOW_CHECK_TIME_MS )
-    #error please use the new defines with 'ipconfig' prefix
-#endif
-
-#ifndef ipconfigPHY_LS_HIGH_CHECK_TIME_MS
-
-/* Check if the LinkStatus in the PHY is still high after 15 seconds of not
- * receiving packets. */
-    #define ipconfigPHY_LS_HIGH_CHECK_TIME_MS    15000U
-#endif
-
-#ifndef ipconfigPHY_LS_LOW_CHECK_TIME_MS
-    /* Check if the LinkStatus in the PHY is still low every second. */
-    #define ipconfigPHY_LS_LOW_CHECK_TIME_MS    1000U
-#endif
-
+#define BMSR_LINK_STATUS          0x0004 /*!< Link status */
 
 /* Interrupt events to process.  Currently only the Rx event is processed
  * although code for other events is included to allow for possible future

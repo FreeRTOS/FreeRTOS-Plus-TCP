@@ -31,7 +31,6 @@
 /* Application level configuration options. */
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
-#include "IPTraceMacroDefaults.h"
 
 #include "FreeRTOS_IP.h"
 
@@ -142,11 +141,20 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
 
 #endif
 
+#if ( ipconfigUSE_IPv4 != 0 )
+
 /*
  * Reduce the age count in each entry within the ARP cache.  An entry is no
  * longer considered valid and is deleted if its age reaches zero.
  */
-void vARPAgeCache( void );
+    void vARPAgeCache( void );
+
+/*
+ * After DHCP is ready and when changing IP address, force a quick send of our new IP
+ * address
+ */
+    void vARPSendGratuitous( void );
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
 /*
  * Send out an ARP request for the IP address contained in pxNetworkBuffer, and
@@ -154,30 +162,6 @@ void vARPAgeCache( void );
  * outstanding so re-transmissions can be generated.
  */
 void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffer );
-
-/*
- * After DHCP is ready and when changing IP address, force a quick send of our new IP
- * address
- */
-void vARPSendGratuitous( void );
-
-/* This function will check if the target IP-address belongs to this device.
- * If so, the packet will be passed to the IP-stack, who will answer it.
- * The function is to be called within the function xNetworkInterfaceOutput()
- * in NetworkInterface.c as follows:
- *
- *   if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
- *   {
- *      / * The packet has been sent back to the IP-task.
- *        * The IP-task will further handle it.
- *        * Do not release the descriptor.
- *        * /
- *       return pdTRUE;
- *   }
- *   / * Send the packet as usual. * /
- */
-BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
-                           BaseType_t bReleaseAfterSend );
 
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 

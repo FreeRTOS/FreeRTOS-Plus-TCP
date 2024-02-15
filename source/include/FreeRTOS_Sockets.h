@@ -238,6 +238,18 @@
                                                  BaseType_t * pxHigherPriorityTaskWoken );
     #endif
 
+/* This option adds the possibility to have a user-ID attached to a socket.
+ * The type of this ID is a void *.  Both UDP and TCP sockets have
+ * this ID. It has a default value of NULL.
+ */
+    BaseType_t xSocketSetSocketID( const Socket_t xSocket,
+                                   void * pvSocketID );
+
+    void * pvSocketGetSocketID( const ConstSocket_t xSocket );
+
+/* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
+    BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
+
 /* End Common Socket Attributes */
 
 
@@ -357,9 +369,6 @@
         BaseType_t FreeRTOS_GetRemoteAddress( ConstSocket_t xSocket,
                                               struct freertos_sockaddr * pxAddress );
 
-/* Get the type of IP: either 'ipTYPE_IPv4' or 'ipTYPE_IPv6'. */
-        BaseType_t FreeRTOS_GetIPType( ConstSocket_t xSocket );
-
 /* Returns the number of bytes that may be added to txStream. */
         BaseType_t FreeRTOS_maywrite( ConstSocket_t xSocket );
 
@@ -387,15 +396,6 @@
         const struct xSTREAM_BUFFER * FreeRTOS_get_rx_buf( ConstSocket_t xSocket );
 
         void FreeRTOS_netstat( void );
-
-/* This option adds the possibility to have a user-ID attached to a socket.
- * The type of this ID is a void *.  Both UDP and TCP sockets have
- * this ID. It has a default value of NULL.
- */
-        BaseType_t xSocketSetSocketID( const Socket_t xSocket,
-                                       void * pvSocketID );
-
-        void * pvSocketGetSocketID( const ConstSocket_t xSocket );
 
 /* End TCP Socket Attributes. */
 
@@ -544,8 +544,8 @@
             eSELECT_INTR = 0x0008,
             eSELECT_ALL = 0x000F,
             /* Reserved for internal use: */
-            eSELECT_CALL_IP = 0x0010,
-            /* end */
+            eSELECT_CALL_IP = 0x0010
+                              /* end */
         } eSelectEvent_t;
 
 /* Add a socket to a socket set, and set the event bits of interest

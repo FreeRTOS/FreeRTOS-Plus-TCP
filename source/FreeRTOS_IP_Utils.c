@@ -209,7 +209,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
     return usChecksum;
 }
 
-#if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 )
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) )
 
 /**
  * @brief Create a DHCP event.
@@ -223,7 +223,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
         IPStackEvent_t xEventMessage;
         const TickType_t uxDontBlock = 0U;
 
-        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+        #if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
             eDHCPState_t uxOption = eGetDHCPState( pxEndPoint );
         #endif
 
@@ -233,7 +233,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-116 */
         /* coverity[misra_c_2012_rule_11_6_violation] */
         xEventMessage.pvData = ( void * ) pxEndPoint;
-        #if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 )
+        #if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
         {
             pxEndPoint->xDHCPData.eExpectedState = uxOption;
         }
@@ -241,7 +241,7 @@ static uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet )
 
         return xSendEventStructToIPTask( &xEventMessage, uxDontBlock );
     }
-#endif /* if ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) */
+#endif /* if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) || ( ipconfigUSE_RA == 1 ) ) */
 /*-----------------------------------------------------------*/
 
 /**
@@ -841,7 +841,7 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
         {
             if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
             {
-                #if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+                #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
                 {
                     vApplicationIPNetworkEventHook( eNetworkDown );
                 }
@@ -953,7 +953,9 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                         break;
                 }
 
-                *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */
@@ -985,18 +987,28 @@ void vPreCheckConfigs( void )
 
     #if ( configASSERT_DEFINED == 1 )
     {
-        volatile size_t uxSize = sizeof( uintptr_t );
+        size_t uxSize;
 
-        if( uxSize == 8U )
-        {
-            /* This is a 64-bit platform, make sure there is enough space in
-             * pucEthernetBuffer to store a pointer and also make sure that the value of
-             * ipconfigBUFFER_PADDING is such that (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) is a
-             * 32 bit (4 byte) aligned value, so that when incrementing the ethernet buffer with
-             * (ipconfigBUFFER_PADDING + ipSIZE_OF_ETH_HEADER) bytes it lands in a 32 bit aligned address
-             * which lets us efficiently access 32 bit values later in the packet. */
-            configASSERT( ( ipconfigBUFFER_PADDING >= 14 ) && ( ( ( ( ipconfigBUFFER_PADDING ) + ( ipSIZE_OF_ETH_HEADER ) ) % 4 ) == 0 ) );
-        }
+        /* Check if ipBUFFER_PADDING has a minimum size, depending on the platform.
+         * See FreeRTOS_IP.h for more details. */
+        #if ( UINTPTR_MAX > 0xFFFFFFFFU )
+
+            /*
+             * This is a 64-bit platform, make sure there is enough space in
+             * pucEthernetBuffer to store a pointer.
+             */
+            configASSERT( ipBUFFER_PADDING >= 14U );
+        #else
+            /* This is a 32-bit platform. */
+            configASSERT( ipBUFFER_PADDING >= 10U );
+        #endif /* UINTPTR_MAX > 0xFFFFFFFFU */
+
+        /*
+         * The size of the Ethernet header (14) plus ipBUFFER_PADDING should be a
+         * multiple of 32 bits, in order to get aligned access to all uint32_t
+         * fields in the protocol headers.
+         */
+        configASSERT( ( ( ( ipSIZE_OF_ETH_HEADER ) + ( ipBUFFER_PADDING ) ) % 4U ) == 0U );
 
         /* LCOV_EXCL_BR_START */
         uxSize = ipconfigNETWORK_MTU;
@@ -1486,12 +1498,11 @@ uint16_t usGenerateChecksum( uint16_t usSum,
         }
         #endif /* ipconfigCHECK_IP_QUEUE_SPACE */
     }
-#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 /*-----------------------------------------------------------*/
 
 /**
  * @brief Utility function: Convert error number to a human readable
- *        string. Declaration in FreeRTOS_errno_TCP.h.
+ *        string.
  *
  * @param[in] xErrnum The error number.
  * @param[in] pcBuffer Buffer big enough to be filled with the human readable message.
@@ -1500,105 +1511,107 @@ uint16_t usGenerateChecksum( uint16_t usSum,
  * @return The buffer filled with human readable error string.
  */
 
-const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
-                                  char * pcBuffer,
-                                  size_t uxLength )
-{
-    const char * pcName;
-    BaseType_t xErrnumPositive = xErrnum;
-
-    if( xErrnumPositive < 0 )
+    const char * FreeRTOS_strerror_r( BaseType_t xErrnum,
+                                      char * pcBuffer,
+                                      size_t uxLength )
     {
-        xErrnumPositive = -xErrnumPositive;
-    }
+        const char * pcName;
+        BaseType_t xErrnumPositive = xErrnum;
 
-    switch( xErrnumPositive )
-    {
-        case pdFREERTOS_ERRNO_EADDRINUSE:
-            pcName = "EADDRINUSE";
-            break;
+        if( xErrnumPositive < 0 )
+        {
+            xErrnumPositive = -xErrnumPositive;
+        }
 
-        case pdFREERTOS_ERRNO_ENOMEM:
-            pcName = "ENOMEM";
-            break;
+        switch( xErrnumPositive )
+        {
+            case pdFREERTOS_ERRNO_EADDRINUSE:
+                pcName = "EADDRINUSE";
+                break;
 
-        case pdFREERTOS_ERRNO_EADDRNOTAVAIL:
-            pcName = "EADDRNOTAVAIL";
-            break;
+            case pdFREERTOS_ERRNO_ENOMEM:
+                pcName = "ENOMEM";
+                break;
 
-        case pdFREERTOS_ERRNO_ENOPROTOOPT:
-            pcName = "ENOPROTOOPT";
-            break;
+            case pdFREERTOS_ERRNO_EADDRNOTAVAIL:
+                pcName = "EADDRNOTAVAIL";
+                break;
 
-        case pdFREERTOS_ERRNO_EBADF:
-            pcName = "EBADF";
-            break;
+            case pdFREERTOS_ERRNO_ENOPROTOOPT:
+                pcName = "ENOPROTOOPT";
+                break;
 
-        case pdFREERTOS_ERRNO_ENOSPC:
-            pcName = "ENOSPC";
-            break;
+            case pdFREERTOS_ERRNO_EBADF:
+                pcName = "EBADF";
+                break;
 
-        case pdFREERTOS_ERRNO_ECANCELED:
-            pcName = "ECANCELED";
-            break;
+            case pdFREERTOS_ERRNO_ENOSPC:
+                pcName = "ENOSPC";
+                break;
 
-        case pdFREERTOS_ERRNO_ENOTCONN:
-            pcName = "ENOTCONN";
-            break;
+            case pdFREERTOS_ERRNO_ECANCELED:
+                pcName = "ECANCELED";
+                break;
 
-        case pdFREERTOS_ERRNO_EINPROGRESS:
-            pcName = "EINPROGRESS";
-            break;
+            case pdFREERTOS_ERRNO_ENOTCONN:
+                pcName = "ENOTCONN";
+                break;
 
-        case pdFREERTOS_ERRNO_EOPNOTSUPP:
-            pcName = "EOPNOTSUPP";
-            break;
+            case pdFREERTOS_ERRNO_EINPROGRESS:
+                pcName = "EINPROGRESS";
+                break;
 
-        case pdFREERTOS_ERRNO_EINTR:
-            pcName = "EINTR";
-            break;
+            case pdFREERTOS_ERRNO_EOPNOTSUPP:
+                pcName = "EOPNOTSUPP";
+                break;
 
-        case pdFREERTOS_ERRNO_ETIMEDOUT:
-            pcName = "ETIMEDOUT";
-            break;
+            case pdFREERTOS_ERRNO_EINTR:
+                pcName = "EINTR";
+                break;
 
-        case pdFREERTOS_ERRNO_EINVAL:
-            pcName = "EINVAL";
-            break;
+            case pdFREERTOS_ERRNO_ETIMEDOUT:
+                pcName = "ETIMEDOUT";
+                break;
 
-        case pdFREERTOS_ERRNO_EWOULDBLOCK:
-            pcName = "EWOULDBLOCK";
-            break; /* same as EAGAIN */
+            case pdFREERTOS_ERRNO_EINVAL:
+                pcName = "EINVAL";
+                break;
 
-        case pdFREERTOS_ERRNO_EISCONN:
-            pcName = "EISCONN";
-            break;
+            case pdFREERTOS_ERRNO_EWOULDBLOCK:
+                pcName = "EWOULDBLOCK";
+                break; /* same as EAGAIN */
 
-        default:
+            case pdFREERTOS_ERRNO_EISCONN:
+                pcName = "EISCONN";
+                break;
+
+            default:
+                /* MISRA Ref 21.6.1 [snprintf and logging] */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
+                /* coverity[misra_c_2012_rule_21_6_violation] */
+                ( void ) snprintf( pcBuffer, uxLength, "Errno 0x%lx", xErrnum );
+                pcName = NULL;
+                break;
+        }
+
+        if( pcName != NULL )
+        {
             /* MISRA Ref 21.6.1 [snprintf and logging] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
             /* coverity[misra_c_2012_rule_21_6_violation] */
-            ( void ) snprintf( pcBuffer, uxLength, "Errno 0x%lx", xErrnum );
-            pcName = NULL;
-            break;
-    }
+            ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
+        }
 
-    if( pcName != NULL )
-    {
-        /* MISRA Ref 21.6.1 [snprintf and logging] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-216 */
-        /* coverity[misra_c_2012_rule_21_6_violation] */
-        ( void ) snprintf( pcBuffer, uxLength, "%s", pcName );
-    }
+        if( uxLength > 0U )
+        {
+            pcBuffer[ uxLength - 1U ] = '\0';
+        }
 
-    if( uxLength > 0U )
-    {
-        pcBuffer[ uxLength - 1U ] = '\0';
+        return pcBuffer;
     }
-
-    return pcBuffer;
-}
 /*-----------------------------------------------------------*/
+
+#endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
 /**
  * @brief Get the highest value of two int32's.
@@ -1756,3 +1769,18 @@ uint16_t usChar2u16( const uint8_t * pucPtr )
              ( ( ( uint32_t ) pucPtr[ 1 ] ) ) );
 }
 /*-----------------------------------------------------------*/
+
+#if ( ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) )
+
+/**
+ * @brief Returns the current state of a DHCP process.
+ *
+ * @param[in] pxEndPoint the end-point which is going through the DHCP process.
+ */
+    eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint )
+    {
+        return pxEndPoint->xDHCPData.eDHCPState;
+    }
+    /*-----------------------------------------------------------*/
+
+#endif /* ( ipconfigUSE_DHCPv6 == 1 ) || ( ipconfigUSE_DHCP == 1 ) */

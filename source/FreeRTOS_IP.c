@@ -762,7 +762,10 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
         /* When ipconfigUSE_LINKED_RX_MESSAGES is set to 0 then only one
          * buffer will be sent at a time.  This is the default way for +TCP to pass
          * messages from the MAC to the TCP/IP stack. */
-        prvProcessEthernetPacket( pxBuffer );
+        if( pxBuffer != NULL )
+        {
+            prvProcessEthernetPacket( pxBuffer );
+        }
     }
     #else /* ipconfigUSE_LINKED_RX_MESSAGES */
     {
@@ -1207,6 +1210,8 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv4 != 0 )
+
 /**
  * @brief Get the current IPv4 address configuration. Only non-NULL pointers will
  *        be filled in. pxEndPoint must be non-NULL.
@@ -1217,40 +1222,42 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
  * @param[out] pulDNSServerAddress The DNS server address.
  * @param[in] pxEndPoint The end-point which is being questioned.
  */
-void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
-                                        uint32_t * pulNetMask,
-                                        uint32_t * pulGatewayAddress,
-                                        uint32_t * pulDNSServerAddress,
-                                        const struct xNetworkEndPoint * pxEndPoint )
-{
-    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+    void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
+                                            uint32_t * pulNetMask,
+                                            uint32_t * pulGatewayAddress,
+                                            uint32_t * pulDNSServerAddress,
+                                            const struct xNetworkEndPoint * pxEndPoint )
     {
-        /* Return the address configuration to the caller. */
-
-        if( pulIPAddress != NULL )
+        if( ENDPOINT_IS_IPv4( pxEndPoint ) )
         {
-            *pulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
-        }
+            /* Return the address configuration to the caller. */
 
-        if( pulNetMask != NULL )
-        {
-            *pulNetMask = pxEndPoint->ipv4_settings.ulNetMask;
-        }
+            if( pulIPAddress != NULL )
+            {
+                *pulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+            }
 
-        if( pulGatewayAddress != NULL )
-        {
-            *pulGatewayAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
-        }
+            if( pulNetMask != NULL )
+            {
+                *pulNetMask = pxEndPoint->ipv4_settings.ulNetMask;
+            }
 
-        if( pulDNSServerAddress != NULL )
-        {
-            *pulDNSServerAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ]; /*_RB_ Only returning the address of the first DNS server. */
+            if( pulGatewayAddress != NULL )
+            {
+                *pulGatewayAddress = pxEndPoint->ipv4_settings.ulGatewayAddress;
+            }
+
+            if( pulDNSServerAddress != NULL )
+            {
+                *pulDNSServerAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ]; /*_RB_ Only returning the address of the first DNS server. */
+            }
         }
     }
-}
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
 
 /**
  * @brief Get the current IPv4 address configuration of the first endpoint.
@@ -1279,8 +1286,10 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
                                                pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
         }
     }
-#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 ) */
 /*-----------------------------------------------------------*/
+
+#if ( ipconfigUSE_IPv4 != 0 )
 
 /**
  * @brief Set the current IPv4 network address configuration. Only non-NULL pointers will
@@ -1292,40 +1301,42 @@ void FreeRTOS_GetEndPointConfiguration( uint32_t * pulIPAddress,
  * @param[in] pulDNSServerAddress The DNS server address.
  * @param[in] pxEndPoint The end-point which is being questioned.
  */
-void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
-                                        const uint32_t * pulNetMask,
-                                        const uint32_t * pulGatewayAddress,
-                                        const uint32_t * pulDNSServerAddress,
-                                        struct xNetworkEndPoint * pxEndPoint )
-{
-    /* Update the address configuration. */
-
-    if( ENDPOINT_IS_IPv4( pxEndPoint ) )
+    void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
+                                            const uint32_t * pulNetMask,
+                                            const uint32_t * pulGatewayAddress,
+                                            const uint32_t * pulDNSServerAddress,
+                                            struct xNetworkEndPoint * pxEndPoint )
     {
-        if( pulIPAddress != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulIPAddress = *pulIPAddress;
-        }
+        /* Update the address configuration. */
 
-        if( pulNetMask != NULL )
+        if( ENDPOINT_IS_IPv4( pxEndPoint ) )
         {
-            pxEndPoint->ipv4_settings.ulNetMask = *pulNetMask;
-        }
+            if( pulIPAddress != NULL )
+            {
+                pxEndPoint->ipv4_settings.ulIPAddress = *pulIPAddress;
+            }
 
-        if( pulGatewayAddress != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulGatewayAddress = *pulGatewayAddress;
-        }
+            if( pulNetMask != NULL )
+            {
+                pxEndPoint->ipv4_settings.ulNetMask = *pulNetMask;
+            }
 
-        if( pulDNSServerAddress != NULL )
-        {
-            pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = *pulDNSServerAddress;
+            if( pulGatewayAddress != NULL )
+            {
+                pxEndPoint->ipv4_settings.ulGatewayAddress = *pulGatewayAddress;
+            }
+
+            if( pulDNSServerAddress != NULL )
+            {
+                pxEndPoint->ipv4_settings.ulDNSServerAddresses[ 0 ] = *pulDNSServerAddress;
+            }
         }
     }
-}
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#endif /* ( ipconfigUSE_IPv4 != 0 ) */
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
 
 /**
  * @brief Set the current IPv4 network address configuration. Only non-NULL
@@ -1354,7 +1365,7 @@ void FreeRTOS_SetEndPointConfiguration( const uint32_t * pulIPAddress,
                                                pulGatewayAddress, pulDNSServerAddress, pxEndPoint );
         }
     }
-#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigUSE_TCP == 1 )
@@ -1728,13 +1739,35 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
     const EthernetHeader_t * pxEthernetHeader;
     eFrameProcessingResult_t eReturned = eReleaseBuffer;
 
-    configASSERT( pxNetworkBuffer != NULL );
-
-    iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-
-    /* Interpret the Ethernet frame. */
-    if( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) )
+    /* Use do{}while(pdFALSE) to allow the use of break; */
+    do
     {
+        /* prvHandleEthernetPacket() already checked for ( pxNetworkBuffer != NULL ) so
+         * it is safe to break out of the do{}while() and let the second half of this
+         * function handle the releasing of pxNetworkBuffer */
+
+        if( ( pxNetworkBuffer->pxInterface == NULL ) || ( pxNetworkBuffer->pxEndPoint == NULL ) )
+        {
+            break;
+        }
+
+        /* Beyond this point,
+         * ( pxNetworkBuffer != NULL ),
+         * ( pxNetworkBuffer->pxInterface != NULL ),
+         * ( pxNetworkBuffer->pxEndPoint != NULL ),
+         * Additionally, FreeRTOS_FillEndPoint() and FreeRTOS_FillEndPoint_IPv6() guarantee
+         * that endpoints always have a valid interface assigned to them, and consequently:
+         * ( pxNetworkBuffer->pxEndPoint->pxInterface != NULL )
+         * None of the above need to be checked again in code that handles incoming packets. */
+
+        iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+
+        /* Interpret the Ethernet frame. */
+        if( pxNetworkBuffer->xDataLength < sizeof( EthernetHeader_t ) )
+        {
+            break;
+        }
+
         eReturned = ipCONSIDER_FRAME_FOR_PROCESSING( pxNetworkBuffer->pucEthernetBuffer );
 
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
@@ -1797,9 +1830,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         eReturned = eReleaseBuffer;
                     #endif
                     break;
-            }
+            } /* switch( pxEthernetHeader->usFrameType ) */
         }
-    }
+    } while( pdFALSE );
 
     /* Perform any actions that resulted from processing the Ethernet frame. */
     switch( eReturned )
@@ -2375,53 +2408,57 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 }
 /*-----------------------------------------------------------*/
 
+#if ( ipconfigUSE_IPv4 != 0 )
+
 /**
  * @brief Returns the IP address of the NIC.
  *
  * @return The IP address of the NIC.
  */
-uint32_t FreeRTOS_GetIPAddress( void )
-{
-    NetworkEndPoint_t * pxEndPoint;
-    uint32_t ulIPAddress;
+    uint32_t FreeRTOS_GetIPAddress( void )
+    {
+        NetworkEndPoint_t * pxEndPoint;
+        uint32_t ulIPAddress;
 
-    pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+        pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
 
-    #if ( ipconfigUSE_IPv6 != 0 )
-        if( ENDPOINT_IS_IPv6( pxEndPoint ) )
-        {
-            for( ;
-                 pxEndPoint != NULL;
-                 pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+        #if ( ipconfigUSE_IPv6 != 0 )
+            if( ENDPOINT_IS_IPv6( pxEndPoint ) )
             {
-                /* Break if the endpoint is IPv4. */
-                if( pxEndPoint->bits.bIPv6 == 0U )
+                for( ;
+                     pxEndPoint != NULL;
+                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
                 {
-                    break;
+                    /* Break if the endpoint is IPv4. */
+                    if( pxEndPoint->bits.bIPv6 == 0U )
+                    {
+                        break;
+                    }
                 }
             }
+        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+        /* Returns the IP address of the NIC. */
+        if( pxEndPoint == NULL )
+        {
+            ulIPAddress = 0U;
         }
-    #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+        else if( pxEndPoint->ipv4_settings.ulIPAddress != 0U )
+        {
+            ulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
+        }
+        else
+        {
+            ulIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
+        }
 
-    /* Returns the IP address of the NIC. */
-    if( pxEndPoint == NULL )
-    {
-        ulIPAddress = 0U;
+        return ulIPAddress;
     }
-    else if( pxEndPoint->ipv4_settings.ulIPAddress != 0U )
-    {
-        ulIPAddress = pxEndPoint->ipv4_settings.ulIPAddress;
-    }
-    else
-    {
-        ulIPAddress = pxEndPoint->ipv4_defaults.ulIPAddress;
-    }
-
-    return ulIPAddress;
-}
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#endif /* #if ( ipconfigUSE_IPv4 != 0 ) */
+
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) && ( ipconfigUSE_IPv4 != 0 )
 
 /*
  * The helper functions here below assume that there is a single
@@ -2571,7 +2608,7 @@ uint32_t FreeRTOS_GetIPAddress( void )
         }
     }
 /*-----------------------------------------------------------*/
-#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+#endif /* if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )  && ( ipconfigUSE_IPv4 != 0 ) */
 
 /**
  * @brief Returns whether the IP task is ready.

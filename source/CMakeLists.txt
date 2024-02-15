@@ -5,6 +5,7 @@ set_property(TARGET freertos_plus_tcp PROPERTY C_STANDARD 90)
 target_sources( freertos_plus_tcp
   PRIVATE
       include/FreeRTOSIPConfigDefaults.h
+      include/FreeRTOSIPDeprecatedDefinitions.h
       include/FreeRTOS_ARP.h
       include/FreeRTOS_BitConfig.h
       include/FreeRTOS_DHCP.h
@@ -40,7 +41,6 @@ target_sources( freertos_plus_tcp
       include/FreeRTOS_TCP_Utils.h
       include/FreeRTOS_TCP_WIN.h
       include/FreeRTOS_UDP_IP.h
-      include/FreeRTOS_errno_TCP.h
       include/IPTraceMacroDefaults.h
       include/NetworkBufferManagement.h
       include/NetworkInterface.h
@@ -89,11 +89,15 @@ target_sources( freertos_plus_tcp
       FreeRTOS_UDP_IPv6.c
 )
 
-# Note: Have to make system due to compiler warnings in header files.
-target_include_directories( freertos_plus_tcp SYSTEM
+target_include_directories( freertos_plus_tcp
   PUBLIC
     include
 )
+
+# Suppressions required to build clean with GCC
+if(CMAKE_C_COMPILER_ID STREQUAL GNU)
+    set_source_files_properties(FreeRTOS_Sockets.c PROPERTIES COMPILE_FLAGS -Wno-pedantic)
+endif()
 
 target_link_libraries( freertos_plus_tcp
   PUBLIC

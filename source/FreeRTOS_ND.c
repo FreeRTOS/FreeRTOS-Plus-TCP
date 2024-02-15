@@ -285,6 +285,8 @@
     {
         BaseType_t x;
         BaseType_t xFreeEntry = -1, xEntryFound = -1;
+        uint16_t xOldestValue = ipconfigMAX_ARP_AGE + 1;
+        BaseType_t xOldestEntry = 0;
 
         /* For each entry in the ND cache table. */
         for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
@@ -304,29 +306,45 @@
             else
             {
                 /* Entry is valid but the IP-address doesn't match. */
+
+                /* Keep track of the oldest entry in case we need to overwrite it. The problem we are trying to avoid is
+                 * that there may be a queued packet in pxARPWaitingNetworkBuffer and we may have just received the
+                 * neighbor advertisement needed for that packet. If we don't store this network advertisement in cache,
+                 * the parting of the frame from pxARPWaitingNetworkBuffer will cause the sending of neighbor solicitation
+                 * and stores the frame in pxARPWaitingNetworkBuffer. This becomes a vicious circle with thousands of
+                 * neighbor solicitation/advertisement packets going back and forth because the ND cache is full.
+                 * Overwriting the oldest cache entry is not a fool-proof solution, but it's something. */
+                if( xNDCache[ x ].ucAge < xOldestValue )
+                {
+                    xOldestValue = xNDCache[ x ].ucAge;
+                    xOldestEntry = x;
+                }
             }
         }
 
         if( xEntryFound < 0 )
         {
             /* The IP-address was not found, use the first free location. */
-            xEntryFound = xFreeEntry;
+            if( xFreeEntry >= 0 )
+            {
+                xEntryFound = xFreeEntry;
+            }
+            else
+            {
+                /* No free location. Overwrite the oldest. */
+                xEntryFound = xOldestEntry;
+                FreeRTOS_printf( ( "vNDRefreshCacheEntry: Cache FULL! Overwriting oldest entry %i with %02X-%02X-%02X-%02X-%02X-%02X\n", ( int ) xEntryFound, pxMACAddress->ucBytes[ 0 ], pxMACAddress->ucBytes[ 1 ], pxMACAddress->ucBytes[ 2 ], pxMACAddress->ucBytes[ 3 ], pxMACAddress->ucBytes[ 4 ], pxMACAddress->ucBytes[ 5 ] ) );
+            }
         }
 
-        if( xEntryFound >= 0 )
-        {
-            /* Copy the IP-address. */
-            ( void ) memcpy( xNDCache[ xEntryFound ].xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            /* Copy the MAC-address. */
-            ( void ) memcpy( xNDCache[ xEntryFound ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( MACAddress_t ) );
-            xNDCache[ xEntryFound ].pxEndPoint = pxEndPoint;
-            xNDCache[ xEntryFound ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
-            xNDCache[ xEntryFound ].ucValid = ( uint8_t ) pdTRUE;
-        }
-        else
-        {
-            FreeRTOS_printf( ( "vNDRefreshCacheEntry: %pip not found\n", ( void * ) pxIPAddress->ucBytes ) );
-        }
+        /* At this point, xEntryFound is always a valid index. */
+        /* Copy the IP-address. */
+        ( void ) memcpy( xNDCache[ xEntryFound ].xIPAddress.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+        /* Copy the MAC-address. */
+        ( void ) memcpy( xNDCache[ xEntryFound ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( MACAddress_t ) );
+        xNDCache[ xEntryFound ].pxEndPoint = pxEndPoint;
+        xNDCache[ xEntryFound ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
+        xNDCache[ xEntryFound ].ucValid = ( uint8_t ) pdTRUE;
     }
 /*-----------------------------------------------------------*/
 
@@ -482,7 +500,7 @@
             char pcBuffer[ 40 ];
 
             /* Loop through each entry in the ND cache. */
-            for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
+            for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
             {
                 if( xNDCache[ x ].ucValid != ( uint8_t ) 0U )
                 {
@@ -574,6 +592,7 @@
         MACAddress_t xMultiCastMacAddress;
         NetworkBufferDescriptor_t * pxDescriptor = pxNetworkBuffer;
         NetworkBufferDescriptor_t * pxNewDescriptor = NULL;
+        BaseType_t xReleased = pdFALSE;
 
         if( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
         {
@@ -657,7 +676,13 @@
 
                 /* This function will fill in the eth addresses and send the packet */
                 vReturnEthernetFrame( pxDescriptor, pdTRUE );
+                xReleased = pdTRUE;
             }
+        }
+
+        if( ( pxDescriptor != NULL ) && ( xReleased == pdFALSE ) )
+        {
+            vReleaseNetworkBufferAndDescriptor( pxDescriptor );
         }
     }
 /*-----------------------------------------------------------*/
@@ -956,7 +981,7 @@
         }
         #endif /* ( ipconfigHAS_PRINTF == 1 ) */
 
-        if( ( pxEndPoint != NULL ) && ( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) )
+        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
         {
             switch( pxICMPHeader_IPv6->ucTypeOfMessage )
             {
@@ -984,6 +1009,10 @@
                        }
 
                        pxICMPHeader_IPv6->ucTypeOfMessage = ipICMP_PING_REPLY_IPv6;
+
+                       /* MISRA Ref 4.14.1 [The validity of values received from external sources]. */
+                       /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#directive-414. */
+                       /* coverity[misra_c_2012_directive_4_14_violation] */
                        prvReturnICMP_IPv6( pxNetworkBuffer, uxICMPSize );
                    }
                    break;
@@ -1028,20 +1057,6 @@
                    {
                        size_t uxICMPSize;
                        BaseType_t xCompare;
-                       NetworkEndPoint_t * pxEndPointFound = FreeRTOS_FindEndPointOnIP_IPv6( &( pxICMPHeader_IPv6->xIPv6Address ) );
-                       char pcName[ 40 ];
-                       ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
-                       FreeRTOS_printf( ( "Lookup %pip : endpoint %s\n",
-                                          ( void * ) pxICMPHeader_IPv6->xIPv6Address.ucBytes,
-                                          pcEndpointName( pxEndPointFound, pcName, sizeof( pcName ) ) ) );
-
-                       if( pxEndPointFound != NULL )
-                       {
-                           pxEndPoint = pxEndPointFound;
-                       }
-
-                       pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                       pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
 
                        uxICMPSize = sizeof( ICMPHeader_IPv6_t );
                        uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
@@ -1116,7 +1131,7 @@
                     /* All possible values are included here above. */
                     break;
             } /* switch( pxICMPHeader_IPv6->ucTypeOfMessage ) */
-        }     /* if( pxEndPoint != NULL ) */
+        }     /* if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED ) */
 
         return eReleaseBuffer;
     }

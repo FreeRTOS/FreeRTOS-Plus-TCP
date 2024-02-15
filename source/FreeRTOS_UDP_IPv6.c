@@ -130,66 +130,26 @@ static eARPLookupResult_t prvStartLookup( NetworkBufferDescriptor_t * const pxNe
                                           BaseType_t * pxLostBuffer )
 {
     eARPLookupResult_t eReturned = eARPCacheMiss;
-    uint32_t ulIPAddress;
 
-    /* MISRA Ref 11.3.1 [Misaligned access] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-    /* coverity[misra_c_2012_rule_11_3_violation] */
-    const UDPPacket_t * pxUDPPacket = ( ( const UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
+                       ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
+                       ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
 
-    if( pxUDPPacket->xEthernetHeader.usFrameType == ipIPv6_FRAME_TYPE )
+    if( pxNetworkBuffer->pxEndPoint == NULL )
     {
-        FreeRTOS_printf( ( "Looking up %pip with%s end-point\n",
-                           ( void * ) pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes,
-                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-
-        if( pxNetworkBuffer->pxEndPoint == NULL )
-        {
-            IPv6_Type_t eTargetType = xIPv6_GetIPType( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-            BaseType_t xIsGlobal = ( eTargetType == eIPv6_Global ) ? pdTRUE : pdFALSE;
-            pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ( BaseType_t ) ipTYPE_IPv6, xIsGlobal );
-            FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
-        }
-
-        if( pxNetworkBuffer->pxEndPoint != NULL )
-        {
-            vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
-
-            /* pxNetworkBuffer has been sent and released.
-             * Make sure it won't be used again.. */
-            *pxLostBuffer = pdTRUE;
-        }
+        IPv6_Type_t eTargetType = xIPv6_GetIPType( &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
+        BaseType_t xIsGlobal = ( eTargetType == eIPv6_Global ) ? pdTRUE : pdFALSE;
+        pxNetworkBuffer->pxEndPoint = pxGetEndpoint( ( BaseType_t ) ipTYPE_IPv6, xIsGlobal );
+        FreeRTOS_printf( ( "prvStartLookup: Got an end-point: %s\n", pxNetworkBuffer->pxEndPoint ? "yes" : "no" ) );
     }
-    else
+
+    if( pxNetworkBuffer->pxEndPoint != NULL )
     {
-        ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
+        vNDSendNeighbourSolicitation( pxNetworkBuffer, &( pxNetworkBuffer->xIPAddress.xIP_IPv6 ) );
 
-        FreeRTOS_printf( ( "Looking up %xip with%s end-point\n",
-                           ( unsigned ) FreeRTOS_ntohl( pxNetworkBuffer->xIPAddress.ulIP_IPv4 ),
-                           ( pxNetworkBuffer->pxEndPoint != NULL ) ? "" : "out" ) );
-
-        /* Add an entry to the ARP table with a null hardware address.
-         * This allows the ARP timer to know that an ARP reply is
-         * outstanding, and perform retransmissions if necessary. */
-        vARPRefreshCacheEntry( NULL, ulIPAddress, NULL );
-
-        /* Generate an ARP for the required IP address. */
-        iptracePACKET_DROPPED_TO_GENERATE_ARP( pxNetworkBuffer->xIPAddress.ulIP_IPv4 );
-
-        /* 'ulIPAddress' might have become the address of the Gateway.
-         * Find the route again. */
-
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxNetworkBuffer->xIPAddress.ulIP_IPv4, 11 );
-
-        if( pxNetworkBuffer->pxEndPoint == NULL )
-        {
-            eReturned = eCantSendPacket;
-        }
-        else
-        {
-            pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
-            vARPGenerateRequestPacket( pxNetworkBuffer );
-        }
+        /* pxNetworkBuffer has been sent and released.
+         * Make sure it won't be used again.. */
+        *pxLostBuffer = pdTRUE;
     }
 
     return eReturned;
@@ -536,13 +496,9 @@ BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetwork
             {
                 vTaskSuspendAll();
                 {
-                    taskENTER_CRITICAL();
-                    {
-                        /* Add the network packet to the list of packets to be
-                         * processed by the socket. */
-                        vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( pxNetworkBuffer->xBufferListItem ) );
-                    }
-                    taskEXIT_CRITICAL();
+                    /* Add the network packet to the list of packets to be
+                     * processed by the socket. */
+                    vListInsertEnd( &( pxSocket->u.xUDP.xWaitingPacketsList ), &( pxNetworkBuffer->xBufferListItem ) );
                 }
                 ( void ) xTaskResumeAll();
 

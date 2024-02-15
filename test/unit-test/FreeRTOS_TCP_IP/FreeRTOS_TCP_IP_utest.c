@@ -2411,7 +2411,7 @@ void test_xTCPCheckNewClient_Not_Found_Not_TCP( void )
  * @brief This function validates not finding a new client
  *        in case bPassAccept is not set.
  */
-void test_xTCPCheckNewClient_Not_Found_Not_Aceept( void )
+void test_xTCPCheckNewClient_Not_Found_Not_Accept( void )
 {
     BaseType_t Return = pdFALSE;
 

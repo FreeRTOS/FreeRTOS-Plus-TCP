@@ -172,17 +172,6 @@
     }
     /*-----------------------------------------------------------*/
 
-/**
- * @brief Returns the current state of a DHCP process.
- *
- * @param[in] pxEndPoint the end-point which is going through the DHCP process.
- */
-    eDHCPState_t eGetDHCPState( const struct xNetworkEndPoint * pxEndPoint )
-    {
-        /* Note that EP_DHCPData is defined as "pxEndPoint->xDHCPData". */
-        return EP_DHCPData.eDHCPState;
-    }
-/*-----------------------------------------------------------*/
 
 /**
  * @brief Process the DHCP state machine based on current state.
@@ -863,7 +852,7 @@
  *        using it.
  * @param[in] pxEndPoint The end-point that stops using the socket.
  */
-    void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
+    static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint )
     {
         if( ( EP_DHCPData.xDHCPSocket == NULL ) || ( EP_DHCPData.xDHCPSocket != xDHCPv4Socket ) )
         {
@@ -925,7 +914,7 @@
                 ( void ) FreeRTOS_setsockopt( xDHCPv4Socket, 0, FREERTOS_SO_RCVTIMEO, &( xTimeoutTime ), sizeof( TickType_t ) );
                 ( void ) FreeRTOS_setsockopt( xDHCPv4Socket, 0, FREERTOS_SO_SNDTIMEO, &( xTimeoutTime ), sizeof( TickType_t ) );
 
-                memset( &xAddress, 0, sizeof( xAddress ) );
+                ( void ) memset( &xAddress, 0, sizeof( xAddress ) );
                 xAddress.sin_family = FREERTOS_AF_INET4;
                 xAddress.sin_len = ( uint8_t ) sizeof( xAddress );
                 /* Bind to the standard DHCP client port. */
@@ -1448,6 +1437,10 @@
                  * Later the type must be known to translate
                  * a payload- to a network buffer.
                  */
+
+                /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                /* coverity[misra_c_2012_rule_18_4_violation] */
                 pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
                 *pucIPType = ipTYPE_IPv4;
             }
