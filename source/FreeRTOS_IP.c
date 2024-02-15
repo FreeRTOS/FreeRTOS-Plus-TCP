@@ -99,20 +99,6 @@
     BaseType_t xProcessedTCPMessage;
 #endif
 
-/** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
- * driver will filter incoming packets and only pass the stack those packets it
- * considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
- * be #-defined away.  If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 0
- * then the Ethernet driver will pass all received packets to the stack, and the
- * stack must do the filtering itself.  In this case ipCONSIDER_FRAME_FOR_PROCESSING
- * needs to call eConsiderFrameForProcessing.
- */
-#if ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eConsiderFrameForProcessing( ( pucEthernetBuffer ) )
-#else
-    #define ipCONSIDER_FRAME_FOR_PROCESSING( pucEthernetBuffer )    eProcessBuffer
-#endif
-
 static void prvCallDHCP_RA_Handler( NetworkEndPoint_t * pxEndPoint );
 
 static void prvIPTask_Initialise( void );
@@ -1633,8 +1619,6 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
             break;
         }
 
-        eReturned = ipCONSIDER_FRAME_FOR_PROCESSING( pxNetworkBuffer->pucEthernetBuffer );
-
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -1644,7 +1628,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
         /* The condition "eReturned == eProcessBuffer" must be true. */
         #if ( ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES == 0 )
-            if( eReturned == eProcessBuffer )
+            if( eConsiderFrameForProcessing( pxNetworkBuffer->pucEthernetBuffer ) == eProcessBuffer )
         #endif
         {
             /* Interpret the received Ethernet packet. */
