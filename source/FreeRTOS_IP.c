@@ -1450,15 +1450,17 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
  */
 eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucEthernetBuffer )
 {
-    eFrameProcessingResult_t eReturn = eProcessBuffer;
+    eFrameProcessingResult_t eReturn = eReleaseBuffer;
 
     do
     {
         const EthernetHeader_t * pxEthernetHeader = NULL;
         const NetworkEndPoint_t * pxEndPoint = NULL;
 
+        /* First, check the packet buffer is non-null. */
         if( pucEthernetBuffer == NULL )
         {
+            /* The packet buffer was null - release it. */
             eReturn = eReleaseBuffer;
             break;
         }
@@ -1469,87 +1471,122 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
-        switch( pxEthernetHeader->usFrameType )
+        /* Second, filter based on ethernet frame type. */
+        if( FreeRTOS_ntohs( pxEthernetHeader->usFrameType ) <= 0x600U )
         {
-            case ipARP_FRAME_TYPE:
-            case ipIPv4_FRAME_TYPE:
-                #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
-                    eReturn = eReleaseBuffer;
-                #endif
+            /* The packet was not an Ethernet II frame */
+            #if ipconfigIS_ENABLED( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES )
+                /* filtering is enabled - release it. */
                 break;
-
-            case ipIPv6_FRAME_TYPE:
-                #if ipconfigIS_DISABLED( ipconfigUSE_IPv6 )
-                    eReturn = eReleaseBuffer;
-                #endif
+            #else
+                /* filtering is disabled - continue filter checks. */
+            #endif
+        }
+        else if( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE )
+        {
+            /* The frame is an ARP type */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
+                /* IPv4 is disabled - release it. */
                 break;
-
-            default:
-                if( FreeRTOS_ntohs( pxEthernetHeader->usFrameType ) <= 0x600U )
-                {
-                    #if ipconfigIS_ENABLED( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES )
-                        eReturn = eReleaseBuffer;
-                    #endif
-                }
-                else
-                {
-                    #if ipconfigIS_DISABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
-                        eReturn = eReleaseBuffer;
-                    #endif
-                }
+            #else
+                /*  IPv4 is enabled - Continue filter checks. */
+            #endif
+        }
+        else if( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE )
+        {
+            /* The frame is an IPv4 type */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
+                /* IPv4 is disabled - release it. */
                 break;
+            #else
+                /* IPv4 is enabled - Continue filter checks. */
+            #endif
+        }
+        else if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+        {
+            /* The frame is an IPv6 type */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv6 )
+                /* IPv6 is disabled - release it. */
+                break;
+            #else
+                /* IPv6 is enabled - Continue filter checks. */
+            #endif
+        }
+        else
+        {
+            /* The frame is an unsupported Ethernet II type */
+            #if ipconfigIS_DISABLED( ipconfigPROCESS_CUSTOM_ETHERNET_FRAMES )
+                /* Processing custom ethernet frames is disabled - release it. */
+                break;
+            #else
+                /* Processing custom ethernet frames is enabled - Continue filter checks. */
+            #endif
         }
 
-        if( eReturn == eReleaseBuffer )
-        {
-            /* No use to do more testing. */
-            break;
-        }
-
-        /* Examine the destination MAC from the Ethernet header to see if it matches
-         * that of an end point managed by FreeRTOS+TCP. */
-        pxEndPoint = FreeRTOS_MatchingEndpoint( NULL, pucEthernetBuffer );
+        /* Third, filter based on destination mac address. */
+        pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
         if( pxEndPoint != NULL )
         {
-            break;
+            /* A destination endpoint was found - Continue filter checks. */
+        }
+        else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet was a broadcast - Continue filter checks. */
+        }
+        else if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for LLMNR using IPv4 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_LLMNR ) || ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) )
+                /* DNS, LLMNR, or IPv4 is disabled - release it. */
+                break;
+            #else
+                /* DNS, LLMNR, and IPv4 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( memcmp( xLLMNR_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for LLMNR using IPv6 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_LLMNR ) || ipconfigIS_DISABLED( ipconfigUSE_IPv6 ) )
+                /* DNS, LLMNR, or IPv6 is disabled - release it. */
+                break;
+            #else
+                /* DNS, LLMNR, and IPv6 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for MDNS using IPv4 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_MDNS ) || ipconfigIS_DISABLED( ipconfigUSE_IPv4 ) )
+                /* DNS, MDNS, or IPv4 is disabled - release it. */
+                break;
+            #else
+                /* DNS, MDNS, and IPv4 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( memcmp( xMDNS_MACAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        {
+            /* The packet is a request for MDNS using IPv6 */
+            #if ( ipconfigIS_DISABLED( ipconfigUSE_DNS ) || ipconfigIS_DISABLED( ipconfigUSE_MDNS ) || ipconfigIS_DISABLED( ipconfigUSE_IPv6 ) )
+                /* DNS, MDNS, or IPv6 is disabled - release it. */
+                break;
+            #else
+                /* DNS, MDNS, and IPv6 are enabled - Continue filter checks. */
+            #endif
+        }
+        else if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
+        {
+            /* The packet is an IPv6 Multicast */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv6 )
+                /* IPv6 is disabled - release it. */
+                break;
+            #else
+                /* IPv6 is enabled - Continue filter checks. */
+            #endif
         }
 
-        #if ipconfigIS_ENABLED( ipconfigUSE_DNS )
-            #if ipconfigIS_ENABLED( ipconfigUSE_LLMNR )
-                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                    if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                    {
-                        /* The packet is a request for LLMNR - process it. */
-                        break;
-                    }
-                #endif
-                #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-                    if( memcmp( xLLMNR_MacAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                    {
-                        /* The packet is a request for LLMNR - process it. */
-                        break;
-                    }
-                #endif
-            #endif
-            #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
-                #if ipconfigIS_ENABLED( ipconfigUSE_IPv4 )
-                    if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                    {
-                        /* The packet is a request for MDNS - process it. */
-                        break;
-                    }
-                #endif
-                #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
-                    if( memcmp( xMDNS_MACAddressIPv6.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-                    {
-                        /* The packet is a request for MDNS - process it. */
-                        break;
-                    }
-                #endif
-            #endif
-        #endif
-
-        eReturn = eReleaseBuffer;
+        /* All checks have been passed, process the packet. */
+        eReturn = eProcessBuffer;
     } while( ipFALSE_BOOL );
 
     return eReturn;
