@@ -58,6 +58,11 @@ struct xIP_PACKET;
 #define ipIPV4_VERSION_HEADER_LENGTH_MIN    0x45U /**< Minimum IPv4 header length. */
 #define ipIPV4_VERSION_HEADER_LENGTH_MAX    0x4FU /**< Maximum IPv4 header length. */
 
+/* IPv4 multicast MAC address starts with 01-00-5E. */
+#define ipMULTICAST_MAC_ADDRESS_IPv4_0    0x01U
+#define ipMULTICAST_MAC_ADDRESS_IPv4_1    0x00U
+#define ipMULTICAST_MAC_ADDRESS_IPv4_2    0x5EU
+
 /*
  *  These functions come from the IPv4-only library.
  *  TODO : They should get an extra parameter, the end-point

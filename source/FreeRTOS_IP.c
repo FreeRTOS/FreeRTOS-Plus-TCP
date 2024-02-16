@@ -1442,12 +1442,12 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
     {
         const EthernetHeader_t * pxEthernetHeader = NULL;
         const NetworkEndPoint_t * pxEndPoint = NULL;
+        uint16_t usFrameType;
 
         /* First, check the packet buffer is non-null. */
         if( pucEthernetBuffer == NULL )
         {
             /* The packet buffer was null - release it. */
-            eReturn = eReleaseBuffer;
             break;
         }
 
@@ -1456,9 +1456,10 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
+        usFrameType = FreeRTOS_ntohs( pxEthernetHeader->usFrameType );
 
         /* Second, filter based on ethernet frame type. */
-        if( FreeRTOS_ntohs( pxEthernetHeader->usFrameType ) <= 0x600U )
+        if( usFrameType <= 0x600U )
         {
             /* The packet was not an Ethernet II frame */
             #if ipconfigIS_ENABLED( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES )
@@ -1468,7 +1469,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
                 /* filtering is disabled - continue filter checks. */
             #endif
         }
-        else if( pxEthernetHeader->usFrameType == ipARP_FRAME_TYPE )
+        else if( usFrameType == ipARP_FRAME_TYPE )
         {
             /* The frame is an ARP type */
             #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
@@ -1478,7 +1479,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
                 /*  IPv4 is enabled - Continue filter checks. */
             #endif
         }
-        else if( pxEthernetHeader->usFrameType == ipIPv4_FRAME_TYPE )
+        else if( usFrameType == ipIPv4_FRAME_TYPE )
         {
             /* The frame is an IPv4 type */
             #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
@@ -1488,7 +1489,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
                 /* IPv4 is enabled - Continue filter checks. */
             #endif
         }
-        else if( pxEthernetHeader->usFrameType == ipIPv6_FRAME_TYPE )
+        else if( usFrameType == ipIPv6_FRAME_TYPE )
         {
             /* The frame is an IPv6 type */
             #if ipconfigIS_DISABLED( ipconfigUSE_IPv6 )
@@ -1559,6 +1560,19 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
                 /* DNS, MDNS, and IPv6 are enabled - Continue filter checks. */
             #endif
         }
+        else if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv4_0 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv4_1 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 2 ] == ipMULTICAST_MAC_ADDRESS_IPv4_2 ) &&
+                 ( pxEthernetHeader->xDestinationAddress.ucBytes[ 3 ] <= 0x7fU ) )
+        {
+            /* The packet is an IPv4 Multicast */
+            #if ipconfigIS_DISABLED( ipconfigUSE_IPv4 )
+                /* IPv4 is disabled - release it. */
+                break;
+            #else
+                /* IPv4 is enabled - Continue filter checks. */
+            #endif
+        }
         else if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
                  ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
         {
@@ -1569,6 +1583,11 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
             #else
                 /* IPv6 is enabled - Continue filter checks. */
             #endif
+        }
+        else
+        {
+            /* The packet was not a broadcast, or for this node - release it */
+            break;
         }
 
         /* All checks have been passed, process the packet. */
