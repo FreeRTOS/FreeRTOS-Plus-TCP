@@ -931,8 +931,11 @@ static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
 
     /* Calculate what the specific match registers would look like for this MAC address so that
      * we can check if this MAC address is already present in one of the specific match registers. */
-    ulSAB = ( pucMacAddress[ 3 ] << 24 ) | ( pucMacAddress[ 2 ] << 16 ) | ( pucMacAddress[ 1 ] << 8 ) | ( pucMacAddress[ 0 ] );
-    ulSAT = ( pucMacAddress[ 5 ] << 8 ) | ( pucMacAddress[ 4 ] );
+    ulSAB = ( ( ( uint32_t ) pucMacAddress[ 3 ] ) << 24 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 2 ] ) << 16 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 1 ] ) << 8 ) |
+            ( ( uint32_t ) pucMacAddress[ 0 ] );
+    ulSAT = ( ( ( uint32_t ) pucMacAddress[ 5 ] ) << 8 ) | ( ( uint32_t ) pucMacAddress[ 4 ] );
 
     /* Always try to find a match within the specific match registers first. */
     uxEmptyIndex = GMACSA_NUMBER;
@@ -1061,8 +1064,11 @@ static void prvRemoveAllowedMACAddress( struct xNetworkInterface * pxInterface,
 
     /* Calculate what the specific match registers would look like for this MAC address so that
      * we can check if this MAC address is already present in one of the specific match registers. */
-    ulSAB = ( pucMacAddress[ 3 ] << 24 ) | ( pucMacAddress[ 2 ] << 16 ) | ( pucMacAddress[ 1 ] << 8 ) | ( pucMacAddress[ 0 ] );
-    ulSAT = ( pucMacAddress[ 5 ] << 8 ) | ( pucMacAddress[ 4 ] );
+    ulSAB = ( ( ( uint32_t ) pucMacAddress[ 3 ] ) << 24 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 2 ] ) << 16 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 1 ] ) << 8 ) |
+            ( ( uint32_t ) pucMacAddress[ 0 ] );
+    ulSAT = ( ( ( uint32_t ) pucMacAddress[ 5 ] ) << 8 ) | ( ( uint32_t ) pucMacAddress[ 4 ] );
 
     /* Check the specific match registers first. */
     for( uxIndex = 0; uxIndex < GMACSA_NUMBER; uxIndex++ )
