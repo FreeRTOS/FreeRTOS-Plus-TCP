@@ -1546,7 +1546,7 @@ void test_eConsiderFrameForProcessing_LocalMACMatch( void )
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usFrameType = FreeRTOS_htons( 0x0800 );
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1565,9 +1565,6 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType( void )
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
 
-    /* eConsiderFrameForProcessing */
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( pxEndPoint );
-
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
     pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
 
@@ -1576,7 +1573,7 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType( void )
     /* Align endpoint's & packet's MAC address. */
     memset( pxEndPoint->xMACAddress.ucBytes, 0xAA, sizeof( MACAddress_t ) );
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usFrameType = FreeRTOS_htons( 0 );
+    pxEthernetHeader->usFrameType = 0;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1594,9 +1591,6 @@ void test_eConsiderFrameForProcessing_LocalMACMatchInvalidFrameType1( void )
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
-
-    /* eConsiderFrameForProcessing */
-    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( pxEndPoint );
 
     /* Map the buffer onto Ethernet Header struct for easy access to fields. */
     pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
@@ -1633,7 +1627,7 @@ void test_eConsiderFrameForProcessing_BroadCastMACMatch( void )
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xBroadcastMACAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usFrameType = 0xFFFF;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1660,7 +1654,7 @@ void test_eConsiderFrameForProcessing_LLMNR_MACMatch( void )
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAddress.ucBytes, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usFrameType = 0xFFFF;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1688,7 +1682,7 @@ void test_eConsiderFrameForProcessing_NotMatch( void )
     memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
 
     memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, &xMACAddress, sizeof( MACAddress_t ) );
-    pxEthernetHeader->usFrameType = 0xFFFF;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1716,7 +1710,7 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
 
     pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
     pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_1;
-    pxEthernetHeader->usFrameType = 0xFFFF;
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 
@@ -1744,7 +1738,7 @@ void test_eConsiderFrameForProcessing_IPv6BroadCastMACPartialMatch( void )
 
     pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
     pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = 0x00;
-    pxEthernetHeader->usFrameType = 0xFFFF;
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
 
     eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
 

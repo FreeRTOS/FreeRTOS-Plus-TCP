@@ -1456,10 +1456,10 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
         pxEthernetHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
-        usFrameType = FreeRTOS_ntohs( pxEthernetHeader->usFrameType );
+        usFrameType = pxEthernetHeader->usFrameType;
 
         /* Second, filter based on ethernet frame type. */
-        if( usFrameType <= 0x600U )
+        if( FreeRTOS_ntohs( usFrameType ) <= 0x0600U )
         {
             /* The packet was not an Ethernet II frame */
             #if ipconfigIS_ENABLED( ipconfigFILTER_OUT_NON_ETHERNET_II_FRAMES )
