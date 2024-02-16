@@ -1662,6 +1662,87 @@ void test_eConsiderFrameForProcessing_LLMNR_MACMatch( void )
 }
 
 /**
+ * @brief test_eConsiderFrameForProcessing_LLMNR_IPv6_MACMatch
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
+ * matches LLMNR MAC address and the frame type is valid.
+ */
+void test_eConsiderFrameForProcessing_LLMNR_IPv6_MACMatch( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xLLMNR_MacAddressIPv6.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_eConsiderFrameForProcessing_MDNS_MACMatch
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
+ * matches MDNS MAC address and the frame type is valid.
+ */
+void test_eConsiderFrameForProcessing_MDNS_MACMatch( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xMDNS_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_eConsiderFrameForProcessing_MDNS_IPv6_MACMatch
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
+ * matches LLMNR MAC address and the frame type is valid.
+ */
+void test_eConsiderFrameForProcessing_MDNS_IPv6_MACMatch( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
+
+    memcpy( pxEthernetHeader->xDestinationAddress.ucBytes, xMDNS_MACAddressIPv6.ucBytes, sizeof( MACAddress_t ) );
+    pxEthernetHeader->usFrameType = ipIPv6_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
  * @brief test_eConsiderFrameForProcessing_NotMatch
  * eConsiderFrameForProcessing must return eReleaseBuffer when the MAC address
  * in packet doesn't match any endpoint.
@@ -1690,11 +1771,40 @@ void test_eConsiderFrameForProcessing_NotMatch( void )
 }
 
 /**
- * @brief test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch
+ * @brief test_eConsiderFrameForProcessing_Multicast_MACMatch
  * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
- * matches IPv6 broadcast MAC address and the frame type is valid.
+ * matches IPv6 Multicast MAC address and the frame type is valid.
  */
-void test_eConsiderFrameForProcessing_IPv6BroadCastMACMatch( void )
+void test_eConsiderFrameForProcessing_Multicast_MACMatch( void )
+{
+    eFrameProcessingResult_t eResult;
+    uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+
+    /* eConsiderFrameForProcessing */
+    FreeRTOS_FindEndPointOnMAC_ExpectAnyArgsAndReturn( NULL );
+
+    /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+    pxEthernetHeader = ( EthernetHeader_t * ) ucEthernetBuffer;
+
+    memset( ucEthernetBuffer, 0x00, ipconfigTCP_MSS );
+
+    pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv4_0;
+    pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv4_1;
+    pxEthernetHeader->xDestinationAddress.ucBytes[ 2 ] = ipMULTICAST_MAC_ADDRESS_IPv4_2;
+    pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
+
+    eResult = eConsiderFrameForProcessing( ucEthernetBuffer );
+
+    TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
+}
+
+/**
+ * @brief test_eConsiderFrameForProcessing_IPv6_Multicast_MACMatch
+ * eConsiderFrameForProcessing must return eProcessBuffer when the MAC address in packet
+ * matches IPv6 Multicast MAC address and the frame type is valid.
+ */
+void test_eConsiderFrameForProcessing_IPv6_Multicast_MACMatch( void )
 {
     eFrameProcessingResult_t eResult;
     uint8_t ucEthernetBuffer[ ipconfigTCP_MSS ];
