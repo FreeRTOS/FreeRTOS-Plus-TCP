@@ -50,9 +50,15 @@ struct xNetworkInterface * pxNetworkInterfaces = NULL;
 /** @brief A list of all network end-points.  Each element has a next pointer. */
 struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
 
+const MACAddress_t xDefault_MacAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+
 const MACAddress_t xLLMNR_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
 
-const MACAddress_t xDefault_MacAddress = { { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 } };
+const MACAddress_t xLLMNR_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x01, 0x00, 0x03 } };
+
+const MACAddress_t xMDNS_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb } };
+
+const MACAddress_t xMDNS_MACAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
 
 void vPortEnterCritical( void )
 {
