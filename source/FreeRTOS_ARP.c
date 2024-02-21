@@ -1274,13 +1274,19 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
         NetworkBufferDescriptor_t * pxNetworkBuffer;
         NetworkEndPoint_t * pxEndPoint;
 
-        /* Send an ARP request to every end-point which has the type IPv4,
-         * and which already has an IP-address assigned. */
-        for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-             pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+        pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 3 );
+
+        /* Only send an ARP request if we were able to find an IPv4 end-point
+         * whose IP/mask combination matches ulIPAddress */
+        if( pxEndPoint != NULL )
         {
-            if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
+            /* We found a good end-point, but FreeRTOS_FindEndPointOnNetMask() never checked if we gave it
+             * an IP address of 0.0.0.0, so theoretically, we can fall through here if the user calls us with
+             * and IP of 0 and the end-point doesn't have a valid IP.
+             * FreeRTOS_FindEndPointOnNetMask() will also return a match for 255.255.255.255, but we should
+             * not output an ARP request for it. Make sure we catch those cases. */
+            if( ( ulIPAddress != 0U ) &&
+                ( ulIPAddress != ~0U ) &&
                 ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
             {
                 /* This is called from the context of the IP event task, so a block time
