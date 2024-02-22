@@ -2318,6 +2318,7 @@ void test_vARPAgeCache( void )
     pxNetworkEndPoints = &xEndPoint;
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
     xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
+    xEndPoint.pxNetworkInterface = &xInterface;
 
     /* =================================================== */
     /* Let the value returned first time be 0 such that the variable is reset. */
@@ -2325,13 +2326,14 @@ void test_vARPAgeCache( void )
 
     pxNetworkEndPoints = &xEndPoint;
 
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
+
 
     vARPAgeCache();
     /* =================================================== */
@@ -2344,24 +2346,26 @@ void test_vARPAgeCache( void )
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
     xARPCache[ ucEntryToCheck ].pxEndPoint = &xEndPoint;
 
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(xARPCache[ ucEntryToCheck ].ulIPAddress, 12, &xEndPoint);
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
 
     /* Let the value returned first time be 100. */
     xTaskGetTickCount_ExpectAndReturn( 100 );
 
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
 
     vARPAgeCache();
     /* =================================================== */
@@ -2373,13 +2377,15 @@ void test_vARPAgeCache( void )
     /* Set an IP address */
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
 
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(xARPCache[ ucEntryToCheck ].ulIPAddress, 12, &xEndPoint);
+
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
 
     /* Let the value returned first time be 100. */
     xTaskGetTickCount_ExpectAndReturn( 100 );
@@ -2398,13 +2404,13 @@ void test_vARPAgeCache( void )
     /* Let the value returned third time be 100000. */
     xTaskGetTickCount_ExpectAndReturn( 100000 );
 
-    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     /* The function which calls 'pxGetNetworkBufferWithDescriptor' is 'FreeRTOS_OutputARPRequest'.
      * It doesn't return anything and will be tested separately. */
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
 
-    FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
+    FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
 
     vARPAgeCache();
     /* =================================================== */
