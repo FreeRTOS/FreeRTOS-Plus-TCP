@@ -835,6 +835,7 @@
                                                    const char * pcHostName )
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
+
         /* If LLMNR is being used then determine if the host name includes a '.' -
          * if not then LLMNR can be used as the lookup method. */
         /* For local resolution, mDNS uses names ending with the string ".local" */
@@ -862,7 +863,6 @@
         pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
         /* Use the DNS port by default, this may be changed later. */
         pxAddress->sin_port = dnsDNS_PORT;
-
 
         if( pcDot != NULL )
         {
@@ -1173,7 +1173,6 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-
             /* A two-step conversion to conform to MISRA. */
             size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             BaseType_t xIndex = ( BaseType_t ) uxIndex;

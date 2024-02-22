@@ -2485,7 +2485,7 @@ void test_FreeRTOS_OutputARPRequest( void )
     /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
@@ -2503,7 +2503,7 @@ void test_FreeRTOS_OutputARPRequest( void )
     /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
@@ -2521,7 +2521,7 @@ void test_FreeRTOS_OutputARPRequest( void )
 
     /* =================================================== */
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
@@ -2538,7 +2538,7 @@ void test_FreeRTOS_OutputARPRequest( void )
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
     xEndPoint.pxNetworkInterface = NULL;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
@@ -2556,7 +2556,7 @@ void test_FreeRTOS_OutputARPRequest( void )
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
     xNetworkBuffer.xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, &xNetworkBuffer );
@@ -2574,7 +2574,7 @@ void test_FreeRTOS_OutputARPRequest( void )
     xNetworkInterfaceOutput_ARP_STUB_CallCount = 0;
     xEndPoint.bits.bIPv6 = 1;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
     FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
 
@@ -2588,7 +2588,7 @@ void test_FreeRTOS_OutputARPRequest( void )
     xEndPoint.bits.bIPv6 = 0;
     xEndPoint.ipv4_settings.ulIPAddress = 0U;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
     FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
 
@@ -2602,11 +2602,10 @@ void test_FreeRTOS_OutputARPRequest( void )
  */
 void test_FreeRTOS_OutputARPRequest_NullEndpoint( void )
 {
-    
     uint32_t ulIPAddress = 0x1234ABCD;
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, NULL);
-    FreeRTOS_OutputARPRequest(ulIPAddress);
 
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, NULL );
+    FreeRTOS_OutputARPRequest( ulIPAddress );
 }
 
 void vStoreTimeValue( TimeOut_t * const timeout,
@@ -2686,7 +2685,7 @@ void test_xARPWaitResolution_GNWFailsNoTimeout( void )
     /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ipconfigMAX_ARP_RETRANSMISSIONS; i++ )
     {
-        FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+        FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
         FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
         FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
@@ -2739,7 +2738,7 @@ void test_xARPWaitResolution( void )
     /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 1 ); i++ )
     {
-        FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+        FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
         FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
         FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
@@ -2750,7 +2749,7 @@ void test_xARPWaitResolution( void )
         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
     }
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
     FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
@@ -2791,7 +2790,7 @@ void test_xARPWaitResolution( void )
     /* Make sure that there are enough stubs for all the repetitive calls. */
     for( i = 0; i < ( ipconfigMAX_ARP_RETRANSMISSIONS - 2 ); i++ )
     {
-        FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+        FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
         FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
         pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
         FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );
@@ -2802,7 +2801,7 @@ void test_xARPWaitResolution( void )
         xTaskCheckForTimeOut_IgnoreAndReturn( pdFALSE );
     }
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( ulIPAddress, 12, &xEndPoint );
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
     pxGetNetworkBufferWithDescriptor_ExpectAndReturn( sizeof( ARPPacket_t ), 0, NULL );
     FreeRTOS_NextEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint, NULL );

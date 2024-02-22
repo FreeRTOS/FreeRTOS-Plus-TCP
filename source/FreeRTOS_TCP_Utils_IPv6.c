@@ -80,6 +80,7 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
         if( pxEndPoint != NULL )
         {
             IPv6_Type_t eType;
+
             /* Compared to IPv4, an IPv6 header is 20 bytes longer.
              * It must be subtracted from the MSS. */
             size_t uxDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
