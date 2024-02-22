@@ -5,7 +5,7 @@
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_ARP.h"
-
+#include "FreeRTOS_Routing.h"
 /* CBMC includes. */
 #include "cbmc.h"
 
@@ -38,8 +38,9 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
     return xReturn;
 }
 
-/* Abstraction of FreeRTOS_OutputARPRequest. */
-void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
+/* Abstraction of FreeRTOS_OutputARPRequest_Multi. */
+void FreeRTOS_OutputARPRequest_Multi( const NetworkInterface_t * pxNetworkInterface,
+                                          uint32_t ulIPAddress )
 {
 }
 
