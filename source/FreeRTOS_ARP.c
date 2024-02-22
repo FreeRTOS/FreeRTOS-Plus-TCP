@@ -1184,14 +1184,14 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                  * reply, and the ARP request should be retransmitted. */
                 if( xARPCache[ x ].ucValid == ( uint8_t ) pdFALSE )
                 {
-                    FreeRTOS_OutputARPRequest_Multi( xARPCache[ x ].pxEndPoint->pxNetworkInterface, xARPCache[ x ].ulIPAddress );
+                    FreeRTOS_OutputARPRequest( xARPCache[ x ].ulIPAddress );
                 }
                 else if( xARPCache[ x ].ucAge <= ( uint8_t ) arpMAX_ARP_AGE_BEFORE_NEW_ARP_REQUEST )
                 {
                     /* This entry will get removed soon.  See if the MAC address is
                      * still valid to prevent this happening. */
                     iptraceARP_TABLE_ENTRY_WILL_EXPIRE( xARPCache[ x ].ulIPAddress );
-                    FreeRTOS_OutputARPRequest_Multi( xARPCache[ x ].pxEndPoint->pxNetworkInterface, xARPCache[ x ].ulIPAddress );
+                    FreeRTOS_OutputARPRequest( xARPCache[ x ].ulIPAddress );
                 }
                 else
                 {
