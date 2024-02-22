@@ -2346,7 +2346,7 @@ void test_vARPAgeCache( void )
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
     xARPCache[ ucEntryToCheck ].pxEndPoint = &xEndPoint;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(xARPCache[ ucEntryToCheck ].ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( xARPCache[ ucEntryToCheck ].ulIPAddress, 12, &xEndPoint );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
@@ -2377,7 +2377,7 @@ void test_vARPAgeCache( void )
     /* Set an IP address */
     xARPCache[ ucEntryToCheck ].ulIPAddress = 0xAAAAAAAA;
 
-    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn(xARPCache[ ucEntryToCheck ].ulIPAddress, 12, &xEndPoint);
+    FreeRTOS_FindEndPointOnNetMask_ExpectAndReturn( xARPCache[ ucEntryToCheck ].ulIPAddress, 12, &xEndPoint );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( xEndPoint.pxNetworkInterface, &xEndPoint );
 
