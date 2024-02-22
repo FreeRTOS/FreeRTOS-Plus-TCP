@@ -1378,13 +1378,19 @@
         uint8_t * pucUDPPayloadBuffer = NULL;
 
         #if ( ipconfigDHCP_REGISTER_HOSTNAME == 1 )
-            size_t uxNameLength = 0;
             const char * pucHostName = pcApplicationHostnameHook();
+            size_t uxNameLength = 0;
 
             if( pucHostName != NULL )
             {
                 uxNameLength = strlen( pucHostName );
             }
+
+            uint8_t * pucPtr;
+
+            /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
+            const void * pvCopySource;
+            void * pvCopyDest;
 
             /* Two extra bytes for option code and length. */
             uxRequiredBufferSize += ( 2U + uxNameLength );
@@ -1396,8 +1402,6 @@
 
         if( pxNetworkBuffer != NULL )
         {
-            uint8_t * pucIPType;
-
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
 
@@ -1406,16 +1410,20 @@
             /* coverity[misra_c_2012_rule_11_3_violation] */
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
-            /* Store the IP type at a known location.
-             * Later the type must be known to translate
-             * a payload- to a network buffer.
-             */
+            {
+                uint8_t * pucIPType;
 
-            /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
-            /* coverity[misra_c_2012_rule_18_4_violation] */
-            pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-            *pucIPType = ipTYPE_IPv4;
+                /* Store the IP type at a known location.
+                 * Later the type must be known to translate
+                 * a payload- to a network buffer.
+                 */
+
+                /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
+                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */
+                /* coverity[misra_c_2012_rule_18_4_violation] */
+                pucIPType = pucUDPPayloadBuffer - ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+                *pucIPType = ipTYPE_IPv4;
+            }
 
             /* Most fields need to be zero. */
             ( void ) memset( pxDHCPMessage, 0x00, sizeof( DHCPMessage_IPv4_t ) );
@@ -1447,7 +1455,7 @@
                  * it easier to lookup a device in a router's list of DHCP clients. */
 
                 /* Point to where the OPTION_END was stored to add data. */
-                uint8_t * pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
+                pucPtr = &( pucUDPPayloadBuffer[ dhcpFIRST_OPTION_BYTE_OFFSET + ( *pxOptionsArraySize - 1U ) ] );
                 pucPtr[ 0U ] = dhcpIPv4_DNS_HOSTNAME_OPTIONS_CODE;
                 pucPtr[ 1U ] = ( uint8_t ) uxNameLength;
 
@@ -1458,9 +1466,8 @@
                  */
                 if( pucHostName != NULL )
                 {
-                    /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
-                    const void * pvCopySource = pucHostName;
-                    void * pvCopyDest = &pucPtr[ 2U ];
+                    pvCopySource = pucHostName;
+                    pvCopyDest = &pucPtr[ 2U ];
 
                     ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
                 }

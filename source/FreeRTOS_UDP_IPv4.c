@@ -347,7 +347,6 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     BaseType_t xReturn = pdPASS;
     FreeRTOS_Socket_t * pxSocket;
     const UDPPacket_t * pxUDPPacket;
-    const NetworkEndPoint_t * pxEndpoint;
 
     configASSERT( pxNetworkBuffer != NULL );
     configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -358,7 +357,7 @@ BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetwork
     /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
     /* coverity[misra_c_2012_rule_11_3_violation] */
     pxUDPPacket = ( ( UDPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    pxEndpoint = pxNetworkBuffer->pxEndPoint;
+    const NetworkEndPoint_t * pxEndpoint = pxNetworkBuffer->pxEndPoint;
 
     /* Caller must check for minimum packet size. */
     pxSocket = pxUDPSocketLookup( usPort );

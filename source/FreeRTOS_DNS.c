@@ -836,13 +836,6 @@
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
 
-        /* If LLMNR is being used then determine if the host name includes a '.' -
-         * if not then LLMNR can be used as the lookup method. */
-        /* For local resolution, mDNS uses names ending with the string ".local" */
-        BaseType_t bHasDot = pdFALSE;
-        BaseType_t bHasLocal = pdFALSE;
-        const char * pcDot = ( const char * ) strchr( pcHostName, ( int32_t ) '.' );
-
         #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 )
             BaseType_t xNeed_Endpoint = pdFALSE;
         #endif
@@ -863,6 +856,13 @@
         pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
         /* Use the DNS port by default, this may be changed later. */
         pxAddress->sin_port = dnsDNS_PORT;
+
+        /* If LLMNR is being used then determine if the host name includes a '.' -
+         * if not then LLMNR can be used as the lookup method. */
+        /* For local resolution, mDNS uses names ending with the string ".local" */
+        BaseType_t bHasDot = pdFALSE;
+        BaseType_t bHasLocal = pdFALSE;
+        const char * pcDot = ( const char * ) strchr( pcHostName, ( int32_t ) '.' );
 
         if( pcDot != NULL )
         {
@@ -1007,10 +1007,9 @@
 
                             if( pxEndPoint->bits.bIPv6 == 0U )
                             {
-                                uint32_t ulIPAddress;
                                 uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
-                                ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
+                                uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
                                 if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
                                 {
@@ -1028,10 +1027,9 @@
 
                             if( pxEndPoint->bits.bIPv6 != 0U )
                             {
-                                const uint8_t * ucBytes;
                                 uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
-                                ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+                                const uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
 
                                 /* Test if the DNS entry is in used. */
                                 if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
@@ -1173,10 +1171,6 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
-            /* A two-step conversion to conform to MISRA. */
-            size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-            BaseType_t xIndex = ( BaseType_t ) uxIndex;
-
             #if ( ipconfigUSE_LLMNR == 1 )
             {
                 if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
@@ -1188,6 +1182,10 @@
                 }
             }
             #endif
+
+            /* A two-step conversion to conform to MISRA. */
+            size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            BaseType_t xIndex = ( BaseType_t ) uxIndex;
 
             /* Later when translating form UDP payload to a Network Buffer,
              * it is important to know whether this is an IPv4 packet. */

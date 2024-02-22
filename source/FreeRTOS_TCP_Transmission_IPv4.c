@@ -150,8 +150,6 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             if( pxNetworkBuffer != NULL ) /* LCOV_EXCL_BR_LINE the 2nd branch will never be reached */
         #endif
         {
-            NetworkInterface_t * pxInterface;
-
             /* Map the Ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -286,7 +284,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput != NULL );
 
-            pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+            NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
             ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xDoRelease );
 
             if( xDoRelease == pdFALSE )
