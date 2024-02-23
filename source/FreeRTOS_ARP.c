@@ -1351,7 +1351,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
  */
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
     {
-        /* Its assumed that IPv4 endpoints belonging to different physical interface 
+        /* Its assumed that IPv4 endpoints belonging to different physical interface
          * in the system will have a different subnet, but endpoints on same interface
          * may have it. */
         const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 12 );
