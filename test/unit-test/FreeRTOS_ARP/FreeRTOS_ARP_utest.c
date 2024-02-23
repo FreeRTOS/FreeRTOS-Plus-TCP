@@ -2243,7 +2243,7 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( NULL );
     eResult = eARPGetCacheEntry( &ulIPAddress, &xMACAddress, &xInterface );
 
-    TEST_ASSERT_EQUAL_MESSAGE( eARPCacheMiss, eResult, "Test 9" );
+    TEST_ASSERT_EQUAL_MESSAGE( eCantSendPacket, eResult, "Test 9" );
     /* =================================================== */
 }
 
