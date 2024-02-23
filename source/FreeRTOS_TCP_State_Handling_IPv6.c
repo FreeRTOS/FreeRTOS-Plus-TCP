@@ -163,7 +163,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
     {
         size_t xCopyLength;
         const IPHeader_IPv6_t * pxIPHeader_IPv6;
-        
+
         /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */

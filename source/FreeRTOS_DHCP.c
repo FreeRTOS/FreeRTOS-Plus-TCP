@@ -1407,9 +1407,9 @@
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayloadBuffer );
 
             /* Store the IP type at a known location.
-            * Later the type must be known to translate
-            * a payload- to a network buffer.
-            */
+             * Later the type must be known to translate
+             * a payload- to a network buffer.
+             */
 
             /* MISRA Ref 18.4.1 [Usage of +, -, += and -= operators on expression of pointer type]. */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-184. */

@@ -651,7 +651,7 @@
         /* Function might modify the parameter. */
         const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
         BaseType_t xResult;
-        
+
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
