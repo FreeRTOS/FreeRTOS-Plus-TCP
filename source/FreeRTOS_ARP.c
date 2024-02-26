@@ -1270,7 +1270,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
  * @param[in] ulIPAddress A 32-bit representation of the IP-address whose
  *                         physical (MAC) address is required.
  */
-    void FreeRTOS_OutputARPRequest_Multi( const NetworkEndPoint_t * pxEndPoint,
+    void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
                                           uint32_t ulIPAddress )
     {
         NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -1348,7 +1348,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
         /* Its assumed that IPv4 endpoints belonging to different physical interface
          * in the system will have a different subnet, but endpoints on same interface
          * may have it. */
-        const NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 12 );
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 12 );
 
         if( pxEndPoint != NULL )
         {

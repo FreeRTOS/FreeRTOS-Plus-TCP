@@ -14,7 +14,7 @@
 extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
 /* This is an output function and need not be tested with this proof. */
-void FreeRTOS_OutputARPRequest_Multi( const NetworkEndPoint_t * pxEndPoint,
+void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
                                       uint32_t ulIPAddress )
 {
 }

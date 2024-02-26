@@ -39,7 +39,7 @@ size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
 }
 
 /* Abstraction of FreeRTOS_OutputARPRequest_Multi. */
-void FreeRTOS_OutputARPRequest_Multi( const NetworkEndPoint_t * pxEndPoint,
+void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
                                       uint32_t ulIPAddress )
 {
 }
