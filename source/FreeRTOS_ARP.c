@@ -1275,8 +1275,6 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
     {
         NetworkBufferDescriptor_t * pxNetworkBuffer;
 
-        /* Send an ARP request to every end-point which has the type IPv4,
-         * and which already has an IP-address assigned. */
         if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
             ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
         {
