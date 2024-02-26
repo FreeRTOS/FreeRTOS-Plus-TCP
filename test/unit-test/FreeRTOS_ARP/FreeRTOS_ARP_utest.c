@@ -1039,8 +1039,8 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
 
 void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
 {
-    uint8_t ucBuffer[ipconfigETHERNET_MINIMUM_PACKET_BYTES];
-    ARPPacket_t * pxARPFrame = (ARPPacket_t *) &ucBuffer[0];
+    uint8_t ucBuffer[ ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
+    ARPPacket_t * pxARPFrame = ( ARPPacket_t * ) &ucBuffer[ 0 ];
     eFrameProcessingResult_t eResult;
     NetworkInterface_t xInterface;
     struct xNetworkEndPoint xEndPoint = { 0 }, xEndPoint_2 = { 0 };
@@ -1076,7 +1076,7 @@ void test_eARPProcessPacket_Reply_SenderAndTargetSame( void )
     xSendEventStructToIPTask_IgnoreAndReturn( pdFAIL );
     vReleaseNetworkBufferAndDescriptor_Expect( &xNetworkBuffer );
 
-    // FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( 1 );
+    /* FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( 1 ); */
     xTaskGetTickCount_ExpectAndReturn( 0 );
     vTaskSetTimeOutState_ExpectAnyArgs();
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( &xEndPoint );

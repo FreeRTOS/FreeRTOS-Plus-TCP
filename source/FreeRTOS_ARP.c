@@ -1281,7 +1281,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
             ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
         {
             /* This is called from the context of the IP event task, so a block time
-                * must not be used. */
+             * must not be used. */
             pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( ARPPacket_t ), ( TickType_t ) 0U );
 
             if( pxNetworkBuffer != NULL )
