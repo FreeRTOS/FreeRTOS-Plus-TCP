@@ -1253,11 +1253,11 @@
             {
                 xDNS_IP_Preference = xPreferenceIPv6;
             }
-            else
+	    else
+            {
+	            xDNS_IP_Preference = xPreferenceIPv4;
+            }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-        {
-            xDNS_IP_Preference = xPreferenceIPv4;
-        }
 
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 
