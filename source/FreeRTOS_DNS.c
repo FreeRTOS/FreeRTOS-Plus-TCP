@@ -953,8 +953,8 @@
 
             #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 )
                 for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-                        pxEndPoint != NULL;
-                        pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+                     pxEndPoint != NULL;
+                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
                 {
                     #if ( ipconfigUSE_IPv6 != 0 )
                         if( xDNS_IP_Preference == xPreferenceIPv6 )
@@ -1253,9 +1253,9 @@
             {
                 xDNS_IP_Preference = xPreferenceIPv6;
             }
-	    else
+            else
             {
-	            xDNS_IP_Preference = xPreferenceIPv4;
+                xDNS_IP_Preference = xPreferenceIPv4;
             }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 

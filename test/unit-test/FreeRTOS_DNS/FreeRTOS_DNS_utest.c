@@ -1700,8 +1700,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSUnknownPreference( void )
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
-    DNS_BindSocket_ExpectAnyArgsAndReturn(0);
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&xNetworkBuffer);
+    DNS_BindSocket_ExpectAnyArgsAndReturn( 0 );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
     DNS_ReadReply_ExpectAnyArgsAndReturn( ipconfigNETWORK_MTU );
 
@@ -1916,8 +1916,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LLMNRDNSUnknownPreference( void )
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
 
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
-    DNS_BindSocket_ExpectAnyArgsAndReturn(0);
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn(&xNetworkBuffer);
+    DNS_BindSocket_ExpectAnyArgsAndReturn( 0 );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
     DNS_ReadReply_ExpectAnyArgsAndReturn( ipconfigNETWORK_MTU );
 
