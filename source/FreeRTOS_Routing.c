@@ -601,6 +601,47 @@ struct xIPv6_Couple
 
     #if ( ipconfigUSE_IPv6 != 0 )
 
+   NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
+                                                             const IPv6_Address_t * pxIPAddress,
+                                                             uint32_t ulWhere )
+    {
+        NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+        /* Find the best fitting end-point to reach a given IP-address. */
+
+        /*_RB_ Presumably then a broadcast reply could go out on a different end point to that on
+         * which the broadcast was received - although that should not be an issue if the nodes are
+         * on the same LAN it could be an issue if the nodes are on separate LAN's. */
+
+        while( pxEndPoint != NULL )
+        {
+            if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
+            {
+                        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+
+                    {
+                        if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
+                        {
+                            /* Found a match. */
+                            break;
+                        }
+                    }
+
+            }
+
+            pxEndPoint = pxEndPoint->pxNext;
+        }
+
+        /* This was only for debugging. */
+        if( pxEndPoint == NULL )
+        {
+           // FreeRTOS_debug_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
+            //                         ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
+        }
+
+        return pxEndPoint;
+    }
+
 /**
  * @brief Configure and install a new IPv6 end-point.
  *

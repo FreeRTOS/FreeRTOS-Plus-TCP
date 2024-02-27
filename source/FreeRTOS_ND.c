@@ -1058,6 +1058,15 @@
                    {
                        size_t uxICMPSize;
                        BaseType_t xCompare;
+                       NetworkEndPoint_t * pxEndPointFound = FreeRTOS_InterfaceEndPointOnNetMask_IPv6(pxNetworkBuffer->pxInterface, &(pxICMPHeader_IPv6->xIPv6Address), 5);
+                       
+                       if( pxEndPointFound != NULL )
+                       {
+                           pxEndPoint = pxEndPointFound;
+                       }
+
+                       pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                       pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
 
                        uxICMPSize = sizeof( ICMPHeader_IPv6_t );
                        uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
