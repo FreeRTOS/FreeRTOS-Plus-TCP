@@ -49,7 +49,6 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"

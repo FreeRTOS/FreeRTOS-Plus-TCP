@@ -165,6 +165,12 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
 
 void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 
+/*
+ * Create and send an ARP request packet to IPv4 endpoints of an interface.
+ */
+void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
+                                      uint32_t ulIPAddress );
+
 /* Clear all entries in the ARp cache. */
 void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );
 
