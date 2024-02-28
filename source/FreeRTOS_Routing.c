@@ -1426,7 +1426,7 @@ struct xIPv6_Couple
             ( void ) pxIPAddress;
             return pxNetworkEndPoints;
         }
-    
+
 /*-----------------------------------------------------------*/
 
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
@@ -1445,17 +1445,17 @@ struct xIPv6_Couple
 
 /*-----------------------------------------------------------*/
 
-    /**
-     * @brief Find an end-point that handles a given IPv4-address.
-     *
-     * @param[in] pxInterface Ignored in this simplified version.
-     * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
-     *
-     * @return An end-point that has the same network mask as the given IP-address.
-     */
+/**
+ * @brief Find an end-point that handles a given IPv4-address.
+ *
+ * @param[in] pxInterface Ignored in this simplified version.
+ * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
+ *
+ * @return An end-point that has the same network mask as the given IP-address.
+ */
         NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                                const IPv6_Address_t * pxIPAddress,
-                                                                uint32_t ulWhere )
+                                                                      const IPv6_Address_t * pxIPAddress,
+                                                                      uint32_t ulWhere )
         {
             NetworkEndPoint_t * pxResult = NULL;
 
@@ -1469,7 +1469,7 @@ struct xIPv6_Couple
 
             return pxResult;
         }
-    #endif
+    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
