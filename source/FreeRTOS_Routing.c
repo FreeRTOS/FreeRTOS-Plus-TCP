@@ -601,6 +601,8 @@ struct xIPv6_Couple
         {
             NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
+            ( void ) ulWhere;
+
             /* Find the best fitting end-point to reach a given IP-address. */
 
             while( pxEndPoint != NULL )
@@ -1424,26 +1426,49 @@ struct xIPv6_Couple
             ( void ) pxIPAddress;
             return pxNetworkEndPoints;
         }
-    #endif
+    
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
             ( void ) pxIPv6Address;
             return pxNetworkEndPoints;
         }
 
-    #endif
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FirstEndPoint_IPv6( const NetworkInterface_t * pxInterface )
         {
             ( void ) pxInterface;
             return pxNetworkEndPoints;
         }
 
+/*-----------------------------------------------------------*/
+
+    /**
+     * @brief Find an end-point that handles a given IPv4-address.
+     *
+     * @param[in] pxInterface Ignored in this simplified version.
+     * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
+     *
+     * @return An end-point that has the same network mask as the given IP-address.
+     */
+        NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
+                                                                const IPv6_Address_t * pxIPAddress,
+                                                                uint32_t ulWhere )
+        {
+            NetworkEndPoint_t * pxResult = NULL;
+
+            ( void ) pxInterface;
+            ( void ) ulWhere;
+
+            if( xCompareIPv6_Address( &( pxNetworkEndPoints->ipv6_settings.xIPAddress ), pxIPAddress, pxNetworkEndPoints->ipv6_settings.uxPrefixLength ) == 0 )
+            {
+                pxResult = pxNetworkEndPoints;
+            }
+
+            return pxResult;
+        }
     #endif
 /*-----------------------------------------------------------*/
 
