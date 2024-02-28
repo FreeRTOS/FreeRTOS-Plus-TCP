@@ -442,7 +442,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
         {
-            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6(NULL, pxIPAddress, 1);
+            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6( NULL, pxIPAddress, 1 );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -595,40 +595,40 @@ struct xIPv6_Couple
  * @param[in] ulWhere For debug logging
  * @return An end-point that has the same network mask as the given IP-address.
  */
-   NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                             const IPv6_Address_t * pxIPAddress,
-                                                             uint32_t ulWhere )
-    {
-        NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-        /* Find the best fitting end-point to reach a given IP-address. */
-
-        while( pxEndPoint != NULL )
+        NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
+                                                                      const IPv6_Address_t * pxIPAddress,
+                                                                      uint32_t ulWhere )
         {
-            if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
+            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+            /* Find the best fitting end-point to reach a given IP-address. */
+
+            while( pxEndPoint != NULL )
             {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
                 {
-                    if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
                     {
-                        /* Found a match. */
-                        break;
+                        if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
+                        {
+                            /* Found a match. */
+                            break;
+                        }
                     }
                 }
+
+                pxEndPoint = pxEndPoint->pxNext;
             }
 
-            pxEndPoint = pxEndPoint->pxNext;
-        }
+            /* This was only for debugging. */
+            if( pxEndPoint == NULL )
+            {
+                FreeRTOS_debug_printf( ( "FreeRTOS_InterfaceEndPointOnNetMask_IPv6[%d]: No match for %pip\n",
+                                         ( unsigned ) ulWhere, pxIPAddress->ucBytes ) );
+            }
 
-        /* This was only for debugging. */
-        if( pxEndPoint == NULL )
-        {
-            FreeRTOS_debug_printf( ( "FreeRTOS_InterfaceEndPointOnNetMask_IPv6[%d]: No match for %pip\n",
-                                     ( unsigned ) ulWhere, pxIPAddress->ucBytes ) );
+            return pxEndPoint;
         }
-
-        return pxEndPoint;
-    }
 
 /**
  * @brief Configure and install a new IPv6 end-point.
@@ -711,7 +711,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
-            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6(NULL, pxIPv6Address, 0);
+            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6( NULL, pxIPv6Address, 0 );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/

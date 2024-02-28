@@ -259,10 +259,10 @@
  * Find the best fitting IPv6 end-point to reach a given IP-address on a given interface
  * 'ulWhere' is temporary and or debugging only.
  */
-   NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                             const IPv6_Address_t * pxIPAddress,
-                                                             uint32_t ulWhere );
-                                                             
+    NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
+                                                                  const IPv6_Address_t * pxIPAddress,
+                                                                  uint32_t ulWhere );
+
     #if ( ipconfigUSE_IPv6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address );
     #endif /* ipconfigUSE_IPv6 */

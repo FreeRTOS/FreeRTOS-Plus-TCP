@@ -3709,22 +3709,22 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_IPv6_DifferentInterface( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
-    NetworkInterface_t xNetworkInterface[2];
+    NetworkInterface_t xNetworkInterface[ 2 ];
     uint32_t ulWhere;
 
     /* Initialize network interface and add it to the list. */
-    memset( &xNetworkInterface[0], 0, sizeof( NetworkInterface_t ) );
-    pxNetworkInterfaces = &xNetworkInterface[0];
+    memset( &xNetworkInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface[ 0 ];
 
     /* Initialize network endpoint and add it to the list. */
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    xEndPoint.pxNetworkInterface = &xNetworkInterface[0];
+    xEndPoint.pxNetworkInterface = &xNetworkInterface[ 0 ];
     pxNetworkEndPoints = &xEndPoint;
 
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
     xEndPoint.ipv6_settings.uxPrefixLength = 64;
 
-    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask_IPv6( &xNetworkInterface[1], &xDefaultIPAddress_IPv6, ulWhere );
+    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask_IPv6( &xNetworkInterface[ 1 ], &xDefaultIPAddress_IPv6, ulWhere );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
