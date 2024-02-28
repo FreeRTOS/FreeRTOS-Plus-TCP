@@ -43,6 +43,7 @@
  * by mock_list.h). */
 #include "mock_queue.h"
 #include "mock_event_groups.h"
+#include "mock_FreeRTOS_IPv6.h"
 
 #include "FreeRTOS_Routing.h"
 
@@ -64,6 +65,12 @@ const uint8_t ucDefaultNetMask_IPv4[ ipIP_ADDRESS_LENGTH_BYTES ] = { 255, 255, 2
 const uint8_t ucDefaultGatewayAddress_IPv4[ ipIP_ADDRESS_LENGTH_BYTES ] = { 192, 168, 123, 254 };
 const uint8_t ucDefaultDNSServerAddress_IPv4[ ipIP_ADDRESS_LENGTH_BYTES ] = { 192, 168, 123, 1 };
 const uint8_t ucDefaultMACAddress_IPv4[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
+
+/* Default IPv6 address 1 is set to 2001::1 */
+const IPv6_Address_t xDefaultIPAddress_IPv6_1 = { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+
+/* Default IPv6 address 2 is set to 2003::1 */
+const IPv6_Address_t xDefaultIPAddress_IPv6_2 = { 0x20, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
 
 /* ============================  Unity Fixtures  ============================ */
 
@@ -1185,4 +1192,62 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_HappyPath()
 
     pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( NULL );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief When backward compatible enabled, FreeRTOS_InterfaceEndPointOnNetMask_IPv6 compares the IPv6 address endpoints IP.
+ */
+void test_FreeRTOS_InterfaceEndPointOnNetMask_IPv6_HappyPath()
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network interface. */
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    /* Initialize endpoint. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6_1.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    xEndPoint.pxNetworkInterface = &xNetworkInterface;
+    pxNetworkEndPoints = &xEndPoint;
+
+    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultIPAddress_IPv6_1, xEndPoint.ipv6_settings.uxPrefixLength, 0 );
+
+    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6_1, 5 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief When backward compatible enabled, FreeRTOS_InterfaceEndPointOnNetMask_IPv6 compares the IPv6 address endpoints IP.
+ */
+void test_FreeRTOS_InterfaceEndPointOnNetMask_IPv6_UnHappyPath()
+{
+    NetworkInterface_t xNetworkInterface;
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+
+    /* Initialize network interface. */
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    /* Initialize endpoint. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6_2.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+
+    xEndPoint.pxNetworkInterface = &xNetworkInterface;
+    pxNetworkEndPoints = &xEndPoint;
+
+    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultIPAddress_IPv6_1, xEndPoint.ipv6_settings.uxPrefixLength, 1 );
+
+    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6_1, 5 );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
