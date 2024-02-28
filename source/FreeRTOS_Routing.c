@@ -624,7 +624,7 @@ struct xIPv6_Couple
         if( pxEndPoint == NULL )
         {
             FreeRTOS_debug_printf( ( "FreeRTOS_InterfaceEndPointOnNetMask_IPv6[%d]: No match for %pip\n",
-                                     ( unsigned ) ulWhere, pxEndPoint->ipv6_settings.xIPAddress ) );
+                                     ( unsigned ) ulWhere, pxIPAddress->ucBytes ) );
         }
 
         return pxEndPoint;
