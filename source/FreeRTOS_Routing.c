@@ -442,22 +442,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
         {
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            while( pxEndPoint != NULL )
-            {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                {
-                    if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
-                    {
-                        break;
-                    }
-                }
-
-                pxEndPoint = pxEndPoint->pxNext;
-            }
-
-            return pxEndPoint;
+            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6(NULL, pxIPAddress, 1);
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -609,24 +594,18 @@ struct xIPv6_Couple
 
         /* Find the best fitting end-point to reach a given IP-address. */
 
-        /*_RB_ Presumably then a broadcast reply could go out on a different end point to that on
-         * which the broadcast was received - although that should not be an issue if the nodes are
-         * on the same LAN it could be an issue if the nodes are on separate LAN's. */
-
         while( pxEndPoint != NULL )
         {
             if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
             {
-                        if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-
+                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                {
+                    if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
                     {
-                        if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
-                        {
-                            /* Found a match. */
-                            break;
-                        }
+                        /* Found a match. */
+                        break;
                     }
-
+                }
             }
 
             pxEndPoint = pxEndPoint->pxNext;
@@ -635,8 +614,8 @@ struct xIPv6_Couple
         /* This was only for debugging. */
         if( pxEndPoint == NULL )
         {
-           // FreeRTOS_debug_printf( ( "FreeRTOS_FindEndPointOnNetMask[%d]: No match for %xip\n",
-            //                         ( unsigned ) ulWhere, ( unsigned ) FreeRTOS_ntohl( ulIPAddress ) ) );
+            FreeRTOS_debug_printf( ( "FreeRTOS_InterfaceEndPointOnNetMask_IPv6[%d]: No match for %pip\n",
+                                     ( unsigned ) ulWhere, pxEndPoint->ipv6_settings.xIPAddress ) );
         }
 
         return pxEndPoint;
@@ -723,22 +702,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            while( pxEndPoint != NULL )
-            {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                {
-                    if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPv6Address, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
-                    {
-                        break;
-                    }
-                }
-
-                pxEndPoint = pxEndPoint->pxNext;
-            }
-
-            return pxEndPoint;
+            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6(NULL, pxIPv6Address, 0);
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
