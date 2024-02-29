@@ -442,7 +442,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
         {
-            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6( NULL, pxIPAddress, 1 );
+            return FreeRTOS_InterfaceEPOnNetMask_IPv6( NULL, pxIPAddress, 1 );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -595,7 +595,7 @@ struct xIPv6_Couple
  * @param[in] ulWhere For debug logging
  * @return An end-point that has the same network mask as the given IP-address.
  */
-        NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
+        NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
                                                                       const IPv6_Address_t * pxIPAddress,
                                                                       uint32_t ulWhere )
         {
@@ -625,7 +625,7 @@ struct xIPv6_Couple
             /* This was only for debugging. */
             if( pxEndPoint == NULL )
             {
-                FreeRTOS_debug_printf( ( "FreeRTOS_InterfaceEndPointOnNetMask_IPv6[%d]: No match for %pip\n",
+                FreeRTOS_debug_printf( ( "FreeRTOS_InterfaceEPOnNetMask_IPv6[%d]: No match for %pip\n",
                                          ( unsigned ) ulWhere, pxIPAddress->ucBytes ) );
             }
 
@@ -713,7 +713,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
-            return FreeRTOS_InterfaceEndPointOnNetMask_IPv6( NULL, pxIPv6Address, 0 );
+            return FreeRTOS_InterfaceEPOnNetMask_IPv6( NULL, pxIPv6Address, 0 );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -1453,7 +1453,7 @@ struct xIPv6_Couple
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
-        NetworkEndPoint_t * FreeRTOS_InterfaceEndPointOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
+        NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
                                                                       const IPv6_Address_t * pxIPAddress,
                                                                       uint32_t ulWhere )
         {

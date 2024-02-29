@@ -1059,8 +1059,8 @@
                    {
                        size_t uxICMPSize;
                        BaseType_t xCompare;
-                       NetworkEndPoint_t * pxTargetedEndPoint = pxEndPoint;
-                       NetworkEndPoint_t * pxEndPointFound = FreeRTOS_InterfaceEndPointOnNetMask_IPv6( pxNetworkBuffer->pxInterface, &( pxICMPHeader_IPv6->xIPv6Address ), 2 );
+                       const NetworkEndPoint_t * pxTargetedEndPoint = pxEndPoint;
+                       const NetworkEndPoint_t * pxEndPointFound = FreeRTOS_InterfaceEPOnNetMask_IPv6( pxNetworkBuffer->pxInterface, &( pxICMPHeader_IPv6->xIPv6Address ), 2 );
 
                        if( pxEndPointFound != NULL )
                        {

@@ -1195,9 +1195,9 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_HappyPath()
 }
 
 /**
- * @brief When backward compatible enabled, FreeRTOS_InterfaceEndPointOnNetMask_IPv6 compares the IPv6 address endpoints IP.
+ * @brief When backward compatible enabled, FreeRTOS_InterfaceEPOnNetMask_IPv6 compares the IPv6 address endpoints IP.
  */
-void test_FreeRTOS_InterfaceEndPointOnNetMask_IPv6_HappyPath()
+void test_FreeRTOS_InterfaceEPOnNetMask_IPv6_HappyPath()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -1219,14 +1219,14 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_IPv6_HappyPath()
 
     xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultIPAddress_IPv6_1, xEndPoint.ipv6_settings.uxPrefixLength, 0 );
 
-    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6_1, 5 );
+    pxEndPoint = FreeRTOS_InterfaceEPOnNetMask_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6_1, 5 );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
 /**
- * @brief When backward compatible enabled, FreeRTOS_InterfaceEndPointOnNetMask_IPv6 compares the IPv6 address endpoints IP.
+ * @brief When backward compatible enabled, FreeRTOS_InterfaceEPOnNetMask_IPv6 compares the IPv6 address endpoints IP.
  */
-void test_FreeRTOS_InterfaceEndPointOnNetMask_IPv6_UnHappyPath()
+void test_FreeRTOS_InterfaceEPOnNetMask_IPv6_UnHappyPath()
 {
     NetworkInterface_t xNetworkInterface;
     NetworkEndPoint_t xEndPoint;
@@ -1248,6 +1248,6 @@ void test_FreeRTOS_InterfaceEndPointOnNetMask_IPv6_UnHappyPath()
 
     xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultIPAddress_IPv6_1, xEndPoint.ipv6_settings.uxPrefixLength, 1 );
 
-    pxEndPoint = FreeRTOS_InterfaceEndPointOnNetMask_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6_1, 5 );
+    pxEndPoint = FreeRTOS_InterfaceEPOnNetMask_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6_1, 5 );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
