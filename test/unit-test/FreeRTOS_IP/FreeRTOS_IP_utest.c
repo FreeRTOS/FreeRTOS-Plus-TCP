@@ -2093,6 +2093,33 @@ void test_prvProcessEthernetPacket_IPv4FrameType_AptData( void )
 }
 
 /**
+ * @brief test_prvProcessEthernetPacket_InterfaceNull
+ * To validate the flow to when the interface associated with the
+ * network buffer is NULL
+ */
+void test_prvProcessEthernetPacket_InterfaceNull( void )
+{
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
+    EthernetHeader_t * pxEthernetHeader;
+    IPPacket_t * pxIPPacket;
+    IPHeader_t * pxIPHeader;
+    struct xNetworkInterface xInterface;
+
+    memset( pxNetworkBuffer->pucEthernetBuffer, 0, ipconfigTCP_MSS );
+
+    pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
+    pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
+    pxNetworkBuffer->pxInterface = NULL;
+
+    vReleaseNetworkBufferAndDescriptor_Expect( pxNetworkBuffer );
+
+    prvProcessEthernetPacket( pxNetworkBuffer );
+}
+
+
+/**
  * @brief test_prvProcessIPPacket_HeaderLengthSmaller
  * To validate the flow to handle IPv4 packets but the length in IP header is smaller than
  * minimum requirement.

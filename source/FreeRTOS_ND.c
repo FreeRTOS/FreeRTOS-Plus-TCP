@@ -924,9 +924,10 @@
 
         if( memcmp( pxIPv6Address->ucBytes, pxIPHeader->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
         {
-            FreeRTOS_printf( ( "Waiting done\n" ) );
             IPStackEvent_t xEventMessage;
             const TickType_t xDontBlock = ( TickType_t ) 0;
+
+            FreeRTOS_printf( ( "Waiting done\n" ) );
 
             xEventMessage.eEventType = eNetworkRxEvent;
             xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
@@ -963,6 +964,7 @@
         ICMPPacket_IPv6_t * pxICMPPacket = ( ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
         /* coverity[misra_c_2012_rule_11_3_violation] */
         ICMPHeader_IPv6_t * pxICMPHeader_IPv6 = ( ( ICMPHeader_IPv6_t * ) &( pxICMPPacket->xICMPHeaderIPv6 ) );
+        /* Note: pxNetworkBuffer->pxEndPoint is already verified to be non-NULL in prvProcessEthernetPacket() */
         NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
         size_t uxNeededSize;
 
@@ -1269,6 +1271,7 @@
 
         if( xResult == pdPASS )
         {
+            size_t uxIndex;
             /* A loopback IP-address has a prefix of 128. */
             configASSERT( ( uxPrefixLength > 0U ) && ( uxPrefixLength <= ( 8U * ipSIZE_OF_IPv6_ADDRESS ) ) );
 
@@ -1278,7 +1281,7 @@
             }
 
             pucSource = ( uint8_t * ) pulRandom;
-            size_t uxIndex = uxPrefixLength / 8U;
+            uxIndex = uxPrefixLength / 8U;
 
             if( ( uxPrefixLength % 8U ) != 0U )
             {
