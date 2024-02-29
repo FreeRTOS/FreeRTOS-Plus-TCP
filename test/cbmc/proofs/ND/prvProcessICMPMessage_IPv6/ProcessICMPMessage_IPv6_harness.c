@@ -95,8 +95,8 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
 
 /* Abstraction of this functions creates and return an endpoint, real endpoint doesn't matter in this test. */
 NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                              const IPv6_Address_t * pxIPAddress,
-                                                              uint32_t ulWhere )
+                                                        const IPv6_Address_t * pxIPAddress,
+                                                        uint32_t ulWhere )
 {
     NetworkEndPoint_t * pxEndPoints = NULL;
 

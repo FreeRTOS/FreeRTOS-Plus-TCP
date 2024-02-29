@@ -260,8 +260,8 @@
  * 'ulWhere' is temporary and or debugging only.
  */
     NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                                  const IPv6_Address_t * pxIPAddress,
-                                                                  uint32_t ulWhere );
+                                                            const IPv6_Address_t * pxIPAddress,
+                                                            uint32_t ulWhere );
 
     #if ( ipconfigUSE_IPv6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address );

@@ -596,8 +596,8 @@ struct xIPv6_Couple
  * @return An end-point that has the same network mask as the given IP-address.
  */
         NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                                      const IPv6_Address_t * pxIPAddress,
-                                                                      uint32_t ulWhere )
+                                                                const IPv6_Address_t * pxIPAddress,
+                                                                uint32_t ulWhere )
         {
             NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
 
@@ -1454,8 +1454,8 @@ struct xIPv6_Couple
  * @return An end-point that has the same network mask as the given IP-address.
  */
         NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                                      const IPv6_Address_t * pxIPAddress,
-                                                                      uint32_t ulWhere )
+                                                                const IPv6_Address_t * pxIPAddress,
+                                                                uint32_t ulWhere )
         {
             NetworkEndPoint_t * pxResult = NULL;
 
