@@ -442,7 +442,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
         {
-            return FreeRTOS_InterfaceEPOnNetMask_IPv6( NULL, pxIPAddress, 1 );
+            return FreeRTOS_InterfaceEPInSameSubnet_IPv6( NULL, pxIPAddress );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -587,21 +587,19 @@ struct xIPv6_Couple
     #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
- * @brief Find an end-point that handles a given IPv6-address on a given interface.
+ * @brief Finds an endpoint on the given interface which is in the same subnet as the
+ * given IP address. If NULL is passed for pxInterface, it looks through all the
+ * interfaces to find an endpoint in the same subnet as the given IP address.
  *
  * @param[in] pxInterface Only end-points that have this interface are returned, unless
  *                         pxInterface is NULL.
  * @param[in] pxIPAddress The IPv6-address for which an end-point is looked-up.
- * @param[in] ulWhere For debug logging
  * @return An end-point that has the same network mask as the given IP-address.
  */
-        NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                                const IPv6_Address_t * pxIPAddress,
-                                                                uint32_t ulWhere )
+        NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
+                                                                const IPv6_Address_t * pxIPAddress )
         {
             NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            ( void ) ulWhere;
 
             /* Find the best fitting end-point to reach a given IP-address. */
 
@@ -620,13 +618,6 @@ struct xIPv6_Couple
                 }
 
                 pxEndPoint = pxEndPoint->pxNext;
-            }
-
-            /* This was only for debugging. */
-            if( pxEndPoint == NULL )
-            {
-                FreeRTOS_debug_printf( ( "FreeRTOS_InterfaceEPOnNetMask_IPv6[%d]: No match for %pip\n",
-                                         ( unsigned ) ulWhere, pxIPAddress->ucBytes ) );
             }
 
             return pxEndPoint;
@@ -713,7 +704,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
-            return FreeRTOS_InterfaceEPOnNetMask_IPv6( NULL, pxIPv6Address, 0 );
+            return FreeRTOS_InterfaceEPInSameSubnet_IPv6( NULL, pxIPv6Address );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -1446,21 +1437,20 @@ struct xIPv6_Couple
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Find an end-point that handles a given IPv4-address.
+ * @brief If the device endpoint is in the same subnet as the given IP address, return the
+ * endpoint. Otherwise, return NULL.
  *
  * @param[in] pxInterface Ignored in this simplified version.
  * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
  *
  * @return An end-point that has the same network mask as the given IP-address.
  */
-        NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                                const IPv6_Address_t * pxIPAddress,
-                                                                uint32_t ulWhere )
+        NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
+                                                                const IPv6_Address_t * pxIPAddress )
         {
             NetworkEndPoint_t * pxResult = NULL;
 
             ( void ) pxInterface;
-            ( void ) ulWhere;
 
             if( xCompareIPv6_Address( &( pxNetworkEndPoints->ipv6_settings.xIPAddress ), pxIPAddress, pxNetworkEndPoints->ipv6_settings.uxPrefixLength ) == 0 )
             {

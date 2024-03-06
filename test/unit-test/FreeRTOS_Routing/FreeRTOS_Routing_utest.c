@@ -3674,9 +3674,9 @@ void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
 }
 
 /**
- * @brief FreeRTOS_InterfaceEPOnNetMask_IPv6 should be able to find the endpoint within same network region.
+ * @brief FreeRTOS_InterfaceEPInSameSubnet_IPv6 should be able to find the endpoint within same network region.
  */
-void test_FreeRTOS_InterfaceEPOnNetMask_IPv6_HappyPath( void )
+void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_HappyPath( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
@@ -3698,19 +3698,18 @@ void test_FreeRTOS_InterfaceEPOnNetMask_IPv6_HappyPath( void )
 
     xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultIPAddress_IPv6, xEndPoint.ipv6_settings.uxPrefixLength, 0 );
 
-    pxEndPoint = FreeRTOS_InterfaceEPOnNetMask_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6, ulWhere );
+    pxEndPoint = FreeRTOS_InterfaceEPInSameSubnet_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6 );
     TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
 }
 
 /**
- * @brief FreeRTOS_InterfaceEPOnNetMask_IPv6 should be able to find the endpoint within same network region.
+ * @brief FreeRTOS_InterfaceEPInSameSubnet_IPv6 should be able to find the endpoint within same network region.
  */
-void test_FreeRTOS_InterfaceEPOnNetMask_IPv6_DifferentInterface( void )
+void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_DifferentInterface( void )
 {
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
     NetworkInterface_t xNetworkInterface[ 2 ];
-    uint32_t ulWhere;
 
     /* Initialize network interface and add it to the list. */
     memset( &xNetworkInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
@@ -3725,6 +3724,6 @@ void test_FreeRTOS_InterfaceEPOnNetMask_IPv6_DifferentInterface( void )
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
     xEndPoint.ipv6_settings.uxPrefixLength = 64;
 
-    pxEndPoint = FreeRTOS_InterfaceEPOnNetMask_IPv6( &xNetworkInterface[ 1 ], &xDefaultIPAddress_IPv6, ulWhere );
+    pxEndPoint = FreeRTOS_InterfaceEPInSameSubnet_IPv6( &xNetworkInterface[ 1 ], &xDefaultIPAddress_IPv6 );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }

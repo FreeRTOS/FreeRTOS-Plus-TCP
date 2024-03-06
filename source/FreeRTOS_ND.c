@@ -1060,11 +1060,16 @@
                        size_t uxICMPSize;
                        BaseType_t xCompare;
                        const NetworkEndPoint_t * pxTargetedEndPoint = pxEndPoint;
-                       const NetworkEndPoint_t * pxEndPointFound = FreeRTOS_InterfaceEPOnNetMask_IPv6( pxNetworkBuffer->pxInterface, &( pxICMPHeader_IPv6->xIPv6Address ), 2 );
+                       const NetworkEndPoint_t * pxEndPointInSameSubnet = FreeRTOS_InterfaceEPInSameSubnet_IPv6( pxNetworkBuffer->pxInterface, &( pxICMPHeader_IPv6->xIPv6Address ) );
 
-                       if( pxEndPointFound != NULL )
+                       if( pxEndPointInSameSubnet != NULL )
                        {
-                           pxTargetedEndPoint = pxEndPointFound;
+                           pxTargetedEndPoint = pxEndPointInSameSubnet;
+                       }
+                       else
+                       {
+                            FreeRTOS_debug_printf( ( "prvProcessICMPMessage_IPv6: No match for %pip\n",
+                                         pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
                        }
 
                        uxICMPSize = sizeof( ICMPHeader_IPv6_t );

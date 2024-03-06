@@ -256,12 +256,12 @@
                                                              uint32_t ulWhere );
 
 /*
- * Find the best fitting IPv6 end-point to reach a given IP-address on a given interface
- * 'ulWhere' is temporary and or debugging only.
+ * Finds an endpoint on the given interface which is in the same subnet as the
+ * given IP address. If NULL is passed for pxInterface, it looks through all the
+ * interfaces to find an endpoint in the same subnet as the given IP address.
  */
-    NetworkEndPoint_t * FreeRTOS_InterfaceEPOnNetMask_IPv6( const NetworkInterface_t * pxInterface,
-                                                            const IPv6_Address_t * pxIPAddress,
-                                                            uint32_t ulWhere );
+    NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
+                                                            const IPv6_Address_t * pxIPAddress );
 
     #if ( ipconfigUSE_IPv6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address );
