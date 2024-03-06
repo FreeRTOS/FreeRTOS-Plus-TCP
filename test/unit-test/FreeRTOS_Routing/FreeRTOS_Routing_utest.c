@@ -3674,7 +3674,9 @@ void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
 }
 
 /**
- * @brief FreeRTOS_InterfaceEPInSameSubnet_IPv6 should be able to find the endpoint within same network region.
+ * @brief Test to check if FreeRTOS_InterfaceEPInSameSubnet_IPv6 returns a matching endpoint
+ * on the interface given to FreeRTOS_InterfaceEPInSameSubnet_IPv6 thats on the same subnet as of
+ * the given IPv6 address.
  */
 void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_HappyPath( void )
 {
@@ -3702,7 +3704,9 @@ void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_HappyPath( void )
 }
 
 /**
- * @brief FreeRTOS_InterfaceEPInSameSubnet_IPv6 should be able to find the endpoint within same network region.
+ * @brief Test to check if FreeRTOS_InterfaceEPInSameSubnet_IPv6 returns a NULL endpoint
+ * if the interface given to FreeRTOS_InterfaceEPInSameSubnet_IPv6 is different from the
+ * endpoint found.
  */
 void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_DifferentInterface( void )
 {

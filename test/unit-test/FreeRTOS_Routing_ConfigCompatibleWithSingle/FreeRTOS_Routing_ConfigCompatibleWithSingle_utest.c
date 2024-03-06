@@ -1195,7 +1195,7 @@ void test_FreeRTOS_FindEndPointOnNetMask_IPv6_HappyPath()
 }
 
 /**
- * @brief When backward compatible enabled, FreeRTOS_InterfaceEPInSameSubnet_IPv6 compares the IPv6 address endpoints IP.
+ * @brief When compatible with single is enabled, FreeRTOS_InterfaceEPInSameSubnet_IPv6 compares the IPv6 address with the endpoint's IP.
  */
 void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_HappyPath()
 {
@@ -1224,7 +1224,8 @@ void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_HappyPath()
 }
 
 /**
- * @brief When backward compatible enabled, FreeRTOS_InterfaceEPInSameSubnet_IPv6 compares the IPv6 address endpoints IP.
+ * @brief When compatible with single is enabled, FreeRTOS_InterfaceEPInSameSubnet_IPv6 compares the IPv6 address with the endpoint's IP.
+ * In this case the IPv6 address is not on the same subnet.
  */
 void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_UnHappyPath()
 {
