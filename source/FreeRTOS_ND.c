@@ -1068,8 +1068,8 @@
                        }
                        else
                        {
-                            FreeRTOS_debug_printf( ( "prvProcessICMPMessage_IPv6: No match for %pip\n",
-                                         pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
+                           FreeRTOS_debug_printf( ( "prvProcessICMPMessage_IPv6: No match for %pip\n",
+                                                    pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
                        }
 
                        uxICMPSize = sizeof( ICMPHeader_IPv6_t );

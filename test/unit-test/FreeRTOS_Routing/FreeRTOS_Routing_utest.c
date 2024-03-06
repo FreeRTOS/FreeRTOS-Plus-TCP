@@ -3681,7 +3681,6 @@ void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_HappyPath( void )
     NetworkEndPoint_t xEndPoint;
     NetworkEndPoint_t * pxEndPoint = NULL;
     NetworkInterface_t xNetworkInterface;
-    uint32_t ulWhere;
 
     /* Initialize network interface and add it to the list. */
     memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
