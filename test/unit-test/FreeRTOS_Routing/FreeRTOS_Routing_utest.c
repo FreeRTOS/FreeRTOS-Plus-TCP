@@ -3672,3 +3672,61 @@ void test_FreeRTOS_MatchingEndpoint_MatchCustomFrameType()
     pxEndPoint = FreeRTOS_MatchingEndpoint( &xNetworkInterface, ( const uint8_t * ) ( pxProtocolPacket ) );
     TEST_ASSERT_EQUAL( NULL, pxEndPoint );
 }
+
+/**
+ * @brief Test to check if FreeRTOS_InterfaceEPInSameSubnet_IPv6 returns a matching endpoint
+ * on the interface given to FreeRTOS_InterfaceEPInSameSubnet_IPv6 thats on the same subnet as of
+ * the given IPv6 address.
+ */
+void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_HappyPath( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    NetworkInterface_t xNetworkInterface;
+
+    /* Initialize network interface and add it to the list. */
+    memset( &xNetworkInterface, 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface;
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xEndPoint.pxNetworkInterface = &xNetworkInterface;
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+
+    xCompareIPv6_Address_ExpectAndReturn( &( xEndPoint.ipv6_settings.xIPAddress ), &xDefaultIPAddress_IPv6, xEndPoint.ipv6_settings.uxPrefixLength, 0 );
+
+    pxEndPoint = FreeRTOS_InterfaceEPInSameSubnet_IPv6( &xNetworkInterface, &xDefaultIPAddress_IPv6 );
+    TEST_ASSERT_EQUAL( &xEndPoint, pxEndPoint );
+}
+
+/**
+ * @brief Test to check if FreeRTOS_InterfaceEPInSameSubnet_IPv6 returns a NULL endpoint
+ * if the interface given to FreeRTOS_InterfaceEPInSameSubnet_IPv6 is different from the
+ * endpoint found.
+ */
+void test_FreeRTOS_InterfaceEPInSameSubnet_IPv6_DifferentInterface( void )
+{
+    NetworkEndPoint_t xEndPoint;
+    NetworkEndPoint_t * pxEndPoint = NULL;
+    NetworkInterface_t xNetworkInterface[ 2 ];
+
+    /* Initialize network interface and add it to the list. */
+    memset( &xNetworkInterface[ 0 ], 0, sizeof( NetworkInterface_t ) );
+    pxNetworkInterfaces = &xNetworkInterface[ 0 ];
+
+    /* Initialize network endpoint and add it to the list. */
+    memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    xEndPoint.pxNetworkInterface = &xNetworkInterface[ 0 ];
+    pxNetworkEndPoints = &xEndPoint;
+
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, &xDefaultIPAddress_IPv6.ucBytes, sizeof( IPv6_Address_t ) );
+    xEndPoint.ipv6_settings.uxPrefixLength = 64;
+
+    pxEndPoint = FreeRTOS_InterfaceEPInSameSubnet_IPv6( &xNetworkInterface[ 1 ], &xDefaultIPAddress_IPv6 );
+    TEST_ASSERT_EQUAL( NULL, pxEndPoint );
+}
