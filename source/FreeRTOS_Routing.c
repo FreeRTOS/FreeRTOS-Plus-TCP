@@ -594,7 +594,7 @@ struct xIPv6_Couple
  * @param[in] pxInterface Only end-points that have this interface are returned, unless
  *                         pxInterface is NULL.
  * @param[in] pxIPAddress The IPv6-address for which an end-point is looked-up.
- * @return An end-point that has the same network mask as the given IP-address.
+ * @return An end-point that is in the same subnet as the given IP-address.
  */
         NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
                                                                    const IPv6_Address_t * pxIPAddress )
@@ -1440,10 +1440,10 @@ struct xIPv6_Couple
  * @brief If the device endpoint is in the same subnet as the given IP address, return the
  * endpoint. Otherwise, return NULL.
  *
- * @param[in] pxInterface Ignored in this simplified version.
+ * @param[in] pxInterface Ignored in this simplified version for single endpoint.
  * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
  *
- * @return An end-point that has the same network mask as the given IP-address.
+ * @return An end-point that is in the same subnet as the given IP-address.
  */
         NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
                                                                    const IPv6_Address_t * pxIPAddress )
