@@ -1004,6 +1004,18 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
 
             if( ucMessageType != 0U )
             {
+                /* DHCPv6_Option_IA_for_Prefix_Delegation */
+                uint32_t ulIAID = 0x27fe8f95;
+                uint32_t ulTime_1 = 3600U;
+                uint32_t ulTime_2 = 5400U;
+
+                /* DHCPv6_Option_IA_Prefix */
+                uint32_t ulPreferredLifeTime = 4500U;
+                uint32_t ulPValidLifeTime = 7200U;
+                uint8_t ucPrefixLength = ( uint8_t ) pxEndPoint->ipv6_settings.uxPrefixLength;
+
+                struct freertos_sockaddr * pxAddress;
+
                 vBitConfig_write_8( &( xMessage ), ucMessageType ); /* 1 Solicit, 3, request */
                 vBitConfig_write_uc( &( xMessage ), pxDHCPMessage->ucTransactionID, 3 );
 
@@ -1040,25 +1052,15 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 }
 
                 /* DHCPv6_Option_Elapsed_Time */
-                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_Elapsed_Time ); /* usOption;	Option is 8 * / */
-                vBitConfig_write_16( &( xMessage ), 2U );                         /* usLength;	length is 2 * / */
-                vBitConfig_write_16( &( xMessage ), 0x0000 );                     /* usTime;		00 00 : 0 ms. * / */
+                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_Elapsed_Time );                                        /* usOption;	Option is 8 * / */
+                vBitConfig_write_16( &( xMessage ), 2U );                                                                /* usLength;	length is 2 * / */
+                vBitConfig_write_16( &( xMessage ), 0x0000 );                                                            /* usTime;		00 00 : 0 ms. * / */
 
-                /* DHCPv6_Option_IA_for_Prefix_Delegation */
-                uint32_t ulIAID = 0x27fe8f95;
-                uint32_t ulTime_1 = 3600U;
-                uint32_t ulTime_2 = 5400U;
-
-                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_for_Prefix_Delegation ); /* usOption;	Option is 25 */
-                vBitConfig_write_16( &( xMessage ), 41 );                                     /* usLength;	length is 12 + 29 = 41 */
-                vBitConfig_write_32( &( xMessage ), ulIAID );                                 /* 27 fe 8f 95. */
-                vBitConfig_write_32( &( xMessage ), ulTime_1 );                               /* 00 00 0e 10: 3600 sec */
-                vBitConfig_write_32( &( xMessage ), ulTime_2 );                               /* 00 00 15 18: 5400 sec */
-
-                /* DHCPv6_Option_IA_Prefix */
-                uint32_t ulPreferredLifeTime = 4500U;
-                uint32_t ulPValidLifeTime = 7200U;
-                uint8_t ucPrefixLength = ( uint8_t ) pxEndPoint->ipv6_settings.uxPrefixLength;
+                vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_for_Prefix_Delegation );                            /* usOption;	Option is 25 */
+                vBitConfig_write_16( &( xMessage ), 41 );                                                                /* usLength;	length is 12 + 29 = 41 */
+                vBitConfig_write_32( &( xMessage ), ulIAID );                                                            /* 27 fe 8f 95. */
+                vBitConfig_write_32( &( xMessage ), ulTime_1 );                                                          /* 00 00 0e 10: 3600 sec */
+                vBitConfig_write_32( &( xMessage ), ulTime_2 );                                                          /* 00 00 15 18: 5400 sec */
 
                 vBitConfig_write_16( &( xMessage ), DHCPv6_Option_IA_Prefix );                                           /* usOption   Option is 26 */
                 vBitConfig_write_16( &( xMessage ), 25 );                                                                /* usLength   length is 25 */
@@ -1085,7 +1087,7 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
                 xAddress.sin_family = FREERTOS_AF_INET6;
                 xAddress.sin_port = FreeRTOS_htons( ipDHCPv6_SERVER_PORT );
 
-                struct freertos_sockaddr * pxAddress = &( xAddress );
+                pxAddress = &( xAddress );
 
                 FreeRTOS_printf( ( "DHCP Sending request %u.\n", ucMessageType ) );
                 ( void ) FreeRTOS_sendto( EP_DHCPData.xDHCPSocket, ( const void * ) xMessage.ucContents, xMessage.uxIndex, 0, pxAddress, sizeof xAddress );

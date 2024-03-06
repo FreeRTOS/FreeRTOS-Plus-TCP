@@ -1699,6 +1699,12 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSUnknownPreference( void )
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
 
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    DNS_BindSocket_ExpectAnyArgsAndReturn( 0 );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
+    DNS_ReadReply_ExpectAnyArgsAndReturn( ipconfigNETWORK_MTU );
+
     /* Back prvGetHostByName */
     DNS_CloseSocket_Expect( &xDNSSocket );
 
@@ -1909,8 +1915,11 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LLMNRDNSUnknownPreference( void )
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
 
-    /* In prvGetHostByNameOp */
-    /* In prvFillSockAddress */
+    FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
+    DNS_BindSocket_ExpectAnyArgsAndReturn( 0 );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
+    DNS_SendRequest_ExpectAnyArgsAndReturn( pdPASS );
+    DNS_ReadReply_ExpectAnyArgsAndReturn( ipconfigNETWORK_MTU );
 
     /* Back prvGetHostByName */
     DNS_CloseSocket_Expect( &xDNSSocket );
