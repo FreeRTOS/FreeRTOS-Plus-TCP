@@ -30,7 +30,7 @@ Changes between FreeRTOS-plus-TCP V4.1.0 and V4.0.0 released March 7, 2024
 	+ Added network interface for Corstone-300 FVP (MPS3_AN552). We thank @urutva for their contribution.
 	+ Included LIBSLIRP in the CMakelists interface for easier configuration and use within CMake-based builds. We thank @bjsowa for their contribution.
 	+ Fixed the SAME70 driver to release TX semaphore when network interface output fails. We thank @evpopov for their contribution.
-	+ Update the SAM network interface to fix the change in the number of bytes leading to a buffer length greater than the IP packet in IPv6 and fix compilation warnings. We thank @htibosch for their contribution.
+	+ Updated the SAM network interface to fix the change in the number of bytes leading to a buffer length greater than the IP packet in IPv6 and fix compilation warnings. We thank @htibosch for their contribution.
 	+ Fixed assertion failure when disconnecting the Ethernet cable in NXP1060 to make the driver work in case of cable disconnection. We thank @microcris for their contribution.
 	+ Removed the `xNetworkAddressing` and `xDefaultAddressing` structs, which are obsolete. We thank @evpopov for their contribution.
 	+ Fixed warnings emitted during compilation of the library with -Wpedantic on GCC. We thank @Mixaill for their contribution.
@@ -40,7 +40,7 @@ Changes between FreeRTOS-plus-TCP V4.1.0 and V4.0.0 released March 7, 2024
 	+ Fixed compilation with Clang and incorrect log output in phyHandling code. We thank @Mixaill for their contribution.
 	+ Fixed usage of const in stream buffer APIs. We thank @HTRamsey for their contribution.
 	+ Removed the `xCheckLoopback` function, which is not useful as the loopback endpoint has been added to the TCP/IP stack. We thank @htiboschfor their contribution.
-	+ Remove useless defined checks for macros that are always defined, remove redundant definitions of macros, and move static assert definitions to default macros so that they can be used more extensively for compile time checks. We thank @HTRamsey for their contribution.
+	+ Removed useless if defined checks for macros that are always defined, remove redundant definitions of macros, and move static assert definitions to default macros so that they can be used more extensively for compile time checks. We thank @HTRamsey for their contribution.
 	+ Removed unused variables and fixed warnings in the SAM network interface, along with refactoring functions that were only meant to be used only in the network interface. We thank @Peter-Herrmann for their contribution.
 	+ Cleaned up debug logs by replacing `ipconfigHAS_PRINTF` by `FreeRTOS_debug_printf` in the `ipARP_REPLY` debug print. We thank @microcris for their contribution.
 
