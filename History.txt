@@ -1,5 +1,49 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.1.0 and V4.0.0 released March 7, 2024
+
+	+ Fixed network buffer leakage in the Neighbour Discovery (ND) code. We thank @htibosch for their contribution.
+	+ Fixed an issue where ARP requests were sent over all IPv4 endpoints instead of only the relevant interface. ARP requests are now sent through the correct endpoint. We thank @evpopov for their contribution.
+	+ Fixed IPv6 Neighbour Solicitation (NS) responses going out through the wrong interface when multiple IPv6 link local endpoints are present as part of different interfaces. We thank @evpopov for their contribution.
+	+ Fixed IPv6 DNS queries to be handled properly by using the correct DNS IP preference, which was previously only set to IPv6 and then never updated. We thank @evpopov for their contribution.
+	+ Fixed an issue with TCP code trying to dereference a `NULL` endpoint for certain packets originating outside of the endpoint’s subnet with the endpoint configured to have no gateway. We thank @htibosch for their contribution.
+	+ Fixed TCP zero-copy functionality by removing an invalid error check for transmit buffer being `NULL`. We thank @evpopov for their contribution.
+	+ Removed unnecessary critical sections to improve concurrency and reduce potential bottlenecks. We thank @htibosch for their contribution.
+	+ Added new API [`FreeRTOS_InterfaceEPInSameSubnet_IPv6`] to find the IPv6 endpoint on the given interface, which is in the same subnet as the given IP address.
+	+ Optimized `FreeRTOS_send()` API performance by removing the wrong loop break check. We thank @htibosch for their contribution.
+	+ Updated the IP stack to make use of the receiving end-point when responding to mDNS/LLMNR/NBNS. We thank @evpopov for their contribution.
+	+ Updated the Neighbour Discovery cache behavior to overwrite the oldest entry in the cache when it is fully filled. We thank @evpopov for their contribution.
+	+ Added a new loopback network interface that will create IPv4 and IPv6 loopback endpoints. Outgoing packets on this interface are routed back to the IP task. We thank @htibosch for their contribution.
+	+ Added support for the IP stack to support loopback features. We thank @htibosch for their contribution.
+	+ Updated loopback checks to discard bad loopback packets originating outside of the network.
+	+ Introduced new `FreeRTOS_get_tx_base()` API to return a pointer to the TCP TX stream buffer. We thank @htibosch for their contribution.
+	+ `FreeRTOS_get_tx_head()` now creates the TCP transmit stream on demand for the provided socket, but only if a prior attempt wasn't unsuccessful.
+	+ Fixed the insufficient and incorrect allocation size when sending a neighbour solicitation packet by allocating the correct size of the ICMPv6 packet. We thank @evpopov for their contribution.
+	+ Fixed the STM32H7xx driver to check the result of `HAL_ETH_Init`. We thank @htibosch for their contribution.
+	+ Updated the STM32Hxx network interface to use the HW MAC hash table filter.
+	+ Fixed the network down/up process to restart DHCP/RA timers on all the endpoints when the link status changed from down to up. We thank @bjsowa for their contribution.
+	+ Fixed IPv4 incoming packet filtering behavior when `ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES` is enabled. This ensures correct filtering of unicast packets not destined for the device. We thank @evpopov for their contribution.
+	+ Introduced integer overflow checks wherever additions are made to the buffer size in the buffer allocation APIs.
+	+ Fixed minimum length check for ICMP/ping packets. We thank @htibosch for their contribution.
+	+ Fixed issue with usage of strncpy when source string is longer than the destination, in which strncpy will truncate last characters from source string including the null character, resulting in destination string not being null terminated. We thank @bjsowa for their contribution.
+	+ Fixed build on 64-bit targets and added a default value of 14 bytes ( `12U + ipconfigPACKET_FILLER_SIZE` ) for `ipBUFFER_PADDING` to satisfy the alignment check. We thank @htibosch for their contribution.
+	+ Added network interface for Corstone-300 FVP (MPS3_AN552). We thank @urutva for their contribution.
+	+ Included LIBSLIRP in the CMakelists interface for easier configuration and use within CMake-based builds. We thank @bjsowa for their contribution.
+	+ Fixed the SAME70 driver to release TX semaphore when network interface output fails. We thank @evpopov for their contribution.
+	+ Update the SAM network interface to fix the change in the number of bytes leading to a buffer length greater than the IP packet in IPv6 and fix compilation warnings. We thank @htibosch for their contribution.
+	+ Fixed assertion failure when disconnecting the Ethernet cable in NXP1060 to make the driver work in case of cable disconnection. We thank @microcris for their contribution.
+	+ Removed the `xNetworkAddressing` and `xDefaultAddressing` structs, which are obsolete. We thank @evpopov for their contribution.
+	+ Fixed warnings emitted during compilation of the library with -Wpedantic on GCC. We thank @Mixaill for their contribution.
+	+ Fixed compiler warnings and uninitialized variables in the TM4C network interface.
+	+ Replaced CCS-specific alignment pragma with GCC attribute in TM4C NetworkInterface.c for improved cross-compiler compatibility. We thank @jonathangjertsenfor their contribution.
+	+ Improved and cleaned up the usage of trace macros and default macros. We thank @HTRamsey for their contribution.
+	+ Fixed compilation with Clang and incorrect log output in phyHandling code. We thank @Mixaill for their contribution.
+	+ Fixed usage of const in stream buffer APIs. We thank @HTRamsey for their contribution.
+	+ Removed the `xCheckLoopback` function, which is not useful as the loopback endpoint has been added to the TCP/IP stack. We thank @htiboschfor their contribution.
+	+ Remove useless defined checks for macros that are always defined, remove redundant definitions of macros, and move static assert definitions to default macros so that they can be used more extensively for compile time checks. We thank @HTRamsey for their contribution.
+	+ Removed unused variables and fixed warnings in the SAM network interface, along with refactoring functions that were only meant to be used only in the network interface. We thank @Peter-Herrmann for their contribution.
+	+ Cleaned up debug logs by replacing `ipconfigHAS_PRINTF` by `FreeRTOS_debug_printf` in the `ipARP_REPLY` debug print. We thank @microcris for their contribution.
+
 Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
 	+ Unified code for both IPv4 and IPv6 protocols.
         + Multiple Interface and Multiple Endpoint support
