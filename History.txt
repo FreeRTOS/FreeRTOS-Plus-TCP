@@ -97,7 +97,7 @@ Changes between FreeRTOS-plus-TCP V4.1.0 and V4.0.0 released March 8, 2024
 	+ Move static assert definition to a common header file to make it available
 	  to all the source files. Also, remove redundant macro check definitions.
 	  We thank @HTRamsey for their contribution.
-	+ Remove the xCheckLoopback function. It is no longer is needed as we now
+	+ Remove the xCheckLoopback function. It is no longer needed as we now
 	  have a loopback interface. We thank @htiboschfor their contribution.
 
 Changes between FreeRTOS-plus-TCP V4.0.0 and V3.1.0 released August 10, 2023
