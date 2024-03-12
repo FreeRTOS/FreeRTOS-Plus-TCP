@@ -69,7 +69,7 @@ static int callback_called = 0;
 /* ===========================  STATIC FUNCTIONS  =========================== */
 static void dns_callback( const char * pcName,
                           void * pvSearchID,
-                          uint32_t ulIPAddress )
+                          struct freertos_addrinfo * pxAddressInfo )
 {
     callback_called = 1;
 }

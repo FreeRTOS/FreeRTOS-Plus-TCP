@@ -1503,6 +1503,7 @@ void test_FreeRTOS_shutdown_Invalid( void )
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
     BaseType_t xHow;
+    int i;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
@@ -1521,7 +1522,7 @@ void test_FreeRTOS_shutdown_Invalid( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EOPNOTSUPP, xReturn );
 
     /* Invalid state. */
-    for( int i = 0; i < 255; i++ )
+    for( i = 0; i < 255; i++ )
     {
         if( i != eESTABLISHED )
         {
@@ -1736,6 +1737,7 @@ void test_FreeRTOS_connstatus( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
+    uint8_t i;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
@@ -1744,7 +1746,7 @@ void test_FreeRTOS_connstatus( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 
     /* Valid Protocol. Invalid State. */
-    for( uint8_t i = 0; i < 125; i++ )
+    for( i = 0; i < 125; i++ )
     {
         xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
         xSocket.u.xTCP.eTCPState = i;

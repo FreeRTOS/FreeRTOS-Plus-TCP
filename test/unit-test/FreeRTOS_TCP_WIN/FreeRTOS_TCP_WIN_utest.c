@@ -942,7 +942,7 @@ void test_lTCPWindowRxCheck_current_sequence_lt_sequence_prvTCPWindowRX_2( void 
     listGET_NEXT_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xWindow.xRxSegments.xListEnd );
     /* -> xTCPWindowNew */
     listLIST_IS_EMPTY_ExpectAnyArgsAndReturn( pdFALSE );
-    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( &xSegment );
+    listGET_HEAD_ENTRY_ExpectAnyArgsAndReturn( ( ListItem_t * ) &xSegment );
     listGET_LIST_ITEM_OWNER_ExpectAnyArgsAndReturn( &xIterator );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     /* -->vTCPTimerSet */
