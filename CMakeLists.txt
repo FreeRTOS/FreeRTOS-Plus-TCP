@@ -222,9 +222,6 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-align>
-
-    # Suppressions required to build clean with GCC.
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-declaration-after-statement>
 )
 
 ########################################################################

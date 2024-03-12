@@ -75,6 +75,8 @@ void __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( NetworkBufferD
 /* The harness test proceeds to call prvProcessEthernetPacket with an unconstrained value */
 void harness()
 {
+    struct xNetworkInterface xInterface;
+
     /* Needs a valid network buffer to be passed */
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
 
@@ -86,6 +88,9 @@ void harness()
     /* Needs a valid ethernet buffer to be passed */
     pxNetworkBuffer->pucEthernetBuffer = ( ( ( uint8_t * ) safeMalloc( pxNetworkBuffer->xDataLength ) ) );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /* Its assumed that every RX packet will have a valid network interface assigned. (Asserted in code) */
+    pxNetworkBuffer->pxInterface = &xInterface;
 
     __CPROVER_file_local_FreeRTOS_IP_c_prvProcessEthernetPacket( pxNetworkBuffer );
 }
