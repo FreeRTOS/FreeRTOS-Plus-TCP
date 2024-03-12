@@ -799,15 +799,6 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
     /* Open a do {} while ( 0 ) loop to be able to call break. */
     do
     {
-        if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
-        {
-            /* The packet has been sent back to the IP-task.
-             * The IP-task will further handle it.
-             * Do not release the descriptor. */
-            bReleaseAfterSend = pdFALSE;
-            break;
-        }
-
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
         {
             const IPPacket_t * pxIPPacket;

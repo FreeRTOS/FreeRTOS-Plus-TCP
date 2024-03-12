@@ -1458,9 +1458,10 @@
                  */
                 if( pucHostName != NULL )
                 {
-                    /* memcpy() helper variables for MISRA Rule 21.15 compliance */
+                    /* memcpy() helper variables for MISRA Rule 21.15 compliance*/
                     const void * pvCopySource = pucHostName;
                     void * pvCopyDest = &pucPtr[ 2U ];
+
                     ( void ) memcpy( pvCopyDest, pvCopySource, uxNameLength );
                 }
 

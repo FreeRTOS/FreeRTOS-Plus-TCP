@@ -100,6 +100,8 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
         }
         else
         {
+            size_t uxNeeded;
+
             /* MISRA Ref 11.3.1 [Misaligned access] */
             /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
             /* coverity[misra_c_2012_rule_11_3_violation] */
@@ -108,7 +110,7 @@ BaseType_t prvChecksumIPv6Checks( uint8_t * pucEthernetBuffer,
             /* For IPv6, the number of bytes in the protocol is indicated. */
             pxSet->usProtocolBytes = ( uint16_t ) ( pxSet->usPayloadLength - uxExtensionHeaderLength );
 
-            size_t uxNeeded = ( size_t ) pxSet->usPayloadLength;
+            uxNeeded = ( size_t ) pxSet->usPayloadLength;
             uxNeeded += ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER;
 
             if( uxBufferLength < uxNeeded )

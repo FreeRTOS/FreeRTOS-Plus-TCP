@@ -228,7 +228,7 @@ _static ARPCacheRow_t xARPCache[ ipconfigARP_CACHE_ENTRIES ];
                     uxARPClashCounter++;
 
                     /* Send out a defensive ARP request. */
-                    FreeRTOS_OutputARPRequest( pxTargetEndPoint->ipv4_settings.ulIPAddress );
+                    FreeRTOS_OutputARPRequest_Multi( pxTargetEndPoint, pxTargetEndPoint->ipv4_settings.ulIPAddress );
 
                     /* Since an ARP Request for this IP was just sent, do not send a gratuitous
                      * ARP for arpGRATUITOUS_ARP_PERIOD. */
@@ -539,7 +539,7 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
                         * then we should send out ARP for finding the MAC address. */
                        if( xIsIPInARPCache( pxIPHeader->ulSourceIPAddress ) == pdFALSE )
                        {
-                           FreeRTOS_OutputARPRequest( pxIPHeader->ulSourceIPAddress );
+                           FreeRTOS_OutputARPRequest_Multi( pxNetworkBuffer->pxEndPoint, pxIPHeader->ulSourceIPAddress );
 
                            /* This packet needs resolution since this is on the same subnet
                             * but not in the ARP cache. */
@@ -1222,7 +1222,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                     {
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case pdFALSE_UNSIGNED:
-                                FreeRTOS_OutputARPRequest( pxEndPoint->ipv4_settings.ulIPAddress );
+                                FreeRTOS_OutputARPRequest_Multi( pxEndPoint, pxEndPoint->ipv4_settings.ulIPAddress );
                                 break;
                         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
@@ -1264,6 +1264,78 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
 /*-----------------------------------------------------------*/
 
 /**
+ * @brief Create and send an ARP request packet to given IPv4 endpoint.
+ *
+ * @param[in] pxEndPoint Endpoint through which the requests should be sent.
+ * @param[in] ulIPAddress A 32-bit representation of the IP-address whose
+ *                         physical (MAC) address is required.
+ */
+    void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
+                                          uint32_t ulIPAddress )
+    {
+        NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+        if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
+            ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
+        {
+            /* This is called from the context of the IP event task, so a block time
+             * must not be used. */
+            pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( ARPPacket_t ), ( TickType_t ) 0U );
+
+            if( pxNetworkBuffer != NULL )
+            {
+                pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
+                pxNetworkBuffer->pxEndPoint = pxEndPoint;
+                pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
+                vARPGenerateRequestPacket( pxNetworkBuffer );
+
+                #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
+                {
+                    if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
+                    {
+                        BaseType_t xIndex;
+
+                        for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
+                        {
+                            pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
+                        }
+
+                        pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+                    }
+                }
+                #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
+
+                if( xIsCallingFromIPTask() != pdFALSE )
+                {
+                    iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+
+                    /* Only the IP-task is allowed to call this function directly. */
+                    if( pxEndPoint->pxNetworkInterface != NULL )
+                    {
+                        ( void ) pxEndPoint->pxNetworkInterface->pfOutput( pxEndPoint->pxNetworkInterface, pxNetworkBuffer, pdTRUE );
+                    }
+                }
+                else
+                {
+                    IPStackEvent_t xSendEvent;
+
+                    /* Send a message to the IP-task to send this ARP packet. */
+                    xSendEvent.eEventType = eNetworkTxEvent;
+                    xSendEvent.pvData = pxNetworkBuffer;
+
+                    if( xSendEventStructToIPTask( &xSendEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
+                    {
+                        /* Failed to send the message, so release the network buffer. */
+                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                    }
+                }
+            }
+        }
+    }
+
+/*-----------------------------------------------------------*/
+
+/**
  * @brief Create and send an ARP request packet.
  *
  * @param[in] ulIPAddress A 32-bit representation of the IP-address whose
@@ -1271,71 +1343,14 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
  */
     void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress )
     {
-        NetworkBufferDescriptor_t * pxNetworkBuffer;
-        NetworkEndPoint_t * pxEndPoint;
+        /* Its assumed that IPv4 endpoints belonging to different physical interface
+         * in the system will have a different subnet, but endpoints on same interface
+         * may have it. */
+        NetworkEndPoint_t * pxEndPoint = FreeRTOS_FindEndPointOnNetMask( ulIPAddress, 12 );
 
-        /* Send an ARP request to every end-point which has the type IPv4,
-         * and which already has an IP-address assigned. */
-        for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-             pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
+        if( pxEndPoint != NULL )
         {
-            if( ( pxEndPoint->bits.bIPv6 == pdFALSE_UNSIGNED ) &&
-                ( pxEndPoint->ipv4_settings.ulIPAddress != 0U ) )
-            {
-                /* This is called from the context of the IP event task, so a block time
-                 * must not be used. */
-                pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( ARPPacket_t ), ( TickType_t ) 0U );
-
-                if( pxNetworkBuffer != NULL )
-                {
-                    pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
-                    pxNetworkBuffer->pxEndPoint = pxEndPoint;
-                    pxNetworkBuffer->pxInterface = pxEndPoint->pxNetworkInterface;
-                    vARPGenerateRequestPacket( pxNetworkBuffer );
-
-                    #if ( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 )
-                    {
-                        if( pxNetworkBuffer->xDataLength < ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES )
-                        {
-                            BaseType_t xIndex;
-
-                            for( xIndex = ( BaseType_t ) pxNetworkBuffer->xDataLength; xIndex < ( BaseType_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES; xIndex++ )
-                            {
-                                pxNetworkBuffer->pucEthernetBuffer[ xIndex ] = 0U;
-                            }
-
-                            pxNetworkBuffer->xDataLength = ( size_t ) ipconfigETHERNET_MINIMUM_PACKET_BYTES;
-                        }
-                    }
-                    #endif /* if( ipconfigETHERNET_MINIMUM_PACKET_BYTES > 0 ) */
-
-                    if( xIsCallingFromIPTask() != pdFALSE )
-                    {
-                        iptraceNETWORK_INTERFACE_OUTPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-
-                        /* Only the IP-task is allowed to call this function directly. */
-                        if( pxEndPoint->pxNetworkInterface != NULL )
-                        {
-                            ( void ) pxEndPoint->pxNetworkInterface->pfOutput( pxEndPoint->pxNetworkInterface, pxNetworkBuffer, pdTRUE );
-                        }
-                    }
-                    else
-                    {
-                        IPStackEvent_t xSendEvent;
-
-                        /* Send a message to the IP-task to send this ARP packet. */
-                        xSendEvent.eEventType = eNetworkTxEvent;
-                        xSendEvent.pvData = pxNetworkBuffer;
-
-                        if( xSendEventStructToIPTask( &xSendEvent, ( TickType_t ) portMAX_DELAY ) == pdFAIL )
-                        {
-                            /* Failed to send the message, so release the network buffer. */
-                            vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-                        }
-                    }
-                }
-            }
+            FreeRTOS_OutputARPRequest_Multi( pxEndPoint, ulIPAddress );
         }
     }
 /*-----------------------------------------------------------*/
@@ -1514,85 +1529,6 @@ void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint )
         ( void ) memset( xARPCache, 0, sizeof( xARPCache ) );
     }
 }
-/*-----------------------------------------------------------*/
-
-#if 1
-
-/**
- * @brief  This function will check if the target IP-address belongs to this device.
- *         If so, the packet will be passed to the IP-stack, who will answer it.
- *         The function is to be called within the function xNetworkInterfaceOutput().
- *
- * @param[in] pxDescriptor The network buffer which is to be checked for loop-back.
- * @param[in] bReleaseAfterSend pdTRUE: Driver is allowed to transfer ownership of descriptor.
- *                              pdFALSE: Driver is not allowed to take ownership of descriptor,
- *                                       make a copy of it.
- *
- * @return pdTRUE/pdFALSE: There is/isn't a loopback address in the packet.
- */
-    BaseType_t xCheckLoopback( NetworkBufferDescriptor_t * const pxDescriptor,
-                               BaseType_t bReleaseAfterSend )
-    {
-        BaseType_t xResult = pdFALSE;
-        NetworkBufferDescriptor_t * pxUseDescriptor = pxDescriptor;
-
-        const IPPacket_t * pxIPPacket;
-
-        if( ( pxUseDescriptor == NULL ) || ( pxUseDescriptor->xDataLength < sizeof( IPPacket_t ) ) )
-        {
-            /* The packet is too small to parse. */
-        }
-        else
-        {
-            /* MISRA Ref 11.3.1 [Misaligned access] */
-            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-            /* coverity[misra_c_2012_rule_11_3_violation] */
-            pxIPPacket = ( ( IPPacket_t * ) pxUseDescriptor->pucEthernetBuffer );
-
-            if( pxIPPacket->xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
-            {
-                NetworkEndPoint_t * pxEndPoint;
-
-                pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxIPPacket->xEthernetHeader.xDestinationAddress ), NULL );
-
-                if( ( pxEndPoint != NULL ) &&
-                    ( memcmp( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, pxEndPoint->xMACAddress.ucBytes, ipMAC_ADDRESS_LENGTH_BYTES ) == 0 ) )
-                {
-                    xResult = pdTRUE;
-
-                    if( bReleaseAfterSend == pdFALSE )
-                    {
-                        /* Driver is not allowed to transfer the ownership
-                         * of descriptor,  so make a copy of it */
-                        pxUseDescriptor =
-                            pxDuplicateNetworkBufferWithDescriptor( pxDescriptor, pxDescriptor->xDataLength );
-                    }
-
-                    if( pxUseDescriptor != NULL )
-                    {
-                        IPStackEvent_t xRxEvent;
-
-                        pxUseDescriptor->pxInterface = pxEndPoint->pxNetworkInterface;
-                        pxUseDescriptor->pxEndPoint = pxEndPoint;
-
-                        xRxEvent.eEventType = eNetworkRxEvent;
-                        xRxEvent.pvData = pxUseDescriptor;
-
-                        if( xSendEventStructToIPTask( &xRxEvent, 0U ) != pdTRUE )
-                        {
-                            vReleaseNetworkBufferAndDescriptor( pxUseDescriptor );
-                            iptraceETHERNET_RX_EVENT_LOST();
-                            FreeRTOS_printf( ( "prvEMACRxPoll: Can not queue return packet!\n" ) );
-                        }
-                    }
-                }
-            }
-        }
-
-        return xResult;
-    }
-
-#endif /* 0 */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )

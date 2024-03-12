@@ -124,10 +124,11 @@ BaseType_t prvChecksumIPv4Checks( uint8_t * pucEthernetBuffer,
 
     if( xReturn == 0 )
     {
+        size_t uxNeeded;
         /* xIPHeader.usLength is the total length, minus the Ethernet header. */
         pxSet->usPayloadLength = FreeRTOS_ntohs( pxSet->pxIPPacket->xIPHeader.usLength );
 
-        size_t uxNeeded = pxSet->usPayloadLength;
+        uxNeeded = pxSet->usPayloadLength;
         uxNeeded += ipSIZE_OF_ETH_HEADER;
 
         if( uxBufferLength < uxNeeded )
