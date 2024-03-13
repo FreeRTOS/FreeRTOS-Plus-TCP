@@ -60,6 +60,10 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
+void prvIPTimerStart( IPTimer_t * pxTimer,
+                      TickType_t xTime );
+BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer );
+
 extern IPTimer_t xARPTimer;
 #if ( ipconfigUSE_TCP != 0 )
     /** @brief TCP timer, to check for timeouts, resends. */
