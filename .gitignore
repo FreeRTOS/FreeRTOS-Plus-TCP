@@ -17,5 +17,3 @@ __pycache__/
 **/*.d
 **/*.o
 **/*.su
-
-CMakeLists.txt.user
