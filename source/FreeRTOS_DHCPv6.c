@@ -1005,14 +1005,14 @@ static void prvSendDHCPMessage( NetworkEndPoint_t * pxEndPoint )
             if( ucMessageType != 0U )
             {
                 /* DHCPv6_Option_IA_for_Prefix_Delegation */
-                uint32_t ulIAID = 0x27fe8f95;
-                uint32_t ulTime_1 = 3600U;
-                uint32_t ulTime_2 = 5400U;
+                const uint32_t ulIAID = 0x27fe8f95;
+                const uint32_t ulTime_1 = 3600U;
+                const uint32_t ulTime_2 = 5400U;
 
                 /* DHCPv6_Option_IA_Prefix */
-                uint32_t ulPreferredLifeTime = 4500U;
-                uint32_t ulPValidLifeTime = 7200U;
-                uint8_t ucPrefixLength = ( uint8_t ) pxEndPoint->ipv6_settings.uxPrefixLength;
+                const uint32_t ulPreferredLifeTime = 4500U;
+                const uint32_t ulPValidLifeTime = 7200U;
+                const uint8_t ucPrefixLength = ( uint8_t ) pxEndPoint->ipv6_settings.uxPrefixLength;
 
                 struct freertos_sockaddr * pxAddress;
 
