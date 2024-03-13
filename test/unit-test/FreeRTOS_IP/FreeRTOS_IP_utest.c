@@ -680,7 +680,7 @@ void test_prvProcessIPEventsAndTimers_eNetworkTxEvent_NullInterface( void )
     NetworkInterfaceOutputFunction_Stub_Called = 0;
 
     xReceivedEvent.eEventType = eNetworkTxEvent;
-    xReceivedEvent.pvData = pxNetworkBuffer;
+    xReceivedEvent.pvData = ( void * ) pxNetworkBuffer;
     xNetworkDownEventPending = pdFALSE;
 
     /* prvProcessIPEventsAndTimers */
@@ -868,7 +868,7 @@ void test_prvProcessIPEventsAndTimers_eStackTxEvent( void )
 void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-    uint32_t ulDHCPEvent = 0x1234;
+    uintptr_t ulDHCPEvent = 0x1234;
     NetworkEndPoint_t xEndPoints, * pxEndPoints = &xEndPoints;
 
     memset( pxEndPoints, 0, sizeof( NetworkEndPoint_t ) );
@@ -895,7 +895,7 @@ void test_prvProcessIPEventsAndTimers_eDHCPEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-    uint32_t ulData = 0x1234;
+    uintptr_t ulData = 0x1234;
 
     xReceivedEvent.eEventType = eSocketSelectEvent;
     xReceivedEvent.pvData = ( void * ) ulData;
@@ -917,7 +917,7 @@ void test_prvProcessIPEventsAndTimers_eSocketSelectEvent( void )
 void test_prvProcessIPEventsAndTimers_eSocketSignalEvent( void )
 {
     IPStackEvent_t xReceivedEvent;
-    uint32_t ulData = 0x1234;
+    uintptr_t ulData = 0x1234;
 
     xReceivedEvent.eEventType = eSocketSignalEvent;
     xReceivedEvent.pvData = ( void * ) ulData;
@@ -2933,7 +2933,7 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
 
     /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
@@ -2950,7 +2950,7 @@ void test_prvProcessIPPacket_UDP_IPv6_HappyPath( void )
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 0 );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
 }
@@ -2980,7 +2980,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
 
     /* Initialize ethernet layer. */
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
     memcpy( pxIPPacket->xEthernetHeader.xDestinationAddress.ucBytes, ucMACAddress, sizeof( MACAddress_t ) );
@@ -3003,7 +3003,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHappyPath( void )
     eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eProcessBuffer );
     xProcessReceivedUDPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
 }
@@ -3034,7 +3034,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
 
     pxUDPPacket = ( UDPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -3055,7 +3055,7 @@ void test_prvProcessIPPacket_UDP_IPv6_ExtensionHandleFail( void )
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_UDP, 0U, 1 );
     eHandleIPv6ExtensionHeaders_ExpectAndReturn( pxNetworkBuffer, pdTRUE, eReleaseBuffer );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
@@ -3085,7 +3085,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
 
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -3106,7 +3106,7 @@ void test_prvProcessIPPacket_TCP_IPv6_HappyPath( void )
     vNDRefreshCacheEntry_Ignore();
     xProcessReceivedTCPPacket_ExpectAnyArgsAndReturn( pdPASS );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
 }
@@ -3137,7 +3137,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
 
     pxTCPPacket = ( TCPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -3156,7 +3156,7 @@ void test_prvProcessIPPacket_TCP_IPv6_ARPResolution( void )
     xGetExtensionOrder_ExpectAndReturn( ipPROTOCOL_TCP, 0U, 0 );
     xCheckRequiresARPResolution_ExpectAndReturn( pxNetworkBuffer, pdTRUE );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eWaitingARPResolution, eResult );
 }
@@ -3186,7 +3186,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
 
     pxICMPPacket = ( ICMPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPHeader = &( pxIPPacket->xIPHeader );
     pxIPHeader->ucVersionTrafficClass = 0x60;
 
@@ -3207,7 +3207,7 @@ void test_prvProcessIPPacket_ICMP_IPv6_HappyPath( void )
     vNDRefreshCacheEntry_Ignore();
     prvProcessICMPMessage_IPv6_ExpectAnyArgsAndReturn( eReleaseBuffer );
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
@@ -3234,10 +3234,10 @@ void test_prvProcessIPPacket_IPv6_LessPacketSize( void )
     pxNetworkBuffer->xDataLength = sizeof( IPPacket_IPv6_t ) - 1;
     pxNetworkBuffer->pxInterface = &xInterface;
 
-    pxIPPacket = ( IPHeader_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
+    pxIPPacket = ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxIPPacket->xEthernetHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
+    eResult = prvProcessIPPacket( ( IPPacket_t * ) pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }

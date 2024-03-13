@@ -1056,6 +1056,18 @@
                    {
                        size_t uxICMPSize;
                        BaseType_t xCompare;
+                       const NetworkEndPoint_t * pxTargetedEndPoint = pxEndPoint;
+                       const NetworkEndPoint_t * pxEndPointInSameSubnet = FreeRTOS_InterfaceEPInSameSubnet_IPv6( pxNetworkBuffer->pxInterface, &( pxICMPHeader_IPv6->xIPv6Address ) );
+
+                       if( pxEndPointInSameSubnet != NULL )
+                       {
+                           pxTargetedEndPoint = pxEndPointInSameSubnet;
+                       }
+                       else
+                       {
+                           FreeRTOS_debug_printf( ( "prvProcessICMPMessage_IPv6: No match for %pip\n",
+                                                    pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
+                       }
 
                        uxICMPSize = sizeof( ICMPHeader_IPv6_t );
                        uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + uxICMPSize );
@@ -1066,11 +1078,11 @@
                            break;
                        }
 
-                       xCompare = memcmp( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                       xCompare = memcmp( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxTargetedEndPoint->ipv6_settings.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
                        FreeRTOS_printf( ( "ND NS for %pip endpoint %pip %s\n",
                                           ( void * ) pxICMPHeader_IPv6->xIPv6Address.ucBytes,
-                                          ( void * ) pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
+                                          ( void * ) pxNetworkBuffer->pxEndPoint->ipv6_settings.xIPAddress.ucBytes,
                                           ( xCompare == 0 ) ? "Reply" : "Ignore" ) );
 
                        if( xCompare == 0 )
@@ -1084,9 +1096,9 @@
                            pxICMPHeader_IPv6->ucOptionType = ndICMP_TARGET_LINK_LAYER_ADDRESS;
                            /* Length of option in units of 8 bytes. */
                            pxICMPHeader_IPv6->ucOptionLength = 1U;
-                           ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
+                           ( void ) memcpy( pxICMPHeader_IPv6->ucOptionBytes, pxTargetedEndPoint->xMACAddress.ucBytes, sizeof( MACAddress_t ) );
                            pxICMPPacket->xIPHeader.ucHopLimit = 255U;
-                           ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
+                           ( void ) memcpy( pxICMPHeader_IPv6->xIPv6Address.ucBytes, pxTargetedEndPoint->ipv6_settings.xIPAddress.ucBytes, sizeof( pxICMPHeader_IPv6->xIPv6Address.ucBytes ) );
                            prvReturnICMP_IPv6( pxNetworkBuffer, uxICMPSize );
                        }
                    }

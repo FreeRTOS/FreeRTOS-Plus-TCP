@@ -44,6 +44,7 @@
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_TCP_Utils.h"
+#include "mock_FreeRTOS_TCP_State_Handling.h"
 #include "mock_FreeRTOS_ND.h"
 
 #include "FreeRTOS_TCP_Transmission.h"

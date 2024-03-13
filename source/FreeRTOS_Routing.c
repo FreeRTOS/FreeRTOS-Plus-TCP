@@ -442,22 +442,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnIP_IPv6( const IPv6_Address_t * pxIPAddress )
         {
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            while( pxEndPoint != NULL )
-            {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                {
-                    if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
-                    {
-                        break;
-                    }
-                }
-
-                pxEndPoint = pxEndPoint->pxNext;
-            }
-
-            return pxEndPoint;
+            return FreeRTOS_InterfaceEPInSameSubnet_IPv6( NULL, pxIPAddress );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -602,6 +587,43 @@ struct xIPv6_Couple
     #if ( ipconfigUSE_IPv6 != 0 )
 
 /**
+ * @brief Finds an endpoint on the given interface which is in the same subnet as the
+ * given IP address. If NULL is passed for pxInterface, it looks through all the
+ * interfaces to find an endpoint in the same subnet as the given IP address.
+ *
+ * @param[in] pxInterface Only end-points that have this interface are returned, unless
+ *                         pxInterface is NULL.
+ * @param[in] pxIPAddress The IPv6-address for which an end-point is looked-up.
+ * @return An end-point that is in the same subnet as the given IP-address.
+ */
+        NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
+                                                                   const IPv6_Address_t * pxIPAddress )
+        {
+            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
+
+            /* Find the best fitting end-point to reach a given IP-address. */
+
+            while( pxEndPoint != NULL )
+            {
+                if( ( pxInterface == NULL ) || ( pxEndPoint->pxNetworkInterface == pxInterface ) )
+                {
+                    if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
+                    {
+                        if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPAddress, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
+                        {
+                            /* Found a match. */
+                            break;
+                        }
+                    }
+                }
+
+                pxEndPoint = pxEndPoint->pxNext;
+            }
+
+            return pxEndPoint;
+        }
+
+/**
  * @brief Configure and install a new IPv6 end-point.
  *
  * @param[in] pxNetworkInterface The interface to which it belongs.
@@ -682,22 +704,7 @@ struct xIPv6_Couple
  */
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
-            NetworkEndPoint_t * pxEndPoint = pxNetworkEndPoints;
-
-            while( pxEndPoint != NULL )
-            {
-                if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-                {
-                    if( xCompareIPv6_Address( &( pxEndPoint->ipv6_settings.xIPAddress ), pxIPv6Address, pxEndPoint->ipv6_settings.uxPrefixLength ) == 0 )
-                    {
-                        break;
-                    }
-                }
-
-                pxEndPoint = pxEndPoint->pxNext;
-            }
-
-            return pxEndPoint;
+            return FreeRTOS_InterfaceEPInSameSubnet_IPv6( NULL, pxIPv6Address );
         }
     #endif /* ipconfigUSE_IPv6 */
 /*-----------------------------------------------------------*/
@@ -1410,27 +1417,49 @@ struct xIPv6_Couple
             ( void ) pxIPAddress;
             return pxNetworkEndPoints;
         }
-    #endif
+
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FindEndPointOnNetMask_IPv6( const IPv6_Address_t * pxIPv6Address )
         {
             ( void ) pxIPv6Address;
             return pxNetworkEndPoints;
         }
 
-    #endif
 /*-----------------------------------------------------------*/
 
-    #if ( ipconfigUSE_IPv6 != 0 )
         NetworkEndPoint_t * FreeRTOS_FirstEndPoint_IPv6( const NetworkInterface_t * pxInterface )
         {
             ( void ) pxInterface;
             return pxNetworkEndPoints;
         }
 
-    #endif
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief If the device endpoint is in the same subnet as the given IP address, return the
+ * endpoint. Otherwise, return NULL.
+ *
+ * @param[in] pxInterface Ignored in this simplified version for single endpoint.
+ * @param[in] ulIPAddress The IP-address for which an end-point is looked-up.
+ *
+ * @return An end-point that is in the same subnet as the given IP-address.
+ */
+        NetworkEndPoint_t * FreeRTOS_InterfaceEPInSameSubnet_IPv6( const NetworkInterface_t * pxInterface,
+                                                                   const IPv6_Address_t * pxIPAddress )
+        {
+            NetworkEndPoint_t * pxResult = NULL;
+
+            ( void ) pxInterface;
+
+            if( xCompareIPv6_Address( &( pxNetworkEndPoints->ipv6_settings.xIPAddress ), pxIPAddress, pxNetworkEndPoints->ipv6_settings.uxPrefixLength ) == 0 )
+            {
+                pxResult = pxNetworkEndPoints;
+            }
+
+            return pxResult;
+        }
+    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
 /*-----------------------------------------------------------*/
 
 #endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE == 0 ) */
