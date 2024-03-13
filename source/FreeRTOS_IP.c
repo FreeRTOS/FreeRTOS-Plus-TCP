@@ -1512,6 +1512,7 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
 
         /* Third, filter based on destination mac address. */
         pxEndPoint = FreeRTOS_FindEndPointOnMAC( &( pxEthernetHeader->xDestinationAddress ), NULL );
+
         if( pxEndPoint != NULL )
         {
             /* A destination endpoint was found - Continue filter checks. */
