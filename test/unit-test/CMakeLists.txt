@@ -10,7 +10,7 @@ project( "FreeRTOS-Plus-TCP test"
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
 # Use C90.
-set( CMAKE_C_STANDARD 99 )
+set( CMAKE_C_STANDARD 90 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
 # Do not allow in-source build.
@@ -283,7 +283,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ND/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig2/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig1/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_RA/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
@@ -350,10 +350,10 @@ add_custom_target( coverage
     FreeRTOS_Sockets_TCP_API_utest
     FreeRTOS_Sockets_UDP_API_utest
     FreeRTOS_Sockets_DiffConfig_privates_utest
-    FreeRTOS_Sockets_DiffConfig2_GenericAPI_utest
-    FreeRTOS_Sockets_DiffConfig2_privates_utest
-    FreeRTOS_Sockets_DiffConfig2_TCP_API_utest
-    FreeRTOS_Sockets_DiffConfig2_UDP_API_utest
+    FreeRTOS_Sockets_DiffConfig1_GenericAPI_utest
+    FreeRTOS_Sockets_DiffConfig1_privates_utest
+    FreeRTOS_Sockets_DiffConfig1_TCP_API_utest
+    FreeRTOS_Sockets_DiffConfig1_UDP_API_utest
     FreeRTOS_Sockets_IPv6_utest
     FreeRTOS_IPv6_utest
     FreeRTOS_IPv6_ConfigDriverCheckChecksum_utest

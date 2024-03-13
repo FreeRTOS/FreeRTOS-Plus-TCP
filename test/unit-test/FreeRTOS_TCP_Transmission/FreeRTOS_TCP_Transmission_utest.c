@@ -72,9 +72,9 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+BaseType_t prvTCPMakeSurePrepared( FreeRTOS_Socket_t * pxSocket );
+BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t * pxSocket );
+uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t * pxSocket );
 
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;
