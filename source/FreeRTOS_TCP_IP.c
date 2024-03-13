@@ -641,6 +641,10 @@
     {
         IPv46_Address_t xSourceAddr;
 
+        /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
 
         if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
