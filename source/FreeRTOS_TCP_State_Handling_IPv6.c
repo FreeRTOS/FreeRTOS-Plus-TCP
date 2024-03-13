@@ -162,6 +162,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
     if( ( xHasSequence != pdFALSE ) && ( pxReturn != NULL ) )
     {
         size_t xCopyLength;
+        const IPHeader_IPv6_t * pxIPHeader_IPv6;
 
         /* Map the byte stream onto the ProtocolHeaders_t for easy access to the fields. */
 
@@ -174,7 +175,6 @@ FreeRTOS_Socket_t * prvHandleListen_IPV6( FreeRTOS_Socket_t * pxSocket,
         pxReturn->pxEndPoint = pxNetworkBuffer->pxEndPoint;
         pxReturn->bits.bIsIPv6 = pdTRUE_UNSIGNED;
 
-        const IPHeader_IPv6_t * pxIPHeader_IPv6;
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */

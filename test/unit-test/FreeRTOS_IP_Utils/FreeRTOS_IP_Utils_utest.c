@@ -2714,19 +2714,20 @@ void test_FreeRTOS_strerror_r_NegativeErrno( void )
 void test_FreeRTOS_max_int32( void )
 {
     int32_t lResult;
+    int i, j;
 
-    for( int i = -100; i < 100; i++ )
+    for( i = -100; i < 100; i++ )
     {
-        for( int j = -100; j <= i; j++ )
+        for( j = -100; j <= i; j++ )
         {
             lResult = FreeRTOS_max_int32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
         }
     }
 
-    for( int i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
+    for( i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
     {
-        for( int j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_max_int32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
@@ -2741,19 +2742,20 @@ void test_FreeRTOS_max_int32( void )
 void test_FreeRTOS_max_uint32( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_max_uint32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_max_uint32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
@@ -2768,19 +2770,20 @@ void test_FreeRTOS_max_uint32( void )
 void test_FreeRTOS_max_size_t( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_max_size_t( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_max_size_t( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
@@ -2795,19 +2798,20 @@ void test_FreeRTOS_max_size_t( void )
 void test_FreeRTOS_min_int32( void )
 {
     int32_t lResult;
+    int i, j;
 
-    for( int i = -100; i < 100; i++ )
+    for( i = -100; i < 100; i++ )
     {
-        for( int j = -100; j <= i; j++ )
+        for( j = -100; j <= i; j++ )
         {
             lResult = FreeRTOS_min_int32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
         }
     }
 
-    for( int i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
+    for( i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
     {
-        for( int j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_min_int32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
@@ -2822,19 +2826,20 @@ void test_FreeRTOS_min_int32( void )
 void test_FreeRTOS_min_uint32( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_min_uint32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_min_uint32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
@@ -2849,19 +2854,20 @@ void test_FreeRTOS_min_uint32( void )
 void test_FreeRTOS_min_size_t( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_min_size_t( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_min_size_t( i, j );
             TEST_ASSERT_EQUAL( j, lResult );

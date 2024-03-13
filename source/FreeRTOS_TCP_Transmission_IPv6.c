@@ -158,6 +158,8 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             if( pxNetworkBuffer != NULL ) /* LCOV_EXCL_BR_LINE the 2nd branch will never be reached */
         #endif
         {
+            eARPLookupResult_t eResult;
+            NetworkInterface_t * pxInterface;
             /* Map the Ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -230,7 +232,6 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             #endif
 
             ( void ) memcpy( xDestinationIPAddress.ucBytes, pxIPHeader->xDestinationAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-            eARPLookupResult_t eResult;
 
             eResult = eNDGetCacheEntry( &xDestinationIPAddress, &xMACAddress, &( pxNetworkBuffer->pxEndPoint ) );
 
@@ -279,7 +280,7 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
             configASSERT( pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput != NULL );
 
-            NetworkInterface_t * pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+            pxInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
             ( void ) pxInterface->pfOutput( pxInterface, pxNetworkBuffer, xDoRelease );
 
             if( xDoRelease == pdFALSE )
