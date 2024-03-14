@@ -4,8 +4,6 @@ set_property(TARGET freertos_plus_tcp PROPERTY C_STANDARD 90)
 
 target_sources( freertos_plus_tcp
   PRIVATE
-      include/FreeRTOSIPConfigDefaults.h
-      include/FreeRTOSIPDeprecatedDefinitions.h
       include/FreeRTOS_ARP.h
       include/FreeRTOS_BitConfig.h
       include/FreeRTOS_DHCP.h
@@ -41,6 +39,8 @@ target_sources( freertos_plus_tcp
       include/FreeRTOS_TCP_Utils.h
       include/FreeRTOS_TCP_WIN.h
       include/FreeRTOS_UDP_IP.h
+      include/FreeRTOSIPConfigDefaults.h
+      include/FreeRTOSIPDeprecatedDefinitions.h
       include/IPTraceMacroDefaults.h
       include/NetworkBufferManagement.h
       include/NetworkInterface.h
