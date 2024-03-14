@@ -59,11 +59,13 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     ESP32
     KSZ8851SNL
     LIBSLIRP
+    LOOPBACK
     LPC17xx LPC18xx LPC54018
     M487
     MPS2_AN385
     MPS3_AN552
     MW300_RD
+    NXP1060
     PIC32MZEF_ETH PIC32MZEF_WIFI
     POSIX WIN_PCAP  # Native Linux & Windows respectively
     RX
@@ -73,6 +75,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     TM4C
     XILINX_ULTRASCALE ZYNQ # AMD/Xilinx
 )
+
 if(NOT FREERTOS_PLUS_TCP_NETWORK_IF)
     # Attempt to detect the system.
     if(UNIX)
@@ -100,6 +103,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " KSZ8851SNL             Target: ksz8851snl         Tested: TODO\n"
         " LIBSLIRP               Target: libslirp           Tested: TODO\n"
         " POSIX                  Target: linux/Posix\n"
+        " LOOPBACK               Target: loopback           Tested: TODO\n"
         " LPC17xx                Target: LPC17xx            Tested: TODO\n"
         " LPC18xx                Target: LPC18xx            Tested: TODO\n"
         " LPC54018               Target: LPC54018           Tested: TODO\n"
@@ -107,6 +111,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " MPS2_AN385             Target: MPS2_AN385         Tested: TODO\n"
         " MPS3_AN552             Target: MPS3_AN552"
         " MW300_RD               Target: mw300_rd           Tested: TODO\n"
+        " NXP1060                Target: NXP1060            Tested: TODO\n"
         " PIC32MZEF_ETH          Target: pic32mzef ethernet Tested: TODO\n"
         " PIC32MZEF_WIFI         Target: pic32mzef Wifi     Tested: TODO\n"
         " RX                     Target: RX                 Tested: TODO\n"
@@ -195,11 +200,3 @@ add_subdirectory(tools)
 add_subdirectory(test)
 
 FetchContent_MakeAvailable(freertos_kernel cmock)
-
-# Note following are can be removed once FreeRTOS-Kernel v10.5.0 + fixes their issues.
-# To ignore header specific issues - change all of the headers to SYSTEM
-set(_freertos_kernel_targets freertos_kernel freertos_kernel_port)
-# foreach (_target ${_freertos_kernel_targets} )
-#   get_target_property( interface_directories ${_target} INTERFACE_INCLUDE_DIRECTORIES )
-#   set_target_properties(${_target}  PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${interface_directories}" )
-# endforeach()
