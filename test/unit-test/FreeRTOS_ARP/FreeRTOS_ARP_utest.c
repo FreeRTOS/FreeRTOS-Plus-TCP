@@ -35,8 +35,6 @@ extern BaseType_t xARPHadIPClash;
 uint8_t ucARPPacket[ ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
 uint8_t ucARPPacket2[ ipconfigETHERNET_MINIMUM_PACKET_BYTES ];
 
-/* ==============================  Test Cases  ============================== */
-
 /* Helper function to reset the uxARPClashCounter variable before a test is run. It
  * cannot be directly reset since it is declared as static. */
 static void vResetARPClashCounter( void )
@@ -68,6 +66,8 @@ static void vResetARPClashCounter( void )
     /* Stop ignoring after the helper function is called. */
     xTaskCheckForTimeOut_StopIgnore();
 }
+
+/* ==============================  Test Cases  ============================== */
 
 void test_eARPProcessPacket_DifferentHardwareAddress( void )
 {
