@@ -34,7 +34,7 @@ target_link_libraries(freertos_xil_uncached_memory
 
 #------------------------------------------------------------------------------
 add_library( freertos_plus_tcp_network_if STATIC )
-set_property(TARGET freertos_plus_tcp_network_if PROPERTY C_STANDARD 99)
+set_property(TARGET freertos_plus_tcp_network_if PROPERTY C_STANDARD 90)
 
 target_sources( freertos_plus_tcp_network_if
   PRIVATE

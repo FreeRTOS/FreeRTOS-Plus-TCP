@@ -59,11 +59,13 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     ESP32
     KSZ8851SNL
     LIBSLIRP
+    LOOPBACK
     LPC17xx LPC18xx LPC54018
     M487
     MPS2_AN385
     MPS3_AN552
     MW300_RD
+    NXP1060
     PIC32MZEF_ETH PIC32MZEF_WIFI
     POSIX WIN_PCAP  # Native Linux & Windows respectively
     RX
@@ -73,6 +75,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     TM4C
     XILINX_ULTRASCALE ZYNQ # AMD/Xilinx
 )
+
 if(NOT FREERTOS_PLUS_TCP_NETWORK_IF)
     # Attempt to detect the system.
     if(UNIX)
@@ -100,6 +103,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " KSZ8851SNL             Target: ksz8851snl         Tested: TODO\n"
         " LIBSLIRP               Target: libslirp           Tested: TODO\n"
         " POSIX                  Target: linux/Posix\n"
+        " LOOPBACK               Target: loopback           Tested: TODO\n"
         " LPC17xx                Target: LPC17xx            Tested: TODO\n"
         " LPC18xx                Target: LPC18xx            Tested: TODO\n"
         " LPC54018               Target: LPC54018           Tested: TODO\n"
@@ -107,6 +111,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " MPS2_AN385             Target: MPS2_AN385         Tested: TODO\n"
         " MPS3_AN552             Target: MPS3_AN552"
         " MW300_RD               Target: mw300_rd           Tested: TODO\n"
+        " NXP1060                Target: NXP1060            Tested: TODO\n"
         " PIC32MZEF_ETH          Target: pic32mzef ethernet Tested: TODO\n"
         " PIC32MZEF_WIFI         Target: pic32mzef Wifi     Tested: TODO\n"
         " RX                     Target: RX                 Tested: TODO\n"
@@ -172,54 +177,6 @@ else()
 endif()
 
 ########################################################################
-# Overall Compile Options
-# Note the compile option strategy is to error on everything and then
-# Per library opt-out of things that are warnings/errors.
-# This ensures that no matter what strategy for compilation you take, the
-# builds will still occur.
-#
-# Only tested with GNU and Clang.
-# Other options are https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html#variable:CMAKE_%3CLANG%3E_COMPILER_ID
-# Naming of compilers translation map:
-# For the ?TBD? - Suggest trying GNU-based and adding the appropriate toolchain file.
-#   For Toolchain examples see _deps/cmake-src/toolchain/arm-none-eabil-gcc.toolchain.cmake
-#
-#   FreeRTOS    | CMake
-#   -------------------
-#   CCS         | ?TBD?
-#   GCC         | GNU, Clang, *Clang Others?
-#   IAR         | IAR
-#   Keil        | ARMCC
-#   MSVC        | MSVC # Note only for MinGW?
-#   Renesas     | ?TBD?
-
-add_compile_options(
-    ### Gnu/Clang C Options
-    $<$<COMPILE_LANG_AND_ID:C,GNU>:-fdiagnostics-color=always>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-fcolor-diagnostics>
-
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wall>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wpedantic>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wconversion>
-    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wunused-variable>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
-
-    # Suppressions required to build clean with clang.
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-unused-macros>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-qual>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-switch-enum>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-declaration-after-statement>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-padded>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-variable-declarations>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-covered-switch-default>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-missing-noreturn>
-    $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-cast-align>
-)
-
-########################################################################
 # External Dependencies
 # Note: For backwards compatibility - still have .gitmodules defining submodules
 # To support fetching content in a higher level project see
@@ -243,11 +200,3 @@ add_subdirectory(tools)
 add_subdirectory(test)
 
 FetchContent_MakeAvailable(freertos_kernel cmock)
-
-# Note following are can be removed once FreeRTOS-Kernel v10.5.0 + fixes their issues.
-# To ignore header specific issues - change all of the headers to SYSTEM
-set(_freertos_kernel_targets freertos_kernel freertos_kernel_port)
-# foreach (_target ${_freertos_kernel_targets} )
-#   get_target_property( interface_directories ${_target} INTERFACE_INCLUDE_DIRECTORIES )
-#   set_target_properties(${_target}  PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${interface_directories}" )
-# endforeach()
