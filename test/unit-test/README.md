@@ -18,18 +18,18 @@ project successfully, you must have the following:
    - Not found? Try `apt-get install make`.
 2. Ruby (You can check whether you have this by typing `ruby --version`)
    - Not found? Try `apt-get install ruby`.
-3. CMake version > 3.13.0 (You can check whether you have this by typing
+3. CMake version > 3.15.0 (You can check whether you have this by typing
    `cmake --version`)
    - Not found? Try `apt-get install cmake`
    - Try the `cmake --version` command. If still the version number is >=
-     3.13.0, skip to (4.) or else, continue.
+     3.15.0, skip to (4.) or else, continue.
    - You will need to get the latest CMake version using curl or wget (or
      similar command).
      - Uninstall the current version of CMake using
        `sudo apt remove --purge --auto-remove cmake`.
-     - Download the [CMAKE version 3.13.0](https://cmake.org/files/v3.13/).
-     - Extract the cmake download using `tar -xzvf cmake-3.13.0.tar.gz`.
-     - Go to the extracted folder (`cd cmake-3.13.0`) and run `./bootstrap`.
+     - Download the [CMAKE version 3.15.0](https://cmake.org/files/v3.15/).
+     - Extract the cmake download using `tar -xzvf cmake-3.15.0.tar.gz`.
+     - Go to the extracted folder (`cd cmake-3.15.0`) and run `./bootstrap`.
      - Run `make -j$(nproc)' and then run `sudo make install`.
      - Check the version using `cmake --version` command.
 4. lcov version 1.14 ( check with --version option )

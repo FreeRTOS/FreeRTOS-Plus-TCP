@@ -1,5 +1,5 @@
 # Taken from amazon-freertos repository
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
 set(BINARY_DIR ${CMAKE_BINARY_DIR})
 set(CMOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../tools/CMock )
 
