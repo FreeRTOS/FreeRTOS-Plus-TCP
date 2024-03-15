@@ -1248,17 +1248,6 @@
         /* Make sure all fields of the 'sockaddr' are cleared. */
         ( void ) memset( ( void * ) &xAddress, 0, sizeof( xAddress ) );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-            if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
-            {
-                xDNS_IP_Preference = xPreferenceIPv6;
-            }
-            else
-            {
-                xDNS_IP_Preference = xPreferenceIPv4;
-            }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 
         if( pxEndPoint != NULL )
