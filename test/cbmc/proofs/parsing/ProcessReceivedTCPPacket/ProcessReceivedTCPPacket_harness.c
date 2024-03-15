@@ -82,6 +82,20 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     return pxNetworkBuffer;
 }
 
+/* Abstraction of uxIPHeaderSizePacket. Because we're testing IPv4 in this test case, the network buffer is
+ * guaranteed to be IPv4 packet. Thus returns IPv4 header size here directly. */
+size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    return ipSIZE_OF_IPv4_HEADER;
+}
+
+/* Abstraction of uxIPHeaderSizePacket. Because we're testing IPv4 in this test case, all socket handlers returned
+ * by functions are for IPv4. Thus returns IPv4 header size here directly. */
+size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
+{
+    return ipSIZE_OF_IPv4_HEADER;
+}
+
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
