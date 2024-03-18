@@ -1064,7 +1064,7 @@ static BaseType_t prvFindCacheEntry( const MACAddress_t * pxMACAddress,
                 }
                 else
                 {
-                    ulAddressToLookup = *pulIPAddress;
+                    ulAddressToLookup = 0U;
                 }
             }
         }

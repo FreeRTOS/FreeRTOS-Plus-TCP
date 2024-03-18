@@ -49,6 +49,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
@@ -95,6 +96,7 @@
         const char * prvTCPFlagMeaning( UBaseType_t xFlags );
     #endif /* ipconfigHAS_DEBUG_PRINTF != 0 */
 
+    static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthernetBuffer );
 
 /*-----------------------------------------------------------*/
 
@@ -629,6 +631,47 @@
     /*-----------------------------------------------------------*/
 
 /**
+ * @brief IP frame agnostic helper to obtain the source IP Address from a buffer.
+ *
+ * @param[in] pucEthernetBuffer The Ethernet buffer from which the source address will be retrieved.
+ *
+ * @return IPv46_Address_t struct containing the source IP address.
+ */
+    static IPv46_Address_t xGetSourceAddrFromBuffer( const uint8_t * const pucEthernetBuffer )
+    {
+        IPv46_Address_t xSourceAddr;
+
+        /* Map the buffer onto Ethernet Header struct for easy access to fields. */
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
+        const EthernetHeader_t * pxHeader = ( ( const EthernetHeader_t * ) pucEthernetBuffer );
+
+        if( pxHeader->usFrameType == ( uint16_t ) ipIPv6_FRAME_TYPE )
+        {
+            /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            const IPHeader_IPv6_t * const pxIPHeader_IPv6 = ( ( const IPHeader_IPv6_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            xSourceAddr.xIs_IPv6 = pdTRUE;
+            ( void ) memcpy( xSourceAddr.xIPAddress.xIP_IPv6.ucBytes, pxIPHeader_IPv6->xSourceAddress.ucBytes, sizeof( IPv6_Address_t ) );
+        }
+        else
+        {
+            /* Map the ethernet buffer onto the IPHeader_t struct for easy access to the fields. */
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            const IPHeader_t * const pxIPHeader = ( ( const IPHeader_t * ) &( pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+            xSourceAddr.xIs_IPv6 = pdFALSE;
+            xSourceAddr.xIPAddress.ulIP_IPv4 = FreeRTOS_htonl( pxIPHeader->ulSourceIPAddress );
+        }
+
+        return xSourceAddr;
+    }
+
+/**
  * @brief Process the received TCP packet.
  *
  * @param[in] pxDescriptor The descriptor in which the TCP packet is held.
@@ -648,36 +691,244 @@
  */
     BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor )
     {
+        BaseType_t xResult = pdPASS;
         /* Function might modify the parameter. */
-        const NetworkBufferDescriptor_t * pxNetworkBuffer = pxDescriptor;
-        BaseType_t xResult;
+        NetworkBufferDescriptor_t * pxNetworkBuffer;
+        size_t uxIPHeaderOffset;
 
-        configASSERT( pxNetworkBuffer != NULL );
-        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+        configASSERT( pxDescriptor != NULL );
+        configASSERT( pxDescriptor->pucEthernetBuffer != NULL );
 
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        switch( ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer )->usFrameType )
+        pxNetworkBuffer = pxDescriptor;
+        uxIPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
+
+        /* Check for a minimum packet size. */
+        if( pxNetworkBuffer->xDataLength < ( uxIPHeaderOffset + ipSIZE_OF_TCP_HEADER ) )
         {
-            #if ( ipconfigUSE_IPv4 != 0 )
-                case ipIPv4_FRAME_TYPE:
-                    xResult = xProcessReceivedTCPPacket_IPV4( pxDescriptor );
-                    break;
-            #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+            xResult = pdFAIL;
+        }
+        else
+        {
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            const TCPHeader_t * pxTCPHeader = ( ( const TCPHeader_t * )
+                                                &( pxNetworkBuffer->pucEthernetBuffer[ uxIPHeaderOffset ] ) );
 
-            #if ( ipconfigUSE_IPv6 != 0 )
-                case ipIPv6_FRAME_TYPE:
-                    xResult = xProcessReceivedTCPPacket_IPV6( pxDescriptor );
-                    break;
-            #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+            const uint16_t ucTCPFlags = pxTCPHeader->ucTCPFlags;
+            const uint16_t usLocalPort = FreeRTOS_htons( pxTCPHeader->usDestinationPort );
+            const uint16_t usRemotePort = FreeRTOS_htons( pxTCPHeader->usSourcePort );
+            const IPv46_Address_t xRemoteIP = xGetSourceAddrFromBuffer( pxNetworkBuffer->pucEthernetBuffer );
 
-            default:
-                /* Shouldn't reach here */
+            /* Find the destination socket, and if not found: return a socket listening to
+             * the destination PORT. */
+            FreeRTOS_Socket_t * pxSocket = pxTCPSocketLookup( 0U, usLocalPort, xRemoteIP, usRemotePort );
+
+            if( ( pxSocket == NULL ) || ( prvTCPSocketIsActive( pxSocket->u.xTCP.eTCPState ) == pdFALSE ) )
+            {
+                /* A TCP messages is received but either there is no socket with the
+                 * given port number or the there is a socket, but it is in one of these
+                 * non-active states:  eCLOSED, eCLOSE_WAIT, eFIN_WAIT_2, eCLOSING, or
+                 * eTIME_WAIT. */
+
+                FreeRTOS_debug_printf( ( "TCP: No active socket on port %d (%d)\n", usLocalPort, usRemotePort ) );
+
+                /* Send a RST to all packets that can not be handled.  As a result
+                 * the other party will get a ECONN error.  There are two exceptions:
+                 * 1) A packet that already has the RST flag set.
+                 * 2) A packet that only has the ACK flag set.
+                 * A packet with only the ACK flag set might be the last ACK in
+                 * a three-way hand-shake that closes a connection. */
+                if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) != tcpTCP_FLAG_ACK ) &&
+                    ( ( ucTCPFlags & tcpTCP_FLAG_RST ) == 0U ) )
+                {
+                    ( void ) prvTCPSendReset( pxNetworkBuffer );
+                }
+
+                /* The packet can't be handled. */
                 xResult = pdFAIL;
-                break;
+            }
+            else
+            {
+                pxSocket->u.xTCP.ucRepCount = 0U;
+
+                if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN )
+                {
+                    /* The matching socket is in a listening state.  Test if the peer
+                     * has set the SYN flag. */
+                    if( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) != tcpTCP_FLAG_SYN )
+                    {
+                        /* What happens: maybe after a reboot, a client doesn't know the
+                         * connection had gone.  Send a RST in order to get a new connect
+                         * request. */
+                        #if ( ipconfigHAS_DEBUG_PRINTF == 1 )
+                        {
+                            FreeRTOS_debug_printf( ( "TCP: Server can't handle flags: %s from %u to port %u\n",
+                                                     prvTCPFlagMeaning( ( UBaseType_t ) ucTCPFlags ), usRemotePort, usLocalPort ) );
+                        }
+                        #endif /* ipconfigHAS_DEBUG_PRINTF */
+
+                        if( ( ucTCPFlags & tcpTCP_FLAG_RST ) == 0U )
+                        {
+                            ( void ) prvTCPSendReset( pxNetworkBuffer );
+                        }
+
+                        xResult = pdFAIL;
+                    }
+                    else
+                    {
+                        /* prvHandleListen() will either return a newly created socket
+                         * (if bReuseSocket is false), otherwise it returns the current
+                         * socket which will later get connected. */
+                        pxSocket = prvHandleListen( pxSocket, pxNetworkBuffer );
+
+                        if( pxSocket == NULL )
+                        {
+                            xResult = pdFAIL;
+                        }
+                    }
+                } /* if( pxSocket->u.xTCP.eTCPState == eTCP_LISTEN ). */
+                else
+                {
+                    /* This is not a socket in listening mode. Check for the RST
+                     * flag. */
+                    if( ( ucTCPFlags & tcpTCP_FLAG_RST ) != 0U )
+                    {
+                        FreeRTOS_debug_printf( ( "TCP: RST received from %u for %u\n", usRemotePort, usLocalPort ) );
+
+                        /* Implement https://tools.ietf.org/html/rfc5961#section-3.2. */
+                        if( pxSocket->u.xTCP.eTCPState == eCONNECT_SYN )
+                        {
+                            const uint32_t ulAckNumber = FreeRTOS_ntohl( pxTCPHeader->ulAckNr );
+
+                            /* Per the above RFC, "In the SYN-SENT state ... the RST is
+                             * acceptable if the ACK field acknowledges the SYN." */
+                            if( ulAckNumber == ( pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber + 1U ) )
+                            {
+                                vTCPStateChange( pxSocket, eCLOSED );
+                            }
+                        }
+                        else
+                        {
+                            const uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxTCPHeader->ulSequenceNumber );
+
+                            /* Check whether the packet matches the next expected sequence number. */
+                            if( ulSequenceNumber == pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber )
+                            {
+                                vTCPStateChange( pxSocket, eCLOSED );
+                            }
+                            /* Otherwise, check whether the packet is within the receive window. */
+                            else if( ( xSequenceGreaterThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber ) != pdFALSE ) &&
+                                     ( xSequenceLessThan( ulSequenceNumber, pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber +
+                                                          pxSocket->u.xTCP.xTCPWindow.xSize.ulRxWindowLength ) != pdFALSE ) )
+                            {
+                                /* Send a challenge ACK. */
+                                ( void ) prvTCPSendChallengeAck( pxNetworkBuffer );
+                            }
+                            else
+                            {
+                                /* Nothing. */
+                            }
+                        }
+
+                        /* Otherwise, do nothing. In any case, the packet cannot be handled. */
+                        xResult = pdFAIL;
+                    }
+                    /* Check whether there is a pure SYN amongst the TCP flags while the connection is established. */
+                    else if( ( ( ucTCPFlags & tcpTCP_FLAG_CTRL ) == tcpTCP_FLAG_SYN ) && ( pxSocket->u.xTCP.eTCPState >= eESTABLISHED ) )
+                    {
+                        /* SYN flag while this socket is already connected. */
+                        FreeRTOS_debug_printf( ( "TCP: SYN unexpected from %u\n", usRemotePort ) );
+
+                        /* The packet cannot be handled. */
+                        xResult = pdFAIL;
+                    }
+                    else
+                    {
+                        /* Update the copy of the TCP header only (skipping eth and IP
+                         * headers).  It might be used later on, whenever data must be sent
+                         * to the peer. */
+                        const size_t uxOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket );
+                        ( void ) memcpy( ( void * ) ( &( pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset ] ) ),
+                                         ( const void * ) ( &( pxNetworkBuffer->pucEthernetBuffer[ uxOffset ] ) ),
+                                         ipSIZE_OF_TCP_HEADER );
+                        /* Clear flags that are set by the peer, and set the ACK flag. */
+                        pxSocket->u.xTCP.xPacket.u.ucLastPacket[ uxOffset + ipTCP_FLAGS_OFFSET ] = tcpTCP_FLAG_ACK;
+                    }
+                }
+            }
+
+            if( xResult != pdFAIL )
+            {
+                uint16_t usWindow;
+
+                /* pxSocket is not NULL when xResult != pdFAIL. */
+                configASSERT( pxSocket != NULL ); /* LCOV_EXCL_LINE ,this branch will not be hit*/
+
+                /* Touch the alive timers because we received a message for this
+                 * socket. */
+                prvTCPTouchSocket( pxSocket );
+
+                /* Parse the TCP option(s), if present. */
+
+                /* _HT_ : if we're in the SYN phase, and peer does not send a MSS option,
+                 * then we MUST assume an MSS size of 536 bytes for backward compatibility. */
+
+                /* When there are no TCP options, the TCP offset equals 20 bytes, which is stored as
+                 * the number 5 (words) in the higher nibble of the TCP-offset byte. */
+                if( ( pxTCPHeader->ucTCPOffset & tcpTCP_OFFSET_LENGTH_BITS ) > tcpTCP_OFFSET_STANDARD_LENGTH )
+                {
+                    xResult = prvCheckOptions( pxSocket, pxNetworkBuffer );
+                }
+
+                if( xResult != pdFAIL )
+                {
+                    usWindow = FreeRTOS_ntohs( pxTCPHeader->usWindow );
+                    pxSocket->u.xTCP.ulWindowSize = ( uint32_t ) usWindow;
+                    #if ( ipconfigUSE_TCP_WIN == 1 )
+                    {
+                        /* rfc1323 : The Window field in a SYN (i.e., a <SYN> or <SYN,ACK>)
+                         * segment itself is never scaled. */
+                        if( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_SYN ) == 0U )
+                        {
+                            pxSocket->u.xTCP.ulWindowSize =
+                                ( pxSocket->u.xTCP.ulWindowSize << pxSocket->u.xTCP.ucPeerWinScaleFactor );
+                        }
+                    }
+                    #endif /* ipconfigUSE_TCP_WIN */
+
+                    /* In prvTCPHandleState() the incoming messages will be handled
+                     * depending on the current state of the connection. */
+                    if( prvTCPHandleState( pxSocket, &pxNetworkBuffer ) > 0 )
+                    {
+                        /* prvTCPHandleState() has sent a message, see if there are more to
+                         * be transmitted. */
+                        #if ( ipconfigUSE_TCP_WIN == 1 )
+                        {
+                            ( void ) prvTCPSendRepeated( pxSocket, &pxNetworkBuffer );
+                        }
+                        #endif /* ipconfigUSE_TCP_WIN */
+                    }
+
+                    if( pxNetworkBuffer != NULL )
+                    {
+                        /* We must check if the buffer is unequal to NULL, because the
+                         * socket might keep a reference to it in case a delayed ACK must be
+                         * sent. */
+                        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+                        #ifndef _lint
+                            /* Clear pointers that are freed. */
+                            pxNetworkBuffer = NULL;
+                        #endif
+                    }
+
+                    /* And finally, calculate when this socket wants to be woken up. */
+                    ( void ) prvTCPNextTimeout( pxSocket );
+                }
+            }
         }
 
+        /* pdPASS being returned means the buffer has been consumed. */
         return xResult;
     }
     /*-----------------------------------------------------------*/
