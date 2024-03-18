@@ -728,10 +728,11 @@ void test_FreeRTOS_select_TimeoutSecondTime( void )
     uint8_t ucSocketSet[ sizeof( SocketSelect_t ) ];
     SocketSet_t xSocketSet = ( SocketSet_t ) ucSocketSet;
     TickType_t xBlockTimeTicks = 0xAB12;
+    int i;
 
     vTaskSetTimeOutState_ExpectAnyArgs();
 
-    for( int i = 0; i < 2; i++ )
+    for( i = 0; i < 2; i++ )
     {
         xEventGroupWaitBits_ExpectAndReturn( xSocketSet->xSelectGroup, ( ( EventBits_t ) eSELECT_ALL ), pdFALSE, pdFALSE, xBlockTimeTicks, pdFALSE );
 
@@ -3232,8 +3233,9 @@ void test_vSocketSelect_TCPSocketsOnly( void )
     ListItem_t xLocalListItem;
     uint8_t ucStream[ 20 ];
     FreeRTOS_Socket_t xSocket[ 9 ], xPeerSocket, xPeerSocket1;
+    int i;
 
-    for( int i = 1; i < 9; i++ )
+    for( i = 1; i < 9; i++ )
     {
         memset( &xSocket[ i ], 0, sizeof( xSocket[ i ] ) );
         xSocket[ i ].pxSocketSet = &xSocketSet;

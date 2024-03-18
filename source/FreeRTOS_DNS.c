@@ -836,9 +836,12 @@
     {
         NetworkEndPoint_t * pxEndPoint = NULL;
 
-        #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 )
-            BaseType_t xNeed_Endpoint = pdFALSE;
-        #endif
+        /* If LLMNR is being used then determine if the host name includes a '.' -
+         * if not then LLMNR can be used as the lookup method. */
+        /* For local resolution, mDNS uses names ending with the string ".local" */
+        BaseType_t bHasDot = pdFALSE;
+        BaseType_t bHasLocal = pdFALSE;
+        const char * pcDot = ( const char * ) strchr( pcHostName, ( int32_t ) '.' );
 
         #if ( ipconfigUSE_LLMNR != 1 )
             ( void ) pcHostName;
@@ -856,13 +859,6 @@
         pxAddress->sin_len = ( uint8_t ) sizeof( struct freertos_sockaddr );
         /* Use the DNS port by default, this may be changed later. */
         pxAddress->sin_port = dnsDNS_PORT;
-
-        /* If LLMNR is being used then determine if the host name includes a '.' -
-         * if not then LLMNR can be used as the lookup method. */
-        /* For local resolution, mDNS uses names ending with the string ".local" */
-        BaseType_t bHasDot = pdFALSE;
-        BaseType_t bHasLocal = pdFALSE;
-        const char * pcDot = ( const char * ) strchr( pcHostName, ( int32_t ) '.' );
 
         if( pcDot != NULL )
         {
@@ -892,9 +888,8 @@
 
                     pxAddress->sin_port = ipMDNS_PORT;
                     pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
-                    xNeed_Endpoint = pdTRUE;
 
-                    switch( xDNS_IP_Preference )
+                    switch( xDNS_IP_Preference ) /* LCOV_EXCL_BR_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                     {
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case xPreferenceIPv4:
@@ -912,11 +907,10 @@
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                        default:
+                        default: /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                             /* MISRA 16.4 Compliance */
-                            xNeed_Endpoint = pdFALSE;
                             FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference \n" ) );
-                            break;
+                            break; /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                     }
                 }
             }
@@ -929,9 +923,8 @@
                     /* Use LLMNR addressing. */
                     pxAddress->sin_port = ipLLMNR_PORT;
                     pxAddress->sin_port = FreeRTOS_ntohs( pxAddress->sin_port );
-                    xNeed_Endpoint = pdTRUE;
 
-                    switch( xDNS_IP_Preference )
+                    switch( xDNS_IP_Preference ) /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                     {
                         #if ( ipconfigUSE_IPv4 != 0 )
                             case xPreferenceIPv4:
@@ -949,45 +942,41 @@
                                 break;
                         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                        default:
+                        default: /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                             /* MISRA 16.4 Compliance */
-                            xNeed_Endpoint = pdFALSE;
                             FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference (LLMNR) \n" ) );
-                            break;
+                            break; /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                     }
                 }
             }
             #endif /* if ( ipconfigUSE_LLMNR == 1 ) */
 
             #if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 )
-                if( xNeed_Endpoint == pdTRUE )
+                for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
+                     pxEndPoint != NULL;
+                     pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
                 {
-                    for( pxEndPoint = FreeRTOS_FirstEndPoint( NULL );
-                         pxEndPoint != NULL;
-                         pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
-                    {
-                        #if ( ipconfigUSE_IPv6 != 0 )
-                            if( xDNS_IP_Preference == xPreferenceIPv6 )
+                    #if ( ipconfigUSE_IPv6 != 0 )
+                        if( xDNS_IP_Preference == xPreferenceIPv6 )
+                        {
+                            if( pxEndPoint->bits.bIPv6 != 0U )
                             {
-                                if( pxEndPoint->bits.bIPv6 != 0U )
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            #if ( ipconfigUSE_IPv4 != 0 )
+                                if( pxEndPoint->bits.bIPv6 == 0U )
                                 {
                                     break;
                                 }
-                            }
-                            else
-                            {
-                                #if ( ipconfigUSE_IPv4 != 0 )
-                                    if( pxEndPoint->bits.bIPv6 == 0U )
-                                    {
-                                        break;
-                                    }
-                                #endif /* if ( ipconfigUSE_IPv4 != 0 ) */
-                            }
-                        #else /* if ( ipconfigUSE_IPv6 != 0 ) */
-                            /* IPv6 is not included, so all end-points are IPv4. */
-                            break;
-                        #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
-                    }
+                            #endif /* if ( ipconfigUSE_IPv4 != 0 ) */
+                        }
+                    #else /* if ( ipconfigUSE_IPv6 != 0 ) */
+                        /* IPv6 is not included, so all end-points are IPv4. */
+                        break;
+                    #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
                 }
             #endif /* if ( ipconfigUSE_MDNS == 1 ) || ( ipconfigUSE_LLMNR == 1 ) */
         }
@@ -1000,16 +989,17 @@
                  pxEndPoint != NULL;
                  pxEndPoint = FreeRTOS_NextEndPoint( NULL, pxEndPoint ) )
             {
-                switch( xDNS_IP_Preference )
+                switch( xDNS_IP_Preference ) /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                 {
                     #if ( ipconfigUSE_IPv4 != 0 )
                         case xPreferenceIPv4:
 
                             if( pxEndPoint->bits.bIPv6 == 0U )
                             {
+                                uint32_t ulIPAddress;
                                 uint8_t ucIndex = pxEndPoint->ipv4_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
-                                uint32_t ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
+                                ulIPAddress = pxEndPoint->ipv4_settings.ulDNSServerAddresses[ ucIndex ];
 
                                 if( ( ulIPAddress != 0U ) && ( ulIPAddress != ipBROADCAST_IP_ADDRESS ) )
                                 {
@@ -1027,9 +1017,10 @@
 
                             if( pxEndPoint->bits.bIPv6 != 0U )
                             {
+                                const uint8_t * ucBytes;
                                 uint8_t ucIndex = pxEndPoint->ipv6_settings.ucDNSIndex;
                                 configASSERT( ucIndex < ipconfigENDPOINT_DNS_ADDRESS_COUNT );
-                                const uint8_t * ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
+                                ucBytes = pxEndPoint->ipv6_settings.xDNSServerAddresses[ ucIndex ].ucBytes;
 
                                 /* Test if the DNS entry is in used. */
                                 if( ( ucBytes[ 0 ] != 0U ) && ( ucBytes[ 1 ] != 0U ) )
@@ -1045,10 +1036,10 @@
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 
-                    default:
+                    default: /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                         /* MISRA 16.4 Compliance */
                         FreeRTOS_debug_printf( ( "prvFillSockAddress: Undefined xDNS_IP_Preference \n" ) );
-                        break;
+                        break; /* LCOV_EXCL_LINE - xDNS_IP_Preference can be either xPreferenceIPv4 or xPreferenceIPv6 */
                 }
 
                 if( xBreakLoop == pdTRUE )
@@ -1171,6 +1162,10 @@
 
         if( xDNSBuf.pucPayloadBuffer != NULL )
         {
+            /* A two-step conversion to conform to MISRA. */
+            size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            BaseType_t xIndex = ( BaseType_t ) uxIndex;
+
             #if ( ipconfigUSE_LLMNR == 1 )
             {
                 if( FreeRTOS_ntohs( pxAddress->sin_port ) == ipLLMNR_PORT )
@@ -1182,10 +1177,6 @@
                 }
             }
             #endif
-
-            /* A two-step conversion to conform to MISRA. */
-            size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
-            BaseType_t xIndex = ( BaseType_t ) uxIndex;
 
             /* Later when translating form UDP payload to a Network Buffer,
              * it is important to know whether this is an IPv4 packet. */
@@ -1261,6 +1252,10 @@
             if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
             {
                 xDNS_IP_Preference = xPreferenceIPv6;
+            }
+            else
+            {
+                xDNS_IP_Preference = xPreferenceIPv4;
             }
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
 

@@ -5,6 +5,7 @@
       "--unwind 1",
       "--unwindset vARPAgeCache.0:7",
       "--unwindset FreeRTOS_OutputARPRequest.0:3",
+      "--unwindset FreeRTOS_InterfaceEndPointOnNetMask.0:3",
       "--unwindset vARPAgeCache.1:3",
       "--nondet-static"
   ],

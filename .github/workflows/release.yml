@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.commit_id }}
       - name: Configure git identity
@@ -53,7 +53,7 @@ jobs:
       - name: Install ZIP tools
         run: sudo apt-get install zip unzip
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.commit_id }}
           path: FreeRTOS-Plus-TCP
@@ -92,7 +92,7 @@ jobs:
           lcov --list --rc lcov_branch_coverage=1 test/unit-test/build/coverage.info
           cd ..
       - name: Create artifact of ZIP
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
           path: zip-check/FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
@@ -125,7 +125,7 @@ jobs:
           draft: false
           prerelease: false
       - name: Download ZIP artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: FreeRTOS-Plus-TCP-${{ github.event.inputs.version_number }}.zip
       - name: Upload Release Asset
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Delete branch created for Tag by SBOM generator
         run: |
           # Delete the branch created for Tag by SBOM generator
