@@ -117,7 +117,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             /* Part of the Ethernet and IP headers are always constant when sending an IPv4
              * UDP packet.  This array defines the constant parts, allowing this part of the
              * packet to be filled in using a simple memcpy() instead of individual writes. */
-            const uint8_t ucDefaultPartUDPPacketHeader[] =
+            static const uint8_t ucDefaultPartUDPPacketHeader[] =
             {
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* Ethernet source MAC address. */
                 0x08, 0x00,                         /* Ethernet frame type. */
