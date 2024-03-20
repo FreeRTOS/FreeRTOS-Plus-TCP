@@ -54,7 +54,6 @@
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 #include "FreeRTOS_Routing.h"
-#include "FreeRTOS_ND.h"
 
 #if ( ipconfigUSE_IPv4 != 0 )
 
@@ -95,11 +94,11 @@
 /*
  * Lookup an MAC address in the ARP cache from the IP address.
  */
-    static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+    static eResolutionLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
                                               MACAddress_t * const pxMACAddress,
                                               NetworkEndPoint_t ** ppxEndPoint );
 
-    static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
+    static eResolutionLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
                                                         MACAddress_t * const pxMACAddress,
                                                         struct xNetworkEndPoint ** ppxEndPoint );
 
@@ -822,12 +821,12 @@
  *
  * @return Either eARPCacheMiss or eARPCacheHit.
  */
-        eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
+        eResolutionLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                    uint32_t * pulIPAddress,
                                                    struct xNetworkInterface ** ppxInterface )
         {
             BaseType_t x;
-            eARPLookupResult_t eReturn = eARPCacheMiss;
+            eResolutionLookupResult_t eReturn = eResolutionCacheMiss;
 
             configASSERT( pxMACAddress != NULL );
             configASSERT( pulIPAddress != NULL );
@@ -878,11 +877,11 @@
  *         addressing needs a gateway but there isn't a gateway defined) then return
  *         eCantSendPacket.
  */
-    eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+    eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
                                           MACAddress_t * const pxMACAddress,
                                           struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eARPLookupResult_t eReturn;
+        eResolutionLookupResult_t eReturn;
         uint32_t ulAddressToLookup;
         NetworkEndPoint_t * pxEndPoint = NULL;
 
@@ -945,11 +944,11 @@
  *                          stored to the buffer provided.
  * @param[out] ppxEndPoint The end-point of the gateway will be copy to the pointee.
  */
-    static eARPLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
+    static eResolutionLookupResult_t eARPGetCacheEntryGateWay( uint32_t * pulIPAddress,
                                                         MACAddress_t * const pxMACAddress,
                                                         struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eARPLookupResult_t eReturn = eARPCacheMiss;
+        eResolutionLookupResult_t eReturn = eARPCacheMiss;
         uint32_t ulAddressToLookup = *( pulIPAddress );
         NetworkEndPoint_t * pxEndPoint;
         uint32_t ulOriginal = *pulIPAddress;
@@ -1040,12 +1039,12 @@
  * @return When the IP-address is found: eARPCacheHit, when not found: eARPCacheMiss,
  *         and when waiting for a ARP reply: eCantSendPacket.
  */
-    static eARPLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
+    static eResolutionLookupResult_t prvCacheLookup( uint32_t ulAddressToLookup,
                                               MACAddress_t * const pxMACAddress,
                                               NetworkEndPoint_t ** ppxEndPoint )
     {
         BaseType_t x;
-        eARPLookupResult_t eReturn = eARPCacheMiss;
+        eResolutionLookupResult_t eReturn = eARPCacheMiss;
 
         /* Loop through each entry in the ARP cache. */
         for( x = 0; x < ipconfigARP_CACHE_ENTRIES; x++ )
@@ -1275,7 +1274,7 @@
         BaseType_t xResult = -pdFREERTOS_ERRNO_EADDRNOTAVAIL;
         TimeOut_t xTimeOut;
         MACAddress_t xMACAddress;
-        eARPLookupResult_t xLookupResult;
+        eResolutionLookupResult_t xLookupResult;
         NetworkEndPoint_t * pxEndPoint;
         size_t uxSendCount = ipconfigMAX_ARP_RETRANSMISSIONS;
         uint32_t ulIPAddressCopy = ulIPAddress;

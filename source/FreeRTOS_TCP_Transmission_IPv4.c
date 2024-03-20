@@ -99,7 +99,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
     void * pvCopyDest = NULL;
     const size_t uxIPHeaderSize = ipSIZE_OF_IPv4_HEADER;
     uint32_t ulDestinationIPAddress;
-    eARPLookupResult_t eResult;
+    eResolutionLookupResult_t eResult;
     NetworkEndPoint_t * pxEndPoint = NULL;
 
     do
@@ -235,7 +235,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
 
             eResult = eARPGetCacheEntry( &ulDestinationIPAddress, &xMACAddress, &pxEndPoint );
 
-            if( eResult == eARPCacheHit )
+            if( eResult == eResolutionCacheHit )
             {
                 pvCopySource = &xMACAddress;
                 pxNetworkBuffer->pxEndPoint = pxEndPoint;
@@ -352,10 +352,10 @@ BaseType_t prvTCPPrepareConnect_IPV4( FreeRTOS_Socket_t * pxSocket )
 
     switch( eReturned )
     {
-        case eARPCacheHit:    /* An ARP table lookup found a valid entry. */
+        case eResolutionCacheHit:    /* An ARP table lookup found a valid entry. */
             break;            /* We can now prepare the SYN packet. */
 
-        case eARPCacheMiss:   /* An ARP table lookup did not find a valid entry. */
+        case eResolutionCacheMiss:   /* An ARP table lookup did not find a valid entry. */
         case eCantSendPacket: /* There is no IP address, or an ARP is still in progress. */
         default:
             /* Count the number of times it could not find the ARP address. */

@@ -47,8 +47,6 @@
 #include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
-#include "FreeRTOS_ND.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
@@ -100,6 +98,13 @@ static IPTimer_t xARPResolutionTimer;
 
 /** @brief ARP timer, to check its table entries. */
 static IPTimer_t xARPTimer;
+
+/** @brief Timer to limit the maximum time a packet should be stored while
+ *         awaiting an ND resolution. */
+static IPTimer_t xNDResolutionTimer;
+
+/** @brief ND timer, to check its table entries. */
+static IPTimer_t xNDTimer;
 
 #if ( ipconfigUSE_TCP != 0 )
     /** @brief TCP timer, to check for timeouts, resends. */

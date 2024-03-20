@@ -34,6 +34,7 @@
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Stream_Buffer.h"
 #include "FreeRTOS_Routing.h"
+#include "FreeRTOS_ARP.h"
 
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
@@ -65,7 +66,7 @@ typedef enum eFrameProcessingResult
     eProcessBuffer,       /* An Ethernet frame has a valid address - continue process its contents. */
     eReturnEthernetFrame, /* The Ethernet frame contains an ARP or ICMP packet that can be returned to its source. */
     eFrameConsumed,       /* Processing the Ethernet packet contents resulted in the payload being sent to the stack. */
-    eWaitingARPResolution /* Frame is awaiting ARP resolution. */
+    eWaitingAddrRes       /* Frame is awaiting resolution. */
 } eFrameProcessingResult_t;
 
 typedef enum
@@ -74,7 +75,7 @@ typedef enum
     eNetworkDownEvent,    /* 0: The network interface has been lost and/or needs [re]connecting. */
     eNetworkRxEvent,      /* 1: The network interface has queued a received Ethernet frame. */
     eNetworkTxEvent,      /* 2: Let the IP-task send a network packet. */
-    eARPTimerEvent,       /* 3: The ARP timer expired. */
+    eAddrResTimerEvent,   /* 3: The resolution timer expired. */
     eStackTxEvent,        /* 4: The software stack has queued a packet to transmit. */
     eDHCPEvent,           /* 5: Process the DHCP state machine. */
     eTCPTimerEvent,       /* 6: See if any TCP socket needs attention. */
@@ -455,23 +456,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
                              size_t uxByteCount );
 
 /* Socket related private functions. */
-
-/*
- * The caller must ensure that pxNetworkBuffer->xDataLength is the UDP packet
- * payload size (excluding packet headers) and that the packet in pucEthernetBuffer
- * is at least the size of UDPPacket_t.
- */
-BaseType_t xProcessReceivedUDPPacket( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                      uint16_t usPort,
-                                      BaseType_t * pxIsWaitingForARPResolution );
-
-BaseType_t xProcessReceivedUDPPacket_IPv4( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                           uint16_t usPort,
-                                           BaseType_t * pxIsWaitingForARPResolution );
-
-BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
-                                           uint16_t usPort,
-                                           BaseType_t * pxIsWaitingForARPResolution );
 
 /*
  * Initialize the socket list data structures for TCP and UDP.

@@ -1650,7 +1650,7 @@ static void clear_caches()
     {
         FreeRTOS_dnsclear();
         #if ( ipconfigUSE_IPv6 != 0 )
-            FreeRTOS_ClearND();
+            FreeRTOS_ClearND( NULL );
         #endif /* ( ipconfigUSE_IPv6 != 0 ) */
     }
     #endif /* ipconfigUSE_DNS_CACHE */

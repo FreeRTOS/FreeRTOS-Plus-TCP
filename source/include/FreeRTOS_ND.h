@@ -32,8 +32,6 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
-#include "FreeRTOS_ARP.h"
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
@@ -88,12 +86,12 @@
  *
  * @note Look for ulIPAddress in the ND cache.  If the IP address exists, copy the
  * associated MAC address into pxMACAddress, refresh the ND cache entry's
- * age, and return eARPCacheHit.  If the IP address does not exist in the ND
- * cache return eARPCacheMiss.  If the packet cannot be sent for any reason
+ * age, and return eAddrResCacheHit.  If the IP address does not exist in the ND
+ * cache return eAddrResCacheMiss.  If the packet cannot be sent for any reason
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
  * isn't a gateway defined) then return eCantSendPacket.
  */
-    eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+    eAddrResLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                          MACAddress_t * const pxMACAddress,
                                          struct xNetworkEndPoint ** ppxEndPoint );
 
@@ -205,6 +203,9 @@
     #endif
 
     BaseType_t xCheckRequiresNDResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+    /* Clear all entries in the ND cache. */
+    void FreeRTOS_ClearND( const struct xNetworkEndPoint * pxEndPoint );
 
 #endif /* ipconfigUSE_IPv6 != 0 */
 

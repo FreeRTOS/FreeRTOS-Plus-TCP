@@ -817,7 +817,6 @@
                 /* DHCP failed, the default configured IP-address will be used. Now
                  * call vIPNetworkUpCalls() to send the network-up event and start the ARP
                  * timer. */
-
                 vIPNetworkUpCalls( pxEndPoint );
 
                 /* Close socket to ensure packets don't queue on it. */

@@ -79,7 +79,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 {
     UDPPacket_t * pxUDPPacket;
     IPHeader_t * pxIPHeader;
-    eARPLookupResult_t eReturned;
+    eResolutionLookupResult_t eReturned;
     uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     size_t uxPayloadSize;
@@ -115,7 +115,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 
     if( eReturned != eCantSendPacket )
     {
-        if( eReturned == eARPCacheHit )
+        if( eReturned == eResolutionCacheHit )
         {
             #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 )
                 uint8_t ucSocketOptions;
@@ -246,7 +246,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
         }
-        else if( eReturned == eARPCacheMiss )
+        else if( eReturned == eResolutionCacheMiss )
         {
             /* Add an entry to the ARP table with a null hardware address.
              * This allows the ARP timer to know that an ARP reply is

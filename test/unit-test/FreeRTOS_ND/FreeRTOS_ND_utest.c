@@ -785,7 +785,7 @@ void test_FreeRTOS_ClearND( void )
     /* Set xNDCache to non zero entries*/
     ( void ) memset( xNDCache, 1, sizeof( xNDCache ) );
     ( void ) memset( xTempNDCache, 0, sizeof( xTempNDCache ) );
-    FreeRTOS_ClearND();
+    FreeRTOS_ClearND( NULL );
 
     TEST_ASSERT_EQUAL_MEMORY( xNDCache, xTempNDCache, sizeof( xNDCache ) );
 }

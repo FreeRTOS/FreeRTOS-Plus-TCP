@@ -41,7 +41,6 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_ND.h"
@@ -82,12 +81,12 @@
     static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0x00, 0x00, 0x00, 0x01 };
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
-    static eARPLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
+    static eResolutionLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
                                              NetworkEndPoint_t ** ppxEndPoint );
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
-    static eARPLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
+    static eResolutionLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_t ** ppxEndPoint );
 
@@ -144,13 +143,13 @@
  * @param[out] pxMACAddress The resulting MAC-address is stored here.
  * @param[out] ppxEndPoint A pointer to an end-point pointer where the end-point will be stored.
  *
- * @return An enum, either eARPCacheHit or eARPCacheMiss.
+ * @return An enum, either eAddrResCacheHit or eAddrResCacheMiss.
  */
-    static eARPLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
+    static eAddrResLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
                                              NetworkEndPoint_t ** ppxEndPoint )
     {
-        eARPLookupResult_t eReturn;
+        eAddrResLookupResult_t eReturn;
 
         /* Mostly used multi-cast address is ff02::. */
         if( xIsIPv6AllowedMulticast( pxAddressToLookup ) != pdFALSE )
@@ -162,12 +161,12 @@
                 *ppxEndPoint = pxFindLocalEndpoint();
             }
 
-            eReturn = eARPCacheHit;
+            eReturn = eAddrResCacheHit;
         }
         else
         {
             /* Not a multicast IP address. */
-            eReturn = eARPCacheMiss;
+            eReturn = eAddrResCacheMiss;
         }
 
         return eReturn;
@@ -182,30 +181,30 @@
  * @param[out] pxMACAddress The MAC-address found.
  * @param[out] ppxEndPoint A pointer to a pointer to an end-point, where the end-point will be stored.
  *
- * @return An enum which says whether the address was found: eARPCacheHit or eARPCacheMiss.
+ * @return An enum which says whether the address was found: eAddrResCacheHit or eAddrResCacheMiss.
  */
-    eARPLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
+    eAddrResLookupResult_t eNDGetCacheEntry( IPv6_Address_t * pxIPAddress,
                                          MACAddress_t * const pxMACAddress,
                                          struct xNetworkEndPoint ** ppxEndPoint )
     {
-        eARPLookupResult_t eReturn;
+        eAddrResLookupResult_t eReturn;
         NetworkEndPoint_t * pxEndPoint;
 
         /* Multi-cast addresses can be resolved immediately. */
         eReturn = prvMACResolve( pxIPAddress, pxMACAddress, ppxEndPoint );
 
-        if( eReturn == eARPCacheMiss )
+        if( eReturn == eAddrResCacheMiss )
         {
             /* See if the IP-address has an entry in the cache. */
             eReturn = prvNDCacheLookup( pxIPAddress, pxMACAddress, ppxEndPoint );
         }
 
-        if( eReturn == eARPCacheMiss )
+        if( eReturn == eAddrResCacheMiss )
         {
             FreeRTOS_printf( ( "eNDGetCacheEntry: lookup %pip miss\n", ( void * ) pxIPAddress->ucBytes ) );
         }
 
-        if( eReturn == eARPCacheMiss )
+        if( eReturn == eAddrResCacheMiss )
         {
             IPv6_Type_t eIPType = xIPv6_GetIPType( pxIPAddress );
 
@@ -240,7 +239,7 @@
                     }
 
                     FreeRTOS_printf( ( "eNDGetCacheEntry: LinkLocal %pip \"%s\"\n", ( void * ) pxIPAddress->ucBytes,
-                                       ( eReturn == eARPCacheHit ) ? "hit" : "miss" ) );
+                                       ( eReturn == eAddrResCacheHit ) ? "hit" : "miss" ) );
                 }
                 else
                 {
@@ -285,7 +284,7 @@
     {
         BaseType_t x;
         BaseType_t xFreeEntry = -1, xEntryFound = -1;
-        uint16_t xOldestValue = ipconfigMAX_ARP_AGE + 1;
+        uint16_t xOldestValue = ipconfigMAX_ND_AGE + 1;
         BaseType_t xOldestEntry = 0;
 
         /* For each entry in the ND cache table. */
@@ -308,10 +307,10 @@
                 /* Entry is valid but the IP-address doesn't match. */
 
                 /* Keep track of the oldest entry in case we need to overwrite it. The problem we are trying to avoid is
-                 * that there may be a queued packet in pxARPWaitingNetworkBuffer and we may have just received the
+                 * that there may be a queued packet in pxNDWaitingNetworkBuffer and we may have just received the
                  * neighbor advertisement needed for that packet. If we don't store this network advertisement in cache,
-                 * the parting of the frame from pxARPWaitingNetworkBuffer will cause the sending of neighbor solicitation
-                 * and stores the frame in pxARPWaitingNetworkBuffer. This becomes a vicious circle with thousands of
+                 * the parting of the frame from pxNDWaitingNetworkBuffer will cause the sending of neighbor solicitation
+                 * and stores the frame in pxNDWaitingNetworkBuffer. This becomes a vicious circle with thousands of
                  * neighbor solicitation/advertisement packets going back and forth because the ND cache is full.
                  * Overwriting the oldest cache entry is not a fool-proof solution, but it's something. */
                 if( xNDCache[ x ].ucAge < xOldestValue )
@@ -343,7 +342,7 @@
         /* Copy the MAC-address. */
         ( void ) memcpy( xNDCache[ xEntryFound ].xMACAddress.ucBytes, pxMACAddress->ucBytes, sizeof( MACAddress_t ) );
         xNDCache[ xEntryFound ].pxEndPoint = pxEndPoint;
-        xNDCache[ xEntryFound ].ucAge = ( uint8_t ) ipconfigMAX_ARP_AGE;
+        xNDCache[ xEntryFound ].ucAge = ( uint8_t ) ipconfigMAX_ND_AGE;
         xNDCache[ xEntryFound ].ucValid = ( uint8_t ) pdTRUE;
     }
 /*-----------------------------------------------------------*/
@@ -417,11 +416,29 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Clear the Neighbour Discovery cache.
+ * @brief A call to this function will clear the ND cache.
+ * @param[in] pxEndPoint only clean entries with this end-point, or when NULL,
+ *                        clear the entire ND cache.
  */
-    void FreeRTOS_ClearND( void )
+    void FreeRTOS_ClearND( const struct xNetworkEndPoint * pxEndPoint )
     {
         ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+        if( pxEndPoint != NULL )
+        {
+            BaseType_t x;
+
+            for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
+            {
+                if( xNDCache[ x ].pxEndPoint == pxEndPoint )
+                {
+                    ( void ) memset( &( xNDCache[ x ] ), 0, sizeof( NDCacheRow_t ) );
+                }
+            }
+        }
+        else
+        {
+            ( void ) memset( xNDCache, 0, sizeof( xNDCache ) );
+        }
     }
 /*-----------------------------------------------------------*/
 
@@ -432,14 +449,14 @@
  * @param[out] pxMACAddress The resulting MAC-address will be stored here.
  * @param[out] ppxEndPoint A pointer to a pointer to an end-point, where the end-point will be stored.
  *
- * @return An enum: either eARPCacheHit or eARPCacheMiss.
+ * @return An enum: either eAddrResCacheHit or eAddrResCacheMiss.
  */
-    static eARPLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
+    static eAddrResLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_t ** ppxEndPoint )
     {
         BaseType_t x;
-        eARPLookupResult_t eReturn = eARPCacheMiss;
+        eAddrResLookupResult_t eReturn = eAddrResCacheMiss;
 
         /* For each entry in the ND cache table. */
         for( x = 0; x < ipconfigND_CACHE_ENTRIES; x++ )
@@ -451,7 +468,7 @@
             else if( memcmp( xNDCache[ x ].xIPAddress.ucBytes, pxAddressToLookup->ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
             {
                 ( void ) memcpy( pxMACAddress->ucBytes, xNDCache[ x ].xMACAddress.ucBytes, sizeof( MACAddress_t ) );
-                eReturn = eARPCacheHit;
+                eReturn = eAddrResCacheHit;
 
                 if( ppxEndPoint != NULL )
                 {
@@ -475,7 +492,7 @@
             }
         }
 
-        if( eReturn == eARPCacheMiss )
+        if( eReturn == eAddrResCacheMiss )
         {
             FreeRTOS_printf( ( "prvNDCacheLookup %pip Miss\n", ( void * ) pxAddressToLookup->ucBytes ) );
 
@@ -521,7 +538,7 @@
                 }
             }
 
-            FreeRTOS_printf( ( "Arp has %ld entries\n", xCount ) );
+            FreeRTOS_printf( ( "ND has %ld entries\n", xCount ) );
         }
 
     #endif /* ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 ) */
@@ -910,7 +927,7 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief When a neighbour advertisement has been received, check if 'pxARPWaitingNetworkBuffer'
+ * @brief When a neighbour advertisement has been received, check if 'pxNDWaitingNetworkBuffer'
  *        was waiting for this new address look-up. If so, feed it to the IP-task as a new
  *        incoming packet.
  */
@@ -919,7 +936,7 @@
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
         /* coverity[misra_c_2012_rule_11_3_violation] */
-        const IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxARPWaitingNetworkBuffer->pucEthernetBuffer );
+        const IPPacket_IPv6_t * pxIPPacket = ( ( IPPacket_IPv6_t * ) pxNDWaitingNetworkBuffer->pucEthernetBuffer );
         const IPHeader_IPv6_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
         if( memcmp( pxIPv6Address->ucBytes, pxIPHeader->xSourceAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ) == 0 )
@@ -930,21 +947,21 @@
             FreeRTOS_printf( ( "Waiting done\n" ) );
 
             xEventMessage.eEventType = eNetworkRxEvent;
-            xEventMessage.pvData = ( void * ) pxARPWaitingNetworkBuffer;
+            xEventMessage.pvData = ( void * ) pxNDWaitingNetworkBuffer;
 
             if( xSendEventStructToIPTask( &xEventMessage, xDontBlock ) != pdPASS )
             {
                 /* Failed to send the message, so release the network buffer. */
-                vReleaseNetworkBufferAndDescriptor( BUFFER_FROM_WHERE_CALL( 140 ) pxARPWaitingNetworkBuffer );
+                vReleaseNetworkBufferAndDescriptor( BUFFER_FROM_WHERE_CALL( 140 ) pxNDWaitingNetworkBuffer );
             }
 
             /* Clear the buffer. */
-            pxARPWaitingNetworkBuffer = NULL;
+            pxNDWaitingNetworkBuffer = NULL;
 
-            /* Found an ARP resolution, disable ARP resolution timer. */
-            vIPSetARPResolutionTimerEnableState( pdFALSE );
+            /* Found an ND resolution, disable ND resolution timer. */
+            vIPSetNDResolutionTimerEnableState( pdFALSE );
 
-            iptrace_DELAYED_ARP_REQUEST_REPLIED();
+            iptrace_DELAYED_ND_REQUEST_REPLIED();
         }
     }
 /*-----------------------------------------------------------*/
@@ -1124,8 +1141,8 @@
                         vReceiveNA( pxNetworkBuffer );
                     #endif
 
-                    if( ( pxARPWaitingNetworkBuffer != NULL ) &&
-                        ( uxIPHeaderSizePacket( pxARPWaitingNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
+                    if( ( pxNDWaitingNetworkBuffer != NULL ) &&
+                        ( uxIPHeaderSizePacket( pxNDWaitingNetworkBuffer ) == ipSIZE_OF_IPv6_HEADER ) )
                     {
                         prvCheckWaitingBuffer( &( pxICMPHeader_IPv6->xIPv6Address ) );
                     }
@@ -1341,7 +1358,7 @@
             ( ucNextHeader == ipPROTOCOL_UDP ) )
         {
             IPv6_Type_t eType = xIPv6_GetIPType( ( const IPv6_Address_t * ) pxIPAddress );
-            FreeRTOS_debug_printf( ( "xCheckRequiresARPResolution: %pip type %s\n",
+            FreeRTOS_debug_printf( ( "xCheckRequiresNDResolution: %pip type %s\n",
                                      ( void * ) pxIPAddress->ucBytes,
                                      ( eType == eIPv6_Global ) ? "Global" :
                                      ( eType == eIPv6_LinkLocal ) ? "LinkLocal" :
@@ -1352,14 +1369,14 @@
             {
                 MACAddress_t xMACAddress;
                 NetworkEndPoint_t * pxEndPoint;
-                eARPLookupResult_t eResult;
+                eAddrResLookupResult_t eResult;
                 char pcName[ 80 ];
 
                 ( void ) memset( &( pcName ), 0, sizeof( pcName ) );
                 eResult = eNDGetCacheEntry( pxIPAddress, &xMACAddress, &pxEndPoint );
-                FreeRTOS_printf( ( "xCheckRequiresARPResolution: eResult %s with EP %s\n", ( eResult == eARPCacheMiss ) ? "Miss" : ( eResult == eARPCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
+                FreeRTOS_printf( ( "xCheckRequiresNDResolution: eResult %s with EP %s\n", ( eResult == eAddrResCacheMiss ) ? "Miss" : ( eResult == eAddrResCacheHit ) ? "Hit" : "Error", pcEndpointName( pxEndPoint, pcName, sizeof pcName ) ) );
 
-                if( eResult == eARPCacheMiss )
+                if( eResult == eAddrResCacheMiss )
                 {
                     NetworkBufferDescriptor_t * pxTempBuffer;
                     size_t uxNeededSize;
