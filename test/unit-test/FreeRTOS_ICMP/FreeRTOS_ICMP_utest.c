@@ -103,6 +103,9 @@ void test_ProcessICMPPacket_EchoRequest( void )
     IPHeader_t * pxIPHeader;
     ICMPPacket_t * pxICMPPacket;
     ICMPHeader_t * pxICMPHeader;
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    pxNetworkEndPoints = &xEndPoint;
 
     pxNetworkBuffer = &xNetworkBuffer;
     pxNetworkBuffer->pucEthernetBuffer = ucEthBuffer;
@@ -127,7 +130,7 @@ void test_ProcessICMPPacket_EchoRequest( void )
     TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
     TEST_ASSERT_EQUAL( ( uint8_t ) ipICMP_ECHO_REPLY, pxICMPHeader->ucTypeOfMessage );
     TEST_ASSERT_EQUAL( pxIPHeader->ulSourceIPAddress, pxIPHeader->ulDestinationIPAddress );
-    TEST_ASSERT_EQUAL( *ipLOCAL_IP_ADDRESS_POINTER, pxIPHeader->ulSourceIPAddress );
+    TEST_ASSERT_EQUAL( xEndPoint.ipv4_settings.ulIPAddress, pxIPHeader->ulSourceIPAddress );
     TEST_ASSERT_EQUAL( ipconfigICMP_TIME_TO_LIVE, pxIPHeader->ucTimeToLive );
     TEST_ASSERT_EQUAL( 0, pxIPHeader->usFragmentOffset );
     TEST_ASSERT_EQUAL( ( uint16_t ) ~FreeRTOS_htons( 0xAA ), pxIPHeader->usHeaderChecksum );

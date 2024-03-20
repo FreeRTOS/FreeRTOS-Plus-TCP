@@ -91,20 +91,6 @@ extern struct freertos_sockaddr pucSockAddrBuffer[ 1 ];
 void setUp( void )
 {
     xBufferAllocFixedSize = pdFALSE;
-    xDefaultPartUDPPacketHeader.ucBytes[ 0 ] = 1;
-    xDefaultPartUDPPacketHeader.ucBytes[ 1 ] = 2;
-    xDefaultPartUDPPacketHeader.ucBytes[ 2 ] = 3;
-    xDefaultPartUDPPacketHeader.ucBytes[ 3 ] = 4;
-    xDefaultPartUDPPacketHeader.ucBytes[ 4 ] = 5;
-    xDefaultPartUDPPacketHeader.ulWords[ 0 ] = 6;
-    xDefaultPartUDPPacketHeader.ulWords[ 1 ] = 7;
-    xDefaultPartUDPPacketHeader.ulWords[ 2 ] = 8;
-    xDefaultPartUDPPacketHeader.ulWords[ 3 ] = 9;
-    xDefaultPartUDPPacketHeader.ulWords[ 4 ] = 10;
-    xDefaultPartUDPPacketHeader.ulWords[ 5 ] = 11;
-    xDefaultPartUDPPacketHeader.ulWords[ 6 ] = 12;
-    xDefaultPartUDPPacketHeader.ulWords[ 7 ] = 13;
-    xDefaultPartUDPPacketHeader.ulWords[ 8 ] = 14;
     callback_called = 0;
 }
 

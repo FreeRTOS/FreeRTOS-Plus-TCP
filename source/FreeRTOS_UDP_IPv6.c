@@ -65,10 +65,6 @@
     #if( ipconfigUSE_IPv6 != 0 )
 /* *INDENT-ON* */
 
-
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
 /*-----------------------------------------------------------*/
 
 /* _HT_ this is a temporary aid while testing. In case an end-0point is not found,

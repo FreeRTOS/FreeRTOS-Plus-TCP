@@ -200,7 +200,8 @@ void test_FreeRTOS_IPInit_HappyPath( void )
     NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
@@ -254,14 +255,12 @@ void test_FreeRTOS_IPInit_QueueCreationFails( void )
     NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
 
@@ -296,14 +295,12 @@ void test_FreeRTOS_IPInit_BufferCreationFails( void )
     NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
 
@@ -346,14 +343,12 @@ void test_FreeRTOS_IPInit_TaskCreationFails( void )
     NetworkInterface_t * pxNetworkInterface = &xNetworkInterface;
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xFirstEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xFirstEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
     pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
-
-    /* Clear default values. */
-    memset( ipLOCAL_MAC_ADDRESS, 0, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
 
     vPreCheckConfigs_Expect();
 
