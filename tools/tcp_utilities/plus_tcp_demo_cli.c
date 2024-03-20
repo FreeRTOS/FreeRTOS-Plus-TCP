@@ -1099,6 +1099,7 @@ static struct freertos_addrinfo * pxDNSLookup( char * pcHost,
     {
         xHints.ai_family = FREERTOS_AF_INET;
     }
+
     FreeRTOS_printf( ( "pxDNSLookup: '%s' IPv%d %s DNS-clear = %s\n",
                        pcHost, ( int ) xIPVersion, ( xAsynchronous != 0 ) ? "Async" : "Sync", ( xDoClear != 0 ) ? "true" : "false" ) );
 

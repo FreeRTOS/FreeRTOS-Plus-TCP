@@ -287,6 +287,7 @@
             {
                 xHints.ai_family = FREERTOS_AF_INET6;
             }
+
             pcHostname = pcHostNames[ uxInstance ];
 
             {
@@ -388,6 +389,7 @@
                     xBindAddress.sin_family = FREERTOS_AF_INET;
                 }
             }
+
             rc = FreeRTOS_bind( xSocket, &( xBindAddress ), sizeof( xBindAddress ) );
 
             if( rc != 0 )
