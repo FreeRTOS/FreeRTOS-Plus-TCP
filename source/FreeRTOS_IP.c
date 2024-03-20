@@ -92,13 +92,6 @@
     #endif
 #endif
 
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- * within the last round. */
-    BaseType_t xProcessedTCPMessage;
-#endif
-
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
@@ -2022,9 +2015,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                     eReturn = eFrameConsumed;
                                 }
 
-                                /* Setting this variable will cause xTCPTimerCheck()
-                                 * to be called just before the IP-task blocks. */
-                                xProcessedTCPMessage++;
                                 break;
                         #endif /* if ipconfigUSE_TCP == 1 */
                     default:

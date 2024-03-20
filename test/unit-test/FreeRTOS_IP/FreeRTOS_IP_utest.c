@@ -2659,7 +2659,6 @@ void test_prvProcessIPPacket_TCP( void )
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
-    uint32_t backup = xProcessedTCPMessage;
     struct xNetworkInterface xInterface;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
@@ -2689,7 +2688,6 @@ void test_prvProcessIPPacket_TCP( void )
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eFrameConsumed, eResult );
-    TEST_ASSERT_EQUAL( backup + 1, xProcessedTCPMessage );
 }
 
 /**
@@ -2705,7 +2703,6 @@ void test_prvProcessIPPacket_TCPProcessFail( void )
     uint8_t ucEthBuffer[ ipconfigTCP_MSS ];
     IPHeader_t * pxIPHeader;
     BaseType_t xReturnValue = pdTRUE;
-    uint32_t backup = xProcessedTCPMessage;
     NetworkEndPoint_t xEndPoint = { 0 };
     struct xNetworkInterface xInterface;
 
@@ -2736,7 +2733,6 @@ void test_prvProcessIPPacket_TCPProcessFail( void )
     eResult = prvProcessIPPacket( pxIPPacket, pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( eProcessBuffer, eResult );
-    TEST_ASSERT_EQUAL( backup + 1, xProcessedTCPMessage );
 }
 
 /**

@@ -44,8 +44,6 @@ volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
-BaseType_t xProcessedTCPMessage;
-
 struct xNetworkEndPoint * pxNetworkEndPoints;
 struct xNetworkInterface * pxNetworkInterfaces;
 
