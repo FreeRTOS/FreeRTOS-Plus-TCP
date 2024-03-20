@@ -2014,7 +2014,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                 {
                                     eReturn = eFrameConsumed;
                                 }
-
                                 break;
                         #endif /* if ipconfigUSE_TCP == 1 */
                     default:
