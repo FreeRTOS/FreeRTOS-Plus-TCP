@@ -709,12 +709,12 @@ static int prvConfigureCaptureBehaviour( void )
      * stack.  errbuf is used for convenience to create the string.  Don't
      * confuse this with an error message. */
     sprintf( pcap_filter, "broadcast or multicast or ether host %x:%x:%x:%x:%x:%x",
-             ipLOCAL_MAC_ADDRESS[ 0 ],
-             ipLOCAL_MAC_ADDRESS[ 1 ],
-             ipLOCAL_MAC_ADDRESS[ 2 ],
-             ipLOCAL_MAC_ADDRESS[ 3 ],
-             ipLOCAL_MAC_ADDRESS[ 4 ],
-             ipLOCAL_MAC_ADDRESS[ 5 ] );
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 0 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 1 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 2 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 3 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 4 ],
+             pxMyInterface->pxEndPoint->xMACAddress.ucBytes[ 5 ] );
     FreeRTOS_debug_printf( ( "pcap filter to compile: %s\n", pcap_filter ) );
 
     ulNetMask = FreeRTOS_inet_addr_quick( configNET_MASK0, configNET_MASK1, configNET_MASK2, configNET_MASK3 );
