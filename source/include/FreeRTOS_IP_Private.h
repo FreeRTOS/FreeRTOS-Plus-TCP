@@ -328,17 +328,6 @@ extern uint16_t usPacketIdentifier;
  */
 extern List_t xBoundUDPSocketsList;
 
-/**
- * Define a default UDP packet header (declared in FreeRTOS_UDP_IP.c)
- */
-typedef union xUDPPacketHeader
-{
-    uint8_t ucBytes[ 24 ]; /**< Member: 8-bit array */
-    uint32_t ulWords[ 6 ]; /**< Member: 32-bit array */
-} UDPPacketHeader_t;
-extern UDPPacketHeader_t xDefaultPartUDPPacketHeader;
-
-
 /* True when BufferAllocation_1.c was included, false for BufferAllocation_2.c */
 extern const BaseType_t xBufferAllocFixedSize;
 
@@ -357,14 +346,6 @@ extern struct xNetworkInterface * pxNetworkInterfaces;
 #if ( ipconfigUSE_TCP == 1 )
     extern List_t xBoundTCPSocketsList;
 #endif
-
-/* The local IP address is accessed from within xDefaultPartUDPPacketHeader,
- * rather than duplicated in its own variable. */
-#define ipLOCAL_IP_ADDRESS_POINTER     ( ( uint32_t * ) &( xDefaultPartUDPPacketHeader.ulWords[ 20U / sizeof( uint32_t ) ] ) )
-
-/* The local MAC address is accessed from within xDefaultPartUDPPacketHeader,
- * rather than duplicated in its own variable. */
-#define ipLOCAL_MAC_ADDRESS            ( xDefaultPartUDPPacketHeader.ucBytes )
 
 /* ICMP packets are sent using the same function as UDP packets.  The port
  * number is used to distinguish between the two, as 0 is an invalid UDP port. */

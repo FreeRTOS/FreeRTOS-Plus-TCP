@@ -58,32 +58,6 @@
     #include "FreeRTOS_DNS.h"
 #endif
 
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
-
-/** @brief Part of the Ethernet and IP headers are always constant when sending an IPv4
- * UDP packet.  This array defines the constant parts, allowing this part of the
- * packet to be filled in using a simple memcpy() instead of individual writes. */
-/*lint -e708 (Info -- union initialization). */
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
-/*-----------------------------------------------------------*/
-
 /**
  * @brief Process the generated UDP packet and do other checks before sending the
  *        packet such as cache check and address resolution.

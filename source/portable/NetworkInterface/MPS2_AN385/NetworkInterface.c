@@ -132,8 +132,8 @@ static void prvSetMACAddress( void )
 
     /* Using local variables to make sure the right alignment is used.  The MAC
      * address is 6 bytes, hence the copy of 4 bytes followed by 2 bytes. */
-    memcpy( ( void * ) &ucMACLow, ( void * ) ipLOCAL_MAC_ADDRESS, 4 );
-    memcpy( ( void * ) &ucMACHigh, ( void * ) ( ipLOCAL_MAC_ADDRESS + 4 ), 2 );
+    memcpy( ( void * ) &ucMACLow, ( void * ) pxMyInterface->pxEndPoint->xMACAddress.ucBytes, 4 );
+    memcpy( ( void * ) &ucMACHigh, ( void * ) ( pxMyInterface->pxEndPoint->xMACAddress.ucBytes + 4 ), 2 );
 
     if( smsc9220_mac_regwrite( dev, SMSC9220_MAC_REG_OFFSET_ADDRL, ucMACLow ) != 0 )
     {

@@ -989,8 +989,7 @@
         #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
         /* And bind it to the same local port as its parent. */
-        /*TODO xAddress.sin_address.ulIP_IPv4 = *ipLOCAL_IP_ADDRESS_POINTER; */
-        xAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
+        ( void ) FreeRTOS_GetLocalAddress( pxSocket, &xAddress );
 
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
         {
