@@ -26,16 +26,15 @@
 #ifndef FREERTOS_ROUTING_H
     #define FREERTOS_ROUTING_H
 
-    #include "FreeRTOS.h"
+/* Global Includes & Definitions. */
+    #include "FreeRTOS_IP_Common.h"
+
+/* Core FreeRTOS+TCP Includes. */
     #include "FreeRTOS_IP.h"
 
-    #if ( ipconfigUSE_DHCP != 0 )
-        #include "FreeRTOS_DHCP.h"
-    #endif
-
-    #if ( ipconfigUSE_IPv6 != 0 )
-        #include "FreeRTOS_DHCPv6.h"
-    #endif
+/* Optional FreeRTOS+TCP Includes. */
+    #include "FreeRTOS_DHCP.h"
+    #include "FreeRTOS_DHCPv6.h"
 
     #ifdef __cplusplus
     extern "C" {

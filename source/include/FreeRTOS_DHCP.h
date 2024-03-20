@@ -28,11 +28,10 @@
 #ifndef FREERTOS_DHCP_H
 #define FREERTOS_DHCP_H
 
-#include "FreeRTOS.h"
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
 
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-
+/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_Sockets.h"
 
 /* *INDENT-OFF* */

@@ -28,11 +28,8 @@
 #ifndef FREERTOS_IPV4_SOCKETS_H
     #define FREERTOS_IPV4_SOCKETS_H
 
-/* Standard includes. */
-    #include <string.h>
-
-/* FreeRTOS includes. */
-    #include "FreeRTOS.h"
+/* Global Includes & Definitions. */
+    #include "FreeRTOS_IP_Common.h"
 
     #ifdef __cplusplus
     extern "C" {

@@ -28,12 +28,7 @@
 #ifndef FREERTOS_IP_H
 #define FREERTOS_IP_H
 
-#include "FreeRTOS.h"
-#include "task.h"
-
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
+/* Global Includes & Definitions. */
 #include "FreeRTOS_IP_Common.h"
 
 /* *INDENT-OFF* */
@@ -492,11 +487,9 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
     extern BaseType_t xProcessedTCPMessage;
 #endif
 
+/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
-
-
 #include "FreeRTOS_IPv4.h"
-
 #include "FreeRTOS_IPv6.h"
 
 /* *INDENT-OFF* */
