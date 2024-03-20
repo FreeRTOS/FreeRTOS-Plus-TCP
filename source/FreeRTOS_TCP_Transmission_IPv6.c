@@ -253,7 +253,6 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
              * compliant with MISRA Rule 21.15.  These should be
              * optimized away.
              */
-            /* The source MAC addresses is fixed to 'ipLOCAL_MAC_ADDRESS'. */
             pvCopySource = pxNetworkBuffer->pxEndPoint->xMACAddress.ucBytes;
             pvCopyDest = &pxEthernetHeader->xSourceAddress;
             ( void ) memcpy( pvCopyDest, pvCopySource, ( size_t ) ipMAC_ADDRESS_LENGTH_BYTES );
