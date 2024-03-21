@@ -1821,7 +1821,7 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
             #if ( ipconfigUSE_IPv4 != 0 )
                 if( pxAddress->sin_address.ulIP_IPv4 != FREERTOS_INADDR_ANY )
                 {
-                    pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_address.ulIP_IPv4, 7 );
+                    pxSocket->pxEndPoint = FreeRTOS_FindEndPointOnIP_IPv4( pxAddress->sin_address.ulIP_IPv4 );
                 }
                 else
             #endif /* ( ipconfigUSE_IPv4 != 0 ) */

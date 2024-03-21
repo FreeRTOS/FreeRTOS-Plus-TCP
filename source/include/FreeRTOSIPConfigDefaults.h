@@ -3056,22 +3056,6 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * ipconfigHAS_ROUTING_STATISTICS
- *
- * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
- */
-
-#ifndef ipconfigHAS_ROUTING_STATISTICS
-    #define ipconfigHAS_ROUTING_STATISTICS    ipconfigENABLE
-#endif
-
-#if ( ( ipconfigHAS_ROUTING_STATISTICS != ipconfigDISABLE ) && ( ipconfigHAS_ROUTING_STATISTICS != ipconfigENABLE ) )
-    #error Invalid ipconfigHAS_ROUTING_STATISTICS configuration
-#endif
-
-/*---------------------------------------------------------------------------*/
-
 /*===========================================================================*/
 /*                              ROUTING CONFIG                               */
 /*===========================================================================*/
