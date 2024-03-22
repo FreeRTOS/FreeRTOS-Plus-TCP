@@ -33,8 +33,12 @@
     #include "FreeRTOS_IP.h"
 
 /* Optional FreeRTOS+TCP Includes. */
-    #include "FreeRTOS_DHCP.h"
-    #include "FreeRTOS_DHCPv6.h"
+    #if ( ipconfigUSE_DHCP != 0 )
+        #include "FreeRTOS_DHCP.h"
+    #endif
+    #if ( ipconfigUSE_IPv6 != 0 )
+        #include "FreeRTOS_DHCPv6.h"
+    #endif
 
     #ifdef __cplusplus
     extern "C" {
