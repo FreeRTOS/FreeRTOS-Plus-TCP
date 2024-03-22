@@ -960,10 +960,6 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                         break;
                 }
 
-                #if ( ipconfigUSE_IPv4 != 0 )
-                    *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
-                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
-
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */
                 vIPNetworkUpCalls( pxEndPoint );

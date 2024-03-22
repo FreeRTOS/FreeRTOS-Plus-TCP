@@ -84,8 +84,6 @@ void test_eARPProcessPacket_DifferentHardwareAddress( void )
     pxARPFrame->xARPHeader.usHardwareType = ipARP_HARDWARE_TYPE_ETHERNET + 1;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
 
-    /* When the local IP address is 0, we should not process any ARP Packets. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -108,8 +106,6 @@ void test_eARPProcessPacket_DifferentProtocolType( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
 
-    /* When the local IP address is 0, we should not process any ARP Packets. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -133,8 +129,6 @@ void test_eARPProcessPacket_DifferentHardwareLength( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
 
-    /* When the local IP address is 0, we should not process any ARP Packets. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -160,8 +154,6 @@ void test_eARPProcessPacket_DifferentProtocolLength( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
 
-    /* When the local IP address is 0, we should not process any ARP Packets. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0UL;
     eResult = eARPProcessPacket( pxNetworkBuffer );
     TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
     /* =================================================== */
@@ -334,11 +326,11 @@ void test_eARPProcessPacket_InvalidOperation( void )
     pxARPFrame->xARPHeader.usProtocolType = ipARP_PROTOCOL_TYPE;
     pxARPFrame->xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 0x11;
     memcpy( pxARPFrame->xARPHeader.ucSenderProtocolAddress, &( pxARPFrame->xARPHeader.ulTargetProtocolAddress ), sizeof( pxARPFrame->xARPHeader.ulTargetProtocolAddress ) );
 
     /* What if some invalid option is sent in the ARP Packet? */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Add invalid operation */
     pxARPFrame->xARPHeader.usOperation = ipARP_REQUEST | ipARP_REPLY;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
@@ -370,7 +362,7 @@ void test_eARPProcessPacket_Request_DifferentIP( void )
     xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REQUEST;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 0x11;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
     pxNetworkBuffer->xDataLength = sizeof( ARPPacket_t );
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
@@ -400,8 +392,8 @@ void test_eARPProcessPacket_Request_SenderMACSameAsLocalMAC( void )
     pxARPFrame->xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
-    memset( ipLOCAL_MAC_ADDRESS, 0x22, sizeof( MACAddress_t ) );
-    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
     xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
@@ -414,7 +406,7 @@ void test_eARPProcessPacket_Request_SenderMACSameAsLocalMAC( void )
 
     FreeRTOS_FindEndPointOnNetMask_IgnoreAndReturn( &xEndPoint );
     eResult = eARPProcessPacket( pxNetworkBuffer );
-    TEST_ASSERT_EQUAL( eReturnEthernetFrame, eResult );
+    TEST_ASSERT_EQUAL( eReleaseBuffer, eResult );
 }
 
 void test_eARPProcessPacket_Request_SenderAndTargetDifferent( void )
@@ -970,13 +962,13 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
     pxARPFrame->xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
-    memset( ipLOCAL_MAC_ADDRESS, 0x22, sizeof( MACAddress_t ) );
-    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REPLY;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress;
 
     uint32_t ulSenderProtocolAddress = 0xFFAAEEBB;
 
@@ -988,7 +980,7 @@ void test_eARPProcessPacket_Reply_TargetIPSameAsLocalIP( void )
     FreeRTOS_FindEndPointOnNetMask_ExpectAnyArgsAndReturn( NULL );
 
     xEndPoint.bits.bEndPointUp = pdTRUE_UNSIGNED;
-    xEndPoint.ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER;
+    xEndPoint.ipv4_settings.ulIPAddress = xEndPoint.ipv4_settings.ulIPAddress;
     xNetworkBuffer.pucEthernetBuffer = ( uint8_t * ) pxARPFrame;
     xNetworkBuffer.xDataLength = sizeof( ARPPacket_t );
     xNetworkBuffer.pxEndPoint = &xEndPoint;
@@ -1017,13 +1009,13 @@ void test_eARPProcessPacket_Reply_TargetIPNotSameAsLocalIP_ButEntryInCache( void
     pxARPFrame->xARPHeader.ucHardwareAddressLength = ipMAC_ADDRESS_LENGTH_BYTES;
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
-    memset( ipLOCAL_MAC_ADDRESS, 0x22, sizeof( MACAddress_t ) );
-    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memset( xEndPoint.xMACAddress.ucBytes, 0x22, sizeof( MACAddress_t ) );
+    memcpy( &( pxARPFrame->xARPHeader.xSenderHardwareAddress ), xEndPoint.xMACAddress.ucBytes, sizeof( MACAddress_t ) );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REPLY;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 1;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 1;
 
     uint32_t ulSenderProtocolAddress = 0xFFAAEEBB;
 
@@ -1159,10 +1151,10 @@ void test_eARPProcessPacket_Reply_DifferentIP( void )
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
     /* Process an ARP reply - not meant for this node. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REPLY;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 0x11;
     memcpy( pxARPFrame->xARPHeader.ucSenderProtocolAddress, &( pxARPFrame->xARPHeader.ulTargetProtocolAddress ), sizeof( pxARPFrame->xARPHeader.ulTargetProtocolAddress ) );
 
     /* Reset the private variable uxARPClashCounter. */
@@ -1204,10 +1196,10 @@ void test_eARPProcessPacket_Reply_DifferentIP_WaitingBufferNonNull( void )
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
     /* Process an ARP reply - not meant for this node. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REPLY;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 0x11;
     memcpy( pxARPFrame->xARPHeader.ucSenderProtocolAddress, &( pxARPFrame->xARPHeader.ulTargetProtocolAddress ), sizeof( pxARPFrame->xARPHeader.ulTargetProtocolAddress ) );
 
     /* Reset the private variable uxARPClashCounter. */
@@ -1251,10 +1243,10 @@ void test_eARPProcessPacket_Reply_WaitingBufferIncorrectHeaderSize( void )
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
     /* Process an ARP reply - not meant for this node. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REPLY;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 0x11;
     memcpy( pxARPFrame->xARPHeader.ucSenderProtocolAddress, &( pxARPFrame->xARPHeader.ulTargetProtocolAddress ), sizeof( pxARPFrame->xARPHeader.ulTargetProtocolAddress ) );
 
     /* Reset the private variable uxARPClashCounter. */
@@ -1301,10 +1293,10 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress1( void )
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
     /* Process an ARP reply - not meant for this node. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REPLY;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 0x11;
     memcpy( pxARPFrame->xARPHeader.ucSenderProtocolAddress, &( pxARPFrame->xARPHeader.ulTargetProtocolAddress ), sizeof( pxARPFrame->xARPHeader.ulTargetProtocolAddress ) );
 
     memcpy( &( pxARPWaitingIPHeader->ulSourceIPAddress ), pxARPFrame->xARPHeader.ucSenderProtocolAddress, sizeof( pxARPWaitingIPHeader->ulSourceIPAddress ) );
@@ -1358,10 +1350,10 @@ void test_eARPProcessPacket_Reply_WaitingBufferNonNull_MatchingAddress2( void )
     pxARPFrame->xARPHeader.ucProtocolAddressLength = ipIP_ADDRESS_LENGTH_BYTES;
 
     /* Process an ARP reply - not meant for this node. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCDD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCDD;
     /* Fill in the request option. */
     pxARPFrame->xARPHeader.usOperation = ipARP_REPLY;
-    pxARPFrame->xARPHeader.ulTargetProtocolAddress = *ipLOCAL_IP_ADDRESS_POINTER + 0x11;
+    pxARPFrame->xARPHeader.ulTargetProtocolAddress = xEndPoint.ipv4_settings.ulIPAddress + 0x11;
     memcpy( pxARPFrame->xARPHeader.ucSenderProtocolAddress, &( pxARPFrame->xARPHeader.ulTargetProtocolAddress ), sizeof( pxARPFrame->xARPHeader.ulTargetProtocolAddress ) );
 
     memcpy( &( pxARPWaitingIPHeader->ulSourceIPAddress ), pxARPFrame->xARPHeader.ucSenderProtocolAddress, sizeof( pxARPWaitingIPHeader->ulSourceIPAddress ) );
@@ -1472,13 +1464,13 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     /* Make sure there is no match. */
-    pxIPHeader->ulSourceIPAddress = ~( *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask );
+    pxIPHeader->ulSourceIPAddress = ~( xEndPoint.ipv4_settings.ulIPAddress & xEndPoint.ipv4_settings.ulNetMask );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
 
@@ -1501,13 +1493,13 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork_InvalidHeader( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     /* Make sure there is no match. */
-    pxIPHeader->ulSourceIPAddress = ~( *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask );
+    pxIPHeader->ulSourceIPAddress = ~( xEndPoint.ipv4_settings.ulIPAddress & xEndPoint.ipv4_settings.ulNetMask );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_IPv4_HEADER );
 
@@ -1530,13 +1522,13 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork_IPv6( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     /* Make sure there is no match. */
-    pxIPHeader->ulSourceIPAddress = ~( *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask );
+    pxIPHeader->ulSourceIPAddress = ~( xEndPoint.ipv4_settings.ulIPAddress & xEndPoint.ipv4_settings.ulNetMask );
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv6_HEADER );
 
@@ -1611,14 +1603,14 @@ void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )
     IPPacket_t * pxIPPacket = ( ( IPPacket_t * ) pxNetworkBuffer->pucEthernetBuffer );
     IPHeader_t * pxIPHeader = &( pxIPPacket->xIPHeader );
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD1234;
 
     xEndPoint.ipv4_settings.ulNetMask = 0xFFFFFF00;
     xNetworkBuffer.pxEndPoint = &xEndPoint;
 
     /* Make sure there is a match. */
-    pxIPHeader->ulSourceIPAddress = *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask;
-    xEndPoint.ipv4_settings.ulIPAddress = *ipLOCAL_IP_ADDRESS_POINTER & xEndPoint.ipv4_settings.ulNetMask;
+    pxIPHeader->ulSourceIPAddress = xEndPoint.ipv4_settings.ulIPAddress & xEndPoint.ipv4_settings.ulNetMask;
+    xEndPoint.ipv4_settings.ulIPAddress = xEndPoint.ipv4_settings.ulIPAddress & xEndPoint.ipv4_settings.ulNetMask;
     xEndPoint.bits.bIPv6 = pdFALSE_UNSIGNED;
 
     /* And that the IP is not in ARP cache. */
@@ -1876,7 +1868,7 @@ void test_vARPRefreshCacheEntry_IPOnADifferentSubnet( void )
     /* Set a MAC address which will match */
     memset( xARPCache[ xUseEntry ].xMACAddress.ucBytes, 0x11, sizeof( xMACAddress.ucBytes ) );
     /* Set a local IP address */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xAABBCCEF;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xAABBCCEF;
 
     /* The IP address being passed should not be on the same subnet. */
     ulIPAddress = 0x00BBCCEE;
@@ -2196,7 +2188,7 @@ void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
     /* =================================================== */
     ulIPAddress = 0x4321;
     /* Make both values (IP address and local IP pointer) different. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
     /* Add the IP address in the cache so that we'll have a cache hit. */
     xARPCache[ 1 ].ulIPAddress = xNetworkAddressing.ulGatewayAddress;
     /* But reset the valid bit. */
@@ -2225,7 +2217,7 @@ void test_eARPGetCacheEntry_MatchingValidEntry( void )
     /* =================================================== */
     ulIPAddress = 0x4321;
     /* Make both values (IP address and local IP pointer) different. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
     /* Add the IP address in the cache so that we'll have a cache hit. */
     xARPCache[ 1 ].ulIPAddress = xNetworkAddressing.ulGatewayAddress;
     /* Now try with a set valid bit. */
@@ -2259,7 +2251,7 @@ void test_eARPGetCacheEntry_GatewayAddressZero( void )
         xARPCache[ i ].ucValid = ( uint8_t ) pdFALSE;
     }
 
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
 
     ulIPAddress = 0x4321;
     /* Not worried about what these functions do. */
@@ -2287,7 +2279,8 @@ void test_eARPGetCacheEntry_AddressNotOnLocalAddress( void )
     ulIPAddress = 0;
     /* Make both values (IP address and local IP pointer) different. */
     /* Get any address on the same netmask. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x00000034;
+    pxNetworkEndPoints = &xEndPoint;
 
     /* Not worried about what these functions do. */
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
@@ -2324,7 +2317,8 @@ void test_eARPGetCacheEntry_NoCacheHit( void )
 
     /* Make both values (IP address and local IP pointer) different
      * and on different net masks. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x1234;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x1234;
+    pxNetworkEndPoints = &xEndPoint;
     /* Not worried about what these functions do. */
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
     xIsIPv4Multicast_ExpectAndReturn( ulIPAddress, 0UL );
@@ -2676,7 +2670,7 @@ void test_xARPWaitResolution_GNWFailsNoTimeout( void )
     ulIPAddress = 0x00000031;
     /* Make both values (IP address and local IP pointer) different. */
     /* Get any address on the same netmask. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x00000034;
 
     /* Assertion on calling from IP-task */
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
@@ -2727,7 +2721,7 @@ void test_xARPWaitResolution( void )
     ulIPAddress = 0x00000031;
     /* Make both values (IP address and local IP pointer) different. */
     /* Get any address on the same netmask. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x00000034;
 
     /* Assertion on calling from IP-task */
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
@@ -2775,7 +2769,7 @@ void test_xARPWaitResolution( void )
     ulIPAddress = 0x00000031;
     /* Make both values (IP address and local IP pointer) different. */
     /* Get any address on the same netmask. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0x00000034;
+    xEndPoint.ipv4_settings.ulIPAddress = 0x00000034;
 
     /* Assertion on calling from IP-task */
     FreeRTOS_FindEndPointOnIP_IPv4_ExpectAnyArgsAndReturn( NULL );
