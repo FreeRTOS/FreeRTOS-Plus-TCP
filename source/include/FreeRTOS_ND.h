@@ -26,12 +26,10 @@
 #ifndef FREERTOS_ND_H
 #define FREERTOS_ND_H
 
-#include "FreeRTOS.h"
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
 
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
-
+/* Optional FreeRTOS+TCP Includes. */
 #include "FreeRTOS_ARP.h"
 
 /* *INDENT-OFF* */

@@ -28,11 +28,10 @@
 #ifndef FREERTOS_DNS_GLOBALS_H
 #define FREERTOS_DNS_GLOBALS_H
 
-#include "FreeRTOS.h"
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
 
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
-
+/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_Sockets.h"
 
 #define dnsPARSE_ERROR              0UL

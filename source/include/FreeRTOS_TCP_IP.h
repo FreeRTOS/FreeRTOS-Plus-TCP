@@ -28,6 +28,9 @@
 #ifndef FREERTOS_TCP_IP_H
 #define FREERTOS_TCP_IP_H
 
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
