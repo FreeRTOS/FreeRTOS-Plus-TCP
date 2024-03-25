@@ -544,55 +544,42 @@ static void prvNTPTask( void * pvParameters )
                     FreeRTOS_printf( ( "Looking up server '%s' IPv%c\n",
                                        pcServerName,
                                        ( xPreferredHostType == FREERTOS_AF_INET4 ) ? '4' : '6' ) );
-                    #if ( ipconfigMULTI_INTERFACE != 0 )
-                        struct freertos_addrinfo xHints;
-                        struct freertos_addrinfo * pxResults = NULL;
+                    struct freertos_addrinfo xHints;
+                    struct freertos_addrinfo * pxResults = NULL;
 
-                        memset( &( xHints ), 0, sizeof xHints );
-                        xHints.ai_family = xPreferredHostType;
+                    memset( &( xHints ), 0, sizeof xHints );
+                    xHints.ai_family = xPreferredHostType;
 
-                        if( xDNSAsynchronous != 0 )
-                        {
-                            #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-                            {
-                                FreeRTOS_getaddrinfo_a( pcServerName,    /* The name of the node or device */
-                                                        NULL,            /* Ignored for now. */
-                                                        &( xHints ),     /* If not NULL: preferences. */
-                                                        &( pxResults ),  /* An allocated struct, containing the results. */
-                                                        vDNS_callback,
-                                                        ( void * ) NULL, /* An object or a reference. */
-                                                        pdMS_TO_TICKS( 2500U ) );
-                            }
-                            #else
-                            {
-                                FreeRTOS_printf( ( "ipconfigDNS_USE_CALLBACKS is not defined\n" ) );
-                            }
-                            #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
-                        }
-                        else
-                        {
-                            FreeRTOS_getaddrinfo( pcServerName,     /* The name of the node or device */
-                                                  NULL,             /* Ignored for now. */
-                                                  &( xHints ),      /* If not NULL: preferences. */
-                                                  &( pxResults ) ); /* An allocated struct, containing the results. */
-
-                            if( pxResults != NULL )
-                            {
-                                vDNS_callback( pcServerName, NULL, pxResults );
-                            }
-                        }
-                    #else /* if ( ipconfigMULTI_INTERFACE != 0 ) */
+                    if( xDNSAsynchronous != 0 )
+                    {
                         #if ( ipconfigDNS_USE_CALLBACKS != 0 )
-                            FreeRTOS_gethostbyname_a( pcServerName, vDNS_callback, ( void * ) NULL, 1200U );
+                        {
+                            FreeRTOS_getaddrinfo_a( pcServerName,    /* The name of the node or device */
+                                                    NULL,            /* Ignored for now. */
+                                                    &( xHints ),     /* If not NULL: preferences. */
+                                                    &( pxResults ),  /* An allocated struct, containing the results. */
+                                                    vDNS_callback,
+                                                    ( void * ) NULL, /* An object or a reference. */
+                                                    pdMS_TO_TICKS( 2500U ) );
+                        }
                         #else
-                            uint32_t ulIPAddress = FreeRTOS_gethostbyname( pcServerName );
+                        {
+                            FreeRTOS_printf( ( "ipconfigDNS_USE_CALLBACKS is not defined\n" ) );
+                        }
+                        #endif /* if ( ipconfigDNS_USE_CALLBACKS != 0 ) */
+                    }
+                    else
+                    {
+                        FreeRTOS_getaddrinfo( pcServerName,     /* The name of the node or device */
+                                              NULL,             /* Ignored for now. */
+                                              &( xHints ),      /* If not NULL: preferences. */
+                                              &( pxResults ) ); /* An allocated struct, containing the results. */
 
-                            if( ulIPAddress != 0U )
-                            {
-                                vDNS_callback( pcServerName, NULL, ulIPAddress );
-                            }
-                        #endif
-                    #endif /* if ( ipconfigMULTI_INTERFACE != 0 ) */
+                        if( pxResults != NULL )
+                        {
+                            vDNS_callback( pcServerName, NULL, pxResults );
+                        }
+                    }
                 }
                 else
                 {

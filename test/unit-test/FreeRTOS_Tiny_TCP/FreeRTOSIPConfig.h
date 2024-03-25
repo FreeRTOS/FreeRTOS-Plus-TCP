@@ -34,8 +34,6 @@
 
 #define TEST                                1
 
-#define ipconfigMULTI_INTERFACE             1
-
 #define ipconfigIPv4_BACKWARD_COMPATIBLE    0
 
 /* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
