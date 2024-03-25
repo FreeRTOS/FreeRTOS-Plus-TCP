@@ -28,20 +28,18 @@
 #ifndef FREERTOS_IPV6_PRIVATE_H
 #define FREERTOS_IPV6_PRIVATE_H
 
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
+/* Global Includes & Definitions */
 #include "FreeRTOS_IP_Common.h"
+
+/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Stream_Buffer.h"
+
+/* Optional FreeRTOS+TCP Includes. */
 #if ( ipconfigUSE_TCP == 1 )
     #include "FreeRTOS_TCP_WIN.h"
     #include "FreeRTOS_TCP_IP.h"
 #endif
-
-#include "semphr.h"
-
-#include "event_groups.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

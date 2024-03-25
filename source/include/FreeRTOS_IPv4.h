@@ -28,12 +28,8 @@
 #ifndef FREERTOS_IPV4_H
 #define FREERTOS_IPV4_H
 
-#include "FreeRTOS.h"
-#include "task.h"
-
-/* Application level configuration options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

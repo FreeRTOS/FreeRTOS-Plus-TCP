@@ -26,9 +26,11 @@
 #ifndef FREERTOS_DHCPV6_H
     #define FREERTOS_DHCPV6_H
 
-/* Application level configuration options. */
+/* Global Includes & Definitions. */
+    #include "FreeRTOS_IP_Common.h"
+
+/* Optional FreeRTOS+TCP Includes. */
     #include "FreeRTOS_DHCP.h"
-    #include "FreeRTOSIPConfig.h"
 
     #ifdef __cplusplus
     extern "C" {

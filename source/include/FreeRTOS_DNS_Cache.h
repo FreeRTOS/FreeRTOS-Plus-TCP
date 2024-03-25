@@ -28,13 +28,11 @@
 #ifndef FREERTOS_DNS_CACHE_H
 #define FREERTOS_DNS_CACHE_H
 
-/* FreeRTOS includes. */
-#include "FreeRTOS.h"
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
 
+/* Optional FreeRTOS+TCP Includes. */
 #include "FreeRTOS_DNS_Globals.h"
-
-/* Standard includes. */
-#include <stdint.h>
 
 #if ( ( ipconfigUSE_DNS_CACHE == 1 ) && ( ipconfigUSE_DNS != 0 ) )
 

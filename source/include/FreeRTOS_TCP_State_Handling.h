@@ -28,6 +28,10 @@
 #ifndef FREERTOS_TCP_STATE_HANDLING_H
 #define FREERTOS_TCP_STATE_HANDLING_H
 
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
+
+/* Optional FreeRTOS+TCP Includes. */
 #include "FreeRTOS_TCP_IP.h"
 
 /* *INDENT-OFF* */

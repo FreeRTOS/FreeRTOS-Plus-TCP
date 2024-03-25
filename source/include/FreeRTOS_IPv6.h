@@ -26,10 +26,11 @@
 #ifndef FREERTOS_IPV6_H
 #define FREERTOS_IPV6_H
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "FreeRTOS_IP.h"
+/* Global Includes & Definitions. */
 #include "FreeRTOS_IP_Common.h"
+
+/* Core FreeRTOS+TCP Includes. */
+#include "FreeRTOS_IP.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
