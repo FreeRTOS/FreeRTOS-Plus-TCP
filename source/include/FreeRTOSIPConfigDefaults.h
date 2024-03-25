@@ -3072,27 +3072,6 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * ipconfigMULTI_INTERFACE
- *
- * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
- *
- * Used to let applications know that multiple interfaces are supported by
- * this version of the TCP/IP stack.
- *
- * Must be enabled for demo applications to work.
- */
-
-#ifndef ipconfigMULTI_INTERFACE
-    #define ipconfigMULTI_INTERFACE    ipconfigENABLE
-#endif
-
-#if ( ( ipconfigMULTI_INTERFACE != ipconfigDISABLE ) && ( ipconfigMULTI_INTERFACE != ipconfigENABLE ) )
-    #error Invalid ipconfigMULTI_INTERFACE configuration
-#endif
-
-/*---------------------------------------------------------------------------*/
-
 /*===========================================================================*/
 /*                              ROUTING CONFIG                               */
 /*===========================================================================*/

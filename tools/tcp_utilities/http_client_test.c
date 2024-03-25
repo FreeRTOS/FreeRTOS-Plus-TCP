@@ -45,9 +45,7 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_DNS.h"
-#if ( ipconfigMULTI_INTERFACE != 0 )
-    #include "FreeRTOS_Routing.h"
-#endif
+#include "FreeRTOS_Routing.h"
 
 #include "http_client_test.h"
 
@@ -263,11 +261,9 @@
                 IPv6_Address_t xIPAddress_IPv6;
             #endif
             struct freertos_sockaddr xLocalAddress;
-            #if ( ipconfigMULTI_INTERFACE != 0 )
-                struct freertos_addrinfo * pxResult = NULL;
-                struct freertos_addrinfo xHints;
-                NetworkEndPoint_t * pxEndPoint;
-            #endif
+            struct freertos_addrinfo * pxResult = NULL;
+            struct freertos_addrinfo xHints;
+            NetworkEndPoint_t * pxEndPoint;
 
             if( xSocketValid( xSocket ) == pdTRUE )
             {
@@ -283,69 +279,59 @@
 
             xAllowedToStart[ uxInstance ] = 0;
 
-            #if ( ipconfigMULTI_INTERFACE != 0 )
-                if( xIPVersion[ uxInstance ] != 6 )
-                {
-                    xHints.ai_family = FREERTOS_AF_INET;
-                }
-                else
-                {
-                    xHints.ai_family = FREERTOS_AF_INET6;
-                }
-            #endif
+            if( xIPVersion[ uxInstance ] != 6 )
+            {
+                xHints.ai_family = FREERTOS_AF_INET;
+            }
+            else
+            {
+                xHints.ai_family = FREERTOS_AF_INET6;
+            }
+
             pcHostname = pcHostNames[ uxInstance ];
 
             {
-                #if ( ipconfigMULTI_INTERFACE == 0 )
-                    ulIPAddress = FreeRTOS_gethostbyname( pcHostname );
+                #if ( ipconfigUSE_IPv4 != 0 )
+                    pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
 
-                    if( ulIPAddress == 0U )
+                    if( ( pxEndPoint != NULL ) && ( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) )
                     {
-                        continue;
+                        xARPWaitResolution( pxEndPoint->ipv4_settings.ulGatewayAddress, pdMS_TO_TICKS( 1000U ) );
                     }
-                #else
-                    #if ( ipconfigUSE_IPv4 != 0 )
-                        pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv4 );
+                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
-                        if( ( pxEndPoint != NULL ) && ( pxEndPoint->ipv4_settings.ulGatewayAddress != 0U ) )
-                        {
-                            xARPWaitResolution( pxEndPoint->ipv4_settings.ulGatewayAddress, pdMS_TO_TICKS( 1000U ) );
-                        }
-                    #endif /* ( ipconfigUSE_IPv4 != 0 ) */
+                BaseType_t rc_dns = FreeRTOS_getaddrinfo(
+                    pcHostname,  /* The node. */
+                    NULL,        /* const char *pcService: ignored for now. */
+                    &xHints,     /* If not NULL: preferences. */
+                    &pxResult ); /* An allocated struct, containing the results. */
+                FreeRTOS_printf( ( "httpTest: FreeRTOS_getaddrinfo: rc %d\n", ( int ) rc_dns ) );
 
-                    BaseType_t rc_dns = FreeRTOS_getaddrinfo(
-                        pcHostname,  /* The node. */
-                        NULL,        /* const char *pcService: ignored for now. */
-                        &xHints,     /* If not NULL: preferences. */
-                        &pxResult ); /* An allocated struct, containing the results. */
-                    FreeRTOS_printf( ( "httpTest: FreeRTOS_getaddrinfo: rc %d\n", ( int ) rc_dns ) );
+                if( ( rc_dns != 0 ) || ( pxResult == NULL ) )
+                {
+                    continue;
+                }
 
-                    if( ( rc_dns != 0 ) || ( pxResult == NULL ) )
-                    {
-                        continue;
-                    }
-
-                    if( pxResult->ai_family == FREERTOS_AF_INET4 )
-                    {
+                if( pxResult->ai_family == FREERTOS_AF_INET4 )
+                {
 /*				ulIPAddress = ( ( struct freertos_sockaddr * ) pxResult->ai_addr )->sin_address.ulIP_IPv4; */
-                        ulIPAddress = pxResult->ai_addr->sin_address.ulIP_IPv4;
-                    }
+                    ulIPAddress = pxResult->ai_addr->sin_address.ulIP_IPv4;
+                }
 
-                    #if ( ipconfigUSE_IPv6 != 0 )
-                        else if( pxResult->ai_family == FREERTOS_AF_INET6 )
-                        {
-                            struct freertos_sockaddr * pxAddr6;
-
-                            pxAddr6 = ( struct freertos_sockaddr * ) pxResult->ai_addr;
-                            memcpy( xIPAddress_IPv6.ucBytes, pxAddr6->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
-                            xHasIPv6Address = pdTRUE;
-                        }
-                    #endif
-                    else
+                #if ( ipconfigUSE_IPv6 != 0 )
+                    else if( pxResult->ai_family == FREERTOS_AF_INET6 )
                     {
-                        continue;
+                        struct freertos_sockaddr * pxAddr6;
+
+                        pxAddr6 = ( struct freertos_sockaddr * ) pxResult->ai_addr;
+                        memcpy( xIPAddress_IPv6.ucBytes, pxAddr6->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
+                        xHasIPv6Address = pdTRUE;
                     }
-                #endif /* if ( ipconfigMULTI_INTERFACE == 0 ) */
+                #endif
+                else
+                {
+                    continue;
+                }
             }
 
             #if ( ipconfigUSE_IPv6 != 0 )
@@ -377,34 +363,33 @@
 
             memset( &( xBindAddress ), 0, sizeof( xBindAddress ) );
 
-            #if ( ipconfigMULTI_INTERFACE != 0 )
-                #if ( ipconfigUSE_IPv6 != 0 )
-                    if( xEchoServerAddress.sin_family == FREERTOS_AF_INET6 )
-                    {
-                        pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6 ) );
-
-                        if( pxEndPoint == NULL )
-                        {
-                            pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv6 );
-                        }
-
-                        if( pxEndPoint != NULL )
-                        {
-                            /*memcpy( xEchoServerAddress.sin_address.xIP_IPv6.ucBytes, pxEndPoint->ipv6.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); */
-                        }
-                    }
-                    else
-                #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            #if ( ipconfigUSE_IPv6 != 0 )
+                if( xEchoServerAddress.sin_family == FREERTOS_AF_INET6 )
                 {
-                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_address.ulIP_IPv4, 9999 );
+                    pxEndPoint = FreeRTOS_FindEndPointOnNetMask_IPv6( &( xEchoServerAddress.sin_address.xIP_IPv6 ) );
+
+                    if( pxEndPoint == NULL )
+                    {
+                        pxEndPoint = FreeRTOS_FindGateWay( ipTYPE_IPv6 );
+                    }
 
                     if( pxEndPoint != NULL )
                     {
-                        xBindAddress.sin_address.ulIP_IPv4 = pxEndPoint->ipv4_settings.ulIPAddress;
-                        xBindAddress.sin_family = FREERTOS_AF_INET;
+                        /*memcpy( xEchoServerAddress.sin_address.xIP_IPv6.ucBytes, pxEndPoint->ipv6.xIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS ); */
                     }
                 }
-            #endif /* if ( ipconfigMULTI_INTERFACE != 0 ) */
+                else
+            #endif /* if ( ipconfigUSE_IPv6 != 0 ) */
+            {
+                pxEndPoint = FreeRTOS_FindEndPointOnNetMask( pxAddress->sin_address.ulIP_IPv4, 9999 );
+
+                if( pxEndPoint != NULL )
+                {
+                    xBindAddress.sin_address.ulIP_IPv4 = pxEndPoint->ipv4_settings.ulIPAddress;
+                    xBindAddress.sin_family = FREERTOS_AF_INET;
+                }
+            }
+
             rc = FreeRTOS_bind( xSocket, &( xBindAddress ), sizeof( xBindAddress ) );
 
             if( rc != 0 )
