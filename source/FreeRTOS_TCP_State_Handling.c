@@ -51,7 +51,6 @@
 #include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
-#include "FreeRTOS_ARP.h"
 
 #include "FreeRTOS_TCP_Reception.h"
 #include "FreeRTOS_TCP_Transmission.h"

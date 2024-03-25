@@ -350,6 +350,15 @@
         IPv6_Type_t xIPv6_GetIPType( const IPv6_Address_t * pxAddress );
     #endif
 
+    BaseType_t xCheckRequiresResolution( const NetworkBufferDescriptor_t * pxNetworkBuffer );
+
+    typedef enum
+    {
+        eAddrResCacheMiss = 0,  /* 0 A cache lookup did not find a valid entry. */
+        eAddrResCacheHit,       /* 1 A cache lookup found a valid entry. */
+        eCantSendPacket         /* 2 There is no IP address, or a resolution is still in progress, so the packet cannot be sent. */
+    } eAddrResLookupResult_t;
+
     #ifdef __cplusplus
 }     /* extern "C" */
     #endif

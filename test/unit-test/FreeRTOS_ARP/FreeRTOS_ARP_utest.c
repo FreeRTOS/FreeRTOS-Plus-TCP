@@ -1535,57 +1535,6 @@ void test_xCheckRequiresARPResolution_NotOnLocalNetwork_IPv6( void )
     xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
 
     TEST_ASSERT_EQUAL( pdFALSE, xResult );
-    /* =================================================== */
-
-    IPPacket_IPv6_t * pxIPPacket_V6 = ( ( IPPacket_IPv6_t * ) pxNetworkBuffer->pucEthernetBuffer );
-    IPHeader_IPv6_t * pxIPHeader_V6 = &( pxIPPacket_V6->xIPHeader );
-    IPv6_Address_t * pxIPAddress = &( pxIPHeader_V6->xSourceAddress );
-    pxIPHeader_V6->ucNextHeader = ipPROTOCOL_TCP;
-
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-
-    xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( pdFALSE, xResult );
-    /* =================================================== */
-
-    pxIPHeader_V6->ucNextHeader = ipPROTOCOL_UDP;
-
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
-
-    xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( pdFALSE, xResult );
-    /* =================================================== */
-
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
-    NetworkBufferDescriptor_t xTempBuffer = { 0 };
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xTempBuffer );
-    vNDSendNeighbourSolicitation_Expect( &xTempBuffer, pxIPAddress );
-
-    xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( pdTRUE, xResult );
-    /* =================================================== */
-
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_LinkLocal );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
-
-    xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( pdTRUE, xResult );
-    /* =================================================== */
-
-    xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_SiteLocal );
-
-    xResult = xCheckRequiresARPResolution( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( pdFALSE, xResult );
-    /* =================================================== */
 }
 
 void test_xCheckRequiresARPResolution_OnLocalNetwork_NotInCache( void )

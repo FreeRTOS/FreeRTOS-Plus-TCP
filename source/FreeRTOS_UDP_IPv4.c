@@ -76,7 +76,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 {
     UDPPacket_t * pxUDPPacket;
     IPHeader_t * pxIPHeader;
-    eARPLookupResult_t eReturned;
+    eResolutionLookupResult_t eReturned;
     uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     size_t uxPayloadSize;
@@ -112,7 +112,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 
     if( eReturned != eCantSendPacket )
     {
-        if( eReturned == eARPCacheHit )
+        if( eReturned == eResolutionCacheHit )
         {
             /* Part of the Ethernet and IP headers are always constant when sending an IPv4
              * UDP packet.  This array defines the constant parts, allowing this part of the
@@ -261,7 +261,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
             }
             #endif /* if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM == 0 ) */
         }
-        else if( eReturned == eARPCacheMiss )
+        else if( eReturned == eResolutionCacheMiss )
         {
             /* Add an entry to the ARP table with a null hardware address.
              * This allows the ARP timer to know that an ARP reply is

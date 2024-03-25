@@ -62,13 +62,6 @@ typedef struct xARP_CACHE_TABLE_ROW
     * pxEndPoint;             /**< The end-point on which the MAC address was last seen. */
 } ARPCacheRow_t;
 
-typedef enum
-{
-    eARPCacheMiss = 0, /* 0 An ARP table lookup did not find a valid entry. */
-    eARPCacheHit,      /* 1 An ARP table lookup found a valid entry. */
-    eCantSendPacket    /* 2 There is no IP address, or an ARP is still in progress, so the packet cannot be sent. */
-} eARPLookupResult_t;
-
 /** @brief A structure used internally in FreeRTOS_ARP.c.
  * It is used as a parameter for the function prvFindCacheEntry().*/
 typedef struct xCacheLocation
@@ -91,9 +84,6 @@ void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
  * cache table then add it - replacing the oldest current entry if there is not
  * a free space available.
  */
-/*void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress, */
-/*                            const uint32_t ulIPAddress ); */
-
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress,
                             struct xNetworkEndPoint * pxEndPoint );
@@ -128,33 +118,30 @@ BaseType_t xCheckRequiresARPResolution( const NetworkBufferDescriptor_t * pxNetw
  * (maybe DHCP is still in process, or the addressing needs a gateway but there
  * isn't a gateway defined) then return eCantSendPacket.
  */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
                                       MACAddress_t * const pxMACAddress,
                                       struct xNetworkEndPoint ** ppxEndPoint );
 
 #if ( ipconfigUSE_ARP_REVERSED_LOOKUP != 0 )
 
 /* Lookup an IP-address if only the MAC-address is known */
-    eARPLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
+    eResolutionLookupResult_t eARPGetCacheEntryByMac( const MACAddress_t * const pxMACAddress,
                                                uint32_t * pulIPAddress,
                                                struct xNetworkInterface ** ppxInterface );
 
 #endif
 
-#if ( ipconfigUSE_IPv4 != 0 )
-
 /*
  * Reduce the age count in each entry within the ARP cache.  An entry is no
  * longer considered valid and is deleted if its age reaches zero.
  */
-    void vARPAgeCache( void );
+void vARPAgeCache( void );
 
 /*
  * After DHCP is ready and when changing IP address, force a quick send of our new IP
  * address
  */
-    void vARPSendGratuitous( void );
-#endif /* ( ipconfigUSE_IPv4 != 0 ) */
+void vARPSendGratuitous( void );
 
 /*
  * Send out an ARP request for the IP address contained in pxNetworkBuffer, and
@@ -171,8 +158,19 @@ void FreeRTOS_OutputARPRequest( uint32_t ulIPAddress );
 void FreeRTOS_OutputARPRequest_Multi( NetworkEndPoint_t * pxEndPoint,
                                       uint32_t ulIPAddress );
 
+/* xARPWaitResolution checks if an IPv4 address is already known. If not
+ * it may send an ARP request and wait for a reply.  This function will
+ * only be called from an application. */
+BaseType_t xARPWaitResolution( uint32_t ulIPAddress,
+                               TickType_t uxTicksToWait );
+
 /* Clear all entries in the ARp cache. */
 void FreeRTOS_ClearARP( const struct xNetworkEndPoint * pxEndPoint );
+
+/* Show all valid ARP entries */
+#if ( ipconfigHAS_PRINTF != 0 ) || ( ipconfigHAS_DEBUG_PRINTF != 0 )
+    void FreeRTOS_PrintARPCache( void );
+#endif
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

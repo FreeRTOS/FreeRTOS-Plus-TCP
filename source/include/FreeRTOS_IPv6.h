@@ -107,8 +107,6 @@ BaseType_t xIsIPv6Loopback( const IPv6_Address_t * pxAddress );
 eFrameProcessingResult_t eHandleIPv6ExtensionHeaders( NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                       BaseType_t xDoRemove );
 
-extern void FreeRTOS_ClearND( void );
-
 /* Check whether this IPv6 address is an allowed multicast address or not. */
 BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress );
 
