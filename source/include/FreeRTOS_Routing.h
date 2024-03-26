@@ -31,6 +31,7 @@
 
 /* Core FreeRTOS+TCP Includes. */
     #include "FreeRTOS_IP.h"
+    #include "FreeRTOS_Sockets.h"
 
 /* Optional FreeRTOS+TCP Includes. */
     #if ( ipconfigUSE_DHCP != 0 )
