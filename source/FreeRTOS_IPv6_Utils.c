@@ -223,7 +223,7 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
 
                 if( ( uxIndex + uxHopSize ) >= uxBufferLength )
                 {
-                    FreeRTOS_debug_printf( ( "The length %lu + %lu of extension header is larger than buffer size %lu \n", uxIndex, uxHopSize, uxBufferLength ) );
+                    FreeRTOS_debug_printf( ( "The length %u + %u of extension header is larger than buffer size %u \n", ( unsigned ) uxIndex, ( unsigned ) uxHopSize, ( unsigned ) uxBufferLength ) );
                     break;
                 }
 
