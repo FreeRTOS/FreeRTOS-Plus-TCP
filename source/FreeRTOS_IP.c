@@ -59,6 +59,9 @@
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_ND.h"
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    #include "FreeRTOS_IGMP.h"
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
 /** @brief Time delay between repeated attempts to initialise the network hardware. */
 #ifndef ipINITIALISATION_RETRY_DELAY
@@ -460,6 +463,20 @@ static void prvProcessIPEventsAndTimers( void )
             /* xQueueReceive() returned because of a normal time-out. */
             break;
 
+            #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                case eSocketOptAddMembership:
+                case eSocketOptDropMembership:
+                   {
+                       MulticastAction_t * pxMCA = ( MulticastAction_t * ) xReceivedEvent.pvData;
+                       vModifyMulticastMembership( pxMCA, xReceivedEvent.eEventType );
+                       break;
+                   }
+
+                case eMulticastTimerEvent:
+                    vIPMulticast_HandleTimerEvent();
+                    break;
+            #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
         default:
             /* Should not get here. */
             break;
@@ -518,6 +535,11 @@ static void prvIPTask_Initialise( void )
         FreeRTOS_dnsclear();
     }
     #endif /* ( ( ipconfigUSE_DNS_CACHE != 0 ) && ( ipconfigUSE_DNS != 0 ) ) */
+
+    /* Init the list that will hold scheduled IGMP reports. */
+    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+        ( void ) vIPMulticast_Init();
+    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
     /* Initialisation is complete and events can now be processed. */
     xIPTaskInitialised = pdTRUE;
@@ -624,6 +646,24 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
  */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
 {
+    if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* IPv6 end-points have a solicited-node address that needs extra housekeeping. */
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+            vManageSolicitedNodeAddress( pxEndPoint, pdTRUE );
+        #endif
+    }
+
+    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+        /* Reschedule all multicast reports associated with this end-point.
+         * Note: countdown is in increments of ipIGMP_TIMER_PERIOD_MS. It's a good idea to spread out all reports a little.
+         * 200 to 500ms ( xMaxCountdown of 2 - 5 ) should be a good happy medium. If the network we just connected to has a IGMP/MLD querier,
+         * they will soon ask us for reports anyways, so sending these unsolicited reports is not required. It simply enhances the user
+         * experience by shortening the time it takes before we begin receiving the multicasts that we care for. */
+        vRescheduleAllMulticastReports( pxEndPoint->pxNetworkInterface, 5 );
+    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
@@ -1313,6 +1353,7 @@ void FreeRTOS_ReleaseUDPPayloadBuffer( void const * pvBuffer )
                 pxNetworkBuffer->pucEthernetBuffer[ ipSOCKET_OPTIONS_OFFSET ] = FREERTOS_SO_UDPCKSUM_OUT;
                 pxNetworkBuffer->xIPAddress.ulIP_IPv4 = ulIPAddress;
                 pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+                pxNetworkBuffer->ucMaximumHops = ipconfigICMP_TIME_TO_LIVE;
                 /* xDataLength is the size of the total packet, including the Ethernet header. */
                 pxNetworkBuffer->xDataLength = uxTotalLength;
 
@@ -1469,34 +1510,50 @@ eFrameProcessingResult_t eConsiderFrameForProcessing( const uint8_t * const pucE
             /* The packet was directed to this node - process it. */
             eReturn = eProcessBuffer;
         }
-        else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
-        {
-            /* The packet was a broadcast - process it. */
-            eReturn = eProcessBuffer;
-        }
-        else
-        #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+
+        #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+            /*
+             * With ipconfigSUPPORT_IP_MULTICAST enabled, FreeRTOS+TCP needs access to all
+             * multicast packets. It is too early to filter them out here because we don't
+             * know which socket needs which multicast address. Another thing to consider is
+             * that unless this function returns eProcessBuffer, eApplicationProcessCustomFrameHook()
+             * will not be called, so handling custom multicast frames would be impossible.
+             * Note that the broadcast MAC is a type of multicast so the multicast check covers it.
+             */
+            else if( MAC_IS_MULTICAST( pxEthernetHeader->xDestinationAddress.ucBytes ) )
             {
-                /* The packet is a request for LLMNR - process it. */
                 eReturn = eProcessBuffer;
             }
-            else
-        #endif /* ipconfigUSE_LLMNR */
-        #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
-            if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+        #else /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+            else if( memcmp( xBroadcastMACAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
             {
-                /* The packet is a request for MDNS - process it. */
+                /* The packet was a broadcast - process it. */
                 eReturn = eProcessBuffer;
             }
-            else
-        #endif /* ipconfigUSE_MDNS */
-        if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
-            ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
-        {
-            /* The packet is a request for LLMNR - process it. */
-            eReturn = eProcessBuffer;
-        }
+            #if ( ( ipconfigUSE_LLMNR == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+                else if( memcmp( xLLMNR_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                {
+                    /* The packet is a request for LLMNR - process it. */
+                    eReturn = eProcessBuffer;
+                }
+            #endif /* ipconfigUSE_LLMNR */
+            #if ( ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_DNS != 0 ) )
+                else if( memcmp( xMDNS_MacAddress.ucBytes, pxEthernetHeader->xDestinationAddress.ucBytes, sizeof( MACAddress_t ) ) == 0 )
+                {
+                    /* The packet is a request for MDNS - process it. */
+                    eReturn = eProcessBuffer;
+                }
+            #endif /* ipconfigUSE_MDNS */
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                else if( ( pxEthernetHeader->xDestinationAddress.ucBytes[ 0 ] == ipMULTICAST_MAC_ADDRESS_IPv6_0 ) &&
+                         ( pxEthernetHeader->xDestinationAddress.ucBytes[ 1 ] == ipMULTICAST_MAC_ADDRESS_IPv6_1 ) )
+                {
+                    /* The packet is an IPv6 multicast - process it. */
+                    eReturn = eProcessBuffer;
+                }
+            #endif /* ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) */
+        #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
         else
         {
             /* The packet was not a broadcast, or for this node, just release
@@ -2000,6 +2057,13 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                             eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
                             break;
                     #endif /* ( ipconfigUSE_IPv6 != 0 ) */
+
+                    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) && ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+                        case ipPROTOCOL_IGMP:
+                            /* The IP packet contained an IGMP frame.  */
+                            eReturn = eProcessIGMPPacket( pxNetworkBuffer );
+                            break;
+                    #endif /* ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) && ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) ) */
 
                     case ipPROTOCOL_UDP:
                         /* The IP packet contained a UDP frame. */

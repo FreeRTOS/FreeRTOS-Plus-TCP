@@ -74,12 +74,9 @@
     #define ndMAX_CACHE_AGE_BEFORE_NEW_ND_SOLICITATION    ( 3U )
 
 /** @brief All nodes on the local network segment: IP address. */
-    /* MISRA Ref 8.9.1 [File scoped variables] */
-    /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-89 */
-    /* coverity[misra_c_2012_rule_8_9_violation] */
-    static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }; /* ff02:1 */
+    const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ] = { 0xffU, 0x02U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x01U }; /* ff02::1 */
 /** @brief All nodes on the local network segment: MAC address. */
-    static const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33, 0x33, 0x00, 0x00, 0x00, 0x01 };
+    const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33U, 0x33U, 0x00U, 0x00U, 0x00U, 0x01U };
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
     static eARPLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
@@ -808,6 +805,7 @@
                     ( void ) memcpy( pxNetworkBuffer->xIPAddress.xIP_IPv6.ucBytes, pxIPAddress->ucBytes, ipSIZE_OF_IPv6_ADDRESS );
                     /* Let vProcessGeneratedUDPPacket() know that this is an ICMP packet. */
                     pxNetworkBuffer->usPort = ipPACKET_CONTAINS_ICMP_DATA;
+                    pxNetworkBuffer->ucMaximumHops = ipconfigICMP_TIME_TO_LIVE;
                     /* 'uxPacketLength' is initialised due to the flow of the program. */
                     pxNetworkBuffer->xDataLength = uxPacketLength;
 
@@ -1140,6 +1138,26 @@
                             vReceiveRA( pxNetworkBuffer );
                             break;
                     #endif /* ( ipconfigUSE_RA != 0 ) */
+
+                    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+                        case ipICMP_MULTICAST_LISTENER_QUERY:
+                        case ipICMP_MULTICAST_LISTENER_REPORT_V1:
+                        case ipICMP_MULTICAST_LISTENER_REPORT_V2:
+
+                            /* Note: prvProcessIPPacket() stripped the extension headers, so this packet struct is defined without them and they cannot be checked.
+                             * per RFC, MLD packets must use the RouterAlert option in a Hop By Hop extension header. */
+                            /* All MLD packets are at least as large as a v1 query packet. */
+                            uxNeededSize = ( size_t ) ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_ICMPv6_HEADER );
+
+                            if( uxNeededSize > pxNetworkBuffer->xDataLength )
+                            {
+                                FreeRTOS_printf( ( "Too small\n" ) );
+                                break;
+                            }
+
+                            vProcessMLDPacket( pxNetworkBuffer );
+                            break;
+                    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
                 default:
                     /* All possible values are included here above. */

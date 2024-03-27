@@ -389,7 +389,7 @@ BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
 /**
  * @brief Compares 2 IPv6 addresses and checks if the one
  * on the left can handle the one on right. Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
- * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
+ * the special multicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
  * the last 3 bytes of the IPv6 address.
  *
  * @param[in] pxLeft First IP address.
@@ -413,6 +413,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
         ( pxRight->ucBytes[ 12 ] == 0xffU ) )
     {
         /* This is an LLMNR address. */
+        /* _EP_: I don't think this is LLMNR. Did someone mean to say "the solicited-node multicast address" ? */
         xResult = memcmp( &( pxLeft->ucBytes[ 13 ] ), &( pxRight->ucBytes[ 13 ] ), 3 );
     }
     else

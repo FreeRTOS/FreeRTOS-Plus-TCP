@@ -61,6 +61,9 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
                                    size_t uxBufferLength,
                                    uint8_t * pucProtocol );
 
+void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
+                                  BaseType_t xNetworkGoingUp );
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
