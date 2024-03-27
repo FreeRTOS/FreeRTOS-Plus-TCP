@@ -33,14 +33,10 @@
  * @brief Implements the utility functions for FreeRTOS_IP.c
  */
 
-/* Standard includes. */
-#include <stdint.h>
-#include <stdio.h>
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
 
-/* FreeRTOS includes. */
-#include "FreeRTOS.h"
-
-/* FreeRTOS+TCP includes. */
+/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_IP.h"
 
 /* *INDENT-OFF* */

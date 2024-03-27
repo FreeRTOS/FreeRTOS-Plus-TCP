@@ -28,13 +28,17 @@
 #ifndef NETWORK_INTERFACE_H
 #define NETWORK_INTERFACE_H
 
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
+
+/* Core FreeRTOS+TCP Includes. */
+#include "FreeRTOS_IP.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
-
-#include "FreeRTOS_IP.h"
 
 /* INTERNAL API FUNCTIONS. */
 

@@ -28,16 +28,14 @@
 #ifndef FREERTOS_DNS_PARSER_H
 #define FREERTOS_DNS_PARSER_H
 
-/* FreeRTOS includes. */
-#include "FreeRTOS.h"
+/* Global Includes & Definitions. */
+#include "FreeRTOS_IP_Common.h"
 
-/* FreeRTOS+TCP includes. */
+/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_IP.h"
 
+/* Optional FreeRTOS+TCP Includes. */
 #include "FreeRTOS_DNS_Globals.h"
-
-/* Standard includes. */
-#include <stdint.h>
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
