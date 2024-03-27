@@ -297,31 +297,26 @@ size_t usGetExtensionHeaderLength( const uint8_t * pucEthernetBuffer,
  * @param[in] pxEndPoint The end-point for which a network up/down event is being handled.
  * @param[in] xNetworkGoingUp pdTRUE when the network goes UP, pdFALSE when the network goes DOWN.
  */
-void vManageSolicitedNodeAddress( struct xNetworkEndPoint * pxEndPoint,
+void vManageSolicitedNodeAddress( const struct xNetworkEndPoint * pxEndPoint,
                                   BaseType_t xNetworkGoingUp )
 {
+    IPv6_Type_t xAddressType;
+    MACAddress_t xMACAddress;
+
     configASSERT( pxEndPoint != NULL );
     configASSERT( pxEndPoint->pxNetworkInterface != NULL );
 
     /* do{}while(0) to allow for the use of break statements */
     do
     {
-        IPv6_Type_t xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
-        MACAddress_t xMACAddress = { {
-                                         0x33U,
-                                         0x33U,
-                                         0xFFU,
-                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ],
-                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ],
-                                         pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ]
-                                     } };
-
         /* During the very first network DOWN event, pxEndPoint->ipv6_settings does not yet hold the proper address and
-         * therefore the MAC address above will be incorrect as well, however nothing bad will happen, because the address
+         * therefore the calculated MAC address will be incorrect. Nothing bad will happen though, because the address
          * type check below will kick us out before the call to pfRemoveAllowedMAC(). Without the check below, the network
-         * driver end up being called once to register 33:33:FF:00:00:00 and that MAC never gets unregistered. */
+         * driver ends up being called once to register 33:33:FF:00:00:00 and that MAC never gets unregistered. */
 
         /* Solicited-node multicast addresses only apply to normal unicast non-loopback addresses. */
+        xAddressType = xIPv6_GetIPType( &( pxEndPoint->ipv6_settings.xIPAddress ) );
+
         if( ( xAddressType != eIPv6_LinkLocal ) && ( xAddressType != eIPv6_SiteLocal ) && ( xAddressType != eIPv6_Global ) )
         {
             /* The address of this end-point is something other than a normal unicast address... Maybe it's the
@@ -329,6 +324,14 @@ void vManageSolicitedNodeAddress( struct xNetworkEndPoint * pxEndPoint,
              * solicited-node multicast address that we need to manage. Do nothing.*/
             break;
         }
+
+        /* Calculate the multicast MAC that corresponds to this endpoint's IPv6 address. */
+        xMACAddress.ucBytes[ 0 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+        xMACAddress.ucBytes[ 1 ] = ipMULTICAST_MAC_ADDRESS_IPv6_0;
+        xMACAddress.ucBytes[ 2 ] = 0xFFU;
+        xMACAddress.ucBytes[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
+        xMACAddress.ucBytes[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
+        xMACAddress.ucBytes[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
 
         /* Update the network driver filter */
         if( xNetworkGoingUp == pdTRUE )
@@ -345,77 +348,6 @@ void vManageSolicitedNodeAddress( struct xNetworkEndPoint * pxEndPoint,
                 pxEndPoint->pxNetworkInterface->pfRemoveAllowedMAC( pxEndPoint->pxNetworkInterface, xMACAddress.ucBytes );
             }
         }
-
-        #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
-        {
-            MCastReportData_t * pxMRD;
-
-            /* This is sub-optimal. We only need an IP_Address_t on network DOWN, however in the
-             * interest of having one piece of common code, we'll have a pointer that points to either
-             * xIPv6Address or &pxMRD->xMCastGroupAddress.xIPAddress */
-            IP_Address_t * pxIPv6Address;
-            IP_Address_t xIPv6Address;
-
-            if( xNetworkGoingUp == pdTRUE )
-            {
-                /* We will need an MLD report structure a few lines down, so allocate one. */
-                pxMRD = ( MCastReportData_t * ) pvPortMalloc( sizeof( MCastReportData_t ) );
-
-                if( pxMRD == NULL )
-                {
-                    break;
-                }
-
-                pxIPv6Address = &( pxMRD->xMCastGroupAddress.xIPAddress );
-            }
-            else
-            {
-                pxIPv6Address = &xIPv6Address;
-            }
-
-            /* Generate the solicited-node multicast address. It has the form of
-             * ff02::1:ffnn:nnnn, where nn:nnnn are the last 3 bytes of the IPv6 address. */
-            do
-            {
-                uint8_t * pucTarget = pxIPv6Address->xIP_IPv6.ucBytes;
-                uint8_t * pucSource = pxEndPoint->ipv6_settings.xIPAddress.ucBytes;
-
-                pucTarget[ 0 ] = 0xFFU;
-                pucTarget[ 1 ] = 0x02U;
-                ( void ) memset( &( pucTarget[ 2 ] ), 0x00, 9 );
-                pucTarget[ 11 ] = 0x01U;
-                pucTarget[ 12 ] = 0xFFU;
-                pucTarget[ 13 ] = pucSource[ 13 ];
-                pucTarget[ 14 ] = pucSource[ 14 ];
-                pucTarget[ 15 ] = pucSource[ 15 ];
-            } while( pdFALSE );
-
-            if( xNetworkGoingUp == pdTRUE )
-            {
-                /* Network going UP. Generate  and enlist an MLD report for the solicited node multicast address. */
-                listSET_LIST_ITEM_OWNER( &( pxMRD->xListItem ), ( void * ) pxMRD );
-                pxMRD->pxInterface = pxEndPoint->pxNetworkInterface;
-                pxMRD->xMCastGroupAddress.xIs_IPv6 = pdTRUE_UNSIGNED;
-                /* pxMRD->xMCastGroupAddress.xIPAddress was filled out through pxIPv6Address above.*/
-
-                if( xEnlistMulticastReport( pxMRD ) == pdFALSE )
-                {
-                    /* The report data was not consumed. This is odd since we are dealing with
-                     * the solicited-node multicast address and there should not have been a report
-                     * enlisted for it already. Anyway, keep things clean. */
-                    vPortFree( pxMRD );
-                    pxMRD = NULL;
-                }
-            }
-            else
-            {
-                /* Network going DOWN. De-list the MLD report for the solicited node multicast address.
-                 * Todo: Check if there are other places that this same action needs to be taken.
-                 * Places like when DHCPv6 or RA releases an address. Needs further investigation. */
-                vDelistMulticastReport( pxEndPoint->pxNetworkInterface, pxIPv6Address, pdTRUE_UNSIGNED );
-            }
-        }
-        #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
     } while( pdFALSE );
 }
 /*-----------------------------------------------------------*/
