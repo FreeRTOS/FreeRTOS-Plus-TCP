@@ -148,6 +148,10 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if ( ( tskKERNEL_VERSION_MAJOR < 8 ) || ( ( tskKERNEL_VERSION_MAJOR == 8 ) && ( tskKERNEL_VERSION_MINOR < 1 ) ) )
+    #error Kernel version must be at least v8.1
+#endif
+
 /*
  * pdFREERTOS_ERRNO_EAFNOSUPPORT
  *
