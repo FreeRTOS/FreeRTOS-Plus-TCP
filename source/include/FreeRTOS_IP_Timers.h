@@ -33,20 +33,26 @@
 #ifndef FREERTOS_IP_TIMERS_H
 #define FREERTOS_IP_TIMERS_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
+/* Standard includes. */
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
-/* Core FreeRTOS+TCP Includes. */
+/* FreeRTOS includes. */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+
+/* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_Sockets.h"
+#include "FreeRTOS_IP_Private.h"
+#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_UDP_IP.h"
+#include "FreeRTOS_DHCP.h"
 #include "NetworkInterface.h"
 #include "NetworkBufferManagement.h"
-
-/* Optional FreeRTOS+TCP Includes. */
-#include "FreeRTOS_ARP.h"
-#include "FreeRTOS_DHCP.h"
 #include "FreeRTOS_DNS.h"
 
 /* *INDENT-OFF* */

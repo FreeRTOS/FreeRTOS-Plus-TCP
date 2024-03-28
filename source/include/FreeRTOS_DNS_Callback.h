@@ -29,14 +29,16 @@
 #ifndef FREERTOS_DNS_CALLBACK_H
 #define FREERTOS_DNS_CALLBACK_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
+/* FreeRTOS includes. */
+#include "FreeRTOS.h"
 
-/* Core FreeRTOS+TCP Includes. */
+/* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 
-/* Optional FreeRTOS+TCP Includes. */
 #include "FreeRTOS_DNS_Globals.h"
+
+/* Standard includes. */
+#include <stdint.h>
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

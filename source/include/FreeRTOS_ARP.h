@@ -28,10 +28,10 @@
 #ifndef FREERTOS_ARP_H
 #define FREERTOS_ARP_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
+/* Application level configuration options. */
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
 
-/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_IP.h"
 
 /* *INDENT-OFF* */

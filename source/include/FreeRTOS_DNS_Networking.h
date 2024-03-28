@@ -27,14 +27,8 @@
 #ifndef FREERTOS_DNS_NETWORKING_H
 #define FREERTOS_DNS_NETWORKING_H
 
-/* Global Includes & Definitions */
-#include "FreeRTOS_IP_Common.h"
-
-/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_Sockets.h"
-
-/* Optional FreeRTOS+TCP Includes. */
 #include "FreeRTOS_DNS_Globals.h"
 
 #if ( ipconfigUSE_DNS != 0 )
