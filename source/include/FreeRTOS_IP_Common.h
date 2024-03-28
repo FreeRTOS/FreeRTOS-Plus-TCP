@@ -28,22 +28,6 @@
 #ifndef FREERTOS_IP_COMMON_H
 #define FREERTOS_IP_COMMON_H
 
-/* Standard Includes. */
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-/* FreeRTOS Includes. */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
-#include "event_groups.h"
-
-/* Application Level Configuration Options. */
-#include "FreeRTOSIPConfig.h"
-#include "FreeRTOSIPConfigDefaults.h"
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {

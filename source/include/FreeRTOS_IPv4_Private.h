@@ -28,10 +28,6 @@
 #ifndef FREERTOS_IPV4_PRIVATE_H
 #define FREERTOS_IPV4_PRIVATE_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
-
-/* Core FreeRTOS+TCP Includes. */
 #include "FreeRTOS_IP_Private.h"
 
 /* *INDENT-OFF* */

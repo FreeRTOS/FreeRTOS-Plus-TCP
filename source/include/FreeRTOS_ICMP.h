@@ -33,10 +33,7 @@
 #ifndef FREERTOS_ICMP_H
 #define FREERTOS_ICMP_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
-
-/* Core FreeRTOS+TCP Includes. */
+/* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
