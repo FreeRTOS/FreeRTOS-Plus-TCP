@@ -28,17 +28,21 @@
 #ifndef FREERTOS_IP_PRIVATE_H
 #define FREERTOS_IP_PRIVATE_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
-
-/* Core FreeRTOS+TCP Includes. */
-#include "FreeRTOS_Routing.h"
+/* Application level configuration options. */
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_Stream_Buffer.h"
+#include "FreeRTOS_Routing.h"
 
-/* Optional FreeRTOS+TCP Includes. */
-#include "FreeRTOS_TCP_WIN.h"
-#include "FreeRTOS_TCP_IP.h"
+#if ( ipconfigUSE_TCP == 1 )
+    #include "FreeRTOS_TCP_WIN.h"
+    #include "FreeRTOS_TCP_IP.h"
+#endif
+
+#include "semphr.h"
+
+#include "event_groups.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -36,9 +36,6 @@
 #ifndef FREERTOS_STREAM_BUFFER_H
 #define FREERTOS_STREAM_BUFFER_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {

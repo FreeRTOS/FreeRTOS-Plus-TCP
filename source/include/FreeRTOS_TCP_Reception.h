@@ -28,9 +28,6 @@
 #ifndef FREERTOS_TCP_RECEPTION_H
 #define FREERTOS_TCP_RECEPTION_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {

@@ -28,10 +28,9 @@
 #ifndef FREERTOS_UDP_IP_H
 #define FREERTOS_UDP_IP_H
 
-/* Global Includes & Definitions. */
-#include "FreeRTOS_IP_Common.h"
-
-/* Core FreeRTOS+TCP Includes. */
+/* Application level configuration options. */
+#include "FreeRTOSIPConfig.h"
+#include "FreeRTOSIPConfigDefaults.h"
 #include "FreeRTOS_IP.h"
 
 /* *INDENT-OFF* */

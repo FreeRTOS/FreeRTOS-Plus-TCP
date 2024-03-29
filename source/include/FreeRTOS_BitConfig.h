@@ -35,9 +35,6 @@
 #ifndef FREERTOS_BITCONFIG_H
     #define FREERTOS_BITCONFIG_H
 
-/* Global Includes & Definitions. */
-    #include "FreeRTOS_IP_Common.h"
-
     #ifdef __cplusplus
     extern "C" {
     #endif
