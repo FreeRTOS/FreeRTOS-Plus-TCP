@@ -28,6 +28,7 @@
 
     #include "FreeRTOS.h"
     #include "FreeRTOS_IP.h"
+    #include "FreeRTOS_Sockets.h"
 
     #if ( ipconfigUSE_DHCP != 0 )
         #include "FreeRTOS_DHCP.h"

@@ -74,13 +74,6 @@ extern IPTimer_t xARPTimer;
     extern IPTimer_t xDNSTimer;
 #endif
 
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- *           within the last round. */
-    extern BaseType_t xProcessedTCPMessage;
-#endif
-
 extern IPTimer_t xARPResolutionTimer;
 extern BaseType_t xAllNetworksUp;
 extern IPTimer_t xNetworkTimer;
@@ -636,8 +629,6 @@ void test_vCheckNetworkTimers_AllTimersInactivePendingMessages( void )
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
 
-    xProcessedTCPMessage = pdTRUE;
-
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
     vSocketCloseNextTime_Expect( NULL );
@@ -660,8 +651,6 @@ void test_vCheckNetworkTimers_AllTimersInactive_2( void )
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
 
-    xProcessedTCPMessage = pdTRUE;
-
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdFALSE );
 
     xTCPTimerCheck_ExpectAndReturn( pdTRUE, 0x123 );
@@ -674,7 +663,6 @@ void test_vCheckNetworkTimers_AllTimersInactive_2( void )
 
     vCheckNetworkTimers();
 
-    TEST_ASSERT_EQUAL( 0, xProcessedTCPMessage );
     TEST_ASSERT_EQUAL( 0x123, xTCPTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xTCPTimer.bExpired );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xTCPTimer.bActive );
