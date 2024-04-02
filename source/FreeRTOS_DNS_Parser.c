@@ -442,6 +442,13 @@
                             xDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
                         #endif
 
+                        /* During the early stages of boot or after a DHCP lease expires, our end-point
+                         * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
+                        if( ( xDNSHookReturn != pdFALSE ) && ( xEndPoint.bits.bIPv6 == pdFALSE ) && ( xEndPoint.ipv4_settings.ulIPAddress == 0U ) )
+                        {
+                            xDNSHookReturn = pdFALSE;
+                        }
+
                         if( xDNSHookReturn != pdFALSE )
                         {
                             int16_t usLength;
@@ -655,7 +662,21 @@
 
                 if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
                 {
-                    xDoAccept = pdTRUE;
+                    /* Ignore responses containing an IP of 0.0.0.0.
+                     * If we don't stop parsing this now, the code below will
+                     * invoke the user callback and also store this invalid address in our cache. */
+                    void * pvCopyDest;
+                    const void * pvCopySource;
+                    uint32_t ulTestAddress;
+
+                    pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
+                    pvCopyDest = &( ulTestAddress );
+                    ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
+
+                    if( ulTestAddress != 0U )
+                    {
+                        xDoAccept = pdTRUE;
+                    }
                 }
             }
             else
@@ -1118,6 +1139,13 @@
                 {
                     /* The application informs that the name in 'ucNBNSName'
                      * does not refer to this host. */
+                    break;
+                }
+
+                /* During the early stages of boot or after a DHCP lease expires, our end-point
+                 * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
+                if( ( xEndPoint.bits.bIPv6 == pdFALSE ) && ( xEndPoint.ipv4_settings.ulIPAddress == 0U ) )
+                {
                     break;
                 }
 
