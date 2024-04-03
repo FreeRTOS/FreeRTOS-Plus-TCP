@@ -48,6 +48,7 @@
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IPv4_Private.h"
 #include "mock_FreeRTOS_IP_Utils.h"
+#include "mock_FreeRTOS_IPv6_Utils.h"
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_TCP_IP.h"
 #include "mock_FreeRTOS_ICMP.h"
@@ -170,6 +171,7 @@ void test_vIPNetworkUpCalls( void )
     NetworkEndPoint_t xEndPoint = { 0 };
 
     xEndPoint.bits.bEndPointUp = pdFALSE;
+    xEndPoint.bits.bIPv6 = pdFALSE;
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
@@ -4002,11 +4004,6 @@ static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
     xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, pucAddress, ipSIZE_OF_IPv6_ADDRESS );
 
-    if( ( uxSetMembers & ipHAS_METHOD ) != 0U )
-    {
-        xInterface.pfAddAllowedMAC = pfAddAllowedMAC;
-    }
-
     if( ( uxSetMembers & ipHAS_INTERFACE ) != 0U )
     {
         xEndPoint.pxNetworkInterface = &xInterface;
@@ -4029,8 +4026,8 @@ static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
 
     if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
     {
-        /* The xIPv6_GetIPType() function is mocked. */
-        xIPv6_GetIPType_ExpectAnyArgsAndReturn( eType );
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdTRUE );
     }
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
@@ -4040,8 +4037,6 @@ static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
     vIPNetworkUpCalls( &xEndPoint );
 
     TEST_ASSERT_EQUAL( pdTRUE, xEndPoint.bits.bEndPointUp );
-    /* See if pfAddAllowedMAC() was called when it has to. */
-    TEST_ASSERT_EQUAL( xMACAddExpected, xMACFunctionCalled );
 }
 
 void test_prvIPNetworkUpCalls_LinkLocal()
@@ -4060,9 +4055,9 @@ void test_prvIPNetworkUpCalls_LinkLocal()
     };
 
     /* Test all combinations of what might go wrong. */
-    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
     prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
-    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_METHOD );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 );
     prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_INTERFACE );
 }
 

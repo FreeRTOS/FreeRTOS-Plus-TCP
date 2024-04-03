@@ -621,8 +621,8 @@ void test_prvProcessNetworkDownEvent_PassDHCPv6( void )
 
     if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
     {
-        /* The xIPv6_GetIPType() function is mocked. */
-        xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Multicast );
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
     }
 
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
@@ -658,8 +658,8 @@ void test_prvProcessNetworkDownEvent_PassRA( void )
 
     if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
     {
-        /* The xIPv6_GetIPType() function is mocked. */
-        xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Multicast );
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
     }
 
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
@@ -697,8 +697,8 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
 
     if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
     {
-        /* The xIPv6_GetIPType() function is mocked. */
-        xIPv6_GetIPType_ExpectAnyArgsAndReturn( eIPv6_Multicast );
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
     }
 
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
@@ -3107,11 +3107,6 @@ static void prvProcessNetworkDownEvent_Generic( const uint8_t * pucAddress,
     xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
     memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, pucAddress, ipSIZE_OF_IPv6_ADDRESS );
 
-    if( ( uxSetMembers & ipHAS_METHOD ) != 0U )
-    {
-        xInterface.pfRemoveAllowedMAC = pfRemoveAllowedMAC;
-    }
-
     if( ( uxSetMembers & ipHAS_INTERFACE ) != 0U )
     {
         xEndPoint.pxNetworkInterface = &xInterface;
@@ -3138,8 +3133,8 @@ static void prvProcessNetworkDownEvent_Generic( const uint8_t * pucAddress,
 
     if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
     {
-        /* The xIPv6_GetIPType() function is mocked. */
-        xIPv6_GetIPType_ExpectAnyArgsAndReturn( eType );
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
     }
 
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
@@ -3171,9 +3166,9 @@ void test_prvProcessNetworkDownEvent_LinkLocal()
     };
 
     /* Test all combinations of what might go wrong. */
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_METHOD );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_INTERFACE );
 }
 
@@ -3192,9 +3187,9 @@ void test_prvProcessNetworkDownEvent_Global()
         0x70U, 0x09U
     };
 
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_INTERFACE );
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_METHOD );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_INTERFACE );
 }
 
@@ -3213,9 +3208,9 @@ void test_prvProcessNetworkDownEvent_SiteLocal()
         0x70U, 0x09U
     };
 
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_METHOD );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_INTERFACE );
 }
 
@@ -3235,10 +3230,11 @@ void test_prvProcessNetworkDownEvent_Multicast()
         0x00U, 0xFBU
     };
 
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_INTERFACE );
-    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_METHOD );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 );
     prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_INTERFACE );
+}
 
 /**
  * @brief test_eGetDHCPState
