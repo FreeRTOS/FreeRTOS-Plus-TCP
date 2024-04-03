@@ -320,8 +320,8 @@
 
                     FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
                                        pxPrefixOption->ucPrefixLength,
-                                       FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
-                                       FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
+                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
+                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
                                        ( void * ) pxPrefixOption->ucPrefix ) );
                     break;
 
