@@ -3241,18 +3241,18 @@ void test_prvProcessNetworkDownEvent_Multicast()
  * To validate if eGetDHCPState returns expected
  * DHCP state.
  */
-    void test_eGetDHCPState( void )
-    {
-        DHCPData_t xTestData;
-        eDHCPState_t eReturn;
-        int i;
-        struct xNetworkEndPoint xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+void test_eGetDHCPState( void )
+{
+    DHCPData_t xTestData;
+    eDHCPState_t eReturn;
+    int i;
+    struct xNetworkEndPoint xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
 
-        for( i = 0; i < sizeof( xTestData.eDHCPState ); i++ )
-        {
-            /* Modify the global state. */
-            pxEndPoint->xDHCPData.eDHCPState = i;
-            eReturn = eGetDHCPState( &xEndPoint );
-            TEST_ASSERT_EQUAL( i, eReturn );
-        }
+    for( i = 0; i < sizeof( xTestData.eDHCPState ); i++ )
+    {
+        /* Modify the global state. */
+        pxEndPoint->xDHCPData.eDHCPState = i;
+        eReturn = eGetDHCPState( &xEndPoint );
+        TEST_ASSERT_EQUAL( i, eReturn );
     }
+}
