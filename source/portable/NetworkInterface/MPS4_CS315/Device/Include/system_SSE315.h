@@ -20,34 +20,34 @@
  */
 
 #ifndef __SYSTEM_CORE_INIT_H__
-#define __SYSTEM_CORE_INIT_H__
+    #define __SYSTEM_CORE_INIT_H__
 
-#include <stdint.h>
+    #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
-extern uint32_t SystemCoreClock;  /*!< System Clock Frequency (Core Clock)  */
-extern uint32_t PeripheralClock;  /*!< Peripheral Clock Frequency */
+    extern uint32_t SystemCoreClock; /*!< System Clock Frequency (Core Clock)  */
+    extern uint32_t PeripheralClock; /*!< Peripheral Clock Frequency */
 
 /**
-  \brief Exception / Interrupt Handler Function Prototype
-*/
-typedef void(*VECTOR_TABLE_Type)(void);
+ * \brief Exception / Interrupt Handler Function Prototype
+ */
+    typedef void (* VECTOR_TABLE_Type)( void );
 
 /**
  * \brief  Initializes the system
  */
-extern void SystemInit(void);
+    extern void SystemInit( void );
 
 /**
  * \brief  Restores system core clock
  */
-extern void SystemCoreClockUpdate(void);
+    extern void SystemCoreClockUpdate( void );
 
-#ifdef __cplusplus
+    #ifdef __cplusplus
 }
-#endif
+    #endif
 
 #endif /* __SYSTEM_CORE_INIT_H__ */
