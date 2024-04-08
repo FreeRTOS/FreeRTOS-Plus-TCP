@@ -353,7 +353,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     return xSTM32F_NetworkInterfaceOutput( pxInterface, pxBuffer, bReleaseAfterSend );
 }
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
