@@ -61,9 +61,6 @@
         uint8_t ucValid;                      /**< pdTRUE: xMACAddress is valid, pdFALSE: waiting for ND reply */
     } NDCacheRow_t;
 
-/** @brief All nodes on the local network segment: MAC address 33:33:00:00:00:01. */
-    extern const MACAddress_t pcLOCAL_ALL_NODES_MULTICAST_MAC;
-
 /*
  * If ulIPAddress is already in the ND cache table then reset the age of the
  * entry back to its maximum value.  If ulIPAddress is not already in the ND
