@@ -52,6 +52,9 @@ void vNetworkInterfaceAllocateRAMToBuffers( NetworkBufferDescriptor_t pxNetworkB
 
 BaseType_t xGetPhyLinkStatus( struct xNetworkInterface * pxInterface );
 
+#define MAC_IS_MULTICAST( pucMACAddressBytes )    ( ( pucMACAddressBytes[ 0 ] & 1U ) != 0U )
+#define MAC_IS_UNICAST( pucMACAddressBytes )      ( ( pucMACAddressBytes[ 0 ] & 1U ) == 0U )
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */

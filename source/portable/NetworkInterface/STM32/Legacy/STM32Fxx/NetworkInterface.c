@@ -353,7 +353,7 @@ BaseType_t xNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
     return xSTM32F_NetworkInterfaceOutput( pxInterface, pxBuffer, bReleaseAfterSend );
 }
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -799,15 +799,6 @@ static BaseType_t xSTM32F_NetworkInterfaceOutput( NetworkInterface_t * pxInterfa
     /* Open a do {} while ( 0 ) loop to be able to call break. */
     do
     {
-        if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
-        {
-            /* The packet has been sent back to the IP-task.
-             * The IP-task will further handle it.
-             * Do not release the descriptor. */
-            bReleaseAfterSend = pdFALSE;
-            break;
-        }
-
         #if ( ipconfigDRIVER_INCLUDED_TX_IP_CHECKSUM != 0 )
         {
             const IPPacket_t * pxIPPacket;
@@ -990,19 +981,6 @@ static BaseType_t xMayAcceptPacket( uint8_t * pucEthernetBuffer )
         }
 
         ulDestinationIPAddress = pxIPHeader->ulDestinationIPAddress;
-
-        /* Is the packet for this node? */
-        if( ( ulDestinationIPAddress != *ipLOCAL_IP_ADDRESS_POINTER ) &&
-            /* Is it a broadcast address x.x.x.255 ? */
-            ( ( FreeRTOS_ntohl( ulDestinationIPAddress ) & 0xff ) != 0xff ) &&
-            #if ( ipconfigUSE_LLMNR == 1 )
-                ( ulDestinationIPAddress != ipLLMNR_IP_ADDR ) &&
-            #endif
-            ( *ipLOCAL_IP_ADDRESS_POINTER != 0 ) )
-        {
-            FreeRTOS_debug_printf( ( "Drop IP %lxip\n", FreeRTOS_ntohl( ulDestinationIPAddress ) ) );
-            return pdFALSE;
-        }
 
         if( pxIPHeader->ucProtocol == ipPROTOCOL_UDP )
         {

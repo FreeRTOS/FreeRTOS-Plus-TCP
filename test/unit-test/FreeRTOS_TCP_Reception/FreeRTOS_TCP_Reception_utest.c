@@ -55,10 +55,14 @@
 #include "FreeRTOS_TCP_Reception.h"
 
 
+int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+                                       size_t uxTotalLength,
+                                       FreeRTOS_Socket_t * const pxSocket,
+                                       BaseType_t xHasSYNFlag );
 
-BaseType_t prvCheckOptions( FreeRTOS_Socket_t * pxSocket,
-                            const NetworkBufferDescriptor_t * pxNetworkBuffer );
-BaseType_t prvTCPSendReset( NetworkBufferDescriptor_t * pxNetworkBuffer );
+void prvReadSackOption( const uint8_t * const pucPtr,
+                        size_t uxIndex,
+                        FreeRTOS_Socket_t * const pxSocket );
 
 FreeRTOS_Socket_t xSocket, * pxSocket;
 NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer;

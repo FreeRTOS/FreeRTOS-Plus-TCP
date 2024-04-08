@@ -59,7 +59,7 @@ typedef enum eTestStubsOperation
     eTestStubsOperationNone = 0,
     eTestStubsAllocateFail,
     eTestStubsHookFail,
-    eTestStubsHookUseDefault,
+    eTestStubsHookUseDefault
 } eTestStubsOperation_t;
 
 /** @brief A list of all network end-points.  Each element has a next pointer. */
@@ -87,7 +87,7 @@ const IPv6_Address_t xDNSAddress[ 3 ] =
     /* 2001:0470:EC54::FE */
     { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE },
     /* 2001:0470:EC54::FD */
-    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE },
+    { 0x20, 0x01, 0x04, 0x70, 0xEC, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE }
 };
 
 typedef enum eTestDHCPv6BitOperationType
@@ -103,7 +103,7 @@ typedef enum eTestDHCPv6BitOperationType
     eTestDHCPv6BitOperationReadCustom,
     eTestDHCPv6BitOperationReadPeek,
     eTestDHCPv6BitOperationSetError,
-    eTestDHCPv6BitOperationReturnFalse,
+    eTestDHCPv6BitOperationReturnFalse
 } eTestDHCPv6BitOperationType_t;
 
 typedef struct xTestDHCPv6BitOperation

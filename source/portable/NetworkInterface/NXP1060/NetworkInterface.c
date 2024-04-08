@@ -269,7 +269,7 @@ NetworkInterface_t * pxNXP1060_FillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                         NetworkInterface_t * pxInterface );
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -277,10 +277,10 @@ NetworkInterface_t * pxNXP1060_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxNXP1060_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxNXP1060_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
-#endif /* ( ipconfigCOMPATIBLE_WITH_SINGLE != 0 ) */
+#endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 ) */
 /*-----------------------------------------------------------*/
 
 NetworkInterface_t * pxNXP1060_FillInterfaceDescriptor( BaseType_t xEMACIndex,
@@ -436,15 +436,6 @@ static BaseType_t prvNXP1060_NetworkInterfaceOutput( NetworkInterface_t * pxInte
 
     do
     {
-        if( xCheckLoopback( pxNetworkBuffer, xReleaseAfterSend ) != 0 )
-        {
-            /* The packet has been sent back to the IP-task.
-             * The IP-task will further handle it.
-             * Do not release the descriptor. */
-            xReleaseAfterSend = pdFALSE;
-            break;
-        }
-
         if( bGlobalLinkStatus == true )
         {
             /* ENET_SendFrame copies the data before sending it. Therefore, the network buffer can

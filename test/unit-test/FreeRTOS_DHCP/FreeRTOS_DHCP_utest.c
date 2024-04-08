@@ -26,6 +26,11 @@
 
 /*-------------------------------------Extern Variables--------------------------*/
 
+void vDHCPProcessEndPoint( BaseType_t xReset,
+                           BaseType_t xDoCheck,
+                           NetworkEndPoint_t * pxEndPoint );
+BaseType_t xProcessCheckOption( ProcessSet_t * pxSet );
+
 extern Socket_t xDHCPv4Socket;
 extern DHCPData_t xDHCPData;
 
@@ -136,9 +141,10 @@ void test_vDHCPProcess_ResetAndInvalidSocket( void )
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( void )
 {
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
         xDHCPv4Socket = NULL;
@@ -183,9 +189,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
         xDHCPv4Socket = NULL;
@@ -236,9 +243,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should remain unchanged. */
         xDHCPv4Socket = NULL;
@@ -278,9 +286,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should remain unchanged. */
         xDHCPv4Socket = &xTestSocket;
@@ -357,7 +366,6 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
     /* The state should indicate that we are not using leased address. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that the Endpoint IP address pointer indicates that. */
-    /*TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, *ipLOCAL_IP_ADDRESS_POINTER ); */
     TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
@@ -1981,9 +1989,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotma
 
     pxNetworkEndPoints = pxEndPoint;
 
-    memcpy( &xBackup, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
+    memcpy( &xBackup, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalMACAddrNotMatching );
@@ -1995,8 +2001,6 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotma
     /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
     vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
-
-    memcpy( ipLOCAL_MAC_ADDRESS, &xBackup, sizeof( MACAddress_t ) );
 
     /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
@@ -2015,7 +2019,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( v
 
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
     ucGenericPtr = DHCPMsg;
     ulGenericLength = sizeof( DHCPMsg );
@@ -2072,7 +2076,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectOptionsNoTimeout(
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2137,7 +2141,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageMissingLengthByteNoTimeout
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2203,7 +2207,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectLengthByteNoTimeo
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2271,7 +2275,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2341,7 +2345,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout_MatchingM
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2375,7 +2379,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout_MatchingM
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Set the MAC address that matches. */
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -2413,7 +2417,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetACKNoTimeout( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2483,7 +2487,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2516,7 +2520,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
     pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -2554,7 +2558,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout2( void 
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2628,7 +2632,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2674,7 +2678,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Make sure that the address matches. */
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -2724,8 +2728,8 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2826,8 +2830,8 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2926,7 +2930,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2972,7 +2976,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Make sure that the address matches. */
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
 
     /* Get a stub. */
@@ -3026,7 +3030,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3111,7 +3115,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3201,7 +3205,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBSuc
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3296,7 +3300,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3381,7 +3385,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3467,7 +3471,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3511,7 +3515,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     /* Put correct address. */
     pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Make sure that the address matches. */
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Reset the lease time so that it will be set to default
      * value later. */
@@ -3567,8 +3571,8 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3666,8 +3670,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3764,8 +3768,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3851,8 +3855,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_OFFER( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3953,8 +3957,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4099,8 +4103,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4246,8 +4250,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4392,8 +4396,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4538,8 +4542,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4684,8 +4688,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress2( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4827,8 +4831,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4944,8 +4948,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5060,8 +5064,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5185,8 +5189,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5318,8 +5322,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength2( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5427,8 +5431,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthOfPacket( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 

@@ -41,6 +41,7 @@
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_Routing.h"
+#include "FreeRTOS_ND.h"
 #include "NetworkBufferManagement.h"
 #include "NetworkInterface.h"
 
@@ -200,9 +201,40 @@ NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
  */
 static void hand_tx_errors( void );
 
+/*-----------------------------------------------------------*/
+
+/*
+ * GMAC hash match register definitions and macros and variables
+ * The ATSAM GMAC has a 64 bit register for matching multiple unicast or multicast addresses.
+ * This implementation keeps a counter for every one of those bits. Those counters allow us to keep track
+ * of how many times each bit has been referenced by a call to prvAddAllowedMACAddress().
+ * In order to minimize the memory requirement, the counters are of type uint8_t which limits
+ * their value to 255. If a counter ever reaches that value, it is never decremented. Reaching this
+ * limit is extremely unlikely in any system, let alone an embedded one using an ATSAM MCU.
+ */
+
+#define MULTICAST_HASH_IS_ENABLED( pGMAC )     ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_MTIHEN ) != 0U )
+#define MULTICAST_HASH_IS_DISABLED( pGMAC )    ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_MTIHEN ) == 0U )
+#define MULTICAST_HASH_ENABLE( pGMAC )         pGMAC->GMAC_NCFGR |= GMAC_NCFGR_MTIHEN
+#define MULTICAST_HASH_DISABLE( pGMAC )        pGMAC->GMAC_NCFGR &= ~( GMAC_NCFGR_MTIHEN )
+#define UNICAST_HASH_IS_ENABLED( pGMAC )       ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_UNIHEN ) != 0U )
+#define UNICAST_HASH_IS_DISABLED( pGMAC )      ( ( pGMAC->GMAC_NCFGR & GMAC_NCFGR_UNIHEN ) == 0U )
+#define UNICAST_HASH_ENABLE( pGMAC )           pGMAC->GMAC_NCFGR |= GMAC_NCFGR_UNIHEN
+#define UNICAST_HASH_DISABLE( pGMAC )          pGMAC->GMAC_NCFGR &= ~( GMAC_NCFGR_UNIHEN )
+
+#define GMAC_ADDRESS_HASH_BITS    ( 64U )
+#define GMAC_ADDRESS_HASH_MASK    ( GMAC_ADDRESS_HASH_BITS - 1U )
+
+static uint64_t prvAddressHashBitMask = 0U;
+static uint8_t prvAddressHashCounters[ GMAC_ADDRESS_HASH_BITS ] = { 0U };
+static uint8_t prvSpecificMatchCounters[ GMACSA_NUMBER ] = { 0U };
+
 /* Functions to set the hash table for multicast addresses. */
 static uint16_t prvGenerateCRC16( const uint8_t * pucAddress );
-static void prvAddMulticastMACAddress( const uint8_t * ucMacAddress );
+static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
+                                     const uint8_t * pucMacAddress );
+static void prvRemoveAllowedMACAddress( struct xNetworkInterface * pxInterface,
+                                        const uint8_t * pucMacAddress );
 
 /* Checks IP queue, buffers, and semaphore and logs diagnostic info if configured */
 static void vCheckBuffersAndQueue( void );
@@ -490,7 +522,7 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
 }
 /*-----------------------------------------------------------*/
 
-#if defined( ipconfigIPv4_BACKWARD_COMPATIBLE ) && ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -498,7 +530,7 @@ static BaseType_t prvSAM_NetworkInterfaceInitialise( NetworkInterface_t * pxInte
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxSAM_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxSAM_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif
@@ -521,6 +553,8 @@ NetworkInterface_t * pxSAM_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     pxInterface->pfInitialise = prvSAM_NetworkInterfaceInitialise;
     pxInterface->pfOutput = prvSAM_NetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = prvSAM_GetPhyLinkStatus;
+    pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
+    pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress;
 
     FreeRTOS_AddNetworkInterface( pxInterface );
 
@@ -598,15 +632,6 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
      * statement. */
     do
     {
-        if( xCheckLoopback( pxDescriptor, bReleaseAfterSend ) != 0 )
-        {
-            /* The packet has been sent back to the IP-task.
-             * The IP-task will further handle it.
-             * Do not release the descriptor. */
-            bReleaseAfterSend = pdFALSE;
-            break;
-        }
-
         uint32_t ulResult;
 
         if( xPhyObject.ulLinkStatusMask == 0ul )
@@ -685,11 +710,9 @@ static BaseType_t prvSAM_NetworkInterfaceOutput( NetworkInterface_t * pxInterfac
 static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
 {
     NetworkEndPoint_t * pxEndPoint;
+    size_t uxIndex;
 
     gmac_options_t gmac_option;
-
-    pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
-    configASSERT( pxEndPoint != NULL );
 
     gmac_enable_management( GMAC, true );
     /* Enable further GMAC maintenance. */
@@ -700,7 +723,9 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     /* Note that 'gmac_option.uc_copy_all_frame' is false, do not copy all frames.
      * And 'gmac_option.uc_no_boardcast' is false, meaning that broadcast is received.
      * 'boardcast' is a typo. */
-    memcpy( gmac_option.uc_mac_addr, pxEndPoint->xMACAddress.ucBytes, sizeof( gmac_option.uc_mac_addr ) );
+
+    /* Note that the gmac_option holds the MAC address that will be enabled for reception.
+     * Leave the MAC as zeros. It will be handled properly further down.*/
 
     gs_gmac_dev.p_hw = GMAC;
     gmac_dev_init( GMAC, &gs_gmac_dev, &gmac_option );
@@ -708,45 +733,63 @@ static BaseType_t prvGMACInit( NetworkInterface_t * pxInterface )
     NVIC_SetPriority( GMAC_IRQn, configMAC_INTERRUPT_PRIORITY );
     NVIC_EnableIRQ( GMAC_IRQn );
 
-    /* Clear the hash table for multicast MAC addresses.
-     * OR set both to ~0H to receive all multicast packets. */
-    GMAC->GMAC_HRB = 0U; /* Hash Register Bottom. */
-    GMAC->GMAC_HRT = 0U; /* Hash Register Top. */
+    /* The call to gmac_dev_init() above writes gmac_option.uc_mac_addr to the first
+     * MAC address register by calling gmac_set_address( GMAC, 0, p_opt->uc_mac_addr )
+     * This driver however uses the prvAddAllowedMACAddress() to manipulate the specific match
+     * and hash match registers, so undo the setting of the first specific MAC register. */
 
-    /* gmac_enable_multicast_hash() sets the wrong bit, don't use it. */
-    /* gmac_enable_multicast_hash( GMAC, pdTRUE ); */
-    /* set Multicast Hash Enable. */
-    GMAC->GMAC_NCFGR |= GMAC_NCFGR_MTIHEN;
-
-    #if ( ipconfigUSE_LLMNR == 1 )
+    /* Disable all specific MAC address match registers */
+    for( uxIndex = 0; uxIndex < GMACSA_NUMBER; uxIndex++ )
     {
-        prvAddMulticastMACAddress( xLLMNR_MacAddress.ucBytes );
+        /* Writing the bottom register disable this specific MAC register. */
+        GMAC->GMAC_SA[ uxIndex ].GMAC_SAB = 0;
     }
-    #endif /* ipconfigUSE_LLMNR */
 
-    #if ( ipconfigUSE_IPv6 != 0 )
+    /* Clear the hash table for unicast/multicast MAC addresses. */
+    gmac_set_hash( GMAC, 0, 0 );
+
+    /* gmac_enable_multicast_hash() sets the wrong bit, don't use it.
+     * There is also no equivalent for unicasts, so manipulate the bits directly.
+     * For now, disable both multicast and unicast hash matching.
+     * The appropriate bits will be set later */
+    MULTICAST_HASH_DISABLE( GMAC );
+    UNICAST_HASH_DISABLE( GMAC );
+
+    /* Go through all end-points of the interface and add their MAC addresses to the GMAC. */
+    for( pxEndPoint = FreeRTOS_FirstEndPoint( pxInterface );
+         pxEndPoint != NULL;
+         pxEndPoint = FreeRTOS_NextEndPoint( pxInterface, pxEndPoint ) )
     {
-        NetworkEndPoint_t * pxEndPoint;
-        #if ( ipconfigUSE_LLMNR == 1 )
+        prvAddAllowedMACAddress( pxInterface, pxEndPoint->xMACAddress.ucBytes );
+    }
+
+    #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv4 ) )
+        #if ( ipconfigUSE_LLMNR == ipconfigENABLE )
+            prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddress.ucBytes );
+        #endif /* ipconfigUSE_LLMNR */
+
+        #if ( ipconfigUSE_MDNS == ipconfigENABLE )
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MacAddress.ucBytes );
+        #endif /* ipconfigUSE_MDNS */
+    #endif /* ipconfigIS_ENABLED( ipconfigUSE_IPv4 */
+
+    #if ( ipconfigUSE_IPv6 == ipconfigENABLE )
+    {
+        /* Register the Link-Local All-Nodes address */
+        /* FF02::1 --> 33-33-00-00-00-01 */
+        prvAddAllowedMACAddress( pxInterface, pcLOCAL_ALL_NODES_MULTICAST_MAC );
+
+        #if ( ipconfigUSE_LLMNR == ipconfigENABLE )
         {
-            prvAddMulticastMACAddress( xLLMNR_MacAddressIPv6.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddressIPv6.ucBytes );
         }
         #endif /* ipconfigUSE_LLMNR */
 
-        for( pxEndPoint = FreeRTOS_FirstEndPoint( pxMyInterface );
-             pxEndPoint != NULL;
-             pxEndPoint = FreeRTOS_NextEndPoint( pxMyInterface, pxEndPoint ) )
+        #if ( ipconfigUSE_MDNS == ipconfigENABLE )
         {
-            if( pxEndPoint->bits.bIPv6 != pdFALSE_UNSIGNED )
-            {
-                uint8_t ucMACAddress[ 6 ] = { 0x33, 0x33, 0xff, 0, 0, 0 };
-
-                ucMACAddress[ 3 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 13 ];
-                ucMACAddress[ 4 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 14 ];
-                ucMACAddress[ 5 ] = pxEndPoint->ipv6_settings.xIPAddress.ucBytes[ 15 ];
-                prvAddMulticastMACAddress( ucMACAddress );
-            }
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MACAddressIPv6.ucBytes );
         }
+        #endif /* ipconfigUSE_MDNS */
     }
     #endif /* ipconfigUSE_IPv6 */
 
@@ -805,29 +848,279 @@ static uint16_t prvGenerateCRC16( const uint8_t * pucAddress )
     usSum ^= ( usValues[ 4 ] >> 4 ) ^ ( usValues[ 4 ] << 2 );
     usSum ^= ( usValues[ 5 ] >> 2 ) ^ ( usValues[ 5 ] << 4 );
 
-    usSum &= 0x3FU;
+    usSum &= GMAC_ADDRESS_HASH_MASK;
     return usSum;
 }
 /*-----------------------------------------------------------*/
 
-static void prvAddMulticastMACAddress( const uint8_t * ucMacAddress )
+/**
+ * @brief Adds a multicast mac address to the GMAC's registers. Internally, this function
+ * keeps track of the 4 specific MAC address register as well as the hash match register.
+ * It keeps a counter for how many times the specific registers have been used as well as how
+ * many times every bit in the GMAC hash register has been hit. This way, if two multicast MAC
+ * addresses map to the same GMAC hash register bit, the internal counter will hold the value of 2.
+ * Calling prvRemoveAllowedMACAddress for one of those MACs will only decrement the counter, but
+ * the bit in the GMAC hash register will remain set until a call to prvRemoveAllowedMACAddress for
+ * the other MAC causes the counter to reach 0 and the bit to get cleared. Same logic applies to
+ * the specific match registers.
+ *
+ * @param[in] pucMacAddress: A pointer to the multicast MAC Address in question.
+ */
+static void prvAddAllowedMACAddress( struct xNetworkInterface * pxInterface,
+                                     const uint8_t * pucMacAddress )
 {
-    uint32_t ulMask;
-    uint16_t usIndex;
+    /* Design rationale and implementation details:
+     * Most network infrastructure ( both wired and wireless ) will do a pretty good job in
+     * limiting how much unicast MAC traffic we receive. In general, we will only be sent
+     * unicast frames that are destined to MAC addresses that we send from. Because of this,
+     * the EMAC doesn't need to do heavy filtering for unicasts.
+     * On the other hand, most networking hardware ( both wired and wireless ) will happily
+     * send us all traffic that has a multicast destination MAC. It is therefor much more
+     * important to filter out unnecessary multicast traffic. Ideally, we could explicitly
+     * allow all multicast MAC addresses that the TCP stack requests, however, this EMAC controller
+     * only has 4 specific MAC match registers. Beyond that, we can use the hash match register to
+     * match unicast and/or multicast addresses. Every bit in the hash match register corresponds
+     * to millions of MAC addresses, so the usage of the hash register should be kept to a minimum.
+     * As a side note, setting all bits in the hash register is somewhat equivalent to
+     * promiscuous mode and is therefor not very useful.
+     * Due to the filtering nature of network infrastructure, It would make sense to use the
+     * specific match registers for matching multicasts and use the hash match register for unicasts
+     * because they are already well filtered. Due to the EMAC hardware limitations, such approach
+     * is only feasible if very few ( no more than 4 ) multicast MAC addresses need to be received.
+     *
+     * TCP stack multicast requirements notes:
+     * - IPv4 only, no IGMP, no LLMNR, no mDNS - 0 multicasts required.
+     * - IPv4 only: IGMP 224.0.0.1, LLMNR 224.0.0.252, mDNS 224.0.0.251 - total 3 multicasts required.
+     * - IPv6 only, no MLD, no LLMNR, no mDNS - 1 multicast required per IPv6 endpoint for the
+     *   solicited node multicast address + all nodes ff02::1 - total of at least 2 multicasts required.
+     * - IPv4+v6 with IGMP, LLMNR and mDNS = 6 + 1 for every IPv6 end-point - 7+ multicasts required.
+     *
+     * This implementation is optimized for use cases where a lot of multicasts and very few unicast
+     * MAC addresses need to be received. This implementation prioritizes the use of the exact match
+     * register and once used up, begins utilizing the hash match register. It is highly recommended
+     * that all the end-points of an interface use the same unicast MAC. If for some reason, the TCP
+     * stack adds too many unicast MAC addresses, the hash register will be used for both unicasts
+     * and multicasts which will result in a lot of bits being set and consequently very poor
+     * multicast filtering.
+     * One limitation of this implementation is that once it enables unicast or multicast hash
+     * matching, it will never disable them. This should be acceptable for a fairly static system
+     * and was chosen because it minimizes RAM usage by not keeping a list of all MAC addresses
+     * that the TCP stack has requested. One optimization that this implementation makes is as follows:
+     * If the MAC being added is already covered by the hash match register and that specific
+     * matching is already enabled, we add that new MAC to the hash register even if there is an
+     * empty specific match register available. The reasoning is that the hash match register is already
+     * allowing this new MAC address to be received and there is no reason to waste a specific
+     * match register.
+     * The implementation keep counts of how many times the individual hash bits and specific match
+     * registers have been used. */
 
-    usIndex = prvGenerateCRC16( ucMacAddress );
+    /* Note: Only called from the IPTask, so no thread-safety is required. */
+    uint8_t ucHashBit;
+    size_t uxIndex, uxEmptyIndex;
 
-    ulMask = 1U << ( usIndex % 32 );
+    uint32_t ulSAB, ulSAT;
 
-    if( usIndex < 32U )
+    configASSERT( pucMacAddress != NULL );
+    configASSERT( pxInterface != NULL ); /* Not used, but the stack should not be sending us NULL parameters. */
+
+    ucHashBit = prvGenerateCRC16( pucMacAddress );
+    FreeRTOS_debug_printf( "prvAddAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+                           pxInterface,
+                           pucMacAddress[ 0 ], pucMacAddress[ 1 ], pucMacAddress[ 2 ], pucMacAddress[ 3 ], pucMacAddress[ 4 ], pucMacAddress[ 5 ],
+                           ucHashBit );
+
+    /* Calculate what the specific match registers would look like for this MAC address so that
+     * we can check if this MAC address is already present in one of the specific match registers. */
+    ulSAB = ( ( ( uint32_t ) pucMacAddress[ 3 ] ) << 24 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 2 ] ) << 16 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 1 ] ) << 8 ) |
+            ( ( uint32_t ) pucMacAddress[ 0 ] );
+    ulSAT = ( ( ( uint32_t ) pucMacAddress[ 5 ] ) << 8 ) | ( ( uint32_t ) pucMacAddress[ 4 ] );
+
+    /* Always try to find a match within the specific match registers first. */
+    uxEmptyIndex = GMACSA_NUMBER;
+
+    for( uxIndex = 0; uxIndex < GMACSA_NUMBER; uxIndex++ )
     {
-        /* 0 .. 31 */
-        GMAC->GMAC_HRB |= ulMask;
+        if( prvSpecificMatchCounters[ uxIndex ] > 0U )
+        {
+            /* This specific match register is being used. Check if the address is the same. */
+            if( ( ulSAB == GMAC->GMAC_SA[ uxIndex ].GMAC_SAB ) && ( ulSAT == GMAC->GMAC_SA[ uxIndex ].GMAC_SAT ) )
+            {
+                /* Exact match! Increment the counter and leave. As with the hash counters, make sure we don't overflow. */
+                if( prvSpecificMatchCounters[ uxIndex ] < UINT8_MAX )
+                {
+                    prvSpecificMatchCounters[ uxIndex ]++;
+                }
+
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", uxIndex, prvSpecificMatchCounters[ uxIndex ] ); */
+                break;
+            }
+            else
+            {
+                /* No match. Do nothing. */
+            }
+        }
+        else
+        {
+            /* This specific match register is empty.
+             * Keep track of the first empty register in case we need to use it. */
+            if( uxEmptyIndex >= GMACSA_NUMBER )
+            {
+                uxEmptyIndex = uxIndex;
+            }
+            else
+            {
+                /* We have already found an empty specific match register. Do nothing. */
+            }
+        }
+    } /* for( uxIndex = 0; uxIndex < GMACSA_NUMBER; uxIndex++ ) */
+
+    /* do{}while(0) to allow the use of break statements. */
+    do
+    {
+        if( uxIndex < GMACSA_NUMBER )
+        {
+            /* An exact match was found in the for(;;) loop above. Do nothing. */
+            break;
+        }
+
+        /* No exact match found in the specific match registers.
+         * Is one of them empty so we can add the MAC there? */
+        if( uxEmptyIndex < GMACSA_NUMBER )
+        {
+            /* There is an empty slot in the specific match registers. Using this empty slot should
+             * be a priority, except if the hash register already covers the MAC address we were given
+             * and the type of address we were given ( unicast/multicast ). If any of those are not
+             * met, simply add to the empty slot we found in the specific match registers. */
+            if( ( ( MAC_IS_MULTICAST( pucMacAddress ) ) && ( MULTICAST_HASH_IS_DISABLED( GMAC ) ) ) ||
+                ( ( MAC_IS_UNICAST( pucMacAddress ) ) && ( UNICAST_HASH_IS_DISABLED( GMAC ) ) ) ||
+                ( prvAddressHashCounters[ ucHashBit ] == 0U ) /* hash matching doesn't cover this address yet. */ )
+            {
+                /* In all cases above, simply add the MAC address to the empty specific match register. */
+                gmac_set_address( GMAC, uxEmptyIndex, pucMacAddress );
+                prvSpecificMatchCounters[ uxEmptyIndex ] = 1U;
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: ADD at %u, new counter %u", uxEmptyIndex, prvSpecificMatchCounters[ uxEmptyIndex ] ); */
+                break;
+            }
+        }
+
+        /* If we reach here, we need to add the MAC address we were given to the hash match register. */
+        /* If the bin counter corresponding to this mac address is already non-zero, */
+        /* a multicast address with the same hash has already been added, so there's nothing more to do. */
+        if( prvAddressHashCounters[ ucHashBit ] == 0 )
+        {
+            /* This bin counter is zero, so this is the first time we are registering a MAC with this hash
+             * and we need to update the hash register. */
+            prvAddressHashBitMask |= ( uint64_t ) ( ( uint64_t ) 1 << ucHashBit );
+            gmac_set_hash64( GMAC, prvAddressHashBitMask );
+        }
+
+        /* Increment the counter, but make sure we don't overflow it. */
+        if( prvAddressHashCounters[ ucHashBit ] < UINT8_MAX )
+        {
+            prvAddressHashCounters[ ucHashBit ]++;
+        }
+
+        /* Make sure the unicast or multicast hash enable bits are set properly. */
+        if( ( MAC_IS_UNICAST( pucMacAddress ) ) && ( UNICAST_HASH_IS_DISABLED( GMAC ) ) )
+        {
+            /* This is the first ever unicast address added to the hash register. Enable unicast matching. */
+            UNICAST_HASH_ENABLE( GMAC );
+        }
+        else if( ( MAC_IS_MULTICAST( pucMacAddress ) ) && ( MULTICAST_HASH_IS_DISABLED( GMAC ) ) )
+        {
+            /* This is the first ever multicast address added to the hash register. Enable multicast matching. */
+            MULTICAST_HASH_ENABLE( GMAC );
+        }
+        else
+        {
+            /* The proper unicast / multicast matching is already enabled. Do nothing. */
+        }
+    } while( pdFALSE );
+}
+
+/**
+ * @brief Removes a MAC address from the GMAC's specific match or hash match registers.
+ *
+ * @param[in] pucMacAddress: A pointer to the multicast MAC Address in question.
+ */
+static void prvRemoveAllowedMACAddress( struct xNetworkInterface * pxInterface,
+                                        const uint8_t * pucMacAddress )
+{
+    /* Note: Only called from the IPTask, so no thread-safety is required. */
+    uint8_t ucHashBit;
+    uint32_t ulSAB, ulSAT;
+    size_t uxIndex;
+
+    configASSERT( pucMacAddress != NULL );
+    configASSERT( pxInterface != NULL ); /* Not used, but the stack should not be sending us NULL parameters. */
+
+    ucHashBit = prvGenerateCRC16( pucMacAddress );
+    FreeRTOS_debug_printf( "prvRemoveAllowedMACAddress: pxIf %p, %02X-%02X-%02X-%02X-%02X-%02X hash-bit %u",
+                           pxInterface,
+                           pucMacAddress[ 0 ], pucMacAddress[ 1 ], pucMacAddress[ 2 ], pucMacAddress[ 3 ], pucMacAddress[ 4 ], pucMacAddress[ 5 ],
+                           ucHashBit );
+
+    /* Calculate what the specific match registers would look like for this MAC address so that
+     * we can check if this MAC address is already present in one of the specific match registers. */
+    ulSAB = ( ( ( uint32_t ) pucMacAddress[ 3 ] ) << 24 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 2 ] ) << 16 ) |
+            ( ( ( uint32_t ) pucMacAddress[ 1 ] ) << 8 ) |
+            ( ( uint32_t ) pucMacAddress[ 0 ] );
+    ulSAT = ( ( ( uint32_t ) pucMacAddress[ 5 ] ) << 8 ) | ( ( uint32_t ) pucMacAddress[ 4 ] );
+
+    /* Check the specific match registers first. */
+    for( uxIndex = 0; uxIndex < GMACSA_NUMBER; uxIndex++ )
+    {
+        if( ( prvSpecificMatchCounters[ uxIndex ] > 0U ) && ( ulSAB == GMAC->GMAC_SA[ uxIndex ].GMAC_SAB ) && ( ulSAT == GMAC->GMAC_SA[ uxIndex ].GMAC_SAT ) )
+        {
+            /* Exact match! Decrement the counter unless it's maxed out. */
+            if( prvSpecificMatchCounters[ uxIndex ] < UINT8_MAX )
+            {
+                prvSpecificMatchCounters[ uxIndex ]--;
+            }
+
+            if( prvSpecificMatchCounters[ uxIndex ] == 0 )
+            {
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, INDEX DISABLED", uxIndex ); */
+                /* This specific match register counter is now zero. Disable it by writing it in reverse order. */
+                GMAC->GMAC_SA[ uxIndex ].GMAC_SAT = 0U; /* This is not needed, just clears out the top register.*/
+                GMAC->GMAC_SA[ uxIndex ].GMAC_SAB = 0U; /* Writing the bottom register disables this specific match register. */
+            }
+            else
+            {
+                /* FreeRTOS_debug_printf("prvAddAllowedMACAddress: EXACT MATCH at %u, new counter %u", uxIndex, prvSpecificMatchCounters[ uxIndex ] ); */
+            }
+
+            break;
+        }
+    }
+
+    if( uxIndex >= GMACSA_NUMBER )
+    {
+        /* The MAC address was not found amongst the specific match registers, check the hash register. */
+        if( prvAddressHashCounters[ ucHashBit ] > 0 )
+        {
+            /* If so many multicasts with the same hash were added that the bin counter was maxed out, */
+            /* we don't really know how many times we can decrement before actually unregistering this hash. */
+            /* Because of this, if the bin counter ever maxes out, we can never unregister the hash. */
+            if( prvAddressHashCounters[ ucHashBit ] < UINT8_MAX )
+            {
+                prvAddressHashCounters[ ucHashBit ]--;
+
+                if( 0 == prvAddressHashCounters[ ucHashBit ] )
+                {
+                    uint64_t hash = ( uint64_t ) ( ( uint64_t ) 1 << ucHashBit );
+                    prvAddressHashBitMask &= ~hash;
+                    gmac_set_hash64( GMAC, prvAddressHashBitMask );
+                }
+            }
+        }
     }
     else
     {
-        /* 32 .. 63 */
-        GMAC->GMAC_HRT |= ulMask;
+        /* Nothing left to do. */
     }
 }
 /*-----------------------------------------------------------*/
@@ -923,7 +1216,7 @@ void vGMACGenerateChecksum( uint8_t * pucBuffer,
     ProtocolPacket_t * xProtPacket = ( ProtocolPacket_t * ) pucBuffer;
 
     /* The SAM4E has problems offloading checksums for transmission.
-     * The SAME70 does not set the CRC for ICMP packets (ping). */
+     * The SAME70 does not set the CRC for ICMP or IGMP packets. */
 
     if( xProtPacket->xICMPPacket.xEthernetHeader.usFrameType == ipIPv4_FRAME_TYPE )
     {

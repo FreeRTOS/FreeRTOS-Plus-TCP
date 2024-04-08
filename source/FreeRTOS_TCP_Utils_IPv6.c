@@ -79,6 +79,8 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
 
         if( pxEndPoint != NULL )
         {
+            IPv6_Type_t eType;
+
             /* Compared to IPv4, an IPv6 header is 20 bytes longer.
              * It must be subtracted from the MSS. */
             size_t uxDifference = ipSIZE_OF_IPv6_HEADER - ipSIZE_OF_IPv4_HEADER;
@@ -86,7 +88,7 @@ void prvSocketSetMSS_IPV6( FreeRTOS_Socket_t * pxSocket )
             /* Because ipconfigTCP_MSS is guaranteed not less than tcpMINIMUM_SEGMENT_LENGTH by FreeRTOSIPConfigDefaults.h,
              * it's unnecessary to check if xSocket->u.xTCP.usMSS is greater than difference. */
             ulMSS = ( uint32_t ) ( ipconfigTCP_MSS - uxDifference );
-            IPv6_Type_t eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
+            eType = xIPv6_GetIPType( &( pxSocket->u.xTCP.xRemoteIP.xIP_IPv6 ) );
 
             if( eType == eIPv6_Global )
             {

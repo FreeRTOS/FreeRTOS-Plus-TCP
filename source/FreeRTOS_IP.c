@@ -92,13 +92,6 @@
     #endif
 #endif
 
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- * within the last round. */
-    BaseType_t xProcessedTCPMessage;
-#endif
-
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
  * driver will filter incoming packets and only pass the stack those packets it
  * considers need processing.  In this case ipCONSIDER_FRAME_FOR_PROCESSING() can
@@ -631,6 +624,14 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
  */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
 {
+    if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* IPv6 end-points have a solicited-node address that needs extra housekeeping. */
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+            vManageSolicitedNodeAddress( pxEndPoint, pdTRUE );
+        #endif
+    }
+
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
@@ -672,7 +673,10 @@ static void prvHandleEthernetPacket( NetworkBufferDescriptor_t * pxBuffer )
         /* When ipconfigUSE_LINKED_RX_MESSAGES is set to 0 then only one
          * buffer will be sent at a time.  This is the default way for +TCP to pass
          * messages from the MAC to the TCP/IP stack. */
-        prvProcessEthernetPacket( pxBuffer );
+        if( pxBuffer != NULL )
+        {
+            prvProcessEthernetPacket( pxBuffer );
+        }
     }
     #else /* ipconfigUSE_LINKED_RX_MESSAGES */
     {
@@ -873,6 +877,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 
         if( pxNetworkBuffer != NULL )
         {
+            uint8_t * pucIPType;
             size_t uxIndex = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
             BaseType_t xPayloadIPTypeOffset = ( BaseType_t ) uxIndex;
 
@@ -881,8 +886,6 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 
             /* Skip 3 headers. */
             pvReturn = ( void * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxPayloadOffset ] );
-
-            uint8_t * pucIPType;
 
             /* Later a pointer to a UDP payload is used to retrieve a NetworkBuffer.
              * Store the packet type at 48 bytes before the start of the UDP payload. */
@@ -921,7 +924,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
 
         /* IF the following function should be declared in the NetworkInterface.c
          * linked in the project. */
-        pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
+        ( void ) pxFillInterfaceDescriptor( 0, &( xInterfaces[ 0 ] ) );
         FreeRTOS_FillEndPoint( &( xInterfaces[ 0 ] ), &( xEndPoints[ 0 ] ), ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress, ucMACAddress );
         #if ( ipconfigUSE_DHCP != 0 )
         {
@@ -1543,13 +1546,35 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
     const EthernetHeader_t * pxEthernetHeader;
     eFrameProcessingResult_t eReturned = eReleaseBuffer;
 
-    configASSERT( pxNetworkBuffer != NULL );
-
-    iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
-
-    /* Interpret the Ethernet frame. */
-    if( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) )
+    /* Use do{}while(pdFALSE) to allow the use of break; */
+    do
     {
+        /* prvHandleEthernetPacket() already checked for ( pxNetworkBuffer != NULL ) so
+         * it is safe to break out of the do{}while() and let the second half of this
+         * function handle the releasing of pxNetworkBuffer */
+
+        if( ( pxNetworkBuffer->pxInterface == NULL ) || ( pxNetworkBuffer->pxEndPoint == NULL ) )
+        {
+            break;
+        }
+
+        /* Beyond this point,
+         * ( pxNetworkBuffer != NULL ),
+         * ( pxNetworkBuffer->pxInterface != NULL ),
+         * ( pxNetworkBuffer->pxEndPoint != NULL ),
+         * Additionally, FreeRTOS_FillEndPoint() and FreeRTOS_FillEndPoint_IPv6() guarantee
+         * that endpoints always have a valid interface assigned to them, and consequently:
+         * ( pxNetworkBuffer->pxEndPoint->pxInterface != NULL )
+         * None of the above need to be checked again in code that handles incoming packets. */
+
+        iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
+
+        /* Interpret the Ethernet frame. */
+        if( pxNetworkBuffer->xDataLength < sizeof( EthernetHeader_t ) )
+        {
+            break;
+        }
+
         eReturned = ipCONSIDER_FRAME_FOR_PROCESSING( pxNetworkBuffer->pucEthernetBuffer );
 
         /* Map the buffer onto the Ethernet Header struct for easy access to the fields. */
@@ -1612,9 +1637,9 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                         eReturned = eReleaseBuffer;
                     #endif
                     break;
-            }
+            } /* switch( pxEthernetHeader->usFrameType ) */
         }
-    }
+    } while( pdFALSE );
 
     /* Perform any actions that resulted from processing the Ethernet frame. */
     switch( eReturned )
@@ -1997,10 +2022,6 @@ static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacke
                                 {
                                     eReturn = eFrameConsumed;
                                 }
-
-                                /* Setting this variable will cause xTCPTimerCheck()
-                                 * to be called just before the IP-task blocks. */
-                                xProcessedTCPMessage++;
                                 break;
                         #endif /* if ipconfigUSE_TCP == 1 */
                     default:
