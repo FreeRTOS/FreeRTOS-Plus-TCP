@@ -1062,7 +1062,6 @@ static BaseType_t prvEthConfigInit( ETH_HandleTypeDef * pxEthHandle,
 
     if( pxEndPoint != NULL )
     {
-        /* ipLOCAL_MAC_ADDRESS */
         pxEthHandle->Init.MACAddr = ( uint8_t * ) pxEndPoint->xMACAddress.ucBytes;
 
         if( HAL_ETH_Init( pxEthHandle ) == HAL_OK )
@@ -1822,7 +1821,7 @@ static BaseType_t prvAcceptPacket( const NetworkBufferDescriptor_t * const pxDes
             }
 
             #ifdef niEMAC_STM32HX
-                else if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_IGMP ) /* IGMP */
+                else if( ( ulRxDesc & ETH_IP_PAYLOAD_MASK ) == ETH_IP_PAYLOAD_IGMP )
                 {
                 }
             #endif
@@ -2076,8 +2075,8 @@ NetworkInterface_t * pxSTM32_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     pxInterface->pfOutput = prvNetworkInterfaceOutput;
     pxInterface->pfGetPhyLinkStatus = prvGetPhyLinkStatus;
 
-    /* pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
-     * pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress; */
+    pxInterface->pfAddAllowedMAC = prvAddAllowedMACAddress;
+    pxInterface->pfRemoveAllowedMAC = prvRemoveAllowedMACAddress;
 
     return FreeRTOS_AddNetworkInterface( pxInterface );
 }
