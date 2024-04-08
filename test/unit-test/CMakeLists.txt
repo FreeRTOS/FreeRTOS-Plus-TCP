@@ -311,7 +311,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_Routing_ConfigCompatibleWithSingle/ut.cmake )
 add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
     DEPENDS cmock unity
-FreeRTOS_ARP_utest
+    FreeRTOS_ARP_utest
     FreeRTOS_ARP_DataLenLessThanMinPacket_utest
     FreeRTOS_BitConfig_utest
     FreeRTOS_DHCP_utest

@@ -624,6 +624,14 @@ TaskHandle_t FreeRTOS_GetIPTaskHandle( void )
  */
 void vIPNetworkUpCalls( struct xNetworkEndPoint * pxEndPoint )
 {
+    if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* IPv6 end-points have a solicited-node address that needs extra housekeeping. */
+        #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+            vManageSolicitedNodeAddress( pxEndPoint, pdTRUE );
+        #endif
+    }
+
     pxEndPoint->bits.bEndPointUp = pdTRUE_UNSIGNED;
 
     #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
