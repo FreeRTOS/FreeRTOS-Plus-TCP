@@ -44,6 +44,7 @@
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_IPv6.h"
+#include "mock_FreeRTOS_Routing.h"
 
 #include "FreeRTOS_IPv6_Utils.h"
 
@@ -641,4 +642,230 @@ void test_usGetExtensionHeaderLength_InvalidHeader( void )
     xReturn = usGetExtensionHeaderLength( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, &ucProtocol );
 
     TEST_ASSERT_EQUAL( pxNetworkBuffer->xDataLength, xReturn );
+}
+
+/* This variable will be set when pfAddAllowedMAC() is called by vIPNetworkUpCalls(). */
+static BaseType_t xMACAddFunctionCalled;
+static BaseType_t xMACRemoveFunctionCalled;
+
+static void pfAddAllowedMAC( struct xNetworkInterface * pxInterface,
+                             const uint8_t * pucMacAddress )
+{
+    xMACAddFunctionCalled = pdTRUE;
+}
+
+static void pfRemoveAllowedMAC( struct xNetworkInterface * pxInterface,
+                                const uint8_t * pucMacAddress )
+{
+    xMACRemoveFunctionCalled = pdTRUE;
+}
+
+/**
+ * @brief Check for assert if endpoint is NULL
+ */
+void test_vManageSolicitedNodeAddress_NoEndPoint_CatchAssert( void )
+{
+    catch_assert( vManageSolicitedNodeAddress( NULL, pdTRUE ) );
+}
+
+
+/**
+ * @brief Check for assert if interface is NULL
+ */
+void test_vManageSolicitedNodeAddress_NoInterface_CatchAssert( void )
+{
+    NetworkEndPoint_t xEndPoint = { 0 };
+
+    catch_assert( vManageSolicitedNodeAddress( &xEndPoint, pdTRUE ) );
+}
+
+
+/**
+ * @brief Validate the case were the network is going up
+ */
+void test_vManageSolicitedNodeAddress_NetworkGoingUp( void )
+{
+    NetworkInterface_t xInterface = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    BaseType_t xMACAddExpected = pdFALSE;
+    /* Use the local-link address fe80::7009 */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFEU, 0x80U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+
+    /* Happy path eIPv6_LinkLocal */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xEndPoint.bits.bEndPointUp = pdFALSE;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.pxNetworkInterface = &xInterface;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, ucAddress, ipSIZE_OF_IPv6_ADDRESS );
+
+    xMACAddFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_LinkLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdTRUE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACAddFunctionCalled );
+
+    /* No MAC address add handler */
+    xInterface.pfAddAllowedMAC = NULL;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACAddFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_LinkLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdTRUE );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xMACAddFunctionCalled );
+
+    /* Happy path eIPv6_SiteLocal */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACAddFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_SiteLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdTRUE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACAddFunctionCalled );
+
+    /* Happy path eIPv6_Global */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACAddFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_Global );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdTRUE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACAddFunctionCalled );
+
+    /* Unhappy path eIPv6_Loopback */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACAddFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_Loopback );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdTRUE );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xMACAddFunctionCalled );
+}
+
+/**
+ * @brief Validate the case were the network is going down
+ */
+void test_vManageSolicitedNodeAddress_NetworkGoingDown( void )
+{
+    NetworkInterface_t xInterface = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    BaseType_t xMACAddExpected = pdFALSE;
+    /* Use the local-link address fe80::7009 */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFEU, 0x80U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+
+    /* Happy path eIPv6_LinkLocal */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xEndPoint.bits.bEndPointUp = pdFALSE;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bIPv6 = pdTRUE;
+    xEndPoint.pxNetworkInterface = &xInterface;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, ucAddress, ipSIZE_OF_IPv6_ADDRESS );
+
+    xMACRemoveFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_LinkLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdFALSE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACRemoveFunctionCalled );
+
+    /* No MAC address add handler */
+    xInterface.pfAddAllowedMAC = NULL;
+    xInterface.pfRemoveAllowedMAC = NULL;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACRemoveFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_LinkLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdFALSE );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xMACRemoveFunctionCalled );
+
+    /* Happy path eIPv6_SiteLocal */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACRemoveFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_SiteLocal );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdFALSE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACRemoveFunctionCalled );
+
+    /* Happy path eIPv6_Global */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACRemoveFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_Global );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdFALSE );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xMACRemoveFunctionCalled );
+
+    /* Unhappy path eIPv6_Loopback */
+    xInterface.pfAddAllowedMAC = &pfAddAllowedMAC;
+    xInterface.pfRemoveAllowedMAC = &pfRemoveAllowedMAC;
+    xInterface.pxEndPoint = &xEndPoint;
+
+    xMACRemoveFunctionCalled = pdFALSE;
+
+    xIPv6_GetIPType_ExpectAndReturn( &xEndPoint.ipv6_settings.xIPAddress, eIPv6_Loopback );
+
+    vManageSolicitedNodeAddress( &xEndPoint, pdFALSE );
+
+    TEST_ASSERT_EQUAL( pdFALSE, xMACRemoveFunctionCalled );
 }
