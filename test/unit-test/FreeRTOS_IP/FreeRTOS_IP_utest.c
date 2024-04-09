@@ -48,6 +48,7 @@
 #include "mock_FreeRTOS_IP_Private.h"
 #include "mock_FreeRTOS_IPv4_Private.h"
 #include "mock_FreeRTOS_IP_Utils.h"
+#include "mock_FreeRTOS_IPv6_Utils.h"
 #include "mock_FreeRTOS_IP_Timers.h"
 #include "mock_FreeRTOS_TCP_IP.h"
 #include "mock_FreeRTOS_ICMP.h"
@@ -92,6 +93,18 @@ const IPv6_Address_t xIPAddressTen = { 0x20, 0x01, 0x12, 0x34, 0x56, 0x78, 0x00,
 
 /* MAC Address for endpoint. */
 const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xab, 0xcd, 0xef, 0x11, 0x22, 0x33 };
+
+/* This variable will be set when pfAddAllowedMAC() is called by vIPNetworkUpCalls(). */
+static BaseType_t xMACFunctionCalled;
+
+/* An implementation of pfAddAllowedMAC(). */
+static void pfAddAllowedMAC( struct xNetworkInterface * pxInterface,
+                             const uint8_t * pucMacAddress );
+
+/* Testing all situations for vIPNetworkUpCalls() to increase coverage. */
+#define ipHAS_METHOD       0x01U
+#define ipHAS_INTERFACE    0x02U
+#define ipHAS_IPV6         0x04U
 
 /* ============================ Unity Fixtures ============================ */
 
@@ -158,6 +171,7 @@ void test_vIPNetworkUpCalls( void )
     NetworkEndPoint_t xEndPoint = { 0 };
 
     xEndPoint.bits.bEndPointUp = pdFALSE;
+    xEndPoint.bits.bIPv6 = pdFALSE;
 
     vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
     vDNSInitialise_Expect();
@@ -3956,4 +3970,152 @@ void test_uxIPHeaderSizeSocket_IPv6()
 
     xReturn = uxIPHeaderSizeSocket( &xSocket );
     TEST_ASSERT_EQUAL( ipSIZE_OF_IPv6_HEADER, xReturn );
+}
+
+static void pfAddAllowedMAC( struct xNetworkInterface * pxInterface,
+                             const uint8_t * pucMacAddress )
+{
+    xMACFunctionCalled = pdTRUE;
+}
+
+static BaseType_t xNetworkInterfaceInitialise_returnTrue( NetworkInterface_t * xInterface )
+{
+    return pdTRUE;
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_Fail
+ * To validate if prvProcessNetworkDownEvent skips hook and DHCP
+ * when bCallDownHook & bWantDHCP are both disabled.
+ */
+static void prvIPNetworkUpCalls_Generic( const uint8_t * pucAddress,
+                                         IPv6_Type_t eType,
+                                         UBaseType_t uxSetMembers )
+{
+    NetworkInterface_t xInterface = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    BaseType_t xMACAddExpected = pdFALSE;
+
+    xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
+    xInterfaces[ 0 ].pxEndPoint = &xEndPoint;
+
+    xEndPoint.bits.bEndPointUp = pdFALSE;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, pucAddress, ipSIZE_OF_IPv6_ADDRESS );
+
+    if( ( uxSetMembers & ipHAS_INTERFACE ) != 0U )
+    {
+        xEndPoint.pxNetworkInterface = &xInterface;
+    }
+
+    if( ( uxSetMembers & ipHAS_IPV6 ) != 0U )
+    {
+        xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    }
+
+    xMACFunctionCalled = pdFALSE;
+
+    if( ( ( eType == eIPv6_LinkLocal ) || ( eType == eIPv6_SiteLocal ) || ( eType == eIPv6_Global ) ) &&
+        ( xInterface.pfAddAllowedMAC != NULL ) &&
+        ( xEndPoint.pxNetworkInterface != NULL ) &&
+        ( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED ) )
+    {
+        xMACAddExpected = pdTRUE;
+    }
+
+    if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdTRUE );
+    }
+
+    vApplicationIPNetworkEventHook_Multi_Expect( eNetworkUp, &xEndPoint );
+    vDNSInitialise_Expect();
+    vARPTimerReload_Expect( pdMS_TO_TICKS( 10000 ) );
+
+    vIPNetworkUpCalls( &xEndPoint );
+
+    TEST_ASSERT_EQUAL( pdTRUE, xEndPoint.bits.bEndPointUp );
+}
+
+void test_prvIPNetworkUpCalls_LinkLocal()
+{
+    /* Use the local-link address fe80::7009 */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFEU, 0x80U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+    /* Test all combinations of what might go wrong. */
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_INTERFACE );
+}
+
+void test_prvIPNetworkUpCalls_Global()
+{
+    /* Use the local-link address "2001:0470:ed44::7009" */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0x20U, 0x01U,
+        0x04U, 0x70U,
+        0xEDU, 0x44U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_METHOD );
+}
+
+void test_prvIPNetworkUpCalls_SiteLocal()
+{
+    /* Use the local-link address "fec0::7009" */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFEU, 0xC0U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_METHOD );
+}
+
+void test_prvIPNetworkUpCalls_Multicast()
+{
+    /* Use the multicast address "ff02::fb",
+     * just for the coverage of vIPNetworkUpCalls(). */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFFU, 0x02U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0xFBU
+    };
+
+    prvIPNetworkUpCalls_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_METHOD | ipHAS_INTERFACE );
 }
