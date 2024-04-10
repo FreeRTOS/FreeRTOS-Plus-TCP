@@ -1649,11 +1649,14 @@ void test_xProcessReceivedTCPPacket_IPv6_FrameType( void )
 
     xEthHeader.usFrameType = ipIPv6_FRAME_TYPE;
 
-    pxNetworkBuffer->xDataLength = 40;
+    pxNetworkBuffer->xDataLength = 100;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+    pxTCPSocketLookup_ExpectAnyArgsAndReturn( NULL );
 
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( pdTRUE, Return );
+    TEST_ASSERT_EQUAL( pdFAIL, Return );
 }
 
 /**
@@ -1671,6 +1674,8 @@ void test_xProcessReceivedTCPPacket_Incorrect_FrameType( void )
     xEthHeader.usFrameType = 0;
 
     pxNetworkBuffer->xDataLength = 40;
+
+    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
 
@@ -1690,7 +1695,6 @@ void test_xProcessReceivedTCPPacket_Minimal_Data_Length( void )
 
     pxNetworkBuffer->xDataLength = 40;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
@@ -1712,7 +1716,6 @@ void test_xProcessReceivedTCPPacket_No_Socket( void )
     pxNetworkBuffer->xDataLength = 100;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( NULL );
 
@@ -1738,7 +1741,6 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdFALSE );
 
@@ -1763,7 +1765,6 @@ void test_xProcessReceivedTCPPacket_No_Active_Socket_Send_Reset( void )
     pxSocket->u.xTCP.eTCPState = eCLOSE_WAIT;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK | tcpTCP_FLAG_FIN;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdFALSE );
@@ -1791,7 +1792,6 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_No_Rst( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -1816,7 +1816,6 @@ void test_xProcessReceivedTCPPacket_Listen_State_Not_Syn_Rst( void )
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1843,7 +1842,6 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_Null_Socket( void )
     pxSocket->u.xTCP.eTCPState = eTCP_LISTEN;
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1872,7 +1870,6 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_Something( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1907,7 +1904,6 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_NoOp_Sent_None( void )
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x50;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
     prvHandleListen_ExpectAnyArgsAndReturn( pxSocket );
@@ -1940,7 +1936,6 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Check_Failed( void 
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x80;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -1975,7 +1970,6 @@ void test_xProcessReceivedTCPPacket_Listen_State_Syn_With_Op_Sent_Something_Buff
     pxProtocolHeaders->xTCPHeader.ucTCPOffset = 0x80;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
     prvHandleListen_ExpectAnyArgsAndReturn( pxSocket );
@@ -2008,7 +2002,6 @@ void test_xProcessReceivedTCPPacket_Establish_State_Syn( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -2035,7 +2028,6 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_Change_State( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 1 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2072,7 +2064,6 @@ void test_xProcessReceivedTCPPacket_ConnectSyn_State_Rst_SeqNo_Wrong( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
 
@@ -2101,7 +2092,6 @@ void test_xProcessReceivedTCPPacket_SynReceived_State_Rst( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_SYN;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
 
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
@@ -2137,7 +2127,6 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Change_State( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2176,7 +2165,6 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_InRange( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
     xSequenceGreaterThan_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2208,7 +2196,6 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange1( void )
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
     xSequenceGreaterThan_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2238,7 +2225,6 @@ void test_xProcessReceivedTCPPacket_Establish_State_Rst_Seq_OutRange2( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_RST;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );
@@ -2270,7 +2256,6 @@ void test_xProcessReceivedTCPPacket_Establish_State_Ack( void )
     pxProtocolHeaders->xTCPHeader.ulAckNr = FreeRTOS_htonl( 100 );
     pxProtocolHeaders->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_ACK;
 
-    uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( pxSocket );
     prvTCPSocketIsActive_ExpectAnyArgsAndReturn( pdTRUE );

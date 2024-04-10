@@ -33,27 +33,9 @@
 #ifndef FREERTOS_ICMP_H
 #define FREERTOS_ICMP_H
 
-/* Standard includes. */
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-/* FreeRTOS includes. */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
-
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
-#include "FreeRTOS_Sockets.h"
 #include "FreeRTOS_IP_Private.h"
-#include "FreeRTOS_ARP.h"
-#include "FreeRTOS_UDP_IP.h"
-#include "FreeRTOS_DHCP.h"
-#include "NetworkInterface.h"
-#include "NetworkBufferManagement.h"
-#include "FreeRTOS_DNS.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

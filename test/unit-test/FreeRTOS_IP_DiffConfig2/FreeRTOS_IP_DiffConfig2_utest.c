@@ -50,7 +50,7 @@
 
 #include "FreeRTOS_IP.h"
 
-/*#include "FreeRTOS_IP_stubs.c" */
+#include "FreeRTOS_IP_DiffConfig2_stubs.c"
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
@@ -114,9 +114,11 @@ void test_FreeRTOS_IPInit_HappyPathDHCP( void )
     BaseType_t xReturn;
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
     NetworkInterface_t * pxNetworkInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
     FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );

@@ -301,7 +301,6 @@ void vCheckNetworkTimers( void )
              * check must be repeated. */
             xNextTime = xTCPTimerCheck( xWillSleep );
             prvIPTimerStart( &xTCPTimer, xNextTime );
-            xProcessedTCPMessage = 0;
         }
     }
 
