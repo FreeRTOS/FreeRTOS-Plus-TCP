@@ -822,7 +822,7 @@
                     if( ulReturnIPAddress == 0U )
                     {
                         /* Here pxSet->ulIPAddress should be not equal tp 0 since pxSet->ulIPAddress is copied from
-                        pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] and os verified to be non zero above. */
+                         * pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] and os verified to be non zero above. */
                         /* Remember the first IP-address that is found. */
                         ulReturnIPAddress = pxSet->ulIPAddress;
                     }

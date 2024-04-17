@@ -1183,7 +1183,7 @@ void test_DNS_TreatNBNS_EndpointHasNoValidIP( void )
     hook_return = pdTRUE;
     pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY ); /* usFlags */
-    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );           /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_TYPE_NET_BIOS );      /* usType */
     usChar2u16_ExpectAnyArgsAndReturn( dnsNBNS_FLAGS_OPCODE_QUERY );
 
     DNS_TreatNBNS( pucPayload,
@@ -1612,7 +1612,7 @@ void test_DNS_ParseDNSReply_InvalidEndpointType( void )
     usGenerateChecksum_ExpectAnyArgsAndReturn( 555 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 444 );
     vReturnEthernetFrame_Expect( &pxNetworkBuffer, pdFALSE );
-    
+
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
                              uxBufferLength,
                              &pxAddressInfo,
@@ -2876,7 +2876,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t *pulTestAddress = (uint32_t *)(((uint8_t *) pxDNSAnswerRecord) + sizeof(DNSAnswerRecord_t));
+    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
     *pulTestAddress = 0xABCD1234;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
@@ -3254,7 +3254,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail_nullLinkedListForDNSAns
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t *pulTestAddress = (uint32_t *)(((uint8_t *) pxDNSAnswerRecord) + sizeof(DNSAnswerRecord_t));
+    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
     *pulTestAddress = 0xABCD1234;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
@@ -3383,7 +3383,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t *pulTestAddress = (uint32_t *)(((uint8_t *) pxDNSAnswerRecord) + sizeof(DNSAnswerRecord_t));
+    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
     *pulTestAddress = 0xABCD1234;
 
     xSet.pucByte = pucByte;
@@ -3448,7 +3448,7 @@ void test_parseDNSAnswer_do_store_false( void )
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t *pulTestAddress = (uint32_t *)(((uint8_t *) pxDNSAnswerRecord) + sizeof(DNSAnswerRecord_t));
+    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
     *pulTestAddress = 0xABCD1234;
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
