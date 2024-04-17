@@ -819,8 +819,10 @@
                     }
                     #endif /* ipconfigUSE_DNS_CACHE */
 
-                    if( ( ulReturnIPAddress == 0U ) && ( pxSet->ulIPAddress != 0U ) )
+                    if( ulReturnIPAddress == 0U )
                     {
+                        /* Here pxSet->ulIPAddress should be not equal tp 0 since pxSet->ulIPAddress is copied from
+                        pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] and os verified to be non zero above. */
                         /* Remember the first IP-address that is found. */
                         ulReturnIPAddress = pxSet->ulIPAddress;
                     }
@@ -1144,7 +1146,7 @@
 
                 /* During the early stages of boot or after a DHCP lease expires, our end-point
                  * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
-                if( ( xEndPoint.bits.bIPv6 == pdFALSE ) && ( xEndPoint.ipv4_settings.ulIPAddress == 0U ) )
+                if( xEndPoint.ipv4_settings.ulIPAddress == 0U )
                 {
                     break;
                 }
