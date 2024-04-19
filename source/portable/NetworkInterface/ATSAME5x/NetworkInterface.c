@@ -336,7 +336,7 @@ static void prvEMACDeferredInterruptHandlerTask( void * pvParameters )
                     {
                         /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
                          * It must therefore be implemented in software. */
-                        pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxBufferDescriptor->pucEthernetBuffer );
+                        pxIPPacket = ( IPPacket_t const * ) pxBufferDescriptor->pucEthernetBuffer;
 
                         if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
                         {
@@ -440,7 +440,7 @@ BaseType_t xATSAM5x_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
         {
             /* the Atmel SAM GMAC peripheral does not support hardware CRC offloading for ICMP packets.
              * It must therefore be implemented in software. */
-            const IPPacket_t * pxIPPacket = ipCAST_CONST_PTR_TO_CONST_TYPE_PTR( IPPacket_t, pxDescriptor->pucEthernetBuffer );
+            const IPPacket_t * pxIPPacket = ( IPPacket_t const * ) pxDescriptor->pucEthernetBuffer;
 
             if( pxIPPacket->xIPHeader.ucProtocol == ( uint8_t ) ipPROTOCOL_ICMP )
             {
