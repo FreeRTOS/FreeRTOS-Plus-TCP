@@ -147,19 +147,20 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
         }
         #endif /* ipconfigZERO_COPY_TX_DRIVER */
 
-        configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
-
-        /* MISRA Ref 11.3.1 [Misaligned access] */
-        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
-        /* coverity[misra_c_2012_rule_11_3_violation] */
-        pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
-
         #ifndef __COVERITY__
             if( pxNetworkBuffer != NULL ) /* LCOV_EXCL_BR_LINE the 2nd branch will never be reached */
         #endif
         {
             eARPLookupResult_t eResult;
             NetworkInterface_t * pxInterface;
+
+            configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+            /* MISRA Ref 11.3.1 [Misaligned access] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+            /* coverity[misra_c_2012_rule_11_3_violation] */
+            pxIPHeader = ( ( IPHeader_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER ] ) );
+
             /* Map the Ethernet buffer onto a TCPPacket_t struct for easy access to the fields. */
 
             /* MISRA Ref 11.3.1 [Misaligned access] */
