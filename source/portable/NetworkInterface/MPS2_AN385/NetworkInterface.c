@@ -398,7 +398,7 @@ static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 
 /*-----------------------------------------------------------*/
 
-#if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
+#if ( ipconfigIPv4_BACKWARD_COMPATIBLE != 0 )
 
 /* Do not call the following function directly. It is there for downward compatibility.
  * The function FreeRTOS_IPInit() will call it to initialice the interface and end-point
@@ -406,7 +406,7 @@ static BaseType_t xMPS2_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxMPS2_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxMPS2_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif

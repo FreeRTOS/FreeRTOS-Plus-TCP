@@ -835,6 +835,15 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
     {
         /* The bit 'bEndPointUp' stays low until vIPNetworkUpCalls() is called. */
         pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
+
+        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+        {
+            /* IPv6 end-points have a solicited-node address that needs extra housekeeping. */
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                vManageSolicitedNodeAddress( pxEndPoint, pdFALSE );
+            #endif
+        }
+
         #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
             if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )

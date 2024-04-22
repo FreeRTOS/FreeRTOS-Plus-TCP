@@ -207,6 +207,9 @@
     /* Clear all entries in the ND cache. */
     void FreeRTOS_ClearND( const struct xNetworkEndPoint * pxEndPoint );
 
+    extern const uint8_t pcLOCAL_ALL_NODES_MULTICAST_IP[ ipSIZE_OF_IPv6_ADDRESS ];
+    extern const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ];
+
 #endif /* ipconfigUSE_IPv6 != 0 */
 
 

@@ -171,10 +171,6 @@ struct xIPv6_Couple
             {
                 /* Other interfaces are already defined, so iterate to the end of the
                  * list. */
-
-                /*_RB_ Question - if ipconfigMULTI_INTERFACE is used to define the
-                 * maximum number of interfaces, would it be more efficient to have an
-                 * array of interfaces rather than a linked list of interfaces? */
                 pxIterator = pxNetworkInterfaces;
 
                 for( ; ; )

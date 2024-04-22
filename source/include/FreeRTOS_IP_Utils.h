@@ -109,6 +109,7 @@ void vPreCheckConfigs( void );
  */
 void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface );
 
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     } /* extern "C" */
