@@ -129,7 +129,7 @@
  *                     [re]connecting.
  * eNetworkRxEvent - The network interface has queued a received Ethernet
  *                   frame.
- * eARPTimerEvent - The ARP timer expired.
+ * eResolutionTimerEvent - The Resolution timer expired.
  * eStackTxEvent - The software stack has queued a packet to transmit.
  * eDHCPEvent - Process the DHCP state machine.
  *
@@ -592,10 +592,30 @@
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * iptraceND_TABLE_ENTRY_EXPIRED
+ */
+#ifndef iptraceND_TABLE_ENTRY_EXPIRED
+    #define iptraceND_TABLE_ENTRY_EXPIRED( pxIPAddress )
+#endif
 
+/*---------------------------------------------------------------------------*/
 
+/*
+ * iptraceND_TABLE_ENTRY_WILL_EXPIRE
+ */
+#ifndef iptraceND_TABLE_ENTRY_WILL_EXPIRE
+    #define iptraceND_TABLE_ENTRY_WILL_EXPIRE( pxIPAddress )
+#endif
 
+/*---------------------------------------------------------------------------*/
 
+/*
+ * iptrace_DELAYED_ND_REQUEST_REPLIED
+ */
+#ifndef iptrace_DELAYED_ND_REQUEST_REPLIED
+    #define iptrace_DELAYED_ND_REQUEST_REPLIED()
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -729,36 +749,6 @@
 
 /*===========================================================================*/
 /*                             ICMP TRACE MACROS                             */
-/*===========================================================================*/
-/*---------------------------------------------------------------------------*/
-/*===========================================================================*/
-/*---------------------------------------------------------------------------*/
-/*===========================================================================*/
-/*                             NDP TRACE MACROS                              */
-/*===========================================================================*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
- * iptraceND_TABLE_ENTRY_EXPIRED
- */
-#ifndef iptraceND_TABLE_ENTRY_EXPIRED
-    #define iptraceND_TABLE_ENTRY_EXPIRED( pxIPAddress )
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
- * iptraceND_TABLE_ENTRY_WILL_EXPIRE
- */
-#ifndef iptraceND_TABLE_ENTRY_WILL_EXPIRE
-    #define iptraceND_TABLE_ENTRY_WILL_EXPIRE( pxIPAddress )
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*===========================================================================*/
-/*                             NDP TRACE MACROS                              */
 /*===========================================================================*/
 /*---------------------------------------------------------------------------*/
 /*===========================================================================*/

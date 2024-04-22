@@ -255,31 +255,6 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * ipconfigND_CACHE_ENTRIES
- *
- * Type: size_t
- * Unit: length of NDCacheRow_t array
- * Minimum: 1
- *
- * Maximum number of entries in the Neighbour Discovery cache of IPv6 addresses
- * & MAC addresses
- */
-
-#ifndef ipconfigND_CACHE_ENTRIES
-    #define ipconfigND_CACHE_ENTRIES    ( 24 )
-#endif
-
-#if ( ipconfigND_CACHE_ENTRIES < 1 )
-    #error ipconfigND_CACHE_ENTRIES must be at least 1
-#endif
-
-#if ( ipconfigND_CACHE_ENTRIES > SIZE_MAX )
-    #error ipconfigND_CACHE_ENTRIES overflows a size_t
-#endif
-
-/*---------------------------------------------------------------------------*/
-
-/*
  * ipconfigUSE_RA
  *
  * Type: BaseType_t ( ipconfigENABLE | ipconfigDISABLE )
@@ -2951,7 +2926,28 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * ipconfigND_CACHE_ENTRIES
+ *
+ * Type: size_t
+ * Unit: length of NDCacheRow_t array
+ * Minimum: 1
+ *
+ * Maximum number of entries in the Neighbour Discovery cache of IPv6 addresses
+ * & MAC addresses
+ */
 
+#ifndef ipconfigND_CACHE_ENTRIES
+    #define ipconfigND_CACHE_ENTRIES    ( 24 )
+#endif
+
+#if ( ipconfigND_CACHE_ENTRIES < 1 )
+    #error ipconfigND_CACHE_ENTRIES must be at least 1
+#endif
+
+#if ( ipconfigND_CACHE_ENTRIES > SIZE_MAX )
+    #error ipconfigND_CACHE_ENTRIES overflows a size_t
+#endif
 
 /*---------------------------------------------------------------------------*/
 
