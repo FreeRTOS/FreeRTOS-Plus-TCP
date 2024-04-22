@@ -418,13 +418,13 @@
 /*---------------------------------------------------------------------------*/
 
 /*
- * traceARP_PACKET_RECEIVED
+ * iptraceARP_PACKET_RECEIVED
  *
  * Called when an ARP packet is received, even if the local network node is not
  * involved in the ARP transaction.
  */
-#ifndef traceARP_PACKET_RECEIVED
-    #define traceARP_PACKET_RECEIVED()
+#ifndef iptraceARP_PACKET_RECEIVED
+    #define iptraceARP_PACKET_RECEIVED()
 #endif
 
 /*---------------------------------------------------------------------------*/

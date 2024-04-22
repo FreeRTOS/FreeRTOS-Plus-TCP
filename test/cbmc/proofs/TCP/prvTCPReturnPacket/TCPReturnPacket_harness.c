@@ -148,7 +148,7 @@ eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
     __CPROVER_assert( pulIPAddress != NULL, "The pulIPAddress cannot be NULL" );
     __CPROVER_assert( pxMACAddress != NULL, "The pxMACAddress cannot be NULL" );
 
-    if( eReturn == eARPCacheHit )
+    if( eReturn == eAddrResCacheHit )
     {
         /* If its a cache hit, update ppxEndPoint with a valid endpoint. */
         struct xNetworkEndPoint * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );

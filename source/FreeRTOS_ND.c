@@ -78,12 +78,12 @@
     const uint8_t pcLOCAL_ALL_NODES_MULTICAST_MAC[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0x33U, 0x33U, 0x00U, 0x00U, 0x00U, 0x01U };
 
 /** @brief See if the MAC-address can be resolved because it is a multi-cast address. */
-    static eResolutionLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
+    static eAddrResLookupResult_t prvMACResolve( const IPv6_Address_t * pxAddressToLookup,
                                              MACAddress_t * const pxMACAddress,
                                              NetworkEndPoint_t ** ppxEndPoint );
 
 /** @brief Lookup an MAC address in the ND cache from the IP address. */
-    static eResolutionLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
+    static eAddrResLookupResult_t prvNDCacheLookup( const IPv6_Address_t * pxAddressToLookup,
                                                 MACAddress_t * const pxMACAddress,
                                                 NetworkEndPoint_t ** ppxEndPoint );
 

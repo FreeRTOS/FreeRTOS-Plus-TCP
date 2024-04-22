@@ -32,6 +32,8 @@
 #include "FreeRTOSIPConfig.h"
 #include "FreeRTOSIPConfigDefaults.h"
 
+#include "FreeRTOS_Routing.h"
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {

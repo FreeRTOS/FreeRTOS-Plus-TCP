@@ -133,7 +133,7 @@ void test_prvTCPReturnPacket_IPV6_SocketNULL( void )
     xDescriptor.pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
 
     prvTCPReturnPacket_IPV6( pxSocket, &xDescriptor, ulLen, xReleaseAfterSend );
 }
@@ -215,7 +215,7 @@ void test_prvTCPReturnPacket_IPV6_Assert1( void )
     xSocket.pxEndPoint->pxNetworkInterface = NULL;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
 
     catch_assert( prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend ) );
 }
@@ -251,7 +251,7 @@ void test_prvTCPReturnPacket_IPV6_Assert2( void )
     pxIPHeader = &pxTCPPacket->xIPHeader;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
 
     catch_assert( prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend ) );
 }
@@ -288,7 +288,7 @@ void test_prvTCPReturnPacket_IPV6_Assert3( void )
     pxIPHeader = &pxTCPPacket->xIPHeader;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
 
     catch_assert( prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend ) );
 }
@@ -323,7 +323,7 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_ReleaseAfterSend( void )
     pxDescriptor->pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
 
     prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
 }
@@ -358,7 +358,7 @@ void test_prvTCPReturnPacket_IPV6_HappyPath_NoReleaseAfterSend( void )
     pxDescriptor->pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( ipCORRECT_CRC );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
 
     prvTCPReturnPacket_IPV6( &xSocket, pxDescriptor, ulLen, xReleaseAfterSend );
 }
@@ -374,7 +374,7 @@ void test_prvTCPPrepareConnect_IPV6_CacheMiss_NULLEP( void )
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
     BaseType_t xReturn = pdFALSE;
 
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
 
@@ -394,7 +394,7 @@ void test_prvTCPPrepareConnect_IPV6_CacheHit_NULLEP( void )
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
     BaseType_t xReturn = pdFALSE;
 
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0 );
@@ -415,7 +415,7 @@ void test_prvTCPPrepareConnect_IPV6_CacheHit_RandNumFail( void )
     FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
     BaseType_t xReturn = pdFALSE;
 
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 10 );
@@ -455,7 +455,7 @@ void test_prvTCPPrepareConnect_IPV6_CacheMiss_ValidEP( void )
     BaseType_t xReturn = pdFALSE;
 
     memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
@@ -512,7 +512,7 @@ void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv4( void )
     memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
     pxSocket->bits.bIsIPv6 = 0;
 
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv4_HEADER );
@@ -540,7 +540,7 @@ void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv6( void )
     memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
     memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
     pxSocket->bits.bIsIPv6 = 1;
-    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );

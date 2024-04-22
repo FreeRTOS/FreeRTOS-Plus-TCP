@@ -76,7 +76,7 @@ void vProcessGeneratedUDPPacket_IPv4( NetworkBufferDescriptor_t * const pxNetwor
 {
     UDPPacket_t * pxUDPPacket;
     IPHeader_t * pxIPHeader;
-    eResolutionLookupResult_t eReturned;
+    eAddrResLookupResult_t eReturned;
     uint32_t ulIPAddress = pxNetworkBuffer->xIPAddress.ulIP_IPv4;
     NetworkEndPoint_t * pxEndPoint = pxNetworkBuffer->pxEndPoint;
     size_t uxPayloadSize;

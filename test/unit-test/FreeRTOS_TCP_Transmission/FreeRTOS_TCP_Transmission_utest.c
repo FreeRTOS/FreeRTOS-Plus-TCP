@@ -104,7 +104,7 @@ void test_prvTCPMakeSurePrepared_NotPrepared( void )
 
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
     prvSocketSetMSS_ExpectAnyArgs();
     vTCPWindowCreate_ExpectAnyArgs();
@@ -128,7 +128,7 @@ void test_prvTCPMakeSurePrepared_Not_Ready_Error_Connect( void )
 
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
     FreeRTOS_OutputARPRequest_ExpectAnyArgs();
 
     xResult = prvTCPMakeSurePrepared( pxSocket );
@@ -183,7 +183,7 @@ void test_prvTCPSendPacket_Syn_State( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvTCPSendPacket( pxSocket );
@@ -222,7 +222,7 @@ void test_prvTCPSendPacket_Syn_State_NULL_Endpoint( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvTCPSendPacket( pxSocket );
@@ -270,7 +270,7 @@ void test_prvTCPSendPacket_Syn_State_Not_Prepared( void )
     pxSocket->u.xTCP.ucRepCount = 1;
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
     FreeRTOS_OutputARPRequest_ExpectAnyArgs();
 
     BytesSent = prvTCPSendPacket( pxSocket );
@@ -361,7 +361,7 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     for( RepeatCount = 1; RepeatCount < SEND_REPEATED_COUNT; RepeatCount++ )
@@ -372,7 +372,7 @@ void test_prvTCPSendPacket_Other_State_Something_To_Send( void )
         FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
         usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
         usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
-        eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+        eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
         eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     }
 
@@ -458,7 +458,7 @@ void test_prvTCPSendRepeated_Repeat_8( void )
         FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 1000 );
         usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1234 );
         usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2345 );
-        eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+        eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
         eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
     }
 
@@ -517,7 +517,7 @@ void test_prvTCPReturnPacket_Null_Buffer_Null_Rx_Stream_KL( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
@@ -649,7 +649,7 @@ void test_prvTCPReturnPacket_Null_Socket( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE );
@@ -690,7 +690,7 @@ void test_prvTCPReturnPacket_Assert_Interface_NULL( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
 
@@ -729,7 +729,7 @@ void test_prvTCPReturnPacket_Assert_InterfaceOutput_NULL( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     catch_assert( prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdFALSE ) );
@@ -769,7 +769,7 @@ void test_prvTCPReturnPacket_Null_Socket_Release_True( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( NULL, pxNetworkBuffer, 40, pdTRUE );
@@ -819,7 +819,7 @@ void test_prvTCPReturnPacket_No_KL( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
@@ -873,7 +873,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdTRUE );
@@ -933,7 +933,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 1000, pdTRUE );
@@ -990,7 +990,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdTRUE );
     TEST_ASSERT_EQUAL( 1, NetworkInterfaceOutputFunction_Stub_Called );
@@ -1042,7 +1042,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
@@ -1093,7 +1093,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
@@ -1144,7 +1144,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 0x10000 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     prvTCPReturnPacket( pxSocket, pxNetworkBuffer, 40, pdFALSE );
@@ -1183,7 +1183,7 @@ void test_prvTCPPrepareConnect_Ready( void )
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
     pxSocket->bits.bIsIPv6 = pdFALSE;
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0x11111111 );
     prvSocketSetMSS_ExpectAnyArgs();
     vTCPWindowCreate_ExpectAnyArgs();
@@ -1204,7 +1204,7 @@ void test_prvTCPPrepareConnect_No_Arp_Entry( void )
     pxSocket->u.xTCP.ucRepCount = 0;
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheMiss );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheMiss );
     FreeRTOS_OutputARPRequest_ExpectAnyArgs();
 
     Return = prvTCPPrepareConnect( pxSocket );
@@ -1223,7 +1223,7 @@ void test_prvTCPPrepareConnect_Zero_SequenceNum( void )
     pxSocket->u.xTCP.ucRepCount = 0;
     pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
 
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0 );
 
     Return = prvTCPPrepareConnect( pxSocket );
@@ -2158,7 +2158,7 @@ void test_prvSendData_AckMsg_Not_Null_Small_Length( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 40 );
@@ -2214,7 +2214,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 40 );
@@ -2269,7 +2269,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 50 );
@@ -2324,7 +2324,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 50 );
@@ -2380,7 +2380,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Log( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 100, 50 );
@@ -2436,7 +2436,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     FreeRTOS_min_uint32_ExpectAnyArgsAndReturn( 500 );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     BytesSent = prvSendData( pxSocket, &pxNetworkBuffer, 0, 50 );
@@ -2502,7 +2502,7 @@ void test_prvTCPSendSpecialPacketHelper( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
@@ -2539,7 +2539,7 @@ void test_prvTCPSendSpecialPacketHelper_flagSYN( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     Return = prvTCPSendSpecialPacketHelper( pxNetworkBuffer, tcpTCP_FLAG_ACK );
@@ -2575,7 +2575,7 @@ void test_prvTCPSendChallengeAck( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     Return = prvTCPSendChallengeAck( pxNetworkBuffer );
@@ -2610,7 +2610,7 @@ void test_prvTCPSendReset( void )
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     usGenerateChecksum_ExpectAnyArgsAndReturn( 0x1111 );
     usGenerateProtocolChecksum_ExpectAnyArgsAndReturn( 0x2222 );
-    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eAddrResCacheHit );
     eARPGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
 
     Return = prvTCPSendReset( pxNetworkBuffer );

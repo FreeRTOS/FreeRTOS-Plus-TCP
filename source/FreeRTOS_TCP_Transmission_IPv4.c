@@ -99,7 +99,7 @@ void prvTCPReturnPacket_IPV4( FreeRTOS_Socket_t * pxSocket,
     void * pvCopyDest = NULL;
     const size_t uxIPHeaderSize = ipSIZE_OF_IPv4_HEADER;
     uint32_t ulDestinationIPAddress;
-    eResolutionLookupResult_t eResult;
+    eAddrResLookupResult_t eResult;
     NetworkEndPoint_t * pxEndPoint = NULL;
 
     do

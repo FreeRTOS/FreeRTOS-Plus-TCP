@@ -2101,7 +2101,7 @@ void vReturnEthernetFrame( NetworkBufferDescriptor_t * pxNetworkBuffer,
 
         #if ( ipconfigUSE_IPv4 != 0 )
             MACAddress_t xMACAddress;
-            eResolutionLookupResult_t eResult;
+            eAddrResLookupResult_t eResult;
             uint32_t ulDestinationIPAddress = 0U;
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 

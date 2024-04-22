@@ -285,11 +285,11 @@ static const char * pcARPReturnType( eARPLookupResult_t eResult )
 
     switch( eResult )
     {
-        case eARPCacheMiss:
+        case eAddrResCacheMiss:
             pcReturn = "Miss";
             break;
 
-        case eARPCacheHit:
+        case eAddrResCacheHit:
             pcReturn = "Hit";
             break;
 
@@ -453,7 +453,7 @@ static void handle_arpq( char * pcBuffer )
 {
     CommandOptions_t xOptions;
     char * ptr = pcBuffer;
-    eARPLookupResult_t eResult = eARPCacheMiss;
+    eARPLookupResult_t eResult = eAddrResCacheMiss;
     uint32_t ulIPAddress;
     uint32_t ulLookUpIP;
     MACAddress_t xMACAddress;
@@ -537,7 +537,7 @@ static void handle_arpq( char * pcBuffer )
                 break;
         }
 
-        if( ( eResult == eARPCacheMiss ) && ( pxEndPoint != NULL ) )
+        if( ( eResult == eAddrResCacheMiss ) && ( pxEndPoint != NULL ) )
         {
             size_t uxNeededSize = sizeof( ARPPacket_t );
 

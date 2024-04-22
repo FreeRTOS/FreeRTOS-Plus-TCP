@@ -150,7 +150,7 @@ void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
             if( pxNetworkBuffer != NULL ) /* LCOV_EXCL_BR_LINE the 2nd branch will never be reached */
         #endif
         {
-            eResolutionLookupResult_t eResult;
+            eAddrResLookupResult_t eResult;
             NetworkInterface_t * pxInterface;
 
             configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
@@ -318,7 +318,7 @@ BaseType_t prvTCPPrepareConnect_IPV6( FreeRTOS_Socket_t * pxSocket )
 {
     TCPPacket_IPv6_t * pxTCPPacket = NULL;
     IPHeader_IPv6_t * pxIPHeader = NULL;
-    eResolutionLookupResult_t eReturned;
+    eAddrResLookupResult_t eReturned;
     IP_Address_t xRemoteIP;
     MACAddress_t xEthAddress;
     BaseType_t xReturn = pdTRUE;
