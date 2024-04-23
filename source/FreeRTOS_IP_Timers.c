@@ -55,6 +55,9 @@
 #include "NetworkBufferManagement.h"
 #include "FreeRTOS_Routing.h"
 #include "FreeRTOS_DNS.h"
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    #include "FreeRTOS_IGMP.h"
+#endif
 /*-----------------------------------------------------------*/
 
 /** @brief 'xAllNetworksUp' becomes pdTRUE when all network interfaces are initialised
@@ -120,6 +123,11 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
     /** @brief DNS timer, to check for timeouts when looking-up a domain. */
     static IPTimer_t xDNSTimer;
 #endif
+
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    /** @brief IGMP timer. Used for sending scheduled IGMP Reports */
+    static IPTimer_t xMulticastTimer;
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
 /** @brief As long as not all networks are up, repeat initialisation by calling the
  * xNetworkInterfaceInitialise() function of the interfaces that are not ready. */
@@ -198,6 +206,15 @@ TickType_t xCalculateSleepTime( void )
         }
     }
     #endif
+
+    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    {
+        if( xMulticastTimer.ulRemainingTime < uxMaximumSleepTime )
+        {
+            uxMaximumSleepTime = xMulticastTimer.ulRemainingTime;
+        }
+    }
+    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 
     #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     {
@@ -363,6 +380,16 @@ void vCheckNetworkTimers( void )
     vSocketListenNextTime( NULL );
     #endif /* ipconfigUSE_TCP == 1 */
 
+    #if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+    {
+        /* Is it time to send any IGMP reports? */
+        if( prvIPTimerCheck( &xMulticastTimer ) != pdFALSE )
+        {
+            ( void ) xSendMulticastTimerEvent();
+        }
+    }
+    #endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
     /* Is it time to trigger the repeated NetworkDown events? */
     if( xAllNetworksUp == pdFALSE )
     {
@@ -494,6 +521,20 @@ static void prvIPTimerReload( IPTimer_t * pxTimer,
         prvIPTimerReload( &xNDTimer, xTime );
     }
 #endif
+/*-----------------------------------------------------------*/
+
+#if ( ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) )
+
+/**
+ * @brief Reload the IGMP timer.
+ *
+ * @param[in] xTicks: The reload value. Should be pdMS_TO_TICKS( igmpMULTICAST_EVENT_PERIOD_MS )
+ */
+    void vIPMulticastReportsTimerReload( TickType_t xTicks )
+    {
+        prvIPTimerReload( &xMulticastTimer, xTicks );
+    }
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
 /*-----------------------------------------------------------*/
 
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )

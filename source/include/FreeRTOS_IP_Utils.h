@@ -63,6 +63,33 @@
 #endif
 /* *INDENT-ON* */
 
+#if ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST )
+    /** @brief A structure holding information about a multicast group address. Used during generation of IGMP/ICMPv6 reports. */
+    typedef struct MCastReportDescription
+    {
+        IPv46_Address_t xMCastGroupAddress; /**< Holds the IPv4/IPv6 multicast group address. xMCastGroupAddress.xIs_IPv6 denotes whether this represents and IGMP or MLD report. */
+        ListItem_t xListItem;               /**< List item for adding to the global list of reports. */
+        NetworkInterface_t * pxInterface;   /**< The network interface used for sending this report. NULL to send on all interfaces. */
+        BaseType_t xNumSockets;             /**< The number of sockets that are subscribed to this multicast group. */
+        BaseType_t xCountDown;
+    } MCastReportData_t;
+
+/** @brief A structure to hold all data related to an multicast socket option "action". When someone calls FreeRTOS_setsockopt()
+ * with one of the multicast socket options, the code allocates a structure like this and stores all the relevant information.
+ * The structure is then passed to the IP task for handling. This approach allows us to return an error if we don't have enough
+ * memory for a multicast report and allows all actual manipulations to happen within the IP task therefore avoiding the need
+ * for critical sections. An exception to this is setting the TTL/HopLimit as it can be done straight from the user task. as
+ * an atomic write operation. */
+    typedef struct xMCastGroupDesc
+    {
+        IP_Address_t xMulticastGroup;          /**< Holds the IPv4/IPv6 multicast group address */
+        NetworkInterface_t * pxInterface;      /**< Not implemented yet, but should point to a specific interface or NULL for all/default interface */
+        FreeRTOS_Socket_t * pxSocket;          /**< The socket this action is applied to */
+        MCastReportData_t * pxMCastReportData; /**< Holds the allocated IGMP report descriptor while passing from user code to the IP Task. */
+    } MulticastAction_t;
+#endif /* ipconfigIS_ENABLED( ipconfigSUPPORT_IP_MULTICAST ) */
+
+
 /* Forward declaration. */
 struct xNetworkInterface;
 struct xNetworkEndPoint;
