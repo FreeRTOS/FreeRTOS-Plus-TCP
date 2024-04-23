@@ -962,6 +962,26 @@
                     }
 
                     xUDPPacket_IPv6->xUDPHeader.usLength = FreeRTOS_htons( ( uint16_t ) lNetLength + ipSIZE_OF_UDP_HEADER );
+
+                    if( xUDPPacket_IPv6->xUDPHeader.usDestinationPort == FreeRTOS_ntohs( ipMDNS_PORT ) )
+                    {
+                        /* RFC6762, section 11 */
+                        xUDPPacket_IPv6->xIPHeader.ucHopLimit = 255U;
+                    }
+                    else if( xUDPPacket_IPv6->xUDPHeader.usDestinationPort == FreeRTOS_ntohs( ipLLMNR_PORT ) )
+                    {
+                        /* LLMNR: RFC4795 section 2.5 recommends UDP requests and responses use TTL of 255 */
+
+                        /* Theoretically, LLMNR replies can go "off-link" and create a DDoS scenario. That should be preventable
+                         * by settings our rely's TTL/HopLimit to 1. Please note that in certain situations ( I think unicast
+                         * responses), Wireshark flags some LLMNR packets that have TTL of 1 as too low. */
+                        xUDPPacket_IPv6->xIPHeader.ucHopLimit = 1U;
+                    }
+                    else
+                    {
+                        xUDPPacket_IPv6->xIPHeader.ucHopLimit = ipconfigUDP_TIME_TO_LIVE;
+                    }
+
                     vFlip_16( pxUDPHeader->usSourcePort, pxUDPHeader->usDestinationPort );
                     uxDataLength = ( size_t ) lNetLength + ipSIZE_OF_IPv6_HEADER + ipSIZE_OF_UDP_HEADER + ipSIZE_OF_ETH_HEADER;
                 }
@@ -977,7 +997,17 @@
                 /* HT:endian: should not be translated, copying from packet to packet */
                 if( pxIPHeader->ulDestinationIPAddress == ipMDNS_IP_ADDRESS )
                 {
+                    /* RFC6762, section 11 */
                     pxIPHeader->ucTimeToLive = ipMDNS_TIME_TO_LIVE;
+                }
+                else if( pxUDPHeader->usDestinationPort == FreeRTOS_ntohs( ipLLMNR_PORT ) )
+                {
+                    /* LLMNR: RFC4795 section 2.5 recommends UDP requests and responses use TTL of 255 */
+
+                    /* Theoretically, LLMNR replies can go "off-link" and create a DDoS scenario. That should be preventable
+                     * by settings our rely's TTL/HopLimit to 1. Please note that in certain situations ( I think unicast
+                     * responses), Wireshark flags some LLMNR packets that have TTL of 1 as too low. */
+                    pxIPHeader->ucTimeToLive = 1;
                 }
                 else
                 {
