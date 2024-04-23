@@ -389,7 +389,7 @@ BaseType_t xIsIPv6AllowedMulticast( const IPv6_Address_t * pxIPAddress )
 /**
  * @brief Compares 2 IPv6 addresses and checks if the one
  * on the left can handle the one on right. Note that 'xCompareIPv6_Address' will also check if 'pxRight' is
- * the special unicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
+ * the special multicast address: ff02::1:ffnn:nnnn, where nn:nnnn are
  * the last 3 bytes of the IPv6 address.
  *
  * @param[in] pxLeft First IP address.
@@ -412,7 +412,7 @@ BaseType_t xCompareIPv6_Address( const IPv6_Address_t * pxLeft,
         ( pxRight->ucBytes[ 1 ] == 0x02U ) &&
         ( pxRight->ucBytes[ 12 ] == 0xffU ) )
     {
-        /* This is an LLMNR address. */
+        /* This may be our solicited-node multicast address. */
         xResult = memcmp( &( pxLeft->ucBytes[ 13 ] ), &( pxRight->ucBytes[ 13 ] ), 3 );
     }
     else
@@ -495,13 +495,10 @@ eFrameProcessingResult_t prvAllowIPPacketIPv6( const IPHeader_IPv6_t * const pxI
          * to have incoming messages checked earlier, by the network card driver.
          * This method may decrease the usage of sparse network buffers. */
         const IPv6_Address_t * pxDestinationIPAddress = &( pxIPv6Header->xDestinationAddress );
-        const IPv6_Address_t * pxSourceIPAddress = &( pxIPv6Header->xSourceAddress );
         BaseType_t xHasUnspecifiedAddress = pdFALSE;
 
-        /* Drop if packet has unspecified IPv6 address (defined in RFC4291 - sec 2.5.2)
-         * either in source or destination address. */
-        if( ( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) ||
-            ( memcmp( pxSourceIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
+        /* Drop if packet has unspecified IPv6 destination address (defined in RFC4291 - sec 2.5.2) */
+        if( ( memcmp( pxDestinationIPAddress->ucBytes, FreeRTOS_in6addr_any.ucBytes, sizeof( IPv6_Address_t ) ) == 0 ) )
         {
             xHasUnspecifiedAddress = pdTRUE;
         }
