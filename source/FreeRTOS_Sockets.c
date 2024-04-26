@@ -2903,6 +2903,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* coverity[misra_c_2012_rule_11_8_violation] */
                         /* coverity[misra_c_2012_rule_11_1_violation] */
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
+ipconfigISO_STRICTNESS_VIOLATION_START
+                        pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
+ipconfigISO_STRICTNESS_VIOLATION_END
                         xReturn = 0;
                         break;
                 #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
