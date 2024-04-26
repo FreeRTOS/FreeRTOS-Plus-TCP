@@ -20,7 +20,7 @@ endif()
 
 # Options
 option(FREERTOS_PLUS_TCP_BUILD_TEST "Build the test for FreeRTOS Plus TCP" OFF)
-option(FREERTOS_PLUS_TCP_BUILD_BUILD_TEST "Build the build test for FreeRTOS-Plus-TCP" OFF)
+option(FREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS "Enable the build checks for FreeRTOS-Plus-TCP" OFF)
 
 # Configuration
 # Override these at project level with:

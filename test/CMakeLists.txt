@@ -1,4 +1,4 @@
-if(FREERTOS_PLUS_TCP_BUILD_BUILD_TEST)
+if(FREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS)
   add_subdirectory(build-combination)
 endif()
 
