@@ -3384,7 +3384,7 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
  * overlords!), can use this to customize static analysis settings such as
  * the `-pedantic` flag in GCC. These should appear in very few places within
  * the FreeRTOS TCP source and should enclose only a line or two at a time.
- * When first introduced these macros enclosed a single line of source code in
+ * When first introduced, these macros enclosed a single line of source code in
  * the sockets implementation.
  *
  * GCC example
