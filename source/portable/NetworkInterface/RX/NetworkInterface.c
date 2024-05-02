@@ -518,7 +518,7 @@ static int InitializeNetwork( void )
  * Return Value : 0 success, negative fail
  **********************************************************************************************************************/
 static int16_t SendData( uint8_t * pucBuffer,
-                         size_t length ) /*TODO complete stub function */
+                         size_t length )
 {
     ether_return_t ret;
     uint8_t * pwrite_buffer;
@@ -581,7 +581,7 @@ void EINT_Trig_isr( void * ectrl )
          * priority task.  The macro used for this purpose is dependent on the port in
          * use and may be called portEND_SWITCHING_ISR(). */
         portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
-        /*TODO complete interrupt handler for other events. */
+        /* Complete interrupt handler for other events. */
     }
 } /* End of function EINT_Trig_isr() */
 

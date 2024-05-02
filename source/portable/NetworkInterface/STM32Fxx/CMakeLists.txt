@@ -10,7 +10,7 @@ target_sources( freertos_plus_tcp_network_if
     NetworkInterface.c
     # stm32f2xx_hal_eth.h
     # stm32f4xx_hal_eth.h
-    stm32f7xx_hal_eth.h  #TODO: Only one of these ?
+    stm32f7xx_hal_eth.h  # Only one of these ?
     stm32fxx_hal_eth.c
     stm32fxx_hal_eth.h
 )

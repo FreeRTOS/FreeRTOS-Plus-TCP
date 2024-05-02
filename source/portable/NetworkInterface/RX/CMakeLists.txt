@@ -5,7 +5,6 @@ endif()
 #------------------------------------------------------------------------------
 add_library( freertos_plus_tcp_network_if STATIC )
 
-# TODO What about BufferAllocation_2.c here?
 target_sources( freertos_plus_tcp_network_if
   PRIVATE
     ether_callback.c

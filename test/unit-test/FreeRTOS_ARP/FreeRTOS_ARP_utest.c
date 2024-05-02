@@ -2173,9 +2173,6 @@ void test_eARPGetCacheEntry_IPMatchesOtherBroadcastAddr( void )
     /* =================================================== */
 }
 
-/* TODO: _TJ_: For the time being test_eARPGetCacheEntry_LocalIPIsZero and test_eARPGetCacheEntry_LocalIPMatchesReceivedIP */
-/*             test cases are removed as we need to reevaluate if those cases are required for IPv6 */
-
 void test_eARPGetCacheEntry_MatchingInvalidEntry( void )
 {
     uint32_t ulIPAddress;
