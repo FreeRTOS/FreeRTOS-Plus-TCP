@@ -250,7 +250,6 @@
  *         An error code (dnsPARSE_ERROR) if there was an error in the DNS response.
  *         0 if xExpected set to pdFALSE.
  */
-/* TODO cross check again */
     uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                 size_t uxBufferLength,
                                 struct freertos_addrinfo ** ppxAddressInfo,
@@ -469,6 +468,13 @@
                             xDNSHookReturn = xApplicationDNSQueryHook_Multi( &xEndPoint, xSet.pcName );
                         #endif
 
+                        /* During the early stages of boot or after a DHCP lease expires, our end-point
+                         * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
+                        if( ( xDNSHookReturn != pdFALSE ) && ( xEndPoint.bits.bIPv6 == pdFALSE ) && ( xEndPoint.ipv4_settings.ulIPAddress == 0U ) )
+                        {
+                            xDNSHookReturn = pdFALSE;
+                        }
+
                         if( xDNSHookReturn != pdFALSE )
                         {
                             int16_t usLength;
@@ -609,7 +615,7 @@
     }
 
 /**
- * @brief perform a dns lookup in the local cache {TODO WRONG}
+ * @brief Process DNS answer field in a DNS response packet from a DNS server.
  * @param[in] pxSet a set of variables that are shared among the helper functions.
  * @param[out] ppxAddressInfo a linked list storing the DNS answers.
  * @param[out] uxBytesRead total bytes consumed by the function
@@ -678,11 +684,25 @@
             }
             else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
             {
-                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS; /*TODO check if fine */
+                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
 
                 if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
                 {
-                    xDoAccept = pdTRUE;
+                    /* Ignore responses containing an IP of 0.0.0.0.
+                     * If we don't stop parsing this now, the code below will
+                     * invoke the user callback and also store this invalid address in our cache. */
+                    void * pvCopyDest;
+                    const void * pvCopySource;
+                    uint32_t ulTestAddress;
+
+                    pvCopySource = &( pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] );
+                    pvCopyDest = &( ulTestAddress );
+                    ( void ) memcpy( pvCopyDest, pvCopySource, pxSet->uxAddressLength );
+
+                    if( ulTestAddress != 0U )
+                    {
+                        xDoAccept = pdTRUE;
+                    }
                 }
             }
             else
@@ -825,8 +845,10 @@
                     }
                     #endif /* ipconfigUSE_DNS_CACHE */
 
-                    if( ( ulReturnIPAddress == 0U ) && ( pxSet->ulIPAddress != 0U ) )
+                    if( ulReturnIPAddress == 0U )
                     {
+                        /* Here pxSet->ulIPAddress should be not equal tp 0 since pxSet->ulIPAddress is copied from
+                         * pxSet->pucByte[ sizeof( DNSAnswerRecord_t ) ] and os verified to be non zero above. */
                         /* Remember the first IP-address that is found. */
                         ulReturnIPAddress = pxSet->ulIPAddress;
                     }
@@ -1145,6 +1167,13 @@
                 {
                     /* The application informs that the name in 'ucNBNSName'
                      * does not refer to this host. */
+                    break;
+                }
+
+                /* During the early stages of boot or after a DHCP lease expires, our end-point
+                 * may have an IP address of 0.0.0.0. Do not respond to name queries with that address. */
+                if( xEndPoint.ipv4_settings.ulIPAddress == 0U )
+                {
                     break;
                 }
 
