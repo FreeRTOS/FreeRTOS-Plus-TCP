@@ -12,7 +12,7 @@ target_sources( freertos_plus_tcp_network_if
 
 # target_link_libraries( freertos_plus_tcp_network_if
 #   PRIVATE
-#     hwEthernetLib # Todo where is hwEthernet.h?
+#     hwEthernetLib # Where is hwEthernet.h?
 # )
 
 target_link_libraries( freertos_plus_tcp_network_if

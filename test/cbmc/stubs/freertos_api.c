@@ -135,30 +135,11 @@ int32_t FreeRTOS_recvfrom( Socket_t xSocket,
     __CPROVER_assert( pvBuffer != NULL,
                       "FreeRTOS precondition: pvBuffer != NULL" );
 
-    /****************************************************************
-    * TODO: We need to check this out.
-    *
-    * The code calls recvfrom with these parameters NULL, it is not
-    * clear from the documentation that this is allowed.
-    ****************************************************************/
-    #if 0
-        __CPROVER_assert( pxSourceAddress != NULL,
-                          "FreeRTOS precondition: pxSourceAddress != NULL" );
-        __CPROVER_assert( pxSourceAddressLength != NULL,
-                          "FreeRTOS precondition: pxSourceAddress != NULL" );
-    #endif
-
     size_t payload_size;
     __CPROVER_assume( payload_size + sizeof( UDPPacket_t )
                       < CBMC_MAX_OBJECT_SIZE );
 
-    /****************************************************************
-    * TODO: We need to make this lower bound explicit in the Makefile.json
-    *
-    * DNSMessage_t is a typedef in FreeRTOS_DNS.c
-    * sizeof(DNSMessage_t) = 6 * sizeof(uint16_t)
-    ****************************************************************/
-    __CPROVER_assume( payload_size >= 6 * sizeof( uint16_t ) );
+    __CPROVER_assume( payload_size >= sizeof( DNSMessage_t ) );
 
     #ifdef CBMC_FREERTOS_RECVFROM_BUFFER_BOUND
         __CPROVER_assume( payload_size <= CBMC_FREERTOS_RECVFROM_BUFFER_BOUND );
