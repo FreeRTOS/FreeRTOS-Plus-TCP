@@ -1834,7 +1834,6 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
             if( pxSocket->pxEndPoint != NULL )
             {
                 pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress );
-                /*TODO Check if needed for ipv6 setting */
             }
             else
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -4940,7 +4939,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
-        /* __XX__ TODO ulLocalIP is not used, for misra compliance*/
         ( void ) ulLocalIP;
 
         for( pxIterator = listGET_NEXT( pxEnd );
