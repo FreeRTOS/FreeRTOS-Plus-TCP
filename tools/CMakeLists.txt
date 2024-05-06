@@ -17,7 +17,7 @@ target_include_directories( freertos_plus_tcp_utilities SYSTEM
     tcp_utilities/include
 )
 
-#TODO(phelter): Investigate and fix in freertos_plus_tcp if not already fixed.
+# Investigate and fix in freertos_plus_tcp if not already fixed.
 target_compile_options( freertos_plus_tcp_utilities
   PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-Wno-extra-semi-stmt>

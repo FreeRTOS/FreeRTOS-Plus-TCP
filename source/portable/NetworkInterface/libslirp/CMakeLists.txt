@@ -16,7 +16,7 @@ target_sources( freertos_plus_tcp_network_if
 
 target_link_libraries(freertos_plus_tcp_network_if
   PRIVATE
-    slirp # TODO
+    slirp
 )
 
 target_link_libraries( freertos_plus_tcp_network_if

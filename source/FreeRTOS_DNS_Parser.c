@@ -250,7 +250,6 @@
  *         An error code (dnsPARSE_ERROR) if there was an error in the DNS response.
  *         0 if xExpected set to pdFALSE.
  */
-/* TODO cross check again */
     uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
                                 size_t uxBufferLength,
                                 struct freertos_addrinfo ** ppxAddressInfo,
@@ -589,7 +588,7 @@
     }
 
 /**
- * @brief perform a dns lookup in the local cache {TODO WRONG}
+ * @brief Process DNS answer field in a DNS response packet from a DNS server.
  * @param[in] pxSet a set of variables that are shared among the helper functions.
  * @param[out] ppxAddressInfo a linked list storing the DNS answers.
  * @param[out] uxBytesRead total bytes consumed by the function
@@ -658,7 +657,7 @@
             }
             else if( pxSet->usType == ( uint16_t ) dnsTYPE_A_HOST )
             {
-                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS; /*TODO check if fine */
+                pxSet->uxAddressLength = ipSIZE_OF_IPv4_ADDRESS;
 
                 if( pxSet->uxSourceBytesRemaining >= ( sizeof( DNSAnswerRecord_t ) + pxSet->uxAddressLength ) )
                 {
