@@ -1085,7 +1085,7 @@
             /* See if there is more data in a contiguous block to make the
              * SACK describe a longer range of data. */
 
-            /* TODO: SACK's may also be delayed for a short period
+            /* SACK's may also be delayed for a short period
              * This is useful because subsequent packets will be SACK'd with
              * single one message
              */
