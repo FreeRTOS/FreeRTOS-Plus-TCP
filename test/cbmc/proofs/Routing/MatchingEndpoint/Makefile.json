@@ -6,11 +6,6 @@
       "--unwindset pxEasyFit.0:{MAX_ENDPOINT_COUNT_LOOP}",
       "--nondet-static"
     ],
-    "INSTFLAGS":
-    [
-      "--generate-function-body 'xIsIPv6Loopback'",
-      "--generate-function-body-options nondet-return"
-    ],    
     "OBJS":
     [
       "$(ENTRY)_harness.goto",

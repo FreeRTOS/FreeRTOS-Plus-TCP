@@ -30,11 +30,6 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|DNS_BindSocket|DNS_SendRequest|xApplicationGetRandomNumber|vDNSSetCallBack|ulChar2u32|DNS_CloseSocket|DNS_ReadReply|FreeRTOS_inet_addr'",
-    "--generate-function-body-options nondet-return"
-  ],
   "DEF":
   [
     "ipconfigDNS_USE_CALLBACKS={callback}",

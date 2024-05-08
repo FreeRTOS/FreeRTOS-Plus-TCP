@@ -5,11 +5,6 @@
       "--unwind 1",
       "--unwindset __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions.0:32"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'usChar2u16'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OPT":
   [
       "--export-file-local-symbols"

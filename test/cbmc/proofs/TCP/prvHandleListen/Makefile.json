@@ -5,11 +5,6 @@
     "--unwind 1",
     "--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'prvSocketSetMSS|vSocketBind|prvTCPSendReset|vTCPStateChange|prvTCPCreateWindow|vSocketClose|FreeRTOS_GetLocalAddress|ulApplicationGetNextSequenceNumber'",
-    "--generate-function-body-options nondet-return"
-  ],  
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
@@ -21,6 +16,10 @@
   [
     "FREERTOS_TCP_ENABLE_VERIFICATION",
     "ipconfigNETWORK_MTU=586"
+  ],
+  "INSTFLAGS":
+  [
+    "--remove-function-body prvTCPSendReset"
   ],
   "INC":
   [

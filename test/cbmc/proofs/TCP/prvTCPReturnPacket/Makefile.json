@@ -43,11 +43,6 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission_IPv4.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission.goto"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|prvTCPReturnPacket_IPV6|FreeRTOS_min_uint32'",
-    "--generate-function-body-options nondet-return"
-  ],
   "DEF":
   [
     "ipconfigUSE_LINKED_RX_MESSAGES={RX_MESSAGES}",

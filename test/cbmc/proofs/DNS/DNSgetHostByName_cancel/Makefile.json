@@ -19,11 +19,6 @@
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/tasks.goto",
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vDNSCallbackInitialise|vDNSSetCallBack|vDNSCheckCallBack'",
-    "--generate-function-body-options nondet-return"
-  ],  
   "DEF":
   [
     "ipconfigDNS_USE_CALLBACKS={callback}",

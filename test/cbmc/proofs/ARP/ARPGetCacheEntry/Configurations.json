@@ -10,11 +10,6 @@
       "--unwindset FreeRTOS_FindGateWay.0:3",
       "--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vSetMultiCastIPv4MacAddress|xIsIPv4Multicast'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

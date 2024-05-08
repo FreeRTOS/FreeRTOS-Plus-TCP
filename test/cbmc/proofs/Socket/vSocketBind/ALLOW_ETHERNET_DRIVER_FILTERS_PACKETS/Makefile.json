@@ -17,8 +17,6 @@
   ],
   "INSTFLAGS":
   [
-    "--generate-function-body 'vTaskSuspendAll|xTaskResumeAll'",
-    "--generate-function-body-options nondet-return"
   ],
   "DEF":
   [

@@ -6,11 +6,6 @@
     "--unwindset FreeRTOS_NextEndPoint.0:1",
     "--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vDHCP_RATimerReload|vNDSendNeighbourSolicitation|FreeRTOS_CreateIPv6Address'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OPT":
   [
       "--export-file-local-symbols"

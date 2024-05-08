@@ -32,11 +32,6 @@
   	"--unwind 1",
   	"--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'uxQueueMessagesWaiting|vIPSetTCPTimerExpiredState|xIsCallingFromIPTask|xQueueGenericSend'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

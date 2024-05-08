@@ -7,8 +7,7 @@
   ],
   "INSTFLAGS":
   [
-    "--generate-function-body 'prvChecksumIPv6Checks'",
-    "--generate-function-body-options nondet-return"
+    "--remove-function-body prvChecksumIPv6Checks"
   ],
   "OBJS":
   [

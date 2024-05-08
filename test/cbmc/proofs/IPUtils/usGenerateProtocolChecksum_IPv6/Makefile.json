@@ -10,8 +10,7 @@
   ],
   "INSTFLAGS":
   [
-    "--generate-function-body 'prvChecksumIPv4Checks'",
-    "--generate-function-body-options nondet-return"
+    "--remove-function-body prvChecksumIPv4Checks"
   ],
   "OBJS":
   [

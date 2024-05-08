@@ -5,11 +5,6 @@
     "--unwindset vNDRefreshCacheEntry.0:25",
     "--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|uxIPHeaderSizePacket|vIPSetARPResolutionTimerEnableState|vReceiveRA'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

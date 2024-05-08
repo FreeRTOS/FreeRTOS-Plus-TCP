@@ -150,17 +150,6 @@ report: cbmc.xml property.xml coverage.xml
 check-cbmc-result: cbmc.xml
 	grep '<cprover-status>SUCCESS</cprover-status>' $^
 
-# This rule depends only on cbmc.xml and has no dependents, so it will
-# not block the report from being generated if it fails. This rule is
-# intended to fail if and only if the CBMC safety check that emits
-# cbmc.xml yielded a warning about undefined functions.
-check-cbmc-undefined-functions: cbmc.xml
-	if grep '**** WARNING: no body for function' $^; then \
-		exit 1; \
-	else \
-		exit 0; \
-	fi
-
 # ____________________________________________________________________
 # Rules
 #

@@ -13,11 +13,6 @@
       "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP_Utils.goto",
       "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto"
     ],
-    "INSTFLAGS":
-    [
-      "--generate-function-body 'uxIPHeaderSizePacket'",
-      "--generate-function-body-options nondet-return"
-    ],    
     "DEF":
     [
       "ipconfigUSE_DNS_CACHE={USE_CACHE}",

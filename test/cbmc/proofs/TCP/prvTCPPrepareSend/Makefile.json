@@ -33,11 +33,6 @@
     "--unwind 1",
     "--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|xTCPWindowTxDone|vTaskSuspendAll|xTaskResumeAll|vSocketWakeUpUser|uxStreamBufferDistance|uxStreamBufferGet|vSocketClose|ulTCPWindowTxGet|FreeRTOS_listen|xTaskGetTickCount|prvTCPSocketIsActive'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

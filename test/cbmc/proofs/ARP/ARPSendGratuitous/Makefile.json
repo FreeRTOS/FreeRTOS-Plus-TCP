@@ -5,11 +5,6 @@
       "--unwind 1",
       "--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'xQueueGenericSend|xIsCallingFromIPTask'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

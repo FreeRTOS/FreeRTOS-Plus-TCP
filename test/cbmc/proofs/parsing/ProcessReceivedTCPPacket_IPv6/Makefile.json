@@ -22,9 +22,7 @@
     "--remove-function-body prvTCPPrepareSend",
     "--remove-function-body prvTCPReturnPacket",
     "--remove-function-body prvTCPHandleState",
-    "--remove-function-body vTCPStateChange",
-    "--generate-function-body 'xProcessReceivedTCPPacket_IPV6'",
-    "--generate-function-body-options nondet-return"
+    "--remove-function-body vTCPStateChange"
   ],
   "DEF":
   [

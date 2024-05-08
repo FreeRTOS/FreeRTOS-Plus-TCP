@@ -9,11 +9,6 @@
       "--unwindset vARPAgeCache.1:3",
       "--nondet-static"
   ],
-  "INSTFLAGS":
-  [
-    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|FreeRTOS_OutputAdvertiseIPv6|xQueueGenericSend|xIsCallingFromIPTask'",
-    "--generate-function-body-options nondet-return"
-  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
