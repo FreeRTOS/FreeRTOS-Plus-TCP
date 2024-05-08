@@ -36,7 +36,11 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Routing.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS_Parser.goto"
   ],
-
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'Prepare_CacheLookup|vReleaseNetworkBufferAndDescriptor|DNS_BindSocket|xApplicationGetRandomNumber|FreeRTOS_ReleaseUDPPayloadBuffer|FreeRTOS_inet_addr'",
+    "--generate-function-body-options nondet-return"
+  ],  
   "DEF":
   [
     "ipconfigUSE_IPv6=1",

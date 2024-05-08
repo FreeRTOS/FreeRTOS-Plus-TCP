@@ -6,6 +6,11 @@
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_DNS.goto"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'DNS_ParseDNSReply|uxIPHeaderSizePacket'",
+    "--generate-function-body-options nondet-return"
+  ],
   "DEF":
   [
   ]

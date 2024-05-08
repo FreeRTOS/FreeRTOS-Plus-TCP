@@ -7,6 +7,11 @@
       "--unwindset prvFindCacheEntry.0:7",
       "--nondet-static"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'xTaskCheckForTimeOut|vReleaseNetworkBufferAndDescriptor|xQueueGenericSend|vTaskSetTimeOutState|xIsCallingFromIPTask|FreeRTOS_FindEndPointOnNetMask|xTaskGetTickCount|vIPSetARPResolutionTimerEnableState'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

@@ -6,6 +6,11 @@
       "--unwind {LOOP_UNWIND_COUNT}",
       "--nondet-static --flush"
     ],
+    "INSTFLAGS":
+    [
+      "--generate-function-body 'vIPSetDHCP_RATimerEnableState|FreeRTOS_socket|FreeRTOS_setsockopt|vPortExitCritical|vPortEnterCritical'",
+      "--generate-function-body-options nondet-return"
+    ],
     "OPT":
     [
       "--export-file-local-symbols"

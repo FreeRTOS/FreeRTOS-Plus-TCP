@@ -7,6 +7,11 @@
     "--unwindset FreeRTOS_AllEndPointsUp.0:2",
     "--nondet-static"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'xGetExtensionOrder|vNDRefreshCacheEntry|ProcessICMPPacket|xCheckRequiresARPResolution|vARPRefreshCacheEntryAge|eHandleIPv6ExtensionHeaders|prvAllowIPPacketIPv6|FreeRTOS_FindEndPointOnIP_IPv4|prvProcessICMPMessage_IPv6'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OPT":
   [
     "--export-file-local-symbols"

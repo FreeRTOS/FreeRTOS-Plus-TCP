@@ -24,11 +24,8 @@
   "INSTFLAGS":
   [
     "--remove-function-body prvSingleStepTCPHeaderOptions",
-    "--remove-function-body prvCheckOptions",
-    "--remove-function-body prvTCPPrepareSend",
-    "--remove-function-body prvTCPReturnPacket",
-    "--remove-function-body prvTCPHandleState",
-    "--remove-function-body vTCPStateChange"
+    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|prvTCPHandleState|vTCPStateChange|xSequenceGreaterThan|prvCheckOptions|prvTCPPrepareSend|xSequenceLessThan|xTCPWindowTxHasData|xTaskGetTickCount|prvTCPReturnPacket'",
+    "--generate-function-body-options nondet-return"
   ],
   "DEF":
   [

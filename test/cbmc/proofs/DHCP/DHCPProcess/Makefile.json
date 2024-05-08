@@ -14,6 +14,11 @@
     "--unwind {LOOP_UNWIND_COUNT}",
     "--nondet-static --flush"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'FreeRTOS_setsockopt|vSocketClose|FreeRTOS_socket'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OPT":
   [
     "--export-file-local-symbols"

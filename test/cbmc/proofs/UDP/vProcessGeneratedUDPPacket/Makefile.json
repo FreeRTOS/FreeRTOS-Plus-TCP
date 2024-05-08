@@ -3,6 +3,11 @@
   "CBMCFLAGS":
   [
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'vProcessGeneratedUDPPacket_IPv6'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
