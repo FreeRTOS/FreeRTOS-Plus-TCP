@@ -5,6 +5,11 @@
   [
     "--unwind 2"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'vEventGroupDelete|xEventGroupCreate'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OBJS":
   [
     "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto",

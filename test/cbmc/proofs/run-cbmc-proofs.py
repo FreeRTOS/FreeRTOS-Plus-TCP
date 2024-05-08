@@ -226,6 +226,18 @@ def add_proof_jobs(proof_directory, proof_root):
         "--description", ("%s: computing coverage" % proof_name),
     ], check=True)
 
+    # Check whether the CBMC proof doesn't have undefined functions. 
+    # More details in the Makefile rule for check-cbmc-undefined-functions.
+    run_cmd([
+        "litani", "add-job",
+        "--command", "make check-cbmc-undefined-functions",
+        "--inputs", cbmc_out,
+        "--pipeline-name", proof_name,
+        "--ci-stage", "report",
+        "--cwd", str(proof_directory),
+        "--description", ("%s: checking for undefined functions" % proof_name),
+    ], check=True)
+
     # Check whether the CBMC proof actually passed. More details in the
     # Makefile rule for check-cbmc-result.
     run_cmd([

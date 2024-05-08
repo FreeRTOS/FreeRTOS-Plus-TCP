@@ -7,9 +7,8 @@
     ],
     "INSTFLAGS":
     [
-        "--remove-function-body usBitConfig_read_16",
-        "--remove-function-body xBitConfig_read_uc",
-        "--remove-function-body ucBitConfig_read_8"
+      "--generate-function-body 'usBitConfig_read_16|xBitConfig_read_uc|ucBitConfig_read_8'",
+      "--generate-function-body-options nondet-return"
     ],
     "OPT":
     [

@@ -4,6 +4,11 @@
   [
     "--unwind 1"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'vTCPStateChange|xSendEventToIPTask|uxStreamBufferAdd|uxStreamBufferFrontSpace'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

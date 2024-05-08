@@ -14,14 +14,15 @@
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_State_Handling.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_State_Handling_IPv6.goto"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'prvSocketSetMSS|vSocketBind|prvTCPSendReset|vTCPStateChange|xApplicationGetRandomNumber|prvTCPCreateWindow|vSocketClose|FreeRTOS_GetLocalAddress'",
+    "--generate-function-body-options nondet-return"
+  ],
   "DEF":
   [
     "FREERTOS_TCP_ENABLE_VERIFICATION",
     "ipconfigNETWORK_MTU=586"
-  ],
-  "INSTFLAGS":
-  [
-    "--remove-function-body prvTCPSendReset"
   ],
   "INC":
   [

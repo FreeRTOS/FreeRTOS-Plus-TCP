@@ -4,6 +4,11 @@
   	"--unwind 1",
   	"--nondet-static"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|vIPTimerStartARPResolution'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OPT":
   [
       "--export-file-local-symbols"

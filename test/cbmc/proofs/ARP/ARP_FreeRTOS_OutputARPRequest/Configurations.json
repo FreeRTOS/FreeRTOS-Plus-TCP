@@ -32,6 +32,11 @@
   [
       "--unwind 20"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'vReleaseNetworkBufferAndDescriptor|xIsCallingFromIPTask'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",

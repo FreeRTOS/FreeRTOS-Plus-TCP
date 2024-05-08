@@ -5,6 +5,11 @@
       "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowTxCheckAck.0:2",
       "--unwindset __CPROVER_file_local_FreeRTOS_TCP_WIN_c_prvTCPWindowFastRetransmit.0:2"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'ulChar2u32|FreeRTOS_min_size_t'",
+    "--generate-function-body-options nondet-return"
+  ],  
   "OPT":
   [
       "--export-file-local-symbols"

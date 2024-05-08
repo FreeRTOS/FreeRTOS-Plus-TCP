@@ -5,6 +5,11 @@
     "--unwind 3",
     "--nondet-static"
   ],
+  "INSTFLAGS":
+  [
+    "--generate-function-body 'ulChar2u32'",
+    "--generate-function-body-options nondet-return"
+  ],
   "OPT":
   [
       "--export-file-local-symbols"
