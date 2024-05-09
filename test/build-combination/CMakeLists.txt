@@ -1,3 +1,26 @@
+# Select the appropriate Build Test configuration
+set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION "CUSTOM" CACHE STRING "FreeRTOS Plus TCP Build Test configuration")
+set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
+    CUSTOM                  # Custom (external) configuration -eg from a top-level project
+    ENABLE_ALL              # Enable all configuration settings
+    ENABLE_ALL_IPV4         # Enable all configuration settings IPv4 UDP
+    ENABLE_ALL_IPV6         # Enable all configuration settings IPv6 UDP
+    ENABLE_ALL_IPV4_TCP     # Enable all configuration settings IPv4 TCP
+    ENABLE_ALL_IPV6_TCP     # Enable all configuration settings IPv6 TCP
+    ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6 UDP
+    DISABLE_ALL             # Disable all configuration settings
+    HEADER_SELF_CONTAIN     # Enable header self contain test
+    DEFAULT_CONF            # Default (typical) configuration
+)
+if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)
+    message(FATAL_ERROR "Invalid FREERTOS_PLUS_TCP_TEST_CONFIGURATION value '${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}' should be one of: ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST}")
+else()
+    message(STATUS "Using FreeRTOS-Plus-TCP Test Configuration : ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}")
+    if (NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM")
+        message(WARNING "FreeRTOS-Kernel configuration settings are configured by FreeRTOS-Plus-TCP")
+    endif()
+endif()
+
 add_library( freertos_plus_tcp_config_common INTERFACE )
 target_include_directories(freertos_plus_tcp_config_common INTERFACE Common )
 
@@ -75,6 +98,7 @@ else()
 endif()
 
 # FreeRTOS-Plus-TCP compilation options configuration
+set_property(TARGET freertos_plus_tcp PROPERTY C_STANDARD 90)
 target_compile_options(freertos_plus_tcp
     PRIVATE
 
