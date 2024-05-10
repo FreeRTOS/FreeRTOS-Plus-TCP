@@ -92,11 +92,6 @@ target_include_directories( freertos_plus_tcp
     include
 )
 
-# Suppressions required to build clean with GCC
-if(CMAKE_C_COMPILER_ID STREQUAL GNU)
-    set_source_files_properties(FreeRTOS_Sockets.c PROPERTIES COMPILE_FLAGS -Wno-pedantic)
-endif()
-
 target_link_libraries( freertos_plus_tcp
   PUBLIC
     freertos_config

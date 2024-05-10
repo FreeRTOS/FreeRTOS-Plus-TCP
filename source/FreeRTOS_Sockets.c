@@ -3779,8 +3779,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         BaseType_t xResult = -pdFREERTOS_ERRNO_EINVAL;
         TimeOut_t xTimeOut;
 
-        ( void ) xAddressLength;
-
         #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             struct freertos_sockaddr xTempAddress;
 
@@ -3794,6 +3792,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxAddress = &xTempAddress;
             }
         #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
+        ( void ) xAddressLength;
 
         xResult = prvTCPConnectStart( pxSocket, pxAddress );
 
