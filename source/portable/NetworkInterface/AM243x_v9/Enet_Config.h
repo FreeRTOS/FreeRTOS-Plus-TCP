@@ -57,26 +57,34 @@
 /* ========================================================================== */
 /*                         Structure Declarations                             */
 /* ========================================================================== */
-typedef enum NetifName_e
-{
-    NetifName_CPSW_SWITCH = 0,
-//    NetifName_CPSW_DUAL_MAC_PORT1,
-//    NetifName_CPSW_DUAL_MAC_PORT2,
-    NetifName_NUM_NETIFS,
-}NetifName_e;
+    typedef enum NetifName_e
+    {
+        NetifName_CPSW_SWITCH = 0,
+/*    NetifName_CPSW_DUAL_MAC_PORT1, */
+/*    NetifName_CPSW_DUAL_MAC_PORT2, */
+        NetifName_NUM_NETIFS,
+    } NetifName_e;
 
 
-void EnetNetIFAppCb_getTxHandleInfo(EnetNetIFAppIf_GetTxHandleInArgs *inArgs,
-                                     EnetNetIFAppIf_TxHandleInfo *outArgs);
-void EnetNetIFAppCb_getRxHandleInfo(EnetNetIFAppIf_GetRxHandleInArgs *inArgs,
-                                     EnetNetIFAppIf_RxHandleInfo *outArgs);
+    void EnetNetIFAppCb_getTxHandleInfo( EnetNetIFAppIf_GetTxHandleInArgs * inArgs,
+                                         EnetNetIFAppIf_TxHandleInfo * outArgs );
+    void EnetNetIFAppCb_getRxHandleInfo( EnetNetIFAppIf_GetRxHandleInArgs * inArgs,
+                                         EnetNetIFAppIf_RxHandleInfo * outArgs );
 
-void EnetApp_getTxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pTxChIdCount, uint32_t txChIdList[FREERTOS_TCPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL]);
+    void EnetApp_getTxChIDs( const Enet_Type enetType,
+                             const uint32_t instId,
+                             uint32_t * pTxChIdCount,
+                             uint32_t txChIdList[ FREERTOS_TCPIF_MAX_TX_CHANNELS_PER_PHERIPHERAL ] );
 
-void EnetApp_getRxChIDs(const Enet_Type enetType, const uint32_t instId, uint32_t* pRxChIdCount, uint32_t rxChIdList[FREERTOS_TCPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL]);
+    void EnetApp_getRxChIDs( const Enet_Type enetType,
+                             const uint32_t instId,
+                             uint32_t * pRxChIdCount,
+                             uint32_t rxChIdList[ FREERTOS_TCPIF_MAX_RX_CHANNELS_PER_PHERIPHERAL ] );
 
-EnetNetIF_RxMode_t EnetApp_getRxMode(Enet_Type enetType, uint32_t instId);
+    EnetNetIF_RxMode_t EnetApp_getRxMode( Enet_Type enetType,
+                                          uint32_t instId );
 
-EnetNetIF_RxMode_t EnetApp_getRxMode(Enet_Type enetType, uint32_t instId);
+    EnetNetIF_RxMode_t EnetApp_getRxMode( Enet_Type enetType,
+                                          uint32_t instId );
 
 #endif /* FREERTOS_ENET_CONFIG_H */

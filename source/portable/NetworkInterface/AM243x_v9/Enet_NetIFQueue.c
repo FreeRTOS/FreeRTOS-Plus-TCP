@@ -29,15 +29,16 @@
 #include "Enet_NetIFQueue.h"
 #include <networking/enet/core/include/core/enet_utils.h>
 #include <kernel/dpl/HwiP.h>
+
 /*
  * Free queue from which buffer pointers are allocated
  */
 NetBufQueue xNetBuffreeQ;
 static bool gNetBuf_initialized = false;
 
-static inline void NetBufQueue_assert(uint8_t cond)
+static inline void NetBufQueue_assert( uint8_t cond )
 {
-    assert(cond);
+    assert( cond );
 }
 
 /*
@@ -45,24 +46,26 @@ static inline void NetBufQueue_assert(uint8_t cond)
  * MUST BE CALLED BEFORE INITIALIZING THE FIRST BUFFER QUEUE
  * Needs to be called only once as early in the program as possible
  */
-void NetBufQueue_init_freeQ(NetBufNode *pfree, uint32_t maxSize)
+void NetBufQueue_init_freeQ( NetBufNode * pfree,
+                             uint32_t maxSize )
 {
     int fQ_iter;
-    NetBufQueue_assert(NULL != pfree);
 
-	if (!gNetBuf_initialized)
+    NetBufQueue_assert( NULL != pfree );
+
+    if( !gNetBuf_initialized )
     {
-        for(fQ_iter=0; fQ_iter<maxSize-1; fQ_iter++)
+        for( fQ_iter = 0; fQ_iter < maxSize - 1; fQ_iter++ )
         {
-            pfree[fQ_iter].pxNext = &pfree[fQ_iter+1];
-            pfree[fQ_iter].pxNetworkBuffer = NULL;
+            pfree[ fQ_iter ].pxNext = &pfree[ fQ_iter + 1 ];
+            pfree[ fQ_iter ].pxNetworkBuffer = NULL;
         }
 
-        pfree[fQ_iter].pxNext = NULL;
-        pfree[fQ_iter].pxNetworkBuffer = NULL;
+        pfree[ fQ_iter ].pxNext = NULL;
+        pfree[ fQ_iter ].pxNetworkBuffer = NULL;
 
-        xNetBuffreeQ.pxHead = &pfree[0];
-        xNetBuffreeQ.pxTail = &pfree[maxSize - 1];
+        xNetBuffreeQ.pxHead = &pfree[ 0 ];
+        xNetBuffreeQ.pxTail = &pfree[ maxSize - 1 ];
         xNetBuffreeQ.uCount = maxSize;
 
         gNetBuf_initialized = true;
@@ -72,9 +75,10 @@ void NetBufQueue_init_freeQ(NetBufNode *pfree, uint32_t maxSize)
 /*
  * Allocates memory from the freeQ to be used by other queues
  */
-NetBufNode* mempQ_malloc()
+NetBufNode * mempQ_malloc()
 {
-    NetBufNode* p = xNetBuffreeQ.pxHead;
+    NetBufNode * p = xNetBuffreeQ.pxHead;
+
     xNetBuffreeQ.pxHead = xNetBuffreeQ.pxHead->pxNext;
     xNetBuffreeQ.uCount--;
     return p;
@@ -83,7 +87,7 @@ NetBufNode* mempQ_malloc()
 /*
  * Returns buffer pointers used by other queues back to freeQ
  */
-void mempQ_free(NetBufNode* p)
+void mempQ_free( NetBufNode * p )
 {
     p->pxNext = NULL;
     p->pxNetworkBuffer = NULL;
@@ -95,36 +99,38 @@ void mempQ_free(NetBufNode* p)
 /*
  * Initializes a queue. Must be called after declaring a queue
  */
-void NetBufQueue_init(NetBufQueue *pxNetBufQueue)
+void NetBufQueue_init( NetBufQueue * pxNetBufQueue )
 {
     uint32_t key = HwiP_disable();
+
     pxNetBufQueue->pxHead = NULL;
     pxNetBufQueue->pxTail = NULL;
     pxNetBufQueue->uCount = 0;
-    HwiP_restore(key);
+    HwiP_restore( key );
 }
 
 /*
  * Enqueues a buffer to the pxTail of the queue
  */
-void NetBufQueue_enQ(NetBufQueue *pxNetBufQueue, NetworkBufferDescriptor_t *p)
+void NetBufQueue_enQ( NetBufQueue * pxNetBufQueue,
+                      NetworkBufferDescriptor_t * p )
 {
-    NetBufNode* temp = NULL;
+    NetBufNode * temp = NULL;
 
     uint32_t key = HwiP_disable();
 
     temp = mempQ_malloc();
-    NetBufQueue_assert(NULL != temp);
+    NetBufQueue_assert( NULL != temp );
 
     temp->pxNetworkBuffer = p;
     temp->pxNext = NULL;
 
-    if(pxNetBufQueue->uCount == 0)
+    if( pxNetBufQueue->uCount == 0 )
     {
         pxNetBufQueue->pxHead = temp;
         pxNetBufQueue->pxTail = temp;
     }
-    else if(pxNetBufQueue->uCount == 1)
+    else if( pxNetBufQueue->uCount == 1 )
     {
         pxNetBufQueue->pxHead->pxNext = temp;
         pxNetBufQueue->pxTail = temp;
@@ -134,28 +140,31 @@ void NetBufQueue_enQ(NetBufQueue *pxNetBufQueue, NetworkBufferDescriptor_t *p)
         pxNetBufQueue->pxTail->pxNext = temp;
         pxNetBufQueue->pxTail = pxNetBufQueue->pxTail->pxNext;
     }
+
     pxNetBufQueue->uCount++;
 
-    HwiP_restore(key);
-
+    HwiP_restore( key );
 }
 
 /*
  * Enqueues a packet to the pxHead of the queue.
  * NOT USED ANYWHERE. Can be removed
  */
-void NetBufQueue_enQHead(NetBufQueue *pxNetBufQueue, NetworkBufferDescriptor_t *p)
+void NetBufQueue_enQHead( NetBufQueue * pxNetBufQueue,
+                          NetworkBufferDescriptor_t * p )
 {
-    NetBufNode* temp = NULL;
-    NetBufQueue_assert(p != NULL);
+    NetBufNode * temp = NULL;
+
+    NetBufQueue_assert( p != NULL );
 
     temp = mempQ_malloc();
-    NetBufQueue_assert(NULL != temp);
+    NetBufQueue_assert( NULL != temp );
 
     uint32_t key = HwiP_disable();
     temp->pxNetworkBuffer = p;
     temp->pxNext = NULL;
-    if(pxNetBufQueue->uCount == 0)
+
+    if( pxNetBufQueue->uCount == 0 )
     {
         pxNetBufQueue->pxHead = temp;
         pxNetBufQueue->pxTail = temp;
@@ -165,36 +174,38 @@ void NetBufQueue_enQHead(NetBufQueue *pxNetBufQueue, NetworkBufferDescriptor_t *
         temp->pxNext = pxNetBufQueue->pxHead;
         pxNetBufQueue->pxHead = temp;
     }
-    HwiP_restore(key);
 
+    HwiP_restore( key );
 }
 
 /*
  * Dequeues from the queue
  */
-NetworkBufferDescriptor_t* NetBufQueue_deQ(NetBufQueue *pxNetBufQueue)
+NetworkBufferDescriptor_t * NetBufQueue_deQ( NetBufQueue * pxNetBufQueue )
 {
-    NetworkBufferDescriptor_t *rtnNetBuf = NULL;
-    NetBufNode *temp = NULL;
+    NetworkBufferDescriptor_t * rtnNetBuf = NULL;
+    NetBufNode * temp = NULL;
     uint32_t key = HwiP_disable();
 
-    if(pxNetBufQueue->uCount != 0)
+    if( pxNetBufQueue->uCount != 0 )
     {
         rtnNetBuf = pxNetBufQueue->pxHead->pxNetworkBuffer;
         temp = pxNetBufQueue->pxHead;
         pxNetBufQueue->pxHead = pxNetBufQueue->pxHead->pxNext;
-        if(pxNetBufQueue->uCount == 1)
+
+        if( pxNetBufQueue->uCount == 1 )
         {
             pxNetBufQueue->pxTail = NULL;
         }
+
         pxNetBufQueue->uCount--;
 
-        NetBufQueue_assert(rtnNetBuf != NULL);
-        NetBufQueue_assert(rtnNetBuf->pucEthernetBuffer != NULL);
-        mempQ_free(temp);
+        NetBufQueue_assert( rtnNetBuf != NULL );
+        NetBufQueue_assert( rtnNetBuf->pucEthernetBuffer != NULL );
+        mempQ_free( temp );
     }
 
-    HwiP_restore(key);
+    HwiP_restore( key );
 
     return rtnNetBuf;
 }

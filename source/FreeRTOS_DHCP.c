@@ -126,8 +126,8 @@
     static void prvCloseDHCPSocket( NetworkEndPoint_t * pxEndPoint );
 
     static int vDHCPProcessEndPoint( BaseType_t xReset,
-                                      BaseType_t xDoCheck,
-                                      NetworkEndPoint_t * pxEndPoint );
+                                     BaseType_t xDoCheck,
+                                     NetworkEndPoint_t * pxEndPoint );
 
     static BaseType_t xHandleWaitingOffer( NetworkEndPoint_t * pxEndPoint,
                                            BaseType_t xDoCheck );
@@ -262,7 +262,7 @@
                     /* The second parameter pdTRUE tells to check for a UDP message. */
                     int ret_val = vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxIterator );
 
-                    if (ret_val == -1)
+                    if( ret_val == -1 )
                     {
                         /* Target not found, fetch the message and delete it. */
                         /* PAss the address of a pointer pucUDPPayload, because zero-copy is used. */
@@ -681,8 +681,8 @@
  *                        make one cycle.
  */
     static int vDHCPProcessEndPoint( BaseType_t xReset,
-                                      BaseType_t xDoCheck,
-                                      NetworkEndPoint_t * pxEndPoint )
+                                     BaseType_t xDoCheck,
+                                     NetworkEndPoint_t * pxEndPoint )
     {
         BaseType_t xGivingUp = pdFALSE;
 
@@ -698,10 +698,11 @@
         {
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
+
             /*
-            FreeRTOS_debug_printf( ( "vDHCPProcessEndPoint: wrong state: expect: %d got: %d : ignore\n",
-                                     EP_DHCPData.eExpectedState, EP_DHCPData.eDHCPState ) );
-            */
+             * FreeRTOS_debug_printf( ( "vDHCPProcessEndPoint: wrong state: expect: %d got: %d : ignore\n",
+             *                       EP_DHCPData.eExpectedState, EP_DHCPData.eDHCPState ) );
+             */
             return -1;
         }
         else
@@ -841,6 +842,7 @@
                 prvCloseDHCPSocket( pxEndPoint );
             }
         }
+
         return 0;
     }
 /*-----------------------------------------------------------*/

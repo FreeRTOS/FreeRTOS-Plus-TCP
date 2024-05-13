@@ -914,16 +914,16 @@ struct xIPv6_Couple
         /* Check if 'pucEthernetBuffer()' has the expected alignment,
          * which is 32-bits + 2. */
         #ifndef _lint
-            {
-                /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
-                /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
-                /* coverity[misra_c_2012_rule_11_4_violation] */
-                uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer;
-                uxAddress += 2U;
-                /* configASSERT( ( uxAddress % 4U ) == 0U ); */
-                /* And in case configASSERT is not defined. */
-                ( void ) uxAddress;
-            }
+        {
+            /* MISRA Ref 11.4.3 [Casting pointer to int for verification] */
+            /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-114 */
+            /* coverity[misra_c_2012_rule_11_4_violation] */
+            uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer;
+            uxAddress += 2U;
+            /* configASSERT( ( uxAddress % 4U ) == 0U ); */
+            /* And in case configASSERT is not defined. */
+            ( void ) uxAddress;
+        }
         #endif /* ifndef _lint */
 
         /* An Ethernet packet has been received. Inspect the contents to see which

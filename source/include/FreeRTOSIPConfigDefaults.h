@@ -3357,35 +3357,35 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 #endif
 
 #ifndef ipconfigEVENT_QUEUES
-    #define ipconfigEVENT_QUEUES                    ( 1 )
+    #define ipconfigEVENT_QUEUES    ( 1 )
 #endif
 
 #ifndef ipconfigEVENT_PRIORITIES
     #if ( ipconfigEVENT_QUEUES > 1 )
-        #define ipconfigEVENT_PRIORITIES            ( 8 )
+        #define ipconfigEVENT_PRIORITIES    ( 8 )
     #else
-        #define ipconfigEVENT_PRIORITIES            ( 1 )
+        #define ipconfigEVENT_PRIORITIES    ( 1 )
     #endif
 #endif
 
 #if ( ipconfigEVENT_QUEUES > 1 )
-    #define ipconfigMULTI_PRIORITY_EVENT_QUEUES     ( 1 )
+    #define ipconfigMULTI_PRIORITY_EVENT_QUEUES    ( 1 )
 #endif
 
 #ifndef ipconfigBUDGET_MAPPING
     #if ( ipconfigEVENT_QUEUES == 8 )
-        #define ipconfigBUDGET_MAPPING { 8, 8, 6, 6, 4, 4, 2, 2, }
+        #define ipconfigBUDGET_MAPPING    { 8, 8, 6, 6, 4, 4, 2, 2, }
     #endif
 #endif
 
 #ifndef ipconfigPACKET_PRIORITY_QUEUE_MAPPING
     #if ( ipconfigEVENT_PRIORITIES == 8 )
-        #define ipconfigPACKET_PRIORITY_QUEUE_MAPPING     { 0, 1, 2, 3, 4, 5, 6, 7 }
+        #define ipconfigPACKET_PRIORITY_QUEUE_MAPPING    { 0, 1, 2, 3, 4, 5, 6, 7 }
     #endif
 #endif
 
 #ifndef ipconfig_DEFAULT_EVENT_PRIORITY
-    #define ipconfig_DEFAULT_EVENT_PRIORITY         ( 1 )
+    #define ipconfig_DEFAULT_EVENT_PRIORITY    ( 1 )
 #endif
 
 /*---------------------------------------------------------------------------*/

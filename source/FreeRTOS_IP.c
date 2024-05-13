@@ -103,13 +103,13 @@
  * processed.
  */
 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
-    #define STACK_TX_EVENT                      ( 0U )
-    #define STACK_RX_EVENT                      ( 1U )
+    #define STACK_TX_EVENT    ( 0U )
+    #define STACK_RX_EVENT    ( 1U )
 
-    static volatile UBaseType_t uxNextTxRx[ipconfigEVENT_QUEUES] = { STACK_TX_EVENT };
-    static volatile UBaseType_t uxIsEmptyQueue[ipconfigEVENT_QUEUES][ 2 ] = { { 0 } };
-    static volatile UBaseType_t uxCurrentBudget[ipconfigEVENT_QUEUES] = ipconfigBUDGET_MAPPING;
-    static volatile const UBaseType_t uxAllottedBudget[ipconfigEVENT_QUEUES] = ipconfigBUDGET_MAPPING;
+    static volatile UBaseType_t uxNextTxRx[ ipconfigEVENT_QUEUES ] = { STACK_TX_EVENT };
+    static volatile UBaseType_t uxIsEmptyQueue[ ipconfigEVENT_QUEUES ][ 2 ] = { { 0 } };
+    static volatile UBaseType_t uxCurrentBudget[ ipconfigEVENT_QUEUES ] = ipconfigBUDGET_MAPPING;
+    static volatile const UBaseType_t uxAllottedBudget[ ipconfigEVENT_QUEUES ] = ipconfigBUDGET_MAPPING;
 #endif
 
 /** @brief If ipconfigETHERNET_DRIVER_FILTERS_FRAME_TYPES is set to 1, then the Ethernet
@@ -191,10 +191,11 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
 /** @brief The queue used to pass events into the IP-task for processing. */
 QueueHandle_t xNetworkEventQueue = NULL;
 #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
-    /** @brief Multi priority event queues for TX and RX, and their mapping.
-     */
-    QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } }; /**< 0 - TX Queue, 1 - RX Queue */
-    uint8_t xQueueMapping[ ipconfigEVENT_PRIORITIES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
+
+/** @brief Multi priority event queues for TX and RX, and their mapping.
+ */
+QueueHandle_t xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES ][ 2 ] = { { NULL } };     /**< 0 - TX Queue, 1 - RX Queue */
+uint8_t xQueueMapping[ ipconfigEVENT_PRIORITIES ] = ipconfigPACKET_PRIORITY_QUEUE_MAPPING;
 #endif
 
 /** @brief The IP packet ID. */
@@ -297,7 +298,7 @@ static void prvProcessIPEventsAndTimers( void )
             while( pdTRUE )
             {
                 xQueueReceiveRet = pdFALSE;
-                
+
                 if( uxQueueMessagesWaiting( xNetworkTxRxEventQueues[ xCurQueueIndex ][ uxNextTxRx[ xCurQueueIndex ] ] ) > 0 )
                 {
                     xQueueReceiveRet = xQueueReceive( xNetworkTxRxEventQueues[ xCurQueueIndex ][ uxNextTxRx[ xCurQueueIndex ] ], &xReceivedEvent, 0 );
@@ -340,7 +341,6 @@ static void prvProcessIPEventsAndTimers( void )
                         /* Decrement the queue index to the next queue */
                         xCurQueueIndex--;
                     }
-                    
                 }
 
                 if( xQueueReceiveRet == pdTRUE )
@@ -348,10 +348,9 @@ static void prvProcessIPEventsAndTimers( void )
                     /* Break the event scheduler loop and process the event */
                     break;
                 }
-            
             }
         }
-    #else
+    #else  /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
         if( xQueueReceive( xNetworkEventQueue, ( void * ) &xReceivedEvent, xNextIPSleep ) == pdFALSE )
         {
             xReceivedEvent.eEventType = eNoEvent;
@@ -996,7 +995,7 @@ void * FreeRTOS_GetUDPPayloadBuffer_Multi( size_t uxRequestedSizeBytes,
         }
     }
 
-    FreeRTOS_printf(("==>> FreeRTOS_GetUDPPayloadBuffer_Multi alloc: %p\n", pvReturn));
+    FreeRTOS_printf( ( "==>> FreeRTOS_GetUDPPayloadBuffer_Multi alloc: %p\n", pvReturn ) );
 
     return ( void * ) pvReturn;
 }
@@ -1068,35 +1067,32 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             for( xIndex = 0; xIndex < ipconfigEVENT_QUEUES; xIndex++ )
             {
                 xNetworkTxRxEventQueues[ xIndex ][ 0 ] = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
-                                                                    sizeof( IPStackEvent_t ),
-                                                                    ucNetworkEventQueueStorageArea[ xIndex ][ 0 ],
-                                                                    &xNetworkEventStaticQueue[ xIndex ][ 0 ] );
+                                                                             sizeof( IPStackEvent_t ),
+                                                                             ucNetworkEventQueueStorageArea[ xIndex ][ 0 ],
+                                                                             &xNetworkEventStaticQueue[ xIndex ][ 0 ] );
                 xQueueCreateStatus &= ( xNetworkTxRxEventQueues[ xIndex ][ 0 ] != NULL );
 
                 xNetworkTxRxEventQueues[ xIndex ][ 1 ] = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
-                                                                    sizeof( IPStackEvent_t ),
-                                                                    ucNetworkEventQueueStorageArea[ xIndex ][ 1 ],
-                                                                    &xNetworkEventStaticQueue[ xIndex ][ 1 ] );
+                                                                             sizeof( IPStackEvent_t ),
+                                                                             ucNetworkEventQueueStorageArea[ xIndex ][ 1 ],
+                                                                             &xNetworkEventStaticQueue[ xIndex ][ 1 ] );
                 xQueueCreateStatus &= ( xNetworkTxRxEventQueues[ xIndex ][ 1 ] != NULL );
-
             }
 
             xNetworkEventQueue = xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES - 1 ][ 0 ];
-
-        #else
+        #else  /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
             static StaticQueue_t xNetworkEventStaticQueue;
             static uint8_t ucNetworkEventQueueStorageArea[ ipconfigEVENT_QUEUE_LENGTH * sizeof( IPStackEvent_t ) ];
 
             xNetworkEventQueue = xQueueCreateStatic( ipconfigEVENT_QUEUE_LENGTH,
-                                                    sizeof( IPStackEvent_t ),
-                                                    ucNetworkEventQueueStorageArea,
-                                                    &xNetworkEventStaticQueue );
+                                                     sizeof( IPStackEvent_t ),
+                                                     ucNetworkEventQueueStorageArea,
+                                                     &xNetworkEventStaticQueue );
 
             xQueueCreateStatus = ( xNetworkEventQueue != NULL );
-
-        #endif
+        #endif /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
     }
-    #else
+    #else  /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */
     {
         #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
             xQueueCreateStatus = pdTRUE;
@@ -1113,14 +1109,11 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
             }
 
             xNetworkEventQueue = xNetworkTxRxEventQueues[ ipconfigEVENT_QUEUES - 1 ][ 0 ];
-
-        #else
-
+        #else  /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
             xNetworkEventQueue = xQueueCreate( ipconfigEVENT_QUEUE_LENGTH, sizeof( IPStackEvent_t ) );
             configASSERT( xNetworkEventQueue != NULL );
             xQueueCreateStatus = ( xNetworkEventQueue != NULL );
-        
-        #endif
+        #endif /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
     }
     #endif /* configSUPPORT_STATIC_ALLOCATION */
 
@@ -1182,15 +1175,13 @@ BaseType_t FreeRTOS_IPInit_Multi( void )
 
                     vQueueDelete( xNetworkTxRxEventQueues[ xIndex ][ 1 ] );
                     xNetworkTxRxEventQueues[ xIndex ][ 1 ] = NULL;
-
                 }
 
                 xNetworkEventQueue = NULL;
-
-            #else
+            #else  /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
                 vQueueDelete( xNetworkEventQueue );
                 xNetworkEventQueue = NULL;
-            #endif
+            #endif /* if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 ) */
         }
     }
     else
@@ -1602,12 +1593,12 @@ BaseType_t xSendEventStructToIPTask( const IPStackEvent_t * pxEvent,
                 if( ( pxEvent->eEventType == eNetworkTxEvent ) || ( pxEvent->eEventType == eStackTxEvent ) )
                 {
                     NetworkBufferDescriptor_t * pxBuffer = ( NetworkBufferDescriptor_t * ) pxEvent->pvData;
-                    xQueue = xNetworkTxRxEventQueues[ xQueueMapping[ pxBuffer->ucPriority ] ][ 0 ]  ;
+                    xQueue = xNetworkTxRxEventQueues[ xQueueMapping[ pxBuffer->ucPriority ] ][ 0 ];
                 }
                 else if( pxEvent->eEventType == eNetworkRxEvent )
                 {
                     NetworkBufferDescriptor_t * pxBuffer = ( NetworkBufferDescriptor_t * ) pxEvent->pvData;
-                    xQueue = xNetworkTxRxEventQueues[ xQueueMapping[ pxBuffer->ucPriority ] ][ 1 ]  ;
+                    xQueue = xNetworkTxRxEventQueues[ xQueueMapping[ pxBuffer->ucPriority ] ][ 1 ];
                 }
 
                 xReturn = xQueueSendToBack( xQueue, pxEvent, uxUseTimeout );

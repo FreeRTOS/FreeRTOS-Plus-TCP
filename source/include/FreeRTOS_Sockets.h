@@ -148,7 +148,7 @@
     #endif
 
     #if ( ipconfigUSE_TCP == 1 )
-        #define FREERTOS_SO_SET_LOW_HIGH_WATER            ( 18 )
+        #define FREERTOS_SO_SET_LOW_HIGH_WATER    ( 18 )
     #endif
 
     #if ( ipconfigMULTI_PRIORITY_EVENT_QUEUES == 1 )
