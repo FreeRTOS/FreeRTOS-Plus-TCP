@@ -221,62 +221,6 @@ static void EnetNetIFAppCb_getNetifInfo(NetworkInterface_t * pxInterface,
     outArgs->isDirected = false;
 }
 
-
-
-
-// static void EnetNetIFAppCb_getEnetIFInstInfo(EnetNetIF_AppIf_GetEnetIFInstInfo *outArgs)
-// {
-//     EnetPer_AttachCoreOutArgs attachInfo;
-//     EnetApp_HandleInfo handleInfo;
-//     Enet_Type enetType;
-//     uint32_t instId;
-
-//     uint32_t coreId = EnetSoc_getCoreId();
-
-
-//     EnetApp_getEnetInstInfo(&enetType,
-//                             &instId);
-
-//     EnetApp_acquireHandleInfo(enetType, instId, &handleInfo);
-//     EnetApp_coreAttach(enetType,instId, coreId, &attachInfo);
-
-//     outArgs->hEnet         = handleInfo.hEnet;
-//     outArgs->hostPortRxMtu = attachInfo.rxMtu;
-//     ENET_UTILS_ARRAY_COPY(outArgs->txMtu, attachInfo.txMtu);
-//     outArgs->isPortLinkedFxn = &EnetApp_isPortLinked;
-// 	outArgs->timerPeriodUs   = ENETNETIF_PACKET_POLL_PERIOD_US;
-
-//     outArgs->maxNumNetif = ENET_FREERTOS_TCP_NETIF_COUNT;
-//     outArgs->numRxChannels = ENET_SYSCFG_RX_FLOWS_NUM;
-//     outArgs->numTxChannels = ENET_SYSCFG_TX_CHANNELS_NUM;
-
-//     outArgs->pFreeTx = gFreeTxNetBufArr;
-//     outArgs->pFreeTxSize = ENET_SYSCFG_TOTAL_NUM_TX_PKT;
-//     // LWIP_MEMPOOL_INIT(RX_POOL); // TODO: Replace custom buffer (cbuf) based RX packet allocation with
-//     // custom pxGetNetworkBufferWithDescriptor which has a separate owner that can be checked
-//     // to release the packet back to the HW when vReleaseNetworkBufferAndDescriptor is called.
-
-
-// #if ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT)
-//     int32_t status;
-//     /* Confirm HW checksum offload is enabled when LWIP chksum offload is enabled */
-//         Enet_IoctlPrms prms;
-//         bool csumOffloadFlg;
-//         ENET_IOCTL_SET_OUT_ARGS(&prms, &csumOffloadFlg);
-//         ENET_IOCTL(handleInfo.hEnet,
-//                    coreId,
-//                    ENET_HOSTPORT_IS_CSUM_OFFLOAD_ENABLED,
-//                    &prms,
-//                    status);
-//         if (status != ENET_SOK)
-//         {
-//             EnetAppUtils_print("() Failed to get checksum offload info: %d\r\n", status);
-//         }
-
-//         configASSERT(true == csumOffloadFlg);
-// #endif
-// }
-
 static void EnetNetIF_saveAppIfCfg(xEnetDriverHandle hEnet,
                                     EnetNetIF_AppIf_GetEnetIFInstInfo *appInfo)
 {
@@ -318,37 +262,6 @@ static void EnetNetIF_initTxObj(Enet_Type enetType, uint32_t instId, uint32_t ch
     }
     return;
 }
-
-
-// static void EnetNetIF_mapNetif2Tx(NetworkInterface_t * pxInterface,
-//                         bool isDirected,
-//                         EnetNetIF_TxHandle hTxEnet,
-//                         xEnetDriverHandle hEnet)
-// {
-//     xNetIFArgs *pxNetIFArgs = ( (xNetIFArgs *) pxInterface->pvArgument);
-//     BaseType_t xNetIFNum;
-
-//     configASSERT(pxNetIFArgs != NULL);
-//     xNetIFNum = pxNetIFArgs->xNetIFID;
-
-//     configASSERT(xNetIFNum < ENET_FREERTOS_TCP_NETIF_COUNT);
-
-//     hEnet->mapNetif2Tx[xNetIFNum] = hTxEnet;
-//     if(isDirected)
-//     {
-//         hEnet->mapNetif2TxPortNum[xNetIFNum] = ENET_MACPORT_DENORM(xNetIFNum);
-//     }
-// }
-
-// void EnetNetIF_AppCb_ReleaseNetDescriptor(NetworkBufferDescriptor_t * const pxNetworkBuffer)
-// {
-//     EnetNetIF_AppIf_CustomNetBuf * xCNetBuf = (EnetNetIF_AppIf_CustomNetBuf *) pxNetworkBuffer;
-//     uint32_t key = HwiP_disable();
-
-//     EnetQueue_enq(xCNetBuf->freePktInfoQ, &xCNetBuf->pktInfoMem->node);
-
-//     HwiP_restore(key);
-// }
 
 static inline void  EnetNetIF_CustomNetBuffInit(EnetNetIF_AppIf_CustomNetBuf *xCNetBuf)
 {
@@ -707,29 +620,6 @@ void EnetNetIF_retrieveTxPkts(EnetNetIF_TxHandle hTx)
     }
 }
 
-// static void EnetNetIF_timerCb(ClockP_Object *hClk, void * arg)
-// {
-// #if defined (ENET_SOC_HOSTPORT_DMA_TYPE_UDMA)
-//     /* Post semaphore to rx handling task */
-//     xEnetDriverHandle hEnet = (xEnetDriverHandle)arg;
-
-//     if (hEnet->initDone)
-//     {
-//         for (uint32_t i = 0U; i < hEnet->numTxChannels; i++)
-//         {
-//             if (hEnet->tx[i].enabled)
-//             {
-//                 EnetNetIF_retrieveTxPkts(&hEnet->tx[i]);
-//             }
-//         }
-
-//         if (hEnet->rxPktNotify.cbFxn != NULL)
-//         {
-//             hEnet->rxPktNotify.cbFxn(hEnet->rxPktNotify.cbArg);
-//         }
-//     }
-// #endif
-// }
 
 static void EnetNetIF_timerCb(ClockP_Object *hClk, void * arg)
 {
@@ -908,127 +798,6 @@ uint8_t* EnetNetIF_getIpPktStart(uint8_t* pEthpkt)
     return &pEthpkt[ipPacketStartOffset];
 }
 
-// bool LWIPIF_LWIP_UdpLiteValidateChkSum(NetworkBufferDescriptor_t * pxDescriptor)
-// {
-//     Lwip2Enet_assert(pxDescriptor->xDataLength >= (ipSIZE_OF_IP_HEADER + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_UDP_HEADER));
-
-//     bool isChksumPass = true;
-//     IPHeader_t * pIpPkt   = (IPHeader_t *)EnetNetIF_getIpPktStart((uint8_t*) pxDescriptor->pucEthernetBuffer);
-//     uint8_t *pIpPayload     = (uint8_t*)pIpPkt + ((pIpPkt->ucVersionHeaderLength & 0x0F) << 2);
-//     UDPHeader_t * pUdpHdr = (UDPHeader_t * )pIpPayload;
-//     ip_addr_t srcIp;
-//     ip_addr_t dstIp;
-
-//     LWIPIF_LWIP_getSrcIp((uint8_t *)pIpPkt, &srcIp);
-//     LWIPIF_LWIP_getDstIp((uint8_t *)pIpPkt, &dstIp);
-
-//     const uint32_t chkSumCovLen = (lwip_ntohs(pUdpHdr->len) == 0) ? (lwip_ntohs(IPH_LEN(pIpPkt)) - (IPH_HL(pIpPkt) << 2)) : lwip_ntohs(pUdpHdr->len);
-
-//     if (chkSumCovLen < sizeof(struct udp_hdr))
-//     {
-//         isChksumPass = false;
-//         return false;
-//     }
-
-//     if (0 == LWIPIF_LWIP_getUdpLiteChksum(p, (IPH_HL(pIpPkt) << 2), (lwip_ntohs(IPH_LEN(pIpPkt)) - (IPH_HL(pIpPkt) << 2)), pUdpHdr, &srcIp, &dstIp))
-//     {
-//         isChksumPass = true;
-//     }
-//     else
-//     {
-//         isChksumPass = false;
-//     }
-
-//     /* Return value should indicate true if checksum error found */
-//     return (!isChksumPass);
-// }
-
-// static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
-//                                      EnetDma_PktQ *pPktQ)
-// {
-//     uint32_t packetCount = 0U;
-//     EnetDma_Pkt *pCurrDmaPacket;
-//     bool isChksumError = false;
-//     uint32_t validLen = 0U;
-
-//     pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
-//     while (pCurrDmaPacket)
-//     {
-//         /* Get the full PBUF packet that needs to be returned to the LwIP stack */
-//         NetworkBufferDescriptor_t * pxDescriptor = (NetworkBufferDescriptor_t *)pCurrDmaPacket->appPriv;
-//         isChksumError = false;
-//         if (pxDescriptor)
-//         {
-//             validLen = pCurrDmaPacket->sgList.list[0].segmentFilledLen;
-
-//             /* Fill in PBUF packet length field */
-//             pxDescriptor->xDataLength = validLen;
-//             // pxDescriptor->tot_len = validLen;
-//             configASSERT(pxDescriptor->pucEthernetBuffer != NULL);
-
-// #if ((ENET_CFG_IS_ON(CPSW_CSUM_OFFLOAD_SUPPORT) == 1) && (ENET_ENABLE_PER_CPSW == 1))
-//             {
-//                 IPHeader_t * pIpPkt = ( IPHeader_t * ) EnetNetIF_getIpPktStart((uint8_t*) pxDescriptor->pucEthernetBuffer);
-//                 if (pIpPkt->ucProtocol == IP_PROTO_UDPLITE)
-//                 {
-//                     // TODO take care of UDP Lite
-//                     configASSERT(pdFALSE);
-//                     //isChksumError = LWIPIF_LWIP_UdpLiteValidateChkSum(pxDescriptor);
-//                 }
-//                 else
-//                 {
-//                     /* We don't check if HW checksum offload is enabled while checking for checksum error
-//                      * as default value of this field when offload not enabled is false */
-//                     const uint32_t csumInfo =  pCurrDmaPacket->chkSumInfo;
-
-//                     if ( ENETDMA_RXCSUMINFO_GET_IPV4_FLAG(csumInfo) ||
-//                             ENETDMA_RXCSUMINFO_GET_IPV6_FLAG(csumInfo))
-//                     {
-//                         isChksumError = ENETDMA_RXCSUMINFO_GET_CHKSUM_ERR_FLAG(csumInfo);
-//                     }
-//                 }
-//             }
-// #endif
-//             if (!isChksumError)
-//             {
-//                 /* Pass the received packet to the LwIP stack */
-//                 IPHeader_t * pIpPkt   = (IPHeader_t *)EnetNetIF_getIpPktStart((uint8_t*) pxDescriptor->pucEthernetBuffer);
-//                 if(pIpPkt->ucProtocol != 0x70) 
-//                 {
-//                     AM243x_Eth_NetworkInterfaceInput(rx, pCurrDmaPacket->rxPortNum, pxDescriptor);
-//                     packetCount++;
-//                 }
-//                 else
-//                 {
-//                     EnetQueue_enq(&rx->freePktInfoQ, &pCurrDmaPacket->node);
-//                 }
-                
-//             }
-//             else
-//             {
-//                 /* Put PBUF buffer in free Q as we are not passing to stack */
-//                 EnetQueue_enq(&rx->freePktInfoQ, &pCurrDmaPacket->node);
-//                 // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&rx->stats.freeAppPktEnq);
-//                 // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&rx->stats.chkSumErr);
-//             }
-
-//             /* Put packet info into free Q as we have removed the PBUF buffers
-//              * from the it */
-//             pCurrDmaPacket = (EnetDma_Pkt *)EnetQueue_deq(pPktQ);
-//         }
-//         else
-//         {
-//             /* Should never happen as this is received from HW */
-//             configASSERT(FALSE);
-//         }
-//     }
-
-//     /* return as many packets to driver as we can */
-//     EnetNetIF_submitRxPktQ(rx);
-
-//     return packetCount;
-// }
-
 static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
                                      EnetDma_PktQ *pPktQ)
 {
@@ -1191,65 +960,6 @@ static uint32_t EnetNetIF_prepRxPktQ(EnetNetIF_RxObj *rx,
 
     return packetCount;
 }
-
-// void EnetNetIF_rxPktHandler(xEnetDriverHandle hEnet)
-// {
-//     EnetDma_PktQ tempQueue;
-//     int32_t retVal;
-//     uint32_t pktCnt, rxChNum;
-
-//     for(rxChNum = 0U; rxChNum < hEnet->numRxChannels; rxChNum++)
-//     {
-//         pktCnt = 0U;
-//         // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hEnet->rx[rxChNum].stats.pktStats.rawNotifyCnt);
-
-//         /* Retrieve the used (filled) packets from the channel */
-//         {
-//             EnetQueue_initQ(&tempQueue);
-//             retVal = EnetDma_retrieveRxPktQ(hEnet->rx[rxChNum].hFlow, &tempQueue);
-//             if (ENET_SOK != retVal)
-//             {
-//                 FreeRTOS_printf(("Lwip2Enet_rxPacketTask: failed to retrieve RX pkts: %d\n",
-//                                 retVal));
-//             }
-//         }
-//         if (tempQueue.count == 0U)
-//         {
-//             // TODO: take care of stats LWIP2ENETSTATS_ADDONE(&hEnet->rx[rxChNum].stats.pktStats.zeroNotifyCnt);
-//         }
-
-//         /*
-//          * Call Lwip2Enet_prepRxPktQ() even if no packets were received.
-//          * This allows new packets to be submitted if PBUF buffers became
-//          * newly available and there were outstanding free packets.
-//          */
-//         {
-//             /*
-//              * Get all used Rx DMA packets from the hardware, then send the buffers
-//              * of those packets on to the LwIP stack to be parsed/processed.
-//              */
-//             pktCnt = EnetNetIF_prepRxPktQ(&hEnet->rx[rxChNum], &tempQueue);
-//         }
-
-//         /*
-//          * We don't want to time the semaphore post used to notify the LwIP stack as that may cause a
-//          * task transition. We don't want to time the semaphore pend, since that would time us doing
-//          * nothing but waiting.
-//          */
-//         if (pktCnt != 0U)
-//         {
-//             // TODO: take care of stats Lwip2Enet_updateRxNotifyStats(&hEnet->rx[rxChNum].stats.pktStats, pktCnt, 0U);
-//         }
-
-//         // ClockP_start(&hEnet->pacingClkObj);
-
-//         if (!hEnet->rx[rxChNum].disableEvent)
-//         {
-//             EnetDma_enableRxEvent(hEnet->rx[rxChNum].hFlow);
-//         }
-//     }
-
-// }
 
 void EnetNetIF_rxPktHandler(EnetNetIF_RxHandle hRx)
 {
