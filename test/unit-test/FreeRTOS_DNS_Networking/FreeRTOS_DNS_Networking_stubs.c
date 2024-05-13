@@ -25,11 +25,33 @@
  * http://www.FreeRTOS.org
  */
 
-#ifndef LIST_MACRO_H
-#define LIST_MACRO_H
 
-#include <FreeRTOS.h>
-#include <portmacro.h>
-#include <list.h>
+/* Include Unity header */
+#include <unity.h>
 
-#endif /* ifndef LIST_MACRO_H */
+/* Include standard libraries */
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "list.h"
+
+#include "FreeRTOS_IP.h"
+#include "FreeRTOS_IP_Private.h"
+
+
+const BaseType_t xBufferAllocFixedSize = pdTRUE;
+
+void vPortEnterCritical( void )
+{
+}
+
+void vPortExitCritical( void )
+{
+}
+
+BaseType_t xApplicationDNSQueryHook_Multi( struct xNetworkEndPoint * pxEndPoint,
+                                           const char * pcName )
+{
+}

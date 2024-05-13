@@ -60,6 +60,10 @@
 
 /* =========================== EXTERN VARIABLES =========================== */
 
+void prvIPTimerStart( IPTimer_t * pxTimer,
+                      TickType_t xTime );
+BaseType_t prvIPTimerCheck( IPTimer_t * pxTimer );
+
 extern IPTimer_t xARPTimer;
 #if ( ipconfigUSE_TCP != 0 )
     /** @brief TCP timer, to check for timeouts, resends. */
@@ -68,13 +72,6 @@ extern IPTimer_t xARPTimer;
 #if ( ipconfigDNS_USE_CALLBACKS != 0 )
     /** @brief DNS timer, to check for timeouts when looking-up a domain. */
     extern IPTimer_t xDNSTimer;
-#endif
-
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- *           within the last round. */
-    extern BaseType_t xProcessedTCPMessage;
 #endif
 
 extern IPTimer_t xARPResolutionTimer;
@@ -632,8 +629,6 @@ void test_vCheckNetworkTimers_AllTimersInactivePendingMessages( void )
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
 
-    xProcessedTCPMessage = pdTRUE;
-
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdTRUE );
 
     vSocketCloseNextTime_Expect( NULL );
@@ -656,8 +651,6 @@ void test_vCheckNetworkTimers_AllTimersInactive_2( void )
     xTCPTimer.bActive = pdFALSE;
     xARPResolutionTimer.bActive = pdFALSE;
 
-    xProcessedTCPMessage = pdTRUE;
-
     uxQueueMessagesWaiting_ExpectAnyArgsAndReturn( pdFALSE );
 
     xTCPTimerCheck_ExpectAndReturn( pdTRUE, 0x123 );
@@ -670,7 +663,6 @@ void test_vCheckNetworkTimers_AllTimersInactive_2( void )
 
     vCheckNetworkTimers();
 
-    TEST_ASSERT_EQUAL( 0, xProcessedTCPMessage );
     TEST_ASSERT_EQUAL( 0x123, xTCPTimer.ulRemainingTime );
     TEST_ASSERT_EQUAL( pdFALSE_UNSIGNED, xTCPTimer.bExpired );
     TEST_ASSERT_EQUAL( pdTRUE_UNSIGNED, xTCPTimer.bActive );

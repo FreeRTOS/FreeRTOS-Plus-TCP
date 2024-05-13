@@ -80,6 +80,18 @@ extern uint16_t prvGetChecksumFromPacket( const struct xPacketSummary * pxSet );
 extern void prvSetChecksumInPacket( const struct xPacketSummary * pxSet,
                                     uint16_t usChecksum );
 
+/* This variable will be set when pfRemoveAllowedMAC() is called by prvProcessNetworkDownEvent(). */
+static BaseType_t xMACFunctionCalled;
+
+/* An implementation of pfRemoveAllowedMAC() */
+static void pfRemoveAllowedMAC( struct xNetworkInterface * pxInterface,
+                                const uint8_t * pucMacAddress );
+
+/* Testing all situations for prvProcessNetworkDownEvent() to increase coverage. */
+#define ipHAS_METHOD       0x01U
+#define ipHAS_INTERFACE    0x02U
+#define ipHAS_IPV6         0x04U
+
 /* ============================== Test Cases ============================== */
 
 /**
@@ -606,6 +618,13 @@ void test_prvProcessNetworkDownEvent_PassDHCPv6( void )
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+
+    if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
+    }
+
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
@@ -636,6 +655,13 @@ void test_prvProcessNetworkDownEvent_PassRA( void )
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+
+    if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
+    }
+
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
@@ -668,6 +694,13 @@ void test_prvProcessNetworkDownEvent_PassStaticIP( void )
     vIPSetARPTimerEnableState_Expect( pdFALSE );
 
     FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+
+    if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
+    }
+
     FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
 
     FreeRTOS_ClearARP_ExpectAnyArgs();
@@ -2714,19 +2747,20 @@ void test_FreeRTOS_strerror_r_NegativeErrno( void )
 void test_FreeRTOS_max_int32( void )
 {
     int32_t lResult;
+    int i, j;
 
-    for( int i = -100; i < 100; i++ )
+    for( i = -100; i < 100; i++ )
     {
-        for( int j = -100; j <= i; j++ )
+        for( j = -100; j <= i; j++ )
         {
             lResult = FreeRTOS_max_int32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
         }
     }
 
-    for( int i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
+    for( i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
     {
-        for( int j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_max_int32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
@@ -2741,19 +2775,20 @@ void test_FreeRTOS_max_int32( void )
 void test_FreeRTOS_max_uint32( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_max_uint32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_max_uint32( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
@@ -2768,19 +2803,20 @@ void test_FreeRTOS_max_uint32( void )
 void test_FreeRTOS_max_size_t( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_max_size_t( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_max_size_t( i, j );
             TEST_ASSERT_EQUAL( i, lResult );
@@ -2795,19 +2831,20 @@ void test_FreeRTOS_max_size_t( void )
 void test_FreeRTOS_min_int32( void )
 {
     int32_t lResult;
+    int i, j;
 
-    for( int i = -100; i < 100; i++ )
+    for( i = -100; i < 100; i++ )
     {
-        for( int j = -100; j <= i; j++ )
+        for( j = -100; j <= i; j++ )
         {
             lResult = FreeRTOS_min_int32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
         }
     }
 
-    for( int i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
+    for( i = ( 0x6FFFFFFF - 100 ); i < ( 0x6FFFFFFF + 100 ); i++ )
     {
-        for( int j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0x6FFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_min_int32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
@@ -2822,19 +2859,20 @@ void test_FreeRTOS_min_int32( void )
 void test_FreeRTOS_min_uint32( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_min_uint32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_min_uint32( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
@@ -2849,19 +2887,20 @@ void test_FreeRTOS_min_uint32( void )
 void test_FreeRTOS_min_size_t( void )
 {
     uint32_t lResult;
+    uint32_t i, j;
 
-    for( uint32_t i = 0; i < 100; i++ )
+    for( i = 0; i < 100; i++ )
     {
-        for( uint32_t j = 0; j <= i; j++ )
+        for( j = 0; j <= i; j++ )
         {
             lResult = FreeRTOS_min_size_t( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
         }
     }
 
-    for( uint32_t i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
+    for( i = ( 0xDFFFFFFF - 100 ); i < ( 0xDFFFFFFF + 100 ); i++ )
     {
-        for( uint32_t j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
+        for( j = ( 0xDFFFFFFF - 100 ); j <= i; j++ )
         {
             lResult = FreeRTOS_min_size_t( i, j );
             TEST_ASSERT_EQUAL( j, lResult );
@@ -3038,6 +3077,163 @@ void test_prvSetChecksumInPacket_IPv6UnhandledProtocol()
     xSet.ucProtocol = 0xFF;
 
     prvSetChecksumInPacket( &xSet, 0 );
+}
+
+static void pfRemoveAllowedMAC( struct xNetworkInterface * pxInterface,
+                                const uint8_t * pucMacAddress )
+{
+    xMACFunctionCalled = pdTRUE;
+}
+
+/**
+ * @brief test_prvProcessNetworkDownEvent_Fail
+ * To validate if prvProcessNetworkDownEvent skips hook and DHCP
+ * when bCallDownHook & bWantDHCP are both disabled.
+ */
+static void prvProcessNetworkDownEvent_Generic( const uint8_t * pucAddress,
+                                                IPv6_Type_t eType,
+                                                UBaseType_t uxSetMembers )
+{
+    NetworkInterface_t xInterface = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
+    BaseType_t xMACRemoveExpected = pdFALSE;
+
+    xCallEventHook = pdFALSE;
+    xInterfaces[ 0 ].pfInitialise = &xNetworkInterfaceInitialise_returnTrue;
+    xInterfaces[ 0 ].pxEndPoint = &xEndPoint;
+
+    xEndPoint.bits.bEndPointUp = pdTRUE;
+    xEndPoint.bits.bCallDownHook = pdFALSE_UNSIGNED;
+    xEndPoint.bits.bWantDHCP = pdFALSE_UNSIGNED;
+    memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, pucAddress, ipSIZE_OF_IPv6_ADDRESS );
+
+    if( ( uxSetMembers & ipHAS_INTERFACE ) != 0U )
+    {
+        xEndPoint.pxNetworkInterface = &xInterface;
+    }
+
+    if( ( uxSetMembers & ipHAS_IPV6 ) != 0U )
+    {
+        xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    }
+
+    xMACFunctionCalled = pdFALSE;
+
+    if( ( ( eType == eIPv6_LinkLocal ) || ( eType == eIPv6_SiteLocal ) || ( eType == eIPv6_Global ) ) &&
+        ( xInterface.pfRemoveAllowedMAC != NULL ) &&
+        ( xEndPoint.pxNetworkInterface != NULL ) &&
+        ( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED ) )
+    {
+        xMACRemoveExpected = pdTRUE;
+    }
+
+    vIPSetARPTimerEnableState_Expect( pdFALSE );
+
+    FreeRTOS_FirstEndPoint_IgnoreAndReturn( &xEndPoint );
+
+    if( xEndPoint.bits.bIPv6 == pdTRUE_UNSIGNED )
+    {
+        /* The vManageSolicitedNodeAddress() function is mocked. */
+        vManageSolicitedNodeAddress_Expect( &xEndPoint, pdFALSE );
+    }
+
+    FreeRTOS_NextEndPoint_IgnoreAndReturn( NULL );
+
+
+    FreeRTOS_ClearARP_Expect( &xEndPoint );
+
+    vIPNetworkUpCalls_Expect( &xEndPoint );
+
+    prvProcessNetworkDownEvent( &xInterfaces[ 0 ] );
+
+    /* See if pfRemoveAllowedMAC() was called when it has to. */
+    TEST_ASSERT_EQUAL( xMACRemoveExpected, xMACFunctionCalled );
+}
+
+void test_prvProcessNetworkDownEvent_LinkLocal()
+{
+    /* Use the local-link address fe80::7009 */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFEU, 0x80U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+    /* Test all combinations of what might go wrong. */
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_IPV6 );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_LinkLocal, ipHAS_INTERFACE );
+}
+
+void test_prvProcessNetworkDownEvent_Global()
+{
+    /* Use the local-link address "2001:0470:ed44::7009" */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0x20U, 0x01U,
+        0x04U, 0x70U,
+        0xEDU, 0x44U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_IPV6 );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Global, ipHAS_INTERFACE );
+}
+
+void test_prvProcessNetworkDownEvent_SiteLocal()
+{
+    /* Use the local-link address "fec0::7009" */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFEU, 0xC0U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x70U, 0x09U
+    };
+
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_IPV6 );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_SiteLocal, ipHAS_INTERFACE );
+}
+
+void test_prvProcessNetworkDownEvent_Multicast()
+{
+    /* Use the multicast address "ff02::fb",
+     * just for the coverage of prvProcessNetworkDownEvent(). */
+    static const uint8_t ucAddress[ 16 ] =
+    {
+        0xFFU, 0x02U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0x00U,
+        0x00U, 0xFBU
+    };
+
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 | ipHAS_INTERFACE );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_IPV6 );
+    prvProcessNetworkDownEvent_Generic( ucAddress, eIPv6_Multicast, ipHAS_INTERFACE );
 }
 
 /**

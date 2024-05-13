@@ -64,11 +64,17 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
+    static BaseType_t prvTCPMakeSurePrepared( FreeRTOS_Socket_t * pxSocket );
+
 /*
  * Let ARP look-up the MAC-address of the peer and initialise the first SYN
  * packet.
  */
     static BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t * pxSocket );
+
+    #if ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN )
+        static uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t * pxSocket );
+    #endif
 
 /*------------------------------------------------------------------------*/
 

@@ -35,7 +35,6 @@
 #include <stdint.h>
 
 #include "mock_task.h"
-#include "mock_semphr.h"
 
 #include "mock_FreeRTOS_IP.h"
 #include "mock_FreeRTOS_Sockets.h"

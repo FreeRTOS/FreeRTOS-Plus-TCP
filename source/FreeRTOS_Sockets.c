@@ -1837,7 +1837,6 @@ static BaseType_t prvSocketBindAdd( FreeRTOS_Socket_t * pxSocket,
             if( pxSocket->pxEndPoint != NULL )
             {
                 pxSocket->xLocalAddress.ulIP_IPv4 = FreeRTOS_ntohl( pxSocket->pxEndPoint->ipv4_settings.ulIPAddress );
-                /*TODO Check if needed for ipv6 setting */
             }
             else
         #endif /* ( ipconfigUSE_IPv4 != 0 ) */
@@ -2905,7 +2904,9 @@ BaseType_t FreeRTOS_setsockopt( Socket_t xSocket,
                         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-111 */
                         /* coverity[misra_c_2012_rule_11_8_violation] */
                         /* coverity[misra_c_2012_rule_11_1_violation] */
+                        ipconfigISO_STRICTNESS_VIOLATION_START;
                         pxSocket->pxUserWakeCallback = ( SocketWakeupCallback_t ) pvOptionValue;
+                        ipconfigISO_STRICTNESS_VIOLATION_END;
                         xReturn = 0;
                         break;
                 #endif /* ipconfigSOCKET_HAS_USER_WAKE_CALLBACK */
@@ -3800,8 +3801,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         BaseType_t xResult = -pdFREERTOS_ERRNO_EINVAL;
         TimeOut_t xTimeOut;
 
-        ( void ) xAddressLength;
-
         #if ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 )
             struct freertos_sockaddr xTempAddress;
 
@@ -3815,6 +3814,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 pxAddress = &xTempAddress;
             }
         #endif /* ( ipconfigIPv4_BACKWARD_COMPATIBLE == 1 ) */
+
+        ( void ) xAddressLength;
 
         xResult = prvTCPConnectStart( pxSocket, pxAddress );
 
@@ -4962,7 +4963,6 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
-        /* __XX__ TODO ulLocalIP is not used, for misra compliance*/
         ( void ) ulLocalIP;
 
         for( pxIterator = listGET_NEXT( pxEnd );

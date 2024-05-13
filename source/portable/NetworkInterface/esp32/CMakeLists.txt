@@ -15,7 +15,7 @@ target_sources( freertos_plus_tcp_network_if
 
 target_link_libraries( freertos_plus_tcp_network_if
   PRIVATE
-    esp32_lib # TODO
+    esp32_lib
 )
 
 target_link_libraries( freertos_plus_tcp_network_if

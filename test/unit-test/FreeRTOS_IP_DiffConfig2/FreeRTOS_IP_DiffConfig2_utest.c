@@ -50,7 +50,7 @@
 
 #include "FreeRTOS_IP.h"
 
-/*#include "FreeRTOS_IP_stubs.c" */
+#include "FreeRTOS_IP_DiffConfig2_stubs.c"
 #include "catch_assert.h"
 
 #include "FreeRTOSIPConfig.h"
@@ -91,7 +91,8 @@ static BaseType_t StubxTaskCreate( TaskFunction_t pxTaskCode,
                                    const configSTACK_DEPTH_TYPE uxStackDepth,
                                    void * const pvParameters,
                                    UBaseType_t uxPriority,
-                                   TaskHandle_t * const pxCreatedTask )
+                                   TaskHandle_t * const pxCreatedTask,
+                                   int cmock_num_calls )
 {
     *pxCreatedTask = IPInItHappyPath_xTaskHandleToSet;
     return pdPASS;
@@ -112,13 +113,16 @@ void test_FreeRTOS_IPInit_HappyPathDHCP( void )
     const uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ] = { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
     BaseType_t xReturn;
     QueueHandle_t ulPointerToQueue = ( QueueHandle_t ) 0x1234ABCD;
+    NetworkInterface_t * pxNetworkInterface;
+    NetworkEndPoint_t xEndPoint = { 0 };
 
     /* Set the local IP to something other than 0. */
-    *ipLOCAL_IP_ADDRESS_POINTER = 0xABCD;
+    xEndPoint.ipv4_settings.ulIPAddress = 0xABCD;
+    pxNetworkEndPoints = &xEndPoint;
 
     FreeRTOS_FillEndPoint_Ignore();
-    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pdTRUE );
-    pxFillInterfaceDescriptor_IgnoreAndReturn( pdTRUE );
+    FreeRTOS_FirstNetworkInterface_IgnoreAndReturn( pxNetworkInterface );
+    pxFillInterfaceDescriptor_IgnoreAndReturn( pxNetworkInterface );
 
     vPreCheckConfigs_Expect();
 

@@ -320,8 +320,8 @@
 
                     FreeRTOS_printf( ( "RA: Prefix len %d Life %u, %u (%pip)\n",
                                        pxPrefixOption->ucPrefixLength,
-                                       FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
-                                       FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
+                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulValidLifeTime ),
+                                       ( unsigned ) FreeRTOS_ntohl( pxPrefixOption->ulPreferredLifeTime ),
                                        ( void * ) pxPrefixOption->ucPrefix ) );
                     break;
 
@@ -642,11 +642,15 @@
     {
         TickType_t uxReloadTime = pdMS_TO_TICKS( 5000U );
 
+        #if ( ipconfigHAS_PRINTF == 1 )
+            eRAState_t eRAState;
+        #endif
+
         configASSERT( pxEndPoint != NULL );
 
         #if ( ipconfigHAS_PRINTF == 1 )
             /* Remember the initial state, just for logging. */
-            eRAState_t eRAState = pxEndPoint->xRAData.eRAState;
+            eRAState = pxEndPoint->xRAData.eRAState;
         #endif
 
         if( xDoReset != pdFALSE )

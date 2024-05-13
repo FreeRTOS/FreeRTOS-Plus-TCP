@@ -837,6 +837,15 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
     {
         /* The bit 'bEndPointUp' stays low until vIPNetworkUpCalls() is called. */
         pxEndPoint->bits.bEndPointUp = pdFALSE_UNSIGNED;
+
+        if( pxEndPoint->bits.bIPv6 == pdTRUE_UNSIGNED )
+        {
+            /* IPv6 end-points have a solicited-node address that needs extra housekeeping. */
+            #if ( ipconfigIS_ENABLED( ipconfigUSE_IPv6 ) )
+                vManageSolicitedNodeAddress( pxEndPoint, pdFALSE );
+            #endif
+        }
+
         #if ( ipconfigUSE_NETWORK_EVENT_HOOK == 1 )
         {
             if( pxEndPoint->bits.bCallDownHook != pdFALSE_UNSIGNED )
@@ -952,10 +961,6 @@ void prvProcessNetworkDownEvent( struct xNetworkInterface * pxInterface )
                         /* MISRA 16.4 Compliance */
                         break;
                 }
-
-                #if ( ipconfigUSE_IPv4 != 0 )
-                    *ipLOCAL_IP_ADDRESS_POINTER = pxEndPoint->ipv4_settings.ulIPAddress;
-                #endif /* ( ipconfigUSE_IPv4 != 0 ) */
 
                 /* DHCP or Router Advertisement are not enabled for this end-point.
                  * Perform any necessary 'network up' processing. */
@@ -1073,9 +1078,9 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 {
     struct xPacketSummary xSet;
 
-    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
-
     DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
+
+    ( void ) memset( &( xSet ), 0, sizeof( xSet ) );
 
     #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
     {

@@ -15,7 +15,7 @@ target_sources( freertos_plus_tcp_network_if
 
 target_link_libraries(freertos_plus_tcp_network_if
   PRIVATE
-    lpc18xx_driver # TODO
+    lpc18xx_driver
 )
 
 target_link_libraries( freertos_plus_tcp_network_if

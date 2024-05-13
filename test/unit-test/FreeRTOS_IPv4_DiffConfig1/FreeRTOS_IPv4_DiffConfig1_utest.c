@@ -87,6 +87,7 @@ void test_prvAllowIPPacketIPv4_BufferLengthLess( void )
     IPHeader_t * pxIPHeader;
     ProtocolPacket_t * pxProtPack;
     NetworkEndPoint_t xEndpoint, * pxEndpoint = &xEndpoint;
+    uint32_t i;
 
     memset( ucEthBuffer, 0, ipconfigTCP_MSS );
     memset( pxEndpoint, 0, sizeof( NetworkEndPoint_t ) );
@@ -111,7 +112,7 @@ void test_prvAllowIPPacketIPv4_BufferLengthLess( void )
 
     pxIPHeader->ulSourceIPAddress = 0xC0C00101;
 
-    for( uint32_t i = 0; i < sizeof( IPPacket_t ); i++ )
+    for( i = 0; i < sizeof( IPPacket_t ); i++ )
     {
         pxNetworkBuffer->xDataLength = i;
         eResult = prvAllowIPPacketIPv4( pxIPPacket, pxNetworkBuffer, uxHeaderLength );

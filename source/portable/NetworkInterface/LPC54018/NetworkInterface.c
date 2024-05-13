@@ -325,7 +325,7 @@ BaseType_t xNetworkInterfaceInitialise( void )
 
                /* Create the handler. */
                ENET_CreateHandler( ENET, &g_handle, &config, &buffConfig[ 0 ], ENET_IntCallback, NULL );
-               NVIC_SetPriority( 65 - 16, 4 ); /* TODO this is a hack and I would expect a nice ENET API for priority. */
+               NVIC_SetPriority( 65 - 16, 4 ); /* This is a workaround and using a more robust ENET API for priority setting would be preferable . */
 
                /* Active TX/RX. */
                ENET_StartRxTx( ENET, 1, 1 );
