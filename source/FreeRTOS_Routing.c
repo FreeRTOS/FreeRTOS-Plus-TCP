@@ -920,7 +920,7 @@ struct xIPv6_Couple
                 /* coverity[misra_c_2012_rule_11_4_violation] */
                 uintptr_t uxAddress = ( uintptr_t ) pucEthernetBuffer;
                 uxAddress += 2U;
-                //configASSERT( ( uxAddress % 4U ) == 0U );
+                /* configASSERT( ( uxAddress % 4U ) == 0U ); */
                 /* And in case configASSERT is not defined. */
                 ( void ) uxAddress;
             }

@@ -698,8 +698,10 @@
         {
             /* When the DHCP event was generated, the DHCP client was
             * in a different state.  Therefore, ignore this event. */
-            // FreeRTOS_debug_printf( ( "vDHCPProcessEndPoint: wrong state: expect: %d got: %d : ignore\n",
-            //                          EP_DHCPData.eExpectedState, EP_DHCPData.eDHCPState ) );
+            /*
+            FreeRTOS_debug_printf( ( "vDHCPProcessEndPoint: wrong state: expect: %d got: %d : ignore\n",
+                                     EP_DHCPData.eExpectedState, EP_DHCPData.eDHCPState ) );
+            */
             return -1;
         }
         else

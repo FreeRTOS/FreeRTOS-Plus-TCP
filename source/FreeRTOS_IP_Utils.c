@@ -1013,7 +1013,7 @@ void vPreCheckConfigs( void )
          * multiple of 32 bits, in order to get aligned access to all uint32_t
          * fields in the protocol headers.
          */
-        // configASSERT( ( ( ( ipSIZE_OF_ETH_HEADER ) + ( ipBUFFER_PADDING ) ) % 4U ) == 0U );
+        /* configASSERT( ( ( ( ipSIZE_OF_ETH_HEADER ) + ( ipBUFFER_PADDING ) ) % 4U ) == 0U ); */
 
         /* LCOV_EXCL_BR_START */
         uxSize = ipconfigNETWORK_MTU;
