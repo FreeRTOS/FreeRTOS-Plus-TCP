@@ -274,7 +274,7 @@
     }
     /*-----------------------------------------------------------*/
 
-    BaseType_t vTCPRemoveTCPChild( const FreeRTOS_Socket_t * pxChildSocket )
+    static BaseType_t vTCPRemoveTCPChild( const FreeRTOS_Socket_t * pxChildSocket )
     {
 		BaseType_t xReturn = pdFALSE;
 		const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
@@ -404,7 +404,6 @@
 
                     /* Don't need to access the parent socket anymore, so the
                      * reference 'pxPeerSocket' may be cleared. */
-                    // pxSocket->u.xTCP.pxPeerSocket = NULL;
                     pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
 
                     /* When true, this socket may be returned in a call to accept(). */
@@ -482,6 +481,7 @@
                     ( xParent->u.xTCP.pxPeerSocket == pxSocket ) )
                 {
                     xMustClear = pdTRUE;
+                    ( void ) xMustClear;
                 }
             }
             /* Socket goes to status eCLOSED because of a RST.
@@ -491,10 +491,10 @@
                 pxSocket->u.xTCP.bits.bPassAccept,
                 pxSocket->u.xTCP.bits.bReuseSocket ) );
             FreeRTOS_printf( ( "vTCPStateChange: me %p parent %p peer %p clear %d\n",
-                pxSocket,
-                xParent,
-                xParent ? xParent->u.xTCP.pxPeerSocket : NULL,
-                xMustClear ) );
+                ( void * ) pxSocket,
+                ( void * ) xParent,
+                xParent ? ( void * ) xParent->u.xTCP.pxPeerSocket : NULL,
+                ( int ) xMustClear ) );
 
             vTaskSuspendAll();
             {
@@ -504,6 +504,7 @@
                     if( pxSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
                     {
                         xHasCleared = vTCPRemoveTCPChild( pxSocket );
+                        ( void ) xHasCleared;
 
                         pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
                         pxSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;

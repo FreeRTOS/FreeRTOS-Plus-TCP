@@ -3894,7 +3894,7 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 if( pxClientSocket != NULL )
 				{
 					FreeRTOS_printf( ( "prvAcceptWaitClient: client %p parent %p\n",
-                        pxClientSocket, pxParentSocket ) );
+                        ( void * ) pxClientSocket, ( void * ) pxParentSocket ) );
 				}
             }
             else

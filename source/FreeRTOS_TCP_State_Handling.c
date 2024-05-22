@@ -1030,9 +1030,9 @@
                                  pxSocket->u.xTCP.usChildCount,
                                  pxSocket->u.xTCP.usBacklog,
                                  ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren",
-                                 pxNewSocket,
-                                 pxSocket,
-                                 pxSocket ? pxSocket->u.xTCP.pxPeerSocket : NULL ) );
+                                 ( void * ) pxNewSocket,
+                                 ( void * ) pxSocket,
+                                 pxSocket ? ( void * ) pxSocket->u.xTCP.pxPeerSocket : NULL ) );
 
         /* Now bind the child socket to the same port as the listening socket. */
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
