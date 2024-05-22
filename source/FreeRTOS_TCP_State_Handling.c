@@ -1020,12 +1020,19 @@
         #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
         pxSocket->u.xTCP.usChildCount++;
+        if( pxSocket->u.xTCP.pxPeerSocket == NULL )
+        {
+        	pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
+        }
 
-        FreeRTOS_debug_printf( ( "Gain: Socket %u now has %u / %u child%s\n",
+        FreeRTOS_debug_printf( ( "Gain: Socket %u now has %u / %u child%s me: %p parent: %p peer: %p\n",
                                  pxSocket->usLocalPort,
                                  pxSocket->u.xTCP.usChildCount,
                                  pxSocket->u.xTCP.usBacklog,
-                                 ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
+                                 ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren",
+                                 pxNewSocket,
+                                 pxSocket,
+                                 pxSocket ? pxSocket->u.xTCP.pxPeerSocket : NULL ) );
 
         /* Now bind the child socket to the same port as the listening socket. */
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )
