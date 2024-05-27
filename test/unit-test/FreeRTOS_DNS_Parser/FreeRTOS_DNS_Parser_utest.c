@@ -1535,11 +1535,10 @@ void test_DNS_ParseDNSReply_answer_record_no_questions( void )
     strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
     beg += 38;
 
-    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );                    /* usType */
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
 
     hook_return = pdTRUE;
-    //pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
-    
+
     ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
                              uxBufferLength,
                              &pxAddressInfo,
