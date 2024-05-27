@@ -1464,7 +1464,8 @@ void test_DNS_ParseDNSReply_answer_record_no_answers( void )
 }
 
 /**
- * @brief
+ * @brief Check the case when the DNS answer record
+ * doesn't have any answers.
  */
 void test_DNS_ParseDNSReply_answer_record_no_answers2( void )
 {
@@ -1501,7 +1502,8 @@ void test_DNS_ParseDNSReply_answer_record_no_answers2( void )
 }
 
 /**
- * @brief
+ * @brief Check the case when the DNS answer record
+ * doesn't have any questions.
  */
 void test_DNS_ParseDNSReply_answer_record_no_questions( void )
 {
