@@ -294,4 +294,10 @@
 
 #define portINLINE                               __inline
 
+#define ipconfigISO_STRICTNESS_VIOLATION_START \
+    _Pragma("GCC diagnostic push")             \
+    _Pragma("GCC diagnostic ignored \"-Wpedantic\"")
+
+#define ipconfigISO_STRICTNESS_VIOLATION_END    _Pragma("GCC diagnostic pop")
+
 #endif /* FREERTOS_IP_CONFIG_H */
