@@ -1464,6 +1464,89 @@ void test_DNS_ParseDNSReply_answer_record_no_answers( void )
 }
 
 /**
+ * @brief
+ */
+void test_DNS_ParseDNSReply_answer_record_no_answers2( void )
+{
+    uint32_t ret;
+    uint8_t pucUDPPayloadBuffer[ 250 ];
+    size_t uxBufferLength = 250;
+    char dns[ 64 ];
+    struct freertos_addrinfo * pxAddressInfo;
+    uint16_t usPort;
+    const uint16_t usFlags = dnsEXPECTED_RX_FLAGS;
+
+    memset( dns, 'a', 64 );
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
+    dns[ 63 ] = 0;
+    BaseType_t xExpected = pdFALSE;
+    size_t beg = sizeof( DNSMessage_t );
+
+    pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usQuestions ) ] = 0;
+    pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usAnswers ) ] = 0;
+
+    memcpy( &pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usFlags ) ], &usFlags, sizeof( uint16_t ) );
+
+    pucUDPPayloadBuffer[ beg ] = 38;
+    beg++;
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    beg += 38;
+
+    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
+                             uxBufferLength,
+                             &pxAddressInfo,
+                             xExpected,
+                             usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+}
+
+/**
+ * @brief
+ */
+void test_DNS_ParseDNSReply_answer_record_no_questions( void )
+{
+    uint32_t ret;
+    uint8_t pucUDPPayloadBuffer[ 250 ];
+    size_t uxBufferLength = 250;
+    char dns[ 64 ];
+    struct freertos_addrinfo * pxAddressInfo;
+    uint16_t usPort;
+    const uint16_t usFlags = dnsEXPECTED_RX_FLAGS;
+
+    memset( dns, 'a', 64 );
+    memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
+    dns[ 63 ] = 0;
+    BaseType_t xExpected = pdFALSE;
+    size_t beg = sizeof( DNSMessage_t );
+
+    DNSMessage_t * dns_header;
+
+    dns_header = ( DNSMessage_t * ) &pucUDPPayloadBuffer;
+
+    dns_header->usQuestions = FreeRTOS_htons( 0 );
+    dns_header->usAnswers = FreeRTOS_htons( 1 );
+
+    memcpy( &pucUDPPayloadBuffer[ offsetof( DNSMessage_t, usFlags ) ], &usFlags, sizeof( uint16_t ) );
+
+    pucUDPPayloadBuffer[ beg ] = 38;
+    beg++;
+    strcpy( pucUDPPayloadBuffer + beg, "FreeRTOSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" );
+    beg += 38;
+
+    usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );                    /* usType */
+
+    hook_return = pdTRUE;
+    //pxUDPPayloadBuffer_to_NetworkBuffer_ExpectAnyArgsAndReturn( &pxNetworkBuffer );
+    
+    ret = DNS_ParseDNSReply( pucUDPPayloadBuffer,
+                             uxBufferLength,
+                             &pxAddressInfo,
+                             xExpected,
+                             usPort );
+    TEST_ASSERT_EQUAL( pdFALSE, ret );
+}
+
+/**
  * @brief Test DNS_ParseDNSReply when the endpoint has an invalid IP (0)
  */
 void test_DNS_ParseDNSReply_InvalidEndpointIP( void )
@@ -2817,6 +2900,7 @@ void test_parseDNSAnswer_null_bytes( void )
 
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.pucByte = pucByte;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
@@ -2865,6 +2949,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
 
@@ -2915,6 +3000,7 @@ void test_parseDNSAnswer_recordstored_gt_count_diffUsType( void )
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
 
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
@@ -2959,6 +3045,7 @@ void test_parseDNSAnswer_recordNOTstored_gt_count_diffUsType( void )
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
 
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
@@ -3004,6 +3091,8 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail1( void )
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
     xSet.uxAddressLength = ipSIZE_OF_IPv6_ADDRESS;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
 
@@ -3048,6 +3137,8 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail2( void )
     xSet.usNumARecordsStored = 0;
     xSet.uxAddressLength = ipSIZE_OF_IPv6_ADDRESS;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
 
@@ -3094,6 +3185,8 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success( void )
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
 
@@ -3145,6 +3238,8 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success2( void )
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
 
@@ -3196,6 +3291,8 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success3( void )
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
 
@@ -3243,6 +3340,8 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail_nullLinkedListForDNSAns
     xSet.xDoStore = pdTRUE;
     xSet.usNumARecordsStored = 0;
     xSet.ppxLastAddress = &pxAddressInfo_2;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY;
+
     memset( pucByte, 0x00, uxsourceBytesRemaining );
 
 
@@ -3327,6 +3426,8 @@ void test_parseDNSAnswer_recordstored_gt_count2( void )
     xSet.usNumARecordsStored = 0;
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
+
     strcpy( xSet.pcName, pcName );
     xSet.xDoStore = xDoStore;
 
@@ -3392,6 +3493,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
     xSet.xDoStore = xDoStore;
     xSet.ppxLastAddress = ppxAddressInfo;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
@@ -3438,6 +3540,7 @@ void test_parseDNSAnswer_do_store_false( void )
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
     xSet.xDoStore = xDoStore;
     xSet.ppxLastAddress = ppxAddressInfo;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
@@ -3486,6 +3589,7 @@ void test_parseDNSAnswer_dnsanswerrecord_datalength_ne_addresslength( void )
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
     xSet.xDoStore = xDoStore;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
 
@@ -3529,6 +3633,7 @@ void test_parseDNSAnswer_remaining_gt_datalength( void )
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
     xSet.xDoStore = xDoStore;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
 
@@ -3574,6 +3679,7 @@ void test_parseDNSAnswer_remaining_lt_uint16( void )
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
     xSet.xDoStore = xDoStore;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
@@ -3614,6 +3720,7 @@ void test_parseDNSAnswer_remaining_lt_dnsanswerrecord( void )
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.uxSourceBytesRemaining = uxsourceBytesRemaining;
     xSet.xDoStore = xDoStore;
+    xSet.usAnswers = ipconfigDNS_CACHE_ADDRESSES_PER_ENTRY + 1;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST + 1 );
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST );

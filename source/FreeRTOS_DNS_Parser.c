@@ -314,7 +314,7 @@
 
                     if( xSet.usAnswers == 0U )
                     {
-                        /* This is a reponse that does not include answers. */
+                        /* This is a response that does not include answers. */
                         xReturn = pdFALSE;
                         break;
                     }
