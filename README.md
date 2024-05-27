@@ -45,7 +45,7 @@ Add the following into your project's main or a subdirectory's `CMakeLists.txt`:
 ```cmake
 FetchContent_Declare( freertos_plus_tcp
   GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git
-  GIT_TAG        master #Note: Best practice to use specific git-hash or tagged version
+  GIT_TAG        main #Note: Best practice to use specific git-hash or tagged version
   GIT_SUBMODULES "" # Don't grab any submodules since not latest
 )
 ```

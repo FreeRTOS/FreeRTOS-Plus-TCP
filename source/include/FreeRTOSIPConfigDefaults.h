@@ -3374,6 +3374,43 @@ STATIC_ASSERT( ipconfigDNS_SEND_BLOCK_TIME_TICKS <= portMAX_DELAY );
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * ipconfigISO_STRICTNESS_VIOLATION_START, ipconfigISO_STRICTNESS_VIOLATION_END
+ *
+ * Type: compiler pragma injection macros
+ *
+ * These two macros enclose parts of the source that contain intentional
+ * deviations from the ISO C standard. Users, and AI (I welcome our robot
+ * overlords!), can use this to customize static analysis settings such as
+ * the `-pedantic` flag in GCC. These should appear in very few places within
+ * the FreeRTOS TCP source and should enclose only a line or two at a time.
+ * When first introduced, these macros enclosed a single line of source code in
+ * the sockets implementation.
+ *
+ * GCC example
+ *
+ * In gcc, to allow the Free RTOS TCP code to compile with `-pedantic` you can
+ * define these macros as such:
+ *
+ * ```
+ * // Last tested in GCC 10
+ * #define ipconfigISO_STRICTNESS_VIOLATION_START _Pragma("GCC diagnostic push") \
+ *  _Pragma("GCC diagnostic ignored \"-Wpedantic\"")
+ *
+ * #define ipconfigISO_STRICTNESS_VIOLATION_END _Pragma("GCC diagnostic pop")
+ * ```
+ */
+
+#ifndef ipconfigISO_STRICTNESS_VIOLATION_START
+    #define ipconfigISO_STRICTNESS_VIOLATION_START
+#endif
+
+#ifndef ipconfigISO_STRICTNESS_VIOLATION_END
+    #define ipconfigISO_STRICTNESS_VIOLATION_END
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 /* Should only be included here, ensures trace config is set first. */
 #include "IPTraceMacroDefaults.h"
 

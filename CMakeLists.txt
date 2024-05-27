@@ -20,6 +20,7 @@ endif()
 
 # Options
 option(FREERTOS_PLUS_TCP_BUILD_TEST "Build the test for FreeRTOS Plus TCP" OFF)
+option(FREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS "Enable the build checks for FreeRTOS-Plus-TCP" OFF)
 
 # Configuration
 # Override these at project level with:
@@ -149,32 +150,6 @@ endif()
 # There is also the need to add a target - typically an interface library that describes the
 # Configuration for FreeRTOS-Kernel and FreeRTOS-Plus-TCP.
 # This is called freertos_config
-# If not defined will be default compile with one of the test build combinations AllEnable.
-
-# Select the appropriate Build Test configuration
-# This is only used when freertos_config is not defined, otherwise the build test will be performed
-# on the config defined in the freertos_config
-set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION "CUSTOM" CACHE STRING "FreeRTOS Plus TCP Build Test configuration")
-set(FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST
-    CUSTOM                  # Custom (external) configuration -eg from a top-level project
-    ENABLE_ALL              # Enable all configuration settings
-    ENABLE_ALL_IPV4         # Enable all configuration settings IPv4 UDP
-    ENABLE_ALL_IPV6         # Enable all configuration settings IPv6 UDP
-    ENABLE_ALL_IPV4_TCP     # Enable all configuration settings IPv4 TCP
-    ENABLE_ALL_IPV6_TCP     # Enable all configuration settings IPv6 TCP
-    ENABLE_ALL_IPV4_IPV6    # Enable all configuration settings IPv4 IPv6 UDP
-    DISABLE_ALL             # Disable all configuration settings
-    HEADER_SELF_CONTAIN     # Enable header self contain test
-    DEFAULT_CONF            # Default (typical) configuration
-)
-if(NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION IN_LIST FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST)
-    message(FATAL_ERROR "Invalid FREERTOS_PLUS_TCP_TEST_CONFIGURATION value '${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}' should be one of: ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION_LIST}")
-else()
-    message(STATUS "Using FreeRTOS-Plus-TCP Test Configuration : ${FREERTOS_PLUS_TCP_TEST_CONFIGURATION}")
-    if (NOT FREERTOS_PLUS_TCP_TEST_CONFIGURATION STREQUAL "CUSTOM")
-        message(WARNING "FreeRTOS-Kernel configuration settings are configured by FreeRTOS-Plus-TCP")
-    endif()
-endif()
 
 ########################################################################
 # External Dependencies
