@@ -475,15 +475,13 @@
                 xParent = pxSocket->u.xTCP.pxPeerSocket;
             }
 
-            if( xParent != NULL )
+            if( ( xParent->u.xTCP.pxPeerSocket != NULL ) &&
+                ( xParent->u.xTCP.pxPeerSocket == pxSocket ) )
             {
-                if( ( xParent->u.xTCP.pxPeerSocket != NULL ) &&
-                    ( xParent->u.xTCP.pxPeerSocket == pxSocket ) )
-                {
-                    xMustClear = pdTRUE;
-                    ( void ) xMustClear;
-                }
+                xMustClear = pdTRUE;
+                ( void ) xMustClear;
             }
+
             /* Socket goes to status eCLOSED because of a RST.
              * When nobody owns the socket yet, delete it. */
             FreeRTOS_printf( ( "vTCPStateChange: Closing (Queued %d, Accept %d Reuse %d)\n",
