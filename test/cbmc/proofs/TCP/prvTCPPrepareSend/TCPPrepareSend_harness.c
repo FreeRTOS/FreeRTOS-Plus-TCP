@@ -94,6 +94,9 @@ void harness()
 
     UBaseType_t uxOptionsLength;
 
+    /* Call to init the socket list. */
+    vListInitialise( &xBoundTCPSocketsList );
+
     if( pxSocket )
     {
         publicTCPPrepareSend( pxSocket, &pxNetworkBuffer, uxOptionsLength );

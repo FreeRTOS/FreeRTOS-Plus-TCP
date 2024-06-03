@@ -91,6 +91,9 @@ void harness()
     FreeRTOS_Socket_t xSck;
     xSocketToListen = &xSck;
 
+    /* Call to init the socket list. */
+    vListInitialise( &xBoundTCPSocketsList );
+
     if( ensure_memory_is_valid( pxNetworkBuffer, bufferSize ) )
     {
         /* Allocates min. buffer size required for the proof */
