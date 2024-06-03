@@ -406,6 +406,7 @@
 
                     /* Don't need to access the parent socket anymore, so the
                      * reference 'pxPeerSocket' may be cleared. */
+                    pxSocket->u.xTCP.pxPeerSocket = NULL;
                     pxSocket->u.xTCP.bits.bPassQueued = pdFALSE_UNSIGNED;
 
                     /* When true, this socket may be returned in a call to accept(). */
