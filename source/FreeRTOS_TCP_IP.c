@@ -276,8 +276,8 @@
 
     static BaseType_t vTCPRemoveTCPChild( const FreeRTOS_Socket_t * pxChildSocket )
     {
-		BaseType_t xReturn = pdFALSE;
-		const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
+        BaseType_t xReturn = pdFALSE;
+        const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
@@ -286,21 +286,23 @@
 
         while( pxIterator != pxEnd )
         {
-			FreeRTOS_Socket_t * pxSocket;
+            FreeRTOS_Socket_t * pxSocket;
             pxSocket = ( ( FreeRTOS_Socket_t * ) listGET_LIST_ITEM_OWNER( pxIterator ) );
             pxIterator = ( ListItem_t * ) listGET_NEXT( pxIterator );
-			if( ( pxSocket != pxChildSocket ) && ( pxSocket->usLocalPort == pxChildSocket->usLocalPort ) )
-			{
-				if( pxSocket->u.xTCP.pxPeerSocket == pxChildSocket ) /**< for server socket: child, for child socket: parent */
-				{
-					pxSocket->u.xTCP.pxPeerSocket = NULL;
-					xReturn = pdTRUE;
-					break;
-				}
-			}
+
+            if( ( pxSocket != pxChildSocket ) && ( pxSocket->usLocalPort == pxChildSocket->usLocalPort ) )
+            {
+                if( pxSocket->u.xTCP.pxPeerSocket == pxChildSocket ) /**< for server socket: child, for child socket: parent */
+                {
+                    pxSocket->u.xTCP.pxPeerSocket = NULL;
+                    xReturn = pdTRUE;
+                    break;
+                }
+            }
         }
-		return xReturn;
-	}
+
+        return xReturn;
+    }
 
 /**
  * @brief Changing to a new state. Centralised here to do specific actions such as
@@ -485,14 +487,14 @@
             /* Socket goes to status eCLOSED because of a RST.
              * When nobody owns the socket yet, delete it. */
             FreeRTOS_printf( ( "vTCPStateChange: Closing (Queued %d, Accept %d Reuse %d)\n",
-                pxSocket->u.xTCP.bits.bPassQueued,
-                pxSocket->u.xTCP.bits.bPassAccept,
-                pxSocket->u.xTCP.bits.bReuseSocket ) );
+                               pxSocket->u.xTCP.bits.bPassQueued,
+                               pxSocket->u.xTCP.bits.bPassAccept,
+                               pxSocket->u.xTCP.bits.bReuseSocket ) );
             FreeRTOS_printf( ( "vTCPStateChange: me %p parent %p peer %p clear %d\n",
-                ( void * ) pxSocket,
-                ( void * ) xParent,
-                xParent ? ( void * ) xParent->u.xTCP.pxPeerSocket : NULL,
-                ( int ) xMustClear ) );
+                               ( void * ) pxSocket,
+                               ( void * ) xParent,
+                               xParent ? ( void * ) xParent->u.xTCP.pxPeerSocket : NULL,
+                               ( int ) xMustClear ) );
 
             vTaskSuspendAll();
             {
@@ -513,7 +515,7 @@
             }
             ( void ) xTaskResumeAll();
             FreeRTOS_printf( ( "vTCPStateChange: xHasCleared = %d\n",
-            	( int ) xHasCleared ) );
+                               ( int ) xHasCleared ) );
         }
 
         if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )

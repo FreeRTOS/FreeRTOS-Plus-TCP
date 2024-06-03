@@ -1020,9 +1020,10 @@
         #endif /* if ( ipconfigTCP_HANG_PROTECTION == 1 ) */
 
         pxSocket->u.xTCP.usChildCount++;
+
         if( pxSocket->u.xTCP.pxPeerSocket == NULL )
         {
-        	pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
+            pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
         }
 
         FreeRTOS_debug_printf( ( "Gain: Socket %u now has %u / %u child%s me: %p parent: %p peer: %p\n",

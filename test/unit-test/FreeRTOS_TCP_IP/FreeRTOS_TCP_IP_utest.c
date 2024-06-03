@@ -774,7 +774,7 @@ void test_vTCPStateChange_EstablishedState_ChildSocket2( void )
     xIsCallingFromIPTask_ExpectAndReturn( pdTRUE );
 
     vSocketClose_ExpectAnyArgsAndReturn( NULL );
-    
+
     xTaskResumeAll_ExpectAndReturn( 0 );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAck );
     xTaskGetTickCount_ExpectAndReturn( xTickCountAlive );
@@ -2613,7 +2613,7 @@ void test_xTCPCheckNewClient_Found( void )
 }
 
 /**
- * @brief This function validates the case when the child socket is found in 
+ * @brief This function validates the case when the child socket is found in
  * the bounded socket list.
  */
 void test_vTCPRemoveTCPChild_ChildSocketFound( void )
@@ -2646,7 +2646,7 @@ void test_vTCPRemoveTCPChild_ChildSocketFound( void )
 }
 
 /**
- * @brief This function validates the case when the child socket is found in 
+ * @brief This function validates the case when the child socket is found in
  * the bounded socket list but non matching port number.
  */
 void test_vTCPRemoveTCPChild_ChildSocketFound_DifferentPortNumber( void )
@@ -2679,7 +2679,7 @@ void test_vTCPRemoveTCPChild_ChildSocketFound_DifferentPortNumber( void )
 }
 
 /**
- * @brief This function validates the case when no child socket is found in 
+ * @brief This function validates the case when no child socket is found in
  * the bounded socket list but matching port number is present.
  */
 void test_vTCPRemoveTCPChild_NoChildSocketFound_MatchingPortNumber( void )
