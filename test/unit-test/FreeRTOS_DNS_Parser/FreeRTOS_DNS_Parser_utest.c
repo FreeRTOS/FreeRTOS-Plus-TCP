@@ -3087,7 +3087,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success( void )
     memset( &( ip_address.xIPAddress.xIP_IPv6 ), 1, ipSIZE_OF_IPv6_ADDRESS );
     ip_address.xIs_IPv6 = pdTRUE;
     ParseSet_t xSet = { 0 };
-    struct freertos_addrinfo * pxAddressInfo, * pxAddressInfo_2;
+    struct freertos_addrinfo xAddressInfo = { 0 }, * pxAddressInfo, * pxAddressInfo_2;
 
     xSet.pxDNSMessageHeader = &pxDNSMessageHeader;
     xSet.pucByte = pucByte;
@@ -3107,7 +3107,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_success( void )
     pxDNSAnswerRecord->usType = ( dnsTYPE_AAAA_HOST );
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_AAAA_HOST ); /* usType */
-    pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddressInfo );
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
@@ -3369,7 +3369,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     ip_address.xIPAddress.ulIP_IPv4 = 5678;
     ip_address.xIs_IPv6 = pdFALSE;
     ParseSet_t xSet = { 0 };
-    struct freertos_addrinfo * pxAddressInfo;
+    struct freertos_addrinfo xAddressInfo = { 0 };
     struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pucAddrBuffer;
 
     *ppxAddressInfo = NULL;
@@ -3395,7 +3395,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     xSet.ppxLastAddress = ppxAddressInfo;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
-    pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( &xAddressInfo );
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
     FreeRTOS_dns_update_ExpectAnyArgsAndReturn( pdTRUE );
     FreeRTOS_dns_update_ReturnThruPtr_pxIP( &ip_address );
@@ -3441,7 +3441,7 @@ void test_parseDNSAnswer_do_store_false( void )
     xSet.ppxLastAddress = ppxAddressInfo;
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
-    pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
+    pxNew_AddrInfo_ExpectAnyArgsAndReturn( NULL );
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdFALSE );
     FreeRTOS_inet_ntop_ExpectAnyArgsAndReturn( "ignored" );
 
