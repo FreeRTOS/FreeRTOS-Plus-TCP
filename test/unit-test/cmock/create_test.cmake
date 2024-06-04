@@ -19,7 +19,7 @@ function(create_test test_name
         )
     add_executable(${test_name} ${test_src} ${test_name}_runner.c)
     set_target_properties(${test_name} PROPERTIES
-            COMPILE_FLAG "-Wall -O0 -ggdb"
+            COMPILE_FLAG "-Wall -ggdb3"
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/tests"
             INSTALL_RPATH_USE_LINK_PATH TRUE
             LINK_FLAGS " \
