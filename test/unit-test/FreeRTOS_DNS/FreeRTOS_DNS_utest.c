@@ -149,10 +149,10 @@ void test_FreeRTOS_gethostbyname_FailNullAddress( void )
 void test_FreeRTOS_gethostbyname_FailLongAddress( void )
 {
     uint32_t ret;
-    char address[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ];
+    char address[ ipconfigDNS_CACHE_NAME_LENGTH + 1 ];
 
     memset( address, 'a', ipconfigDNS_CACHE_NAME_LENGTH );
-    address[ ipconfigDNS_CACHE_NAME_LENGTH + 3 ] = '\0';
+    address[ ipconfigDNS_CACHE_NAME_LENGTH ] = '\0';
 
 
     ret = FreeRTOS_gethostbyname( address );
