@@ -5907,7 +5907,7 @@ void test_xProcessCheckOption_LengthByteZero( void )
     BaseType_t xResult;
     ProcessSet_t xSet;
 
-    uint8_t ucUDPPayload[ 1 ];
+    uint8_t ucUDPPayload[ 2 ];
 
     memset( &( ucUDPPayload ), 0, sizeof( ucUDPPayload ) );
 
@@ -5916,7 +5916,7 @@ void test_xProcessCheckOption_LengthByteZero( void )
     xSet.ucOptionCode = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
     xSet.pucByte = ucUDPPayload;
     xSet.uxIndex = 0;
-    xSet.uxPayloadDataLength = 2;
+    xSet.uxPayloadDataLength = sizeof( ucUDPPayload );
 
     xResult = xProcessCheckOption( &xSet );
 
