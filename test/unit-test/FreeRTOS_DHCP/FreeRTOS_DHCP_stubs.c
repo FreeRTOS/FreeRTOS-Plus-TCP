@@ -12,6 +12,11 @@
 #include "FreeRTOS_IP.h"
 #include "FreeRTOS_IP_Private.h"
 
+#define prvROUND_UP_TO( SIZE, ALIGNMENT )    ( ( ( SIZE ) + ( ALIGNMENT ) -1 ) / ( ALIGNMENT ) *( ALIGNMENT ) )
+
+/* FIXME: Consider instead fixing ipBUFFER_PADDING if it's supposed to be pointer aligned. */
+#define prvALIGNED_BUFFER_PADDING    prvROUND_UP_TO( ipBUFFER_PADDING, sizeof( void * ) )
+
 struct xNetworkEndPoint * pxNetworkEndPoints = NULL;
 
 NetworkInterface_t xInterfaces[ 1 ];
@@ -212,9 +217,9 @@ static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
                                                      long unsigned int xTimeToBlock,
                                                      int callbacks )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) + ipBUFFER_PADDING ) + ipBUFFER_PADDING;
+    NetworkBufferDescriptor_t * pxNetworkBuffer = malloc( sizeof( NetworkBufferDescriptor_t ) + prvALIGNED_BUFFER_PADDING ) + prvALIGNED_BUFFER_PADDING;
 
-    pxNetworkBuffer->pucEthernetBuffer = malloc( SizeOfEthBuf + ipBUFFER_PADDING ) + ipBUFFER_PADDING;
+    pxNetworkBuffer->pucEthernetBuffer = malloc( SizeOfEthBuf + prvALIGNED_BUFFER_PADDING ) + prvALIGNED_BUFFER_PADDING;
 
     /* Ignore the callback count. */
     ( void ) callbacks;
@@ -230,9 +235,9 @@ static NetworkBufferDescriptor_t * GetNetworkBuffer( size_t SizeOfEthBuf,
 static void ReleaseNetworkBuffer( void )
 {
     /* Free the ethernet buffer. */
-    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer ) - ipBUFFER_PADDING );
+    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ --GlobalBufferCounter ]->pucEthernetBuffer ) - prvALIGNED_BUFFER_PADDING );
     /* Free the network buffer. */
-    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ GlobalBufferCounter ] ) - ipBUFFER_PADDING );
+    free( ( ( uint8_t * ) pxGlobalNetworkBuffer[ GlobalBufferCounter ] ) - prvALIGNED_BUFFER_PADDING );
 }
 
 static void ReleaseUDPBuffer( const void * temp,
