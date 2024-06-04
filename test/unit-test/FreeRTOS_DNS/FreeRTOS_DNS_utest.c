@@ -829,17 +829,16 @@ void test_FreeRTOS_getaddrinfo_a_IPv6AddressFound( void )
 void test_FreeRTOS_getaddrinfo_a_IPv4DomainCacheFound( void )
 {
     BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo * pxAddress;
     struct freertos_addrinfo xExpectedAddress, * pxExpectedAddress = &xExpectedAddress;
 
-    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
 
     xExpectedAddress.ai_family = FREERTOS_AF_INET4;
 
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, DOTTED_IPV4_ADDRESS_UINT32 );
-    Prepare_CacheLookup_ReturnMemThruPtr_ppxAddressInfo( &pxExpectedAddress, sizeof( struct freertos_addrinfo ) );
+    Prepare_CacheLookup_ReturnMemThruPtr_ppxAddressInfo( &pxExpectedAddress, sizeof( struct freertos_addrinfo * ) );
 
     xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", NULL, &pxAddress, dns_callback, NULL, 0U );
 
