@@ -1907,7 +1907,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply2( void )
  */
 void test_DNS_ParseDNSReply_answer_lmmnr_reply3( void )
 {
-    uint32_t ret;
+    uint32_t ret = 0xDEADC0DE;
     uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
     uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4 - 1;
     size_t uxBufferLength = 250;
@@ -1970,7 +1970,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply3( void )
                                            xExpected,
                                            usPort ) );
 
-    TEST_ASSERT_EQUAL( pdFALSE, ret );
+    /* ret is not reassigned, because the function asserts. */
+    TEST_ASSERT_EQUAL( 0xDEADC0DE, ret );
     ASSERT_DNS_QUERY_HOOK_NOT_CALLED();
 }
 
