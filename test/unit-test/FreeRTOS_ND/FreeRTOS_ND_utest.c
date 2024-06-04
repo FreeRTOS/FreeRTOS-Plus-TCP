@@ -455,7 +455,6 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_Gateway( void )
 void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
 {
     MACAddress_t xMACAddress;
-    IPv6_Address_t xIPAddress;
     NetworkEndPoint_t * pxEndPoint, xEndPoint;
     eARPLookupResult_t eResult;
     BaseType_t xUseEntry = 0;
@@ -472,7 +471,8 @@ void test_eNDGetCacheEntry_NDCacheLookupMiss_NoEP( void )
 
     FreeRTOS_FindGateWay_ExpectAnyArgsAndReturn( NULL );
 
-    eResult = eNDGetCacheEntry( &xIPAddress, &xMACAddress, &pxEndPoint );
+    /* TODO: This function should take a const pointer; remove const cast when it does. */
+    eResult = eNDGetCacheEntry( ( IPv6_Address_t * ) &xSiteLocalIPAddress, &xMACAddress, &pxEndPoint );
 
     TEST_ASSERT_EQUAL( eARPCacheMiss, eResult );
 }
