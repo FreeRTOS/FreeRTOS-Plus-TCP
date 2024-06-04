@@ -776,10 +776,9 @@ void test_FreeRTOS_getaddrinfo_a_UnknownHintFamily( void )
 void test_FreeRTOS_getaddrinfo_a_IPv4AddressFound( void )
 {
     BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo * pxAddress;
     struct freertos_addrinfo xHint, * pxHint = &xHint;
 
-    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
 
     xHint.ai_family = FREERTOS_AF_INET4;
@@ -794,6 +793,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv4AddressFound( void )
     TEST_ASSERT_EQUAL( FREERTOS_AF_INET4, pxAddress->ai_family );
     TEST_ASSERT_EQUAL( DOTTED_IPV4_ADDRESS_UINT32, FreeRTOS_htonl( pxAddress->ai_addr->sin_address.ulIP_IPv4 ) );
     TEST_ASSERT_EQUAL( ipSIZE_OF_IPv4_ADDRESS, pxAddress->ai_addrlen );
+
+    vPortFree( pxAddress ); /* Make LeakSanitizer happy. */
 }
 
 /**
@@ -802,10 +803,9 @@ void test_FreeRTOS_getaddrinfo_a_IPv4AddressFound( void )
 void test_FreeRTOS_getaddrinfo_a_IPv6AddressFound( void )
 {
     BaseType_t xReturn;
-    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo * pxAddress;
     struct freertos_addrinfo xHint, * pxHint = &xHint;
 
-    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
 
     xHint.ai_family = FREERTOS_AF_INET6;
@@ -821,6 +821,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6AddressFound( void )
     TEST_ASSERT_EQUAL( FREERTOS_AF_INET6, pxAddress->ai_family );
     TEST_ASSERT_EQUAL_MEMORY( xIPv6Address.ucBytes, pxAddress->ai_addr->sin_address.xIP_IPv6.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     TEST_ASSERT_EQUAL( ipSIZE_OF_IPv6_ADDRESS, pxAddress->ai_addrlen );
+
+    vPortFree( pxAddress ); /* Make LeakSanitizer happy. */
 }
 
 /**

@@ -1388,6 +1388,7 @@ void test_vDHCPv6Process_ResetFromInit()
     vDHCP_RATimerReload_Expect( &xEndPoint, dhcpINITIAL_TIMER_PERIOD );
 
     vDHCPv6Process( pdTRUE, &xEndPoint );
+    vPortFree( xEndPoint.pxDHCPMessage ); /* Make LeakSanitizer happy. */
 
     /* The endpoint sends the DHCPv6 Solicitation message to find the DHCPv6 server.
      * Then change the state to eWaitingSendFirstDiscover. */
