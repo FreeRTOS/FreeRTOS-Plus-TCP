@@ -57,6 +57,10 @@
 #define BAD_ADDRESS       "this is a bad address"
 #define DOTTED_ADDRESS    "192.268.0.1"
 
+#define prvROUND_UP_TO( SIZE, ALIGNMENT )    ( ( ( SIZE ) + ( ALIGNMENT ) -1 ) / ( ALIGNMENT ) *( ALIGNMENT ) )
+
+#define prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4    prvROUND_UP_TO( ipUDP_PAYLOAD_OFFSET_IPv4, sizeof( void * ) )
+
 typedef void (* FOnDNSEvent ) ( const char * /* pcName */,
                                 void * /* pvSearchID */,
                                 struct freertos_addrinfo * /* pxAddressInfo */ );
@@ -1545,8 +1549,8 @@ void test_DNS_ParseDNSReply_InvalidEndpointIP( void )
 void test_DNS_ParseDNSReply_InvalidEndpointType( void )
 {
     uint32_t ret;
-    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
-    uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
+    uint8_t udp_buffer[ prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 + 250 ] = { 0 };
+    uint8_t * pucUDPPayloadBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1558,11 +1562,11 @@ void test_DNS_ParseDNSReply_InvalidEndpointType( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 - ipUDP_PAYLOAD_OFFSET_IPv4;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = udp_buffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 - ipUDP_PAYLOAD_OFFSET_IPv4;
     pxNewBuffer.xDataLength = uxBufferLength;
     pxNetworkBuffer.pxEndPoint = &xEndPoint;
     xEndPoint.bits.bIPv6 = pdTRUE;
@@ -1684,8 +1688,8 @@ void test_DNS_ParseDNSReply_answer_record_too_many_answers( void )
 void test_DNS_ParseDNSReply_answer_lmmnr_reply_xBufferAllocFixedsize( void )
 {
     uint32_t ret;
-    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
-    uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
+    uint8_t udp_buffer[ prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 + 250 ] = { 0 };
+    uint8_t * pucUDPPayloadBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1697,11 +1701,11 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_xBufferAllocFixedsize( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 - ipUDP_PAYLOAD_OFFSET_IPv4;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     NetworkBufferDescriptor_t pxNewBuffer;
-    pxNewBuffer.pucEthernetBuffer = udp_buffer;
+    pxNewBuffer.pucEthernetBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 - ipUDP_PAYLOAD_OFFSET_IPv4;
     pxNewBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
@@ -1762,8 +1766,8 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply_xBufferAllocFixedsize( void )
 void test_DNS_ParseDNSReply_answer_lmmnr_reply( void )
 {
     uint32_t ret;
-    uint8_t udp_buffer[ 250 + ipUDP_PAYLOAD_OFFSET_IPv4 ] = { 0 };
-    uint8_t * pucUDPPayloadBuffer = ( ( uint8_t * ) udp_buffer ) + ipUDP_PAYLOAD_OFFSET_IPv4;
+    uint8_t udp_buffer[ prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 + 250 ] = { 0 };
+    uint8_t * pucUDPPayloadBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4;
     size_t uxBufferLength = 250;
     struct freertos_addrinfo * pxAddressInfo;
     uint16_t usPort;
@@ -1772,7 +1776,7 @@ void test_DNS_ParseDNSReply_answer_lmmnr_reply( void )
     memset( pucUDPPayloadBuffer, 0x00, uxBufferLength );
 
     NetworkBufferDescriptor_t pxNetworkBuffer = { 0 };
-    pxNetworkBuffer.pucEthernetBuffer = udp_buffer;
+    pxNetworkBuffer.pucEthernetBuffer = udp_buffer + prvALIGNED_UDP_PAYLOAD_OFFSET_IPv4 - ipUDP_PAYLOAD_OFFSET_IPv4;
     pxNetworkBuffer.xDataLength = uxBufferLength;
 
     char dns[ 64 ];
