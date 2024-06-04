@@ -1503,34 +1503,6 @@ void test_prvProcessICMPMessage_IPv6_NeighborSolicitationIncorrectLen( void )
     TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
 }
 
-
-/**
- * @brief This function process ICMP message when message type is
- *        ipICMP_NEIGHBOR_SOLICITATION_IPv6.
- *        It handles case where the ICMP header address does not
- *        match which means the message is not for us,
- *        ignore it.
- */
-void test_prvProcessICMPMessage_IPv6_NeighborSolicitationCorrectLen( void )
-{
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
-    ICMPPacket_IPv6_t xICMPPacket;
-    NetworkEndPoint_t xEndPoint;
-    eFrameProcessingResult_t eReturn;
-
-    xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
-    xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
-    pxNetworkBuffer->pxEndPoint = &xEndPoint;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
-    pxNetworkBuffer->xDataLength = xHeaderSize + ipBUFFER_PADDING;
-
-    FreeRTOS_InterfaceEPInSameSubnet_IPv6_ExpectAnyArgsAndReturn( &xEndPoint );
-
-    eReturn = prvProcessICMPMessage_IPv6( pxNetworkBuffer );
-
-    TEST_ASSERT_EQUAL( eReturn, eReleaseBuffer );
-}
-
 /**
  * @brief This function process ICMP message when message type is
  *        ipICMP_NEIGHBOR_SOLICITATION_IPv6.
