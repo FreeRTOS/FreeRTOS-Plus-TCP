@@ -193,12 +193,15 @@ void test_vTCPWindowDestroy_list_length_zero( void )
 void test_vTCPWindowDestroy_list_length_not_zero( void )
 {
     TCPWindow_t xWindow = { 0 };
-    List_t * pxSegments = &( xWindow.xRxSegments );
+    TCPSegment_t xSegment = { 0 };
+
+    xSegment.xQueueItem.pvContainer = &xWindow.xPriorityQueue;
+    xSegment.xSegmentItem.pvContainer = &xWindow.xPriorityQueue;
 
     listLIST_IS_INITIALISED_ExpectAnyArgsAndReturn( pdFALSE );
     listLIST_IS_INITIALISED_ExpectAnyArgsAndReturn( pdTRUE );
     listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( 1 );
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAnyArgsAndReturn( pxSegments );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAnyArgsAndReturn( &xSegment );
     /* ->vTCPWindowFree */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
