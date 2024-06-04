@@ -1041,11 +1041,13 @@ void test_SendPingRequestIPv6_Assert( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ 1500 ] = { 0 };
     IPv6_Address_t xIPAddress;
     size_t uxNumberOfBytesToSend = 100;
     BaseType_t xReturn;
     uint16_t usSequenceNumber = 1;
 
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
@@ -1074,11 +1076,13 @@ void test_SendPingRequestIPv6_SendToIP_Pass( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ 1500 ] = { 0 };
     IPv6_Address_t xIPAddress;
     size_t uxNumberOfBytesToSend = 100;
     BaseType_t xReturn;
     uint16_t usSequenceNumber = 1;
 
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
@@ -1107,11 +1111,13 @@ void test_SendPingRequestIPv6_SendToIP_Fail( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    uint8_t ucEthernetBuffer[ 1500 ] = { 0 };
     IPv6_Address_t xIPAddress;
     size_t uxNumberOfBytesToSend = 100;
     BaseType_t xReturn;
     uint16_t usSequenceNumber = 1;
 
+    xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
