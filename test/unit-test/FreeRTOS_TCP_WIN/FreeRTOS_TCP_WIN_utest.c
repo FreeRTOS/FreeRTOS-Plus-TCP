@@ -1050,13 +1050,14 @@ void test_lTCPWindowTxAdd_nothing_to_do( void )
 {
     int32_t lDone;
     TCPWindow_t xWindow = { 0 };
+    TCPSegment_t xSegment = { 0 };
     uint32_t ulLength = 0;
     int32_t lPosition = 0;
     int32_t lMax = 0;
     BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     /* in real code, this points to a list of segments */
-    xWindow.pxHeadSegment = malloc( sizeof( TCPSegment_t ) );
+    xWindow.pxHeadSegment = &xSegment;
 
     xTCPWindowLoggingLevel = 3;
 
@@ -1068,7 +1069,6 @@ void test_lTCPWindowTxAdd_nothing_to_do( void )
     TEST_ASSERT_EQUAL( 0, lDone );
 
     xTCPWindowLoggingLevel = xBackup;
-    free( xWindow.pxHeadSegment );
 }
 
 void test_lTCPWindowTxAdd_null_txSegment( void )
