@@ -336,7 +336,7 @@ static int32_t FreeRTOS_recvfrom_ResetAndIncorrectStateWithSocketAlreadyCreated_
         pxIterator = pxIterator->pxNext;
     }
 
-    if( xFlags == FREERTOS_ZERO_COPY + FREERTOS_MSG_PEEK )
+    if( ( xFlags & FREERTOS_ZERO_COPY ) != 0 )
     {
         *( ( uint8_t ** ) pvBuffer ) = pucUDPBuffer;
     }
