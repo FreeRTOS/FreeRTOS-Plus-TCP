@@ -1039,15 +1039,16 @@ void test_SendPingRequestIPv6_NULL_Buffer( void )
  */
 void test_SendPingRequestIPv6_Assert( void )
 {
-    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 };
     uint8_t ucEthernetBuffer[ 1500 ] = { 0 };
-    IPv6_Address_t xIPAddress;
+    IPv6_Address_t xIPAddress = { 0 };
     size_t uxNumberOfBytesToSend = 100;
     BaseType_t xReturn;
     uint16_t usSequenceNumber = 1;
 
     xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    xNetworkBuffer.xDataLength = sizeof( ucEthernetBuffer );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
@@ -1059,7 +1060,7 @@ void test_SendPingRequestIPv6_Assert( void )
 
 
     uxGetNumberOfFreeNetworkBuffers_ExpectAndReturn( 4U );
-    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( pxNetworkBuffer );
+    pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( &xNetworkBuffer );
     xSendEventStructToIPTask_IgnoreAndReturn( pdPASS );
 
     xReturn = FreeRTOS_SendPingRequestIPv6( &xIPAddress, uxNumberOfBytesToSend, 0 );
@@ -1075,7 +1076,7 @@ void test_SendPingRequestIPv6_Assert( void )
 void test_SendPingRequestIPv6_SendToIP_Pass( void )
 {
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 }, * pxNetworkBuffer = &xNetworkBuffer;
     uint8_t ucEthernetBuffer[ 1500 ] = { 0 };
     IPv6_Address_t xIPAddress;
     size_t uxNumberOfBytesToSend = 100;
@@ -1083,6 +1084,7 @@ void test_SendPingRequestIPv6_SendToIP_Pass( void )
     uint16_t usSequenceNumber = 1;
 
     xNetworkBuffer.pucEthernetBuffer = ucEthernetBuffer;
+    xNetworkBuffer.xDataLength = sizeof( ucEthernetBuffer );
     ( void ) memcpy( xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
 
     pxEndPoint->bits.bIPv6 = 1;
@@ -1460,15 +1462,17 @@ void test_prvProcessICMPMessage_IPv6_ipICMP_PING_REPLY_IPv6_eSuccess( void )
  */
 void test_prvProcessICMPMessage_IPv6_NeighborSolicitationNullEP( void )
 {
-    NetworkBufferDescriptor_t xNetworkBuffer, * pxNetworkBuffer = &xNetworkBuffer;
-    ICMPPacket_IPv6_t xICMPPacket;
-    NetworkEndPoint_t xEndPoint;
+    NetworkBufferDescriptor_t xNetworkBuffer = { 0 }, * pxNetworkBuffer = &xNetworkBuffer;
+    ICMPPacket_IPv6_t xICMPPacket = { 0 };
+    NetworkEndPoint_t xEndPoint = { 0 };
     eFrameProcessingResult_t eReturn;
 
     xEndPoint.bits.bIPv6 = pdTRUE_UNSIGNED;
+    ( void ) memcpy( xEndPoint.ipv6_settings.xIPAddress.ucBytes, xDefaultIPAddress.ucBytes, ipSIZE_OF_IPv6_ADDRESS );
     xICMPPacket.xICMPHeaderIPv6.ucTypeOfMessage = ipICMP_NEIGHBOR_SOLICITATION_IPv6;
     pxNetworkBuffer->pxEndPoint = &xEndPoint;
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
+    pxNetworkBuffer->xDataLength = sizeof( xICMPPacket );
 
     FreeRTOS_InterfaceEPInSameSubnet_IPv6_ExpectAnyArgsAndReturn( NULL );
 
