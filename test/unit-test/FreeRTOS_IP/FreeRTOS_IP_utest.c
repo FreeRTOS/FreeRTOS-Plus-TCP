@@ -1989,10 +1989,12 @@ void test_prvProcessEthernetPacket_ARPFrameType_eFrameConsumed( void )
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
@@ -2017,10 +2019,12 @@ void test_prvProcessEthernetPacket_ARPFrameType_SmallerDataLength( void )
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = sizeof( EthernetHeader_t );
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
@@ -2045,10 +2049,12 @@ void test_prvProcessEthernetPacket_IPv4FrameType_LessData( void )
     uint8_t ucEtherBuffer[ ipconfigTCP_MSS ];
     EthernetHeader_t * pxEthernetHeader;
     struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = sizeof( EthernetHeader_t );
     pxNetworkBuffer->pucEthernetBuffer = ucEtherBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
 
@@ -2075,10 +2081,12 @@ void test_prvProcessEthernetPacket_IPv4FrameType_AptData( void )
     IPPacket_t * pxIPPacket;
     IPHeader_t * pxIPHeader;
     struct xNetworkInterface xInterface;
+    NetworkEndPoint_t xNetworkEndPoint = { 0 };
 
     pxNetworkBuffer->xDataLength = ipconfigTCP_MSS;
     pxNetworkBuffer->pucEthernetBuffer = ucEthernetBuffer;
     pxNetworkBuffer->pxInterface = &xInterface;
+    pxNetworkBuffer->pxEndPoint = &xNetworkEndPoint;
 
     pxEthernetHeader = ( EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer;
     pxEthernetHeader->usFrameType = ipIPv4_FRAME_TYPE;
