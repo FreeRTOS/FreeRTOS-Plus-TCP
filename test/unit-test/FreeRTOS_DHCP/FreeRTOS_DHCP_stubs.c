@@ -294,18 +294,18 @@ static int32_t FreeRTOS_recvfrom_Generic( const ConstSocket_t xSocket,
     return ulGenericLength;
 }
 
-static int32_t FreeRTOS_recvfrom_Generic_NullBuffer( const ConstSocket_t xSocket,
-                                                     void * pvBuffer,
-                                                     size_t uxBufferLength,
-                                                     BaseType_t xFlags,
-                                                     struct freertos_sockaddr * pxSourceAddress,
-                                                     socklen_t * pxSourceAddressLength,
-                                                     int callbacks )
+static int32_t FreeRTOS_recvfrom_Small_NullBuffer( const ConstSocket_t xSocket,
+                                                   void * pvBuffer,
+                                                   size_t uxBufferLength,
+                                                   BaseType_t xFlags,
+                                                   struct freertos_sockaddr * pxSourceAddress,
+                                                   socklen_t * pxSourceAddressLength,
+                                                   int callbacks )
 {
-    pvBuffer = NULL;
-    return xSizeofUDPBuffer;
+    /* Admittedly, returning a (NULL, 1) slice is contrived, but coverage speaks. */
+    *( ( uint8_t ** ) pvBuffer ) = NULL;
+    return 1;
 }
-
 
 static int32_t FreeRTOS_recvfrom_eWaitingOfferRecvfromLessBytesNoTimeout( const ConstSocket_t xSocket,
                                                                           void * pvBuffer,

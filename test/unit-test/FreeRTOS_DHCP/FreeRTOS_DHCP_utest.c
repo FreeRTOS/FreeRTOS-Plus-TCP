@@ -1586,9 +1586,7 @@ void test_vDHCPProcessEndPoint_eWaitingOfferNullUDPBuffer( void )
 
     pxNetworkEndPoints = pxEndPoint;
 
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY, NULL, NULL, 1 );
-    /* Ignore the buffer argument though. */
-    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Small_NullBuffer );
 
     vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 }
