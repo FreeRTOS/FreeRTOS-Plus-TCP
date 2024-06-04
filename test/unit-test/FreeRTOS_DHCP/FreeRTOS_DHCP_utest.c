@@ -4363,33 +4363,29 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     TEST_ASSERT_EQUAL( xIPv4Addressing->ulNetMask, ulSubnetMask );
 }
 
-void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
+void test_vDHCPProcess_eWaitingAcknowledge_DNSServerOverabundance( void )
 {
     struct xSOCKET xTestSocket;
-    TickType_t xTimeValue = 1234;
 
-    /* Create a bit longer DHCP message but keep it empty. */
-    const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U /* Padding */
-                                    + 3U                                    /* DHCP offer */
-                                    + 6U                                    /* Server IP address */
-                                    + 6U                                    /* Subnet Mask */
-                                    + 6U                                    /* Gateway */
-                                    + 6U                                    /* Lease time */
-                                    + 24U                                   /* DNS server */
-                                    + 1U /* End */;
-    uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     uint32_t ulSubnetMask = 0xFFFFF100;      /* 255.255.241.0 */
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
+    uint8_t DHCPMsg[
+        sizeof( DHCPMessage_IPv4_t )
+        + 2U + sizeof( ( uint8_t ) dhcpMESSAGE_TYPE_ACK )
+        + 2U + sizeof( DHCPServerAddress )
+        + 2U + sizeof( ulSubnetMask )
+        + 2U + sizeof( ulGateway )
+        + 2U + sizeof( ulLeaseTime )
+        + 2U + sizeof( ulDNSServer ) * ( ipconfigENDPOINT_DNS_ADDRESS_COUNT + 1 )
+    ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
     IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
-
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
+    size_t xDNSServersToAdd = ipconfigENDPOINT_DNS_ADDRESS_COUNT + 1;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
@@ -4404,8 +4400,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Set the client IP address. */
     pxDHCPMessage->ulYourIPAddress_yiaddr = ulClientIPAddress;
 
-    /* Leave one byte for the padding. */
-    uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
+    uint8_t * DHCPOption = &DHCPMsg[ sizeof( DHCPMessage_IPv4_t ) ];
+
     /* Add Message type code. */
     DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
     /* Add length. */
@@ -4413,7 +4409,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Add the offer byte. */
     DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
+    DHCPOption += 3;
     /* Add Message type code. */
     DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
     /* Add length. */
@@ -4449,15 +4445,23 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Add Message type code. */
     DHCPOption[ 0 ] = dhcpIPv4_DNS_SERVER_OPTIONS_CODE;
     /* Add length. */
-    DHCPOption[ 1 ] = 24;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulDNSServer;
+    DHCPOption[ 1 ] = xDNSServersToAdd * sizeof( ulDNSServer );
+    DHCPOption += 2;
 
+    while( xDNSServersToAdd-- > 0U )
+    {
+        memcpy( DHCPOption, &ulDNSServer, sizeof( ulDNSServer ) );
+        DHCPOption += sizeof( ulDNSServer );
+    }
+
+    /* A stop byte shall not be necessary to prevent the DHCP option parser from running off the end of the buffer. */
+    /* *DHCPOption++ = 0xFF; */
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, sizeof( DHCPMsg ) );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
     ucGenericPtr = DHCPMsg;
-    ulGenericLength = sizeof( DHCPMsg ) + 100; /* ulGenericLength is incremented by 100 to have uxDNSCount > ipconfigENDPOINT_DNS_ADDRESS_COUNT scenario */
+    ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
     xDHCPv4Socket = &xTestSocket;
