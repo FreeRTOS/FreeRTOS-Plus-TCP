@@ -2854,6 +2854,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+    const uint32_t ulTestAddress = 0xABCD1234;
 
     ip_address.xIPAddress.ulIP_IPv4 = 1234;
     ip_address.xIs_IPv6 = pdFALSE;
@@ -2877,8 +2878,7 @@ void test_parseDNSAnswer_recordstored_gt_count( void )
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
-    *pulTestAddress = 0xABCD1234;
+    memcpy( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ), &ulTestAddress, sizeof( ulTestAddress ) );
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     pxNew_AddrInfo_ExpectAnyArgsAndReturn( pxAddressInfo );
@@ -3232,6 +3232,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail_nullLinkedListForDNSAns
     char pcName[ 300 ];
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+    const uint32_t ulTestAddress = 0xABCD1234;
 
     memset( &( ip_address.xIPAddress.xIP_IPv6 ), 1, ipSIZE_OF_IPv6_ADDRESS );
     ip_address.xIs_IPv6 = pdTRUE;
@@ -3255,8 +3256,7 @@ void test_parseDNSAnswer_recordstored_gt_count_IPv6_fail_nullLinkedListForDNSAns
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
-    *pulTestAddress = 0xABCD1234;
+    memcpy( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ), &ulTestAddress, sizeof( ulTestAddress ) );
 
     usChar2u16_ExpectAnyArgsAndReturn( dnsTYPE_A_HOST ); /* usType */
     xDNSDoCallback_ExpectAnyArgsAndReturn( pdTRUE );
@@ -3365,6 +3365,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     BaseType_t xDoStore = pdTRUE;
     DNSAnswerRecord_t * pxDNSAnswerRecord;
     IPv46_Address_t ip_address;
+    const uint32_t ulTestAddress = 0xABCD1234;
 
     ip_address.xIPAddress.ulIP_IPv4 = 5678;
     ip_address.xIs_IPv6 = pdFALSE;
@@ -3384,8 +3385,7 @@ void test_parseDNSAnswer_dns_nocallback_false( void )
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
-    *pulTestAddress = 0xABCD1234;
+    memcpy( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ), &ulTestAddress, sizeof( ulTestAddress ) );
 
     xSet.pucByte = pucByte;
     xSet.usNumARecordsStored = 0;
@@ -3424,6 +3424,7 @@ void test_parseDNSAnswer_do_store_false( void )
     ParseSet_t xSet = { 0 };
     struct freertos_addrinfo * pxAddressInfo;
     struct freertos_addrinfo ** ppxAddressInfo = ( struct freertos_addrinfo ** ) &pucAddrBuffer;
+    const uint32_t ulTestAddress = 0xABCD1234;
 
     memset( pucByte, 0x00, 300 );
     memset( pcName, 0x00, 300 );
@@ -3449,8 +3450,7 @@ void test_parseDNSAnswer_do_store_false( void )
     pxDNSAnswerRecord->usDataLength = FreeRTOS_htons( ipSIZE_OF_IPv4_ADDRESS );
     pxDNSAnswerRecord->usType = ( dnsTYPE_A_HOST );
 
-    uint32_t * pulTestAddress = ( uint32_t * ) ( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ) );
-    *pulTestAddress = 0xABCD1234;
+    memcpy( ( ( uint8_t * ) pxDNSAnswerRecord ) + sizeof( DNSAnswerRecord_t ), &ulTestAddress, sizeof( ulTestAddress ) );
 
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
