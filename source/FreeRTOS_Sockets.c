@@ -3891,6 +3891,12 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             if( pxParentSocket->u.xTCP.bits.bReuseSocket == pdFALSE_UNSIGNED )
             {
                 pxClientSocket = pxParentSocket->u.xTCP.pxPeerSocket;
+
+                if( pxClientSocket != NULL )
+                {
+                    FreeRTOS_printf( ( "prvAcceptWaitClient: client %p parent %p\n",
+                                       ( void * ) pxClientSocket, ( void * ) pxParentSocket ) );
+                }
             }
             else
             {
@@ -3899,11 +3905,14 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
 
             if( pxClientSocket != NULL )
             {
-                pxParentSocket->u.xTCP.pxPeerSocket = NULL;
-
                 /* Is it still not taken ? */
                 if( pxClientSocket->u.xTCP.bits.bPassAccept != pdFALSE_UNSIGNED )
                 {
+                    if( pxParentSocket->u.xTCP.pxPeerSocket != NULL )
+                    {
+                        pxParentSocket->u.xTCP.pxPeerSocket = NULL;
+                    }
+
                     pxClientSocket->u.xTCP.bits.bPassAccept = pdFALSE_UNSIGNED;
                 }
                 else
