@@ -1809,17 +1809,18 @@ void test_xProcessReceivedTCPPacket_Null_Buffer( void )
 void test_xProcessReceivedTCPPacket_IPv6_FrameType( void )
 {
     BaseType_t Return = pdFALSE;
-    EthernetHeader_t xEthHeader;
+    uint8_t xEthBuffer[ 1500 ] = { 0 };
+
+    ( ( EthernetHeader_t * ) xEthBuffer )->usFrameType = ipIPv6_FRAME_TYPE;
 
     pxNetworkBuffer = &xNetworkBuffer;
-    pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xEthHeader;
-
-    xEthHeader.usFrameType = ipIPv6_FRAME_TYPE;
+    pxNetworkBuffer->pucEthernetBuffer = xEthBuffer;
 
     pxNetworkBuffer->xDataLength = 100;
 
     uxIPHeaderSizePacket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
     pxTCPSocketLookup_ExpectAnyArgsAndReturn( NULL );
+    prvTCPSendReset_ExpectAnyArgsAndReturn( pdTRUE );
 
     Return = xProcessReceivedTCPPacket( pxNetworkBuffer );
 
