@@ -778,13 +778,12 @@
  * @param[in] ulMSS The MSS of the connection.
  */
     BaseType_t xTCPWindowCreate( TCPWindow_t * pxWindow,
-                           uint32_t ulRxWindowLength,
-                           uint32_t ulTxWindowLength,
-                           uint32_t ulAckNumber,
-                           uint32_t ulSequenceNumber,
-                           uint32_t ulMSS )
+                                 uint32_t ulRxWindowLength,
+                                 uint32_t ulTxWindowLength,
+                                 uint32_t ulAckNumber,
+                                 uint32_t ulSequenceNumber,
+                                 uint32_t ulMSS )
     {
-
         BaseType_t xReturn = pdPASS;
 
         /* Create and initialize a window. */

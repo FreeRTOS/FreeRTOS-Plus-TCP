@@ -149,11 +149,11 @@ typedef struct xTCP_WINDOW
 
 /* Create and initialize a window */
 BaseType_t xTCPWindowCreate( TCPWindow_t * pxWindow,
-                       uint32_t ulRxWindowLength,
-                       uint32_t ulTxWindowLength,
-                       uint32_t ulAckNumber,
-                       uint32_t ulSequenceNumber,
-                       uint32_t ulMSS );
+                             uint32_t ulRxWindowLength,
+                             uint32_t ulTxWindowLength,
+                             uint32_t ulAckNumber,
+                             uint32_t ulSequenceNumber,
+                             uint32_t ulMSS );
 
 /* Destroy a window (always returns NULL)
  * It will free some resources: a collection of segments */

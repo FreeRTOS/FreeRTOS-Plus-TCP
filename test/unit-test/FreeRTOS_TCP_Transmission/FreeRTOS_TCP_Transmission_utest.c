@@ -1212,7 +1212,6 @@ void test_prvTCPPrepareConnect_Ready_TCPWindowCreateFail( void )
 
     Return = prvTCPPrepareConnect( pxSocket );
     TEST_ASSERT_EQUAL( pdFAIL, Return );
-
 }
 
 /* test for prvTCPPrepareConnect function */

@@ -193,7 +193,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
             prvSocketSetMSS( pxReturn );
 
             xReturnCreateWindow = prvTCPCreateWindow( pxReturn );
-            
+
             /* Did allocating TCP sectors fail? */
             if( xReturnCreateWindow != pdPASS )
             {
@@ -202,6 +202,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
                 {
                     vSocketClose( pxReturn );
                 }
+
                 pxReturn = NULL;
                 break;
             }
@@ -209,7 +210,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
             vTCPStateChange( pxReturn, eSYN_FIRST );
 
             /* Make a copy of the header up to the TCP header.  It is needed later
-            * on, whenever data must be sent to the peer. */
+             * on, whenever data must be sent to the peer. */
             if( pxNetworkBuffer->xDataLength > sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) )
             {
                 xCopyLength = sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket );
@@ -220,10 +221,9 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
             }
 
             ( void ) memcpy( ( void * ) pxReturn->u.xTCP.xPacket.u.ucLastPacket,
-                            ( const void * ) pxNetworkBuffer->pucEthernetBuffer,
-                            xCopyLength );
+                             ( const void * ) pxNetworkBuffer->pucEthernetBuffer,
+                             xCopyLength );
         } while( ipFALSE_BOOL );
-        
     }
 
     return pxReturn;

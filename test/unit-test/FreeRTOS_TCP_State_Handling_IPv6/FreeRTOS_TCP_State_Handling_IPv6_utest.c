@@ -488,7 +488,7 @@ void test_prvHandleListen_IPV6_CreateWindowFails( void )
 
     pxReturn = prvHandleListen_IPV6( pxSocket, pxNetworkBuffer );
 
-    TEST_ASSERT_EQUAL( NULL, pxReturn);
+    TEST_ASSERT_EQUAL( NULL, pxReturn );
 }
 
 

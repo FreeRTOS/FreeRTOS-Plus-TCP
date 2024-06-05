@@ -269,11 +269,11 @@ void test_xTCPWindowCreate_success( void )
 
 
     xReturn = xTCPWindowCreate( &xWindow,
-                      ulRxWindowLength,
-                      ulTxWindowLength,
-                      ulAckNumber,
-                      ulSequenceNumber,
-                      ulMSS );
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
     free( mlc );
 }
@@ -301,11 +301,11 @@ void test_xTCPWindowCreate_AllocationFailed( void )
 
 
     xReturn = xTCPWindowCreate( &xWindow,
-                      ulRxWindowLength,
-                      ulTxWindowLength,
-                      ulAckNumber,
-                      ulSequenceNumber,
-                      ulMSS );
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
@@ -331,11 +331,11 @@ void test_xTCPWindowCreate_tcp_segment_null( void )
 
 
     xReturn = xTCPWindowCreate( &xWindow,
-                      ulRxWindowLength,
-                      ulTxWindowLength,
-                      ulAckNumber,
-                      ulSequenceNumber,
-                      ulMSS );
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
@@ -358,11 +358,11 @@ void test_xTCPWindowCreate_null_tcpSegment( void )
     vListInitialise_ExpectAnyArgs();
 
     xReturn = xTCPWindowCreate( &xWindow,
-                      ulRxWindowLength,
-                      ulTxWindowLength,
-                      ulAckNumber,
-                      ulSequenceNumber,
-                      ulMSS );
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL( ulRxWindowLength, xWindow.xSize.ulRxWindowLength );
     TEST_ASSERT_EQUAL( ulTxWindowLength, xWindow.xSize.ulTxWindowLength );
