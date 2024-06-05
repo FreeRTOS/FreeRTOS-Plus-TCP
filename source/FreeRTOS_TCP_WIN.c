@@ -777,20 +777,23 @@
  * @param[in] ulSequenceNumber The first sequence number.
  * @param[in] ulMSS The MSS of the connection.
  */
-    void vTCPWindowCreate( TCPWindow_t * pxWindow,
+    BaseType_t xTCPWindowCreate( TCPWindow_t * pxWindow,
                            uint32_t ulRxWindowLength,
                            uint32_t ulTxWindowLength,
                            uint32_t ulAckNumber,
                            uint32_t ulSequenceNumber,
                            uint32_t ulMSS )
     {
+
+        BaseType_t xReturn = pdPASS;
+
         /* Create and initialize a window. */
 
         #if ( ipconfigUSE_TCP_WIN == 1 )
         {
             if( xTCPSegments == NULL )
             {
-                ( void ) prvCreateSectors();
+                xReturn = prvCreateSectors();
             }
 
             vListInitialise( &( pxWindow->xTxSegments ) );
@@ -804,7 +807,7 @@
 
         if( xTCPWindowLoggingLevel != 0 )
         {
-            FreeRTOS_debug_printf( ( "vTCPWindowCreate: for WinLen = Rx/Tx: %u/%u\n",
+            FreeRTOS_debug_printf( ( "xTCPWindowCreate: for WinLen = Rx/Tx: %u/%u\n",
                                      ( unsigned ) ulRxWindowLength, ( unsigned ) ulTxWindowLength ) );
         }
 
@@ -812,6 +815,8 @@
         pxWindow->xSize.ulTxWindowLength = ulTxWindowLength;
 
         vTCPWindowInit( pxWindow, ulAckNumber, ulSequenceNumber, ulMSS );
+
+        return xReturn;
     }
 /*-----------------------------------------------------------*/
 

@@ -148,7 +148,7 @@ typedef struct xTCP_WINDOW
  *=============================================================================*/
 
 /* Create and initialize a window */
-void vTCPWindowCreate( TCPWindow_t * pxWindow,
+BaseType_t xTCPWindowCreate( TCPWindow_t * pxWindow,
                        uint32_t ulRxWindowLength,
                        uint32_t ulTxWindowLength,
                        uint32_t ulAckNumber,
