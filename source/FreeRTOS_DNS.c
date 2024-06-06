@@ -1638,38 +1638,38 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @brief Sets the DNS IP preference while doing DNS lookup to indicate the preference 
+ * @brief Sets the DNS IP preference while doing DNS lookup to indicate the preference
  * for a DNS server: either IPv4 or IPv6. Defaults to xPreferenceIPv4
- * @param[in] eIPPreference IP preference, can be either xPreferenceIPv4 or 
+ * @param[in] eIPPreference IP preference, can be either xPreferenceIPv4 or
  * xPreferenceIPv6
  * @return pdPASS on success and pdFAIL on failure.
  */
-BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference )
-{
-    BaseType_t xReturn = pdPASS;
-    switch ( eIPPreference )
+    BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference )
     {
+        BaseType_t xReturn = pdPASS;
 
-    #if ( ipconfigUSE_IPv4 != 0 )
-        case xPreferenceIPv4:
-            xDNS_IP_Preference = xPreferenceIPv4;
-            break;
-    #endif
+        switch( eIPPreference )
+        {
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case xPreferenceIPv4:
+                    xDNS_IP_Preference = xPreferenceIPv4;
+                    break;
+            #endif
 
-    #if ( ipconfigUSE_IPv6 != 0 )
-        case xPreferenceIPv6:
-            xDNS_IP_Preference = xPreferenceIPv6;
-            break;
-    #endif
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case xPreferenceIPv6:
+                    xDNS_IP_Preference = xPreferenceIPv6;
+                    break;
+            #endif
 
-    default:
-        xReturn = pdFAIL;
-        FreeRTOS_printf( ( "Invalid DNS IPPreference_t\n" ) );
-        break;
+            default:
+                xReturn = pdFAIL;
+                FreeRTOS_printf( ( "Invalid DNS IPPreference_t\n" ) );
+                break;
+        }
+
+        return xReturn;
     }
-
-    return xReturn;
-}
 
 /*-----------------------------------------------------------*/
 

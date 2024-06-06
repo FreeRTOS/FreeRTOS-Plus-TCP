@@ -2251,6 +2251,7 @@ void test_FreeRTOS_freeaddrinfo_NullInput( void )
 void test_FreeRTOS_SetDNSIPPreference_IPv4( void )
 {
     BaseType_t xReturn;
+
     xReturn = FreeRTOS_SetDNSIPPreference( xPreferenceIPv4 );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL( xPreferenceIPv4, xDNS_IP_Preference );
@@ -2262,6 +2263,7 @@ void test_FreeRTOS_SetDNSIPPreference_IPv4( void )
 void test_FreeRTOS_SetDNSIPPreference_IPv6( void )
 {
     BaseType_t xReturn;
+
     xReturn = FreeRTOS_SetDNSIPPreference( xPreferenceIPv6 );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL( xPreferenceIPv6, xDNS_IP_Preference );
@@ -2273,6 +2275,7 @@ void test_FreeRTOS_SetDNSIPPreference_IPv6( void )
 void test_FreeRTOS_SetDNSIPPreference_None( void )
 {
     BaseType_t xReturn;
+
     xReturn = FreeRTOS_SetDNSIPPreference( xPreferenceNone );
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
