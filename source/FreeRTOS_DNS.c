@@ -1638,7 +1638,7 @@
 /*-----------------------------------------------------------*/
 
 /**
- * @briefSets the DNS IP preference while doing DNS lookup to indicate the preference 
+ * @brief Sets the DNS IP preference while doing DNS lookup to indicate the preference 
  * for a DNS server: either IPv4 or IPv6. Defaults to xPreferenceIPv4
  * @param[in] eIPPreference IP preference, can be either xPreferenceIPv4 or 
  * xPreferenceIPv6
