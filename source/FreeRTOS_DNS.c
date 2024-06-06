@@ -1637,6 +1637,13 @@
 
 /*-----------------------------------------------------------*/
 
+/**
+ * @briefSets the DNS IP preference while doing DNS lookup to indicate the preference 
+ * for a DNS server: either IPv4 or IPv6. Defaults to xPreferenceIPv4
+ * @param[in] eIPPreference IP preference, can be either xPreferenceIPv4 or 
+ * xPreferenceIPv6
+ * @return pdPASS on success and pdFAIL on failure.
+ */
 BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference )
 {
     BaseType_t xReturn = pdPASS;
