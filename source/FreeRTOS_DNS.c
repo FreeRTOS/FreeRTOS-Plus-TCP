@@ -1637,6 +1637,35 @@
 
 /*-----------------------------------------------------------*/
 
+BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference )
+{
+    BaseType_t xReturn = pdPASS;
+    switch ( eIPPreference )
+    {
+
+    #if ( ipconfigUSE_IPv4 != 0 )
+        case xPreferenceIPv4:
+            xDNS_IP_Preference = xPreferenceIPv4;
+            break;
+    #endif
+
+    #if ( ipconfigUSE_IPv6 != 0 )
+        case xPreferenceIPv6:
+            xDNS_IP_Preference = xPreferenceIPv6;
+            break;
+    #endif
+
+    default:
+        xReturn = pdFAIL;
+        FreeRTOS_printf( ( "Invalid DNS IPPreference_t\n" ) );
+        break;
+    }
+
+    return xReturn;
+}
+
+/*-----------------------------------------------------------*/
+
 #endif /* ipconfigUSE_DNS != 0 */
 
 /*-----------------------------------------------------------*/

@@ -154,6 +154,10 @@ BaseType_t FreeRTOS_getaddrinfo( const char * pcName,                      /* Th
  */
 void FreeRTOS_freeaddrinfo( struct freertos_addrinfo * pxInfo );
 
+/* Sets the DNS IP preference while doing DNS lookup to indicate the preference 
+ * for a DNS server: either IPv4 or IPv6. Defaults to xPreferenceIPv4 */
+BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference );
+
 #if ( ipconfigDNS_USE_CALLBACKS == 1 )
 
 /*
