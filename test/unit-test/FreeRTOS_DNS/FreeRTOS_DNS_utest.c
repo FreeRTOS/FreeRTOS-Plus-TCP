@@ -1040,6 +1040,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWithDot( void )
     struct xSOCKET xDNSSocket;
     NetworkEndPoint_t xEndPoint[ 5 ];
 
+    xDNS_IP_Preference = xPreferenceIPv6;
+
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
@@ -1154,6 +1156,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWODot( void )
     struct xSOCKET xDNSSocket;
     NetworkEndPoint_t xEndPoint[ 2 ];
 
+    xDNS_IP_Preference = xPreferenceIPv6;
+
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
@@ -1236,6 +1240,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_InvalidDNSServerIndex( void )
     uint32_t ulRandom = 0x1234U;
     struct xSOCKET xDNSSocket;
     NetworkEndPoint_t xEndPoint;
+
+    xDNS_IP_Preference = xPreferenceIPv6;
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
@@ -1323,6 +1329,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_DNSReplySuccess( void )
     struct xDNSBuffer xReceiveBuffer;
     DNSMessage_t * pxDNSMessageHeader = NULL;
 
+    xDNS_IP_Preference = xPreferenceIPv6;
+
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
@@ -1406,6 +1414,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_RetryExhaust( void )
     struct xDNSBuffer xReceiveBuffer;
     DNSMessage_t * pxDNSMessageHeader = NULL;
     int i;
+
+    xDNS_IP_Preference = xPreferenceIPv6;
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
@@ -1576,6 +1586,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LocalDNSSuccess( void )
     DNSMessage_t * pxDNSMessageHeader = NULL;
     int i;
 
+    xDNS_IP_Preference = xPreferenceIPv6;
+
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
@@ -1661,6 +1673,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSUnknownPreference( void )
     DNSMessage_t * pxDNSMessageHeader = NULL;
     int i;
 
+    xDNS_IP_Preference = xPreferenceIPv6;
+
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
@@ -1731,6 +1745,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LLMNRDNSSuccess( void )
     struct xDNSBuffer xReceiveBuffer;
     DNSMessage_t * pxDNSMessageHeader = NULL;
     int i;
+
+    xDNS_IP_Preference = xPreferenceIPv6;
 
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
@@ -2025,6 +2041,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LLMNRFail( void )
     DNSMessage_t * pxDNSMessageHeader = NULL;
     int i;
 
+    xDNS_IP_Preference = xPreferenceIPv6;
+
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
@@ -2125,6 +2143,8 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_PortSpecified( void )
     DNSMessage_t * pxDNSMessageHeader = NULL;
     uint16_t usExpectPort = 0x1234;
 
+    xDNS_IP_Preference = xPreferenceIPv6;
+
     memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
     memset( &xExpectedAddress, 0, sizeof( struct freertos_addrinfo ) );
@@ -2223,4 +2243,39 @@ void test_pxNew_AddrInfo_UnknownFamily( void )
 void test_FreeRTOS_freeaddrinfo_NullInput( void )
 {
     FreeRTOS_freeaddrinfo( NULL );
+}
+
+/**
+ * @brief Preference is IPv6
+ */
+void test_FreeRTOS_SetDNSIPPreference_IPv4( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = FreeRTOS_SetDNSIPPreference( xPreferenceIPv4 );
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL( xPreferenceIPv4, xDNS_IP_Preference );
+}
+
+/**
+ * @brief Preference is IPv6
+ */
+void test_FreeRTOS_SetDNSIPPreference_IPv6( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = FreeRTOS_SetDNSIPPreference( xPreferenceIPv6 );
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
+    TEST_ASSERT_EQUAL( xPreferenceIPv6, xDNS_IP_Preference );
+}
+
+/**
+ * @brief Preference is None
+ */
+void test_FreeRTOS_SetDNSIPPreference_None( void )
+{
+    BaseType_t xReturn;
+
+    xReturn = FreeRTOS_SetDNSIPPreference( xPreferenceNone );
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
