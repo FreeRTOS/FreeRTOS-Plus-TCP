@@ -203,9 +203,10 @@ void test_xDNSDoCallback_success_equal_identifier_set_timer( void )
 /**
  * @brief Happy Path!
  */
-void test_vDNSSetCallback_success( void )
+void test_xDNSSetCallBack_success( void )
 {
     void * pvSearchID = NULL;
+    BaseType_t xReturn;
 
     /* Expectations */
     pvPortMalloc_ExpectAnyArgsAndReturn( &dnsCallback );
@@ -218,21 +219,23 @@ void test_vDNSSetCallback_success( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
+    xReturn = xDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
     TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
     TEST_ASSERT_EQUAL( dns_callback, dnsCallback.pCallbackFunction );
     TEST_ASSERT_EQUAL( pvSearchID, dnsCallback.pvSearchID );
     TEST_ASSERT_EQUAL( 56, dnsCallback.uxRemainingTime );
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
  * @brief Happy Path!
  */
-void test_vDNSSetCallback_success_empty_list( void )
+void test_xDNSSetCallBack_success_empty_list( void )
 {
     void * pvSearchID = NULL;
+    BaseType_t xReturn;
 
     /* Expectations */
     pvPortMalloc_ExpectAnyArgsAndReturn( &dnsCallback );
@@ -247,27 +250,31 @@ void test_vDNSSetCallback_success_empty_list( void )
     xTaskResumeAll_ExpectAndReturn( pdFALSE );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
+    xReturn = xDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
     TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
     TEST_ASSERT_EQUAL( dns_callback, dnsCallback.pCallbackFunction );
     TEST_ASSERT_EQUAL( pvSearchID, dnsCallback.pvSearchID );
     TEST_ASSERT_EQUAL( 56, dnsCallback.uxRemainingTime );
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
 /**
  * @brief Memory Allocation failed
  */
-void test_vDNSSetCallback_malloc_failed( void )
+void test_xDNSSetCallBack_malloc_failed( void )
 {
     void * pvSearchID = NULL;
+    BaseType_t xReturn;
 
     /* Expectations */
     pvPortMalloc_ExpectAnyArgsAndReturn( NULL );
 
     /* API Call */
-    vDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
+    xReturn = xDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+    
 }
 
 
