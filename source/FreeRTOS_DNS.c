@@ -607,6 +607,10 @@
          * as gethostbyname() may be called from different threads */
         BaseType_t xHasRandom = pdFALSE;
         TickType_t uxIdentifier = 0U;
+        
+        #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+            BaseType_t xReturnSetCallback = pdPASS;
+        #endif
 
         #if ( ipconfigUSE_DNS_CACHE != 0 )
             BaseType_t xLengthOk = pdFALSE;
@@ -690,7 +694,7 @@
                         if( xHasRandom != pdFALSE )
                         {
                             uxReadTimeOut_ticks = 0U;
-                            vDNSSetCallBack( pcHostName,
+                            xReturnSetCallback = xDNSSetCallBack( pcHostName,
                                              pvSearchID,
                                              pCallbackFunction,
                                              uxTimeout,
@@ -707,7 +711,13 @@
             }
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
-            if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
+            if( ( ulIPAddress == 0U ) &&
+            
+            #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                ( xReturnSetCallback == pdPASS ) &&
+            #endif
+            
+            ( xHasRandom != pdFALSE ) )
             {
                 ulIPAddress = prvGetHostByName( pcHostName,
                                                 uxIdentifier,
