@@ -1249,17 +1249,6 @@
         /* Make sure all fields of the 'sockaddr' are cleared. */
         ( void ) memset( ( void * ) &xAddress, 0, sizeof( xAddress ) );
 
-        #if ( ipconfigUSE_IPv6 != 0 )
-            if( xFamily == ( BaseType_t ) FREERTOS_AF_INET6 )
-            {
-                xDNS_IP_Preference = xPreferenceIPv6;
-            }
-            else
-            {
-                xDNS_IP_Preference = xPreferenceIPv4;
-            }
-        #endif /* ( ipconfigUSE_IPv6 != 0 ) */
-
         pxEndPoint = prvFillSockAddress( &xAddress, pcHostName );
 
         if( pxEndPoint != NULL )
@@ -1645,6 +1634,42 @@
         }
 
     #endif /* ipconfigUSE_NBNS */
+
+/*-----------------------------------------------------------*/
+
+/**
+ * @brief Sets the DNS IP preference while doing DNS lookup to indicate the preference
+ * for a DNS server: either IPv4 or IPv6. Defaults to xPreferenceIPv4
+ * @param[in] eIPPreference IP preference, can be either xPreferenceIPv4 or
+ * xPreferenceIPv6
+ * @return pdPASS on success and pdFAIL on failure.
+ */
+    BaseType_t FreeRTOS_SetDNSIPPreference( IPPreference_t eIPPreference )
+    {
+        BaseType_t xReturn = pdPASS;
+
+        switch( eIPPreference )
+        {
+            #if ( ipconfigUSE_IPv4 != 0 )
+                case xPreferenceIPv4:
+                    xDNS_IP_Preference = xPreferenceIPv4;
+                    break;
+            #endif
+
+            #if ( ipconfigUSE_IPv6 != 0 )
+                case xPreferenceIPv6:
+                    xDNS_IP_Preference = xPreferenceIPv6;
+                    break;
+            #endif
+
+            default:
+                xReturn = pdFAIL;
+                FreeRTOS_printf( ( "Invalid DNS IPPreference_t\n" ) );
+                break;
+        }
+
+        return xReturn;
+    }
 
 /*-----------------------------------------------------------*/
 
