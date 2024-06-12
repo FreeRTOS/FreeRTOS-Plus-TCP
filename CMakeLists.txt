@@ -198,6 +198,10 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-fdiagnostics-color=always>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-fcolor-diagnostics>
 
+    ## Suppress warnings from kernel port files.
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-sign-compare>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-sign-conversion>
+    
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wall>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
@@ -243,3 +247,11 @@ add_subdirectory(tools)
 add_subdirectory(test)
 
 FetchContent_MakeAvailable(freertos_kernel cmock)
+
+# Note following are can be removed once FreeRTOS-Kernel v10.5.0 + fixes their issues.
+# To ignore header specific issues - change all of the headers to SYSTEM
+set(_freertos_kernel_targets freertos_kernel freertos_kernel_port)
+# foreach (_target ${_freertos_kernel_targets} )
+#   get_target_property( interface_directories ${_target} INTERFACE_INCLUDE_DIRECTORIES )
+#   set_target_properties(${_target}  PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${interface_directories}" )
+# endforeach()
