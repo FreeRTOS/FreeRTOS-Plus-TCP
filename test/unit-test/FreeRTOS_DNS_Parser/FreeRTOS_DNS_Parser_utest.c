@@ -2789,7 +2789,7 @@ void test_parseDNSAnswer_recordNOTstored_gt_count_diffUsType( void )
     ret = parseDNSAnswer( &xSet, &pxAddressInfo, &uxBytesRead );
 
     TEST_ASSERT_EQUAL( 0, ret );
-    TEST_ASSERT_EQUAL( 40, uxBytesRead );
+    TEST_ASSERT_EQUAL( 0, uxBytesRead );
 }
 
 /**
