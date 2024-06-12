@@ -169,11 +169,11 @@ void harness()
 {
     size_t uxBufferLength;
     uint16_t usPort;
-    struct freertos_addrinfo *pxAddressInfo;
+    struct freertos_addrinfo * pxAddressInfo;
     BaseType_t xExpected;
     NetworkEndPoint_t * pxNetworkEndPoint_Temp = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
     const uint32_t ulIpv4UdpOffset = 42, ulIpv6UdpOffset = 62;
-    uint8_t *pPayloadBuffer;
+    uint8_t * pPayloadBuffer;
     size_t uxPayloadBufferLength;
 
     __CPROVER_assert( TEST_PACKET_SIZE < CBMC_MAX_OBJECT_SIZE,
@@ -187,8 +187,9 @@ void harness()
     xNetworkBuffer.pucEthernetBuffer = safeMalloc( uxBufferLength );
     xNetworkBuffer.xDataLength = uxBufferLength;
     xNetworkBuffer.pxEndPoint = pxNetworkEndPoint_Temp;
-    
+
     __CPROVER_assume( xNetworkBuffer.pucEthernetBuffer != NULL );
+
     if( lIsIPv6Packet )
     {
         __CPROVER_assume( uxBufferLength >= ulIpv6UdpOffset ); /* 62 is total size of IPv4 UDP header, including ethernet, IPv6, UDP headers. */
