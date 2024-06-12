@@ -198,6 +198,10 @@ add_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-fdiagnostics-color=always>
     $<$<COMPILE_LANG_AND_ID:C,Clang>:-fcolor-diagnostics>
 
+    ## Suppress warnings from kernel port files.
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-sign-compare>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wno-sign-conversion>
+
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wall>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
     $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
