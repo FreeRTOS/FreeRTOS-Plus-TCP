@@ -1,9 +1,17 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
 Changes between FreeRTOS-plus-TCP V4.1.1 and V4.1.0 released June 12, 2024
-	+ FreeRTOS DNS Response Handling: It was possible for a carefully crafted DNS response with domain name length value greater than the actual domain name length, to cause a buffer over-read within the DNS Response Parser. This issue affects applications using DNS functionality of the FreeRTOS-Plus-TCP stack. Applications that do not use DNS functionality are not affected, even when the DNS functionality is enabled.
-	This issue has been fixed by modifying the code to ensure that the DNS Response Parser never attempts to read beyond the DNS response buffer boundary.
-	We would like to thank Paschal Amusuo, James C. Davis, and Aravind Machiry of Purdue University, for reporting this issue.
+	+ FreeRTOS DNS Response Handling: It was possible for a carefully crafted
+	  DNS response with domain name length value greater than the actual domain
+	  name length, to cause a buffer over-read within the DNS Response Parser.
+	  This issue affects applications using DNS functionality of the
+	  FreeRTOS-Plus-TCP stack. Applications that do not use DNS functionality
+	  are not affected, even when the DNS functionality is enabled.
+	  This issue has been fixed by modifying the code to ensure that the DNS
+	  Response Parser never attempts to read beyond the DNS response buffer
+	  boundary.
+	  We would like to thank Paschal Amusuo, James C. Davis, and Aravind Machiry
+	  of Purdue University, for reporting this issue.
 
 Changes between FreeRTOS-plus-TCP V4.1.0 and V4.0.0 released March 8, 2024
 	+ Add new Network Interface for Corstone-300 FVP (MPS3_AN552).
