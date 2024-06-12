@@ -17,7 +17,7 @@
 #include "IPTraceMacroDefaults.h"
 
 #include "cbmc.h"
-#include "../../../utility/memory_assignments.c"
+#include "../../utility/memory_assignments.c"
 
 /****************************************************************
 * Signature of function under test
