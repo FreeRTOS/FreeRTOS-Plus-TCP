@@ -1,5 +1,9 @@
 Documentation and download available at https://www.FreeRTOS.org/
 
+Changes between FreeRTOS-plus-TCP V4.1.1 and V4.1.0 released June 12, 2024
+	+ Fix Buffer Over-Read (CWE-126) in DNS Response Parser
+	  We would like to thank Paschal Amusuo, James C. Davis, and Aravind Machiry of Purdue University, for their contribution.
+
 Changes between FreeRTOS-plus-TCP V4.1.0 and V4.0.0 released March 8, 2024
 	+ Add new Network Interface for Corstone-300 FVP (MPS3_AN552).
 	  We thank @urutva for their contribution.
