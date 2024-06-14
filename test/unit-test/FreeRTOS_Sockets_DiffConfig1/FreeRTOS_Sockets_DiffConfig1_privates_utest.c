@@ -54,6 +54,8 @@ BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
                                    BaseType_t xProtocol,
                                    size_t * pxSocketSize );
 
+BaseType_t xTCPWindowLoggingLevel = 0;
+
 /* ============================== Test Cases ============================== */
 
 /**

@@ -109,7 +109,11 @@ static NetworkBufferDescriptor_t * prvInitializeNetworkDescriptorWithExtensionHe
 {
     static NetworkBufferDescriptor_t xNetworkBuffer;
     /* Ethernet header + IPv6 header + Maximum protocol header + IPv6 Extension Headers + 1 payload */
-    static uint8_t pcNetworkBuffer[ sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH + sizeof( ICMPHeader_IPv6_t ) + 1U ];
+    static uint8_t pcNetworkBuffer[
+        sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH
+        + configMAX( sizeof( ICMPHeader_IPv6_t ), sizeof( TCPHeader_t ) )
+        + 1U
+    ];
     EthernetHeader_t * pxEthHeader = ( EthernetHeader_t * ) pcNetworkBuffer;
     IPHeader_IPv6_t * pxIPv6Header = ( IPHeader_IPv6_t * ) &( pcNetworkBuffer[ sizeof( EthernetHeader_t ) ] );
     uint8_t * pxIPv6ExtHeader = ( uint8_t * ) &( pcNetworkBuffer[ sizeof( EthernetHeader_t ) + sizeof( IPHeader_IPv6_t ) ] );
