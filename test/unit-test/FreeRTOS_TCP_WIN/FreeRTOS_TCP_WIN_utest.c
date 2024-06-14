@@ -193,12 +193,15 @@ void test_vTCPWindowDestroy_list_length_zero( void )
 void test_vTCPWindowDestroy_list_length_not_zero( void )
 {
     TCPWindow_t xWindow = { 0 };
-    List_t * pxSegments = &( xWindow.xRxSegments );
+    TCPSegment_t xSegment = { 0 };
+
+    xSegment.xQueueItem.pvContainer = &xWindow.xPriorityQueue;
+    xSegment.xSegmentItem.pvContainer = &xWindow.xPriorityQueue;
 
     listLIST_IS_INITIALISED_ExpectAnyArgsAndReturn( pdFALSE );
     listLIST_IS_INITIALISED_ExpectAnyArgsAndReturn( pdTRUE );
     listCURRENT_LIST_LENGTH_ExpectAnyArgsAndReturn( 1 );
-    listGET_OWNER_OF_HEAD_ENTRY_ExpectAnyArgsAndReturn( pxSegments );
+    listGET_OWNER_OF_HEAD_ENTRY_ExpectAnyArgsAndReturn( &xSegment );
     /* ->vTCPWindowFree */
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
     uxListRemove_ExpectAnyArgsAndReturn( pdTRUE );
@@ -389,11 +392,14 @@ void test_vTCPSegmentCleanup_segment_null( void )
 void test_vTCPSegmentCleanup_segment_not_null( void )
 {
     /* will be freed by the function under test */
-    xTCPSegments = ( TCPSegment_t * ) malloc( 123 );
+    TCPSegment_t * pxTCPSegment = malloc( sizeof( TCPSegment_t ) );
+
+    xTCPSegments = pxTCPSegment;
 
     vPortFree_Expect( xTCPSegments );
     vTCPSegmentCleanup();
     TEST_ASSERT_NULL( xTCPSegments );
+    free( pxTCPSegment );
 }
 
 void test_lTCPWindowRxCheck_sequence_nums_equal( void )
@@ -1044,13 +1050,14 @@ void test_lTCPWindowTxAdd_nothing_to_do( void )
 {
     int32_t lDone;
     TCPWindow_t xWindow = { 0 };
+    TCPSegment_t xSegment = { 0 };
     uint32_t ulLength = 0;
     int32_t lPosition = 0;
     int32_t lMax = 0;
     BaseType_t xBackup = xTCPWindowLoggingLevel;
 
     /* in real code, this points to a list of segments */
-    xWindow.pxHeadSegment = malloc( sizeof( TCPSegment_t ) );
+    xWindow.pxHeadSegment = &xSegment;
 
     xTCPWindowLoggingLevel = 3;
 
@@ -1062,7 +1069,6 @@ void test_lTCPWindowTxAdd_nothing_to_do( void )
     TEST_ASSERT_EQUAL( 0, lDone );
 
     xTCPWindowLoggingLevel = xBackup;
-    free( xWindow.pxHeadSegment );
 }
 
 void test_lTCPWindowTxAdd_null_txSegment( void )
@@ -1230,7 +1236,9 @@ void test_lTCPWindowTxAdd_lBytesLeft_gt_zero_data_length_gt_maxlen( void )
     int32_t lMax = 0;
 
     /* in real code, this points to a list of segments */
-    xWindow.pxHeadSegment = malloc( sizeof( TCPSegment_t ) );
+    TCPSegment_t * pxTCPSegment = malloc( sizeof( TCPSegment_t ) );
+
+    xWindow.pxHeadSegment = pxTCPSegment;
     xWindow.pxHeadSegment->lMaxLength = 300;
     xWindow.pxHeadSegment->lDataLength = 200;
     xWindow.pxHeadSegment->u.bits.bOutstanding = pdTRUE_UNSIGNED;
@@ -1262,7 +1270,7 @@ void test_lTCPWindowTxAdd_lBytesLeft_gt_zero_data_length_gt_maxlen( void )
 
     TEST_ASSERT_EQUAL( 25, lDone );
     TEST_ASSERT_NULL( xWindow.pxHeadSegment );
-    free( xWindow.pxHeadSegment );
+    free( pxTCPSegment );
 }
 
 void test_lTCPWindowTxAdd_lBytesLeft_gt_zero_data_length_lt_maxlen( void )

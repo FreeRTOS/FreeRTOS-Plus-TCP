@@ -56,7 +56,11 @@
 
 #include "catch_assert.h"
 
-/* ============================== Test Cases ============================== */
+/* ============================ EXTERN VARIABLES ============================ */
+
+BaseType_t xTCPWindowLoggingLevel = 0;
+
+/* =============================== Test Cases =============================== */
 
 /**
  * @brief Binding successful.
