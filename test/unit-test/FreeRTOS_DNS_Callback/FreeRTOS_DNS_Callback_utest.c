@@ -224,10 +224,10 @@ void test_xDNSSetCallBack_success( void )
     xReturn = xDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
-    TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
-    TEST_ASSERT_EQUAL( dns_callback, dnsCallback.pCallbackFunction );
-    TEST_ASSERT_EQUAL( pvSearchID, dnsCallback.pvSearchID );
-    TEST_ASSERT_EQUAL( 56, dnsCallback.uxRemainingTime );
+    TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback->pcName, "hostname" ) );
+    TEST_ASSERT_EQUAL( dns_callback, dnsCallback->pCallbackFunction );
+    TEST_ASSERT_EQUAL( pvSearchID, dnsCallback->pvSearchID );
+    TEST_ASSERT_EQUAL( 56, dnsCallback->uxRemainingTime );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
@@ -255,10 +255,10 @@ void test_xDNSSetCallBack_success_empty_list( void )
     xReturn = xDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
 
     /* Validations */
-    TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback.pcName, "hostname" ) );
-    TEST_ASSERT_EQUAL( dns_callback, dnsCallback.pCallbackFunction );
-    TEST_ASSERT_EQUAL( pvSearchID, dnsCallback.pvSearchID );
-    TEST_ASSERT_EQUAL( 56, dnsCallback.uxRemainingTime );
+    TEST_ASSERT_EQUAL( 0, strcmp( dnsCallback->pcName, "hostname" ) );
+    TEST_ASSERT_EQUAL( dns_callback, dnsCallback->pCallbackFunction );
+    TEST_ASSERT_EQUAL( pvSearchID, dnsCallback->pvSearchID );
+    TEST_ASSERT_EQUAL( 56, dnsCallback->uxRemainingTime );
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
 }
 
