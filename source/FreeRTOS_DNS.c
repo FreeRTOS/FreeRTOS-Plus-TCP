@@ -607,7 +607,7 @@
          * as gethostbyname() may be called from different threads */
         BaseType_t xHasRandom = pdFALSE;
         TickType_t uxIdentifier = 0U;
-        
+
         #if ( ipconfigDNS_USE_CALLBACKS == 1 )
             BaseType_t xReturnSetCallback = pdPASS;
         #endif
@@ -695,11 +695,11 @@
                         {
                             uxReadTimeOut_ticks = 0U;
                             xReturnSetCallback = xDNSSetCallBack( pcHostName,
-                                             pvSearchID,
-                                             pCallbackFunction,
-                                             uxTimeout,
-                                             ( TickType_t ) uxIdentifier,
-                                             ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
+                                                                  pvSearchID,
+                                                                  pCallbackFunction,
+                                                                  uxTimeout,
+                                                                  ( TickType_t ) uxIdentifier,
+                                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                         }
                     }
                     else     /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
@@ -712,12 +712,12 @@
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
             if( ( ulIPAddress == 0U ) &&
-            
-            #if ( ipconfigDNS_USE_CALLBACKS == 1 )
-                ( xReturnSetCallback == pdPASS ) &&
-            #endif
-            
-            ( xHasRandom != pdFALSE ) )
+
+                #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                    ( xReturnSetCallback == pdPASS ) &&
+                #endif
+
+                ( xHasRandom != pdFALSE ) )
             {
                 ulIPAddress = prvGetHostByName( pcHostName,
                                                 uxIdentifier,

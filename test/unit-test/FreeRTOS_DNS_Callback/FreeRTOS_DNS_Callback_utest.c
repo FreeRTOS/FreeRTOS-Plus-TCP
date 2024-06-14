@@ -274,7 +274,6 @@ void test_xDNSSetCallBack_malloc_failed( void )
     /* API Call */
     xReturn = xDNSSetCallBack( "hostname", pvSearchID, dns_callback, 56, 123, pdFALSE );
     TEST_ASSERT_EQUAL( pdFAIL, xReturn );
-    
 }
 
 

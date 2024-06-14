@@ -54,11 +54,11 @@
                                struct freertos_addrinfo * pxAddress );
 
     BaseType_t xDNSSetCallBack( const char * pcHostName,
-                          void * pvSearchID,
-                          FOnDNSEvent pCallbackFunction,
-                          TickType_t uxTimeout,
-                          TickType_t uxIdentifier,
-                          BaseType_t xIsIPv6 );
+                                void * pvSearchID,
+                                FOnDNSEvent pCallbackFunction,
+                                TickType_t uxTimeout,
+                                TickType_t uxIdentifier,
+                                BaseType_t xIsIPv6 );
 
     void vDNSCheckCallBack( void * pvSearchID );
 

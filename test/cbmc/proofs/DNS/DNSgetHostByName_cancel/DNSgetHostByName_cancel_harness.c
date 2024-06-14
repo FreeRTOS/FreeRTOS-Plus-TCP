@@ -14,11 +14,11 @@
 void vDNSInitialise( void );
 
 BaseType_t xDNSSetCallBack( const char * pcHostName,
-                      void * pvSearchID,
-                      FOnDNSEvent pCallbackFunction,
-                      TickType_t xTimeout,
-                      TickType_t xIdentifier,
-                      BaseType_t xIsIPv6 );
+                            void * pvSearchID,
+                            FOnDNSEvent pCallbackFunction,
+                            TickType_t xTimeout,
+                            TickType_t xIdentifier,
+                            BaseType_t xIsIPv6 );
 
 void * safeMalloc( size_t xWantedSize ) /* Returns a NULL pointer if the wanted size is 0. */
 {

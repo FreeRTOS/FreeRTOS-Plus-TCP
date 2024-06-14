@@ -130,11 +130,11 @@
  * @param[in] xIsIPv6 pdTRUE if the address type should be IPv6.
  */
     BaseType_t xDNSSetCallBack( const char * pcHostName,
-                          void * pvSearchID,
-                          FOnDNSEvent pCallbackFunction,
-                          TickType_t uxTimeout,
-                          TickType_t uxIdentifier,
-                          BaseType_t xIsIPv6 )
+                                void * pvSearchID,
+                                FOnDNSEvent pCallbackFunction,
+                                TickType_t uxTimeout,
+                                TickType_t uxIdentifier,
+                                BaseType_t xIsIPv6 )
     {
         BaseType_t xReturn = pdPASS;
         size_t lLength = strlen( pcHostName );
@@ -176,6 +176,7 @@
             FreeRTOS_debug_printf( ( " xDNSSetCallBack : Could not allocate memory: %u bytes",
                                      ( unsigned ) ( sizeof( *pxCallback ) + lLength ) ) );
         }
+
         return xReturn;
     }
 /*-----------------------------------------------------------*/
