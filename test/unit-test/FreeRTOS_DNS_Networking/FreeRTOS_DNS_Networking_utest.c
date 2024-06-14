@@ -195,7 +195,8 @@ void test_SendRequest_fail( void )
     struct freertos_sockaddr xAddress;
     struct xDNSBuffer pxDNSBuf;
 
-    FreeRTOS_sendto_ExpectAnyArgsAndReturn( pdFALSE );
+    pxDNSBuf.uxPayloadLength = 1024;
+    FreeRTOS_sendto_ExpectAnyArgsAndReturn( 1023 );
 
     ret = DNS_SendRequest( s, &xAddress, &pxDNSBuf );
 

@@ -813,6 +813,7 @@ void test_prvTCPReturnPacket_No_KL( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxSocket->pxEndPoint = &xEndPoint;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
@@ -867,6 +868,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxSocket->pxEndPoint = &xEndPoint;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
@@ -927,6 +929,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_GT_Eth_Packet_Length( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
@@ -966,6 +969,7 @@ void test_prvTCPReturnPacket_No_KL_LocalIP_ARP_Not_Hit( void )
     xEndPoint.pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
     NetworkInterfaceOutputFunction_Stub_Called = 0;
     pxSocket->pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     pxSocket->u.xTCP.rxStream = ( StreamBuffer_t * ) 0x12345678;
     pxSocket->u.xTCP.uxRxStreamSize = 1500;
@@ -1035,6 +1039,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Suppress_Rx_Stop( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
@@ -1086,6 +1091,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Low_Water( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
@@ -1137,6 +1143,7 @@ void test_prvTCPReturnPacket_No_KL_Fin_Not_Suppress_Big_Win( void )
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxTCPPacket->xTCPHeader.ucTCPFlags = tcpTCP_FLAG_FIN;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizeSocket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
@@ -2171,6 +2178,7 @@ void test_prvSendData_AckMsg_Not_Null_Small_Length( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     vReleaseNetworkBufferAndDescriptor_ExpectAnyArgs();
@@ -2227,7 +2235,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxEndPoint = &xEndPoint;
-
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
@@ -2283,6 +2291,7 @@ void test_prvSendData_AckMsg_Not_Null_Same_NetBuffer_Syn_State_Data_To_Send( voi
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
@@ -2338,6 +2347,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
@@ -2394,6 +2404,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Log( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );
@@ -2450,6 +2461,7 @@ void test_prvSendData_AckMsg_Null_Syn_State_Data_To_Send_Rcv_Zero( void )
     pxTCPWindow->rx.ulCurrentSequenceNumber = 50;
     pxTCPPacket->xTCPHeader.ulAckNr = 0;
     pxEndPoint = &xEndPoint;
+    pxNetworkBuffer->pxEndPoint = &xEndPoint;
 
     uxIPHeaderSizePacket_IgnoreAndReturn( ipSIZE_OF_IPv4_HEADER );
     uxStreamBufferFrontSpace_ExpectAnyArgsAndReturn( 1000 );

@@ -627,7 +627,14 @@
                  * active connect(). */
                 if( pxSocket->u.xTCP.ucRepCount < 3U )
                 {
-                    ulDelayMs = ( ( ( uint32_t ) 3000U ) << ( pxSocket->u.xTCP.ucRepCount - 1U ) );
+                    if( pxSocket->u.xTCP.ucRepCount == 0U )
+                    {
+                        ulDelayMs = 0U;
+                    }
+                    else
+                    {
+                        ulDelayMs = ( ( uint32_t ) 3000U ) << ( pxSocket->u.xTCP.ucRepCount - 1U );
+                    }
                 }
                 else
                 {
