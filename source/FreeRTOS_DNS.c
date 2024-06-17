@@ -1517,7 +1517,7 @@
         uxIndex = uxStart + 1U;
 
         /* Copy in the host name. */
-        ( void ) strcpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName );
+        ( void ) strncpy( ( char * ) &( pucUDPPayloadBuffer[ uxIndex ] ), pcHostName, strlen( pcHostName ) + 1U );
 
         /* Walk through the string to replace the '.' characters with byte
          * counts.  pucStart holds the address of the byte count.  Walking the
