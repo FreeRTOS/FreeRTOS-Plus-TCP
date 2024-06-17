@@ -609,7 +609,7 @@ void test_FreeRTOS_gethostbyname_a_SetCallback( void )
     FreeRTOS_inet_addr_ExpectAndReturn( GOOD_ADDRESS, 0 );
     Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_IgnoreAndReturn( pdTRUE );
-    vDNSSetCallBack_ExpectAnyArgs();
+    xDNSSetCallBack_ExpectAnyArgsAndReturn( pdPASS );
     DNS_CreateSocket_ExpectAnyArgsAndReturn( NULL );
 
     ret = FreeRTOS_gethostbyname_a( GOOD_ADDRESS,
@@ -665,7 +665,7 @@ void test_FreeRTOS_gethostbyname_a_Callback( void )
 }
 
 /**
- * @brief Ensures that if vDNSSetCallBack is called the client is put in
+ * @brief Ensures that if xDNSSetCallBack is called the client is put in
  *        asynchronous mode, and only one retry is performed by calling
  *        prvGetHostByNameOp instead of prvGetHostByNameOp_WithRetry
  */
@@ -700,7 +700,7 @@ void test_FreeRTOS_gethostbyname_a_NoCallbackRetryOnce( void )
     Prepare_CacheLookup_ExpectAnyArgsAndReturn( 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnThruPtr_pulNumber( &ulNumber );
-    vDNSSetCallBack_ExpectAnyArgs();
+    xDNSSetCallBack_ExpectAnyArgsAndReturn( pdPASS );
 
     /* in prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
@@ -894,7 +894,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4DomainCacheMiss_Random( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
     DNS_CreateSocket_ExpectAndReturn( 0U, NULL );
 
     xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", NULL, &pxAddress, dns_callback, NULL, 0U );
@@ -922,7 +922,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6DomainCacheMiss_Random( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
     DNS_CreateSocket_ExpectAndReturn( 0U, NULL );
 
     xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
@@ -956,7 +956,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_EndPointNotFound( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -965,6 +965,40 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_EndPointNotFound( void )
     FreeRTOS_FirstEndPoint_ExpectAndReturn( NULL, &xEndPoint );
     FreeRTOS_NextEndPoint_ExpectAndReturn( NULL, &xEndPoint, NULL );
     DNS_CloseSocket_Expect( &xDNSSocket );
+
+    xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
+
+    TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_ENOENT, xReturn );
+}
+
+/**
+ * @brief Try to get IP address through network but malloc fails while setting
+ * callback
+ */
+void test_FreeRTOS_getaddrinfo_a_IPv6Random_SetCallBackFails( void )
+{
+    BaseType_t xReturn;
+    struct freertos_addrinfo xAddress, * pxAddress = &xAddress;
+    struct freertos_addrinfo xHint, * pxHint = &xHint;
+    uint32_t ulRandom = 0x1234U;
+    struct xSOCKET xDNSSocket;
+    NetworkEndPoint_t xEndPoint;
+
+    memset( &xAddress, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xHint, 0, sizeof( struct freertos_addrinfo ) );
+    memset( &xDNSSocket, 0, sizeof( struct xSOCKET ) );
+    memset( &xEndPoint, 0, sizeof( xEndPoint ) );
+
+    xEndPoint.bits.bIPv6 = pdFALSE;
+
+    xHint.ai_family = FREERTOS_AF_INET6;
+
+    FreeRTOS_inet_pton6_ExpectAndReturn( GOOD_ADDRESS, NULL, 0 );
+    FreeRTOS_inet_pton6_IgnoreArg_pvDestination();
+    Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
+    xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
+    xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdFAIL );
 
     xReturn = FreeRTOS_getaddrinfo_a( GOOD_ADDRESS, "Service", pxHint, &pxAddress, dns_callback, NULL, 0U );
 
@@ -1011,7 +1045,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWithDot( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1080,7 +1114,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWithDot( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1129,7 +1163,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_BindFailWODot( void )
     Prepare_CacheLookup_ExpectAndReturn( LLMNR_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1177,7 +1211,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_BindFailWODot( void )
     Prepare_CacheLookup_ExpectAndReturn( LLMNR_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1219,7 +1253,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_InvalidDNSServerIndex( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1259,7 +1293,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_InvalidDNSServerIndex( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1298,7 +1332,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_UnknownPreference( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1364,7 +1398,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_DNSReplySuccess( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );
@@ -1533,7 +1567,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSSuccess( void )
     Prepare_CacheLookup_ExpectAndReturn( LOCAL_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LOCAL_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( LOCAL_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
@@ -1621,7 +1655,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LocalDNSSuccess( void )
     Prepare_CacheLookup_ExpectAndReturn( LOCAL_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LOCAL_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( LOCAL_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
@@ -1709,7 +1743,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LocalDNSUnknownPreference( void )
     Prepare_CacheLookup_ExpectAndReturn( LOCAL_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LOCAL_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( LOCAL_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
@@ -1781,7 +1815,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LLMNRDNSSuccess( void )
     Prepare_CacheLookup_ExpectAndReturn( LLMNR_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
@@ -1860,7 +1894,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv6Random_LLMNRDNSNoEndPoint( void )
     Prepare_CacheLookup_ExpectAndReturn( LLMNR_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
@@ -1927,7 +1961,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_LLMNRDNSUnknownPreference( void )
     Prepare_CacheLookup_ExpectAndReturn( LLMNR_ADDRESS, FREERTOS_AF_INET4, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE );
+    xDNSSetCallBack_ExpectAndReturn( LLMNR_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdFALSE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAnyArgsAndReturn( &xDNSSocket );
@@ -2180,7 +2214,7 @@ void test_FreeRTOS_getaddrinfo_a_IPv4Random_PortSpecified( void )
     Prepare_CacheLookup_ExpectAndReturn( GOOD_ADDRESS, FREERTOS_AF_INET6, &pxAddress, 0 );
     xApplicationGetRandomNumber_ExpectAnyArgsAndReturn( pdTRUE );
     xApplicationGetRandomNumber_ReturnMemThruPtr_pulNumber( &ulRandom, sizeof( uint32_t ) );
-    vDNSSetCallBack_Expect( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE );
+    xDNSSetCallBack_ExpectAndReturn( GOOD_ADDRESS, NULL, dns_callback, 0U, ulRandom, pdTRUE, pdPASS );
 
     /* In prvGetHostByName */
     DNS_CreateSocket_ExpectAndReturn( 0U, &xDNSSocket );

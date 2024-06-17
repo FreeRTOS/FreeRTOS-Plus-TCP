@@ -608,6 +608,10 @@
         BaseType_t xHasRandom = pdFALSE;
         TickType_t uxIdentifier = 0U;
 
+        #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+            BaseType_t xReturnSetCallback = pdPASS;
+        #endif
+
         #if ( ipconfigUSE_DNS_CACHE != 0 )
             BaseType_t xLengthOk = pdFALSE;
         #endif
@@ -690,12 +694,12 @@
                         if( xHasRandom != pdFALSE )
                         {
                             uxReadTimeOut_ticks = 0U;
-                            vDNSSetCallBack( pcHostName,
-                                             pvSearchID,
-                                             pCallbackFunction,
-                                             uxTimeout,
-                                             ( TickType_t ) uxIdentifier,
-                                             ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
+                            xReturnSetCallback = xDNSSetCallBack( pcHostName,
+                                                                  pvSearchID,
+                                                                  pCallbackFunction,
+                                                                  uxTimeout,
+                                                                  ( TickType_t ) uxIdentifier,
+                                                                  ( xFamily == FREERTOS_AF_INET6 ) ? pdTRUE : pdFALSE );
                         }
                     }
                     else     /* When ipconfigDNS_USE_CALLBACKS enabled, ppxAddressInfo is always non null. */
@@ -707,7 +711,13 @@
             }
             #endif /* if ( ipconfigDNS_USE_CALLBACKS == 1 ) */
 
-            if( ( ulIPAddress == 0U ) && ( xHasRandom != pdFALSE ) )
+            if( ( ulIPAddress == 0U ) &&
+
+                #if ( ipconfigDNS_USE_CALLBACKS == 1 )
+                    ( xReturnSetCallback == pdPASS ) &&
+                #endif
+
+                ( xHasRandom != pdFALSE ) )
             {
                 ulIPAddress = prvGetHostByName( pcHostName,
                                                 uxIdentifier,
