@@ -107,7 +107,7 @@ void test_prvTCPMakeSurePrepared_NotPrepared( void )
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 1000 );
     prvSocketSetMSS_ExpectAnyArgs();
-    vTCPWindowCreate_ExpectAnyArgs();
+    xTCPWindowCreate_ExpectAnyArgsAndReturn( pdPASS );
 
     xResult = prvTCPMakeSurePrepared( pxSocket );
     TEST_ASSERT_EQUAL( pdTRUE, xResult );
@@ -1193,12 +1193,32 @@ void test_prvTCPPrepareConnect_Ready( void )
     eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0x11111111 );
     prvSocketSetMSS_ExpectAnyArgs();
-    vTCPWindowCreate_ExpectAnyArgs();
+    xTCPWindowCreate_ExpectAnyArgsAndReturn( pdPASS );
 
     Return = prvTCPPrepareConnect( pxSocket );
     TEST_ASSERT_EQUAL( pdTRUE, Return );
     TEST_ASSERT_EQUAL( pdTRUE, pxSocket->u.xTCP.bits.bConnPrepared );
     TEST_ASSERT_EQUAL( 0, pxSocket->u.xTCP.ucRepCount );
+}
+
+/* test for prvTCPPrepareConnect function, TCP window creation fails. */
+void test_prvTCPPrepareConnect_Ready_TCPWindowCreateFail( void )
+{
+    BaseType_t Return = pdFALSE;
+
+    pxSocket = &xSocket;
+
+    pxSocket->u.xTCP.ucRepCount = 0;
+    pxSocket->u.xTCP.bits.bConnPrepared = pdFALSE;
+    pxSocket->bits.bIsIPv6 = pdFALSE;
+
+    eARPGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 0x11111111 );
+    prvSocketSetMSS_ExpectAnyArgs();
+    xTCPWindowCreate_ExpectAnyArgsAndReturn( pdFAIL );
+
+    Return = prvTCPPrepareConnect( pxSocket );
+    TEST_ASSERT_EQUAL( pdFAIL, Return );
 }
 
 /* test for prvTCPPrepareConnect function */

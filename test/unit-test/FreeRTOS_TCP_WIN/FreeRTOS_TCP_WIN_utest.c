@@ -242,7 +242,7 @@ void test_vTCPWindowDestroy_list_no_segment_container( void )
     vTCPWindowDestroy( &xWindow );
 }
 
-void test_vTCPWindowCreate_success( void )
+void test_xTCPWindowCreate_success( void )
 {
     TCPWindow_t xWindow = { 0 };
     uint32_t ulRxWindowLength = 0;
@@ -250,6 +250,7 @@ void test_vTCPWindowCreate_success( void )
     uint32_t ulAckNumber = 0;
     uint32_t ulSequenceNumber = 0;
     uint32_t ulMSS = 0;
+    BaseType_t xReturn;
 
     void * mlc = malloc( ipconfigTCP_WIN_SEG_COUNT * sizeof( xTCPSegments[ 0 ] ) );
 
@@ -270,16 +271,17 @@ void test_vTCPWindowCreate_success( void )
     vListInitialise_ExpectAnyArgs();
 
 
-    vTCPWindowCreate( &xWindow,
-                      ulRxWindowLength,
-                      ulTxWindowLength,
-                      ulAckNumber,
-                      ulSequenceNumber,
-                      ulMSS );
+    xReturn = xTCPWindowCreate( &xWindow,
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
     free( mlc );
 }
 
-void test_vTCPWindowCreate_tcp_segment_null( void )
+void test_xTCPWindowCreate_AllocationFailed( void )
 {
     TCPWindow_t xWindow = { 0 };
     uint32_t ulRxWindowLength = 0;
@@ -287,6 +289,38 @@ void test_vTCPWindowCreate_tcp_segment_null( void )
     uint32_t ulAckNumber = 0;
     uint32_t ulSequenceNumber = 0;
     uint32_t ulMSS = 0;
+    BaseType_t xReturn;
+
+    /* ->prvCreateSectors */
+    vListInitialise_ExpectAnyArgs();
+    pvPortMalloc_ExpectAnyArgsAndReturn( NULL );
+
+    /* back */
+    vListInitialise_ExpectAnyArgs();
+    vListInitialise_ExpectAnyArgs();
+    vListInitialise_ExpectAnyArgs();
+    vListInitialise_ExpectAnyArgs();
+    vListInitialise_ExpectAnyArgs();
+
+
+    xReturn = xTCPWindowCreate( &xWindow,
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
+}
+
+void test_xTCPWindowCreate_tcp_segment_null( void )
+{
+    TCPWindow_t xWindow = { 0 };
+    uint32_t ulRxWindowLength = 0;
+    uint32_t ulTxWindowLength = 0;
+    uint32_t ulAckNumber = 0;
+    uint32_t ulSequenceNumber = 0;
+    uint32_t ulMSS = 0;
+    BaseType_t xReturn;
 
     /* ->prvCreateSectors */
     vListInitialise_ExpectAnyArgs();
@@ -299,15 +333,16 @@ void test_vTCPWindowCreate_tcp_segment_null( void )
     vListInitialise_ExpectAnyArgs();
 
 
-    vTCPWindowCreate( &xWindow,
-                      ulRxWindowLength,
-                      ulTxWindowLength,
-                      ulAckNumber,
-                      ulSequenceNumber,
-                      ulMSS );
+    xReturn = xTCPWindowCreate( &xWindow,
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
-void test_vTCPWindowCreate_null_tcpSegment( void )
+void test_xTCPWindowCreate_null_tcpSegment( void )
 {
     TCPWindow_t xWindow = { 0 };
     uint32_t ulRxWindowLength = 0;
@@ -315,6 +350,7 @@ void test_vTCPWindowCreate_null_tcpSegment( void )
     uint32_t ulAckNumber = 0;
     uint32_t ulSequenceNumber = 0;
     uint32_t ulMSS = 0;
+    BaseType_t xReturn;
 
     xTCPSegments = ( TCPSegment_t * ) 32;
 
@@ -324,12 +360,13 @@ void test_vTCPWindowCreate_null_tcpSegment( void )
     vListInitialise_ExpectAnyArgs();
     vListInitialise_ExpectAnyArgs();
 
-    vTCPWindowCreate( &xWindow,
-                      ulRxWindowLength,
-                      ulTxWindowLength,
-                      ulAckNumber,
-                      ulSequenceNumber,
-                      ulMSS );
+    xReturn = xTCPWindowCreate( &xWindow,
+                                ulRxWindowLength,
+                                ulTxWindowLength,
+                                ulAckNumber,
+                                ulSequenceNumber,
+                                ulMSS );
+    TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL( ulRxWindowLength, xWindow.xSize.ulRxWindowLength );
     TEST_ASSERT_EQUAL( ulTxWindowLength, xWindow.xSize.ulTxWindowLength );
 }
