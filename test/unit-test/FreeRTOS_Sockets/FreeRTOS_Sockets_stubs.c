@@ -54,6 +54,8 @@ BaseType_t xRNGStatus;
 BaseType_t xLocalReceiveCallback_Return;
 uint8_t xLocalReceiveCallback_Called = 0;
 
+BaseType_t xTCPWindowLoggingLevel = 0;
+
 /* ======================== Stub Callback Functions ========================= */
 
 EventBits_t xStubForEventGroupWaitBits( EventGroupHandle_t xEventGroup,

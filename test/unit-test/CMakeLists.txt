@@ -18,6 +18,12 @@ if( ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR} )
     message( FATAL_ERROR "In-source build is not allowed. Please build in a separate directory, such as ${PROJECT_SOURCE_DIR}/build." )
 endif()
 
+set(SANITIZE "" CACHE STRING "Comma-separated list of compiler sanitizers to enable; empty string disables.")
+if(NOT ${SANITIZE} STREQUAL "")
+    add_compile_options(-fsanitize=${SANITIZE} -fno-sanitize-recover)
+    add_link_options(-fsanitize=${SANITIZE} -fno-sanitize-recover)
+endif()
+
 # Set global path variables.
 get_filename_component( __MODULE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE )
 set( MODULE_ROOT_DIR ${__MODULE_ROOT_DIR} CACHE INTERNAL "FreeRTOS-Plus-TCP repository root." )
