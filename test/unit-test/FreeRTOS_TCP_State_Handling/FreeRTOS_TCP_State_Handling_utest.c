@@ -1774,6 +1774,8 @@ void test_prvTCPSocketCopy_NullSocketSet( void )
     pxSocket->pxSocketSet = NULL;
     pxSocket->xSelectBits = eSELECT_READ;
 
+    FreeRTOS_GetLocalAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
+    FreeRTOS_GetLocalAddress_IgnoreArg_pxAddress();
     vSocketBind_ExpectAnyArgsAndReturn( 0 );
 
     Result = prvTCPSocketCopy( &MockReturnSocket, pxSocket );
@@ -1798,7 +1800,10 @@ void test_prvTCPSocketCopy_BindError( void )
     pxSocket->u.xTCP.uxTxWinSize = 0x123456;
     pxSocket->pxSocketSet = ( struct xSOCKET_SET * ) 0x1111111;
     pxSocket->xSelectBits = eSELECT_READ;
+    pxSocket->u.xTCP.pxPeerSocket = &MockReturnSocket;
 
+    FreeRTOS_GetLocalAddress_ExpectAndReturn( pxSocket, NULL, pdTRUE );
+    FreeRTOS_GetLocalAddress_IgnoreArg_pxAddress();
     vSocketBind_ExpectAnyArgsAndReturn( 1 );
     vSocketClose_ExpectAnyArgsAndReturn( NULL );
 
@@ -1807,6 +1812,7 @@ void test_prvTCPSocketCopy_BindError( void )
     TEST_ASSERT_NOT_EQUAL( pxSocket->usLocalPort, MockReturnSocket.usLocalPort );
     TEST_ASSERT_EQUAL( pxSocket->u.xTCP.uxTxWinSize, MockReturnSocket.u.xTCP.uxTxWinSize );
     TEST_ASSERT_EQUAL( ( pxSocket->xSelectBits | eSELECT_READ | eSELECT_EXCEPT ), MockReturnSocket.xSelectBits );
+    TEST_ASSERT_EQUAL( pxSocket->u.xTCP.pxPeerSocket, &MockReturnSocket );
 }
 
 /**

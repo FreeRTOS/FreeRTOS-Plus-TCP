@@ -485,18 +485,8 @@ extern NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
     #define vPrintResourceStats()    do {} while( ipFALSE_BOOL )     /**< ipconfigHAS_PRINTF is not defined. Define vPrintResourceStats to a do-while( 0 ). */
 #endif
 
-#if ( ipconfigUSE_TCP != 0 )
-
-/** @brief Set to a non-zero value if one or more TCP message have been processed
- * within the last round. */
-    extern BaseType_t xProcessedTCPMessage;
-#endif
-
-#include "FreeRTOS_IP_Utils.h" /*TODO can be moved after other 2 includes */
-
-
+#include "FreeRTOS_IP_Utils.h"
 #include "FreeRTOS_IPv4.h"
-
 #include "FreeRTOS_IPv6.h"
 
 /* *INDENT-OFF* */

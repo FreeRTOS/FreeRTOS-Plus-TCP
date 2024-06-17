@@ -1,5 +1,5 @@
 # Minimum required version of CMake
-cmake_minimum_required ( VERSION 3.13.0 )
+cmake_minimum_required ( VERSION 3.15.0 )
 
 # Name of the project
 project ( "FreeRTOS+TCP Static analysis"

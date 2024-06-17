@@ -24,12 +24,14 @@
  * http://aws.amazon.com/freertos
  * http://www.FreeRTOS.org
  */
-
 #ifndef LIST_MACRO_H
 #define LIST_MACRO_H
 
 #include <FreeRTOS.h>
+#include <FreeRTOS_IP.h>
 #include <portmacro.h>
 #include <list.h>
+
+BaseType_t prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket );
 
 #endif /* ifndef LIST_MACRO_H */

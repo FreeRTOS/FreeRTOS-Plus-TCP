@@ -56,8 +56,8 @@
 
     #include "FreeRTOS_Routing.h"
 
-    #define EP_DHCPData         pxEndPoint->xDHCPData                 /**< Temporary define to make /single source similar to /multi version. */
-    #define EP_IPv4_SETTINGS    pxEndPoint->ipv4_settings             /**< Temporary define to make /single source similar to /multi version. */
+    #define EP_DHCPData         pxEndPoint->xDHCPData               /**< Temporary define to make /single source similar to /multi version. */
+    #define EP_IPv4_SETTINGS    pxEndPoint->ipv4_settings           /**< Temporary define to make /single source similar to /multi version. */
 
 
 
@@ -504,10 +504,6 @@
              * '192.168.1.255'. */
             EP_IPv4_SETTINGS.ulBroadcastAddress = EP_DHCPData.ulOfferedIPAddress | ~( EP_IPv4_SETTINGS.ulNetMask );
             EP_DHCPData.eDHCPState = eLeasedAddress;
-
-            /* _HT_ This macro must be removed later.
-             * It is enough to set 'EP_IPv4_SETTINGS.ulIPAddress'. */
-            *ipLOCAL_IP_ADDRESS_POINTER = EP_IPv4_SETTINGS.ulIPAddress;
 
             iptraceDHCP_SUCCEEDED( EP_DHCPData.ulOfferedIPAddress );
 

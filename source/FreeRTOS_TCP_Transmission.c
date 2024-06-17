@@ -64,11 +64,17 @@
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
 
+    static BaseType_t prvTCPMakeSurePrepared( FreeRTOS_Socket_t * pxSocket );
+
 /*
  * Let ARP look-up the MAC-address of the peer and initialise the first SYN
  * packet.
  */
     static BaseType_t prvTCPPrepareConnect( FreeRTOS_Socket_t * pxSocket );
+
+    #if ipconfigIS_ENABLED( ipconfigUSE_TCP_WIN )
+        static uint8_t prvWinScaleFactor( const FreeRTOS_Socket_t * pxSocket );
+    #endif
 
 /*------------------------------------------------------------------------*/
 
@@ -446,8 +452,9 @@
  *       (in FreeRTOS_TCP_WIN.c) needs to know them, along with the Maximum Segment
  *       Size (MSS).
  */
-    void prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
+    BaseType_t prvTCPCreateWindow( FreeRTOS_Socket_t * pxSocket )
     {
+        BaseType_t xReturn;
         uint32_t ulRxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxRxWinSize;
         uint32_t ulTxWindowSize = ( uint32_t ) pxSocket->u.xTCP.uxTxWinSize;
 
@@ -460,13 +467,15 @@
                                      ( unsigned ) pxSocket->u.xTCP.uxRxStreamSize ) );
         }
 
-        vTCPWindowCreate(
+        xReturn = xTCPWindowCreate(
             &pxSocket->u.xTCP.xTCPWindow,
             ulRxWindowSize * ipconfigTCP_MSS,
             ulTxWindowSize * ipconfigTCP_MSS,
             pxSocket->u.xTCP.xTCPWindow.rx.ulCurrentSequenceNumber,
             pxSocket->u.xTCP.xTCPWindow.ulOurSequenceNumber,
             ( uint32_t ) pxSocket->u.xTCP.usMSS );
+
+        return xReturn;
     }
     /*-----------------------------------------------------------*/
 

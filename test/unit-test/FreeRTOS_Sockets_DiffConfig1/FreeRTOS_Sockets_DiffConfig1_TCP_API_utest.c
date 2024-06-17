@@ -39,7 +39,7 @@
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "mock_Sockets_DiffConfig2_list_macros.h"
+#include "mock_Sockets_DiffConfig1_list_macros.h"
 
 #include "FreeRTOS_Sockets.h"
 
@@ -50,7 +50,9 @@
 /* ============================ EXTERN VARIABLES ============================ */
 
 /* 2001::1 */
-static IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+static const IPv6_Address_t xIPv6Address = { { 0x20, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
+
+BaseType_t xTCPWindowLoggingLevel = 0;
 
 /* =============================== Test Cases =============================== */
 

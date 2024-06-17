@@ -26,6 +26,11 @@
 
 /*-------------------------------------Extern Variables--------------------------*/
 
+void vDHCPProcessEndPoint( BaseType_t xReset,
+                           BaseType_t xDoCheck,
+                           NetworkEndPoint_t * pxEndPoint );
+BaseType_t xProcessCheckOption( ProcessSet_t * pxSet );
+
 extern Socket_t xDHCPv4Socket;
 extern DHCPData_t xDHCPData;
 
@@ -47,6 +52,38 @@ extern uint8_t GlobalBufferCounter;
 extern uint8_t pucUDPBuffer[];
 
 extern uint8_t DHCP_header[];
+
+/*-------------------------------------Helpers--------------------------------*/
+
+static void prvWriteDHCPOption( uint8_t ** ppucBuf,
+                                uint8_t ucOp,
+                                const void * pvPayload,
+                                uint8_t ucLen )
+{
+    uint8_t * pucBuf = *ppucBuf;
+
+    *pucBuf++ = ucOp;
+    *pucBuf++ = ucLen;
+    memcpy( pucBuf, pvPayload, ucLen );
+    pucBuf += ucLen;
+
+    *ppucBuf = pucBuf;
+}
+
+static void prvWriteDHCPOptionU8( uint8_t ** ppucBuf,
+                                  uint8_t ucOp,
+                                  uint8_t ucPayload )
+{
+    prvWriteDHCPOption( ppucBuf, ucOp, &ucPayload, sizeof( ucPayload ) );
+}
+
+static void prvWriteDHCPOptionU32( uint8_t ** ppucBuf,
+                                   uint8_t ucOp,
+                                   uint32_t ulPayload )
+{
+    /* TBD: htonl(ulPayload)? */
+    prvWriteDHCPOption( ppucBuf, ucOp, &ulPayload, sizeof( ulPayload ) );
+}
 
 /*---------------------------------------Test Cases--------------------------*/
 void test_xIsDHCPSocket( void )
@@ -136,9 +173,10 @@ void test_vDHCPProcess_ResetAndInvalidSocket( void )
 void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketCreationFail( void )
 {
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
         xDHCPv4Socket = NULL;
@@ -183,9 +221,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketSuccess( void )
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should get assigned to a given value. */
         xDHCPv4Socket = NULL;
@@ -236,9 +275,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithRNGSuccessSocketBindFail( void 
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should remain unchanged. */
         xDHCPv4Socket = NULL;
@@ -278,9 +318,10 @@ void test_vDHCPProcess_ResetAndIncorrectStateWithSocketAlreadyCreated( void )
 {
     struct xSOCKET xTestSocket;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
+    int i;
 
     /* Test all the valid and invalid entries. */
-    for( int i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
+    for( i = 0; i < ( eNotUsingLeasedAddress * 2 ); i++ )
     {
         /* This should remain unchanged. */
         xDHCPv4Socket = &xTestSocket;
@@ -357,7 +398,6 @@ void test_vDHCPProcess_CorrectStateDHCPHookFailsDHCPSocketNULL( void )
     /* The state should indicate that we are not using leased address. */
     TEST_ASSERT_EQUAL( eNotUsingLeasedAddress, pxEndPoint->xDHCPData.eDHCPState );
     /* Make sure that the Endpoint IP address pointer indicates that. */
-    /*TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, *ipLOCAL_IP_ADDRESS_POINTER ); */
     TEST_ASSERT_EQUAL( pxEndPoint->ipv4_defaults.ulIPAddress, pxEndPoint->ipv4_settings.ulIPAddress );
 }
 
@@ -1546,9 +1586,7 @@ void test_vDHCPProcessEndPoint_eWaitingOfferNullUDPBuffer( void )
 
     pxNetworkEndPoints = pxEndPoint;
 
-    FreeRTOS_recvfrom_ExpectAndReturn( xDHCPv4Socket, NULL, 0UL, FREERTOS_ZERO_COPY, NULL, NULL, 1 );
-    /* Ignore the buffer argument though. */
-    FreeRTOS_recvfrom_IgnoreArg_pvBuffer();
+    FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_Small_NullBuffer );
 
     vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
 }
@@ -1981,9 +2019,7 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotma
 
     pxNetworkEndPoints = pxEndPoint;
 
-    memcpy( &xBackup, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-
-    memset( ipLOCAL_MAC_ADDRESS, 0xAA, sizeof( MACAddress_t ) );
+    memcpy( &xBackup, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Get a stub. */
     FreeRTOS_recvfrom_Stub( FreeRTOS_recvfrom_eWaitingOfferRecvfromSuccess_LocalMACAddrNotMatching );
@@ -1995,8 +2031,6 @@ void test_vDHCPProcess_eWaitingOfferRecvfromSuccess_CorrectAddrLen_LocalMACNotma
     /*xTaskGetTickCount_ExpectAndReturn( pxEndPoint->xDHCPData.xDHCPTxTime + pxEndPoint->xDHCPData.xDHCPTxPeriod ); */
 
     vDHCPProcessEndPoint( pdFALSE, pdTRUE, pxEndPoint );
-
-    memcpy( ipLOCAL_MAC_ADDRESS, &xBackup, sizeof( MACAddress_t ) );
 
     /* DHCP socket should be allocated */
     TEST_ASSERT_EQUAL( &xTestSocket, xDHCPv4Socket );
@@ -2015,7 +2049,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageWithoutOptionsNoTimeout( v
 
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
     ucGenericPtr = DHCPMsg;
     ulGenericLength = sizeof( DHCPMsg );
@@ -2072,7 +2106,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectOptionsNoTimeout(
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2137,7 +2171,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageMissingLengthByteNoTimeout
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2203,7 +2237,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageIncorrectLengthByteNoTimeo
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2271,7 +2305,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2341,7 +2375,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout_MatchingM
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2375,7 +2409,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetNACKNoTimeout_MatchingM
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Set the MAC address that matches. */
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -2413,7 +2447,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageGetACKNoTimeout( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2483,7 +2517,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2516,7 +2550,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout( void )
     pxEndPoint->xDHCPData.xUseBroadcast = pdFALSE;
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -2554,7 +2588,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageOneOptionNoTimeout2( void 
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2628,7 +2662,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2650,7 +2684,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -2674,7 +2708,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendFails( void 
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Make sure that the address matches. */
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     pxNetworkEndPoints = pxEndPoint;
 
@@ -2724,8 +2758,8 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2747,7 +2781,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsSendSucceeds( vo
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -2826,8 +2860,8 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2849,7 +2883,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnDe
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -2926,7 +2960,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -2948,7 +2982,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -2972,7 +3006,7 @@ void test_vDHCPProcess_eWaitingOfferCorrectDHCPMessageTwoOptionsDHCPHookReturnEr
     /* Set the transaction ID which will match. */
     pxEndPoint->xDHCPData.ulTransactionId = 0x01ABCDEF;
     /* Make sure that the address matches. */
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
 
     /* Get a stub. */
@@ -3026,7 +3060,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3048,7 +3082,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerNoTimeout( vo
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -3111,7 +3145,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3133,7 +3167,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBfai
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -3201,7 +3235,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBSuc
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3223,7 +3257,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutGNBSuc
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3296,7 +3330,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3318,7 +3352,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3381,7 +3415,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3403,7 +3437,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsIncorrectServerTimeoutPeriod
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3467,7 +3501,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3489,7 +3523,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3511,7 +3545,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeZero( 
     /* Put correct address. */
     pxEndPoint->xDHCPData.ulDHCPServerAddress = DHCPServerAddress;
     /* Make sure that the address matches. */
-    memcpy( pxEndPoint->xMACAddress.ucBytes, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxEndPoint->xMACAddress.ucBytes, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
 
     /* Reset the lease time so that it will be set to default
      * value later. */
@@ -3567,8 +3601,8 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3590,7 +3624,7 @@ void test_vDHCPProcess_eWaitingAcknowledgeTwoOptionsCorrectServerLeaseTimeLessTh
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3666,8 +3700,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3689,7 +3723,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_CorrectServer_AptLeaseTime
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3764,8 +3798,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3787,7 +3821,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_NACK( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3851,8 +3885,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_OFFER( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3874,7 +3908,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_TwoOptions_OFFER( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
 
     /* Put the information in global variables to be returned by
@@ -3953,8 +3987,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -3976,7 +4010,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -3984,7 +4018,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
+    memcpy( &DHCPOption[ 2 ], &ulSubnetMask, sizeof( ulSubnetMask ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -3992,7 +4026,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
+    memcpy( &DHCPOption[ 2 ], &ulGateway, sizeof( ulGateway ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4000,7 +4034,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
+    memcpy( &DHCPOption[ 2 ], &ulLeaseTime, sizeof( ulLeaseTime ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4008,7 +4042,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulDNSServer;
+    memcpy( &DHCPOption[ 2 ], &ulDNSServer, sizeof( ulDNSServer ) );
 
 
     /* Put the information in global variables to be returned by
@@ -4099,8 +4133,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4122,7 +4156,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4130,7 +4164,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
+    memcpy( &DHCPOption[ 2 ], &ulSubnetMask, sizeof( ulSubnetMask ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4138,7 +4172,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
+    memcpy( &DHCPOption[ 2 ], &ulGateway, sizeof( ulGateway ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4146,7 +4180,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
+    memcpy( &DHCPOption[ 2 ], &ulLeaseTime, sizeof( ulLeaseTime ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4154,7 +4188,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_AllOptionsCorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulDNSServer;
+    memcpy( &DHCPOption[ 2 ], &ulDNSServer, sizeof( ulDNSServer ) );
 
 
     /* Put the information in global variables to be returned by
@@ -4246,8 +4280,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4269,7 +4303,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4277,7 +4311,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
+    memcpy( &DHCPOption[ 2 ], &ulSubnetMask, sizeof( ulSubnetMask ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4285,7 +4319,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
+    memcpy( &DHCPOption[ 2 ], &ulGateway, sizeof( ulGateway ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4293,7 +4327,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
+    memcpy( &DHCPOption[ 2 ], &ulLeaseTime, sizeof( ulLeaseTime ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4301,7 +4335,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 3;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulDNSServer;
+    memcpy( &DHCPOption[ 2 ], &ulDNSServer, sizeof( ulDNSServer ) );
 
 
     /* Put the information in global variables to be returned by
@@ -4359,49 +4393,45 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength( void )
     TEST_ASSERT_EQUAL( xIPv4Addressing->ulNetMask, ulSubnetMask );
 }
 
-void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
+void test_vDHCPProcess_eWaitingAcknowledge_DNSServerOverabundance( void )
 {
     struct xSOCKET xTestSocket;
-    TickType_t xTimeValue = 1234;
 
-    /* Create a bit longer DHCP message but keep it empty. */
-    const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U /* Padding */
-                                    + 3U                                    /* DHCP offer */
-                                    + 6U                                    /* Server IP address */
-                                    + 6U                                    /* Subnet Mask */
-                                    + 6U                                    /* Gateway */
-                                    + 6U                                    /* Lease time */
-                                    + 24U                                   /* DNS server */
-                                    + 1U /* End */;
-    uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     uint32_t ulSubnetMask = 0xFFFFF100;      /* 255.255.241.0 */
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
     uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     uint32_t ulDNSServer = 0xC0010101;       /* 192.1.1.1 */
+    uint8_t DHCPMsg[
+        sizeof( DHCPMessage_IPv4_t )
+        + 2U + sizeof( ( uint8_t ) dhcpMESSAGE_TYPE_ACK )
+        + 2U + sizeof( DHCPServerAddress )
+        + 2U + sizeof( ulSubnetMask )
+        + 2U + sizeof( ulGateway )
+        + 2U + sizeof( ulLeaseTime )
+        + 2U + sizeof( ulDNSServer ) * ( ipconfigENDPOINT_DNS_ADDRESS_COUNT + 1 )
+    ];
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
     IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
-
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
+    size_t xDNSServersToAdd = ipconfigENDPOINT_DNS_ADDRESS_COUNT + 1;
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
     /* Set the client IP address. */
     pxDHCPMessage->ulYourIPAddress_yiaddr = ulClientIPAddress;
 
-    /* Leave one byte for the padding. */
-    uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
+    uint8_t * DHCPOption = &DHCPMsg[ sizeof( DHCPMessage_IPv4_t ) ];
+
     /* Add Message type code. */
     DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
     /* Add length. */
@@ -4409,13 +4439,13 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Add the offer byte. */
     DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
+    DHCPOption += 3;
     /* Add Message type code. */
     DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4423,7 +4453,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
+    memcpy( &DHCPOption[ 2 ], &ulSubnetMask, sizeof( ulSubnetMask ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4431,7 +4461,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
+    memcpy( &DHCPOption[ 2 ], &ulGateway, sizeof( ulGateway ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4439,21 +4469,29 @@ void test_vDHCPProcess_eWaitingAcknowledge_DNSIncorrectLength2( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
+    memcpy( &DHCPOption[ 2 ], &ulLeaseTime, sizeof( ulLeaseTime ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
     DHCPOption[ 0 ] = dhcpIPv4_DNS_SERVER_OPTIONS_CODE;
     /* Add length. */
-    DHCPOption[ 1 ] = 24;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulDNSServer;
+    DHCPOption[ 1 ] = xDNSServersToAdd * sizeof( ulDNSServer );
+    DHCPOption += 2;
 
+    while( xDNSServersToAdd-- > 0U )
+    {
+        memcpy( DHCPOption, &ulDNSServer, sizeof( ulDNSServer ) );
+        DHCPOption += sizeof( ulDNSServer );
+    }
+
+    /* A stop byte shall not be necessary to prevent the DHCP option parser from running off the end of the buffer. */
+    /* *DHCPOption++ = 0xFF; */
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, sizeof( DHCPMsg ) );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
     ucGenericPtr = DHCPMsg;
-    ulGenericLength = sizeof( DHCPMsg ) + 100; /* ulGenericLength is incremented by 100 to have uxDNSCount > ipconfigENDPOINT_DNS_ADDRESS_COUNT scenario */
+    ulGenericLength = sizeof( DHCPMsg );
 
     /* This should remain unchanged. */
     xDHCPv4Socket = &xTestSocket;
@@ -4530,16 +4568,13 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress( void )
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
     IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
-
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4548,53 +4583,16 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress( void )
 
     /* Leave one byte for the padding. */
     uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 1;
-    /* Add the offer byte. */
-    DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    prvWriteDHCPOptionU8( &DHCPOption, dhcpIPv4_MESSAGE_TYPE_OPTION_CODE, dhcpMESSAGE_TYPE_ACK );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE, DHCPServerAddress );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SUBNET_MASK_OPTION_CODE, ulSubnetMask );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_GATEWAY_OPTION_CODE, ulGateway );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_LEASE_TIME_OPTION_CODE, ulLeaseTime );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_DNS_SERVER_OPTIONS_CODE, FREERTOS_INADDR_ANY );
 
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SUBNET_MASK_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_GATEWAY_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_LEASE_TIME_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_DNS_SERVER_OPTIONS_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = FREERTOS_INADDR_ANY;
-
+    *DHCPOption++ = 0xFF;
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, xTotalLength );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -4676,16 +4674,13 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress2( void )
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
     IPV4Parameters_t * xIPv4Addressing = &( pxEndPoint->ipv4_settings );
 
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
-
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4694,53 +4689,16 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectDNSServerAddress2( void )
 
     /* Leave one byte for the padding. */
     uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 1;
-    /* Add the offer byte. */
-    DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    prvWriteDHCPOptionU8( &DHCPOption, dhcpIPv4_MESSAGE_TYPE_OPTION_CODE, dhcpMESSAGE_TYPE_ACK );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE, DHCPServerAddress );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SUBNET_MASK_OPTION_CODE, ulSubnetMask );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_GATEWAY_OPTION_CODE, ulGateway );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_LEASE_TIME_OPTION_CODE, ulLeaseTime );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_DNS_SERVER_OPTIONS_CODE, ipBROADCAST_IP_ADDRESS );
 
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SUBNET_MASK_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_GATEWAY_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_LEASE_TIME_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_DNS_SERVER_OPTIONS_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ipBROADCAST_IP_ADDRESS;
-
+    *DHCPOption++ = 0xFF;
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, xTotalLength );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -4813,9 +4771,6 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
-    uint32_t ulSubnetMask = 0xFFFFF100;      /* 255.255.241.0 */
-    uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
-    uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
 
@@ -4827,8 +4782,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4850,7 +4805,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 4;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     DHCPOption += 6;
     /* Add Message type code. */
@@ -4858,7 +4813,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_IPv4ServerIncorrectLength( void )
     /* Add length. */
     DHCPOption[ 1 ] = 3;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    memcpy( &DHCPOption[ 2 ], &DHCPServerAddress, sizeof( DHCPServerAddress ) );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -4923,29 +4878,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
     const BaseType_t xTotalLength = sizeof( struct xDHCPMessage_IPv4 ) + 1U /* Padding */
                                     + 3U                                    /* DHCP offer */
                                     + 6U                                    /* Server IP address */
-                                    + 6U                                    /* Subnet Mask */
-                                    + 6U                                    /* Gateway */
-                                    + 6U                                    /* Lease time */
+                                    + 5U                                    /* Subnet Mask, truncated */
                                     + 1U /* End */;
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     uint32_t ulSubnetMask = 0xFFFFF100;      /* 255.255.241.0 */
-    uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
-    uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -4954,28 +4902,13 @@ void test_vDHCPProcess_eWaitingAcknowledge_SubnetMaskIncorrectLength( void )
 
     /* Leave one byte for the padding. */
     uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 1;
-    /* Add the offer byte. */
-    DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    prvWriteDHCPOptionU8( &DHCPOption, dhcpIPv4_MESSAGE_TYPE_OPTION_CODE, dhcpMESSAGE_TYPE_ACK );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE, DHCPServerAddress );
+    prvWriteDHCPOption( &DHCPOption, dhcpIPv4_SUBNET_MASK_OPTION_CODE, &ulSubnetMask, 3 );
 
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SUBNET_MASK_OPTION_CODE;
-    /* Add incorrect length. */
-    DHCPOption[ 1 ] = 3;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
+    *DHCPOption++ = 0xFF;
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, xTotalLength );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -5041,27 +4974,22 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
                                     + 6U                                    /* Server IP address */
                                     + 6U                                    /* Subnet Mask */
                                     + 6U                                    /* Gateway */
-                                    + 6U                                    /* Lease time */
                                     + 1U /* End */;
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
     uint32_t ulClientIPAddress = 0xC0A8000A; /* 192.168.0.10 */
     uint32_t ulSubnetMask = 0xFFFFF100;      /* 255.255.241.0 */
     uint32_t ulGateway = 0xC0A80001;         /* 192.168.0.1 */
-    uint32_t ulLeaseTime = 0x00000096;       /* 150 seconds */
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
-
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
 
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5070,36 +4998,21 @@ void test_vDHCPProcess_eWaitingAcknowledge_GatewayIncorrectLength( void )
 
     /* Leave one byte for the padding. */
     uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 1;
-    /* Add the offer byte. */
-    DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    prvWriteDHCPOptionU8( &DHCPOption, dhcpIPv4_MESSAGE_TYPE_OPTION_CODE, dhcpMESSAGE_TYPE_ACK );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE, DHCPServerAddress );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SUBNET_MASK_OPTION_CODE, ulSubnetMask );
 
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SUBNET_MASK_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
-
-    DHCPOption += 6;
     /* Add Message type code. */
     DHCPOption[ 0 ] = dhcpIPv4_GATEWAY_OPTION_CODE;
     /* Add incorrect length. */
     DHCPOption[ 1 ] = 2;
     /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
+    memcpy( &DHCPOption[ 2 ], &ulGateway, sizeof( ulGateway ) );
+    DHCPOption += 6;
+
+    *DHCPOption++ = 0xFF;
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, xTotalLength );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -5166,7 +5079,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
                                     + 6U                                    /* Server IP address */
                                     + 6U                                    /* Subnet Mask */
                                     + 6U                                    /* Gateway */
-                                    + 6U                                    /* Lease time */
+                                    + 5U                                    /* Lease time, truncated */
                                     + 1U /* End */;
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
@@ -5177,16 +5090,13 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
 
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
-
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5195,45 +5105,15 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength( void )
 
     /* Leave one byte for the padding. */
     uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 1;
-    /* Add the offer byte. */
-    DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress;
+    prvWriteDHCPOptionU8( &DHCPOption, dhcpIPv4_MESSAGE_TYPE_OPTION_CODE, dhcpMESSAGE_TYPE_ACK );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE, DHCPServerAddress );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SUBNET_MASK_OPTION_CODE, ulSubnetMask );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_GATEWAY_OPTION_CODE, ulGateway );
+    prvWriteDHCPOption( &DHCPOption, dhcpIPv4_LEASE_TIME_OPTION_CODE, &ulLeaseTime, 3 );
 
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SUBNET_MASK_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_GATEWAY_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_LEASE_TIME_OPTION_CODE;
-    /* Add incorrect length. */
-    DHCPOption[ 1 ] = 3;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
-
+    *DHCPOption++ = 0xFF;
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, xTotalLength );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -5299,7 +5179,7 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength2( void )
                                     + 6U                                    /* Server IP address */
                                     + 6U                                    /* Subnet Mask */
                                     + 6U                                    /* Gateway */
-                                    + 6U                                    /* Lease time */
+                                    + 5U                                    /* Lease time */
                                     + 1U /* End */;
     uint8_t DHCPMsg[ xTotalLength ];
     uint32_t DHCPServerAddress = 0xC0A80001; /* 192.168.0.1 */
@@ -5310,16 +5190,13 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength2( void )
     DHCPMessage_IPv4_t * pxDHCPMessage = ( DHCPMessage_IPv4_t * ) DHCPMsg;
     NetworkEndPoint_t xEndPoint = { 0 }, * pxEndPoint = &xEndPoint;
 
-    DHCPMsg[ xTotalLength - 1U ] = 0xFF;
-
-
     /* Set the header - or at least the start of DHCP message. */
     memset( DHCPMsg, 0, sizeof( DHCPMsg ) );
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5328,45 +5205,15 @@ void test_vDHCPProcess_eWaitingAcknowledge_LeaseTimeIncorrectLength2( void )
 
     /* Leave one byte for the padding. */
     uint8_t * DHCPOption = &DHCPMsg[ sizeof( struct xDHCPMessage_IPv4 ) + 1 ];
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 1;
-    /* Add the offer byte. */
-    DHCPOption[ 2 ] = dhcpMESSAGE_TYPE_ACK;
 
-    DHCPOption += 4;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = DHCPServerAddress + 0x1234;
+    prvWriteDHCPOptionU8( &DHCPOption, dhcpIPv4_MESSAGE_TYPE_OPTION_CODE, dhcpMESSAGE_TYPE_ACK );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SERVER_IP_ADDRESS_OPTION_CODE, DHCPServerAddress + 0x1234 );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_SUBNET_MASK_OPTION_CODE, ulSubnetMask );
+    prvWriteDHCPOptionU32( &DHCPOption, dhcpIPv4_GATEWAY_OPTION_CODE, ulGateway );
+    prvWriteDHCPOption( &DHCPOption, dhcpIPv4_LEASE_TIME_OPTION_CODE, &ulLeaseTime, 3 );
 
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_SUBNET_MASK_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulSubnetMask;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_GATEWAY_OPTION_CODE;
-    /* Add length. */
-    DHCPOption[ 1 ] = 4;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulGateway;
-
-    DHCPOption += 6;
-    /* Add Message type code. */
-    DHCPOption[ 0 ] = dhcpIPv4_LEASE_TIME_OPTION_CODE;
-    /* Add incorrect length. */
-    DHCPOption[ 1 ] = 3;
-    /* Add the offer byte. */
-    *( ( uint32_t * ) &DHCPOption[ 2 ] ) = ulLeaseTime;
-
+    *DHCPOption++ = 0xFF;
+    TEST_ASSERT_EQUAL( DHCPOption - DHCPMsg, xTotalLength );
 
     /* Put the information in global variables to be returned by
      * the FreeRTOS_recvrom. */
@@ -5427,8 +5274,8 @@ void test_vDHCPProcess_eWaitingAcknowledge_IncorrectLengthOfPacket( void )
     /* Copy the header here. */
     memcpy( DHCPMsg, DHCP_header, sizeof( DHCP_header ) );
     /* Make sure that the address matches. */
-    memcpy( pxDHCPMessage->ucClientHardwareAddress, ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
-    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), ipLOCAL_MAC_ADDRESS, sizeof( MACAddress_t ) );
+    memcpy( pxDHCPMessage->ucClientHardwareAddress, xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
+    memcpy( &( pxEndPoint->xMACAddress.ucBytes ), xDefault_MacAddress.ucBytes, sizeof( MACAddress_t ) );
     /* Add the expected cookie. */
     pxDHCPMessage->ulDHCPCookie = dhcpCOOKIE;
 
@@ -5899,7 +5746,7 @@ void test_xProcessCheckOption_LengthByteZero( void )
     BaseType_t xResult;
     ProcessSet_t xSet;
 
-    uint8_t ucUDPPayload[ 1 ];
+    uint8_t ucUDPPayload[ 2 ];
 
     memset( &( ucUDPPayload ), 0, sizeof( ucUDPPayload ) );
 
@@ -5908,7 +5755,7 @@ void test_xProcessCheckOption_LengthByteZero( void )
     xSet.ucOptionCode = dhcpIPv4_MESSAGE_TYPE_OPTION_CODE;
     xSet.pucByte = ucUDPPayload;
     xSet.uxIndex = 0;
-    xSet.uxPayloadDataLength = 2;
+    xSet.uxPayloadDataLength = sizeof( ucUDPPayload );
 
     xResult = xProcessCheckOption( &xSet );
 

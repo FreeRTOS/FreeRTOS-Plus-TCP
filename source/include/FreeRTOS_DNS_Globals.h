@@ -172,6 +172,7 @@
     {
         DNSMessage_t * pxDNSMessageHeader; /**< A pointer to the UDP payload buffer where the DNS message is stored. */
         uint16_t usQuestions;              /**< The number of DNS questions that were asked. */
+        uint16_t usAnswers;                /**< The number of DNS answers that were given. */
         uint8_t * pucUDPPayloadBuffer;     /**< A pointer to the original UDP load buffer. */
         uint8_t * pucByte;                 /**< A pointer that is used while parsing. */
         size_t uxBufferLength;             /**< The total number of bytes received in the UDP payload. */

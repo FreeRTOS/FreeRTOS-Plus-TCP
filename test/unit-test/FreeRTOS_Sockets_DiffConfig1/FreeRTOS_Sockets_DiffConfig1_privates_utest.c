@@ -38,7 +38,7 @@
 
 /* This must come after list.h is included (in this case, indirectly
  * by mock_list.h). */
-#include "mock_Sockets_DiffConfig2_list_macros.h"
+#include "mock_Sockets_DiffConfig1_list_macros.h"
 #include "mock_FreeRTOS_IP_Private.h"
 
 #include "FreeRTOS_Sockets.h"
@@ -53,6 +53,8 @@ BaseType_t prvDetermineSocketSize( BaseType_t xDomain,
                                    BaseType_t xType,
                                    BaseType_t xProtocol,
                                    size_t * pxSocketSize );
+
+BaseType_t xTCPWindowLoggingLevel = 0;
 
 /* ============================== Test Cases ============================== */
 

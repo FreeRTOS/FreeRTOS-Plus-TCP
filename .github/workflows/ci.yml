@@ -9,7 +9,7 @@ on:
 
 env:
   bashPass: \033[32;1mPASSED -
-  bashWarn: \033[33;1mWARNING -
+  bashInfo: \033[33;1mWINFO -
   bashFail: \033[31;1mFAILED -
   bashEnd:  \033[0m
 
@@ -21,35 +21,75 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
       - env:
-          stepName: Build Unit Tests
+          stepName: Install Dependencies
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group::Install Dependencies"
-          git submodule update --checkout
-          cd tools/CMock
-          git submodule update --init vendor/unity
-          cd ../..
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          git submodule update --checkout --init --recursive
+          sudo apt-get update -y
           sudo apt-get install -y lcov
           sudo apt-get install -y unifdef
           sudo apt-get install -y ninja-build
-          echo "::endgroup::"
 
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S test/unit-test -B test/unit-test/build/ -G Ninja
-          cmake --build test/unit-test/build/ --target all
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      # Separate builds for sanitizers and coverage:
+      # These can currently not be combined without branch coverage dilution.
+      - env:
+          stepName: Build Unit Tests (aubsan build)
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake --fresh -G Ninja -S test/unit-test -B test/unit-test/build/ -DSANITIZE=address,undefined
+          ninja -C test/unit-test/build/
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
       - env:
-          stepName: Run Unit Tests
+          stepName: Run Unit Tests (aubsan build)
         name: ${{ env.stepName }}
         shell: bash
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          env ASAN_OPTIONS=detect_odr_violation=0 ctest --test-dir test/unit-test/build/ -E system --output-on-failure
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Build Unit Tests (coverage build)
+        name: ${{ env.stepName }}
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake --fresh -G Ninja -S test/unit-test -B test/unit-test/build/ -DSANITIZE=
+          ninja -C test/unit-test/build/
+
+          echo "::endgroup::"
+          echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+      - env:
+          stepName: Run Unit Tests (coverage build)
+        name: ${{ env.stepName }}
+        shell: bash
+        run: |
+          # ${{ env.stepName }}
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          find test/unit-test/build/ -name '*.gcda' -delete
           ctest --test-dir test/unit-test/build/ -E system --output-on-failure
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -59,8 +99,10 @@ jobs:
         shell: bash
         run: |
           # ${{ env.stepName }}
-          echo "::group::Build Tests"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
           cmake --build test/unit-test/build/ --target coverage
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} Built Coverage Tests ${{ env.bashEnd }}"
 
@@ -142,8 +184,11 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          sudo apt-get update -y
           sudo apt-get install -y libpcap-dev
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -152,9 +197,11 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -163,10 +210,12 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -175,9 +224,11 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -186,10 +237,12 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_IPV6
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_IPV6
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -198,10 +251,12 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_TCP
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV4_TCP
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -210,9 +265,11 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6_TCP
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=ENABLE_ALL_IPV6_TCP
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -221,10 +278,12 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DISABLE_ALL
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -233,10 +292,12 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DEFAULT_CONF
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=DEFAULT_CONF
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -244,7 +305,7 @@ jobs:
           stepName: Build checks (Header Self Contain)
         shell: bash
         run: |
-          cmake -S . -B build -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=HEADER_SELF_CONTAIN
+          cmake -S . -B build -DFREERTOS_PLUS_TCP_ENABLE_BUILD_CHECKS=ON -DFREERTOS_PLUS_TCP_TEST_CONFIGURATION=HEADER_SELF_CONTAIN
           cmake --build build --target clean
           cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DHCP
           cmake --build build --target freertos_plus_tcp_build_test_FreeRTOS_DNS
@@ -264,7 +325,7 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
           sudo apt-get install complexity
           sudo apt-get install uncrustify
           echo "::endgroup::"
@@ -275,7 +336,8 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
           COMPLEXITY_PARAMS="--scores --threshold=10 --horrid-threshold=283"
           TEMP_DIR=./temp
           mkdir -p ${TEMP_DIR}
@@ -289,6 +351,7 @@ jobs:
           find ${TEMP_DIR} -iname '*.c' | xargs complexity ${COMPLEXITY_PARAMS}
           RESULT=$?
           rm -rf ${TEMP_DIR}
+
           echo "::endgroup::"
           if [ "${RESULT}" = "0" ]; then
               echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
@@ -316,8 +379,10 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
           cd git-secrets && sudo make install && cd ..
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -326,9 +391,11 @@ jobs:
         name: ${{ env.stepName }}
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
           git-secrets --register-aws
           git-secrets --scan
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 
@@ -347,10 +414,12 @@ jobs:
         shell: bash
         run: |
           # ${{ env.stepName }}
-          echo "::group:: ${{ env.stepName }}"
+          echo -e "::group::${{ env.bashInfo }} ${{ env.stepName }} ${{ env.bashEnd }}"
+
           git submodule update --init --checkout --recursive
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends gcc-multilib
+
           echo "::endgroup::"
           echo -e "${{ env.bashPass }} ${{ env.stepName }} ${{ env.bashEnd }}"
 

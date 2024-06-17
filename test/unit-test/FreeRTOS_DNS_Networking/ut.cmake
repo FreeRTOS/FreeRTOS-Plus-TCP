@@ -35,12 +35,12 @@ list(APPEND mock_define_list
 
 # ================= Create the library under test here (edit) ==================
 
-add_compile_options(-Wno-pedantic -Wno-div-by-zero -O0 -ggdb3)
+add_compile_options(-Wno-pedantic -ggdb3)
 # list the files you would like to test here
 set(real_source_files ""
         )
 list(APPEND real_source_files
-            ${project_name}/FreeRTOS_UDP_IP_stubs.c
+            ${project_name}/${project_name}_stubs.c
             ${MODULE_ROOT_DIR}/source/FreeRTOS_DNS_Networking.c
 	)
 # list the directories the module under test includes

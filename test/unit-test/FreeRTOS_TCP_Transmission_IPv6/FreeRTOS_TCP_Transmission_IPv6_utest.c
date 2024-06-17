@@ -44,7 +44,10 @@
 #include "mock_NetworkBufferManagement.h"
 #include "mock_FreeRTOS_DHCP.h"
 #include "mock_FreeRTOS_TCP_Utils.h"
+#include "mock_FreeRTOS_TCP_State_Handling.h"
 #include "mock_FreeRTOS_ND.h"
+#include "mock_TCP_Transmission_IPv6_list_macros.h"
+
 
 #include "FreeRTOS_TCP_Transmission.h"
 #include "FreeRTOS_TCP_Transmission_IPv6_stubs.c"
@@ -461,6 +464,7 @@ void test_prvTCPPrepareConnect_IPV6_CacheMiss_ValidEP( void )
     pxGetNetworkBufferWithDescriptor_ExpectAnyArgsAndReturn( NULL );
 
     prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdPASS );
 
     xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
@@ -489,6 +493,7 @@ void test_prvTCPPrepareConnect_IPV6_DefaultCase_ValidEP( void )
     vNDSendNeighbourSolicitation_ExpectAnyArgs();
 
     prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdPASS );
 
     xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
@@ -518,6 +523,7 @@ void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv4( void )
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 10 );
 
     prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdPASS );
 
     xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
@@ -546,11 +552,40 @@ void test_prvTCPPrepareConnect_IPV6_HappyPath_IPv6( void )
     ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 10 );
 
     prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdPASS );
 
     xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
 
     TEST_ASSERT_EQUAL( pdPASS, xReturn );
     TEST_ASSERT_EQUAL_MEMORY( pxSocket->pxEndPoint, pxEndPoint, sizeof( NetworkEndPoint_t ) );
+}
+
+/**
+ * @brief This function validates successfully created a
+ *        packet but the TCP window creation fails.
+ */
+void test_prvTCPPrepareConnect_IPV6_CreateTCPWindowFails( void )
+{
+    FreeRTOS_Socket_t xSocket, * pxSocket = &xSocket;
+    NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
+    NetworkBufferDescriptor_t xNetworkBuffer;
+    BaseType_t xReturn = pdFALSE;
+
+    memset( pxEndPoint, 0, sizeof( NetworkEndPoint_t ) );
+    memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
+    pxSocket->bits.bIsIPv6 = 1;
+    eNDGetCacheEntry_ExpectAnyArgsAndReturn( eARPCacheHit );
+    eNDGetCacheEntry_ReturnThruPtr_ppxEndPoint( &pxEndPoint );
+
+    uxIPHeaderSizeSocket_ExpectAnyArgsAndReturn( ipSIZE_OF_IPv6_HEADER );
+    ulApplicationGetNextSequenceNumber_ExpectAnyArgsAndReturn( 10 );
+
+    prvSocketSetMSS_ExpectAnyArgs();
+    prvTCPCreateWindow_ExpectAnyArgsAndReturn( pdFAIL );
+
+    xReturn = prvTCPPrepareConnect_IPV6( pxSocket );
+
+    TEST_ASSERT_EQUAL( pdFAIL, xReturn );
 }
 
 /**

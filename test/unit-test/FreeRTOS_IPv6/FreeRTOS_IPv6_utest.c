@@ -310,10 +310,10 @@ void test_eHandleIPv6ExtensionHeaders_TCPHappyPath()
     uint8_t ucExtHeaderNum = 7U;
     uint8_t ucProtocol = ipPROTOCOL_TCP;
     NetworkBufferDescriptor_t * pxNetworkBuffer = prvInitializeNetworkDescriptorWithExtensionHeader( ucProtocol );
-    TCPHeader_t * pxProtocolHeader = ( TCPHeader_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH ] );
-    uint8_t * pxPayload;
+    uint8_t * pxPayload = &( pxNetworkBuffer->pucEthernetBuffer[
+                                 ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + TEST_IPv6_DEFAULT_EXTENSION_HEADERS_LENGTH + sizeof( TCPHeader_t )
+                             ] );
 
-    pxPayload = ( uint8_t * ) ( pxProtocolHeader + 1 );
     *pxPayload = 'a';
 
     usGetExtensionHeaderLength_ExpectAndReturn( pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength, NULL, ucExtHeaderNum * 8U );

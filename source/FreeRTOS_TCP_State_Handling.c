@@ -990,8 +990,7 @@
         #endif /* ipconfigSUPPORT_SELECT_FUNCTION */
 
         /* And bind it to the same local port as its parent. */
-        /*TODO xAddress.sin_address.ulIP_IPv4 = *ipLOCAL_IP_ADDRESS_POINTER; */
-        xAddress.sin_port = FreeRTOS_htons( pxSocket->usLocalPort );
+        ( void ) FreeRTOS_GetLocalAddress( pxSocket, &xAddress );
 
         #if ( ipconfigTCP_HANG_PROTECTION == 1 )
         {
@@ -1022,11 +1021,19 @@
 
         pxSocket->u.xTCP.usChildCount++;
 
-        FreeRTOS_debug_printf( ( "Gain: Socket %u now has %u / %u child%s\n",
+        if( pxSocket->u.xTCP.pxPeerSocket == NULL )
+        {
+            pxSocket->u.xTCP.pxPeerSocket = pxNewSocket;
+        }
+
+        FreeRTOS_debug_printf( ( "Gain: Socket %u now has %u / %u child%s me: %p parent: %p peer: %p\n",
                                  pxSocket->usLocalPort,
                                  pxSocket->u.xTCP.usChildCount,
                                  pxSocket->u.xTCP.usBacklog,
-                                 ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren" ) );
+                                 ( pxSocket->u.xTCP.usChildCount == 1U ) ? "" : "ren",
+                                 ( void * ) pxNewSocket,
+                                 ( void * ) pxSocket,
+                                 pxSocket ? ( void * ) pxSocket->u.xTCP.pxPeerSocket : NULL ) );
 
         /* Now bind the child socket to the same port as the listening socket. */
         if( vSocketBind( pxNewSocket, &xAddress, sizeof( xAddress ), pdTRUE ) != 0 )

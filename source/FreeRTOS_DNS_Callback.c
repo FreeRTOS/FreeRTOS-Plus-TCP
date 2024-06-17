@@ -129,13 +129,14 @@
  * @param[in] uxIdentifier Random number used as ID in the DNS message.
  * @param[in] xIsIPv6 pdTRUE if the address type should be IPv6.
  */
-    void vDNSSetCallBack( const char * pcHostName,
-                          void * pvSearchID,
-                          FOnDNSEvent pCallbackFunction,
-                          TickType_t uxTimeout,
-                          TickType_t uxIdentifier,
-                          BaseType_t xIsIPv6 )
+    BaseType_t xDNSSetCallBack( const char * pcHostName,
+                                void * pvSearchID,
+                                FOnDNSEvent pCallbackFunction,
+                                TickType_t uxTimeout,
+                                TickType_t uxIdentifier,
+                                BaseType_t xIsIPv6 )
     {
+        BaseType_t xReturn = pdPASS;
         size_t lLength = strlen( pcHostName );
 
         /* MISRA Ref 4.12.1 [Use of dynamic memory]. */
@@ -171,9 +172,12 @@
         }
         else
         {
-            FreeRTOS_debug_printf( ( " vDNSSetCallBack : Could not allocate memory: %u bytes",
+            xReturn = pdFAIL;
+            FreeRTOS_debug_printf( ( " xDNSSetCallBack : Could not allocate memory: %u bytes",
                                      ( unsigned ) ( sizeof( *pxCallback ) + lLength ) ) );
         }
+
+        return xReturn;
     }
 /*-----------------------------------------------------------*/
 

@@ -31,14 +31,20 @@
   "CBMCFLAGS":
   [
     "--unwind 1",
+    "--unwindset __CPROVER_file_local_FreeRTOS_TCP_IP_c_vTCPRemoveTCPChild.0:1",
     "--nondet-static"
   ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
+    "$(FREERTOS_PLUS_TCP)/test/FreeRTOS-Kernel/list.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_IP.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_TCP_Transmission.goto"
+  ],
+  "OPT":
+  [
+    "--export-file-local-symbols"
   ],
   "DEF":
   [

@@ -1,5 +1,5 @@
 # Set the required version.
-cmake_minimum_required( VERSION 3.13.0 )
+cmake_minimum_required( VERSION 3.15.0 )
 
 # Set the unit-test project.
 project( "FreeRTOS-Plus-TCP test"
@@ -10,12 +10,18 @@ project( "FreeRTOS-Plus-TCP test"
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
 # Use C90.
-set( CMAKE_C_STANDARD 99 )
+set( CMAKE_C_STANDARD 90 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 
 # Do not allow in-source build.
 if( ${PROJECT_SOURCE_DIR} STREQUAL ${PROJECT_BINARY_DIR} )
     message( FATAL_ERROR "In-source build is not allowed. Please build in a separate directory, such as ${PROJECT_SOURCE_DIR}/build." )
+endif()
+
+set(SANITIZE "" CACHE STRING "Comma-separated list of compiler sanitizers to enable; empty string disables.")
+if(NOT ${SANITIZE} STREQUAL "")
+    add_compile_options(-fsanitize=${SANITIZE} -fno-sanitize-recover)
+    add_link_options(-fsanitize=${SANITIZE} -fno-sanitize-recover)
 endif()
 
 # Set global path variables.
@@ -283,7 +289,7 @@ include( ${UNIT_TEST_DIR}/FreeRTOS_IP_Timers/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_ND/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig/ut.cmake )
-include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig2/ut.cmake )
+include( ${UNIT_TEST_DIR}/FreeRTOS_Sockets_DiffConfig1/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_Stream_Buffer/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_RA/ut.cmake )
 include( ${UNIT_TEST_DIR}/FreeRTOS_UDP_IP/ut.cmake )
@@ -312,58 +318,65 @@ add_custom_target( coverage
     COMMAND ${CMAKE_COMMAND} -P ${MODULE_ROOT_DIR}/test/unit-test/cmock/coverage.cmake
     DEPENDS cmock unity
     FreeRTOS_ARP_utest
+    FreeRTOS_ARP_DataLenLessThanMinPacket_utest
     FreeRTOS_BitConfig_utest
     FreeRTOS_DHCP_utest
     FreeRTOS_DHCPv6_utest
-    FreeRTOS_UDP_IP_utest
-    FreeRTOS_UDP_IPv4_utest
-    FreeRTOS_UDP_IPv6_utest
+    FreeRTOS_DNS_utest
+    FreeRTOS_DNS_Cache_utest
+    FreeRTOS_DNS_Callback_utest
+    FreeRTOS_DNS_ConfigNoCallback_utest
+    FreeRTOS_DNS_Networking_utest
+    FreeRTOS_DNS_Parser_utest
+    FreeRTOS_ICMP_utest
+    FreeRTOS_ICMP_wo_assert_utest
     FreeRTOS_IP_utest
     FreeRTOS_IP_DiffConfig_utest
     FreeRTOS_IP_DiffConfig1_utest
     FreeRTOS_IP_DiffConfig2_utest
     FreeRTOS_IP_DiffConfig3_utest
-    FreeRTOS_ICMP_utest
+    FreeRTOS_IP_Timers_utest
     FreeRTOS_IP_Utils_utest
     FreeRTOS_IP_Utils_DiffConfig_utest
+    FreeRTOS_IPv4_utest
+    FreeRTOS_IPv4_DiffConfig_utest
+    FreeRTOS_IPv4_DiffConfig1_utest
+    FreeRTOS_IPv4_Sockets_utest
     FreeRTOS_IPv4_Utils_utest
+    FreeRTOS_IPv6_utest
+    FreeRTOS_IPv6_ConfigDriverCheckChecksum_utest
     FreeRTOS_IPv6_Utils_utest
-    FreeRTOS_IP_Timers_utest
-    FreeRTOS_Stream_Buffer_utest
-    FreeRTOS_DNS_utest
-    FreeRTOS_DNS_ConfigNoCallback_utest
     FreeRTOS_ND_utest
     FreeRTOS_RA_utest
-    FreeRTOS_TCP_WIN_utest
-    FreeRTOS_Tiny_TCP_utest
-    FreeRTOS_TCP_Reception_utest
-    FreeRTOS_TCP_State_Handling_utest
-    FreeRTOS_TCP_State_Handling_IPv4_utest
-    FreeRTOS_TCP_State_Handling_IPv6_utest
-    FreeRTOS_TCP_Transmission
-    FreeRTOS_TCP_Transmission_IPv6
-    FreeRTOS_TCP_IP
-    FreeRTOS_TCP_Utils
-    FreeRTOS_TCP_Utils_IPv6_utest
+    FreeRTOS_Routing_utest
+    FreeRTOS_Routing_ConfigCompatibleWithSingle_utest
+    FreeRTOS_Routing_ConfigV4Only_utest
     FreeRTOS_Sockets_GenericAPI_utest
     FreeRTOS_Sockets_privates_utest
     FreeRTOS_Sockets_TCP_API_utest
     FreeRTOS_Sockets_UDP_API_utest
     FreeRTOS_Sockets_DiffConfig_privates_utest
-    FreeRTOS_Sockets_DiffConfig2_GenericAPI_utest
-    FreeRTOS_Sockets_DiffConfig2_privates_utest
-    FreeRTOS_Sockets_DiffConfig2_TCP_API_utest
-    FreeRTOS_Sockets_DiffConfig2_UDP_API_utest
+    FreeRTOS_Sockets_DiffConfig1_GenericAPI_utest
+    FreeRTOS_Sockets_DiffConfig1_privates_utest
+    FreeRTOS_Sockets_DiffConfig1_TCP_API_utest
+    FreeRTOS_Sockets_DiffConfig1_UDP_API_utest
     FreeRTOS_Sockets_IPv6_utest
-    FreeRTOS_IPv6_utest
-    FreeRTOS_IPv6_ConfigDriverCheckChecksum_utest
-    FreeRTOS_IPv4_utest
-    FreeRTOS_IPv4_DiffConfig_utest
-    FreeRTOS_IPv4_DiffConfig1_utest
-    FreeRTOS_IPv4_Sockets_utest
-    FreeRTOS_Routing_utest
-    FreeRTOS_Routing_ConfigV4Only_utest
-    FreeRTOS_Routing_ConfigCompatibleWithSingle_utest
+    FreeRTOS_Stream_Buffer_utest
+    FreeRTOS_TCP_IP_utest
+    FreeRTOS_TCP_IP_DiffConfig_utest
+    FreeRTOS_TCP_Reception_utest
+    FreeRTOS_TCP_State_Handling_utest
+    FreeRTOS_TCP_State_Handling_IPv4_utest
+    FreeRTOS_TCP_State_Handling_IPv6_utest
+    FreeRTOS_TCP_Transmission_utest
+    FreeRTOS_TCP_Transmission_IPv6_utest
+    FreeRTOS_TCP_Utils_utest
+    FreeRTOS_TCP_Utils_IPv6_utest
+    FreeRTOS_TCP_WIN_utest
+    FreeRTOS_Tiny_TCP_utest
+    FreeRTOS_UDP_IP_utest
+    FreeRTOS_UDP_IPv4_utest
+    FreeRTOS_UDP_IPv6_utest
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 

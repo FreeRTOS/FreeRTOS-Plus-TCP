@@ -34,7 +34,6 @@
 
 #define TEST                                1
 
-#define ipconfigMULTI_INTERFACE             1
 #define ipconfigIPv4_BACKWARD_COMPATIBLE    1
 
 #define ipconfigUSE_IPv4                    ( 1 )

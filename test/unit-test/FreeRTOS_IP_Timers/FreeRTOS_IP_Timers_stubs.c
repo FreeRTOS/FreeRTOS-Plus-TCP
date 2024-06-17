@@ -44,35 +44,12 @@ volatile BaseType_t xInsideInterrupt = pdFALSE;
 
 NetworkBufferDescriptor_t * pxARPWaitingNetworkBuffer;
 
-BaseType_t xProcessedTCPMessage;
-
 struct xNetworkEndPoint * pxNetworkEndPoints;
 struct xNetworkInterface * pxNetworkInterfaces;
-
-/** @brief The expected IP version and header length coded into the IP header itself. */
-#define ipIP_VERSION_AND_HEADER_LENGTH_BYTE    ( ( uint8_t ) 0x45 )
 
 const MACAddress_t xLLMNR_MacAddress = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0xfc } };
 
 QueueHandle_t xNetworkEventQueue;
-
-UDPPacketHeader_t xDefaultPartUDPPacketHeader =
-{
-    /* .ucBytes : */
-    {
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66,  /* Ethernet source MAC address. */
-        0x08, 0x00,                          /* Ethernet frame type. */
-        ipIP_VERSION_AND_HEADER_LENGTH_BYTE, /* ucVersionHeaderLength. */
-        0x00,                                /* ucDifferentiatedServicesCode. */
-        0x00, 0x00,                          /* usLength. */
-        0x00, 0x00,                          /* usIdentification. */
-        0x00, 0x00,                          /* usFragmentOffset. */
-        ipconfigUDP_TIME_TO_LIVE,            /* ucTimeToLive */
-        ipPROTOCOL_UDP,                      /* ucProtocol. */
-        0x00, 0x00,                          /* usHeaderChecksum. */
-        0x00, 0x00, 0x00, 0x00               /* Source IP address. */
-    }
-};
 
 void vPortEnterCritical( void )
 {

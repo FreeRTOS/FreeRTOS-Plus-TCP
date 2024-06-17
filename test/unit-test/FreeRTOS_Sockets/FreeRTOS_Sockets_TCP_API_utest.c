@@ -128,6 +128,34 @@ void test_FreeRTOS_accept_ClientSocketTaken( void )
 
     pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
     TEST_ASSERT_EQUAL( NULL, pxReturn );
+}
+
+/**
+ * @brief Client socket is already taken.
+ */
+void test_FreeRTOS_accept_PeerSocketNullWithReuseSocket( void )
+{
+    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+
+    memset( &xServerSocket, 0, sizeof( xServerSocket ) );
+    memset( &xPeerSocket, 0, sizeof( xPeerSocket ) );
+
+    /* Invalid Protocol */
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    xServerSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xServerSocket.u.xTCP.eTCPState = eTCP_LISTEN;
+
+    xServerSocket.u.xTCP.pxPeerSocket = NULL;
+    xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+    xServerSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+
+    pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
+    TEST_ASSERT_EQUAL( &xServerSocket, pxReturn );
     TEST_ASSERT_EQUAL( NULL, xServerSocket.u.xTCP.pxPeerSocket );
 }
 
@@ -1503,6 +1531,7 @@ void test_FreeRTOS_shutdown_Invalid( void )
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
     BaseType_t xHow;
+    int i;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
@@ -1521,7 +1550,7 @@ void test_FreeRTOS_shutdown_Invalid( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EOPNOTSUPP, xReturn );
 
     /* Invalid state. */
-    for( int i = 0; i < 255; i++ )
+    for( i = 0; i < 255; i++ )
     {
         if( i != eESTABLISHED )
         {
@@ -1736,6 +1765,7 @@ void test_FreeRTOS_connstatus( void )
 {
     BaseType_t xReturn;
     FreeRTOS_Socket_t xSocket;
+    uint8_t i;
 
     memset( &xSocket, 0, sizeof( xSocket ) );
 
@@ -1744,7 +1774,7 @@ void test_FreeRTOS_connstatus( void )
     TEST_ASSERT_EQUAL( -pdFREERTOS_ERRNO_EINVAL, xReturn );
 
     /* Valid Protocol. Invalid State. */
-    for( uint8_t i = 0; i < 125; i++ )
+    for( i = 0; i < 125; i++ )
     {
         xSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
         xSocket.u.xTCP.eTCPState = i;
