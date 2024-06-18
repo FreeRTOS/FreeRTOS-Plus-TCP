@@ -200,7 +200,7 @@ FreeRTOS_Socket_t * prvHandleListen_IPV4( FreeRTOS_Socket_t * pxSocket,
                 /* Close the socket if it was newly created. */
                 if( xIsNewSocket == pdTRUE )
                 {
-                    vSocketClose( pxReturn );
+                    ( void ) vSocketClose( pxReturn );
                 }
 
                 pxReturn = NULL;
