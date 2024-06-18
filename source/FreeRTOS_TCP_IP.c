@@ -277,6 +277,10 @@
     static BaseType_t vTCPRemoveTCPChild( const FreeRTOS_Socket_t * pxChildSocket )
     {
         BaseType_t xReturn = pdFALSE;
+
+        /* MISRA Ref 11.3.1 [Misaligned access] */
+        /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-113 */
+        /* coverity[misra_c_2012_rule_11_3_violation] */
         const ListItem_t * pxEnd = ( ( const ListItem_t * ) &( xBoundTCPSocketsList.xListEnd ) );
 
         /* MISRA Ref 11.3.1 [Misaligned access] */

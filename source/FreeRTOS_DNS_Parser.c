@@ -330,6 +330,7 @@
                         #if ( ipconfigUSE_DNS_CACHE == 1 ) || ( ipconfigDNS_USE_CALLBACKS == 1 )
                             uxResult = DNS_ReadNameField( &xSet,
                                                           sizeof( xSet.pcName ) );
+                            ( void ) uxResult;
                         #endif
                     }
                 }
@@ -359,6 +360,7 @@
                         {
                             uxResult = DNS_ReadNameField( &xSet,
                                                           sizeof( xSet.pcName ) );
+                            ( void ) uxResult;
                         }
                         else
                     #endif /* ipconfigUSE_DNS_CACHE || ipconfigDNS_USE_CALLBACKS */
