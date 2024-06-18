@@ -155,7 +155,7 @@
                 vDNSTimerReload( FreeRTOS_min_uint32( 1000U, ( uint32_t ) uxTimeout ) );
             }
 
-            ( void ) strcpy( pxCallback->pcName, pcHostName );
+            ( void ) strncpy( pxCallback->pcName, pcHostName, lLength + 1U );
             pxCallback->pCallbackFunction = pCallbackFunction;
             pxCallback->pvSearchID = pvSearchID;
             pxCallback->uxRemainingTime = uxTimeout;
