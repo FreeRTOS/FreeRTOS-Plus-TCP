@@ -73,8 +73,8 @@ void vApplicationDaemonTaskStartupHook( void )
 {
 }
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
-                                     StackType_t ** ppxTimerTaskStackBuffer,
-                                     configSTACK_DEPTH_TYPE * puxTimerTaskStackSize )
+                                         StackType_t ** ppxTimerTaskStackBuffer,
+                                         configSTACK_DEPTH_TYPE * puxTimerTaskStackSize )
 {
 }
 void vPortDeleteThread( void * pvTaskToDelete )
