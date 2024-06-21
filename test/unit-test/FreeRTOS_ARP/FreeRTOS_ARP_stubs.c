@@ -77,8 +77,8 @@ void vApplicationDaemonTaskStartupHook( void )
 {
 }
 void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
-                                         StackType_t ** ppxTimerTaskStackBuffer,
-                                         configSTACK_DEPTH_TYPE * puxTimerTaskStackSize )
+                                     StackType_t ** ppxTimerTaskStackBuffer,
+                                     uint32_t * pulTimerTaskStackSize )
 {
 }
 void vPortDeleteThread( void * pvTaskToDelete )
@@ -125,7 +125,7 @@ void vPortCloseRunningThread( void * pvTaskToDelete,
 }
 void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
                                     StackType_t ** ppxIdleTaskStackBuffer,
-                                    configSTACK_DEPTH_TYPE * puxIdleTaskStackSize )
+                                    uint32_t * pulIdleTaskStackSize )
 {
 }
 void vConfigureTimerForRunTimeStats( void )
