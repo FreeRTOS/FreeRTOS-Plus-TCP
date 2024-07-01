@@ -60,13 +60,12 @@ FetchContent_Declare( freertos_plus_tcp
   - this particular example supports a native and cross-compiled build option.
 
 ```cmake
-set( FREERTOS_PLUS_FAT_DEV_SUPPORT OFF CACHE BOOL "" FORCE)
 # Select the native compile PORT
-set( FREERTOS_PLUS_FAT_PORT "POSIX" CACHE STRING "" FORCE)
-# Select the cross-compile PORT
+set( FREERTOS_PLUS_TCP_NETWORK_IF "POSIX" CACHE STRING "" FORCE)
+# Or: select a cross-compile PORT
 if (CMAKE_CROSSCOMPILING)
-  # Eg. Zynq 2019_3 version of port
-  set(FREERTOS_PLUS_FAT_PORT "ZYNQ_2019_3" CACHE STRING "" FORCE)
+  # Eg. STM32Hxx version of port
+  set(FREERTOS_PLUS_TCP_NETWORK_IF "STM32HXX" CACHE STRING "" FORCE)
 endif()
 
 FetchContent_MakeAvailable(freertos_plus_tcp)
