@@ -128,6 +128,34 @@ void test_FreeRTOS_accept_ClientSocketTaken( void )
 
     pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
     TEST_ASSERT_EQUAL( NULL, pxReturn );
+}
+
+/**
+ * @brief Client socket is already taken.
+ */
+void test_FreeRTOS_accept_PeerSocketNullWithReuseSocket( void )
+{
+    FreeRTOS_Socket_t xServerSocket, * pxReturn, xPeerSocket;
+    struct freertos_sockaddr xAddress;
+    socklen_t xAddressLength;
+
+    memset( &xServerSocket, 0, sizeof( xServerSocket ) );
+    memset( &xPeerSocket, 0, sizeof( xPeerSocket ) );
+
+    /* Invalid Protocol */
+    listLIST_ITEM_CONTAINER_ExpectAnyArgsAndReturn( &xBoundTCPSocketsList );
+    xServerSocket.ucProtocol = FREERTOS_IPPROTO_TCP;
+    xServerSocket.u.xTCP.eTCPState = eTCP_LISTEN;
+
+    xServerSocket.u.xTCP.pxPeerSocket = NULL;
+    xServerSocket.u.xTCP.bits.bPassAccept = pdTRUE_UNSIGNED;
+    xServerSocket.u.xTCP.bits.bReuseSocket = pdTRUE_UNSIGNED;
+
+    vTaskSuspendAll_Expect();
+    xTaskResumeAll_ExpectAndReturn( pdFALSE );
+
+    pxReturn = FreeRTOS_accept( &xServerSocket, &xAddress, &xAddressLength );
+    TEST_ASSERT_EQUAL( &xServerSocket, pxReturn );
     TEST_ASSERT_EQUAL( NULL, xServerSocket.u.xTCP.pxPeerSocket );
 }
 

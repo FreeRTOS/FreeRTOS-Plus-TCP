@@ -52,6 +52,19 @@
 #include "FreeRTOS_ND.h"
 #include "FreeRTOS_RA_stubs.c"
 
+/* ================================  TYPES  ================================= */
+
+#include "pack_struct_start.h"
+struct xEthernetPacketICMPv6RouterAdvertisementPrefixOption
+{
+    EthernetHeader_t xEthernetHeader;              /*  0 + 14 = 14 */
+    IPHeader_IPv6_t xIPHeader;                     /* 14 + 40 = 54 */
+    ICMPRouterAdvertisement_IPv6_t xAdvertisement; /* 54 + 16 = 70 */
+    ICMPPrefixOption_IPv6_t xPrefixOption;         /* 70 + 32 = 102 */
+}
+#include "pack_struct_end.h"
+typedef struct xEthernetPacketICMPv6RouterAdvertisementPrefixOption EthernetPacketICMPv6RouterAdvertisementPrefixOption_t;
+
 /* ===========================  EXTERN VARIABLES  =========================== */
 
 /** The default value for the IPv6-field 'ucVersionTrafficClass'. */
@@ -866,17 +879,15 @@ void test_vReceiveRA_ValidICMPPrefix_IncorrectOption( void )
  */
 void test_vReceiveRA_vRAProccess( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
-    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
     NetworkInterface_t xInterface;
-    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
-    uint8_t * pucBytes;
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     ICMPPrefixOption_IPv6_t * pxPrefixOption;
     ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
 
     memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
-    memset( &xICMPPacket, 0, sizeof( ICMPPacket_IPv6_t ) );
+    memset( &xICMPPacket, 0, sizeof( xICMPPacket ) );
     memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
@@ -884,11 +895,10 @@ void test_vReceiveRA_vRAProccess( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxInterface = &xInterface;
     pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
-    uxNeededSize = raHeaderBytesRA;
-    pxAdvertisement = ( ( ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
+    pxAdvertisement = &xICMPPacket.xAdvertisement;
     pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
 
-    pxPrefixOption = ( ICMPPrefixOption_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption = &xICMPPacket.xPrefixOption;
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
     /* Only 1 option */
     pxPrefixOption->ucLength = 1;
@@ -906,17 +916,15 @@ void test_vReceiveRA_vRAProccess( void )
  */
 void test_vReceiveRA_vRAProcess( void )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer, xNetworkBuffer2;
-    ICMPPacket_IPv6_t xICMPPacket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer, xNetworkBuffer;
+    EthernetPacketICMPv6RouterAdvertisementPrefixOption_t xICMPPacket;
     NetworkInterface_t xInterface;
-    size_t uxIndex = 0U, uxNeededSize, uxOptionsLength;
-    uint8_t * pucBytes;
     NetworkEndPoint_t xEndPoint, * pxEndPoint = &xEndPoint;
     ICMPPrefixOption_IPv6_t * pxPrefixOption;
     ICMPRouterAdvertisement_IPv6_t * pxAdvertisement;
 
     memset( &xNetworkBuffer, 0, sizeof( NetworkBufferDescriptor_t ) );
-    memset( &xICMPPacket, 0, sizeof( ICMPPacket_IPv6_t ) );
+    memset( &xICMPPacket, 0, sizeof( xICMPPacket ) );
     memset( &xInterface, 0, sizeof( NetworkInterface_t ) );
     memset( &xEndPoint, 0, sizeof( NetworkEndPoint_t ) );
 
@@ -924,11 +932,10 @@ void test_vReceiveRA_vRAProcess( void )
     pxNetworkBuffer->pucEthernetBuffer = ( uint8_t * ) &xICMPPacket;
     pxNetworkBuffer->pxInterface = &xInterface;
     pxNetworkBuffer->xDataLength = raHeaderBytesRA + raPrefixOptionlen;
-    uxNeededSize = raHeaderBytesRA;
-    pxAdvertisement = ( ( ICMPRouterAdvertisement_IPv6_t * ) &( xICMPPacket.xICMPHeaderIPv6 ) );
+    pxAdvertisement = &xICMPPacket.xAdvertisement;
     pxAdvertisement->usLifetime = pdTRUE_UNSIGNED;
 
-    pxPrefixOption = ( ICMPPrefixOption_IPv6_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ uxNeededSize ] );
+    pxPrefixOption = &xICMPPacket.xPrefixOption;
     pxPrefixOption->ucType = ndICMP_PREFIX_INFORMATION;
     /* Only 1 option */
     pxPrefixOption->ucLength = 1;

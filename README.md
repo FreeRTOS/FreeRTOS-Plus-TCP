@@ -3,6 +3,12 @@ FreeRTOS-Plus-TCP is a lightweight TCP/IP stack for FreeRTOS. It provides a fami
 
 This library has undergone static code analysis and checks for compliance with the [MISRA coding standard](https://www.misra.org.uk/). Any deviations from the MISRA C:2012 guidelines are documented under [MISRA Deviations](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md). The library is validated for memory safety and data structure invariance through the [CBMC automated reasoning tool](https://www.cprover.org/cbmc/) for the functions that parse data originating from the network. The library is also protocol tested using Maxwell protocol tester for both IPv4 and IPv6.
 
+**FreeRTOS-Plus-TCP Library V4.2.1
+[source code](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/tree/V4.2.1/source)
+is part of the
+[FreeRTOS 202406.00 LTS](https://github.com/FreeRTOS/FreeRTOS-LTS/tree/202406.00-LTS)
+release.**
+
 ## Getting started
 The easiest way to use version 4.0.0 and later of FreeRTOS-Plus-TCP is to refer the Getting started Guide (found [here](https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/GettingStarted.md))
 Another way is to start with the pre-configured IPv4 Windows Simulator demo (found in [this directory](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Minimal_Windows_Simulator)) or IPv6 Multi-endpoint Windows Simulator demo (found in [this directory](https://github.com/FreeRTOS/FreeRTOS/tree/main/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_IPv6_Demo/IPv6_Multi_WinSim_demo)). That way you will have the correct FreeRTOS source files included, and the correct include paths configured.  Once a demo application is building and executing you can remove the demo application files, and start to add in your own application source files.  See the [FreeRTOS Kernel Quick Start Guide](https://www.freertos.org/FreeRTOS-quick-start-guide.html) for detailed instructions and other useful links.
@@ -45,7 +51,7 @@ Add the following into your project's main or a subdirectory's `CMakeLists.txt`:
 ```cmake
 FetchContent_Declare( freertos_plus_tcp
   GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git
-  GIT_TAG        master #Note: Best practice to use specific git-hash or tagged version
+  GIT_TAG        main #Note: Best practice to use specific git-hash or tagged version
   GIT_SUBMODULES "" # Don't grab any submodules since not latest
 )
 ```
