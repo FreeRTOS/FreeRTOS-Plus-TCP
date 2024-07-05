@@ -602,6 +602,7 @@ static BaseType_t prvNetworkInterfaceOutput( NetworkInterface_t * pxInterface,
             break;
         }
 
+        // ETH_TxPacketConfigTypeDef
         ETH_TxPacketConfig xTxConfig =
         {
             .CRCPadCtrl = ETH_CRC_PAD_INSERT,
@@ -1195,7 +1196,7 @@ static void prvInitMacAddresses( ETH_HandleTypeDef * pxEthHandle,
     #if ipconfigIS_ENABLED( ipconfigUSE_IPv6 )
         prvAddAllowedMACAddress( pxInterface, pcLOCAL_ALL_NODES_MULTICAST_MAC.ucBytes );
         #if ipconfigIS_ENABLED( ipconfigUSE_MDNS )
-            prvAddAllowedMACAddress( pxInterface, xMDNS_MACAddressIPv6.ucBytes );
+            prvAddAllowedMACAddress( pxInterface, xMDNS_MacAddressIPv6.ucBytes );
         #endif
         #if ipconfigIS_ENABLED( ipconfigUSE_LLMNR )
             prvAddAllowedMACAddress( pxInterface, xLLMNR_MacAddressIPv6.ucBytes );
