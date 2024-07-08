@@ -80,3 +80,20 @@ EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
 }
 
 /****************************************************************/
+
+/****************************************************************
+* Abstract xQueueGenericSend
+****************************************************************/
+BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
+                              const void * const pvItemToQueue,
+                              TickType_t xTicksToWait,
+                              const BaseType_t xCopyPosition )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+/****************************************************************/
