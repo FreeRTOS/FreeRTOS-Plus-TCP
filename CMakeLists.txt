@@ -56,6 +56,7 @@ set(FREERTOS_PLUS_TCP_NETWORK_IF "" CACHE STRING "FreeRTOS Plus TCP Network Inte
 set(FREERTOS_PLUS_TCP_NETWORK_IF_LIST
     A_CUSTOM_NETWORK_IF
     ATSAM43 ATSAME5x # AT
+    CMSIS
     DRIVER_SAM
     ESP32
     KSZ8851SNL
@@ -99,6 +100,7 @@ if(NOT FREERTOS_PLUS_TCP_NETWORK_IF IN_LIST FREERTOS_PLUS_TCP_NETWORK_IF_LIST )
         " A_CUSTOM_NETWORK_IF    Target: User Defined\n"
         " ATSAM4E                Target: ATSAM4E            Tested: TODO\n"
         " ATSAME5x               Target: ATSAME5x           Tested: TODO\n"
+        " CMSIS                 Target: Generic CMSIS Driver Tested: TODO\n"
         " DRIVER_SAM             Target: Driver SAM         Tested: TODO\n"
         " ESP32                  Target: ESP-32             Tested: TODO\n"
         " KSZ8851SNL             Target: ksz8851snl         Tested: TODO\n"

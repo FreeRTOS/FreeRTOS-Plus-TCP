@@ -30,6 +30,7 @@ target_link_libraries( freertos_plus_tcp_network_if_common
 #------------------------------------------------------------------------------
 add_subdirectory(ATSAM4E)
 add_subdirectory(ATSAME5x)
+add_subdirectory(CMSIS)
 #add_subdirectory(board_family) - This is only an example.
 add_subdirectory(DriverSAM)
 add_subdirectory(esp32)
