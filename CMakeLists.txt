@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0048 NEW) # project version
 cmake_policy(SET CMP0076 NEW) # full paths
 
@@ -174,4 +174,6 @@ add_subdirectory(source)
 add_subdirectory(tools)
 add_subdirectory(test)
 
-FetchContent_MakeAvailable(freertos_kernel cmock)
+if(PROJECT_IS_TOP_LEVEL)
+    FetchContent_MakeAvailable(freertos_kernel cmock)
+endif()
