@@ -97,3 +97,39 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
 }
 
 /****************************************************************/
+
+/****************************************************************
+* Abstract vTaskSetTimeOutState
+****************************************************************/
+void vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
+{
+}
+
+/****************************************************************/
+
+/****************************************************************
+* Abstract xTaskCheckForTimeOut
+****************************************************************/
+BaseType_t xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut,
+                                 TickType_t * const pxTicksToWait )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+/****************************************************************/
+
+/****************************************************************
+* Abstract xTaskGetTickCount
+****************************************************************/
+TickType_t xTaskGetTickCount( void )
+{
+    TickType_t xReturn;
+
+    return xReturn;
+}
+
+/****************************************************************/
