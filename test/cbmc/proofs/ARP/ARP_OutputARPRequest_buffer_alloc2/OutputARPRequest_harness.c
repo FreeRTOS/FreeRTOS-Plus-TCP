@@ -55,6 +55,15 @@ BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDes
     }
 }
 
+BaseType_t xIsCallingFromIPTask( void )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( xReturn == pdFALSE || xReturn == pdTRUE );
+
+    return xReturn;
+}
+
 void harness()
 {
     BaseType_t xRes = xNetworkBuffersInitialise();
