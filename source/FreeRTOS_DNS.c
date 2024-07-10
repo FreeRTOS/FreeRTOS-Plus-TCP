@@ -150,7 +150,7 @@
  * The MAC-addresses are provided here in case a network
  * interface needs it.
  */
-        const MACAddress_t xMDNS_MACAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
+        const MACAddress_t xMDNS_MacAddressIPv6 = { { 0x33, 0x33, 0x00, 0x00, 0x00, 0xFB } };
     #endif /* ( ipconfigUSE_MDNS == 1 ) && ( ipconfigUSE_IPv6 != 0 ) */
 
 

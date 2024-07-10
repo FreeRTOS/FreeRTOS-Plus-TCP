@@ -71,7 +71,12 @@ uint32_t ulDNSHandlePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer );
     extern const IPv6_Address_t ipMDNS_IP_ADDR_IPv6;
 
 /* The MDNS IPv6 MAC address is 33:33:00:01:00:03 */
-    extern const MACAddress_t xMDNS_MACAddressIPv6;
+
+/* This type-name was formally "misspelled" as
+ * xMDNS_MACAddressIPv6 with "MAC": */
+    extern const MACAddress_t xMDNS_MacAddressIPv6;
+    /* Guarantee backward compatibility. */
+    #define xMDNS_MACAddressIPv6    xMDNS_MacAddressIPv6
 #endif /* ipconfigUSE_MDNS */
 
 /** @brief While doing integration tests, it is necessary to influence the choice
