@@ -398,3 +398,20 @@ void vIPSetARPResolutionTimerEnableState( BaseType_t xEnableState )
 }
 
 /****************************************************************/
+
+/****************************************************************
+* Abstract vIPSetARPResolutionTimerEnableState
+****************************************************************/
+BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
+{
+    __CPROVER_assert( pulNumber != NULL, "The input number cannot be NULL" );
+
+    BaseType_t xReturn;
+
+    *pulNumber = nondet_uint32();
+
+    /* Return some random value. */
+    return xReturn;
+}
+
+/****************************************************************/
